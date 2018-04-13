@@ -1,0 +1,10 @@
+// File: prob1234b.pepcpu
+// Computer Systems, Fifth Edition
+// Problem 12.34(b)
+// Two-byte data bus
+// Fetch the operand specifier and increment PC by 2
+// Assume previous pre-fetch
+
+UnitPre: IR=0x000000, PC=0x01FF, T1=0xAB,Mem[0x01FF]=0xAB,  Mem[0x00200]=0xCD12, S=0
+UnitPost: IR=0x00ABCD, T1=0x12, PC=0x0201
+

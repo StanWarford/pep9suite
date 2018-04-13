@@ -1,0 +1,11 @@
+// File: prob1236d.pepcpu
+// Computer Systems, Fifth Edition
+// Problem 12.36(d)
+// Two-byte data bus
+// RET
+// RTL: PC <- Mem[SP]; SP <- SP+2
+
+UnitPre: IR=0x010000, SP=0xFAFE, Mem[0xFAFE]=0x1234
+UnitPre: N=0, Z=1, V=0, C=1, S=1
+UnitPost: SP=0xFB00, PC=0x1234, N=0, Z=1, V=0, C=1
+

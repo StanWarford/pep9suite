@@ -1,0 +1,11 @@
+// File: prob1236a.pepcpu
+// Computer Systems, Fifth Edition
+// Problem 12.36(a)
+// Two-byte data bus
+// BR main
+// RTL: PC <- Oprnd
+// Immediate addressing: Oprnd = OprndSpec
+
+UnitPre: IR=0x12ABCD
+UnitPost: PC=0xABCD
+

@@ -1,0 +1,16 @@
+// File: fig1221.pepcpu
+// Computer Systems, Fifth Edition
+// Figure 12.21
+// Two-byte data bus
+// Fetch the instruction specifier and increment PC by 1
+// Assume instruction specifier has been pre-fetched
+
+UnitPre: IR=0x000000, PC=0x01FF, T1=0x12, S=0
+UnitPost: IR=0x120000, PC=0x0200
+
+// Fetch instruction specifier.
+1. A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk
+
+// PC <- PC plus 1.
+2. A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+3. A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk

@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1035</width>
+    <height>742</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Pep/9 CPU</string>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>6</number>
+    </property>
+    <property name="topMargin">
+     <number>6</number>
+    </property>
+    <property name="rightMargin">
+     <number>6</number>
+    </property>
+    <property name="bottomMargin">
+     <number>6</number>
+    </property>
+    <item row="0" column="0">
+     <widget class="QSplitter" name="mainSplitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QFrame" name="memoryFrame">
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+      </widget>
+      <widget class="QFrame" name="cpuFrame">
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+      </widget>
+      <widget class="QSplitter" name="codeSplitter">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <widget class="QFrame" name="microcodeFrame">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+       </widget>
+       <widget class="QFrame" name="objectCodeFrame">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1035</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionFile_New"/>
+    <addaction name="actionFile_Open"/>
+    <addaction name="actionFile_Save"/>
+    <addaction name="actionFile_Save_As"/>
+    <addaction name="separator"/>
+    <addaction name="actionFile_Print_Microcode"/>
+    <addaction name="actionFile_Print_Object_Code"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionEdit_Undo"/>
+    <addaction name="actionEdit_Redo"/>
+    <addaction name="separator"/>
+    <addaction name="actionEdit_Cut"/>
+    <addaction name="actionEdit_Copy"/>
+    <addaction name="actionEdit_Paste"/>
+    <addaction name="separator"/>
+    <addaction name="actionEdit_UnComment_Line"/>
+    <addaction name="actionEdit_Auto_Format_Microcode"/>
+    <addaction name="actionEdit_Remove_Error_Messages"/>
+    <addaction name="separator"/>
+    <addaction name="actionEdit_Font"/>
+    <addaction name="actionEdit_Reset_font_to_Default"/>
+   </widget>
+   <widget class="QMenu" name="menuSystem">
+    <property name="title">
+     <string>System</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionSystem_Run"/>
+    <addaction name="actionSystem_Start_Debugging"/>
+    <addaction name="actionSystem_Stop_Debugging"/>
+    <addaction name="separator"/>
+    <addaction name="actionSystem_Clear_CPU"/>
+    <addaction name="actionSystem_Clear_Memory"/>
+    <addaction name="separator"/>
+    <addaction name="actionOne_Byte_Data_Bus_Model"/>
+    <addaction name="actionTwo_Byte_Data_Bus_Model"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionHelp_UsingPep9CPU"/>
+    <addaction name="actionHelp_InteractiveUse"/>
+    <addaction name="actionHelp_MicrocodeUse"/>
+    <addaction name="actionHelp_DebuggingUse"/>
+    <addaction name="actionHelp_Pep9Reference"/>
+    <addaction name="actionHelp_Examples"/>
+    <addaction name="separator"/>
+    <addaction name="actionHelp_About_Pep9CPU"/>
+    <addaction name="actionHelp_About_Qt"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionDark_Mode"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuSystem"/>
+   <addaction name="menuView"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="windowTitle">
+    <string>Toolbar</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionFile_New"/>
+   <addaction name="actionFile_Open"/>
+   <addaction name="actionFile_Save"/>
+   <addaction name="actionEdit_Undo"/>
+   <addaction name="actionEdit_Redo"/>
+   <addaction name="actionHelp"/>
+   <addaction name="actionSystem_Run"/>
+   <addaction name="actionSystem_Start_Debugging"/>
+   <addaction name="actionSystem_Stop_Debugging"/>
+  </widget>
+  <widget class="QToolBar" name="byteConverterToolBar">
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionFile_New">
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
+   </property>
+   <property name="text">
+    <string>New</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionFile_Open">
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionFile_Save">
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionFile_Save_As">
+   <property name="text">
+    <string>Save As...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Undo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/undo.png</normaloff>:/images/undo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Redo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/redo.png</normaloff>:/images/redo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Cut">
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/cut.png</normaloff>:/images/cut.png</iconset>
+   </property>
+   <property name="text">
+    <string>Cut</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Copy">
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/copy.png</normaloff>:/images/copy.png</iconset>
+   </property>
+   <property name="text">
+    <string>Copy</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Paste">
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/paste.png</normaloff>:/images/paste.png</iconset>
+   </property>
+   <property name="text">
+    <string>Paste</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Font">
+   <property name="text">
+    <string>Font...</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionSystem_Clear_CPU">
+   <property name="text">
+    <string>Clear CPU</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionSystem_Clear_Memory">
+   <property name="text">
+    <string>Clear Memory</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionHelp_UsingPep9CPU">
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/help.png</normaloff>:/images/help.png</iconset>
+   </property>
+   <property name="text">
+    <string>Using Pep/9 CPU</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionHelp_InteractiveUse">
+   <property name="text">
+    <string>Interactive Use</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionSystem_Run">
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/run.png</normaloff>:/images/run.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionSystem_Start_Debugging">
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/debugger_start.png</normaloff>:/images/debugger_start.png</iconset>
+   </property>
+   <property name="text">
+    <string>Start Debugging</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionSystem_Stop_Debugging">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/stop.png</normaloff>:/images/stop.png</iconset>
+   </property>
+   <property name="text">
+    <string>Stop Debugging</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+.</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionSystem_Load_Microcode">
+   <property name="text">
+    <string>Load Microcode</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="icon">
+    <iconset resource="pep9cpuresources.qrc">
+     <normaloff>:/images/help.png</normaloff>:/images/help.png</iconset>
+   </property>
+   <property name="text">
+    <string>Help</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+  </action>
+  <action name="actionFile_Print_Microcode">
+   <property name="text">
+    <string>Print Microcode...</string>
+   </property>
+  </action>
+  <action name="actionFile_Print_Object_Code">
+   <property name="text">
+    <string>Print Object Code...</string>
+   </property>
+  </action>
+  <action name="actionEdit_Remove_Error_Messages">
+   <property name="text">
+    <string>Remove Error Messages</string>
+   </property>
+  </action>
+  <action name="actionEdit_Auto_Format_Microcode">
+   <property name="text">
+    <string>Format from Object Code</string>
+   </property>
+   <property name="toolTip">
+    <string>Format From Object Code</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionHelp_About_Pep9CPU">
+   <property name="text">
+    <string>About Pep9CPU</string>
+   </property>
+   <property name="toolTip">
+    <string>About Pep9CPU</string>
+   </property>
+  </action>
+  <action name="actionHelp_About_Qt">
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+  </action>
+  <action name="actionEdit_UnComment_Line">
+   <property name="text">
+    <string>Un/Comment Line</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+/</string>
+   </property>
+  </action>
+  <action name="actionHelp_MicrocodeUse">
+   <property name="text">
+    <string>Microcode Use</string>
+   </property>
+  </action>
+  <action name="actionHelp_DebuggingUse">
+   <property name="text">
+    <string>Debugging Use</string>
+   </property>
+  </action>
+  <action name="actionHelp_Pep9Reference">
+   <property name="text">
+    <string>Pep/9 Reference</string>
+   </property>
+  </action>
+  <action name="actionHelp_Examples">
+   <property name="text">
+    <string>Examples</string>
+   </property>
+  </action>
+  <action name="actionOne_Byte_Data_Bus_Model">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>One-byte Data Bus</string>
+   </property>
+   <property name="toolTip">
+    <string>One-byte Data Bus</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="actionTwo_Byte_Data_Bus_Model">
+   <property name="text">
+    <string>Two-byte Data Bus</string>
+   </property>
+   <property name="toolTip">
+    <string>Two-byte Data Bus</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="actionEdit_Reset_font_to_Default">
+   <property name="text">
+    <string>Reset Font to Default</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset Font to Default</string>
+   </property>
+  </action>
+  <action name="actionDark_Mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Dark Mode</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="pep9cpuresources.qrc"/>
+ </resources>
+ <connections/>
+ <slots>
+  <signal>defaultFonts()</signal>
+  <slot>on_actionEdit_Font_Default_triggered()</slot>
+ </slots>
+</ui>

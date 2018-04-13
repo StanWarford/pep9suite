@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C/DTD HTML 4.01//EN">
+
+<html>
+<head>
+ <title> Pep/9 CPU: Interactive Use </title>
+  <style type="text/css" media="all">
+   img { vertical-align:text-top; }
+   code { font-family:Courier, 'Courier New', monospace; font-size:11pt }
+  </style>
+</head>
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#000033" alink="#0066FF">
+<table bgcolor="#FB9F14" width="100%" cellpadding="2" cellspacing="0" border="0">
+<tr><td>
+<p style="text-align:center; font-family:helvetica, arial, sans-serif; font-size:14pt; font-weight:bold; color: #29315E">
+Interactive Use
+</p>
+</td></tr>
+</table>
+<p>
+With interactive use, the user controls the execution of a single CPU cycle.
+The general process is to make the following settings:
+<p>
+1. <a href="#Memory">Initialize the memory values</a>
+<p>
+2. <a href="#Register">Initialize the register values</a>
+<p>
+3. <a href="#Control">Set the control signals</a>
+<p>
+4. <a href="#Clock">Enable the clock signals</a>
+<p>
+After making these settings, you can click the Clock button at the bottom of the CPU pane to see the effect of the cycle
+on the state of the CPU.
+Before clicking the Clock button, you may click the Copy to Microcode button, which
+will insert a line of microcode text equivalent to your CPU pane settings into the microcode pane at the position of the text cursor.
+See the section Microcode Use for further details of Copy to Microcode.
+<p>
+<img src="qrc:/help/images/clockandcopybuttons.png" alt="clockandcopybuttons" hspace=10 vspace=10>
+<p>
+<h3><a name="Memory">1. Initialize the memory values</a></h3>
+You initialize a memory value by clicking on the value cell in the memory pane on the left side of the main window.
+Enter a one-byte value in hexadecimal then press Enter (Return) or click outside the cell.
+The following figure shows the user entering the hexadecimal value 0xab in the cell at address 0x0001.
+<p>
+<img src="qrc:/help/images/settingmemory.png" alt="settingmemory" hspace=10 vspace=10>
+<p>
+If you want to clear all the values in memory to all zeros select System->Clear Memory from the menu.
+<p>
+<img src="qrc:/help/images/clearmemory.png" alt="clearmemory" hspace=10 vspace=10>
+<h3><a name="Register">2. Initialize the register values</a></h3>
+You initialize a register value by clicking on the register in the CPU pane.
+Enter a two-byte value in hexadecimal then press Enter (Return) or click outside the register.
+The following figure shows the user entering the hexadecimal value 0xabcd in the index register.
+<p>
+<img src="qrc:/help/images/settingregister.png" alt="settingregister" hspace=10 vspace=10>
+<p>
+You can change the value of a NZVC status bit by clicking on the bit, which toggles its value between zero and one.
+The following figure shows the V bit toggled from 0 to 1.
+<p>
+<img src="qrc:/help/images/togglevbit.png" alt="togglevbit" hspace=10 vspace=10>
+<p>
+If you want to clear all the registers in the CPU to all zeros select System->Clear CPU from the menu.
+<p>
+<img src="qrc:/help/images/clearcpu.png" alt="clearcpu" hspace=10 vspace=10>
+<h3><a name="Control">3. Set the control signals</a></h3>
+Each control signal is activated by a GUI widget on the right side of the CPU pane.
+There are five kinds of control signals &mdash; register address signals, multiplexer signals,
+the ALU function signal, the AndZ signal, and the memory read/write signals.
+<p>
+<h4>Register address signals</h4>
+There are three register address signals &mdash; A, B, and C.
+Each signal is five bits and accesses one of the 32 one-byte registers in the two-port register bank.
+To set a register address signal, enter a decimal integer value in the range 0..31.
+<p>
+For example, the following figure shows a register address of 7 for A, 23 for B, and 7 for C.
+Address 7 is the least significant byte of the program counter, and address 23 is the least
+significant of ROM register M1, which has a value of 1.
+<p>
+<img src="qrc:/help/images/registeraddresssignals.png" alt="registeraddresssignals" hspace=10 vspace=10>
+<p>
+ <h4>Multiplexer signals</h4>
+ There are three multiplexer signals &mdash; AMux, MDRMux, and CMux.
+ Each multiplexer control signal determines whether the output comes from the left input or the right input.
+ A zero on a multiplexer control line sends the left input to the output, and a one sends the right input to the output.
+ You set the control signal by clicking on the control signal box.
+ Each click cycles through (1) zero, (2) one, and (3) no input, in sequence.
+ <p>
+ For example, the following figure shows the AMux control signal set to zero, which selects the left (yellow) input,
+ and the CMux control signal set to one, which selects the right (blue) input.
+ <p>
+ <img src="qrc:/help/images/multiplexersignals.png" alt="multiplexersignals" hspace=10 vspace=10>
+ <p>
+ <h4>The ALU function signal</h4>
+ The ALU function signal is a single four-bit value that you enter as a decimal number.
+ The above figure shows a value of one entered for the ALU function, which selects the A plus B function.
+  <p>
+  <h4>The AndZ signal</h4>
+  The AndZ signal determines the function of the AndZ combinational circuit.
+  If the AndZ signal is zero the circuit passes the Z output of the ALU through unchanged.
+  If the AndZ signal is one the circuit performs the AND operation of the Z output of the ALU and current value of the Z bit.
+  You set the AndZ control signal by clicking the control signal box as with the multiplexer signals.
+  The following figure shows the AndZ signal set to one.
+  <p>
+  <img src="qrc:/help/images/andzsignal.png" alt="andzsignal" hspace=10 vspace=10>
+  <p>
+  <h4>The memory read/write signals</h4>
+  The MemRead and MemWrite signals are either asserted or not asserted during a cycle.
+  The corresponding value in the GUI widget is one or blank respectively.
+  You set the value by clicking in the widget, which toggles the signal between one and blank.
+  MemRead and MemWrite cannot be asserted simultaneously.
+  The following figure shows MemWrite asserted.
+  <img src="qrc:/help/images/memreadwrite.png" alt="memreadwrite" hspace=10 vspace=10>
+  <h3><a name="Clock">4. Enable the clock signals</a></h3>
+  There are seven clock signals &mdash; LoadCk, MARCk, MDRCk, CCk, VCk, ZCk, NCk &mdash; that
+  are the clock inputs to the seven sequential circuits in the CPU  &mdash; the register bank,
+  the memory address register, the memory data register, and the C, V, Z, and N status bits respectively.
+  At the end of each cycle you can specify data to be clocked into one or more of these sequential
+  circuits.
+  Click the check box to specify that data is to be clocked into a sequential circuit.
+  The following figure shows the MDRCk check box checked, which specifies that data will be clocked into
+  the memory data register from the MDRMux at the end of the current cycle.
+  <p>
+  <img src="qrc:/help/images/clocksignal.png" alt="clocksignal" hspace=10 vspace=10>
+  <p>
+  </body>
+  </html>

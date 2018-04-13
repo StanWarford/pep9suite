@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Linux version of the config file-->
+<Installer>
+    <Name>Pep 9 CPU</Name>
+    <Version>1.0.0</Version>
+    <Title>Pep 9 CPU Installer</Title>
+    <Publisher>Pepperdine University</Publisher>
+    <ProductUrl>http://computersystemsbook.com/5th-edition/pep9/</ProductUrl>
+    <TargetDir>@HomeDir@/InstallationDirectory</TargetDir>
+    <Watermark>Pep9cpu-icon.png</Watermark>
+    <ControlScript>control.js</ControlScript>
+    <InstallerWindowIcon>icon</InstallerWindowIcon>
+    <InstallerApplicationIcon>icon</InstallerApplicationIcon>
+    <MaintenanceToolName>Pep9CPUpdater</MaintenanceToolName>
+    <RemoteRepositories>
+        <Repository>
+            <DisplayName>Linux Update Repo</DisplayName>
+            <Url>https://raw.githubusercontent.com/Matthew-McRaven/pep9cpudeploy/master/linux</Url>
+        </Repository>
+    </RemoteRepositories>
+</Installer>

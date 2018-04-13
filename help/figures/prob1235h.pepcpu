@@ -1,0 +1,14 @@
+// File: prob1235h.pepcpu
+// Computer Systems, Fifth Edition
+// Problem 12.35(h)
+// Two-byte data bus
+// STWA there,s
+// RTL: Oprnd <- A
+// Stack-relative addressing: Oprnd = Mem[SP + OprndSpec]
+
+UnitPre: A=0x26D1, IR=0xE30010, SP=0xFAFE, S=0
+UnitPost: Mem[0xFB0E]=0x26D1
+
+// UnitPre: A=0x26D1, IR=0xE30010, SP=0xFA7E, S=1
+// UnitPost: Mem[0xFA8E]=0x26D1
+

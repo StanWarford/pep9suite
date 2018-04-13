@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C/DTD HTML 4.01//EN">
+
+<html>
+<head>
+ <title> Pep/9 CPU: Debugging Use </title>
+  <style type="text/css" media="all">
+   img { vertical-align:text-top; }
+   code { font-family:Courier, 'Courier New', monospace; font-size:11pt }
+  </style>
+</head>
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#000033" alink="#0066FF">
+<table bgcolor="#FB9F14" width="100%" cellpadding="2" cellspacing="0" border="0">
+<tr><td>
+<p style="text-align:center; font-family:helvetica, arial, sans-serif; font-size:14pt; font-weight:bold; color: #29315E">
+Debugging Use
+</p>
+</td></tr>
+</table>
+<p>
+The debugger allows you to see the effect of each microcode cycle on the state of the Pep/9 CPU.
+<p>
+<a name = "Topics">Topics:</a>
+<a href="#Starting">Starting the debugger</a>,
+<a href="#Using">Using the debugger</a>,
+<a href="#Stopping">Stopping the debugger</a>,
+
+<h3><a name="Starting">Starting the debugger</a></h3>
+To use the debugger first enter a microcode program in the Microcode pane.
+For example, here is the microprogram for Figure 12.5 from the textbook.
+<p>
+<img src="qrc:/help/images/debugger1.png" alt="debugger1" hspace=10 vspace=10>
+<p>
+Then select
+System->Start Debugging from the menu or click the corresponding Start Debugging icon on the toolbar.
+<p>
+<img src="qrc:/help/images/startdebuggingmenu.png" alt="startdebuggingmenu" hspace=10 vspace=10>
+<img src="qrc:/help/images/startdebuggingicon.png" alt="startdebuggingicon" hspace=10 vspace=10>
+<p>
+Pep/9 CPU will assemble your microprogram and, if there are no errors, will then put the application in debugging mode.
+If there is an assembler error the message will be displayed as described in the section Microcode Use and
+the application will not be in debugging mode.
+You can correct your assembler errors using the techniques explained in that section.
+<p>
+<h3><a name="Using">Using the debugger</a></h3>
+When you are in debugging mode, the two buttons Clock and Copy to Microcode are disabled and the
+two buttons Single Step and Resume are enabled.
+<p>
+<img src="qrc:/help/images/fourbuttonsmicrocodemode.png" alt="fourbuttonsmicrocodemode" hspace=10 vspace=10>
+<p>
+The following scenario shows the process of debugging Figure 12.5.
+When you enter the debugger, the first statement that is <i>about to be</i> executed is highlighted
+in the Source Code pane.
+<p>
+<img src="qrc:/help/images/debugger2.png" alt="debugger2" hspace=10 vspace=10>
+<p>
+The values from the unit test preconditions are displayed in the CPU pane.
+In the figure, the program counter (PC) is set to 0x00FF and the shadow carry bit S is set to 0.
+The byte at memory address 0xFF is set to 0xAB, which is not shown in the figure.
+<p>
+<img src="qrc:/help/images/debugger4.png" alt="debugger4" hspace=10 vspace=10>
+<p>
+In the above figure, the control widgets also correspond to the statement that is about to execute.
+In particular, A is set to 6, which puts the most significant byte of PC on the ABus,
+B is set to 7, which puts the least significant byte of PC on the BBus,
+and MARCk is checked, which will clock those values into the memory address register MARA and MARB.
+<p>
+When you click the Clock button, one cycle executes.
+The highlighted line in the source pane is now the statement <i>that will be executed next</i>.
+<p>
+<img src="qrc:/help/images/debugger5.png" alt="debugger5" hspace=10 vspace=10>
+<p>
+The CPU pane shows the effect of the statement that was just executed.
+In the figure, MARA now has the value 0x00 and MARB has 0xFF, which is correct because 0x00FF is the content of PC.
+<p>
+<img src="qrc:/help/images/debugger7.png" alt="debugger7" hspace=10 vspace=10>
+<p>
+Clicking Single Step two more times results in the following figure.
+The third consecutive MemRead signal is set as specified by the MemRead statement in cycle 4,
+and the content from the data bus is passing through MDRMux and about to be clocked into MDR.
+<p>
+<img src="qrc:/help/images/debugger8.png" alt="debugger8" hspace=10 vspace=10>
+<p>
+Each additional click of the Single Step button executes the next cycle of the microprogram.
+<h3><a name="Stopping">Stopping the debugger</a></h3>
+To exit the debugger, run a microcode sequence to completion by clicking the Resume button,
+select System->Stop Debugging from the menu, or click the corresponding Stop Debugging icon on the toolbar.
+<p>
+<img src="qrc:/help/images/resumebutton.png" alt="resumebutton" hspace=10 vspace=10>
+<img src="qrc:/help/images/stopdebuggingmenu.png" alt="stopdebuggingmenu" hspace=10 vspace=10>
+<img src="qrc:/help/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
+
+<p>
+
+</body>
+</html>
