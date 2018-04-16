@@ -8,12 +8,15 @@ namespace PepColors{
         QColor comment;
         QColor rightOfExpression;
         QColor leftOfExpression;
+        QColor memoryHighlight;
+
         QColor seqCircuitColor;
         QColor combCircuitRed;
         QColor muxCircuitRed; // A sightly lighter shade of combCircuitRed that is a better background for text
         QColor combCircuitBlue;
         QColor muxCircuitBlue; // A sightly lighter shade of combCircuitBlue that is a better background for text
         QColor aluColor;
+        QColor aluOutline;
         QColor combCircuitYellow;
         QColor muxCircuitYellow; // A sightly lighter shade of combCircuitYellow that is a better background for text
         QColor combCircuitGreen;

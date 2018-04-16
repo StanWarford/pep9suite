@@ -8,7 +8,10 @@ MicrocodeProgram::MicrocodeProgram(): programVec(),preconditionsVec(),postcondit
 
 MicrocodeProgram::~MicrocodeProgram()
 {
-
+    for(int it = 0;it< programVec.length();it++)
+    {
+        delete programVec[it];
+    }
 }
 
 MicrocodeProgram::MicrocodeProgram(QVector<Code*>objectCode):

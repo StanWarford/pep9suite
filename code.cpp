@@ -198,6 +198,11 @@ QString MicroCode::getSourceCode() const
     return str;
 }
 
+bool MicroCode::hasSymbol() const
+{
+
+}
+
 bool MicroCode::hasControlSignal(Enu::EControlSignals field) const
 {
     return controlSignals[field]!=Enu::signalDisabled;
@@ -206,6 +211,11 @@ bool MicroCode::hasControlSignal(Enu::EControlSignals field) const
 bool MicroCode::hasClockSignal(Enu::EClockSignals field) const
 {
     return clockSignals[field]==true;
+}
+
+QString MicroCode::getSymbol() const
+{
+
 }
 
 void MicroCode::setControlSignal(Enu::EControlSignals field, quint8 value)
@@ -217,7 +227,6 @@ void MicroCode::setClockSingal(Enu::EClockSignals field, bool value)
 {
     clockSignals[field]=value;
 }
-
 void MicroCode::setBranchFunction(Enu::EBranchFunctions branch)
 {
     branchFunc = branch;
@@ -258,6 +267,7 @@ quint16 MicroCode::getFalseTarget() const
     return falseTargetAddr;
 }
 
+
 bool MicroCode::inRange(Enu::EControlSignals field, int value) const
 {
     switch (field) {
@@ -276,6 +286,11 @@ bool MicroCode::inRange(Enu::EControlSignals field, int value) const
     case Enu::EOMux: return 0 <= value && value <= 1;
     default: return true;
     }
+}
+
+void MicroCode::setSymbol(QString symbol)
+{
+    qDebug()<<"Yay!! Someone cared";
 }
 
 CommentOnlyCode::CommentOnlyCode(QString comment)

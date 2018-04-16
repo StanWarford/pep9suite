@@ -1400,7 +1400,7 @@ void CpuGraphicsItems::drawStaticRects(QPainter* paint)
 void CpuGraphicsItems::drawALUPoly()
 {
     ALUPoly->setBrush(QBrush(colorScheme->aluColor));
-    ALUPoly->setPen(QPen(QBrush(colorScheme->combCircuitBlue),
+    ALUPoly->setPen(QPen(QBrush(colorScheme->aluOutline),
                          2, Qt::SolidLine,
                          Qt::SquareCap,
                          Qt::MiterJoin));

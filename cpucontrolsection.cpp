@@ -52,10 +52,12 @@ bool CPUControlSection::hadErrorOnStep() const
 {
     return hadControlError || data->hadErrorOnStep();
 }
+
 bool CPUControlSection::getExecutionFinished() const
 {
     return executionFinished;
 }
+
 void CPUControlSection::onSimulationStarted()
 {
 #pragma message "todo"
@@ -77,13 +79,13 @@ void CPUControlSection::onDebuggingFinished()
 #pragma message "todo"
 }
 
-void CPUControlSection::onStep(quint8 mode) noexcept
+void CPUControlSection::onStep() noexcept
 {
     //Do step logic
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
     data->setSignalsFromMicrocode(prog);
-    branchHandler();
     data->onStep();
+    branchHandler();
 }
 
 void CPUControlSection::onClock()noexcept
@@ -112,7 +114,7 @@ void CPUControlSection::onRun()noexcept
             return;
         }
         //
-        onStep(-1);
+        onStep();
         //If there was a logical error on data operation
         if(data->hadErrorOnStep())
         {
@@ -135,10 +137,10 @@ void CPUControlSection::onRun()noexcept
 void CPUControlSection::onClearCPU()noexcept
 {
     data->onClearCPU();
-    executionFinished=false;
     inSimulation=false;
     microprogramCounter=0;
     hadControlError=false;
+    executionFinished=false;
     errorMessage="";
 }
 
@@ -164,6 +166,109 @@ void CPUControlSection::branchHandler()
     {
     case Enu::Unconditional:
         microprogramCounter = prog->getTrueTarget();
+        break;
+    case Enu::BRGT:
+        if((!data->getStatusBit(Enu::STATUS_N)))
+        {
+            microprogramCounter=prog->getTrueTarget();
+        }
+        else
+        {
+            microprogramCounter=prog->getFalseTarget();
+        }
+        break;
+    case Enu::BRGE:
+        if((!data->getStatusBit(Enu::STATUS_N))||data->getStatusBit(Enu::STATUS_Z))
+        {
+            microprogramCounter=prog->getTrueTarget();
+        }
+        else
+        {
+            microprogramCounter=prog->getFalseTarget();
+        }
+        break;
+    case Enu::BREQ:
+        if(data->getStatusBit(Enu::STATUS_Z))
+        {
+            microprogramCounter=prog->getTrueTarget();
+        }
+        else
+        {
+            microprogramCounter=prog->getFalseTarget();
+        }
+        break;
+    case Enu::BRLE:
+        if(data->getStatusBit(Enu::STATUS_N)||data->getStatusBit(Enu::STATUS_Z))
+        {
+            microprogramCounter=prog->getTrueTarget();
+        }
+        else
+        {
+            microprogramCounter=prog->getFalseTarget();
+        }
+        break;
+    case Enu::BRLT:
+        if(data->getStatusBit(Enu::STATUS_N))
+        {
+            microprogramCounter=prog->getTrueTarget();
+        }
+        else
+        {
+            microprogramCounter=prog->getFalseTarget();
+        }
+        break;
+    case Enu::BRNE:
+        if((!data->getStatusBit(Enu::STATUS_Z)))
+        {
+            microprogramCounter=prog->getTrueTarget();
+        }
+        else
+        {
+            microprogramCounter=prog->getFalseTarget();
+        }
+        break;
+    case Enu::BRV:
+        if(data->getStatusBit(Enu::STATUS_V))
+        {
+            microprogramCounter=prog->getTrueTarget();
+        }
+        else
+        {
+            microprogramCounter=prog->getFalseTarget();
+        }
+        break;
+    case Enu::BRC:
+        if(data->getStatusBit(Enu::STATUS_C))
+        {
+            microprogramCounter=prog->getTrueTarget();
+        }
+        else
+        {
+            microprogramCounter=prog->getFalseTarget();
+        }
+        break;
+    case Enu::BRS:
+        if(data->getStatusBit(Enu::STATUS_S))
+        {
+            microprogramCounter=prog->getTrueTarget();
+        }
+        else
+        {
+            microprogramCounter=prog->getFalseTarget();
+        }
+        break;
+    case Enu::IJT:
+        executionFinished=true; //For now, the instruction jump table is unimplmented
+        break;
+    case Enu::PCE:
+        if(data->getRegisterBankByte(8)%2==0)
+        {
+            microprogramCounter=prog->getTrueTarget();
+        }
+        else
+        {
+            microprogramCounter=prog->getFalseTarget();
+        }
         break;
     case Enu::Stop:
         executionFinished=true;

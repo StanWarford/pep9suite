@@ -51,8 +51,10 @@ public:
     bool isMicrocode() const override;
     QString getObjectCode() const override;
     QString getSourceCode() const override;
+    bool hasSymbol() const;
     bool hasControlSignal(Enu::EControlSignals field) const;
     bool hasClockSignal(Enu::EClockSignals field) const;
+    QString getSymbol() const;
     int getControlSignal(Enu::EControlSignals field) const;
     bool getClockSignal(Enu::EClockSignals field) const;
     Enu::EBranchFunctions getBranchFunction() const;
@@ -60,6 +62,7 @@ public:
     quint16 getFalseTarget() const;
     bool inRange(Enu::EControlSignals field, int value) const;
 
+    void setSymbol(QString);
     void setCpuLabels(CpuGraphicsItems *cpuPaneItems)const override;
     void setControlSignal(Enu::EControlSignals field,quint8 value);
     void setClockSingal(Enu::EClockSignals field,bool value);

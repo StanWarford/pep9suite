@@ -52,8 +52,16 @@ namespace Enu
     };
     Q_ENUM_NS(MainBusState)
     enum EBranchFunctions{
-        Unconditional=0,Stop=15, Assembler_Assigned=16
+        Unconditional=0,
+        BRGT=1,BRGE=2,BREQ=3,BRLE=4,BRLT=5,
+        BRNE=6,BRV=7,BRC=8,BRS=9,
+        BRU=10, //Branch if instruction specifier is unary
+        IJT=13, //Instruction jump table
+        PCE=14, //Program counter even?
+        Stop=15,
+        Assembler_Assigned=16
     };
+    Q_ENUM_NS(EBranchFunctions)
     enum EControlSignals
     {
         MemRead, MemWrite,

@@ -100,7 +100,33 @@ bool Asm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenStri
             return false;
         }
         tokenString = rxIdentifier.capturedTexts()[0];
-        token = tokenString.endsWith(':') ? LT_PRE_POST : LT_IDENTIFIER;
+        if(tokenString.endsWith(':'))
+        {
+                if(tokenString.compare("UnitPre:",Qt::CaseInsensitive)==0||tokenString.compare("UnitPost:",Qt::CaseInsensitive)==0)
+                {
+                    token = LT_PRE_POST;
+                }
+                else
+                {
+                    token = LTE_SYMBOL;
+                }
+        }
+        else if(tokenString.compare("if",Qt::CaseInsensitive))
+        {
+            token = LTE_IF;
+        }
+        else if(tokenString.compare("else",Qt::CaseInsensitive))
+        {
+            token = LTE_ELSE;
+        }
+        else if(tokenString.compare("goto",Qt::CaseInsensitive))
+        {
+            token = LTE_GOTO;
+        }
+        else
+        {
+           token = LT_IDENTIFIER;
+        }
         //        qDebug() << "tokenString: " << tokenString << "token: " << token;
         sourceLine.remove(0, tokenString.length());
         return true;
@@ -141,7 +167,14 @@ bool Asm::processSourceLine(QString sourceLine, Code *&code, QString &errorStrin
         //        qDebug() << "tokenString: " << tokenString;
         switch (state) {
         case Asm::PS_START:
-            if (token == Asm::LT_IDENTIFIER) {
+            if (token == Asm::LTE_SYMBOL)
+            {
+                microCode = new MicroCode();
+                code = microCode;
+                microCode->setSymbol(tokenString);
+                state = Asm::PS_CONTINUE_PRE_SEMICOLON_POST_COMMA;
+            }
+            else if (token == Asm::LT_IDENTIFIER) {
                 if (Pep::mnemonToDecControlMap.contains(tokenString.toUpper())) {
                     microCode = new MicroCode();
                     code = microCode;

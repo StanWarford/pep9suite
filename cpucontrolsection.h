@@ -48,7 +48,7 @@ public slots:
     void onSimulationFinished();
     void onDebuggingStarted();
     void onDebuggingFinished();
-    void onStep(quint8 mode) noexcept;
+    void onStep() noexcept;
     void onClock() noexcept;
     void onRun() noexcept;
     void onClearCPU() noexcept; //This event is propogated to the DataSection

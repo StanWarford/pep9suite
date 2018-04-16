@@ -106,20 +106,21 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(cpuPane, SIGNAL(writeByte(int)), this, SLOT(updateMemAddress(int)));
 
     //Connect events that pass on CPU Feature changes
-    connect(this,SIGNAL(CPUFeaturesChanged(Enu::CPUType)),microcodePane,SLOT(onCPUFeatureChange()));
-    connect(this, SIGNAL(CPUFeaturesChanged(Enu::CPUType)),objectCodePane,SLOT(onCPUFeatureChange()));
+    connect(this,&MainWindow::CPUFeaturesChanged,microcodePane,&MicrocodePane::onCPUFeatureChange);
+    connect(this, &MainWindow::CPUFeaturesChanged,objectCodePane,&ObjectCodePane::onCPUFeatureChange);
     //Pep::initEnumMnemonMaps();
     //Connect Simulation events
     connect(this, SIGNAL(beginSimulation()),this->objectCodePane,SLOT(onBeginSimulation()));
     connect(this, SIGNAL(endSimulation()),this->objectCodePane,SLOT(onEndSimulation()));
     //Connect font change events
-    connect(this,SIGNAL(fontChanged(QFont)),microcodePane,SLOT(onFontChanged(QFont)));
-    connect(this,SIGNAL(fontChanged(QFont)),helpDialog,SLOT(onFontChanged(QFont)));
-    connect(this,SIGNAL(darkModeChanged(bool)),microcodePane,SLOT(onDarkModeChanged(bool)));
-    connect(this,SIGNAL(darkModeChanged(bool)),helpDialog,SLOT(onDarkModeChanged(bool)));
-    connect(this,SIGNAL(darkModeChanged(bool)),objectCodePane,SLOT(onDarkModeChanged(bool)));
-    connect(this,SIGNAL(darkModeChanged(bool)),cpuPaneTwoByteDataBus,SLOT(onDarkModeChanged(bool)));
-    connect(this,SIGNAL(darkModeChanged(bool)),cpuPaneOneByteDataBus,SLOT(onDarkModeChanged(bool)));
+    connect(this,&MainWindow::fontChanged,microcodePane,&MicrocodePane::onFontChanged);
+    connect(this,&MainWindow::fontChanged,helpDialog,&HelpDialog::onFontChanged);
+    connect(this,&MainWindow::darkModeChanged,microcodePane,&MicrocodePane::onDarkModeChanged);
+    connect(this,&MainWindow::darkModeChanged,helpDialog,&HelpDialog::onDarkModeChanged);
+    connect(this,&MainWindow::darkModeChanged,objectCodePane,&ObjectCodePane::onDarkModeChanged);
+    connect(this,&MainWindow::darkModeChanged,cpuPaneTwoByteDataBus,&CpuPane::onDarkModeChanged);
+    connect(this,&MainWindow::darkModeChanged,cpuPaneOneByteDataBus,&CpuPane::onDarkModeChanged);
+    connect(this,&MainWindow::darkModeChanged,mainMemory,&MainMemory::onDarkModeChange);
     qApp->installEventFilter(this);
     //Load Style sheets
     QFile f(":qdarkstyle/dark_style.qss");

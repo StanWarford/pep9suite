@@ -107,7 +107,7 @@ void ObjectCodePane::setObjectCode(MicrocodeProgram* program)
             auto x = ((MicroCode*)row)->getControlSignal(col);
             if(x!=Enu::signalDisabled)
             {
-                auto y =new QStandardItem(QString::number(x));
+                auto y = new QStandardItem(QString::number(x));
                 y->setTextAlignment(Qt::AlignCenter);
                 model->setItem(rowNum,colNum,y);
             }
@@ -118,14 +118,21 @@ void ObjectCodePane::setObjectCode(MicrocodeProgram* program)
             auto x = ((MicroCode*)row)->getClockSignal(col);
             if(x!=false)
             {
-                auto y =new QStandardItem(QString::number(x));
+                auto y = new QStandardItem(QString::number(x));
                 y->setTextAlignment(Qt::AlignCenter);
                 model->setItem(rowNum,colNum,y);
             }
             colNum++;
         }
-
-
+        auto y = new QStandardItem(QString::number(((MicroCode*)row)->getBranchFunction()));
+        y->setTextAlignment(Qt::AlignCenter);
+        model->setItem(rowNum,colNum++,y);
+        y = new QStandardItem(QString::number(((MicroCode*)row)->getTrueTarget()));
+        y->setTextAlignment(Qt::AlignCenter);
+        model->setItem(rowNum,colNum++,y);
+        y = new QStandardItem(QString::number(((MicroCode*)row)->getFalseTarget()));
+        y->setTextAlignment(Qt::AlignCenter);
+        model->setItem(rowNum,colNum++,y);
         rowNum++;
     }
     ui->codeTable->resizeColumnsToContents();
@@ -167,7 +174,10 @@ void ObjectCodePane::assignHeaders()
     {
         headers.append(QString(nClocks.valueToKey(x)));
     }
-    model->setColumnCount(size);
+    headers.append("BRF");
+    headers.append("T Trgt");
+    headers.append("F Trgt");
+    model->setColumnCount(size+3);
     model->setHorizontalHeaderLabels(headers);
     for(int x=0;x<size;x++)
     {

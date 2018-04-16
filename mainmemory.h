@@ -27,8 +27,11 @@
 namespace Ui {
     class MainMemory;
 }
-
+namespace PepColors {
+    struct Colors;
+}
 class CPUDataSection;
+
 class MainMemory : public QWidget {
     Q_OBJECT
 public:
@@ -63,6 +66,7 @@ public slots:
     void onMemoryValueChanged(quint16 address, quint8 oldVal, quint8 newVal);
     // Returns if the table has focus
     bool hasFocus();
+    void onDarkModeChange(bool darkMode);
 
 private slots:
     // Slot called when the vertical scroll bar changes.
@@ -87,6 +91,7 @@ private:
 
     // List of all the rows currently in the table
     QStringList rows;
+    QSet<int> modifiedAddresses;
 
 
     int	highlightedIndex;
@@ -96,6 +101,8 @@ private:
     enum { CELL_COUNT = 30};
 
     int oldRowCount;
+    bool darkMode;
+    const PepColors::Colors* colors;
 
 };
 

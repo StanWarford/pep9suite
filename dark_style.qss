@@ -282,10 +282,8 @@ QSlider:focus {
 
 QLineEdit {
     background-color: #232629;
-    padding: 5px;
     border-style: solid;
     border: 1px solid #76797C;
-    border-radius: 2px;
     color: #eff0f1;
 }
 

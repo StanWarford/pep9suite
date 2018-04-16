@@ -713,7 +713,7 @@ void CpuPane::clockButtonPushed()
 
 void CpuPane::singleStepButtonPushed()
 {
-    controlSection->onStep(-1);
+    controlSection->onStep();
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
         QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
@@ -750,7 +750,7 @@ void CpuPane::resumeButtonPushed()
     bool finished = controlSection->getExecutionFinished();
 
     while (!finished) { // we set the flag to false when we're done with simulation, or have errors
-        controlSection->onStep(-1);
+        controlSection->onStep();
         if (controlSection->hadErrorOnStep()) {
             // simulation had issues.
             QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
@@ -763,24 +763,6 @@ void CpuPane::resumeButtonPushed()
         if (controlSection->getExecutionFinished()) {
             finished = true; // this will fail the loop next time and go to the bottom
         }
-#pragma message "We shouldn't need to update the labels on the control section if we are just running"
-        /*else {
-            Code *code = Sim::codeList.at(Sim::microCodeCurrentLine);
-            while (!code->isMicrocode() && !Sim::atEndOfSim()) {
-                // iterate through the code list until we're at the end of the sim,
-                // or we're at another line of microcode
-                Sim::microCodeCurrentLine++;
-                code = Sim::codeList.at(Sim::microCodeCurrentLine);
-            }
-            if (!code->isMicrocode()) {
-                // this will trigger if we're at the end of the simulation and have nothing more to execute
-                finished = true;
-            }
-            else {
-                code->setCpuLabels(cpuPaneItems);
-                emit updateSimulation();
-            }
-        }*/
 
         scene->invalidate();
     }
