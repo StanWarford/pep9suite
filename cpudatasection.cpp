@@ -181,7 +181,6 @@ void CPUDataSection::setMemoryRegister(Enu::EMemoryRegisters reg, quint8 value)
     //Cache old memory value, so it be emitted with signal
     quint8 old = memoryRegisters[reg];
     if(old==value) return; //Don't continue if the new value is the old value
-    qDebug()<<"Memory Register"<<reg<<" : "<<value;
     memoryRegisters[reg]=value;
     emit memoryRegisterChanged(reg,old,value);
 }
@@ -289,12 +288,6 @@ bool CPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
     }
 }
 
-MicroCode* CPUDataSection::getMicrocodeFromSignals() const
-{
-#pragma message "todo"
-    return nullptr;
-}
-
 void CPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
 {
     bool oldVal=false;
@@ -337,7 +330,6 @@ void CPUDataSection::onSetMemoryWord(quint16 address, quint16 val)
     //Do not enforce aligned memory access here, as precondition code in homeworks depends on access being unaligned.
     quint8 old1 = memory[address];
     quint8 old2= memory[address+1];
-    qDebug()<<"Memory word written "<<QString::number(address,16)<<":"<<val;
     memory[address]=val/256;
     memory[address+1]=val%256;
     if(old1 != val/256) emit memoryChanged(address,old1,val/256);
@@ -348,7 +340,6 @@ void CPUDataSection::onSetRegisterByte(quint8 reg, quint8 val)
 {
     if(reg>21) return; //Don't allow static registers to be written to
     quint8 oldVal=registerBank[reg];
-    qDebug()<<"Set register "<<reg<<" to "<<val;
     registerBank[reg]=val;
     if(oldVal != val) emit registerChanged(reg,oldVal,val);
 }
@@ -372,7 +363,6 @@ void CPUDataSection::onSetMemoryRegister(Enu::EMemoryRegisters reg, quint8 val)
 
 void CPUDataSection::onSetClock(Enu::EClockSignals clock, bool value)
 {
-    qDebug()<<clock<<" clock set to "<<value;
     bool old = clockSignals[clock];
     if(old == value) return;
     clockSignals[clock] = value;
@@ -384,7 +374,6 @@ void CPUDataSection::onSetControlSignal(Enu::EControlSignals control, quint8 val
     quint8 old = controlSignals[control];
     if(old == value) return;
     controlSignals[control] = value;
-    qDebug()<<control<<" control set to "<<value;
     emit controlClockChanged();
 }
 
@@ -426,7 +415,6 @@ void CPUDataSection::setRegisterByte(quint8 reg, quint8 value)
 {
     //Cache old register value
     quint8 old = registerBank[reg];
-    qDebug()<<"Register "<<reg<<" set to "<<value;
     if(old==value) return; //Don't continue if the new value is the old value
     onSetRegisterByte(reg,value);
     emit registerChanged(reg,old,value);
@@ -518,7 +506,6 @@ void CPUDataSection::handleMainBusState() noexcept
         break;
 
     }
-    qDebug()<<mainBusState;
 }
 
 void CPUDataSection::stepOneByte() noexcept
@@ -558,7 +545,6 @@ void CPUDataSection::stepOneByte() noexcept
     {
         if(controlSignals[Enu::C]==Enu::signalDisabled)
         {
-            qDebug()<<Enu::C<<controlSignals[Enu::C];
             hadDataError=true;
             errorMessage = "No destination register specified for LoadCk.";
         }

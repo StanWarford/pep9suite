@@ -31,7 +31,11 @@
 #include <QStringList>
 #include <QKeyEvent>
 #include <rotatedheaderview.h>
+#include "cpucontrolsection.h"
 #include "code.h"
+#include "SymbolTable.h"
+#include "SymbolEntry.h"
+#include "SymbolValue.h"
 ObjectCodePane::ObjectCodePane(QWidget *parent) :
     QWidget(parent), rowCount(0),model(new QStandardItemModel()),inSimulation(false),
     ui(new Ui::ObjectCodePane)
@@ -78,10 +82,10 @@ void ObjectCodePane::initCPUModelState()
 void ObjectCodePane::setObjectCode()
 {
 
-    setObjectCode(new MicrocodeProgram());
+    setObjectCode(new MicrocodeProgram(),nullptr);
 }
 
-void ObjectCodePane::setObjectCode(MicrocodeProgram* program)
+void ObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* symbolTable)
 {
     assignHeaders();
     if(this->program==nullptr)
@@ -89,6 +93,7 @@ void ObjectCodePane::setObjectCode(MicrocodeProgram* program)
         delete this->program;
     }
     this->program = program;
+    this->symTable=symbolTable;
     int rowNum=0,colNum=0;
     QList<Enu::EControlSignals> controls = Pep::memControlToMnemonMap.keys();
     controls.append(Pep::decControlToMnemonMap.keys());
@@ -127,10 +132,13 @@ void ObjectCodePane::setObjectCode(MicrocodeProgram* program)
         auto y = new QStandardItem(QString::number(((MicroCode*)row)->getBranchFunction()));
         y->setTextAlignment(Qt::AlignCenter);
         model->setItem(rowNum,colNum++,y);
-        y = new QStandardItem(QString::number(((MicroCode*)row)->getTrueTarget()));
+        y = new QStandardItem(QString::number(((MicroCode*)row)->getTrueTarget()->getValue()));
         y->setTextAlignment(Qt::AlignCenter);
         model->setItem(rowNum,colNum++,y);
-        y = new QStandardItem(QString::number(((MicroCode*)row)->getFalseTarget()));
+        y = new QStandardItem(QString::number(((MicroCode*)row)->getFalseTarget()->getValue()));
+        y->setTextAlignment(Qt::AlignCenter);
+        model->setItem(rowNum,colNum++,y);
+        y = new QStandardItem(((MicroCode*)row)->getSymbol()->getName());
         y->setTextAlignment(Qt::AlignCenter);
         model->setItem(rowNum,colNum++,y);
         rowNum++;
@@ -140,7 +148,8 @@ void ObjectCodePane::setObjectCode(MicrocodeProgram* program)
 
 void ObjectCodePane::highlightCurrentInstruction()
 {
-    selectionModel->forceSelectRow(rowCount++);
+    rowCount=CPUControlSection::getInstance()->getLineNumber();
+    selectionModel->forceSelectRow(rowCount);
     ui->codeTable->setCurrentIndex(model->index(rowCount,0));
     inSimulation=true;
 }
@@ -177,7 +186,8 @@ void ObjectCodePane::assignHeaders()
     headers.append("BRF");
     headers.append("T Trgt");
     headers.append("F Trgt");
-    model->setColumnCount(size+3);
+    headers.append("Symbol");
+    model->setColumnCount(size+4);
     model->setHorizontalHeaderLabels(headers);
     for(int x=0;x<size;x++)
     {

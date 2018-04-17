@@ -23,8 +23,10 @@
 #include "cpugraphicsitems.h"
 #include "pep.h"
 #include "cpudatasection.h"
+#include "SymbolEntry.h"
 #include <QMetaEnum>
-MicroCode::MicroCode():clockSignals(10),controlSignals(20),branchFunc(Enu::Assembler_Assigned),trueTargetAddr(0),falseTargetAddr(0)
+MicroCode::MicroCode():controlSignals(20),clockSignals(10),branchFunc(Enu::Assembler_Assigned),
+    symbol(nullptr),trueTargetAddr(nullptr),falseTargetAddr(nullptr)
 {
     for(auto memLines : Pep::memControlToMnemonMap.keys())
     {
@@ -132,7 +134,11 @@ QString MicroCode::getObjectCode() const
 
 QString MicroCode::getSourceCode() const
 {
-    QString str = "";
+    QString str = "",symbolString="";
+    if(symbol!=nullptr&&!symbol->getName().startsWith(("_")))
+    {
+        symbolString.append(symbol->getName()+": ");
+    }
     if (CPUDataSection::getInstance()->getCPUFeatures() == Enu::OneByteDataBus) {
         if (controlSignals[Enu::MemRead] != Enu::signalDisabled) { str.append("MemRead, "); }
         if (controlSignals[Enu::MemWrite] != Enu::signalDisabled) { str.append("MemWrite, "); }
@@ -158,9 +164,6 @@ QString MicroCode::getSourceCode() const
         if (clockSignals[Enu::MDRCk] != 0) { str.append("MDRCk, "); }
 
         if (str.endsWith(", ") || str.endsWith("; ")) { str.chop(2); }
-        if (!cComment.isEmpty()) {
-            str.append(" " + cComment);
-        }
     }
     else if (CPUDataSection::getInstance()->getCPUFeatures() == Enu::TwoByteDataBus) {
         if (controlSignals[Enu::MemRead] != Enu::signalDisabled) { str.append("MemRead, "); }
@@ -181,7 +184,7 @@ QString MicroCode::getSourceCode() const
         if (str != "") { str.chop(2); str.append("; "); }
 
         if (clockSignals[Enu::NCk] != 0) { str.append("NCk, "); }
-        if (clockSignals[Enu::VCk] != 0) { str.append("ZCk, "); }
+        if (clockSignals[Enu::ZCk] != 0) { str.append("ZCk, "); }
         if (clockSignals[Enu::VCk] != 0) { str.append("VCk, "); }
         if (clockSignals[Enu::CCk] != 0) { str.append("CCk, "); }
         if (clockSignals[Enu::SCk] != 0) { str.append("SCk, "); }
@@ -191,16 +194,59 @@ QString MicroCode::getSourceCode() const
         if (clockSignals[Enu::MDROCk] != 0) { str.append("MDROCk, "); }
 
         if (str.endsWith(", ") || str.endsWith("; ")) { str.chop(2); }
-        if (!cComment.isEmpty()) {
-            str.append(" " + cComment);
+    }
+
+    if (branchFunc == Enu::Unconditional){
+        if(symbol->getValue()+1==trueTargetAddr->getValue()){
+
+        }
+        else{
+            if(str.isEmpty()){
+                str.append("goto "+trueTargetAddr->getName());
+            }
+            else{
+               str.append("; goto "+trueTargetAddr->getName());
+            }
         }
     }
-    return str;
+    else if (branchFunc == Enu::Stop){
+        if(str.isEmpty()){
+            str.append("stop");
+        }
+        else{
+           str.append("; stop");
+        }
+    }
+    else if (branchFunc == Enu::IJT){
+#pragma message "todo"
+        str.append("");
+    }
+    else if (branchFunc == Enu::AJT){
+#pragma message "todo"
+        str.append("");
+    }
+    else{
+        if(str.isEmpty()){
+            str.append("if "+Pep::branchFuncToMnemonMap[branchFunc]+" "+
+                       trueTargetAddr->getName()+" else "+falseTargetAddr->getName());
+        }
+        else{
+            str.append("; if "+Pep::branchFuncToMnemonMap[branchFunc]+" "+
+                       trueTargetAddr->getName()+" else "+falseTargetAddr->getName());
+        }
+
+    }
+
+    if (!cComment.isEmpty()) {
+        str.append(" " + cComment);
+    }
+    symbolString.append(str);
+    return symbolString;
 }
 
 bool MicroCode::hasSymbol() const
 {
-
+    return symbol != nullptr;
 }
 
 bool MicroCode::hasControlSignal(Enu::EControlSignals field) const
@@ -213,9 +259,14 @@ bool MicroCode::hasClockSignal(Enu::EClockSignals field) const
     return clockSignals[field]==true;
 }
 
-QString MicroCode::getSymbol() const
+const SymbolEntry* MicroCode::getSymbol() const
 {
+    return symbol;
+}
 
+SymbolEntry* MicroCode::getSymbol()
+{
+    return symbol;
 }
 
 void MicroCode::setControlSignal(Enu::EControlSignals field, quint8 value)
@@ -227,17 +278,18 @@ void MicroCode::setClockSingal(Enu::EClockSignals field, bool value)
 {
     clockSignals[field]=value;
 }
+
 void MicroCode::setBranchFunction(Enu::EBranchFunctions branch)
 {
     branchFunc = branch;
 }
 
-void MicroCode::setTrueTarget(quint16 target)
+void MicroCode::setTrueTarget(const SymbolEntry* target)
 {
     trueTargetAddr = target;
 }
 
-void MicroCode::setFalsetarget(quint16 target)
+void MicroCode::setFalseTarget(const SymbolEntry* target)
 {
     falseTargetAddr = target;
 }
@@ -257,16 +309,15 @@ Enu::EBranchFunctions MicroCode::getBranchFunction() const
     return branchFunc;
 }
 
-quint16 MicroCode::getTrueTarget() const
+const SymbolEntry* MicroCode::getTrueTarget() const
 {
     return trueTargetAddr;
 }
 
-quint16 MicroCode::getFalseTarget() const
+const SymbolEntry* MicroCode::getFalseTarget() const
 {
     return falseTargetAddr;
 }
-
 
 bool MicroCode::inRange(Enu::EControlSignals field, int value) const
 {
@@ -288,9 +339,9 @@ bool MicroCode::inRange(Enu::EControlSignals field, int value) const
     }
 }
 
-void MicroCode::setSymbol(QString symbol)
+void MicroCode::setSymbol(SymbolEntry* symbol)
 {
-    qDebug()<<"Yay!! Someone cared";
+    this->symbol=symbol;
 }
 
 CommentOnlyCode::CommentOnlyCode(QString comment)

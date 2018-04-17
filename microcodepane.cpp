@@ -24,14 +24,14 @@
 #include "code.h"
 #include "pep.h"
 #include "microcodeprogram.h"
-
+#include "SymbolTable.h"
 #include <QGridLayout>
 #include <QDebug>
 #include <QFontDialog>
 #include "colors.h"
 MicrocodePane::MicrocodePane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::MicrocodePane),program(nullptr)
+        ui(new Ui::MicrocodePane),symbolTable(nullptr),program(nullptr)
 {
     ui->setupUi(this);
 
@@ -84,9 +84,14 @@ bool MicrocodePane::microAssemble()
     removeErrorMessages();
     QString sourceCode = editor->toPlainText();
     sourceCodeList = sourceCode.split('\n');
+    if(symbolTable)
+    {
+        symbolTable.clear();
+    }
+    symbolTable = QSharedPointer<SymbolTable>(new SymbolTable());
     while (lineNum < sourceCodeList.size()) {
         sourceLine = sourceCodeList[lineNum];
-        if (!Asm::processSourceLine(sourceLine, code, errorString)) {
+        if (!Asm::processSourceLine(symbolTable.data(),sourceLine, code, errorString)) {
             appendMessageInSourceCodePaneAt(lineNum, errorString);
             return false;
         }
@@ -102,7 +107,7 @@ bool MicrocodePane::microAssemble()
     if (!sourceCode.endsWith("\n")) {
         editor->appendPlainText("\n");
     }
-    program = new MicrocodeProgram(codeList);
+    program = new MicrocodeProgram(codeList,symbolTable.data());
     return true;
 }
 
@@ -296,7 +301,6 @@ void MicrocodePane::onDarkModeChanged(bool darkMode)
 {
     if(darkMode)
     {
-        qDebug()<<&PepColors::darkMode;
         highlighter->rebuildHighlightingRules(PepColors::darkMode);
     }
     else

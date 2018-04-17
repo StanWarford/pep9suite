@@ -99,6 +99,8 @@ QMap<Enu::EKeywords, QString> Pep::specificationToMnemonMap;
 QMap<Enu::EKeywords, QString> Pep::memSpecToMnemonMap;
 QMap<Enu::EKeywords, QString> Pep::regSpecToMnemonMap;
 QMap<Enu::EKeywords, QString> Pep::statusSpecToMnemonMap;
+QMap<Enu::EBranchFunctions,QString> Pep::branchFuncToMnemonMap;
+QMap<QString,Enu::EBranchFunctions> Pep::mnemonToBranchFuncMap;
 QMap<QString, Enu::EControlSignals> Pep::mnemonToDecControlMap;
 QMap<QString, Enu::EControlSignals> Pep::mnemonToMemControlMap;
 QMap<QString, Enu::EClockSignals> Pep::mnemonToClockControlMap;
@@ -109,6 +111,18 @@ QMap<QString, Enu::EKeywords> Pep::mnemonToStatusSpecMap;
 
 void Pep::initEnumMnemonMaps()
 {
+    branchFuncToMnemonMap.clear(); mnemonToBranchFuncMap.clear();
+    mnemonToBranchFuncMap.insert("BRGT",BRGT); branchFuncToMnemonMap.insert(BRGT,"BRGT");
+    mnemonToBranchFuncMap.insert("BRGE",BRGE); branchFuncToMnemonMap.insert(BRGE,"BRGE");
+    mnemonToBranchFuncMap.insert("BREQ",BREQ); branchFuncToMnemonMap.insert(BREQ,"BREQ");
+    mnemonToBranchFuncMap.insert("BRLE",BRLE); branchFuncToMnemonMap.insert(BRLE,"BRLE");
+    mnemonToBranchFuncMap.insert("BRLT",BRLT); branchFuncToMnemonMap.insert(BRLT,"BRLT");
+    mnemonToBranchFuncMap.insert("BRNE",BRNE); branchFuncToMnemonMap.insert(BRNE,"BRNE");
+    mnemonToBranchFuncMap.insert("BRV",BRV); branchFuncToMnemonMap.insert(BRV,"BRV");
+    mnemonToBranchFuncMap.insert("BRC",BRC); branchFuncToMnemonMap.insert(BRC,"BRC");
+    mnemonToBranchFuncMap.insert("BRS",BRS); branchFuncToMnemonMap.insert(BRS,"BRS");
+    mnemonToBranchFuncMap.insert("PCE",PCE); branchFuncToMnemonMap.insert(PCE,"PCE");
+
     CPUDataSection* tempRef = CPUDataSection::getInstance();
     mnemonToDecControlMap.clear();  decControlToMnemonMap.clear();
     mnemonToDecControlMap.insert("C", C); decControlToMnemonMap.insert(C,"C");

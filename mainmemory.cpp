@@ -31,7 +31,7 @@
 
 MainMemory::MainMemory(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MainMemory),dataSection(CPUDataSection::getInstance()),modifiedAddresses(),
+    ui(new Ui::MainMemory),modifiedAddresses(),dataSection(CPUDataSection::getInstance()),
     darkMode(false),colors(&PepColors::lightMode)
 {
     ui->setupUi(this);

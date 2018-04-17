@@ -8,6 +8,9 @@ namespace PepColors{
         QColor comment;
         QColor rightOfExpression;
         QColor leftOfExpression;
+        QColor symbolHighlight;
+        QColor conditionalHighlight;
+        QColor branchFunctionHighlight;
         QColor memoryHighlight;
 
         QColor seqCircuitColor;

@@ -24,7 +24,7 @@
 #include <QRegExp>
 
 class Code; // Forward declaration for argument of processSourceLine.
-
+class SymbolTable;
 class Asm
 {
 public:
@@ -33,7 +33,7 @@ public:
     {
         LT_COMMA, LT_COMMENT, LT_DIGIT, LT_EQUALS, LT_EMPTY, LT_IDENTIFIER, LT_PRE_POST, LT_SEMICOLON,
         LT_LEFT_BRACKET, LT_RIGHT_BRACKET, LT_HEX_CONSTANT,
-        LTE_SYMBOL,LTE_GOTO,LTE_IF,LTE_ELSE
+        LTE_SYMBOL,LTE_GOTO,LTE_IF,LTE_ELSE,LTE_STOP
     };
 
     enum ParseState
@@ -43,8 +43,8 @@ public:
         PS_EXPECT_LEFT_BRACKET, PS_EXPECT_MEM_ADDRESS, PS_EXPECT_RIGHT_BRACKET, PS_EXPECT_MEM_EQUALS, PS_EXPECT_MEM_VALUE,
         PS_EXPECT_SPEC_COMMA, PS_EXPECT_REG_EQUALS, PS_EXPECT_REG_VALUE, PS_EXPECT_STATUS_EQUALS, PS_EXPECT_STATUS_VALUE,
         PSE_SYMBOL,
-        PSE_LONE_GOTO,
-        PSE_IF,PSE_CONDITIONAL_BRANCH,PSE_TRUE_TARGET,PSE_ELSE,PSE_FALSE_TARGET,
+        PSE_LONE_GOTO,PSE_COMMENT,PSE_EXPECT_EMPTY,
+        PSE_AFTER_SEMI,PSE_IF,PSE_CONDITIONAL_BRANCH,PSE_TRUE_TARGET,PSE_ELSE,PSE_FALSE_TARGET,
         PSE_JT_JUMP
     };
 
@@ -60,7 +60,7 @@ public:
     // beginning of sourceLine and returned in tokenString, true is returned, and token is set to the token type.
     // Post: If false is returned, then tokenString is set to the lexical error message.
 
-    static bool processSourceLine(QString sourceLine, Code *&code, QString &errorString);
+    static bool processSourceLine(SymbolTable* symTable,QString sourceLine, Code *&code, QString &errorString);
     // Pre: sourceLine has one line of source code.
     // Pre: lineNum is the line number of the source code.
     // Post: If the source line is valid, true is returned and code is set to the source code for the line.

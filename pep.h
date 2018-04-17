@@ -54,6 +54,8 @@ public:
     static QMap<Enu::EKeywords, QString> memSpecToMnemonMap;
     static QMap<Enu::EKeywords, QString> regSpecToMnemonMap;
     static QMap<Enu::EKeywords, QString> statusSpecToMnemonMap;
+    static QMap<Enu::EBranchFunctions,QString> branchFuncToMnemonMap;
+    static QMap<QString, Enu::EBranchFunctions> mnemonToBranchFuncMap;
     static QMap<QString, Enu::EControlSignals> mnemonToDecControlMap;
     static QMap<QString, Enu::EControlSignals> mnemonToMemControlMap;
     static QMap<QString, Enu::EClockSignals> mnemonToClockControlMap;

@@ -57,8 +57,6 @@ public:
 
     void setRegPrecondition(Enu::EKeywords reg, int value);
     void setStatusPrecondition(Enu::EKeywords bit, bool value);
-    bool testRegPostcondition(Enu::EKeywords reg, int value);
-    bool testStatusPostcondition(Enu::EKeywords bit, bool value);
 
     void clearCpu();
     void clearCpuControlSignals();

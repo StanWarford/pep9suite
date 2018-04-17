@@ -25,6 +25,7 @@
 #include <QStandardItemModel>
 #include "disableselectionmodel.h"
 class MicrocodeProgram;
+class SymbolTable;
 class RotatedHeaderView;
 namespace Ui {
     class ObjectCodePane;
@@ -33,6 +34,7 @@ namespace Ui {
 class ObjectCodePane : public QWidget {
     Q_OBJECT
     MicrocodeProgram* program;
+    SymbolTable* symTable;
     quint32 rowCount;
     RotatedHeaderView* rotatedHeaderView;
     DisableSelectionModel* selectionModel;
@@ -47,7 +49,7 @@ public:
     void highlightOnFocus();
 
     void setObjectCode();
-    void setObjectCode(MicrocodeProgram* prog);
+    void setObjectCode(MicrocodeProgram* prog,SymbolTable* symbolTable);
 
     void highlightCurrentInstruction();
     void clearSimulationView();

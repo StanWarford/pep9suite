@@ -238,7 +238,8 @@ void CpuPane::stopDebugging()
     ui->copyToMicrocodePushButton->setEnabled(true);
 }
 
-void CpuPane::setRegister(Enu::EKeywords reg, int value) {
+void CpuPane::setRegister(Enu::EKeywords reg, int value)
+{
     switch (reg) {
     case Enu::Acc:
         cpuPaneItems->aRegLineEdit->setText("0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
@@ -294,7 +295,8 @@ void CpuPane::setRegister(Enu::EKeywords reg, int value) {
     }
 }
 
-void CpuPane::setRegisterByte(quint8 reg, quint8 value) {
+void CpuPane::setRegisterByte(quint8 reg, quint8 value)
+{
     QLatin1Char ch = QLatin1Char('0');
     switch (reg) {
     case 0:
@@ -372,8 +374,7 @@ void CpuPane::setRegisterByte(quint8 reg, quint8 value) {
 void CpuPane::initRegisters()
 {
     //Set register bank
-    for(int it=0;it<22;it++)
-    {
+    for(int it=0;it<22;it++){
         setRegisterByte(it,dataSection->getRegisterBankByte(it));
     }
 
@@ -416,16 +417,6 @@ void CpuPane::setRegPrecondition(Enu::EKeywords reg, int value)
 void CpuPane::setStatusPrecondition(Enu::EKeywords bit, bool value)
 {
     setStatusBit(bit, value);
-}
-
-bool CpuPane::testRegPostcondition(Enu::EKeywords reg, int value) {
-#pragma message "Remove postcondition code from CPU pane"
-    return true;
-}
-
-bool CpuPane::testStatusPostcondition(Enu::EKeywords bit, bool value) {
-#pragma message "Remove postcondition code from CPU pane"
-    return true;
 }
 
 void CpuPane::clearCpu()
@@ -514,7 +505,6 @@ void CpuPane::changeEvent(QEvent *e)
 
 void CpuPane::regTextEdited(QString str)
 {
-    qDebug() << "str: " << str;
     QLineEdit *lineEdit = qobject_cast<QLineEdit *>(sender());
 
     // Make sure the string isn't mangled
@@ -636,66 +626,72 @@ void CpuPane::labelClicked()
     QString temp="";
     quint8 tempVal=0;
     Enu::EControlSignals control=(Enu::EControlSignals)128;
-    if(label == cpuPaneItems->aMuxTristateLabel)
-    {
+    Enu::EStatusBit status = (Enu::EStatusBit)128;
+    if(label == cpuPaneItems->aMuxTristateLabel){
         temp = cpuPaneItems->aMuxTristateLabel->text();
         control= Enu::AMux;
     }
-    else if(label == cpuPaneItems->MDRMuxTristateLabel)
-    {
+    else if(label == cpuPaneItems->MDRMuxTristateLabel){
         temp = cpuPaneItems->MDRMuxTristateLabel->text();
         control= Enu::MDRMux;
     }
-    else if(label == cpuPaneItems->cMuxTristateLabel)
-    {
+    else if(label == cpuPaneItems->cMuxTristateLabel){
         temp = cpuPaneItems->cMuxTristateLabel->text();
         control= Enu::CMux;
     }
-    else if(label == cpuPaneItems->CSMuxTristateLabel)
-    {
+    else if(label == cpuPaneItems->CSMuxTristateLabel){
         temp = cpuPaneItems->CSMuxTristateLabel->text();
         control= Enu::CSMux;
     }
-    else if(label == cpuPaneItems->AndZTristateLabel)
-    {
+    else if(label == cpuPaneItems->AndZTristateLabel){
         temp = cpuPaneItems->AndZTristateLabel->text();
         control= Enu::AndZ;
     }
-    else if(label == cpuPaneItems->MemWriteTristateLabel)
-    {
+    else if(label == cpuPaneItems->MemWriteTristateLabel){
         temp = cpuPaneItems->MemWriteTristateLabel->text();
         control= Enu::MemWrite;
     }
-    else if(label == cpuPaneItems->MemReadTristateLabel)
-    {
+    else if(label == cpuPaneItems->MemReadTristateLabel){
         temp = cpuPaneItems->MemReadTristateLabel->text();
         control= Enu::MemRead;
     }
-    else if(label == cpuPaneItems->MDREMuxTristateLabel)
-    {
+    else if(label == cpuPaneItems->MDREMuxTristateLabel){
         temp = cpuPaneItems->MDREMuxTristateLabel->text();
         control= Enu::MDREMux;
     }
-    else if(label == cpuPaneItems->MDROMuxTristateLabel)
-    {
+    else if(label == cpuPaneItems->MDROMuxTristateLabel){
         temp = cpuPaneItems->MDROMuxTristateLabel->text();
         control= Enu::MDROMux;
     }
-    else if(label == cpuPaneItems->EOMuxTristateLabel)
-    {
+    else if(label == cpuPaneItems->EOMuxTristateLabel){
         temp = cpuPaneItems->EOMuxTristateLabel->text();
         control= Enu::EOMux;
     }
-    else
-    {
-
+    else if(label == cpuPaneItems->nBitLabel){
+        status = Enu::STATUS_N;
+        temp = cpuPaneItems->nBitLabel->text();
+    }
+    else if(label == cpuPaneItems->zBitLabel){
+        status = Enu::STATUS_Z;
+        temp = cpuPaneItems->zBitLabel->text();
+    }
+    else if(label == cpuPaneItems->vBitLabel){
+        status = Enu::STATUS_V;
+        temp = cpuPaneItems->vBitLabel->text();
+    }
+    else if(label == cpuPaneItems->cBitLabel){
+        status = Enu::STATUS_C;
+        temp = cpuPaneItems->cBitLabel->text();
+    }
+    else if(label == cpuPaneItems->sBitLabel){
+        status = Enu::STATUS_S;
+        temp = cpuPaneItems->sBitLabel->text();
     }
     if(temp == "0") tempVal = 0;
     else if(temp == "1") tempVal = 1;
     else tempVal = Enu::signalDisabled;
-    if(control==(Enu::EControlSignals)128) return;
-    dataSection->onSetControlSignal(control,tempVal);
-
+    if(control!=(Enu::EControlSignals)128)dataSection->onSetControlSignal(control,tempVal);
+    else if(status!=(Enu::EStatusBit)128)dataSection->onSetStatusBit(status,tempVal);
 }
 
 void CpuPane::clockButtonPushed()
@@ -997,8 +993,7 @@ void CpuPane::onRegisterChanged(quint8 which, quint8 , quint8 newVal)
 void CpuPane::onMemoryRegisterChanged(EMemoryRegisters reg, quint8, quint8 newVal)
 {
     QLatin1Char x = QLatin1Char('0');
-    switch(reg)
-    {
+    switch(reg){
     case Enu::MEM_MARA:
         cpuPaneItems->MARALabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());
         break;
@@ -1019,8 +1014,7 @@ void CpuPane::onMemoryRegisterChanged(EMemoryRegisters reg, quint8, quint8 newVa
 
 void CpuPane::onStatusBitChanged(EStatusBit bit, bool value)
 {
-    switch(bit)
-    {
+    switch(bit){
     case Enu::STATUS_N:
         setStatusBit(Enu::N,value);
         break;

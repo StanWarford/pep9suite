@@ -2,6 +2,7 @@
 #include "cpudatasection.h"
 #include "code.h"
 #include "microcodeprogram.h"
+#include "SymbolEntry.h"
 CPUControlSection *CPUControlSection::_instance = nullptr;
 CPUTester *CPUTester::_instance = nullptr;
 
@@ -60,24 +61,27 @@ bool CPUControlSection::getExecutionFinished() const
 
 void CPUControlSection::onSimulationStarted()
 {
-#pragma message "todo"
+    inSimulation = true;
+    executionFinished = false;
 }
 
 void CPUControlSection::onSimulationFinished()
 {
     data->clearClockSignals();
     data->clearControlSignals();
+    executionFinished=true;
 }
 
 void CPUControlSection::onDebuggingStarted()
 {
-#pragma message "todo"
+    onSimulationStarted();
 }
 
 void CPUControlSection::onDebuggingFinished()
 {
-#pragma message "todo"
+    onSimulationFinished();
 }
+
 
 void CPUControlSection::onStep() noexcept
 {
@@ -154,7 +158,7 @@ void CPUControlSection::onCPUFeaturesChanged(Enu::CPUType cpuType) noexcept
     data->onCPUFeaturesChanged(cpuType);
 }
 
-CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr),data(data),microprogramCounter(0),hadControlError(false),inSimulation(false)
+CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr),data(data),microprogramCounter(0),inSimulation(false),hadControlError(false)
 {
 
 }
@@ -162,112 +166,113 @@ CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr),da
 void CPUControlSection::branchHandler()
 {
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
+    int temp=0; //Set a default, in order to silence compiler warning
     switch(prog->getBranchFunction())
     {
     case Enu::Unconditional:
-        microprogramCounter = prog->getTrueTarget();
+        temp = prog->getTrueTarget()->getValue();
         break;
     case Enu::BRGT:
         if((!data->getStatusBit(Enu::STATUS_N)))
         {
-            microprogramCounter=prog->getTrueTarget();
+            temp=prog->getTrueTarget()->getValue();
         }
         else
         {
-            microprogramCounter=prog->getFalseTarget();
+            temp=prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::BRGE:
         if((!data->getStatusBit(Enu::STATUS_N))||data->getStatusBit(Enu::STATUS_Z))
         {
-            microprogramCounter=prog->getTrueTarget();
+            temp=prog->getTrueTarget()->getValue();
         }
         else
         {
-            microprogramCounter=prog->getFalseTarget();
+            temp=prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::BREQ:
         if(data->getStatusBit(Enu::STATUS_Z))
         {
-            microprogramCounter=prog->getTrueTarget();
+            temp=prog->getTrueTarget()->getValue();
         }
         else
         {
-            microprogramCounter=prog->getFalseTarget();
+            temp=prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::BRLE:
         if(data->getStatusBit(Enu::STATUS_N)||data->getStatusBit(Enu::STATUS_Z))
         {
-            microprogramCounter=prog->getTrueTarget();
+            temp=prog->getTrueTarget()->getValue();
         }
         else
         {
-            microprogramCounter=prog->getFalseTarget();
+            temp=prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::BRLT:
         if(data->getStatusBit(Enu::STATUS_N))
         {
-            microprogramCounter=prog->getTrueTarget();
+            temp=prog->getTrueTarget()->getValue();
         }
         else
         {
-            microprogramCounter=prog->getFalseTarget();
+            temp=prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::BRNE:
         if((!data->getStatusBit(Enu::STATUS_Z)))
         {
-            microprogramCounter=prog->getTrueTarget();
+            temp=prog->getTrueTarget()->getValue();
         }
         else
         {
-            microprogramCounter=prog->getFalseTarget();
+            temp=prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::BRV:
         if(data->getStatusBit(Enu::STATUS_V))
         {
-            microprogramCounter=prog->getTrueTarget();
+            temp=prog->getTrueTarget()->getValue();
         }
         else
         {
-            microprogramCounter=prog->getFalseTarget();
+            temp=prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::BRC:
         if(data->getStatusBit(Enu::STATUS_C))
         {
-            microprogramCounter=prog->getTrueTarget();
+            temp=prog->getTrueTarget()->getValue();
         }
         else
         {
-            microprogramCounter=prog->getFalseTarget();
+            temp=prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::BRS:
         if(data->getStatusBit(Enu::STATUS_S))
         {
-            microprogramCounter=prog->getTrueTarget();
+            temp=prog->getTrueTarget()->getValue();
         }
         else
         {
-            microprogramCounter=prog->getFalseTarget();
+            temp=prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::IJT:
         executionFinished=true; //For now, the instruction jump table is unimplmented
         break;
     case Enu::PCE:
-        if(data->getRegisterBankByte(8)%2==0)
+        if(data->getRegisterBankByte(7)%2==0)
         {
-            microprogramCounter=prog->getTrueTarget();
+            temp=prog->getTrueTarget()->getValue();
         }
         else
         {
-            microprogramCounter=prog->getFalseTarget();
+            temp=prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::Stop:
@@ -277,6 +282,16 @@ void CPUControlSection::branchHandler()
         //This should never occur
         break;
 
+    }
+    if(temp==microprogramCounter&&prog->getBranchFunction()!=Enu::Stop)
+    {
+        hadControlError=true;
+        errorMessage="Don't branch to yourself";
+        executionFinished=true;
+    }
+    else
+    {
+        microprogramCounter = temp;
     }
 }
 

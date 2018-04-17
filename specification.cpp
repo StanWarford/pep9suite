@@ -171,8 +171,7 @@ bool RegSpecification::testUnitPost(CPUDataSection *data, QString &errorString)
         break;
     default: return true; //By default,
     }
-    qDebug()<<reg;
-    qDebug()<<data->getRegisterBankWord(reg)<<":"<<regValue;
+
     if(data->getRegisterBankWord(reg)==regValue)return true;
     switch (regAddress) {
     case Enu::Acc: errorString = "// ERROR: Unit test failed for register A."; return false;

@@ -56,6 +56,7 @@ namespace Enu
         BRGT=1,BRGE=2,BREQ=3,BRLE=4,BRLT=5,
         BRNE=6,BRV=7,BRC=8,BRS=9,
         BRU=10, //Branch if instruction specifier is unary
+        AJT=12, //Adressing modes jump table
         IJT=13, //Instruction jump table
         PCE=14, //Program counter even?
         Stop=15,

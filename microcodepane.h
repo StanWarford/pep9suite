@@ -32,6 +32,7 @@
 namespace Ui {
     class MicrocodePane;
 }
+class SymbolTable;
 class MicrocodeProgram;
 class MicrocodePane : public QWidget {
     Q_OBJECT
@@ -98,6 +99,7 @@ protected:
 private:
     Ui::MicrocodePane *ui;
 
+    QSharedPointer<SymbolTable> symbolTable;
     PepHighlighter *highlighter;
     MicrocodeEditor *editor;
     MicrocodeProgram* program;

@@ -24,6 +24,9 @@
 #include "asm.h"
 #include "pep.h"
 #include "code.h"
+#include "SymbolTable.h"
+#include "SymbolValue.h"
+#include "SymbolEntry.h"
 
 // Regular expressions for lexical analysis
 QRegExp Asm::rxComment("^//.*");
@@ -111,17 +114,21 @@ bool Asm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenStri
                     token = LTE_SYMBOL;
                 }
         }
-        else if(tokenString.compare("if",Qt::CaseInsensitive))
+        else if(tokenString.compare("if",Qt::CaseInsensitive)==0)
         {
             token = LTE_IF;
         }
-        else if(tokenString.compare("else",Qt::CaseInsensitive))
+        else if(tokenString.compare("else",Qt::CaseInsensitive)==0)
         {
             token = LTE_ELSE;
         }
-        else if(tokenString.compare("goto",Qt::CaseInsensitive))
+        else if(tokenString.compare("goto",Qt::CaseInsensitive)==0)
         {
             token = LTE_GOTO;
+        }
+        else if(tokenString.compare("stop",Qt::CaseInsensitive)==0)
+        {
+            token = LTE_STOP;
         }
         else
         {
@@ -141,7 +148,7 @@ bool Asm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenStri
     return false;
 }
 
-bool Asm::processSourceLine(QString sourceLine, Code *&code, QString &errorString)
+bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&code, QString &errorString)
 {
     Asm::ELexicalToken token; // Passed to getToken.
     QString tokenString; // Passed to getToken.
@@ -157,7 +164,6 @@ bool Asm::processSourceLine(QString sourceLine, Code *&code, QString &errorStrin
     UnitPreCode *preconditionCode = NULL;
     UnitPostCode *postconditionCode = NULL;
     BlankLineCode *blankLineCode = NULL;
-
     Asm::ParseState state = Asm::PS_START;
     do {
         if (!getToken(sourceLine, token, tokenString)) {
@@ -171,7 +177,19 @@ bool Asm::processSourceLine(QString sourceLine, Code *&code, QString &errorStrin
             {
                 microCode = new MicroCode();
                 code = microCode;
-                microCode->setSymbol(tokenString);
+                if(symTable->exists(tokenString.left(tokenString.length()-1)))
+                {
+                    if(symTable->getValue(tokenString.left(tokenString.length()-1))->isDefined())
+                    {
+                        errorString = "// ERROR: Multiply defined symbol: " + tokenString.left(tokenString.length()-1);
+                        return false;
+                    }
+                }
+                else
+                {
+                   symTable->insertSymbol(tokenString.left(tokenString.length()-1));
+                }
+                microCode->setSymbol(symTable->getValue(tokenString.left(tokenString.length()-1)).get());
                 state = Asm::PS_CONTINUE_PRE_SEMICOLON_POST_COMMA;
             }
             else if (token == Asm::LT_IDENTIFIER) {
@@ -231,6 +249,10 @@ bool Asm::processSourceLine(QString sourceLine, Code *&code, QString &errorStrin
                 blankLineCode = new BlankLineCode();
                 code = blankLineCode;
                 state = Asm::PS_FINISH;
+            }
+            else if (token == Asm::LTE_IF)
+            {
+                state = Asm::PSE_IF;
             }
             else {
                 errorString = "// ERROR: Syntax error where control signal or comment expected";
@@ -349,6 +371,13 @@ bool Asm::processSourceLine(QString sourceLine, Code *&code, QString &errorStrin
             else if (token == Asm::LT_EMPTY) {
                 state = Asm::PS_FINISH;
             }
+            else if (token == Asm::LTE_IF){
+                state = Asm::PSE_IF;
+            }
+            else if (token == Asm::LTE_STOP){
+                microCode->setBranchFunction(Enu::Stop);
+                state = Asm::PSE_COMMENT;
+            }
             else {
                 errorString = "// ERROR: Syntax error where control signal or comment expected";
                 delete code;
@@ -396,6 +425,19 @@ bool Asm::processSourceLine(QString sourceLine, Code *&code, QString &errorStrin
             else if (token == Asm::LT_EMPTY) {
                 state = Asm::PS_FINISH;
             }
+            else if (token == Asm::LTE_GOTO)
+            {
+                state = Asm::PSE_LONE_GOTO;
+            }
+            else if (token == Asm::LTE_IF)
+            {
+                state = Asm::PSE_IF;
+            }
+            else if (token == Asm::LTE_STOP)
+            {
+                microCode->setBranchFunction(Enu::Stop);
+                state = Asm::PSE_COMMENT;
+            }
             else {
                 errorString = "// ERROR: Syntax error where clock signal or comment expected.";
                 delete code;
@@ -408,9 +450,7 @@ bool Asm::processSourceLine(QString sourceLine, Code *&code, QString &errorStrin
                 state = Asm::PS_START_POST_SEMICOLON;
             }
             else if (token == Asm::LT_SEMICOLON) {
-                errorString = "// ERROR: Multiple semcolons ';'";
-                delete code;
-                return false;
+                state = Asm::PSE_AFTER_SEMI;
             }
             else if (token == Asm::LT_COMMENT) {
                 microCode->cComment = tokenString;
@@ -657,7 +697,128 @@ bool Asm::processSourceLine(QString sourceLine, Code *&code, QString &errorStrin
                 return false;
             }
             break;
-
+        case Asm::PSE_AFTER_SEMI:
+            if(token == Asm::LTE_GOTO)
+            {
+                state = Asm::PSE_LONE_GOTO;
+            }
+            else if(token == Asm::LTE_IF)
+            {
+                state = Asm::PSE_IF;
+            }
+            else if (token == Asm::LTE_STOP){
+                state = Asm::PSE_COMMENT;
+                microCode->setBranchFunction(Enu::Stop);
+            }
+            else
+            {
+                errorString = "// ERROR: Expected branch after semicolon";
+                return false;
+            }
+            break;
+        case Asm::PSE_LONE_GOTO:
+            if (token == Asm::LT_IDENTIFIER)
+            {
+                if(!symTable->exists(tokenString))
+                {
+                    symTable->insertSymbol(tokenString);
+                }
+                microCode->setTrueTarget(symTable->getValue(tokenString).get());
+                microCode->setBranchFunction(Enu::Unconditional);
+                state = Asm::PSE_COMMENT;
+            }
+            else
+            {
+                errorString="// ERROR: Didn't get symbol for goto";
+                return false;
+            }
+            break;
+        case Asm::PSE_IF:
+            if(microCode==nullptr)
+            {
+                microCode = new MicroCode();
+                code=microCode;
+            }
+            if(token == Asm::LT_IDENTIFIER&&Pep::mnemonToBranchFuncMap.contains(tokenString.toUpper()))
+            {
+                //Switch to conditional branch logic
+                microCode->setBranchFunction(Pep::mnemonToBranchFuncMap[tokenString.toUpper()]);
+                state = PSE_TRUE_TARGET;
+            }
+            else
+            {
+                errorString = "// Error: Expected conditional instruction after 'if'";
+                delete code;
+                return false;
+            }
+            break;
+        case Asm::PSE_TRUE_TARGET:
+            if(token == Asm::LT_IDENTIFIER)
+            {
+                if(!symTable->exists(tokenString))
+                {
+                    symTable->insertSymbol(tokenString);
+                }
+                microCode->setTrueTarget(symTable->getValue(tokenString).get());
+                state = Asm::PSE_ELSE;
+            }
+            else
+            {
+                errorString ="// Error: Expected a symbol for true target of if";
+                delete code;
+                return false;
+            }
+            break;
+        case Asm::PSE_ELSE:
+            if(token == Asm::LTE_ELSE)
+            {
+                state = Asm::PSE_FALSE_TARGET;
+            }
+            else
+            {
+                errorString = "// Error: Failure";
+                delete code;
+                return false;
+            }
+            break;
+        case Asm::PSE_FALSE_TARGET:
+            if(token == Asm::LT_IDENTIFIER)
+            {
+                if(!symTable->exists(tokenString))
+                {
+                    symTable->insertSymbol(tokenString);
+                }
+                microCode->setFalseTarget(symTable->getValue(tokenString).get());
+                state = Asm::PSE_COMMENT;
+            }
+            else
+            {
+                errorString ="Expected a symbol for false target of if";
+                delete code;
+                return false;
+            }
+            break;
+        case Asm::PSE_COMMENT:
+            if (token ==Asm::LT_COMMENT)
+            {
+                microCode->cComment = tokenString;
+                state = Asm::PSE_EXPECT_EMPTY;
+            }
+            else if (token == Asm::LT_EMPTY) {
+                state = Asm::PS_FINISH;
+            }
+            else
+            {
+                errorString ="Expected a symbol for false target of if";
+                delete code;
+                return false;
+            }
+            break;
+        case Asm::PSE_EXPECT_EMPTY:
+            if (token == Asm::LT_EMPTY) {
+                state = Asm::PS_FINISH;
+            }
+            break;
         default:
             break;
         }

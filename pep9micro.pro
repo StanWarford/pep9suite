@@ -49,7 +49,10 @@ SOURCES += main.cpp \
     disableselectionmodel.cpp \
     colors.cpp \
     cpudatasection.cpp \
-    cpucontrolsection.cpp
+    cpucontrolsection.cpp \
+    SymbolTable.cpp \
+    SymbolEntry.cpp \
+    SymbolValue.cpp
 HEADERS += mainwindow.h \
     byteconverterhex.h \
     byteconverterdec.h \
@@ -80,7 +83,10 @@ HEADERS += mainwindow.h \
     disableselectionmodel.h \
     colors.h \
     cpudatasection.h \
-    cpucontrolsection.h
+    cpucontrolsection.h \
+    SymbolTable.h \
+    SymbolEntry.h \
+    SymbolValue.h
 FORMS += mainwindow.ui \
     byteconverterhex.ui \
     byteconverterdec.ui \

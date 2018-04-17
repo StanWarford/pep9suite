@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),updateChecker(new UpdateChecker()),
     dataSection(CPUDataSection::getInstance()),controlSection(CPUControlSection::getInstance())
 {
+    Pep::initEnumMnemonMaps();
     ui->setupUi(this);
     // connect and begin update checker
     connect(updateChecker,SIGNAL(updateInformation(int)),this,SLOT(onUpdateCheck(int)));
@@ -110,8 +111,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::CPUFeaturesChanged,objectCodePane,&ObjectCodePane::onCPUFeatureChange);
     //Pep::initEnumMnemonMaps();
     //Connect Simulation events
-    connect(this, SIGNAL(beginSimulation()),this->objectCodePane,SLOT(onBeginSimulation()));
-    connect(this, SIGNAL(endSimulation()),this->objectCodePane,SLOT(onEndSimulation()));
+    connect(this, &MainWindow::beginSimulation,this->objectCodePane,&ObjectCodePane::onBeginSimulation);
+    connect(this, &MainWindow::endSimulation,this->objectCodePane,&ObjectCodePane::onEndSimulation);
+    connect(this, &MainWindow::endSimulation,this->controlSection,&CPUControlSection::onSimulationFinished);
     //Connect font change events
     connect(this,&MainWindow::fontChanged,microcodePane,&MicrocodePane::onFontChanged);
     connect(this,&MainWindow::fontChanged,helpDialog,&HelpDialog::onFontChanged);
@@ -440,9 +442,8 @@ void MainWindow::on_actionEdit_UnComment_Line_triggered()
 void MainWindow::on_actionEdit_Auto_Format_Microcode_triggered()
 {
     //Should format correctly anytime assembly works
-#pragma message("todo: fix bug with formatting from previous run")
     if (microcodePane->microAssemble()) {
-        microcodePane->setMicrocode(microcodePane->getMicrocode());
+        microcodePane->setMicrocode(microcodePane->getMicrocodeProgram()->format());
     }
 }
 
@@ -482,12 +483,14 @@ bool MainWindow::on_actionSystem_Start_Debugging_triggered()
     MicrocodeProgram* prog;
     if (microcodePane->microAssemble()) {
         ui->statusBar->showMessage("MicroAssembly succeeded", 4000);
-        objectCodePane->setObjectCode(microcodePane->getMicrocodeProgram());
+        objectCodePane->setObjectCode(microcodePane->getMicrocodeProgram(),nullptr);
         controlSection->setMicrocodeProgram(microcodePane->getMicrocodeProgram());
         prog = microcodePane->getMicrocodeProgram();
+        controlSection->onDebuggingStarted();
         bool hasUnitPre = prog->hasUnitPre();
-        // setup preconditions
-        if (hasUnitPre) {
+        if(hasUnitPre)
+        {
+            // setup preconditions
             controlSection->onClearCPU();
             mainMemory->clearMemory();
             cpuPane->clearCpu();

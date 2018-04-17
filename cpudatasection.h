@@ -41,8 +41,6 @@ public:
     bool getClockSignals(Enu::EClockSignals) const;
     bool getStatusBit(Enu::EStatusBit) const;
 
-    MicroCode* getMicrocodeFromSignals() const; //Convert the currently enabled signals to a microcode line
-
     /*
      *  Preset CPU state. These are not meant to be called once the simulation has started.
      */

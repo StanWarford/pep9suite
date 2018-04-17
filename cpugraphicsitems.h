@@ -142,12 +142,12 @@ public:
     QLabel *MDROLabel;
     QLabel *MDRELabel;
 private:
+    QWidget *parent;
+    QGraphicsScene *parentScene;
     CPUDataSection* dataSection;
     bool darkMode=false;
 
     const PepColors::Colors *colorScheme;
-    QGraphicsScene *parentScene;
-    QWidget *parent;
     Enu::CPUType model;
 
     QImage arrowLeft;
