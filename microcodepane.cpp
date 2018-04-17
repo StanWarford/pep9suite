@@ -29,6 +29,9 @@
 #include <QDebug>
 #include <QFontDialog>
 #include "colors.h"
+#include "SymbolEntry.h"
+#include "SymbolValue.h"
+#include "SymbolTable.h"
 MicrocodePane::MicrocodePane(QWidget *parent) :
         QWidget(parent),
         ui(new Ui::MicrocodePane),symbolTable(nullptr),program(nullptr)
@@ -96,18 +99,23 @@ bool MicrocodePane::microAssemble()
             return false;
         }
         codeList.append(code);
-        /*
-        Sim::codeList.append(code);
-        if (code->isMicrocode()) {
-            Sim::cycleCount++;
-        }*/
         lineNum++;
+    }
+    program = new MicrocodeProgram(codeList,symbolTable.data());
+    for(auto sym : symbolTable->getSymbolEntries()){
+            if(sym->isUndefined()){
+                appendMessageInSourceCodePaneAt(-1,"// ERROR: Undefined symbol "+sym->getName());
+                return false;
+            }
+            else if(sym->isMultiplyDefined()){
+                appendMessageInSourceCodePaneAt(-1,"// ERROR: Multiply defined symbol "+sym->getName());
+                return false;
+            }
     }
     // we guarantee a \n at the end of our document for single step highlighting
     if (!sourceCode.endsWith("\n")) {
-        editor->appendPlainText("\n");
+        //editor->appendPlainText("\n");
     }
-    program = new MicrocodeProgram(codeList,symbolTable.data());
     return true;
 }
 

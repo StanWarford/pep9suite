@@ -26,6 +26,10 @@ void SymbolEntry::setValue(SymbolTable::AbstractSymbolValuePtr value)
 	{
         _state = DefStates::UNDEFINED;
 	}
+    else if(_state == DefStates::MULTIPLE)
+    {
+        _state = DefStates::MULTIPLE;
+    }
 	else
 	{
         _state = DefStates::SINGLE;

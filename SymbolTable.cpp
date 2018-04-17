@@ -44,7 +44,11 @@ SymbolEntryPtr SymbolTable::insertSymbol(const QString & symbolName)
 
 SymbolEntryPtr SymbolTable::setValue(SymbolID symbolID, AbstractSymbolValuePtr value)
 {
-    auto rval = _symbolDictionary[symbolID];
+    SymbolEntryPtr rval = _symbolDictionary[symbolID];
+    if(rval->isDefined())
+    {
+        rval->setMultiplyDefined();
+    }
     rval->setValue(value);
     return rval;
 }

@@ -34,7 +34,7 @@ MicrocodeProgram::MicrocodeProgram(QVector<Code*>objectCode,SymbolTable* symbolT
         {
             line->setSymbol(symTable->insertSymbol("_as"+QString::number(it)).get());
         }
-        line->getSymbol()->setValue(std::shared_ptr<SymbolValueLocation>::make_shared(it));
+        symbolTable->setValue(line->getSymbol()->getSymbolID(),std::shared_ptr<SymbolValueLocation>::make_shared(it));
     }
     for(int it=0;it<microcodeVec.length();it++)
     {

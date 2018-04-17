@@ -390,19 +390,19 @@ void CpuPane::setStatusBit(Enu::EKeywords bit, bool value)
 {
     switch (bit) {
     case Enu::N:
-        cpuPaneItems->nBitLabel->setText(QString("%1").arg(value ? 1 : 0));
+        cpuPaneItems->nBitLabel->setText(QString("%1").arg(value ? "1" : "0"));
         break;
     case Enu::Z:
-        cpuPaneItems->zBitLabel->setText(QString("%1").arg(value ? 1 : 0));
+        cpuPaneItems->zBitLabel->setText(QString("%1").arg(value ? "1" : "0"));
         break;
     case Enu::V:
-        cpuPaneItems->vBitLabel->setText(QString("%1").arg(value ? 1 : 0));
+        cpuPaneItems->vBitLabel->setText(QString("%1").arg(value ? "1" : "0"));
         break;
     case Enu::Cbit:
-        cpuPaneItems->cBitLabel->setText(QString("%1").arg(value ? 1 : 0));
+        cpuPaneItems->cBitLabel->setText(QString("%1").arg(value ? "1" : "0"));
         break;
     case Enu::S:
-        cpuPaneItems->sBitLabel->setText(QString("%1").arg(value ? 1 : 0));
+        cpuPaneItems->sBitLabel->setText(QString("%1").arg(value ? "1" : "0"));
         break;
     default:
         break;
