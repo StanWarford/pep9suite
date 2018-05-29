@@ -124,13 +124,13 @@ void MainMemory::setMemAddress(int memAddress, int value)
     }
 
     int firstAddress = ui->tableWidget->verticalHeaderItem(0)->text().toInt();
-    int lastAddress = firstAddress + ui->tableWidget->rowCount();
+    int lastAddress = firstAddress + ui->tableWidget->rowCount()-1;
 
     if (memAddress < firstAddress || lastAddress < memAddress) {
         return;
     }
 
-    ui->tableWidget->item(memAddress, 0)->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper().trimmed());
+    ui->tableWidget->item(memAddress-firstAddress, 0)->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper().trimmed());
     hightlightModifiedBytes();
     connect(ui->tableWidget, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(cellDataChanged(QTableWidgetItem*)));
 }

@@ -262,6 +262,19 @@ void CPUControlSection::branchHandler()
             temp=prog->getFalseTarget()->getValue();
         }
         break;
+    case Enu::BRU:
+    {
+        auto byte = data->getRegisterBankByte(8);
+        if(byte<18||(byte==38||byte==39))
+        {
+            temp = prog->getTrueTarget()->getValue();
+        }
+        else
+        {
+            temp = prog->getFalseTarget()->getValue();
+        }
+        break;
+    }
     case Enu::IJT:
         executionFinished=true; //For now, the instruction jump table is unimplmented
         break;

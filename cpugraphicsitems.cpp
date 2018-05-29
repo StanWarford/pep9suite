@@ -1425,7 +1425,7 @@ void CpuGraphicsItems::drawRegisterBank()
         lab->setPalette(pal);
     }
     pal.setColor(QPalette::Base,colorScheme->backgroundFill);
-    pal.setColor(QPalette::Background,colorScheme->backgroundFill);
+    pal.setColor(QPalette::Background,PepColors::transparent);
     for(QLineEdit* edit : editorVector)
     {
         edit->setPalette(pal);

@@ -117,11 +117,11 @@ void Pep::initEnumMnemonMaps()
     mnemonToBranchFuncMap.insert("BREQ",BREQ); branchFuncToMnemonMap.insert(BREQ,"BREQ");
     mnemonToBranchFuncMap.insert("BRLE",BRLE); branchFuncToMnemonMap.insert(BRLE,"BRLE");
     mnemonToBranchFuncMap.insert("BRLT",BRLT); branchFuncToMnemonMap.insert(BRLT,"BRLT");
-    mnemonToBranchFuncMap.insert("BRNE",BRNE); branchFuncToMnemonMap.insert(BRNE,"BRNE");
     mnemonToBranchFuncMap.insert("BRV",BRV); branchFuncToMnemonMap.insert(BRV,"BRV");
     mnemonToBranchFuncMap.insert("BRC",BRC); branchFuncToMnemonMap.insert(BRC,"BRC");
     mnemonToBranchFuncMap.insert("BRS",BRS); branchFuncToMnemonMap.insert(BRS,"BRS");
-    mnemonToBranchFuncMap.insert("PCE",PCE); branchFuncToMnemonMap.insert(PCE,"PCE");
+    mnemonToBranchFuncMap.insert("ISPCE",PCE); branchFuncToMnemonMap.insert(PCE,"ISPCE");
+    mnemonToBranchFuncMap.insert("ISUNARY",BRU); branchFuncToMnemonMap.insert(BRU,"ISUNARY");
 
     CPUDataSection* tempRef = CPUDataSection::getInstance();
     mnemonToDecControlMap.clear();  decControlToMnemonMap.clear();

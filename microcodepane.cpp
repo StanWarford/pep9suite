@@ -85,7 +85,7 @@ bool MicrocodePane::microAssemble()
     Code *code;
     int lineNum = 0;
     removeErrorMessages();
-    QString sourceCode = editor->toPlainText();
+    QString sourceCode = editor->toPlainText().trimmed();
     sourceCodeList = sourceCode.split('\n');
     if(symbolTable)
     {

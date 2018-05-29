@@ -861,6 +861,7 @@ void CPUDataSection::onClearCPU() noexcept
 {
     //Reset evey value associated with the CPU
     mainBusState = Enu::None;
+    NZVCSbits=0;
     clearErrors();
     clearRegisters();
     clearClockSignals();
