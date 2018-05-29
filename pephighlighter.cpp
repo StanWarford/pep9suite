@@ -40,6 +40,28 @@ void PepHighlighter::rebuildHighlightingRules(PepColors::Colors color)
     highlightingRulesOne.clear();
     highlightingRulesTwo.clear();
     highlightingRulesAll.clear();
+    numFormat.setForeground(color.rightOfExpression);
+    rule.pattern = QRegExp("(0x)?[0-9a-fA-F]+(?=(,|;|(\\s)*$|\\]|(\\s)*//))");
+    rule.format = numFormat;
+    highlightingRulesOne.append(rule);
+    highlightingRulesTwo.append(rule);
+
+    symbolFormat.setForeground(color.symbolHighlight);
+    rule.pattern = QRegExp("^(\\S)*(?=:)\\b");
+    rule.format = symbolFormat;
+    highlightingRulesOne.append(rule);
+    highlightingRulesTwo.append(rule);
+    identFormat.setForeground(color.seqCircuitColor);
+    QStringList symLoc;
+    symLoc << ("else \\w+")
+           << ("if \\w+ \\w+")
+           << ("goto \\w+");
+    foreach (const QString &pattern, symLoc) {
+        rule.pattern = QRegExp(pattern);
+        rule.format = identFormat;
+        highlightingRulesOne.append(rule);
+        highlightingRulesTwo.append(rule);
+    }
     conditionalFormat.setForeground(color.conditionalHighlight);
     QStringList keywords;
     keywords << "if"<<"else"<<"goto"<<"stop";
@@ -52,22 +74,11 @@ void PepHighlighter::rebuildHighlightingRules(PepColors::Colors color)
     branchFunctionFormat.setForeground(color.branchFunctionHighlight);
     for(QString function : Pep::branchFuncToMnemonMap.values())
     {
-        rule.pattern=QRegExp(function,Qt::CaseInsensitive);
-        rule.format =branchFunctionFormat;
+        rule.pattern = QRegExp(function,Qt::CaseInsensitive);
+        rule.format = branchFunctionFormat;
         highlightingRulesOne.append(rule);
         highlightingRulesTwo.append(rule);
     }
-    symbolFormat.setForeground(color.symbolHighlight);
-    rule.pattern=QRegExp("^(\\S)*(?=:)\\b");
-    rule.format = symbolFormat;
-
-    highlightingRulesOne.append(rule);
-    highlightingRulesTwo.append(rule);
-    numFormat.setForeground(color.rightOfExpression);
-    rule.pattern = QRegExp("(0x)?[0-9a-fA-F]+(?=(,|;|(\\s)*$|\\]|(\\s)*//))");
-    rule.format = numFormat;
-    highlightingRulesOne.append(rule);
-    highlightingRulesTwo.append(rule);
     oprndFormat.setForeground(color.leftOfExpression);
     oprndFormat.setFontWeight(QFont::Bold);
     QStringList oprndPatterns;
@@ -120,6 +131,7 @@ void PepHighlighter::rebuildHighlightingRules(PepColors::Colors color)
     commentStartExpression = QRegExp("//\\sERROR:[\\s]");
     commentEndExpression = QRegExp("$");
 }
+
 void PepHighlighter::highlightBlock(const QString &text)
 {
     QVector<HighlightingRule> highlightingRules;

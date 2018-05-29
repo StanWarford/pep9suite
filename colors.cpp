@@ -41,7 +41,7 @@ const PepColors::Colors PepColors::initLight()
     retVal.symbolHighlight =QColor("firebrick");
     retVal.conditionalHighlight = QColor("orange");
     retVal.branchFunctionHighlight = QColor("red");
-    retVal.memoryHighlight = QColor("green");
+    retVal.memoryHighlight = QColor("green").lighter(130);
 
     retVal.seqCircuitColor= QColor(0x3B3630).lighter(370);
     retVal.combCircuitRed = QColor(0xD92405).lighter(140);

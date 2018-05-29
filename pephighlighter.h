@@ -59,6 +59,7 @@ private:
     QTextCharFormat singleLineCommentFormat;
     QTextCharFormat multiLineCommentFormat;
     QTextCharFormat symbolFormat;
+    QTextCharFormat identFormat;
     QTextCharFormat conditionalFormat;
     QTextCharFormat branchFunctionFormat;
 
