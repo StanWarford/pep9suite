@@ -78,7 +78,6 @@ CpuPane::CpuPane(CPUType type, QWidget *parent) :
 
 CpuPane::~CpuPane()
 {
-    delete cpuPaneItems;
     delete ui;
 }
 

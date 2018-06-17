@@ -241,6 +241,7 @@ void MainMemory::cellDataChanged(QTableWidgetItem *item)
 {
     // disconnect this signal so that modifying the text of the column next to it doesn't fire this signal; reconnect at the end
     disconnect(ui->tableWidget, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(cellDataChanged(QTableWidgetItem*)));
+    disconnect(dataSection,&CPUDataSection::memoryChanged,this,&MainMemory::onMemoryValueChanged);
 
     int row = item->row();
     QString contents = item->text();
@@ -269,6 +270,7 @@ void MainMemory::cellDataChanged(QTableWidgetItem *item)
     }
 
     connect(ui->tableWidget, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(cellDataChanged(QTableWidgetItem*)));
+    connect(dataSection,&CPUDataSection::memoryChanged,this,&MainMemory::onMemoryValueChanged);
 }
 
 void MainMemory::scrollToChanged(QString string)
