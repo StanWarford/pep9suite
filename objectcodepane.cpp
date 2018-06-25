@@ -57,8 +57,8 @@ ObjectCodePane::ObjectCodePane(QWidget *parent) :
     model->setRowCount(0);
     initCPUModelState();
     //Connect to disabler
-    connect(this,SIGNAL(beginSimulation()),selectionModel,SLOT(onBeginSimulation()));
-    connect(this,SIGNAL(endSimulation()),selectionModel,SLOT(onEndSimulation()));
+    connect(this, &ObjectCodePane::beginSimulation, selectionModel, &DisableSelectionModel::onBeginSimulation);
+    connect(this, &ObjectCodePane::endSimulation, selectionModel, &DisableSelectionModel::onEndSimulation);
 
     //ui->codeTabl
 }

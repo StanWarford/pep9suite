@@ -32,8 +32,8 @@ ByteConverterBin::ByteConverterBin(QWidget *parent) :
     binValidator = new QRegExpValidator(binRx, this);
     m_ui->lineEdit->setValidator(binValidator);
     // Forward the textEdited() signal from m_ui->lineEdit up to the main window
-    QObject::connect(m_ui->lineEdit, SIGNAL(textEdited(const QString &)), this,
-                     SIGNAL(textEdited(const QString &)));
+    QObject::connect(m_ui->lineEdit, &QLineEdit::textEdited, this,
+                     &ByteConverterBin::textEdited);
 }
 
 ByteConverterBin::~ByteConverterBin()

@@ -34,8 +34,8 @@ ByteConverterHex::ByteConverterHex(QWidget *parent) :
     hexValidator = new QRegExpValidator(hexRx, this);
     m_ui->lineEdit->setValidator(hexValidator);
     // Forward the textEdited() signal from m_ui->lineEdit up to the main window
-    connect(m_ui->lineEdit, SIGNAL(textEdited(const QString &)), this, SIGNAL(textEdited(const QString &)));
-    connect(m_ui->lineEdit, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(moveCursorAwayFromPrefix(int, int)));
+    connect(m_ui->lineEdit, &QLineEdit::textEdited, this, &ByteConverterHex::textEdited);
+    connect(m_ui->lineEdit, &QLineEdit::cursorPositionChanged, this, &ByteConverterHex::moveCursorAwayFromPrefix);
 
 }
 

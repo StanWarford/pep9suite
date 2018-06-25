@@ -32,8 +32,8 @@ ByteConverterDec::ByteConverterDec(QWidget *parent) :
     decValidator = new QRegExpValidator(decRx, this);
     m_ui->lineEdit->setValidator(decValidator);
     // Forward the textEdited() signal from m_ui->lineEdit up to the main window
-    QObject::connect(m_ui->lineEdit, SIGNAL(textEdited(const QString &)), this,
-                     SIGNAL(textEdited(const QString &)));
+    QObject::connect(m_ui->lineEdit, &QLineEdit::textEdited, this,
+                     &ByteConverterDec::textEdited);
 }
 
 ByteConverterDec::~ByteConverterDec()

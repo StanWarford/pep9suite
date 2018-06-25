@@ -54,10 +54,10 @@ MicrocodePane::MicrocodePane(QWidget *parent) :
     highlighter = NULL;
     initCPUModelState();
 
-    connect(editor->document(), SIGNAL(modificationChanged(bool)), this, SLOT(setLabelToModified(bool)));
+    connect(editor->document(), &QTextDocument::modificationChanged, this, &MicrocodePane::setLabelToModified);
 
-    connect(editor->document(), SIGNAL(undoAvailable(bool)), this, SIGNAL(undoAvailable(bool)));
-    connect(editor->document(), SIGNAL(redoAvailable(bool)), this, SIGNAL(redoAvailable(bool)));
+    connect(editor->document(), &QTextDocument::undoAvailable, this, &MicrocodePane::undoAvailable);
+    connect(editor->document(), &QTextDocument::redoAvailable, this, &MicrocodePane::redoAvailable);
 
     editor->setFocus();
 }

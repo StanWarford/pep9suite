@@ -32,8 +32,8 @@ ByteConverterChar::ByteConverterChar(QWidget *parent) :
     charValidator = new QRegExpValidator(charRx, this);
     m_ui->lineEdit->setValidator(charValidator);
     // Forward the textEdited() signal from m_ui->lineEdit up to the main window
-    QObject::connect(m_ui->lineEdit, SIGNAL(textEdited(const QString &)), this,
-                     SIGNAL(textEdited(const QString &)));
+    QObject::connect(m_ui->lineEdit, &QLineEdit::textEdited, this,
+                     &ByteConverterChar::textEdited);
 }
 
 ByteConverterChar::~ByteConverterChar()

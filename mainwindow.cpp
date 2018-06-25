@@ -45,12 +45,12 @@ MainWindow::MainWindow(QWidget *parent) :
     Pep::initEnumMnemonMaps();
     ui->setupUi(this);
     // connect and begin update checker
-    connect(updateChecker,SIGNAL(updateInformation(int)),this,SLOT(onUpdateCheck(int)));
-    auto x = QtConcurrent::run(updateChecker,&UpdateChecker::beginUpdateCheck);\
+    connect(updateChecker, &UpdateChecker::updateInformation, this, &MainWindow::onUpdateCheck);
+    auto x = QtConcurrent::run(updateChecker,&UpdateChecker::beginUpdateCheck);
 
     //Connect Models to necessary components
-    connect(this,SIGNAL(CPUFeaturesChanged(Enu::CPUType)),controlSection,SLOT(onCPUFeaturesChanged(Enu::CPUType)));
-    connect(this,SIGNAL(CPUFeaturesChanged(Enu::CPUType)),dataSection,SLOT(onCPUFeaturesChanged(Enu::CPUType)));
+    connect(this, &MainWindow::CPUFeaturesChanged, controlSection, &CPUControlSection::onCPUFeaturesChanged);
+    connect(this, &MainWindow::CPUFeaturesChanged, dataSection, &CPUDataSection::onCPUFeaturesChanged);
 
     mainMemory = new MainMemory(ui->mainSplitter);
     delete ui->memoryFrame;
@@ -90,39 +90,39 @@ MainWindow::MainWindow(QWidget *parent) :
     byteConverterChar = new ByteConverterChar(this);
     ui->byteConverterToolBar->addWidget(byteConverterChar);
     ui->byteConverterToolBar->setWindowTitle("Byte Converter");
-    connect(byteConverterDec, SIGNAL(textEdited(const QString &)), this, SLOT(slotByteConverterDecEdited(const QString &)));
-    connect(byteConverterHex, SIGNAL(textEdited(const QString &)), this, SLOT(slotByteConverterHexEdited(const QString &)));
-    connect(byteConverterBin, SIGNAL(textEdited(const QString &)), this, SLOT(slotByteConverterBinEdited(const QString &)));
-    connect(byteConverterChar, SIGNAL(textEdited(const QString &)), this, SLOT(slotByteConverterCharEdited(const QString &)));
+    connect(byteConverterDec, &ByteConverterDec::textEdited, this, &MainWindow::slotByteConverterDecEdited);
+    connect(byteConverterHex, &ByteConverterHex::textEdited, this, &MainWindow::slotByteConverterHexEdited);
+    connect(byteConverterBin, &ByteConverterBin::textEdited, this, &MainWindow::slotByteConverterBinEdited);
+    connect(byteConverterChar, &ByteConverterChar::textEdited, this, &MainWindow::slotByteConverterCharEdited);
 
-    connect(helpDialog, SIGNAL(copyToMicrocodeClicked()), this, SLOT(helpCopyToMicrocodeButtonClicked()));
+    connect(helpDialog, &HelpDialog::copyToMicrocodeClicked, this, &MainWindow::helpCopyToMicrocodeButtonClicked);
 
     connect(qApp->instance(), SIGNAL(focusChanged(QWidget*, QWidget*)), this, SLOT(focusChanged(QWidget*, QWidget*)));
-    connect(microcodePane, SIGNAL(undoAvailable(bool)), this, SLOT(setUndoability(bool)));
-    connect(microcodePane, SIGNAL(redoAvailable(bool)), this, SLOT(setRedoability(bool)));
+    connect(microcodePane, &MicrocodePane::undoAvailable, this, &MainWindow::setUndoability);
+    connect(microcodePane, &MicrocodePane::redoAvailable, this, &MainWindow::setRedoability);
 
-    connect(cpuPane, SIGNAL(updateSimulation()), this, SLOT(updateSimulation()));
-    connect(cpuPane, SIGNAL(simulationFinished()), this, SLOT(simulationFinished()));
-    connect(cpuPane, SIGNAL(stopSimulation()), this, SLOT(stopSimulation()));
-    connect(cpuPane, SIGNAL(writeByte(int)), this, SLOT(updateMemAddress(int)));
+    connect(cpuPane, &CpuPane::updateSimulation, this, &MainWindow::updateSimulation);
+    connect(cpuPane, &CpuPane::simulationFinished, this, &MainWindow::simulationFinished);
+    connect(cpuPane, &CpuPane::stopSimulation, this, &MainWindow::stopSimulation);
+    connect(cpuPane, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
 
     //Connect events that pass on CPU Feature changes
-    connect(this,&MainWindow::CPUFeaturesChanged,microcodePane,&MicrocodePane::onCPUFeatureChange);
-    connect(this, &MainWindow::CPUFeaturesChanged,objectCodePane,&ObjectCodePane::onCPUFeatureChange);
+    connect(this, &MainWindow::CPUFeaturesChanged, microcodePane, &MicrocodePane::onCPUFeatureChange);
+    connect(this, &MainWindow::CPUFeaturesChanged, objectCodePane, &ObjectCodePane::onCPUFeatureChange);
     //Pep::initEnumMnemonMaps();
     //Connect Simulation events
     connect(this, &MainWindow::beginSimulation,this->objectCodePane,&ObjectCodePane::onBeginSimulation);
     connect(this, &MainWindow::endSimulation,this->objectCodePane,&ObjectCodePane::onEndSimulation);
     connect(this, &MainWindow::endSimulation,this->controlSection,&CPUControlSection::onSimulationFinished);
     //Connect font change events
-    connect(this,&MainWindow::fontChanged,microcodePane,&MicrocodePane::onFontChanged);
-    connect(this,&MainWindow::fontChanged,helpDialog,&HelpDialog::onFontChanged);
-    connect(this,&MainWindow::darkModeChanged,microcodePane,&MicrocodePane::onDarkModeChanged);
-    connect(this,&MainWindow::darkModeChanged,helpDialog,&HelpDialog::onDarkModeChanged);
-    connect(this,&MainWindow::darkModeChanged,objectCodePane,&ObjectCodePane::onDarkModeChanged);
-    connect(this,&MainWindow::darkModeChanged,cpuPaneTwoByteDataBus,&CpuPane::onDarkModeChanged);
-    connect(this,&MainWindow::darkModeChanged,cpuPaneOneByteDataBus,&CpuPane::onDarkModeChanged);
-    connect(this,&MainWindow::darkModeChanged,mainMemory,&MainMemory::onDarkModeChange);
+    connect(this, &MainWindow::fontChanged, microcodePane, &MicrocodePane::onFontChanged);
+    connect(this, &MainWindow::fontChanged, helpDialog, &HelpDialog::onFontChanged);
+    connect(this, &MainWindow::darkModeChanged, microcodePane, &MicrocodePane::onDarkModeChanged);
+    connect(this, &MainWindow::darkModeChanged, helpDialog, &HelpDialog::onDarkModeChanged);
+    connect(this, &MainWindow::darkModeChanged, objectCodePane, &ObjectCodePane::onDarkModeChanged);
+    connect(this, &MainWindow::darkModeChanged, cpuPaneTwoByteDataBus, &CpuPane::onDarkModeChanged);
+    connect(this ,&MainWindow::darkModeChanged, cpuPaneOneByteDataBus, &CpuPane::onDarkModeChanged);
+    connect(this, &MainWindow::darkModeChanged, mainMemory, &MainMemory::onDarkModeChange);
     qApp->installEventFilter(this);
     //Load Style sheets
     QFile f(":qdarkstyle/dark_style.qss");
@@ -130,7 +130,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QTextStream ts(&f);
     darkStyle= ts.readAll();
     lightStyle = this->styleSheet();
-    connect(cpuPane, SIGNAL(appendMicrocodeLine(QString)), this, SLOT(appendMicrocodeLine(QString)));
+    connect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
     readSettings();
     on_actionOne_Byte_Data_Bus_Model_triggered();
 }
@@ -558,11 +558,11 @@ void MainWindow::on_actionOne_Byte_Data_Bus_Model_triggered()
     objectCodePane->clearSimulationView();
     mainMemory->clearMemory();
 
-    disconnect(cpuPane, SIGNAL(updateSimulation()), this, SLOT(updateSimulation()));
-    disconnect(cpuPane, SIGNAL(simulationFinished()), this, SLOT(simulationFinished()));
-    disconnect(cpuPane, SIGNAL(stopSimulation()), this, SLOT(stopSimulation()));
-    disconnect(cpuPane, SIGNAL(writeByte(int)), this, SLOT(updateMemAddress(int)));
-    disconnect(cpuPane, SIGNAL(appendMicrocodeLine(QString)), this, SLOT(appendMicrocodeLine(QString)));
+    disconnect(cpuPane, &CpuPane::updateSimulation, this, &MainWindow::updateSimulation);
+    disconnect(cpuPane, &CpuPane::simulationFinished, this, &MainWindow::simulationFinished);
+    disconnect(cpuPane, &CpuPane::stopSimulation, this, &MainWindow::stopSimulation);
+    disconnect(cpuPane, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
+    disconnect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
 
     cpuPane->hide();
     cpuPane = cpuPaneOneByteDataBus;
@@ -570,11 +570,11 @@ void MainWindow::on_actionOne_Byte_Data_Bus_Model_triggered()
     cpuPane->clearCpuControlSignals();
     cpuPane->show();
 
-    connect(cpuPane, SIGNAL(updateSimulation()), this, SLOT(updateSimulation()));
-    connect(cpuPane, SIGNAL(simulationFinished()), this, SLOT(simulationFinished()));
-    connect(cpuPane, SIGNAL(stopSimulation()), this, SLOT(stopSimulation()));
-    connect(cpuPane, SIGNAL(writeByte(int)), this, SLOT(updateMemAddress(int)));
-    connect(cpuPane, SIGNAL(appendMicrocodeLine(QString)), this, SLOT(appendMicrocodeLine(QString)));
+    connect(cpuPane, &CpuPane::updateSimulation, this, &MainWindow::updateSimulation);
+    connect(cpuPane, &CpuPane::simulationFinished, this, &MainWindow::simulationFinished);
+    connect(cpuPane, &CpuPane::stopSimulation, this, &MainWindow::stopSimulation);
+    connect(cpuPane, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
+    connect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
 
     ui->actionTwo_Byte_Data_Bus_Model->setText("Switch to Two-byte Data Bus");
     ui->actionTwo_Byte_Data_Bus_Model->setEnabled(true);
@@ -595,11 +595,11 @@ void MainWindow::on_actionTwo_Byte_Data_Bus_Model_triggered()
     objectCodePane->clearSimulationView();
     mainMemory->clearMemory();
 
-    disconnect(cpuPane, SIGNAL(updateSimulation()), this, SLOT(updateSimulation()));
-    disconnect(cpuPane, SIGNAL(simulationFinished()), this, SLOT(simulationFinished()));
-    disconnect(cpuPane, SIGNAL(stopSimulation()), this, SLOT(stopSimulation()));
-    disconnect(cpuPane, SIGNAL(writeByte(int)), this, SLOT(updateMemAddress(int)));
-    disconnect(cpuPane, SIGNAL(appendMicrocodeLine(QString)), this, SLOT(appendMicrocodeLine(QString)));
+    disconnect(cpuPane, &CpuPane::updateSimulation, this, &MainWindow::updateSimulation);
+    disconnect(cpuPane, &CpuPane::simulationFinished, this, &MainWindow::simulationFinished);
+    disconnect(cpuPane, &CpuPane::stopSimulation, this, &MainWindow::stopSimulation);
+    disconnect(cpuPane, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
+    disconnect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
 
     cpuPane->hide();
     cpuPane = cpuPaneTwoByteDataBus;
@@ -607,11 +607,11 @@ void MainWindow::on_actionTwo_Byte_Data_Bus_Model_triggered()
     cpuPane->clearCpuControlSignals();
     cpuPane->show();
 
-    connect(cpuPane, SIGNAL(updateSimulation()), this, SLOT(updateSimulation()));
-    connect(cpuPane, SIGNAL(simulationFinished()), this, SLOT(simulationFinished()));
-    connect(cpuPane, SIGNAL(stopSimulation()), this, SLOT(stopSimulation()));
-    connect(cpuPane, SIGNAL(writeByte(int)), this, SLOT(updateMemAddress(int)));
-    connect(cpuPane, SIGNAL(appendMicrocodeLine(QString)), this, SLOT(appendMicrocodeLine(QString)));
+    connect(cpuPane, &CpuPane::updateSimulation, this, &MainWindow::updateSimulation);
+    connect(cpuPane, &CpuPane::simulationFinished, this, &MainWindow::simulationFinished);
+    connect(cpuPane, &CpuPane::stopSimulation, this, &MainWindow::stopSimulation);
+    connect(cpuPane, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
+    connect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
 
     ui->actionTwo_Byte_Data_Bus_Model->setText("Two-byte Data Bus");
     ui->actionTwo_Byte_Data_Bus_Model->setEnabled(false);

@@ -45,16 +45,15 @@ CpuPane::CpuPane(CPUType type, QWidget *parent) :
         ui(new Ui::CpuPane)
 {
     ui->setupUi(this);
-    connect(this,&CpuPane::simulationFinished,controlSection,&CPUControlSection::onSimulationFinished);
-    connect(this,&CpuPane::registerChanged,dataSection,&CPUDataSection::onSetRegisterByte);
-    connect(dataSection,&CPUDataSection::statusBitChanged,this,&CpuPane::onStatusBitChanged);
-    connect(dataSection,&CPUDataSection::registerChanged,this,&CpuPane::onRegisterChanged);
-    connect(dataSection,&CPUDataSection::memoryRegisterChanged,this,&CpuPane::onMemoryRegisterChanged);
-    connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(zoomFactorChanged(int)));
+    connect(this, &CpuPane::simulationFinished, controlSection, &CPUControlSection::onSimulationFinished);
+    connect(this, &CpuPane::registerChanged, dataSection, &CPUDataSection::onSetRegisterByte);
+    connect(dataSection, &CPUDataSection::statusBitChanged, this, &CpuPane::onStatusBitChanged);
+    connect(dataSection, &CPUDataSection::registerChanged, this, &CpuPane::onRegisterChanged);
+    connect(dataSection, &CPUDataSection::memoryRegisterChanged, this, &CpuPane::onMemoryRegisterChanged);
+    connect(ui->spinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CpuPane::zoomFactorChanged);
     cpuPaneItems = NULL;
-    scene = new QGraphicsScene(this);
+    scene = new QGraphicsScene(nullptr);
     ui->graphicsView->setScene(scene);
-    scene->setParent(this);
 
     ui->graphicsView->setFont(QFont(Pep::cpuFont, Pep::cpuFontSize));
 
@@ -114,27 +113,27 @@ void CpuPane::initModel(Enu::CPUType type)
     connect(cpuPaneItems->cLineEdit, SIGNAL(textChanged(QString)), scene, SLOT(invalidate()));
     connect(cpuPaneItems->bLineEdit, SIGNAL(textChanged(QString)), scene, SLOT(invalidate()));
     connect(cpuPaneItems->aLineEdit, SIGNAL(textChanged(QString)), scene, SLOT(invalidate()));
-    connect(cpuPaneItems->cLineEdit,&QLineEdit::textChanged,this,&CpuPane::onBusChanged);
-    connect(cpuPaneItems->bLineEdit,&QLineEdit::textChanged,this,&CpuPane::onBusChanged);
-    connect(cpuPaneItems->aLineEdit,&QLineEdit::textChanged,this,&CpuPane::onBusChanged);
+    connect(cpuPaneItems->cLineEdit, &QLineEdit::textChanged, this, &CpuPane::onBusChanged);
+    connect(cpuPaneItems->bLineEdit, &QLineEdit::textChanged, this, &CpuPane::onBusChanged);
+    connect(cpuPaneItems->aLineEdit, &QLineEdit::textChanged, this, &CpuPane::onBusChanged);
 
     connect(cpuPaneItems->MARCk, SIGNAL(clicked()), scene, SLOT(invalidate()));
     connect(cpuPaneItems->MDRCk, SIGNAL(clicked()), scene, SLOT(invalidate()));
-    connect(cpuPaneItems->MARCk,&QCheckBox::clicked,this,&CpuPane::onClockChanged);
-    connect(cpuPaneItems->MDRCk,&QCheckBox::clicked,this,&CpuPane::onClockChanged);
+    connect(cpuPaneItems->MARCk, &QCheckBox::clicked, this, &CpuPane::onClockChanged);
+    connect(cpuPaneItems->MDRCk, &QCheckBox::clicked, this, &CpuPane::onClockChanged);
 
-    connect(cpuPaneItems->aMuxTristateLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->aMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->aMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
 
-    connect(cpuPaneItems->MDRMuxTristateLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->MDRMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->MDRMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
 
-    connect(cpuPaneItems->cMuxTristateLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->cMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->cMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
 
     connect(cpuPaneItems->ALULineEdit, SIGNAL(textChanged(QString)), scene, SLOT(invalidate()));
 
-    connect(cpuPaneItems->CSMuxTristateLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->CSMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->CSMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
 
     connect(cpuPaneItems->SCkCheckBox, SIGNAL(clicked()), scene, SLOT(invalidate()));
@@ -148,60 +147,60 @@ void CpuPane::initModel(Enu::CPUType type)
     connect(cpuPaneItems->ZCkCheckBox, &QCheckBox::clicked, this, &CpuPane::onClockChanged);
     connect(cpuPaneItems->NCkCheckBox, &QCheckBox::clicked, this, &CpuPane::onClockChanged);
 
-    connect(cpuPaneItems->AndZTristateLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->AndZTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->AndZTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
 
-    connect(cpuPaneItems->MemReadTristateLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->MemReadTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->MemReadTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
-    connect(cpuPaneItems->MemWriteTristateLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->MemWriteTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->MemWriteTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
 
-    connect(cpuPaneItems->nBitLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
-    connect(cpuPaneItems->zBitLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
-    connect(cpuPaneItems->vBitLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
-    connect(cpuPaneItems->cBitLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
-    connect(cpuPaneItems->sBitLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->nBitLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
+    connect(cpuPaneItems->zBitLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
+    connect(cpuPaneItems->vBitLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
+    connect(cpuPaneItems->cBitLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
+    connect(cpuPaneItems->sBitLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
 
     // Simulation control connections
-    connect(ui->clockPushButton, SIGNAL(clicked()), this, SLOT(clockButtonPushed()));
-    connect(ui->singleStepPushButton, SIGNAL(clicked()), this, SLOT(singleStepButtonPushed()));
-    connect(ui->resumePushButton, SIGNAL(clicked()), this, SLOT(resumeButtonPushed()));
+    connect(ui->clockPushButton, &QAbstractButton::clicked, this, &CpuPane::clockButtonPushed);
+    connect(ui->singleStepPushButton, &QAbstractButton::clicked, this, &CpuPane::singleStepButtonPushed);
+    connect(ui->resumePushButton, &QAbstractButton::clicked, this, &CpuPane::resumeButtonPushed);
 
     // Register editing connnections
-    connect(cpuPaneItems->aRegLineEdit, SIGNAL(textEdited(QString)), this, SLOT(regTextEdited(QString)));
-    connect(cpuPaneItems->xRegLineEdit, SIGNAL(textEdited(QString)), this, SLOT(regTextEdited(QString)));
-    connect(cpuPaneItems->spRegLineEdit, SIGNAL(textEdited(QString)), this, SLOT(regTextEdited(QString)));
-    connect(cpuPaneItems->pcRegLineEdit, SIGNAL(textEdited(QString)), this, SLOT(regTextEdited(QString)));
-    connect(cpuPaneItems->irRegLineEdit, SIGNAL(textEdited(QString)), this, SLOT(regTextEdited(QString)));
-    connect(cpuPaneItems->t1RegLineEdit, SIGNAL(textEdited(QString)), this, SLOT(regTextEdited(QString)));
-    connect(cpuPaneItems->t2RegLineEdit, SIGNAL(textEdited(QString)), this, SLOT(regTextEdited(QString)));
-    connect(cpuPaneItems->t3RegLineEdit, SIGNAL(textEdited(QString)), this, SLOT(regTextEdited(QString)));
-    connect(cpuPaneItems->t4RegLineEdit, SIGNAL(textEdited(QString)), this, SLOT(regTextEdited(QString)));
-    connect(cpuPaneItems->t5RegLineEdit, SIGNAL(textEdited(QString)), this, SLOT(regTextEdited(QString)));
-    connect(cpuPaneItems->t6RegLineEdit, SIGNAL(textEdited(QString)), this, SLOT(regTextEdited(QString)));
+    connect(cpuPaneItems->aRegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
+    connect(cpuPaneItems->xRegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
+    connect(cpuPaneItems->spRegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
+    connect(cpuPaneItems->pcRegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
+    connect(cpuPaneItems->irRegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
+    connect(cpuPaneItems->t1RegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
+    connect(cpuPaneItems->t2RegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
+    connect(cpuPaneItems->t3RegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
+    connect(cpuPaneItems->t4RegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
+    connect(cpuPaneItems->t5RegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
+    connect(cpuPaneItems->t6RegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
 
-    connect(cpuPaneItems->aRegLineEdit, SIGNAL(editingFinished()), this, SLOT(regTextFinishedEditing()));
-    connect(cpuPaneItems->xRegLineEdit, SIGNAL(editingFinished()), this, SLOT(regTextFinishedEditing()));
-    connect(cpuPaneItems->spRegLineEdit, SIGNAL(editingFinished()), this, SLOT(regTextFinishedEditing()));
-    connect(cpuPaneItems->pcRegLineEdit, SIGNAL(editingFinished()), this, SLOT(regTextFinishedEditing()));
-    connect(cpuPaneItems->irRegLineEdit, SIGNAL(editingFinished()), this, SLOT(regTextFinishedEditing()));
-    connect(cpuPaneItems->t1RegLineEdit, SIGNAL(editingFinished()), this, SLOT(regTextFinishedEditing()));
-    connect(cpuPaneItems->t2RegLineEdit, SIGNAL(editingFinished()), this, SLOT(regTextFinishedEditing()));
-    connect(cpuPaneItems->t3RegLineEdit, SIGNAL(editingFinished()), this, SLOT(regTextFinishedEditing()));
-    connect(cpuPaneItems->t4RegLineEdit, SIGNAL(editingFinished()), this, SLOT(regTextFinishedEditing()));
-    connect(cpuPaneItems->t5RegLineEdit, SIGNAL(editingFinished()), this, SLOT(regTextFinishedEditing()));
-    connect(cpuPaneItems->t6RegLineEdit, SIGNAL(editingFinished()), this, SLOT(regTextFinishedEditing()));
+    connect(cpuPaneItems->aRegLineEdit, &QLineEdit::editingFinished, this, &CpuPane::regTextFinishedEditing);
+    connect(cpuPaneItems->xRegLineEdit, &QLineEdit::editingFinished, this, &CpuPane::regTextFinishedEditing);
+    connect(cpuPaneItems->spRegLineEdit, &QLineEdit::editingFinished, this, &CpuPane::regTextFinishedEditing);
+    connect(cpuPaneItems->pcRegLineEdit, &QLineEdit::editingFinished, this, &CpuPane::regTextFinishedEditing);
+    connect(cpuPaneItems->irRegLineEdit, &QLineEdit::editingFinished, this, &CpuPane::regTextFinishedEditing);
+    connect(cpuPaneItems->t1RegLineEdit, &QLineEdit::editingFinished, this, &CpuPane::regTextFinishedEditing);
+    connect(cpuPaneItems->t2RegLineEdit, &QLineEdit::editingFinished, this, &CpuPane::regTextFinishedEditing);
+    connect(cpuPaneItems->t3RegLineEdit, &QLineEdit::editingFinished, this, &CpuPane::regTextFinishedEditing);
+    connect(cpuPaneItems->t4RegLineEdit, &QLineEdit::editingFinished, this, &CpuPane::regTextFinishedEditing);
+    connect(cpuPaneItems->t5RegLineEdit, &QLineEdit::editingFinished, this, &CpuPane::regTextFinishedEditing);
+    connect(cpuPaneItems->t6RegLineEdit, &QLineEdit::editingFinished, this, &CpuPane::regTextFinishedEditing);
 
     connect(cpuPaneItems->ALULineEdit, &QLineEdit::textChanged, this, &CpuPane::ALUTextEdited);
 
     // 2 byte bus signals
-    connect(cpuPaneItems->MARMuxTristateLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->MARMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->MARMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
-    connect(cpuPaneItems->MDROMuxTristateLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->MDROMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->MDROMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
-    connect(cpuPaneItems->MDREMuxTristateLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->MDREMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->MDREMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
-    connect(cpuPaneItems->EOMuxTristateLabel, SIGNAL(clicked()), this, SLOT(labelClicked()));
+    connect(cpuPaneItems->EOMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->EOMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
     connect(cpuPaneItems->MDRECk, SIGNAL(clicked()), scene, SLOT(invalidate()));
     connect(cpuPaneItems->MDROCk, SIGNAL(clicked()), scene, SLOT(invalidate()));
@@ -211,7 +210,7 @@ void CpuPane::initModel(Enu::CPUType type)
     // Handle Windows repainting bug
     // This might have a performance penalty, so only enable it on the platform that needs it.
     #ifdef WIN32
-        connect(ui->graphicsView->verticalScrollBar(),SIGNAL(actionTriggered(int)),this,SLOT(repaintOnScroll(int)));
+        connect(ui->graphicsView->verticalScrollBar(), &QAbstractSlider::actionTriggered, this, &CpuPane::repaintOnScroll);
     #endif
 }
 

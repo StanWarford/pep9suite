@@ -32,10 +32,10 @@ HelpDialog::HelpDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->helpTreeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)), this,
-            SLOT(onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)));
+    connect(ui->helpTreeWidget, &QTreeWidget::currentItemChanged, this,
+            &HelpDialog::onCurrentItemChanged);
     // Forward the helpCopyToMicrocodeButton_clicked() signal from this to the main window
-    connect(ui->helpCopyToMicrocodeButton, SIGNAL(clicked()), this, SIGNAL(copyToMicrocodeClicked()));
+    connect(ui->helpCopyToMicrocodeButton, &QAbstractButton::clicked, this, &HelpDialog::copyToMicrocodeClicked);
 
     ui->helpSplitter->widget(1)->hide();
     ui->helpTreeWidget->expandAll();

@@ -14,7 +14,7 @@ MAC_USE_DMG_INSTALLER = "true"
 PATH_PREFIX = $$PWD
 #Each of the following variables should be a space separated list
 UNIVERSAL_ICONS = ""
-UNIVERSAL_DATA = "LICENSE" "Resources/ZipData.zip"
+UNIVERSAL_DATA = "LICENSE"
 MAC_ICONS = "" #No special icons for Mac
 MAC_DATA = "" #No additional data for Mac
 WINDOWS_ICONS = "images/icon.ico" "images/Pep9cpu-icon.png"
