@@ -23,7 +23,7 @@
 
 #include <QPlainTextEdit>
 #include <QObject>
-
+#include "colors.h"
 class QPaintEvent;
 class QResizeEvent;
 class QSize;
@@ -48,6 +48,8 @@ public:
     void unCommentSelection();
     void readSettings(QSettings& settings);
     void writeSettings(QSettings& settings);
+public slots:
+    void onDarkModeChanged(bool darkMode);
 protected:
     void resizeEvent(QResizeEvent *event);
 
@@ -57,6 +59,7 @@ private slots:
 
 private:
     QWidget *lineNumberArea;
+    const PepColors::Colors *colors;
 
     bool highlightCurLine;
 

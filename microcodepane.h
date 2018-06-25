@@ -89,6 +89,7 @@ public:
     void setFilename(QString fileName);
     void readSettings(QSettings &settings);
     void writeSettings(QSettings &settings);
+    MicrocodeEditor* getEditor();
 public slots:
     void onCPUFeatureChange();
     void onFontChanged(QFont font);

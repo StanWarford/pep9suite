@@ -52,6 +52,7 @@ ObjectCodePane::ObjectCodePane(QWidget *parent) :
     ui->codeTable->setHorizontalHeader(rotatedHeaderView);
     ui->codeTable->setFont(font);
     ui->codeTable->verticalHeader()->setDefaultSectionSize(12);
+    ui->codeTable->verticalHeader()->setDefaultAlignment(Qt::AlignRight|Qt::AlignJustify);
     ui->codeTable->horizontalHeader()->setDefaultSectionSize(15);
     ui->codeTable->setShowGrid(false);
     model->setRowCount(0);

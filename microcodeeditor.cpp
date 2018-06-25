@@ -27,7 +27,7 @@
 #include "microcodeprogram.h"
 #include <QDebug>
 
-MicrocodeEditor::MicrocodeEditor(QWidget *parent, bool highlightCurrentLine, bool isReadOnly) : QPlainTextEdit(parent)
+MicrocodeEditor::MicrocodeEditor(QWidget *parent, bool highlightCurrentLine, bool isReadOnly) : QPlainTextEdit(parent), colors(&PepColors::lightMode)
 {
 
     highlightCurLine = highlightCurrentLine;
@@ -266,6 +266,12 @@ void MicrocodeEditor::writeSettings(QSettings &settings)
     settings.endGroup();
 }
 
+void MicrocodeEditor::onDarkModeChanged(bool darkMode)
+{
+    if(darkMode)colors = &PepColors::darkMode;
+    else colors = &PepColors::lightMode;
+}
+
 void MicrocodeEditor::resizeEvent(QResizeEvent *e)
 {
     QPlainTextEdit::resizeEvent(e);
@@ -277,7 +283,7 @@ void MicrocodeEditor::resizeEvent(QResizeEvent *e)
 void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 {
     QPainter painter(lineNumberArea);
-    painter.fillRect(event->rect(), QColor(232, 232, 232)); // light grey
+    painter.fillRect(event->rect(),colors->backgroundFill); // light grey
     QTextBlock block;
     int blockNumber;
     int top;
@@ -297,7 +303,7 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         }
         if (block.isValid()) {
             painter.setPen(QColor(232, 232, 232));
-            painter.setBrush(QBrush(QColor(Qt::red).lighter(170)));
+            painter.setBrush(colors->lineAreaHighlight);
             painter.drawRect(-1, top, lineNumberArea->width(), fontMetrics().height());
         }
     }
@@ -321,7 +327,7 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = blockToCycleNumber.at(blockNumber) == -1 ? QString("") : QString::number(blockToCycleNumber.at(blockNumber));
-            painter.setPen(QColor(128, 128, 130)); // grey
+            painter.setPen(colors->lineAreaText); // grey
             painter.setFont(QFont(Pep::codeFont,Pep::codeFontSize));
             painter.drawText(-1, top, lineNumberArea->width(), fontMetrics().height(), Qt::AlignRight, number);
         }

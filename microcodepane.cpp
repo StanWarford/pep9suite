@@ -295,6 +295,11 @@ void MicrocodePane::writeSettings(QSettings &settings)
     settings.endGroup();
 }
 
+MicrocodeEditor *MicrocodePane::getEditor()
+{
+    return editor;
+}
+
 void MicrocodePane::onCPUFeatureChange()
 {
     highlighter->rehighlight();

@@ -11,7 +11,6 @@ namespace PepColors{
         QColor symbolHighlight;
         QColor conditionalHighlight;
         QColor branchFunctionHighlight;
-        QColor memoryHighlight;
 
         QColor seqCircuitColor;
         QColor combCircuitRed;
@@ -29,11 +28,17 @@ namespace PepColors{
         QColor backgroundFill;
         QString arrowImageOn;
         QString arrowImageOff;
+
+        QColor memoryHighlight;
+        QColor lineAreaBackground;
+        QColor lineAreaText;
+        QColor lineAreaHighlight;
     };
     static const QColor transparent = QColor(255,255,255,0);
     const Colors initLight();
     const Colors initDark();
     static const Colors lightMode = {initLight()};
     static const Colors darkMode = {initDark()};
+    QColor invert(QColor input);
 }
 #endif // COLORS_H
