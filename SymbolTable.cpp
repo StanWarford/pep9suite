@@ -38,7 +38,7 @@ SymbolEntryPtr SymbolTable::insertSymbol(const QString & symbolName)
 	}
 	SymbolID id = SymbolTable::getNextUserSymbolID();
 	_symbolLookup.insert(symbolName, id);
-    auto val = _symbolDictionary.insert(id, SymbolEntryPtr::make_shared(id,symbolName));
+    auto val = _symbolDictionary.insert(id, std::make_shared<SymbolEntry>(id,symbolName));
 	return val.value();
 }
 

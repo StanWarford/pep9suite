@@ -114,21 +114,30 @@ bool Asm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenStri
                     token = LTE_SYMBOL;
                 }
         }
-        else if(tokenString.compare("if",Qt::CaseInsensitive)==0)
+
+        else if(tokenString.compare("if", Qt::CaseInsensitive) == 0)
         {
             token = LTE_IF;
         }
-        else if(tokenString.compare("else",Qt::CaseInsensitive)==0)
+        else if(tokenString.compare("else", Qt::CaseInsensitive) == 0)
         {
             token = LTE_ELSE;
         }
-        else if(tokenString.compare("goto",Qt::CaseInsensitive)==0)
+        else if(tokenString.compare("goto", Qt::CaseInsensitive) == 0)
         {
             token = LTE_GOTO;
         }
-        else if(tokenString.compare("stop",Qt::CaseInsensitive)==0)
+        else if(tokenString.compare("stop", Qt::CaseInsensitive) == 0)
         {
             token = LTE_STOP;
+        }
+        else if(tokenString.compare(Pep::branchFuncToMnemonMap[Enu::AddressingModeDecoder], Qt::CaseInsensitive) == 0)
+        {
+            token = LTE_AMD;
+        }
+        else if(tokenString.compare(Pep::branchFuncToMnemonMap[Enu::InstructionSpecifierDecoder], Qt::CaseInsensitive) == 0)
+        {
+            token = LTE_ISD;
         }
         else
         {
@@ -376,7 +385,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             else if (token == Asm::LTE_STOP){
                 microCode->setBranchFunction(Enu::Stop);
-                state = Asm::PSE_COMMENT;
+                state = Asm::PSE_OPTIONAL_COMMENT;
             }
             else {
                 errorString = "// ERROR: Syntax error where control signal or comment expected";
@@ -436,7 +445,17 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             else if (token == Asm::LTE_STOP)
             {
                 microCode->setBranchFunction(Enu::Stop);
-                state = Asm::PSE_COMMENT;
+                state = Asm::PSE_OPTIONAL_COMMENT;
+            }
+            else if (token == Asm::LTE_AMD)
+            {
+                microCode->setBranchFunction(Enu::AddressingModeDecoder);
+                state = Asm::PSE_OPTIONAL_COMMENT;
+            }
+            else if (token == Asm::LTE_ISD)
+            {
+                microCode->setBranchFunction(Enu::InstructionSpecifierDecoder);
+                state = Asm::PSE_OPTIONAL_COMMENT;
             }
             else {
                 errorString = "// ERROR: Syntax error where clock signal or comment expected.";
@@ -707,7 +726,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 state = Asm::PSE_IF;
             }
             else if (token == Asm::LTE_STOP){
-                state = Asm::PSE_COMMENT;
+                state = Asm::PSE_OPTIONAL_COMMENT;
                 microCode->setBranchFunction(Enu::Stop);
             }
             else
@@ -725,7 +744,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 }
                 microCode->setTrueTarget(symTable->getValue(tokenString).get());
                 microCode->setBranchFunction(Enu::Unconditional);
-                state = Asm::PSE_COMMENT;
+                state = Asm::PSE_OPTIONAL_COMMENT;
             }
             else
             {
@@ -789,7 +808,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                     symTable->insertSymbol(tokenString);
                 }
                 microCode->setFalseTarget(symTable->getValue(tokenString).get());
-                state = Asm::PSE_COMMENT;
+                state = Asm::PSE_OPTIONAL_COMMENT;
             }
             else
             {
@@ -798,7 +817,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 return false;
             }
             break;
-        case Asm::PSE_COMMENT:
+        case Asm::PSE_OPTIONAL_COMMENT:
             if (token ==Asm::LT_COMMENT)
             {
                 microCode->cComment = tokenString;

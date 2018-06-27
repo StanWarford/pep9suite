@@ -51,7 +51,9 @@ SOURCES += main.cpp \
     cpucontrolsection.cpp \
     SymbolTable.cpp \
     SymbolEntry.cpp \
-    SymbolValue.cpp
+    SymbolValue.cpp \
+    addrmodedialog.cpp \
+    addrmodewidget.cpp
 HEADERS += mainwindow.h \
     byteconverterhex.h \
     byteconverterdec.h \
@@ -85,7 +87,9 @@ HEADERS += mainwindow.h \
     cpucontrolsection.h \
     SymbolTable.h \
     SymbolEntry.h \
-    SymbolValue.h
+    SymbolValue.h \
+    addrmodedialog.h \
+    addrmodewidget.h
 FORMS += mainwindow.ui \
     byteconverterhex.ui \
     byteconverterdec.ui \
@@ -97,7 +101,9 @@ FORMS += mainwindow.ui \
     helpdialog.ui \
     objectcodepane.ui \
     byteconverterinstr.ui \
-    aboutpep.ui
+    aboutpep.ui \
+    addrmodedialog.ui \
+    addrmodewidget.ui
 OTHER_FILES += help/images/registeraddresssignals.png \
     help/figures/exer1204.pepcpu \
     help/figures/exer1206.pepcpu \

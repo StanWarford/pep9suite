@@ -112,16 +112,20 @@ QMap<QString, Enu::EKeywords> Pep::mnemonToStatusSpecMap;
 void Pep::initEnumMnemonMaps()
 {
     branchFuncToMnemonMap.clear(); mnemonToBranchFuncMap.clear();
-    mnemonToBranchFuncMap.insert("BRGT",BRGT); branchFuncToMnemonMap.insert(BRGT,"BRGT");
-    mnemonToBranchFuncMap.insert("BRGE",BRGE); branchFuncToMnemonMap.insert(BRGE,"BRGE");
-    mnemonToBranchFuncMap.insert("BREQ",BREQ); branchFuncToMnemonMap.insert(BREQ,"BREQ");
-    mnemonToBranchFuncMap.insert("BRLE",BRLE); branchFuncToMnemonMap.insert(BRLE,"BRLE");
-    mnemonToBranchFuncMap.insert("BRLT",BRLT); branchFuncToMnemonMap.insert(BRLT,"BRLT");
-    mnemonToBranchFuncMap.insert("BRV",BRV); branchFuncToMnemonMap.insert(BRV,"BRV");
-    mnemonToBranchFuncMap.insert("BRC",BRC); branchFuncToMnemonMap.insert(BRC,"BRC");
-    mnemonToBranchFuncMap.insert("BRS",BRS); branchFuncToMnemonMap.insert(BRS,"BRS");
-    mnemonToBranchFuncMap.insert("ISPCE",PCE); branchFuncToMnemonMap.insert(PCE,"ISPCE");
-    mnemonToBranchFuncMap.insert("ISUNARY",BRU); branchFuncToMnemonMap.insert(BRU,"ISUNARY");
+    mnemonToBranchFuncMap.insert("BRGT",uBRGT); branchFuncToMnemonMap.insert(uBRGT,"BRGT");
+    mnemonToBranchFuncMap.insert("BRGE",uBRGE); branchFuncToMnemonMap.insert(uBRGE,"BRGE");
+    mnemonToBranchFuncMap.insert("BREQ",uBREQ); branchFuncToMnemonMap.insert(uBREQ,"BREQ");
+    mnemonToBranchFuncMap.insert("BRNE",uBRNE); branchFuncToMnemonMap.insert(uBRNE,"BRNE");
+    mnemonToBranchFuncMap.insert("BRLE",uBRLE); branchFuncToMnemonMap.insert(uBRLE,"BRLE");
+    mnemonToBranchFuncMap.insert("BRLT",uBRLT); branchFuncToMnemonMap.insert(uBRLT,"BRLT");
+    mnemonToBranchFuncMap.insert("BRV",uBRV); branchFuncToMnemonMap.insert(uBRV,"BRV");
+    mnemonToBranchFuncMap.insert("BRC",uBRC); branchFuncToMnemonMap.insert(uBRC,"BRC");
+    mnemonToBranchFuncMap.insert("BRS",uBRS); branchFuncToMnemonMap.insert(uBRS,"BRS");
+    mnemonToBranchFuncMap.insert("ISPREFETCHVALID",IsPrefetchValid); branchFuncToMnemonMap.insert(IsPrefetchValid,"ISPREFETCHVALID");
+    mnemonToBranchFuncMap.insert("ISUNARY",IsUnary); branchFuncToMnemonMap.insert(IsUnary,"ISUNARY");
+    mnemonToBranchFuncMap.insert("ISPCE",IsPCEven); branchFuncToMnemonMap.insert(IsPCEven,"ISPCE");
+    mnemonToBranchFuncMap.insert("AMD",AddressingModeDecoder); branchFuncToMnemonMap.insert(AddressingModeDecoder,"AMD");
+    mnemonToBranchFuncMap.insert("ISD",InstructionSpecifierDecoder); branchFuncToMnemonMap.insert(InstructionSpecifierDecoder,"ISD");
 
     CPUDataSection* tempRef = CPUDataSection::getInstance();
     mnemonToDecControlMap.clear();  decControlToMnemonMap.clear();
@@ -129,6 +133,7 @@ void Pep::initEnumMnemonMaps()
     mnemonToDecControlMap.insert("B", B); decControlToMnemonMap.insert(B,"B");
     mnemonToDecControlMap.insert("A", A); decControlToMnemonMap.insert(A,"A");
     mnemonToDecControlMap.insert("ANDZ", AndZ); decControlToMnemonMap.insert(AndZ,"ANDZ");
+    mnemonToDecControlMap.insert("PVALID", PValid); decControlToMnemonMap.insert(PValid,"PValid");
     mnemonToDecControlMap.insert("AMUX", AMux); decControlToMnemonMap.insert(AMux,"AMUX");
     mnemonToDecControlMap.insert("CMUX", CMux); decControlToMnemonMap.insert(CMux,"CMUX");
     mnemonToDecControlMap.insert("ALU", ALU); decControlToMnemonMap.insert(ALU,"ALU");
@@ -155,6 +160,7 @@ void Pep::initEnumMnemonMaps()
     clockControlToMnemonMap.insert(VCk, "VCk");         mnemonToClockControlMap.insert("VCK", VCk);
     clockControlToMnemonMap.insert(ZCk, "ZCk");         mnemonToClockControlMap.insert("ZCK", ZCk);
     clockControlToMnemonMap.insert(NCk, "NCk");         mnemonToClockControlMap.insert("NCK", NCk);
+    clockControlToMnemonMap.insert(PValidCK, "PValidCk"); mnemonToClockControlMap.insert("PVALIDCK", PValidCK);
     if (tempRef->getCPUFeatures() == OneByteDataBus) {
         clockControlToMnemonMap.insert(MDRCk, "MDRCk");     mnemonToClockControlMap.insert("MDRCK", MDRCk);
     }

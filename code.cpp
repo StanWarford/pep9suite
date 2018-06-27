@@ -25,7 +25,7 @@
 #include "cpudatasection.h"
 #include "SymbolEntry.h"
 #include <QMetaEnum>
-MicroCode::MicroCode():controlSignals(20),clockSignals(10),branchFunc(Enu::Assembler_Assigned),
+MicroCode::MicroCode():controlSignals(22),clockSignals(12),branchFunc(Enu::Assembler_Assigned),
     symbol(nullptr),trueTargetAddr(nullptr),falseTargetAddr(nullptr)
 {
     for(auto memLines : Pep::memControlToMnemonMap.keys())
@@ -180,6 +180,7 @@ QString MicroCode::getSourceCode() const
         if (controlSignals[Enu::MDREMux] != Enu::signalDisabled) { str.append("MDREMux=" + QString("%1").arg(controlSignals[Enu::MDREMux]) + ", "); }
         if (controlSignals[Enu::MDROMux] != Enu::signalDisabled) { str.append("MDROMux=" + QString("%1").arg(controlSignals[Enu::MDROMux]) + ", "); }
         if (controlSignals[Enu::C] != Enu::signalDisabled) { str.append("C=" + QString("%1").arg(controlSignals[Enu::C]) + ", "); }
+        if (controlSignals[Enu::PValid] != Enu::signalDisabled) { str.append("PValid=" + QString("%1").arg(controlSignals[Enu::PValid]) + ", "); }
 
         if (str != "") { str.chop(2); str.append("; "); }
 
@@ -192,6 +193,7 @@ QString MicroCode::getSourceCode() const
         if (clockSignals[Enu::LoadCk] != 0) { str.append("LoadCk, "); }
         if (clockSignals[Enu::MDRECk] != 0) { str.append("MDRECk, "); }
         if (clockSignals[Enu::MDROCk] != 0) { str.append("MDROCk, "); }
+        if (clockSignals[Enu::PValidCK] != 0) { str.append("PValidCk, "); }
 
         if (str.endsWith(", ") || str.endsWith("; ")) { str.chop(2); }
     }
@@ -217,13 +219,11 @@ QString MicroCode::getSourceCode() const
            str.append("; stop");
         }
     }
-    else if (branchFunc == Enu::IJT){
-#pragma message "todo"
-        str.append("");
+    else if (branchFunc == Enu::InstructionSpecifierDecoder){
+        str.append("; "+Pep::branchFuncToMnemonMap[branchFunc]);
     }
-    else if (branchFunc == Enu::AJT){
-#pragma message "todo"
-        str.append("");
+    else if (branchFunc == Enu::AddressingModeDecoder){
+        str.append("; "+Pep::branchFuncToMnemonMap[branchFunc]);
     }
     else{
         if(str.isEmpty()){

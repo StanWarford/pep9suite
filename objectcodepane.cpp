@@ -144,6 +144,7 @@ void ObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* symbol
         model->setItem(rowNum,colNum++,y);
         rowNum++;
     }
+    ui->codeTable->resizeRowsToContents();
     ui->codeTable->resizeColumnsToContents();
 }
 

@@ -52,13 +52,14 @@ namespace Enu
     };
     Q_ENUM_NS(MainBusState)
     enum EBranchFunctions{
-        Unconditional=0,
-        BRGT=1,BRGE=2,BREQ=3,BRLE=4,BRLT=5,
-        BRNE=6,BRV=7,BRC=8,BRS=9,
-        BRU=10, //Branch if instruction specifier is unary
-        AJT=12, //Adressing modes jump table
-        IJT=13, //Instruction jump table
-        PCE=14, //Program counter even?
+        Unconditional = 0,
+        uBRGT = 1, uBRGE = 2, uBREQ = 3, uBRLE = 4, uBRLT = 5,
+        uBRNE = 6, uBRV = 7, uBRC = 8, uBRS = 9,
+        IsPrefetchValid = 10,
+        IsUnary = 11,
+        IsPCEven = 12,
+        AddressingModeDecoder = 13, //Adressing modes jump table
+        InstructionSpecifierDecoder = 14, //Instruction jump table
         Stop=15,
         Assembler_Assigned=16
     };
@@ -69,10 +70,12 @@ namespace Enu
         A,B,EOMux, MARMux,MARA, MARB, AMux, ALU,CSMux, AndZ,
         CMux, C,
         MDRMux, MDROMux, MDREMux,MDR, MDRE, MDRO,
+        PValid,
     };
     Q_ENUM_NS(EControlSignals)
     enum EClockSignals{
         NCk,ZCk,VCk,CCk,SCk,MARCk,LoadCk,MDRCk, MDROCk, MDRECk,
+        PValidCK,
     };
     Q_ENUM_NS(EClockSignals)
     enum EMemoryRegisters
