@@ -2,7 +2,7 @@
 # Project created by QtCreator 2009-12-01T13:18:25
 # -------------------------------------------------
 TEMPLATE = app
-TARGET = Pep9CPU
+TARGET = Pep9Micro
 #Prevent Windows from trying to parse the project three times per build.
 CONFIG -= debug_and_release \
     debug_and_release_target

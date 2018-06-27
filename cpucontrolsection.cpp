@@ -11,7 +11,7 @@ CPUTester *CPUTester::_instance = nullptr;
 
 CPUControlSection *CPUControlSection::getInstance()
 {
-    if(_instance==nullptr)
+    if(_instance == nullptr)
     {
         _instance = new CPUControlSection(CPUDataSection::getInstance());
     }
@@ -25,8 +25,8 @@ CPUControlSection::~CPUControlSection()
 
 void CPUControlSection::setMicrocodeProgram(MicrocodeProgram *program)
 {
-    this->program=program;
-    microprogramCounter=0;
+    this->program = program;
+    microprogramCounter = 0;
 }
 
 int CPUControlSection::getLineNumber() const
@@ -71,7 +71,7 @@ void CPUControlSection::onSimulationFinished()
 {
     data->clearClockSignals();
     data->clearControlSignals();
-    executionFinished=true;
+    executionFinished = true;
 }
 
 void CPUControlSection::onDebuggingStarted()
@@ -93,6 +93,7 @@ void CPUControlSection::onStep() noexcept
     data->setSignalsFromMicrocode(prog);
     data->onStep();
     branchHandler();
+    cycleCounter++;
 }
 
 void CPUControlSection::onClock()noexcept
@@ -111,12 +112,13 @@ void CPUControlSection::onClock()noexcept
 void CPUControlSection::onRun()noexcept
 {
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
-    while(prog->getBranchFunction()!=Enu::Stop)
+#pragma message ("This needs to be ammended for errors in execution");
+    while(prog->getBranchFunction() != Enu::Stop)
     {
         /*
          * Handle address decoding of next instruction
          */
-        if(prog==nullptr)
+        if(prog == nullptr)
         {
             return;
         }
@@ -126,14 +128,14 @@ void CPUControlSection::onRun()noexcept
         if(data->hadErrorOnStep())
         {
             //Pass up the error
-            qDebug()<<"The data section died";
-            qDebug()<<data->errorMessage;
+            qDebug() << "The data section died";
+            qDebug() << data->errorMessage;
             break;
         }
         //If there was an error on the control flow
         else if(this->hadErrorOnStep())
         {
-            qDebug()<<"The control section died";
+            qDebug() << "The control section died";
             break;
         }
         prog = program->getCodeLine(microprogramCounter);
@@ -144,11 +146,13 @@ void CPUControlSection::onRun()noexcept
 void CPUControlSection::onClearCPU()noexcept
 {
     data->onClearCPU();
-    inSimulation=false;
-    microprogramCounter=0;
-    hadControlError=false;
-    executionFinished=false;
-    errorMessage="";
+    inSimulation = false;
+    microprogramCounter = 0;
+    cycleCounter = 0;
+    hadControlError = false;
+    executionFinished = false;
+    isPrefetchValid = false;
+    errorMessage = "";
 }
 
 void CPUControlSection::onClearMemory() noexcept
@@ -161,8 +165,8 @@ void CPUControlSection::onCPUFeaturesChanged(Enu::CPUType cpuType) noexcept
     data->onCPUFeaturesChanged(cpuType);
 }
 
-CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr),data(data),microprogramCounter(0),
-    inSimulation(false),hadControlError(false),isPrefetchValid(false)
+CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr), data(data),microprogramCounter(0), cycleCounter(0),
+    inSimulation(false), hadControlError(false), isPrefetchValid(false)
 {
 
 }
@@ -400,7 +404,7 @@ bool CPUControlSection::testPost()
 
 CPUTester *CPUTester::getInstance()
 {
-    if(_instance==nullptr)
+    if(_instance == nullptr)
     {
         _instance = new CPUTester(CPUControlSection::getInstance(),CPUDataSection::getInstance());
     }

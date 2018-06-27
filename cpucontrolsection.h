@@ -62,7 +62,7 @@ private:
     static CPUControlSection *_instance;
     CPUDataSection* data;
     MicrocodeProgram* program;
-    int microprogramCounter;
+    int microprogramCounter,cycleCounter;
     bool inSimulation,hadControlError,executionFinished,isPrefetchValid;
     QString errorMessage;
     CPUControlSection(CPUDataSection* dataSection);
