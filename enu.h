@@ -21,10 +21,12 @@
 #ifndef ENU_H
 #define ENU_H
 #include <QtCore>
+#include <QtGlobal>
 #include <QException>
 namespace Enu
 {
-    Q_NAMESPACE
+    Q_NAMESPACE;;
+
     static const quint8 maxRegisterNumber = 31;
     static const quint8 signalDisabled= 255;
     class InvalidCPUMode : public QException
@@ -50,7 +52,7 @@ namespace Enu
         MemWriteSecondWait,
         MemWriteReady,
     };
-    Q_ENUM_NS(MainBusState)
+    Q_ENUM_NS(MainBusState);;
     enum EBranchFunctions{
         Unconditional = 0,
         uBRGT = 1, uBRGE = 2, uBREQ = 3, uBRLE = 4, uBRLT = 5,
@@ -63,7 +65,7 @@ namespace Enu
         Stop=15,
         Assembler_Assigned=16
     };
-    Q_ENUM_NS(EBranchFunctions)
+    Q_ENUM_NS(EBranchFunctions);;
     enum EControlSignals
     {
         MemRead, MemWrite,
@@ -72,12 +74,12 @@ namespace Enu
         MDRMux, MDROMux, MDREMux,MDR, MDRE, MDRO,
         PValid,
     };
-    Q_ENUM_NS(EControlSignals)
+    Q_ENUM_NS(EControlSignals);;
     enum EClockSignals{
         NCk,ZCk,VCk,CCk,SCk,MARCk,LoadCk,MDRCk, MDROCk, MDRECk,
         PValidCK,
     };
-    Q_ENUM_NS(EClockSignals)
+    Q_ENUM_NS(EClockSignals);;
     enum EMemoryRegisters
     {
         MEM_MARA,MEM_MARB,MEM_MDR,MEM_MDRO,MEM_MDRE
@@ -96,8 +98,8 @@ namespace Enu
         ROLA_func=12,ASRA_func=13,RORA_func=14,NZVCA_func=15,
         UNDEFINED_func=255,
     };
+#pragma message("What was the point of these numbers?")
     enum EKeywords {
-
         Pre=255-1, Post=255-2,
         Mem=255-3, Acc=255-24, X=255-4, SP=255-5, PC=255-6, IR=255-7,
         T1=255-8, T2=255-9, T3=255-10, T4=255-11, T5=255-12, T6=255-13,
@@ -105,9 +107,6 @@ namespace Enu
         MARAREG=255-19,MARBREG=255-20,
         MDRREG=255-21,MDREREG=255-22,MDROREG=255-23
     };
-
-//Q_ENUM_NS(EMnemonic); //This is a declaration, despite whatever QT Creator says.
-
 
     enum CPUType {
         OneByteDataBus,
@@ -121,7 +120,69 @@ namespace Enu
         Left,
         Right,
     };
+    /*
+     * Begin Pep9 sources
+     */
+    enum class EMnemonic: int
+    {
+        ADDA, ADDX, ADDSP, ANDA, ANDX, ASLA, ASLX, ASRA, ASRX,
+        BR, BRC, BREQ, BRGE, BRGT, BRLE, BRLT, BRNE, BRV,
+        CALL, CPBA, CPBX, CPWA, CPWX,
+        DECI, DECO,
+        HEXO,
+        LDBA, LDBX, LDWA, LDWX,
+        MOVAFLG, MOVFLGA, MOVSPA,
+        NEGA, NEGX, NOP, NOP0, NOP1, NOTA, NOTX,
+        ORA, ORX,
+        RET, RETTR, ROLA, ROLX, RORA, RORX,
+        STBA, STBX, STWA, STWX, STOP, STRO, SUBA, SUBX, SUBSP
 
+    };
+    Q_ENUM_NS(EMnemonic);
+    // Addressing modes for instructions
+    enum class EAddrMode: int
+    {
+        NONE = 0,
+        I = 1,
+        D = 2,
+        N = 4,
+        S = 8,
+        SF = 16,
+        X = 32,
+        SX = 64,
+        SFX = 128,
+        ALL = 255
+    };
+    Q_ENUM_NS(EAddrMode);;
+    // Format for symbols
+    enum class ESymbolFormat
+    {
+        F_NONE, F_1C, F_1D, F_2D, F_1H, F_2H
+    };
+
+    enum class EExecState
+    {
+        EStart,
+        ERun, ERunAwaitIO,
+        EDebugAwaitIO, EDebugAwaitClick, EDebugRunToBP, EDebugSingleStep
+    };
+
+    enum class EWaiting
+    {
+        ERunWaiting,
+        EDebugSSWaiting,
+        EDebugResumeWaiting,
+    };
+
+    enum class EPane
+    {
+        ESource,
+        EObject,
+        EListing,
+        EListingTrace,
+        EMemoryTrace,
+        EBatchIO,
+        ETerminal,
+    };
 }
-
 #endif // ENU_H

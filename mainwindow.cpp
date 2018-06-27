@@ -42,7 +42,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),updateChecker(new UpdateChecker()),
     dataSection(CPUDataSection::getInstance()),controlSection(CPUControlSection::getInstance())
 {
+    Pep::initMicroEnumMnemonMaps();
     Pep::initEnumMnemonMaps();
+    Pep::initMnemonicMaps();
+    Pep::initAddrModesMap();
+    Pep::initDecoderTables();
     ui->setupUi(this);
     // connect and begin update checker
     connect(updateChecker, &UpdateChecker::updateInformation, this, &MainWindow::onUpdateCheck);
@@ -554,7 +558,7 @@ void MainWindow::on_actionOne_Byte_Data_Bus_Model_triggered()
     //While the data section will eventually change due to this event,
     //it needs to be changed synchronously in order to allow enum maps to work
     dataSection->onCPUFeaturesChanged(Enu::OneByteDataBus);
-    Pep::initEnumMnemonMaps();
+    Pep::initMicroEnumMnemonMaps();
 
     objectCodePane->clearSimulationView();
     mainMemory->clearMemory();
@@ -591,7 +595,7 @@ void MainWindow::on_actionTwo_Byte_Data_Bus_Model_triggered()
     //While the data section will eventually change due to this event,
     //it needs to be changed synchronously in order to allow enum maps to work
     dataSection->onCPUFeaturesChanged(Enu::TwoByteDataBus);
-    Pep::initEnumMnemonMaps();
+    Pep::initMicroEnumMnemonMaps();
 
     objectCodePane->clearSimulationView();
     mainMemory->clearMemory();

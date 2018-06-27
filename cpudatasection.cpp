@@ -208,8 +208,10 @@ Enu::CPUType CPUDataSection::getCPUFeatures() const
 
 quint8 CPUDataSection::getRegisterBankByte(quint8 registerNumber) const
 {
+    quint8 rval;
     if(registerNumber>Enu::maxRegisterNumber) return 0;
-    else return registerBank[registerNumber];
+    else rval = registerBank[registerNumber];
+    return rval;
 
 }
 

@@ -3,6 +3,8 @@
 #include "code.h"
 #include "microcodeprogram.h"
 #include "SymbolEntry.h"
+#include "pep.h"
+#include <QDebug>
 CPUControlSection *CPUControlSection::_instance = nullptr;
 CPUTester *CPUTester::_instance = nullptr;
 
@@ -288,6 +290,8 @@ void CPUControlSection::branchHandler()
         }
         break;
     case Enu::AddressingModeDecoder:
+        temp = data->getRegisterBankByte(8);
+        qDebug() << Pep::decodeAddrMode[temp];
         executionFinished=true; //For now, the instruction jump table is unimplmented
         break;
     case Enu::InstructionSpecifierDecoder:
