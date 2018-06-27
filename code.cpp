@@ -193,7 +193,7 @@ QString MicroCode::getSourceCode() const
         if (clockSignals[Enu::LoadCk] != 0) { str.append("LoadCk, "); }
         if (clockSignals[Enu::MDRECk] != 0) { str.append("MDRECk, "); }
         if (clockSignals[Enu::MDROCk] != 0) { str.append("MDROCk, "); }
-        if (clockSignals[Enu::PValidCK] != 0) { str.append("PValidCk, "); }
+        if (clockSignals[Enu::PValidCk] != 0) { str.append("PValidCk, "); }
 
         if (str.endsWith(", ") || str.endsWith("; ")) { str.chop(2); }
     }

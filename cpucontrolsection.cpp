@@ -89,6 +89,7 @@ void CPUControlSection::onStep() noexcept
 {
     //Do step logic
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
+    this->setSignalsFromMicrocode(prog);
     data->setSignalsFromMicrocode(prog);
     data->onStep();
     branchHandler();
@@ -160,7 +161,8 @@ void CPUControlSection::onCPUFeaturesChanged(Enu::CPUType cpuType) noexcept
     data->onCPUFeaturesChanged(cpuType);
 }
 
-CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr),data(data),microprogramCounter(0),inSimulation(false),hadControlError(false)
+CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr),data(data),microprogramCounter(0),
+    inSimulation(false),hadControlError(false),isPrefetchValid(false)
 {
 
 }
@@ -168,7 +170,7 @@ CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr),da
 void CPUControlSection::branchHandler()
 {
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
-    int temp = 0; //Set a default, in order to silence compiler warning
+    int temp = microprogramCounter;
     char byte = 0;
     switch(prog->getBranchFunction())
     {
@@ -178,99 +180,106 @@ void CPUControlSection::branchHandler()
     case Enu::uBRGT:
         if((!data->getStatusBit(Enu::STATUS_N)))
         {
-            temp=prog->getTrueTarget()->getValue();
+            temp = prog->getTrueTarget()->getValue();
         }
         else
         {
-            temp=prog->getFalseTarget()->getValue();
+            temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRGE:
-        if((!data->getStatusBit(Enu::STATUS_N))||data->getStatusBit(Enu::STATUS_Z))
+        if((!data->getStatusBit(Enu::STATUS_N)) || data->getStatusBit(Enu::STATUS_Z))
         {
-            temp=prog->getTrueTarget()->getValue();
+            temp = prog->getTrueTarget()->getValue();
         }
         else
         {
-            temp=prog->getFalseTarget()->getValue();
+            temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBREQ:
         if(data->getStatusBit(Enu::STATUS_Z))
         {
-            temp=prog->getTrueTarget()->getValue();
+            temp = prog->getTrueTarget()->getValue();
         }
         else
         {
-            temp=prog->getFalseTarget()->getValue();
+            temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRLE:
-        if(data->getStatusBit(Enu::STATUS_N)||data->getStatusBit(Enu::STATUS_Z))
+        if(data->getStatusBit(Enu::STATUS_N) || data->getStatusBit(Enu::STATUS_Z))
         {
-            temp=prog->getTrueTarget()->getValue();
+            temp = prog->getTrueTarget()->getValue();
         }
         else
         {
-            temp=prog->getFalseTarget()->getValue();
+            temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRLT:
         if(data->getStatusBit(Enu::STATUS_N))
         {
-            temp=prog->getTrueTarget()->getValue();
+            temp = prog->getTrueTarget()->getValue();
         }
         else
         {
-            temp=prog->getFalseTarget()->getValue();
+            temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRNE:
         if((!data->getStatusBit(Enu::STATUS_Z)))
         {
-            temp=prog->getTrueTarget()->getValue();
+            temp = prog->getTrueTarget()->getValue();
         }
         else
         {
-            temp=prog->getFalseTarget()->getValue();
+            temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRV:
         if(data->getStatusBit(Enu::STATUS_V))
         {
-            temp=prog->getTrueTarget()->getValue();
+            temp = prog->getTrueTarget()->getValue();
         }
         else
         {
-            temp=prog->getFalseTarget()->getValue();
+            temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRC:
         if(data->getStatusBit(Enu::STATUS_C))
         {
-            temp=prog->getTrueTarget()->getValue();
+            temp = prog->getTrueTarget()->getValue();
         }
         else
         {
-            temp=prog->getFalseTarget()->getValue();
+            temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRS:
         if(data->getStatusBit(Enu::STATUS_S))
         {
-            temp=prog->getTrueTarget()->getValue();
+            temp = prog->getTrueTarget()->getValue();
         }
         else
         {
-            temp=prog->getFalseTarget()->getValue();
+            temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::IsPrefetchValid:
-        executionFinished=true; //For now, the instruction jump table is unimplmented
+        if(isPrefetchValid)
+        {
+            temp = prog->getTrueTarget()->getValue();
+        }
+        else
+        {
+            temp = prog->getFalseTarget()->getValue();
+        }
         break;
     case Enu::IsUnary:
         byte = data->getRegisterBankByte(8);
-        if(byte<18||(byte==38||byte==39))
+        if(byte < 18|| (byte == 38|| byte == 39))
         {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -280,40 +289,66 @@ void CPUControlSection::branchHandler()
         }
         break;
     case Enu::IsPCEven:
-        if(data->getRegisterBankByte(7)%2==0)
+        if(data->getRegisterBankByte(7)%2 == 0)
         {
-            temp=prog->getTrueTarget()->getValue();
+            temp = prog->getTrueTarget()->getValue();
         }
         else
         {
-            temp=prog->getFalseTarget()->getValue();
+            temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::AddressingModeDecoder:
         temp = data->getRegisterBankByte(8);
         qDebug() << Pep::decodeAddrMode[temp];
-        executionFinished=true; //For now, the instruction jump table is unimplmented
+        executionFinished = true; //For now, the instruction jump table is unimplmented
+        hadControlError = true;
+        errorMessage = "Error: Addressing Mode Decoder not implemented.";
         break;
     case Enu::InstructionSpecifierDecoder:
-        executionFinished=true; //For now, the instruction jump table is unimplmented
+        executionFinished = true; //For now, the instruction jump table is unimplmented
+        hadControlError = true;
+        errorMessage = "Error: Instruction Specifier Decoder not implemented.";
         break;
     case Enu::Stop:
-        executionFinished=true;
+        executionFinished = true;
         break;
     default:
         //This should never occur
         break;
 
     }
-    if(temp==microprogramCounter&&prog->getBranchFunction()!=Enu::Stop)
+    if(hadControlError) //If there was an error in the control section, make sure the CPU stops
+    {
+        executionFinished = true;
+    }
+    else if(temp == microprogramCounter&&prog->getBranchFunction()!=Enu::Stop)
     {
         hadControlError = true;
         errorMessage = "Don't branch to yourself";
-        executionFinished  =true;
+        executionFinished  = true;
     }
     else
     {
         microprogramCounter = temp;
+    }
+}
+
+void CPUControlSection::setSignalsFromMicrocode(const MicroCode *line)
+{
+    int val;
+    if(line->getClockSignal(Enu::EClockSignals::PValidCk))
+    {
+        val = line->getControlSignal(Enu::EControlSignals::PValid);
+        if(val == Enu::signalDisabled)
+        {
+            errorMessage = "Error: Asserted PValidCk, but PValid was disabled.";
+            hadControlError = true;
+        }
+        else
+        {
+            isPrefetchValid = val;
+        }
     }
 }
 

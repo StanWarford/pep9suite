@@ -63,10 +63,11 @@ private:
     CPUDataSection* data;
     MicrocodeProgram* program;
     int microprogramCounter;
-    bool inSimulation,hadControlError,executionFinished;
+    bool inSimulation,hadControlError,executionFinished,isPrefetchValid;
     QString errorMessage;
     CPUControlSection(CPUDataSection* dataSection);
     void branchHandler(); //Based on the current instruction, set the MPC correctly
+    void setSignalsFromMicrocode(const MicroCode *line); //Set signals for the control section based on the microcode program
 };
 
 class CPUTester: public QObject

@@ -77,7 +77,7 @@ namespace Enu
     Q_ENUM_NS(EControlSignals);;
     enum EClockSignals{
         NCk,ZCk,VCk,CCk,SCk,MARCk,LoadCk,MDRCk, MDROCk, MDRECk,
-        PValidCK,
+        PValidCk,
     };
     Q_ENUM_NS(EClockSignals);;
     enum EMemoryRegisters

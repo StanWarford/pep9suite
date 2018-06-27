@@ -160,7 +160,7 @@ void Pep::initMicroEnumMnemonMaps()
     clockControlToMnemonMap.insert(VCk, "VCk");         mnemonToClockControlMap.insert("VCK", VCk);
     clockControlToMnemonMap.insert(ZCk, "ZCk");         mnemonToClockControlMap.insert("ZCK", ZCk);
     clockControlToMnemonMap.insert(NCk, "NCk");         mnemonToClockControlMap.insert("NCK", NCk);
-    clockControlToMnemonMap.insert(PValidCK, "PValidCk"); mnemonToClockControlMap.insert("PVALIDCK", PValidCK);
+    clockControlToMnemonMap.insert(PValidCk, "PValidCk"); mnemonToClockControlMap.insert("PVALIDCK", PValidCk);
     if (tempRef->getCPUFeatures() == OneByteDataBus) {
         clockControlToMnemonMap.insert(MDRCk, "MDRCk");     mnemonToClockControlMap.insert("MDRCK", MDRCk);
     }
