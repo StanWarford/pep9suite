@@ -14,6 +14,7 @@ public:
     MicrocodeProgram();
     ~MicrocodeProgram();
     MicrocodeProgram(QVector<Code*>objectCode,SymbolTable* symbolTable);
+    const SymbolTable* getSymTable() const;
     const QVector<Code*> getObjectCode() const;
     const QString format() const;
     int codeLineToProgramLine(int codeLine) const;

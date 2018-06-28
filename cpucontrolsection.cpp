@@ -5,6 +5,9 @@
 #include "SymbolEntry.h"
 #include "pep.h"
 #include <QDebug>
+#include "SymbolEntry.h"
+#include "SymbolTable.h"
+#include "SymbolTable.h"
 CPUControlSection *CPUControlSection::_instance = nullptr;
 CPUTester *CPUTester::_instance = nullptr;
 
@@ -93,7 +96,13 @@ void CPUControlSection::onStep() noexcept
     data->setSignalsFromMicrocode(prog);
     data->onStep();
     branchHandler();
-    cycleCounter++;
+    microCycleCounter++;
+    if(microprogramCounter==0)
+    {
+        macroCycleCounter++;
+        qDebug()<<"m"<<macroCycleCounter<<" :u "<<microCycleCounter;
+    }
+
 }
 
 void CPUControlSection::onClock()noexcept
@@ -112,7 +121,7 @@ void CPUControlSection::onClock()noexcept
 void CPUControlSection::onRun()noexcept
 {
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
-#pragma message ("This needs to be ammended for errors in execution");
+#pragma message ("This needs to be ammended for errors in execution")
     while(prog->getBranchFunction() != Enu::Stop)
     {
         /*
@@ -148,7 +157,8 @@ void CPUControlSection::onClearCPU()noexcept
     data->onClearCPU();
     inSimulation = false;
     microprogramCounter = 0;
-    cycleCounter = 0;
+    microCycleCounter = 0;
+    macroCycleCounter = 0;
     hadControlError = false;
     executionFinished = false;
     isPrefetchValid = false;
@@ -165,7 +175,7 @@ void CPUControlSection::onCPUFeaturesChanged(Enu::CPUType cpuType) noexcept
     data->onCPUFeaturesChanged(cpuType);
 }
 
-CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr), data(data),microprogramCounter(0), cycleCounter(0),
+CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr), data(data),microprogramCounter(0), microCycleCounter(0), macroCycleCounter(0),
     inSimulation(false), hadControlError(false), isPrefetchValid(false)
 {
 
@@ -175,7 +185,10 @@ void CPUControlSection::branchHandler()
 {
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
     int temp = microprogramCounter;
-    char byte = 0;
+    quint8 byte = 0;
+    QString tempString;
+    const SymbolTable* symTable = this->program->getSymTable();;
+    std::shared_ptr<SymbolEntry> val;
     switch(prog->getBranchFunction())
     {
     case Enu::Unconditional:
@@ -272,6 +285,7 @@ void CPUControlSection::branchHandler()
         }
         break;
     case Enu::IsPrefetchValid:
+        qDebug() <<"Someone is trying to branch off of pvalid";
         if(isPrefetchValid)
         {
             temp = prog->getTrueTarget()->getValue();
@@ -304,15 +318,55 @@ void CPUControlSection::branchHandler()
         break;
     case Enu::AddressingModeDecoder:
         temp = data->getRegisterBankByte(8);
-        qDebug() << Pep::decodeAddrMode[temp];
-        executionFinished = true; //For now, the instruction jump table is unimplmented
-        hadControlError = true;
-        errorMessage = "Error: Addressing Mode Decoder not implemented.";
+        tempString = Pep::intToAddrMode(Pep::decodeAddrMode[temp]).toLower()+"Addr";
+        qDebug()<< "Using addr mode: "<<tempString;
+        if(symTable->exists(tempString))
+        {
+            val = symTable->getValue(tempString);
+            if(val->isDefined())
+            {
+                temp = val->getValue();
+            }
+            else
+            {
+                executionFinished = true; //For now, the instruction jump table is unimplmented
+                hadControlError = true;
+                errorMessage = "ERROR: AMD jumped to multiply defined instr - " + tempString;
+            }
+
+        }
+        else
+        {
+            executionFinished = true; //For now, the instruction jump table is unimplmented
+            hadControlError = true;
+            errorMessage = "ERROR: AMD looked for undefined inst - " + tempString;
+        }
         break;
     case Enu::InstructionSpecifierDecoder:
-        executionFinished = true; //For now, the instruction jump table is unimplmented
-        hadControlError = true;
-        errorMessage = "Error: Instruction Specifier Decoder not implemented.";
+        temp = data->getRegisterBankByte(8);
+        tempString = Pep::enumToMnemonMap[Pep::decodeMnemonic[temp]].toLower();
+        qDebug()<< "Using instr: "<<tempString;
+        if(symTable->exists(tempString))
+        {
+            val = symTable->getValue(tempString);
+            if(val->isDefined())
+            {
+                temp = val->getValue();
+            }
+            else
+            {
+                executionFinished = true; //For now, the instruction jump table is unimplmented
+                hadControlError = true;
+                errorMessage = "ERROR: ISD jumped to multiply defined instr - " + tempString;
+            }
+
+        }
+        else
+        {
+            executionFinished = true; //For now, the instruction jump table is unimplmented
+            hadControlError = true;
+            errorMessage = "ERROR: ISD looked for undefined inst - " + tempString;
+        }
         break;
     case Enu::Stop:
         executionFinished = true;
@@ -351,6 +405,7 @@ void CPUControlSection::setSignalsFromMicrocode(const MicroCode *line)
         }
         else
         {
+            qDebug() <<"PValid dff was set to" << (bool) val;
             isPrefetchValid = val;
         }
     }

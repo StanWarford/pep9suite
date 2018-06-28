@@ -729,6 +729,16 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 state = Asm::PSE_OPTIONAL_COMMENT;
                 microCode->setBranchFunction(Enu::Stop);
             }
+            else if(token == Asm::LTE_AMD)
+            {
+                state = Asm::PSE_OPTIONAL_COMMENT;
+                microCode->setBranchFunction(Enu::AddressingModeDecoder);
+            }
+            else if(token == Asm::LTE_ISD)
+            {
+                state = Asm::PSE_OPTIONAL_COMMENT;
+                microCode->setBranchFunction(Enu::InstructionSpecifierDecoder);
+            }
             else
             {
                 errorString = "// ERROR: Expected branch after semicolon";

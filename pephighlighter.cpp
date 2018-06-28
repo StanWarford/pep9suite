@@ -109,7 +109,8 @@ void PepHighlighter::rebuildHighlightingRules(PepColors::Colors color)
                 << "\\bN\\b" << "\\bZ\\b" << "\\bV\\b" << "\\bS\\b"
                 << "\\bX\\b" << "\\bSP\\b" << "\\bPC\\b" << "\\bIR\\b"
                 << "\\bT1\\b" << "\\bT2\\b" << "\\bT3\\b" << "\\bT4\\b"
-                << "\\bT5\\b" << "\\bT6\\b" << "\\bMem\\b";
+                << "\\bT5\\b" << "\\bT6\\b" << "\\bMem\\b"
+                << "\\bPValid\\b"<< "\\bPValidCk\\b";
         foreach (const QString &pattern, oprndPatterns) {
             rule.pattern = QRegExp(pattern);
             rule.format = oprndFormat;

@@ -66,6 +66,11 @@ MicrocodeProgram::MicrocodeProgram(QVector<Code*>objectCode,SymbolTable* symbolT
     }
 }
 
+const SymbolTable *MicrocodeProgram::getSymTable() const
+{
+    return this->symTable;
+}
+
 const QVector<Code*> MicrocodeProgram::getObjectCode() const
 {
     return this->programVec;

@@ -21,39 +21,46 @@ UnitPre: Mem[0x0200]=0xAABB, Mem[0x0202]=0xCCDD,Mem[0x0204]=0xEEFF
 
 
 //Path taken for odd instruction fetch IR <- T1
-8. uvnc_odd: A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk
+8. uvnc_odd: if ISPREFETCHVALID unvc_odd_v else unvc_odd_i
+//Path taken when prefetch is valid
+9. unvc_odd_v:A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk
 // PC <- PC plus 1.
-9. A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-10. A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
-
+10. A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+11. A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+//Path taken when prefetch is not valid
+// Initiate fetch, PC <- PC + 1.
+12. unvc_odd_i: A=6, B=7, MARMux=1; MARCk
+13. MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+14. MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+15. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+// IR <- MDREven, T1 <- MDROdd.
+16. EOMux=1, AMux=0, ALU=0, CMux=1, C=8; LoadCk
 //Either begin executing a unary instruction, OR fetch the OS of a non-unary instruction.
-11. end_is_fetch: if ISUNARY unary_dispath else nonunary_fetch
+17. end_is_fetch: if ISUNARY unary_dispatch else nonunary_fetch
 
 
 //For a non-unary instruction, branch depending on if the PC is even
-12. nonunary_fetch: if ISPCE nuf_even else nuf_odd
-13. nuf_even: A=6, B=7, MARMux=1; MARCk
+18. nonunary_fetch: if ISPCE nuf_even else nuf_odd
+19. nuf_even: A=6, B=7, MARMux=1; MARCk
 // Initiate fetch, PC <- PC + 2.
-14. MemRead, A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-15. MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
-16. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+20. MemRead, A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+21. MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+22. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 // OS <- MDREven & MDROdd
-17. EOMux=0, AMux=0, ALU=0, CMux=1, C=9; LoadCk
-18. EOMux=1, AMux=0, ALU=0, CMux=1, C=10; LoadCk; goto amode_decider //Replace with ajt
+23. EOMux=0, AMux=0, ALU=0, CMux=1, C=9; LoadCk
+24. EOMux=1, AMux=0, ALU=0, CMux=1, C=10; LoadCk; AMD //Decode the value of the addressing mide
 
 // PC <- PC +2.
-19. nuf_odd: A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-20. A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+25. nuf_odd: A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+26. A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
 //Initiate fetch.
-21. A=6, B=7, MARMux=1; MARCk
+27. A=6, B=7, MARMux=1; MARCk
 //OS<hi> <- T1.
-22. MemRead, A=11, AMux=1, ALU=0, CMux=1, C=9; LoadCk
-23. MemRead
-24. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+28. MemRead, A=11, AMux=1, ALU=0, CMux=1, C=9; LoadCk
+29. MemRead
+30. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 // OS<lo> <- MDREven, T1 <- MDROdd.
-25. EOMux=0, AMux=0, ALU=0, CMux=1, C=10; LoadCk
-26. EOMux=1, AMux=0, ALU=0, CMux=1, C=11; LoadCk
+31. EOMux=0, AMux=0, ALU=0, CMux=1, C=10; LoadCk
+32. EOMux=1, AMux=0, ALU=0, CMux=1, C=11; LoadCk
 
-
-27. amode_decider: A=5; goto start_uvnc //placeholder for addressing mode jump table
-28. unary_dispath: A=5; stop //placeholder for instruction dispatch
+33. unary_dispatch:a=5;  ISD //Start the unary execution path
