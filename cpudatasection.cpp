@@ -152,7 +152,7 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         NZVC|=Enu::VMask*(((a<<1)^a)>>7); //Signed overflow if a<hi> doesn't match a<hi-1>
         break;
     case Enu::ASRA_func: //ASR A
-        carryIn=true; //RORA and ASRA only differ by whether or not carryIn is guaranteed to be high
+        carryIn=a&128; //RORA and ASRA only differ by whether or not carryIn is guaranteed to be high
         //Intentional fallthrough
     case Enu::RORA_func: //ROR a
         res = (a>>1)|(((int)carryIn)<<7); //No need to worry about sign extension on shift with unsigned a
