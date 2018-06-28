@@ -5,28 +5,26 @@ UnitPre: Mem[0x0200]=0xAABB, Mem[0x0202]=0xCCDD,Mem[0x0204]=0xEEFF
 //Micro von Neumann cycle implementation
 
 //First, decide if the program counter is even, and pick the appropriate fetch logic
-1. start_uvnc: if ISPCE uvnc_even else uvnc_odd
-
-
+1. start: if ISPCE uvnc_even else uvnc_odd
 
 // Path taken for even instruction fetch
-2. uvnc_even: A=6, B=7, MARMux=1; MARCk
+2. uvnc_even: A=6, B=7, MARMux=1; MARCk 
 // Initiate fetch, PC <- PC + 1.
 3. MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
 4. MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
 5. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 // IR <- MDREven, T1 <- MDROdd.
 6. EOMux=0, AMux=0, ALU=0, CMux=1, C=8; LoadCk
-7. EOMux=1, AMux=0, ALU=0, CMux=1, C=11; LoadCk; goto end_is_fetch
+7. EOMux=1, AMux=0, ALU=0, CMux=1, C=11, PVALID=1; LoadCk, PValidck; goto end_is_fetch
 
 
 //Path taken for odd instruction fetch IR <- T1
 8. uvnc_odd: if ISPREFETCHVALID unvc_odd_v else unvc_odd_i
 //Path taken when prefetch is valid
-9. unvc_odd_v:A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk
+9. unvc_odd_v: A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk
 // PC <- PC plus 1.
 10. A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-11. A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+11. A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk; goto end_is_fetch
 //Path taken when prefetch is not valid
 // Initiate fetch, PC <- PC + 1.
 12. unvc_odd_i: A=6, B=7, MARMux=1; MARCk
@@ -48,7 +46,7 @@ UnitPre: Mem[0x0200]=0xAABB, Mem[0x0202]=0xCCDD,Mem[0x0204]=0xEEFF
 22. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 // OS <- MDREven & MDROdd
 23. EOMux=0, AMux=0, ALU=0, CMux=1, C=9; LoadCk
-24. EOMux=1, AMux=0, ALU=0, CMux=1, C=10; LoadCk; AMD //Decode the value of the addressing mide
+24. EOMux=1, AMux=0, ALU=0, CMux=1, C=10; LoadCk; AMD //Decode the value of the addressing mode
 
 // PC <- PC +2.
 25. nuf_odd: A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
@@ -61,6 +59,6 @@ UnitPre: Mem[0x0200]=0xAABB, Mem[0x0202]=0xCCDD,Mem[0x0204]=0xEEFF
 30. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 // OS<lo> <- MDREven, T1 <- MDROdd.
 31. EOMux=0, AMux=0, ALU=0, CMux=1, C=10; LoadCk
-32. EOMux=1, AMux=0, ALU=0, CMux=1, C=11; LoadCk
+32. EOMux=1, AMux=0, ALU=0, CMux=1, C=11, pvalid=1;PValidCk, LoadCk; AMD
 
-33. unary_dispatch:a=5;  ISD //Start the unary execution path
+33. unary_dispatch: A=5; ISD //Start the unary execution path

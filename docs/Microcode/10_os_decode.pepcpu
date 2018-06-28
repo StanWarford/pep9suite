@@ -149,4 +149,3 @@ UnitPre: Mem[0xFEF0]=0x9635, Mem[0xFEF2]=0x4242 //Odd IR should yield 3542
 76. MemRead, A=19, AMux=1, ALU=13; SCk; if BRS sfx2_odd else d_even
 77. sfx2_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
 78. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
-
