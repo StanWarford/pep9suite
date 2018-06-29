@@ -1,64 +1,84 @@
 UnitPre: IR=0x000000, PC=0x01FF, T1=0x12, S=0
 UnitPre: Mem[0x0200]=0xAABB, Mem[0x0202]=0xCCDD,Mem[0x0204]=0xEEFF
 
-
-//Micro von Neumann cycle implementation
+//*****************
+//
+// Instruction Specifier & Operand Specifier Fetch
+//
+//*****************
 
 //First, decide if the program counter is even, and pick the appropriate fetch logic
-1. start: if ISPCE uvnc_even else uvnc_odd
+start: if ISPCE uvnc_even else uvnc_odd
 
-// Path taken for even instruction fetch
-2. uvnc_even: A=6, B=7, MARMux=1; MARCk 
-// Initiate fetch, PC <- PC + 1.
-3. MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-4. MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
-5. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
-// IR <- MDREven, T1 <- MDROdd.
-6. EOMux=0, AMux=0, ALU=0, CMux=1, C=8; LoadCk
-7. EOMux=1, AMux=0, ALU=0, CMux=1, C=11, PVALID=1; LoadCk, PValidck; goto end_is_fetch
+//*
+// * Even Instruction Specifier fetch w/ prefetch
+//*
+uvnc_even: A=6, B=7, MARMux=1; MARCk 
+// Initiate fetch, PC <- PC plus 1.
+MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+// IR <- MDREven, T1 <- MDROdd, PrefetchValid <- true.
+EOMux=0, AMux=0, ALU=0, CMux=1, C=8; LoadCk
+EOMux=1, AMux=0, ALU=0, CMux=1, C=11, PVALID=1; LoadCk, PValidck; goto end_is_fetch
 
 
-//Path taken for odd instruction fetch IR <- T1
-8. uvnc_odd: if ISPREFETCHVALID unvc_odd_v else unvc_odd_i
-//Path taken when prefetch is valid
-9. unvc_odd_v: A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk
+//*
+//* Odd Instruction Specifier fetch
+ //*
+//Determine if prefetch in T1 is valid.
+uvnc_odd: if ISPREFETCHVALID unvc_odd_v else unvc_odd_i
+
+//Path taken when prefetch is valid. IR <- T1
+unvc_odd_v: A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk
 // PC <- PC plus 1.
-10. A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-11. A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk; goto end_is_fetch
-//Path taken when prefetch is not valid
+A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk; goto end_is_fetch
+
+//Path taken when prefetch is not valid. IR <- Mem[PC]<8..15>
 // Initiate fetch, PC <- PC + 1.
-12. unvc_odd_i: A=6, B=7, MARMux=1; MARCk
-13. MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-14. MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
-15. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
-// IR <- MDREven, T1 <- MDROdd.
-16. EOMux=1, AMux=0, ALU=0, CMux=1, C=8; LoadCk
-//Either begin executing a unary instruction, OR fetch the OS of a non-unary instruction.
-17. end_is_fetch: if ISUNARY unary_dispatch else nonunary_fetch
+unvc_odd_i: A=6, B=7, MARMux=1; MARCk
+MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+MemRead, MDROMux=0; MDROCk
+//T1 <- MDROdd.
+EOMux=1, AMux=0, ALU=0, CMux=1, C=8; LoadCk; goto end_is_fetch
 
 
-//For a non-unary instruction, branch depending on if the PC is even
-18. nonunary_fetch: if ISPCE nuf_even else nuf_odd
-19. nuf_even: A=6, B=7, MARMux=1; MARCk
-// Initiate fetch, PC <- PC + 2.
-20. MemRead, A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-21. MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
-22. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+//Instruction is fetched. Either prepare to execute unary instruction,
+// or fetch operand specifier for non-unary instructions
+end_is_fetch: if ISUNARY unary_dispatch else os_fetch
+unary_dispatch: A=5; ISD //Start the unary execution path via the instruction specifier decoder.
+//"A=5" is placeholder so that the assembler compiles this statement, since branches are currently not allowed
+//on a line by themselves
+
+
+//*
+//* Operand Specifier Fetch
+//*
+ 
+//Branch if PC is even or odd
+os_fetch: if ISPCE os_even else os_odd
+
+//PC is even, so there is no prefetch to use. Go to Mem[PC]
+os_even: A=6, B=7, MARMux=1; MARCk
+// Initiate fetch, PC <- PC plus 2.
+MemRead, A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 // OS <- MDREven & MDROdd
-23. EOMux=0, AMux=0, ALU=0, CMux=1, C=9; LoadCk
-24. EOMux=1, AMux=0, ALU=0, CMux=1, C=10; LoadCk; AMD //Decode the value of the addressing mode
+EOMux=0, AMux=0, ALU=0, CMux=1, C=9; LoadCk
+EOMux=1, AMux=0, ALU=0, CMux=1, C=10; LoadCk; AMD
 
-// PC <- PC +2.
-25. nuf_odd: A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-26. A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
-//Initiate fetch.
-27. A=6, B=7, MARMux=1; MARCk
+// PC <- PC plus 2.
+os_odd: A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+//Initiate fetch from Mem[PC].
+A=6, B=7, MARMux=1; MARCk
 //OS<hi> <- T1.
-28. MemRead, A=11, AMux=1, ALU=0, CMux=1, C=9; LoadCk
-29. MemRead
-30. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
-// OS<lo> <- MDREven, T1 <- MDROdd.
-31. EOMux=0, AMux=0, ALU=0, CMux=1, C=10; LoadCk
-32. EOMux=1, AMux=0, ALU=0, CMux=1, C=11, pvalid=1;PValidCk, LoadCk; AMD
-
-33. unary_dispatch: A=5; ISD //Start the unary execution path
+MemRead, A=11, AMux=1, ALU=0, CMux=1, C=9; LoadCk
+MemRead
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+// OS<lo> <- MDREven, T1 <- MDROdd, PrefetchValid <- true.
+EOMux=0, AMux=0, ALU=0, CMux=1, C=10; LoadCk
+EOMux=1, AMux=0, ALU=0, CMux=1, C=11, pvalid=1; PValidCk, LoadCk; AMD

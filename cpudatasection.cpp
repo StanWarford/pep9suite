@@ -88,8 +88,8 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
     //This function should not set any errors.
     //Errors will be handled by step(..)
     quint8 a,b;
-    bool carryIn;
-    bool hasA=getAMuxOutput(a), hasB=valueOnBBus(b);
+    bool carryIn = 0;
+    bool hasA = getAMuxOutput(a), hasB = valueOnBBus(b);
     calculateCSMuxOutput(carryIn);
     if(!((aluFnIsUnary()&&hasA)||(hasA&&hasB)))
     {
@@ -152,7 +152,7 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         NZVC|=Enu::VMask*(((a<<1)^a)>>7); //Signed overflow if a<hi> doesn't match a<hi-1>
         break;
     case Enu::ASRA_func: //ASR A
-        carryIn=a&128; //RORA and ASRA only differ by whether or not carryIn is guaranteed to be high
+        carryIn=a&128; //RORA and ASRA only differ by how the carryIn is calculated
         //Intentional fallthrough
     case Enu::RORA_func: //ROR a
         res = (a>>1)|(((int)carryIn)<<7); //No need to worry about sign extension on shift with unsigned a
@@ -172,8 +172,6 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
     NZVC |= (res>127) ? Enu::NMask : 0;
     //Get boolean value for Z, then shift to correct place
     NZVC |= (res==0) ? Enu::ZMask : 0;
-    a=NZVC;
-    b=res;
     return true;
 
 }

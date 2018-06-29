@@ -25,127 +25,185 @@ UnitPre: Mem[0xFEF0]=0x9635, Mem[0xFEF2]=0x4242 //Odd IR should yield 3542
 //#############################################
 //Pick which memory addressing mode to use here. Options are:
 //iAddr, dAddr, sAddr, xAddr, sxAddr, nAddr, sfAddr, sfxAddr
-1. A=5; goto sfxAddr //A=5 is just there as a placeholder statment, since gotos are not allowed on a line by themselves.
+A=5; goto sfxAddr //A=5 is just there as a placeholder statment, since gotos are not allowed on a line by themselves.
 //#############################################
 
 //*****************
 //
-// Operand Specifier decoder
+// Operand Specifier Decoder
 //
 //*****************
-2. iAddr: A=9, AMux=1, ALU=0, CMux=1, C=20; LoadCk
-3. A=10, AMux=1, ALU=0, CMux=1, C=21; LoadCk; ISD
+//Each addressing mode is responsible for the following:
+//1. T6 <- Value of Operand Specifier after using the correct loads based on the addressing mode of the instruction
+//2. T5 <- Address of the first byte of the location where the value in T6 came from. Immediate addressing does not need to do this.
+//3. Using the ISD branch function to continue microprogram execution.
 
-//Direct Addressing Modes (D, S, X, SX)
-//First, copy over the address where the value will be fetched from to [18-19], so instructions like stwa have an address and not a value
-4. dAddr:a=10, amux=1, alu=0, cmux=1, c=19; loadck
-5. a=9, amux=1, alu=0, cmux=1, c=18; loadck
-6.  A=9, B=10, MARMux=1; MARCk
-7. MemRead, A=10, AMux=1, ALU=13; SCk; if BRS d_odd else d_even
-8. d_odd: MemRead, A=10, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-9. MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
-//Shared between all "direct" load instructions that need to load the low order even byte of an OS that is not aligned. Stores it in T6
-10. d_odd_shared: A=16, B=17, MARMux=1; MARCk
-11. MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, C=20; LoadCk
-12. MemRead
-13. MemRead, MDREMux=0; MDRECk
-14. EOMux=0, AMux=0, ALU=0, CMux=1, C=21; LoadCk; ISD
-//Shared between all "direct" load instructions that need to load an entire aligned word into T6
-15. d_even: MemRead
-16. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
-17. EOMux=0, AMux=0, ALU=0, CMux=1, C=20; LoadCk
-18. EOMux=1, AMux=0, ALU=0, CMux=1, C=21; LoadCk; ISD
+//Here is an example. Consider the instruction "LDWA 6,d" and suppose Mem[0x0006] = 0xCAFE.
+//At the end of the "dAddr" unit, T6 <- 0xCAFE & T5 <- 0x0006.
 
-//Add Sp to OprSpec, and store it in t5 before branching to shared fetch code
-19. sAddr: 
-20. A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
-21. A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
+//Another example. Consider the instruction LDWA 7,n and suppose:
+//Mem[0x0007]=0xFE, Mem[0x0008]=0x01, Mem[0xFE01]=0xBE,Mem[0xFE02]=EF.
+//At the of the "nAddr" unit, T6 <- 0xBEEF & T5 <- 0xFE01.
 
-//Add X to OprSpec, and store it in t5 before branching to shared fetch code
-22. xAddr: A=10, B=3, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
-23. A=9, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
-
-//Add Sp to OprSpec and X, and store it in t5 before branching to shared fetch code
-24. sxAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
-25. A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
-26. A=19, B=3, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
-27. A=18, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
-
-//Use the shared code for d_even
-//otherwise fetch the first byte for an odd operand
-28. sx_shared: A=18, B=19, MARMux=1; MARCk
-29. MemRead, A=19, AMux=1, ALU=13; SCk; if BRS sx_odd else d_even
-30. sx_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-31. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
-//And then used shared odd code
-
-//Indirect Addressing Modes (N, SF)
-32. nAddr: A=9, B=10, MARMux=1; MARCk
-33. MemRead, A=10, AMux=1, ALU=13; SCk; if BRS n1_odd else n1_even
-
-//Do the first of two memread
-34. n1_even: MemRead
-35. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
-36. MARMux=0, EOMux=1, AMux=0, ALU=13; SCk, MARCk
-//If the value fetched was even, then the last fetch is identical to d's fetch
-//Otherwise, we need to set up the values in t5 so as to use the shared code
-37. eomux=0, amux=0, alu=0,cmux=1,c=18; loadck
-38. eomux=1, amux=0, alu=0,cmux=1,c=19; loadck
-39. MemRead; if BRS n2_odd else d_even 
-
-//Fetch the next byte, and calculate the value of the next address in t5 (oprSpec+1)
-40. n1_odd: MemRead, A=10, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-41. MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
-42. n1_odd_shared: A=16, B=17, MARMux=1; MARCk
-//Move the odd byte to the high order of t5
-43. MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, C=16; LoadCk
-44. MemRead
-45. MemRead, MDREMux=0; MDRECk
-//Move the even byte to the low order of t5
-46. EOMux=0, AMux=0, ALU=0, CMux=1, C=17; LoadCk
-47. A=16, B=17, MARMux=1; MARCk
-48. EOMux=1, AMux=0, ALU=0, CMux=1, C=18; LoadCk
-49. EOMux=0, AMux=0, ALU=0, CMux=1, C=19; LoadCk
-//If the address fetched was even, then the last fetch is identical to d's fetch
-//Otherwise, we need to set up the values in t5 so as to use the shared code
-50. MemRead, A=19, AMux=1, ALU=13; SCk; if BRS n2_odd else d_even
-
-51. n2_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-//Now that t5 contains the address of the next byte, branch to the shared odd code
-52. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
-
-//Stack-deFerred
-//Calculate SP+OprSpec and store it in t5
-53. sfAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
-54. A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
-55. A=18, B=19, MARMux=1; MARCk
-//Initiate MemRead, and branch to n1_even if the address is even, as n and sf are indentical from here
-56. MemRead, A=19, AMux=1, ALU=13; SCk; if BRS sf_odd else n1_even
-//However, for an odd instruction, we need to calculate the next address and store it in t5
-//before moving over to n1_odd
-57. sf_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-58. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto n1_odd_shared
+//Immediate Addressing. T6 <- OperSpec. T5 is ignored
+iAddr: A=9, AMux=1, ALU=0, CMux=1, C=20; LoadCk
+A=10, AMux=1, ALU=0, CMux=1, C=21; LoadCk; ISD
 
 
-//Stack-deFerred-indeXed
-//First, calculate Sp+OprSpec and stick it in t5
-59. sfxAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-60. A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
-61. A=16, B=17, MARMux=1; MARCk
-62. MemRead, A=17, AMux=1, ALU=13; SCk; if BRS sfx1_odd else sfx1_even
-63. sfx1_even: MemRead
-64. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
-65. B=3, EOMux=1, AMux=0, ALU=1, CMux=1, C=17; SCk, LoadCk
-66. B=2, EOMux=0, AMux=0, CSMux=1, ALU=2, CMux=1, C=16; LoadCk; goto sfx1_shared
-67. sfx1_odd: MemRead, A=17, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-68. MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
-69. A=16, B=17, MARMux=1; MARCk
-70. MemRead
-71. MemRead
-72. MemRead, MDREMux=0; MDRECk
-73. B=3, EOMux=0, AMux=0, ALU=1, CMux=1, C=19; SCk, LoadCk
-74. B=2, EOMux=1, AMux=0, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
-75. sfx1_shared: A=18, B=19, MARMux=1; MARCk
-76. MemRead, A=19, AMux=1, ALU=13; SCk; if BRS sfx2_odd else d_even
-77. sfx2_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-78. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
+//*
+//* Direct Addressing Mode & Derivatives (D & S, X, SX)
+//*
+
+
+//Direct Addressing Mode. T6 <- Mem[OperSpec], T5 <- OperSpec 
+dAddr:a=10, amux=1, alu=0, cmux=1, c=19; loadck
+a=9, amux=1, alu=0, cmux=1, c=18; loadck
+//MAR <- OperSpec, initiate fetch
+A=9, B=10, MARMux=1; MARCk
+//If OprSpec<lo> is odd,
+MemRead, A=10, AMux=1, ALU=13; SCk; if BRS d_odd else d_even
+
+d_odd: MemRead, A=10, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
+
+//Shared between all "direct derivative" addressing modes.
+//Assumes T4 is address of next byte to fetch, and MDRO contrinas T6<hi>
+d_odd_shared: A=16, B=17, MARMux=1; MARCk
+//T6<hi> <- MDRO
+MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, C=20; LoadCk
+MemRead
+MemRead, MDREMux=0; MDRECk
+//T6<lo> <- MDRE
+EOMux=0, AMux=0, ALU=0, CMux=1, C=21; LoadCk; ISD
+
+//Shared between all "direct derivative" addressing modes. Loads an entire aligned word from mem into T6
+d_even: MemRead
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+//T6 <- MDRE & MDRO
+EOMux=0, AMux=0, ALU=0, CMux=1, C=20; LoadCk
+EOMux=1, AMux=0, ALU=0, CMux=1, C=21; LoadCk; ISD
+
+
+
+//Stack Relative Addressing Mode. T6 <- Mem[OperSpec plus SP], T5 <- OperSpec plus SP. 
+sAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
+A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
+
+
+
+//indexed Addressing Mode. T6 <- Mem[OperSpec plus X], T5 <- OperSpec plus X. 
+xAddr: A=10, B=3, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
+A=9, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
+
+
+
+//Stack Indexed Addressing Mode. T6 <- Mem[OperSpec plus SP plus X], T5 <- OperSpec plus SP plus X. 
+sxAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
+A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
+A=19, B=3, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
+A=18, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
+
+//S, X, SX addressing modes all behave like D once the addition is performed.
+//Determine if the memory address being fetched is even. If so goto d_even.
+sx_shared: A=18, B=19, MARMux=1; MARCk
+MemRead, A=19, AMux=1, ALU=13; SCk; if BRS sx_odd else d_even
+//Else T4 <- T5 plus 1, MDRO <- Mem[T5]<lo> , goto d_odd_shared
+sx_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
+
+
+//*
+//* Indirect Addressing Mode & Derivatives (N & SF)
+//*
+
+//Indirect Addressing Mode. T6 <- Mem[Mem[OperSpec]], T5 <- Mem[OperSpec]. 
+//Initiate fetch Mem[OperSpec], branch if OperSpec is odd or even
+nAddr: A=9, B=10, MARMux=1; MARCk
+MemRead, A=10, AMux=1, ALU=13; SCk; if BRS n1_odd else n1_even
+
+//Even path for first memread
+n1_even: MemRead
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+//Determine if Mem[OperSpec] is even or odd
+MARMux=0, EOMux=1, AMux=0, ALU=13; SCk, MARCk
+//T5 <- Mem[OperSpec]
+eomux=0, amux=0, alu=0,cmux=1,c=18; loadck
+eomux=1, amux=0, alu=0,cmux=1,c=19; loadck
+MemRead; if BRS n2_odd else d_even 
+
+//Odd path for first memread
+//Fetch Mem[OperSpec], T4 <- OperSpec plus 1,
+n1_odd: MemRead, A=10, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
+//Fetch Mem[T4]
+n1_odd_shared: A=16, B=17, MARMux=1; MARCk
+//T5<hi> <- MDRO
+MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, C=18; LoadCk
+MemRead
+MemRead, MDREMux=0; MDRECk
+//T5<lo> <- MDRE
+EOMux=0, AMux=0, ALU=0, CMux=1, C=19; LoadCk
+A=18, B=19, MARMux=1; MARCk
+//If T5<lo> is even, remaining fetch is identical to d_even. 
+MemRead, A=19, AMux=1, ALU=13; SCk; if BRS n2_odd else d_even
+
+//Otherwise T4 <- T5 plus 1; goto d_odd_shared
+n2_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
+
+
+//Stack Deferred Addressing Mode. T6 <- Mem[Mem[OperSpec plus SP]], T5 <- Mem[OperSpec plus SP]. 
+//T4 <- OperSpec plus SP
+sfAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+//Fetch Mem[T4]
+A=16, B=17, MARMux=1; MARCk
+//If T4<lo> is even, remaining fetch is identical to n1_even.
+MemRead, A=17, AMux=1, ALU=13; SCk; if BRS sf_odd else n1_even
+//Otherwise MDRO <- Mem[T4]<lo>; T4 <- T4 plus 1; goto n1_odd_shared
+sf_odd: MemRead, A=17, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto n1_odd_shared
+
+
+//*
+//* Stack Deferred Indexed T6 <- Mem[Mem[OperSpec plus SP] plus X], T5 <- Mem[OperSpec plus SP] plus X. 
+//*
+//Unfortunately, this code shares little with other addressing modes due to the multiple additions
+
+
+//T4 <- OperSpec plus SP
+sfxAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+//Fetch Mem[T4]
+A=16, B=17, MARMux=1; MARCk
+//Branch if T4<lo> is odd
+MemRead, A=17, AMux=1, ALU=13; SCk; if BRS sfx1_odd else sfx1_even
+
+//Even path for first memread
+sfx1_even: MemRead
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+//T5 <- MDRE plus X<hi> plus cin & MDRO plus X<lo>
+B=3, EOMux=1, AMux=0, ALU=1, CMux=1, C=19; SCk, LoadCk
+B=2, EOMux=0, AMux=0, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sfx1_shared
+
+//Odd path for first memread
+//T4 <- T4 plus 1
+sfx1_odd: MemRead, A=17, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
+//Fetch Mem[T4]
+A=16, B=17, MARMux=1; MARCk
+MemRead
+MemRead
+MemRead, MDREMux=0; MDRECk
+//T5 <- MDRO plus X<hi> plus cin & MDRE plus X<lo>
+B=3, EOMux=0, AMux=0, ALU=1, CMux=1, C=19; SCk, LoadCk
+B=2, EOMux=1, AMux=0, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
+
+//Prepare for second memread
+sfx1_shared: A=18, B=19, MARMux=1; MARCk
+//If T4<lo> is even, remaining fetch is identical to d_even.
+MemRead, A=19, AMux=1, ALU=13; SCk; if BRS sfx2_odd else d_even
+
+//Otherwise T4 <- T4 plus 1; goto d_odd_shared
+sfx2_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
