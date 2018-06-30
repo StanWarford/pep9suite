@@ -91,7 +91,6 @@ public:
     void writeSettings(QSettings &settings);
     MicrocodeEditor* getEditor();
 public slots:
-    void onCPUFeatureChange();
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
 protected:

@@ -1,15 +1,7 @@
 <RCC>
     <qresource prefix="/">
-        <file>help/figures/fig1205.pepcpu</file>
-        <file>help/figures/fig1207.pepcpu</file>
-        <file>help/figures/fig1209.pepcpu</file>
-        <file>help/figures/fig1211.pepcpu</file>
-        <file>help/figures/fig1212.pepcpu</file>
-        <file>help/figures/fig1214.pepcpu</file>
         <file>help/cpu.html</file>
         <file>help/microcode.html</file>
-        <file>help/onebytebusexamples.html</file>
-        <file>help/onebytebusproblems.html</file>
         <file>help/images/fourbuttonsinteractivemode.png</file>
         <file>help/images/fourbuttonsmicrocodemode.png</file>
         <file>help/images/startdebuggingicon.png</file>
@@ -68,43 +60,8 @@
         <file>help/usingpep9cpu.html</file>
         <file>help/figures/fig1220.pepcpu</file>
         <file>help/figures/fig1221.pepcpu</file>
-        <file>help/figures/fig1210.pepcpu</file>
         <file>help/twobytebusexamples.html</file>
         <file>help/twobytebusproblems.html</file>
-        <file>help/figures/prob1228.pepcpu</file>
-        <file>help/figures/prob1229a.pepcpu</file>
-        <file>help/figures/prob1229b.pepcpu</file>
-        <file>help/figures/prob1229c.pepcpu</file>
-        <file>help/figures/prob1229d.pepcpu</file>
-        <file>help/figures/prob1229e.pepcpu</file>
-        <file>help/figures/prob1229f.pepcpu</file>
-        <file>help/figures/prob1230.pepcpu</file>
-        <file>help/figures/prob1231a.pepcpu</file>
-        <file>help/figures/prob1231b.pepcpu</file>
-        <file>help/figures/prob1231c.pepcpu</file>
-        <file>help/figures/prob1231d.pepcpu</file>
-        <file>help/figures/prob1231e.pepcpu</file>
-        <file>help/figures/prob1231f.pepcpu</file>
-        <file>help/figures/prob1231g.pepcpu</file>
-        <file>help/figures/prob1232a.pepcpu</file>
-        <file>help/figures/prob1232b.pepcpu</file>
-        <file>help/figures/prob1232c.pepcpu</file>
-        <file>help/figures/prob1232d.pepcpu</file>
-        <file>help/figures/prob1232e.pepcpu</file>
-        <file>help/figures/prob1232f.pepcpu</file>
-        <file>help/figures/prob1232g.pepcpu</file>
-        <file>help/figures/prob1232h.pepcpu</file>
-        <file>help/figures/prob1232i.pepcpu</file>
-        <file>help/figures/prob1232j.pepcpu</file>
-        <file>help/figures/prob1232k.pepcpu</file>
-        <file>help/figures/prob1232l.pepcpu</file>
-        <file>help/figures/prob1233a.pepcpu</file>
-        <file>help/figures/prob1233b.pepcpu</file>
-        <file>help/figures/prob1233c.pepcpu</file>
-        <file>help/figures/prob1233d.pepcpu</file>
-        <file>help/figures/prob1233e.pepcpu</file>
-        <file>help/figures/prob1233f.pepcpu</file>
-        <file>help/figures/prob1229g.pepcpu</file>
         <file>help/figures/fig1223.pepcpu</file>
         <file>help/figures/prob1234a.pepcpu</file>
         <file>help/figures/prob1234b.pepcpu</file>

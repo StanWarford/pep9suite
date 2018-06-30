@@ -300,11 +300,6 @@ MicrocodeEditor *MicrocodePane::getEditor()
     return editor;
 }
 
-void MicrocodePane::onCPUFeatureChange()
-{
-    highlighter->rehighlight();
-}
-
 void MicrocodePane::onFontChanged(QFont font)
 {
     editor->setFont(font);

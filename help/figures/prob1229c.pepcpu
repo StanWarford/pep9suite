@@ -1,9 +1,0 @@
-// File: prob1229c.pepcpu
-// Computer Systems, Fifth Edition
-// Problem 12.29(c)
-// MOVAFLG
-// RTL: NZVC <- A<12..15>
-
-UnitPre: IR=0x050000, A=0xFFFA, N=0, Z=1, V=0, C=1
-UnitPost: n=1,z=0,v=1,c=0
-

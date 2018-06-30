@@ -1,9 +1,0 @@
-// File: prob1229a.pepcpu
-// Computer Systems, Fifth Edition
-// Problem 12.29(a)
-// MOVSPA
-// RTL: A <- SP
-
-UnitPre: IR=0x030000, SP=0xABCD
-UnitPost: A=0xABCD
-

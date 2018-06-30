@@ -84,15 +84,8 @@ Enu::CPUType HelpDialog::getExamplesModel()
     int parentRow = ui->helpTreeWidget->currentIndex().parent().row();
     // Row (if it has a parent, this is the child row)
     int row = ui->helpTreeWidget->currentIndex().row();
-
-    if ((!isHelpSubCat && row == eONEBYTEBUSEXAMPLES) || parentRow == eONEBYTEBUSEXAMPLES) {
-        return Enu::OneByteDataBus;
-    }
-    else if ((!isHelpSubCat && row == eTWOBYTEBUSEXAMPLES) || parentRow == eTWOBYTEBUSEXAMPLES) {
+    if ((!isHelpSubCat && row == eTWOBYTEBUSEXAMPLES) || parentRow == eTWOBYTEBUSEXAMPLES) {
         return Enu::TwoByteDataBus;
-    }
-    else if ((!isHelpSubCat && row == eONEBYTEBUSPROBLEMS) || parentRow == eONEBYTEBUSPROBLEMS) {
-        return Enu::OneByteDataBus;
     }
     else if ((!isHelpSubCat && row == eTWOBYTEBUSPROBLEMS) || parentRow == eTWOBYTEBUSPROBLEMS) {
         return Enu::TwoByteDataBus;
@@ -167,45 +160,7 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->helpTopWebView->show();
         ui->helpTopWebView->load(QUrl("qrc:/help/pep9reference.html"));
     }
-    else if ((!isHelpSubCat && row == eONEBYTEBUSEXAMPLES) || parentRow == eONEBYTEBUSEXAMPLES) {
-        if (!isHelpSubCat) {
-            ui->helpSplitter->widget(1)->hide();
-            ui->helpTopWebView->show();
-            ui->helpTopWebView->load(QUrl("qrc:/help/onebytebusexamples.html"));
-        }
-        else {
-            ui->helpSplitter->widget(0)->hide();
-            ui->helpSplitter->widget(1)->show();
-            if (row == eFIG1205) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/fig1205.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Figure 12.5</b> The control signals to fetch the instruction specifier and increment PC by 1.");
-            }
-            else if (row == eFIG1207) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/fig1207.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Figure 12.7</b> Combining cycles of Figure 12.5.");
-            }
-            else if (row == eFIG1209) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/fig1209.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Figure 12.9</b> The control signals to implement the store byte instruction with direct addressing.");
-            }
-            else if (row == eFIG1210) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/fig1210.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Figure 12.10</b> The control signals to implement the store word instruction with direct addressing.");
-            }
-            else if (row == eFIG1211) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/fig1211.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Figure 12.11</b> The control signals to implement the add instruction with immediate addressing.");
-            }
-            else if (row == eFIG1212) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/fig1212.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Figure 12.12</b> The control signals to implement the load instruction with indirect addressing.");
-            }
-            else if (row == eFIG1214) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/fig1214.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Figure 12.14</b> The control signals to implement the unary ASRA instruction.");
-            }
-        }
-    }
+
     else if ((!isHelpSubCat && row == eTWOBYTEBUSEXAMPLES) || parentRow == eTWOBYTEBUSEXAMPLES) {
         if (!isHelpSubCat) {
             ui->helpSplitter->widget(1)->hide();
@@ -226,153 +181,6 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
             else if (row == eFIG1223) {
                 microcodeEditor->setPlainText(Pep::resToString(":/help/figures/fig1223.pepcpu"));
                 ui->helpFigureLabel->setText("<b>Figure 12.23</b> The two-byte bus implementation of the load word instruction with indirect addressing.");
-            }
-        }
-    }
-    else if ((!isHelpSubCat && row == eONEBYTEBUSPROBLEMS) || parentRow == eONEBYTEBUSPROBLEMS) {
-        if (!isHelpSubCat) {
-            ui->helpSplitter->widget(1)->hide();
-            ui->helpTopWebView->show();
-            ui->helpTopWebView->load(QUrl("qrc:/help/onebytebusproblems.html"));
-        }
-        else {
-            ui->helpSplitter->widget(0)->hide();
-            ui->helpSplitter->widget(1)->show();
-            if (row == ePR1228) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1228.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.28</b> Specification to fetch the operand specifier and increment PC.");
-            }
-            else if (row == ePR1229A) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1229a.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.29 (a)</b> Specification for <code>MOVSPA</code>.");
-            }
-            else if (row == ePR1229B) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1229b.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.29 (b)</b> Specification for <code>MOVFLGA</code>.");
-            }
-            else if (row == ePR1229C) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1229c.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.29 (c)</b> Specification for <code>MOVAFLG</code>.");
-            }
-            else if (row == ePR1229D) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1229d.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.29 (d)</b> Specification for <code>NOTA</code>.");
-            }
-            else if (row == ePR1229E) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1229e.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.29 (e)</b> Specification for <code>NEGA</code>.");
-            }
-            else if (row == ePR1229F) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1229f.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.29 (f)</b> Specification for <code>ROLA</code>.");
-            }
-            else if (row == ePR1229G) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1229g.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.29 (g)</b> Specification for <code>RORA</code>.");
-            }
-            else if (row == ePR1230) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1230.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.30</b> Specification for <code>ASLA</code>.");
-            }
-            else if (row == ePR1231A) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1231a.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.31 (a)</b> Specification for <code>SUBA this,i</code>.");
-            }
-            else if (row == ePR1231B) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1231b.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.31 (b)</b> Specification for <code>ANDA this,i</code>.");
-            }
-            else if (row == ePR1231C) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1231c.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.31 (c)</b> Specification for <code>ORA this,i</code>.");
-            }
-            else if (row == ePR1231D) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1231d.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.31 (d)</b> Specification for <code>CPWA this,i</code>.");
-            }
-            else if (row == ePR1231E) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1231e.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.31 (e)</b> Specification for <code>CPBA this,i</code>.");
-            }
-            else if (row == ePR1231F) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1231f.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.31 (f)</b> Specification for <code>LDWA this,i</code>.");
-            }
-            else if (row == ePR1231G) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1231g.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.31 (g)</b> Specification for <code>LDBA this,i</code>.");
-            }
-            else if (row == ePR1232A) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232a.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (a)</b> Specification for <code>LDWA here,d</code>.");
-            }
-            else if (row == ePR1232B) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232b.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (b)</b> Specification for <code>LDWA here,s</code>.");
-            }
-            else if (row == ePR1232C) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232c.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (c)</b> Specification for <code>LDWA here,sf</code>.");
-            }
-            else if (row == ePR1232D) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232d.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (d)</b> Specification for <code>LDWA here,x</code>.");
-            }
-            else if (row == ePR1232E) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232e.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (e)</b> Specification for <code>LDWA here,sx</code>.");
-            }
-            else if (row == ePR1232F) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232f.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (f)</b> Specification for <code>LDWA here,sfx</code>.");
-            }
-            else if (row == ePR1232G) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232g.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (g)</b> Specification for <code>STWA there,n</code>.");
-            }
-            else if (row == ePR1232H) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232h.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (h)</b> Specification for <code>STWA there,s</code>.");
-            }
-            else if (row == ePR1232I) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232i.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (i)</b> Specification for <code>STWA there,sf</code>.");
-            }
-            else if (row == ePR1232J) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232j.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (j)</b> Specification for <code>STWA there,x</code>.");
-            }
-            else if (row == ePR1232K) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232k.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (k)</b> Specification for <code>STWA there,sx</code>.");
-            }
-            else if (row == ePR1232L) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1232l.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.32 (l)</b> Specification for <code>STWA there,sfx</code>.");
-            }
-            else if (row == ePR1233A) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1233a.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.33 (a)</b> Specification for <code>BR main</code>.");
-            }
-            else if (row == ePR1233B) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1233b.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.33 (b)</b> Specification for <code>BR guessJT,x</code>.");
-            }
-            else if (row == ePR1233C) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1233c.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.33 (c)</b> Specification for <code>CALL alpha</code>.");
-            }
-            else if (row == ePR1233D) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1233d.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.33 (d)</b> Specification for <code>RET</code>.");
-            }
-            else if (row == ePR1233E) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1233e.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.33 (e)</b> Specification for <code>DECO num,i</code>.");
-            }
-            else if (row == ePR1233F) {
-                microcodeEditor->setPlainText(Pep::resToString(":/help/figures/prob1233f.pepcpu"));
-                ui->helpFigureLabel->setText("<b>Problem 12.33 (f)</b> Specification for <code>RETTR</code>.");
             }
         }
     }

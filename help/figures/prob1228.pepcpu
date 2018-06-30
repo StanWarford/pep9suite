@@ -1,8 +1,0 @@
-// File: prob1228.pepcpu
-// Computer Systems, Fifth Edition
-// Problem 12.28
-// Fetch the operand specifier and increment PC by 2
-
-UnitPre: IR=0x000000, PC=0x01FF, Mem[0x01FF]=0xABCD, S=0
-UnitPost: IR=0x00ABCD, PC=0x0201
-

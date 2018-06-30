@@ -1,6 +1,6 @@
 #include "cpudatasection.h"
 CPUDataSection* CPUDataSection::_instance = nullptr;
-CPUDataSection::CPUDataSection(QObject *parent): QObject(parent),cpuFeatures(Enu::OneByteDataBus),mainBusState(Enu::None),
+CPUDataSection::CPUDataSection(QObject *parent): QObject(parent),cpuFeatures(Enu::TwoByteDataBus),mainBusState(Enu::None),
     registerBank(32),memoryRegisters(6),memory(0XFFFF+1),controlSignals(20),clockSignals(10),hadDataError(false),errorMessage("")
 {
     presetStaticRegisters();
@@ -14,25 +14,6 @@ bool CPUDataSection::aluFnIsUnary() const
 
 bool CPUDataSection::getAMuxOutput(quint8& result) const
 {
-    //This function should not raise an error. Anything that needs an input from from AMUX will manually raise an error
-    switch(cpuFeatures)
-    {
-    case Enu::OneByteDataBus:
-        //For the one byte bus, either the value comes from the MDR register
-        if(controlSignals[Enu::AMux]==0)
-        {
-            result = memoryRegisters[Enu::MEM_MDR];
-            return true;
-        }
-        //Or it comes from the memory bank
-        else if(controlSignals[Enu::AMux]==1)
-        {
-            return valueOnABus(result);
-        }
-        //Otherwise, AMUX is disabled and has no output
-        else return false;
-    case Enu::TwoByteDataBus:
-        //For the two byte bus, the value either comes from EOMux
         if(controlSignals[Enu::AMux]==0)
         {
             //Which could come from MDRE when EOMux is 0
@@ -51,18 +32,11 @@ bool CPUDataSection::getAMuxOutput(quint8& result) const
             else return false;
 
         }
-        //Or the value of AMux comes from the register bank via A
         else if(controlSignals[Enu::AMux]==1)
         {
             return valueOnABus(result);
         }
         else return false;
-        break;
-    default:
-        break;
-    }
-    //If control flow reaches here, it is safe to assume that AMux has no valid output
-    return false;
 }
 
 bool CPUDataSection::calculateCSMuxOutput(bool &result) const
@@ -81,6 +55,7 @@ bool CPUDataSection::calculateCSMuxOutput(bool &result) const
     }
     //Otherwise it does not have valid output
     else return false;
+
 }
 
 bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
@@ -90,7 +65,7 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
     quint8 a,b;
     bool carryIn = 0;
     bool hasA = getAMuxOutput(a), hasB = valueOnBBus(b);
-    calculateCSMuxOutput(carryIn);
+    bool hasCIn = calculateCSMuxOutput(carryIn);
     if(!((aluFnIsUnary()&&hasA)||(hasA&&hasB)))
     {
         //The ALU output calculation would not be meaningful given its current function and inputs
@@ -110,12 +85,14 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         NZVC|= Enu::VMask*((~(a^b)&(a^res))>>7); //Dividing by 128 and >>7 are the same thing for unsigned integers
         break;
     case Enu::ApnBp1_func: //A plus ~B plus 1
+        hasCIn = true;
         carryIn=1;
         //Intentional fallthrough
     case Enu::ApnBpCin_func: //A plus ~B plus Cin
         b=~b;
         //Intentional fallthrough
     case Enu::ApBpCin_func: //A plus B plus Cin
+        if (!hasCIn) return false;
         res=a+b+(int)carryIn;
         NZVC|= Enu::CMask*((int)(res<a||res<b)); //Carry out if result is unsigned less than a or b.
         //There is a signed overflow iff the high order bits of the input are the same,
@@ -146,15 +123,18 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         NZVC|=Enu::VMask*(((a<<1)^a)>>7); //Signed overflow if a<hi> doesn't match a<hi-1>
         break;
     case Enu::ROLA_func: //ROL A
+        if (!hasCIn) return false;
         res=a<<1 | ((int) carryIn);
         NZVC|=Enu::CMask*((a & 0x80) >> 7);
         //NZVC|=Enu::VMask*(bool)(((a & 0x40) >> 6) ^ (NZVC&Enu::CMask));
         NZVC|=Enu::VMask*(((a<<1)^a)>>7); //Signed overflow if a<hi> doesn't match a<hi-1>
         break;
     case Enu::ASRA_func: //ASR A
+        hasCIn = true;
         carryIn=a&128; //RORA and ASRA only differ by how the carryIn is calculated
         //Intentional fallthrough
     case Enu::RORA_func: //ROR a
+        if (!hasCIn) return false;
         res = (a>>1)|(((int)carryIn)<<7); //No need to worry about sign extension on shift with unsigned a
         NZVC|=Enu::CMask*(a&1);
         break;
@@ -252,7 +232,7 @@ bool CPUDataSection::valueOnCBus(quint8 &result) const
     }
     else if(controlSignals[Enu::CMux]==1)
     {
-        quint8 temp=0; //Discard NZVC bits for this calculation, they are unecessary for calculating C's output
+        quint8 temp = 0; //Discard NZVC bits for this calculation, they are unecessary for calculating C's output
         //Otherwise the value of C depends solely on the ALU
         return calculateALUOutput(result,temp);
     }
@@ -445,7 +425,7 @@ void CPUDataSection::setStatusBit(Enu::EStatusBit statusBit, bool val)
     quint8 old = NZVCSbits;
     onSetStatusBit(statusBit,val);
     //Check if old is equal to new after attempting to set it, as there isn't a simple test for bit math
-    if(old==val)return; //Prevent signal from being emitted if no value changed
+    if((bool)(old&statusBit) == val)return; //Prevent signal from being emitted if no value changed
     emit statusBitChanged(statusBit,val);
 }
 
@@ -510,115 +490,6 @@ void CPUDataSection::handleMainBusState() noexcept
     }
 }
 
-void CPUDataSection::stepOneByte() noexcept
-{
-    //Update the bus state first, as the rest of the read / write functionality depends on it
-    handleMainBusState();
-    if(hadErrorOnStep()) return; //If the bus had an error, give up now
-
-    //Set up all variables needed by stepping calculation
-    Enu::EALUFunc aluFunc = (Enu::EALUFunc) controlSignals[Enu::ALU];
-    quint8 a = 0,b = 0,c = 0,alu = 0,NZVC = 0;
-    bool hasA=valueOnABus(a),hasB=valueOnBBus(b),hasC=valueOnCBus(c);
-    calculateALUOutput(alu,NZVC);
-
-    //Handle write to memory
-    if(mainBusState == Enu::MemWriteReady)
-    {
-        quint16 address = (memoryRegisters[Enu::MEM_MARA]<<8)+memoryRegisters[Enu::MEM_MARB];
-        setMemoryByte(address,memoryRegisters[Enu::MEM_MDR]);
-    }
-
-    //MARCk
-    if(clockSignals[Enu::MARCk]&&hasA&&hasB)
-    {
-        setMemoryRegister(Enu::MEM_MARA,a);
-        setMemoryRegister(Enu::MEM_MARB,b);
-    }
-    else if(clockSignals[Enu::MARCk]) //Handle error where no data is present
-    {
-        hadDataError=true;
-        errorMessage="No values on A & B during MARCk";
-
-    }
-
-    //LoadCk
-    if(clockSignals[Enu::LoadCk])
-    {
-        if(controlSignals[Enu::C]==Enu::signalDisabled)
-        {
-            hadDataError=true;
-            errorMessage = "No destination register specified for LoadCk.";
-        }
-        else setRegisterByte(controlSignals[Enu::C],c);
-    }
-
-    //MDRCk
-    if(clockSignals[Enu::MDRCk])
-    {
-        switch(controlSignals[Enu::MDRMux])
-        {
-        case 0: //Pick memory
-        {
-            quint16 address = (memoryRegisters[Enu::MEM_MARA]<<8)+memoryRegisters[Enu::MEM_MARB];
-            if(mainBusState!=Enu::MemReadReady){
-                hadDataError=true;
-                errorMessage = "No value from data bus to write to MDR";
-            }
-            else setMemoryRegister(Enu::MEM_MDR,getMemoryByte(address));
-            break;
-        }
-        case 1: //Pick C Bus;
-        {
-            if(!hasC)
-            {
-                hadDataError=true;
-                errorMessage = "No value on C bus to write to MDR";
-            }
-            else setMemoryRegister(Enu::MEM_MDR,c);
-            break;
-        }
-        default:
-            hadDataError=true;
-            errorMessage = "No value to clock into MDR";
-            break;
-        }
-
-    }
-
-    //NCk
-    if(clockSignals[Enu::NCk])
-    {
-        //And against a instead of ALU output, since ALU output is technically 0
-        if(aluFunc!=Enu::UNDEFINED_func) setStatusBit(Enu::STATUS_N,Enu::NMask & NZVC);
-    }
-
-    //ZCk
-    if(clockSignals[Enu::ZCk])
-    {
-        if(aluFunc!=Enu::UNDEFINED_func) setStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
-    }
-
-    //VCk
-    if(clockSignals[Enu::VCk])
-    {
-        if(aluFunc!=Enu::UNDEFINED_func) setStatusBit(Enu::STATUS_V,Enu::VMask & NZVC);
-    }
-
-    //CCk
-    if(clockSignals[Enu::CCk])
-    {
-        if(aluFunc!=Enu::UNDEFINED_func) setStatusBit(Enu::STATUS_C,Enu::CMask & NZVC);
-    }
-
-    //SCk
-    if(clockSignals[Enu::SCk])
-    {
-        if(aluFunc!=Enu::UNDEFINED_func) setStatusBit(Enu::STATUS_S,Enu::CMask & NZVC);
-    }
-
-}
-
 void CPUDataSection::stepTwoByte() noexcept
 {
     //Update the bus state first, as the rest of the read / write functionality depends on it
@@ -628,8 +499,8 @@ void CPUDataSection::stepTwoByte() noexcept
     //Set up all variables needed by stepping calculation
     Enu::EALUFunc aluFunc = (Enu::EALUFunc) controlSignals[Enu::ALU];
     quint8 a = 0,b = 0,c = 0,alu = 0,NZVC = 0;
-    bool hasA=valueOnABus(a),hasB=valueOnBBus(b),hasC=valueOnCBus(c);
-    calculateALUOutput(alu,NZVC);
+    bool hasA = valueOnABus(a), hasB = valueOnBBus(b), hasC = valueOnCBus(c);
+    bool statusBitError = false, hasALUOutput = calculateALUOutput(alu,NZVC);
 
     //Handle write to memory
     if(mainBusState == Enu::MemWriteReady)
@@ -665,10 +536,15 @@ void CPUDataSection::stepTwoByte() noexcept
     //LoadCk
     if(clockSignals[Enu::LoadCk])
     {
-        if(controlSignals[Enu::C]==Enu::signalDisabled)
+        if(controlSignals[Enu::C] == Enu::signalDisabled)
         {
-            hadDataError=true;
+            hadDataError = true;
             errorMessage = "No destination register specified for LoadCk.";
+        }
+        else if(!hasC)
+        {
+            hadDataError = true;
+            errorMessage = "No value on C Bus to clock in.";
         }
         else setRegisterByte(controlSignals[Enu::C],c);
     }
@@ -750,31 +626,43 @@ void CPUDataSection::stepTwoByte() noexcept
     if(clockSignals[Enu::NCk])
     {
         //And against a instead of ALU output, since ALU output is technically 0
-        if(aluFunc!=Enu::UNDEFINED_func) setStatusBit(Enu::STATUS_N,Enu::NMask & NZVC);
+        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput) setStatusBit(Enu::STATUS_N,Enu::NMask & NZVC);
+        else statusBitError = true;
     }
 
+    //If no ALU output, don't set flags.
     //ZCk
     if(clockSignals[Enu::ZCk])
     {
-        if(aluFunc!=Enu::UNDEFINED_func) setStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
+        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput) setStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
+        else statusBitError = true;
     }
 
     //VCk
     if(clockSignals[Enu::VCk])
     {
-        if(aluFunc!=Enu::UNDEFINED_func) setStatusBit(Enu::STATUS_V,Enu::VMask & NZVC);
+        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput) setStatusBit(Enu::STATUS_V,Enu::VMask & NZVC);
+        else statusBitError = true;
     }
 
     //CCk
     if(clockSignals[Enu::CCk])
     {
-        if(aluFunc!=Enu::UNDEFINED_func) setStatusBit(Enu::STATUS_C,Enu::CMask & NZVC);
+        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput) setStatusBit(Enu::STATUS_C,Enu::CMask & NZVC);
+        else statusBitError = true;
     }
 
     //SCk
     if(clockSignals[Enu::SCk])
     {
-        if(aluFunc!=Enu::UNDEFINED_func) setStatusBit(Enu::STATUS_S,Enu::CMask & NZVC);
+        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput) setStatusBit(Enu::STATUS_S,Enu::CMask & NZVC);
+        else statusBitError = true;
+    }
+
+    if(statusBitError)
+    {
+        hadDataError = true;
+        errorMessage = "ALU Error: No output from ALU to clock into status bits.";
     }
 }
 
@@ -846,8 +734,7 @@ void CPUDataSection::onStep() noexcept
 {
     //If the error hasn't been handled by now, clear it
     clearErrors();
-    if(cpuFeatures == Enu::OneByteDataBus) stepOneByte();
-    else if(cpuFeatures == Enu::TwoByteDataBus) stepTwoByte();
+    stepTwoByte();
 }
 
 void CPUDataSection::onClock() noexcept
@@ -877,15 +764,3 @@ void CPUDataSection::onClearMemory() noexcept
     clearMemory();
 }
 
-void CPUDataSection::onCPUFeaturesChanged(Enu::CPUType newFeatures) throw(Enu::InvalidCPUMode)
-{
-    //Check that the CPU mode is valid, so that no other code has to check.
-    //It would be better to crash now than to have a strange error pop up on step(...) later
-    if(!(newFeatures!=Enu::OneByteDataBus)&&!(newFeatures!=Enu::TwoByteDataBus))
-    {
-        throw Enu::InvalidCPUMode();
-    }
-    cpuFeatures=newFeatures;
-    onClearCPU();
-    emit CPUFeaturesChanged(newFeatures);
-}

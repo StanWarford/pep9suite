@@ -69,7 +69,6 @@ private:
     // Main Memory
     MainMemory *mainMemory;
     CpuPane *cpuPane;
-    CpuPane *cpuPaneOneByteDataBus;
     CpuPane *cpuPaneTwoByteDataBus;
     MicrocodePane *microcodePane;
     ObjectCodePane *objectCodePane;
@@ -118,8 +117,6 @@ private slots:
     void on_actionSystem_Stop_Debugging_triggered();
     void on_actionSystem_Clear_CPU_triggered();
     void on_actionSystem_Clear_Memory_triggered();
-    void on_actionOne_Byte_Data_Bus_Model_triggered();
-    void on_actionTwo_Byte_Data_Bus_Model_triggered();
     // View
     void on_actionDark_Mode_triggered();
     // Help
@@ -153,7 +150,6 @@ private slots:
 
     void updateMemAddress(int address);
 signals:
-    void CPUFeaturesChanged(Enu::CPUType);
     void beginUpdateCheck();
     void beginSimulation();
     void endSimulation();

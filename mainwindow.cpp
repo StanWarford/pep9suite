@@ -53,8 +53,6 @@ MainWindow::MainWindow(QWidget *parent) :
     auto x = QtConcurrent::run(updateChecker,&UpdateChecker::beginUpdateCheck);
 
     //Connect Models to necessary components
-    connect(this, &MainWindow::CPUFeaturesChanged, controlSection, &CPUControlSection::onCPUFeaturesChanged);
-    connect(this, &MainWindow::CPUFeaturesChanged, dataSection, &CPUDataSection::onCPUFeaturesChanged);
 
     mainMemory = new MainMemory(ui->mainSplitter);
     delete ui->memoryFrame;
@@ -63,13 +61,15 @@ MainWindow::MainWindow(QWidget *parent) :
     objectCodePane = new ObjectCodePane(ui->codeSplitter);
     //objectCodePane->hide();
     delete ui->objectCodeFrame;
-    cpuPaneOneByteDataBus = new CpuPane(Enu::OneByteDataBus, ui->mainSplitter);
-    ui->mainSplitter->insertWidget(1, cpuPaneOneByteDataBus);
-    cpuPane = cpuPaneOneByteDataBus;
+    //cpuPaneOneByteDataBus = new CpuPane(Enu::OneByteDataBus, ui->mainSplitter);
+    //ui->mainSplitter->insertWidget(1, cpuPaneOneByteDataBus);
+    //cpuPane = cpuPaneOneByteDataBus;
+
 
     cpuPaneTwoByteDataBus = new CpuPane(Enu::TwoByteDataBus, ui->mainSplitter);
-    cpuPaneTwoByteDataBus->hide();
+    //cpuPaneTwoByteDataBus->hide();
     ui->mainSplitter->insertWidget(1, cpuPaneTwoByteDataBus);
+    cpuPane = cpuPaneTwoByteDataBus;
 
     delete ui->cpuFrame;
 
@@ -111,8 +111,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(cpuPane, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
 
     //Connect events that pass on CPU Feature changes
-    connect(this, &MainWindow::CPUFeaturesChanged, microcodePane, &MicrocodePane::onCPUFeatureChange);
-    connect(this, &MainWindow::CPUFeaturesChanged, objectCodePane, &ObjectCodePane::onCPUFeatureChange);
     //Pep::initEnumMnemonMaps();
     //Connect Simulation events
     connect(this, &MainWindow::beginSimulation,this->objectCodePane,&ObjectCodePane::onBeginSimulation);
@@ -125,7 +123,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::darkModeChanged, helpDialog, &HelpDialog::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, objectCodePane, &ObjectCodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, cpuPaneTwoByteDataBus, &CpuPane::onDarkModeChanged);
-    connect(this ,&MainWindow::darkModeChanged, cpuPaneOneByteDataBus, &CpuPane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, microcodePane->getEditor(), &MicrocodeEditor::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, mainMemory, &MainMemory::onDarkModeChange);
     qApp->installEventFilter(this);
@@ -137,7 +134,6 @@ MainWindow::MainWindow(QWidget *parent) :
     lightStyle = this->styleSheet();
     connect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
     readSettings();
-    on_actionOne_Byte_Data_Bus_Model_triggered();
 }
 
 MainWindow::~MainWindow()
@@ -553,79 +549,6 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
     controlSection->onClearMemory();
 }
 
-void MainWindow::on_actionOne_Byte_Data_Bus_Model_triggered()
-{
-    //While the data section will eventually change due to this event,
-    //it needs to be changed synchronously in order to allow enum maps to work
-    dataSection->onCPUFeaturesChanged(Enu::OneByteDataBus);
-    Pep::initMicroEnumMnemonMaps();
-
-    objectCodePane->clearSimulationView();
-    mainMemory->clearMemory();
-
-    disconnect(cpuPane, &CpuPane::updateSimulation, this, &MainWindow::updateSimulation);
-    disconnect(cpuPane, &CpuPane::simulationFinished, this, &MainWindow::simulationFinished);
-    disconnect(cpuPane, &CpuPane::stopSimulation, this, &MainWindow::stopSimulation);
-    disconnect(cpuPane, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
-    disconnect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
-
-    cpuPane->hide();
-    cpuPane = cpuPaneOneByteDataBus;
-    cpuPane->clearCpu();
-    cpuPane->clearCpuControlSignals();
-    cpuPane->show();
-
-    connect(cpuPane, &CpuPane::updateSimulation, this, &MainWindow::updateSimulation);
-    connect(cpuPane, &CpuPane::simulationFinished, this, &MainWindow::simulationFinished);
-    connect(cpuPane, &CpuPane::stopSimulation, this, &MainWindow::stopSimulation);
-    connect(cpuPane, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
-    connect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
-
-    ui->actionTwo_Byte_Data_Bus_Model->setText("Switch to Two-byte Data Bus");
-    ui->actionTwo_Byte_Data_Bus_Model->setEnabled(true);
-    ui->actionOne_Byte_Data_Bus_Model->setText("One-byte Data Bus");
-    ui->actionOne_Byte_Data_Bus_Model->setEnabled(false);
-
-    emit CPUFeaturesChanged(Enu::OneByteDataBus);
-
-}
-
-void MainWindow::on_actionTwo_Byte_Data_Bus_Model_triggered()
-{
-    //While the data section will eventually change due to this event,
-    //it needs to be changed synchronously in order to allow enum maps to work
-    dataSection->onCPUFeaturesChanged(Enu::TwoByteDataBus);
-    Pep::initMicroEnumMnemonMaps();
-
-    objectCodePane->clearSimulationView();
-    mainMemory->clearMemory();
-
-    disconnect(cpuPane, &CpuPane::updateSimulation, this, &MainWindow::updateSimulation);
-    disconnect(cpuPane, &CpuPane::simulationFinished, this, &MainWindow::simulationFinished);
-    disconnect(cpuPane, &CpuPane::stopSimulation, this, &MainWindow::stopSimulation);
-    disconnect(cpuPane, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
-    disconnect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
-
-    cpuPane->hide();
-    cpuPane = cpuPaneTwoByteDataBus;
-    cpuPane->clearCpu();
-    cpuPane->clearCpuControlSignals();
-    cpuPane->show();
-
-    connect(cpuPane, &CpuPane::updateSimulation, this, &MainWindow::updateSimulation);
-    connect(cpuPane, &CpuPane::simulationFinished, this, &MainWindow::simulationFinished);
-    connect(cpuPane, &CpuPane::stopSimulation, this, &MainWindow::stopSimulation);
-    connect(cpuPane, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
-    connect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
-
-    ui->actionTwo_Byte_Data_Bus_Model->setText("Two-byte Data Bus");
-    ui->actionTwo_Byte_Data_Bus_Model->setEnabled(false);
-    ui->actionOne_Byte_Data_Bus_Model->setText("Switch to One-byte Data Bus");
-    ui->actionOne_Byte_Data_Bus_Model->setEnabled(true);
-    emit CPUFeaturesChanged(Enu::TwoByteDataBus);
-
-}
-
 void MainWindow::on_actionDark_Mode_triggered()
 {
 
@@ -872,13 +795,6 @@ void MainWindow::appendMicrocodeLine(QString line)
 void MainWindow::helpCopyToMicrocodeButtonClicked()
 {
     if (maybeSave()) {
-        if (helpDialog->getExamplesModel() == Enu::OneByteDataBus) {
-            on_actionOne_Byte_Data_Bus_Model_triggered();
-        }
-        else if (helpDialog->getExamplesModel() == Enu::TwoByteDataBus) {
-            on_actionTwo_Byte_Data_Bus_Model_triggered();
-        }
-
         microcodePane->setMicrocode(helpDialog->getExampleText());
         microcodePane->microAssemble();
         objectCodePane->setObjectCode(microcodePane->getMicrocodeProgram(),nullptr);

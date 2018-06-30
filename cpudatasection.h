@@ -118,7 +118,6 @@ public slots:
     void onClock() noexcept;
     void onClearCPU()noexcept;
     void onClearMemory() noexcept;
-    void onCPUFeaturesChanged(Enu::CPUType newFeatures) throw(Enu::InvalidCPUMode);
 signals:
     void CPUFeaturesChanged(Enu::CPUType newFeatures); //Thrown whenever onCPUFeaturesChanged(...) is called
     void registerChanged(quint8 register,quint8 oldVal,quint8 newVal); //Thrown whenever a register in the register bank is changed.

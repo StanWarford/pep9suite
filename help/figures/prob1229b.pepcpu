@@ -1,9 +1,0 @@
-// File: prob1229b.pepcpu
-// Computer Systems, Fifth Edition
-// Problem 12.29(b)
-// MOVFLGA
-// RTL: A<8..11> <- 0, A<12..15> <- NZVC
-
-UnitPre: IR=0x040000, A=0xFFF3, N=1, Z=0, V=1, C=0
-UnitPost: A=0xFF0A
-

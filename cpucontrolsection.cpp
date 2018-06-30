@@ -170,11 +170,6 @@ void CPUControlSection::onClearMemory() noexcept
     data->onClearMemory();
 }
 
-void CPUControlSection::onCPUFeaturesChanged(Enu::CPUType cpuType) noexcept
-{
-    data->onCPUFeaturesChanged(cpuType);
-}
-
 CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr), data(data),microprogramCounter(0), microCycleCounter(0), macroCycleCounter(0),
     inSimulation(false), hadControlError(false), isPrefetchValid(false)
 {

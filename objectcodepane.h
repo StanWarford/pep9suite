@@ -60,7 +60,6 @@ signals:
     void beginSimulation();
     void endSimulation();
 public slots:
-    void onCPUFeatureChange();
     void onBeginSimulation();
     void onEndSimulation();
     void onDarkModeChanged(bool);

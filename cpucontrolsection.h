@@ -53,7 +53,6 @@ public slots:
     void onRun() noexcept;
     void onClearCPU() noexcept; //This event is propogated to the DataSection
     void onClearMemory() noexcept; //This event is propogated to the DataSection
-    void onCPUFeaturesChanged(Enu::CPUType) noexcept;
 signals:
     void simulationStarted();
     void simulationStepped();

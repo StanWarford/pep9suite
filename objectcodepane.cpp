@@ -199,15 +199,6 @@ void ObjectCodePane::assignHeaders()
     ui->codeTable->resizeColumnsToContents();
 }
 
-void ObjectCodePane::onCPUFeatureChange()
-{
-    clearSimulationView();
-    model->setRowCount(0);
-    //Clear the columns
-    model->setColumnCount(0);
-    assignHeaders();
-}
-
 void ObjectCodePane::onBeginSimulation()
 {
     emit beginSimulation();

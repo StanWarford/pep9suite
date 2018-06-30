@@ -131,8 +131,6 @@
     <addaction name="actionSystem_Clear_CPU"/>
     <addaction name="actionSystem_Clear_Memory"/>
     <addaction name="separator"/>
-    <addaction name="actionOne_Byte_Data_Bus_Model"/>
-    <addaction name="actionTwo_Byte_Data_Bus_Model"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
