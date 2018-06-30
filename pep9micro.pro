@@ -49,11 +49,11 @@ SOURCES += main.cpp \
     colors.cpp \
     cpudatasection.cpp \
     cpucontrolsection.cpp \
-    SymbolTable.cpp \
-    SymbolEntry.cpp \
-    SymbolValue.cpp \
     addrmodedialog.cpp \
-    addrmodewidget.cpp
+    addrmodewidget.cpp \
+    symbolentry.cpp \
+    symboltable.cpp \
+    symbolvalue.cpp
 HEADERS += mainwindow.h \
     byteconverterhex.h \
     byteconverterdec.h \
@@ -85,11 +85,11 @@ HEADERS += mainwindow.h \
     colors.h \
     cpudatasection.h \
     cpucontrolsection.h \
-    SymbolTable.h \
-    SymbolEntry.h \
-    SymbolValue.h \
     addrmodedialog.h \
-    addrmodewidget.h
+    addrmodewidget.h \
+    symbolentry.h \
+    symboltable.h \
+    symbolvalue.h
 FORMS += mainwindow.ui \
     byteconverterhex.ui \
     byteconverterdec.ui \

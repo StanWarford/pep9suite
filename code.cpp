@@ -23,7 +23,7 @@
 #include "cpugraphicsitems.h"
 #include "pep.h"
 #include "cpudatasection.h"
-#include "SymbolEntry.h"
+#include "symbolentry.h"
 #include <QMetaEnum>
 MicroCode::MicroCode():controlSignals(22),clockSignals(12),branchFunc(Enu::Assembler_Assigned),
     symbol(nullptr),trueTargetAddr(nullptr),falseTargetAddr(nullptr)

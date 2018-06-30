@@ -33,9 +33,9 @@
 #include <rotatedheaderview.h>
 #include "cpucontrolsection.h"
 #include "code.h"
-#include "SymbolTable.h"
-#include "SymbolEntry.h"
-#include "SymbolValue.h"
+#include "symboltable.h"
+#include "symbolentry.h"
+#include "symbolvalue.h"
 ObjectCodePane::ObjectCodePane(QWidget *parent) :
     QWidget(parent), rowCount(0),model(new QStandardItemModel()),inSimulation(false),
     ui(new Ui::ObjectCodePane)

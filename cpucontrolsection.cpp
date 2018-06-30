@@ -2,12 +2,12 @@
 #include "cpudatasection.h"
 #include "code.h"
 #include "microcodeprogram.h"
-#include "SymbolEntry.h"
+#include "symbolentry.h"
 #include "pep.h"
 #include <QDebug>
-#include "SymbolEntry.h"
-#include "SymbolTable.h"
-#include "SymbolTable.h"
+#include "symbolentry.h"
+#include "symboltable.h"
+#include "symboltable.h"
 CPUControlSection *CPUControlSection::_instance = nullptr;
 CPUTester *CPUTester::_instance = nullptr;
 
@@ -280,7 +280,6 @@ void CPUControlSection::branchHandler()
         }
         break;
     case Enu::IsPrefetchValid:
-        qDebug() <<"Someone is trying to branch off of pvalid";
         if(isPrefetchValid)
         {
             temp = prog->getTrueTarget()->getValue();
@@ -324,7 +323,7 @@ void CPUControlSection::branchHandler()
             }
             else
             {
-                executionFinished = true; //For now, the instruction jump table is unimplmented
+                executionFinished = true;
                 hadControlError = true;
                 errorMessage = "ERROR: AMD jumped to multiply defined instr - " + tempString;
             }
@@ -332,7 +331,7 @@ void CPUControlSection::branchHandler()
         }
         else
         {
-            executionFinished = true; //For now, the instruction jump table is unimplmented
+            executionFinished = true;
             hadControlError = true;
             errorMessage = "ERROR: AMD looked for undefined inst - " + tempString;
         }
@@ -350,7 +349,7 @@ void CPUControlSection::branchHandler()
             }
             else
             {
-                executionFinished = true; //For now, the instruction jump table is unimplmented
+                executionFinished = true;
                 hadControlError = true;
                 errorMessage = "ERROR: ISD jumped to multiply defined instr - " + tempString;
             }
@@ -358,7 +357,7 @@ void CPUControlSection::branchHandler()
         }
         else
         {
-            executionFinished = true; //For now, the instruction jump table is unimplmented
+            executionFinished = true;
             hadControlError = true;
             errorMessage = "ERROR: ISD looked for undefined inst - " + tempString;
         }

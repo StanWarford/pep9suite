@@ -1,7 +1,7 @@
 #include "microcodeprogram.h"
 #include "code.h"
-#include "SymbolEntry.h"
-#include "SymbolValue.h"
+#include "symbolentry.h"
+#include "symbolvalue.h"
 MicrocodeProgram::MicrocodeProgram(): programVec(),preconditionsVec(),postconditionsVec(),microcodeVec()
 {
 

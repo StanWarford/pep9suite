@@ -24,14 +24,14 @@
 #include "code.h"
 #include "pep.h"
 #include "microcodeprogram.h"
-#include "SymbolTable.h"
+#include "symboltable.h"
 #include <QGridLayout>
 #include <QDebug>
 #include <QFontDialog>
 #include "colors.h"
-#include "SymbolEntry.h"
-#include "SymbolValue.h"
-#include "SymbolTable.h"
+#include "symbolentry.h"
+#include "symbolvalue.h"
+#include "symboltable.h"
 MicrocodePane::MicrocodePane(QWidget *parent) :
         QWidget(parent),
         ui(new Ui::MicrocodePane),symbolTable(nullptr),program(nullptr)

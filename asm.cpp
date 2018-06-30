@@ -24,9 +24,9 @@
 #include "asm.h"
 #include "pep.h"
 #include "code.h"
-#include "SymbolTable.h"
-#include "SymbolValue.h"
-#include "SymbolEntry.h"
+#include "symboltable.h"
+#include "symbolvalue.h"
+#include "symbolentry.h"
 
 // Regular expressions for lexical analysis
 QRegExp Asm::rxComment("^//.*");
