@@ -1,13 +1,13 @@
 #include "symboltable.h"
 #include "symbolentry.h"
 //#include "AbstractSymbolValue.h"
-typedef qint32 SymbolID;
+typedef QAtomicInt SymbolID;
 typedef std::shared_ptr<SymbolEntry> SymbolEntryPtr;
 typedef std::shared_ptr<AbstractSymbolValue> AbstractSymbolValuePtr;
-SymbolID SymbolTable::_nextUserSymbolID = 0;
+SymbolID SymbolTable::nextUserSymbolID = 0;
 SymbolID SymbolTable::getNextUserSymbolID()
 {
-	QAtomicInt newSymbolID = ++_nextUserSymbolID;
+    QAtomicInt newSymbolID = ++nextUserSymbolID;
 	return newSymbolID;
 }
 
@@ -32,10 +32,7 @@ SymbolEntryPtr SymbolTable::getValue(const QString & symbolName) const
 
 SymbolEntryPtr SymbolTable::insertSymbol(const QString & symbolName)
 {
-	if (exists(symbolName))
-	{
-        //Handle multiple definitions
-	}
+    //Multiple definitions handled by assembler, not symbol table
 	SymbolID id = SymbolTable::getNextUserSymbolID();
 	_symbolLookup.insert(symbolName, id);
     auto val = _symbolDictionary.insert(id, std::make_shared<SymbolEntry>(id,symbolName));

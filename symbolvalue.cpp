@@ -45,6 +45,6 @@ qint32 SymbolValueLocation::getValue() const
 
 SymbolType SymbolValueLocation::getSymbolType() const
 {
-    return SymbolType::LOCATION;
+    return SymbolType::ADDRESS;
 }
 

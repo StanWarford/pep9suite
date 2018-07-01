@@ -2,14 +2,14 @@
 #include "symbolvalue.h"
 
 
-SymbolEntry::SymbolEntry(SymbolTable::SymbolID symbolID, QString name) :_symbolID(symbolID), _name(name),
-_value(std::make_shared<SymbolValueEmpty>()), _state(DefStates::UNDEFINED)
+SymbolEntry::SymbolEntry(SymbolTable::SymbolID symbolID, QString name) :symbolID(symbolID), name(name),
+symbolValue(std::make_shared<SymbolValueEmpty>()), definedState(DefStates::UNDEFINED)
 {
 }
 
 SymbolEntry::SymbolEntry(SymbolTable::SymbolID symbolID, QString name,
-                         SymbolTable::AbstractSymbolValuePtr value) : _symbolID(symbolID), _name(name),
-_value(nullptr)
+                         SymbolTable::AbstractSymbolValuePtr value) : symbolID(symbolID), name(name),
+symbolValue(nullptr)
 {
     setValue(value);
 }
@@ -21,57 +21,62 @@ SymbolEntry::~SymbolEntry()
 
 void SymbolEntry::setValue(SymbolTable::AbstractSymbolValuePtr value)
 {
-	_value = value;
+    //This function will not try to decide if a value is multiply defined based on if the value is already singlely defined.
+    //This is because the owning SymbolTable might need to update the value of a symbol (code re-alignment, code re-ordering),
+    //and so it doesn't make sense for the decision for this symbol to be multiply defined or not to be made here.
+	symbolValue = value;
+    //If given an empty value, then the symbol is undefined
     if (dynamic_cast<SymbolValueEmpty*>(value.get()))
 	{
-        _state = DefStates::UNDEFINED;
+        definedState = DefStates::UNDEFINED;
 	}
-    else if(_state == DefStates::MULTIPLE)
+    //If the symbol is multiply defined, it remains multiply defined
+    else if(definedState == DefStates::MULTIPLE)
     {
-        _state = DefStates::MULTIPLE;
+        definedState = DefStates::MULTIPLE;
     }
 	else
 	{
-        _state = DefStates::SINGLE;
+        definedState = DefStates::SINGLE;
 	}
 }
 
 QString SymbolEntry::getName() const
 {
-	return _name;
+	return name;
 }
 
 bool SymbolEntry::isDefined() const
 {
-    return _state == DefStates::SINGLE;
+    return definedState == DefStates::SINGLE;
 }
 
 bool SymbolEntry::isUndefined() const
 {
-    return _state == DefStates::UNDEFINED;
+    return definedState == DefStates::UNDEFINED;
 }
 
 bool SymbolEntry::isMultiplyDefined() const
 {
-	return _state == DefStates::MULTIPLE;
+	return definedState == DefStates::MULTIPLE;
 }
 
 void SymbolEntry::setMultiplyDefined()
 {
-    _state = DefStates::MULTIPLE;
+    definedState = DefStates::MULTIPLE;
 }
 
 SymbolTable::SymbolID SymbolEntry::getSymbolID() const
 {
-	return _symbolID;
+	return symbolID;
 }
 
 qint32 SymbolEntry::getValue() const
 {
-	return _value->getValue();
+	return symbolValue->getValue();
 }
 
 SymbolTable::AbstractSymbolValuePtr SymbolEntry::getRawValue()
 {
-	return _value;
+	return symbolValue;
 }
