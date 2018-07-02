@@ -1,5 +1,14 @@
-UnitPre: mem[0x0000]=0x60b0, mem[0x0002]=0x0b06
-UnitPre: mem[0x0004]=0xe100, mem[0x0006]=0x000a
+//Auto-generated from object code sources. This loads the user's program into memory
+UnitPre:  Mem[0x0000]=0x1200, Mem[0x0002]=0x5200, Mem[0x0004]=0x0018, Mem[0x0006]=0x0000, Mem[0x0008]=0x5800, Mem[0x000a]=0x04C0, Mem[0x000c]=0x0002, Mem[0x000e]=0xE300
+UnitPre:  Mem[0x0010]=0x02C3, Mem[0x0012]=0x0006, Mem[0x0014]=0x2400, Mem[0x0016]=0x6AEB, Mem[0x0018]=0x0000, Mem[0x001a]=0xC000, Mem[0x001c]=0x01E5, Mem[0x001e]=0x0000
+UnitPre:  Mem[0x0020]=0xE500, Mem[0x0022]=0x02CB, Mem[0x0024]=0x0002, Mem[0x0026]=0xAB00, Mem[0x0028]=0x061E, Mem[0x002a]=0x0044, Mem[0x002c]=0x0B78, Mem[0x002e]=0x0004
+UnitPre:  Mem[0x0030]=0x6700, Mem[0x0032]=0x0068, Mem[0x0034]=0x0004, Mem[0x0036]=0xE700, Mem[0x0038]=0x000D, Mem[0x003a]=0x6800, Mem[0x003c]=0x01EB, Mem[0x003e]=0x0002
+UnitPre:  Mem[0x0040]=0x1200, Mem[0x0042]=0x2626, Mem[0x0044]=0xE300, Mem[0x0046]=0x08CB, Mem[0x0048]=0x0000, Mem[0x004a]=0x2400, Mem[0x004c]=0x6850, Mem[0x004e]=0x0004
+UnitPre:  Mem[0x0050]=0x0100, Mem[0x0052]=0xC100, Mem[0x0054]=0x04E3, Mem[0x0056]=0xFFFC, Mem[0x0058]=0x5800, Mem[0x005a]=0x0424, Mem[0x005c]=0x0008, Mem[0x005e]=0x5000
+UnitPre:  Mem[0x0060]=0x04C3, Mem[0x0062]=0xFFFE, Mem[0x0064]=0xE100, Mem[0x0066]=0x0600, Mem[0x0068]=0x2601, Mem[0x006a]=0xC900, Mem[0x006c]=0x7461, Mem[0x006e]=0x0074
+UnitPre:  Mem[0x0070]=0xE100, Mem[0x0072]=0x7401, Mem[0x0074]=0x0076, Mem[0x0076]=0x0000
+//Auto-generated from Pep9 spec. This initializes registers properly
+UnitPre: SP=0xFB8F
 
 //* This file contains a complete implementation of the microcode needed to execute
 //* the Pep/9 instruction set. In order to test a working program,
@@ -12,47 +21,47 @@ UnitPre: mem[0x0004]=0xe100, mem[0x0006]=0x000a
 //*****************
 
 //First, decide if the program counter is even, and pick the appropriate fetch logic
-start: if ISPCE uvnc_even else uvnc_odd
+1. start: if ISPCE uvnc_even else uvnc_odd
 
 //*
 //* Even Instruction Specifier fetch w/ prefetch
 //*
-uvnc_even: A=6, B=7, MARMux=1; MARCk
+2. uvnc_even: A=6, B=7, MARMux=1; MARCk
 // Initiate fetch, PC <- PC plus 1.
-MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
-MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+3. MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+4. MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+5. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 // IR <- MDREven, T1 <- MDROdd, PrefetchValid <- true.
-EOMux=0, AMux=0, ALU=0, CMux=1, C=8; LoadCk
-EOMux=1, AMux=0, ALU=0, CMux=1, C=11, PVALID=1; LoadCk, PValidck; goto end_is_fetch
+6. EOMux=0, AMux=0, ALU=0, CMux=1, C=8; LoadCk
+7. EOMux=1, AMux=0, ALU=0, CMux=1, C=11, PVALID=1; LoadCk, PValidck; goto end_is_fetch
 
 
 //*
 //* Odd Instruction Specifier fetch
 //*
 //Determine if prefetch in T1 is valid.
-uvnc_odd: if ISPREFETCHVALID unvc_odd_v else unvc_odd_i
+8. uvnc_odd: if ISPREFETCHVALID unvc_odd_v else unvc_odd_i
 
 //Path taken when prefetch is valid. IR <- T1
-unvc_odd_v: A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk
+9. unvc_odd_v: A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk
 // PC <- PC plus 1.
-A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk; goto end_is_fetch
+10. A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+11. A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk; goto end_is_fetch
 
 //Path taken when prefetch is not valid. IR <- Mem[PC]<8..15>
 // Initiate fetch, PC <- PC + 1.
-unvc_odd_i: A=6, B=7, MARMux=1; MARCk
-MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
-MemRead, MDROMux=0; MDROCk
+12. unvc_odd_i: A=6, B=7, MARMux=1; MARCk
+13. MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+14. MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+15. MemRead, MDROMux=0; MDROCk
 //T1 <- MDROdd.
-EOMux=1, AMux=0, ALU=0, CMux=1, C=8; LoadCk; goto end_is_fetch
+16. EOMux=1, AMux=0, ALU=0, CMux=1, C=8; LoadCk; goto end_is_fetch
 
 
 //Instruction is fetched. Either prepare to execute unary instruction,
 // or fetch operand specifier for non-unary instructions
-end_is_fetch: if ISUNARY unary_dispatch else os_fetch
-unary_dispatch: A=5; ISD //Start the unary execution path via the instruction specifier decoder.
+17. end_is_fetch: if ISUNARY unary_dispatch else os_fetch
+18. unary_dispatch: A=5; ISD //Start the unary execution path via the instruction specifier decoder.
 //"A=5" is placeholder so that the assembler compiles this statement, since branches are currently not allowed
 //on a line by themselves
 
@@ -62,30 +71,30 @@ unary_dispatch: A=5; ISD //Start the unary execution path via the instruction sp
 //*
 
 //Branch if PC is even or odd
-os_fetch: if ISPCE os_even else os_odd
+19. os_fetch: if ISPCE os_even else os_odd
 
 //PC is even, so there is no prefetch to use. Go to Mem[PC]
-os_even: A=6, B=7, MARMux=1; MARCk
+20. os_even: A=6, B=7, MARMux=1; MARCk
 // Initiate fetch, PC <- PC plus 2.
-MemRead, A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
-MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+21. MemRead, A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+22. MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+23. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 // OS <- MDREven & MDROdd
-EOMux=0, AMux=0, ALU=0, CMux=1, C=9; LoadCk
-EOMux=1, AMux=0, ALU=0, CMux=1, C=10; LoadCk; AMD
+24. EOMux=0, AMux=0, ALU=0, CMux=1, C=9; LoadCk
+25. EOMux=1, AMux=0, ALU=0, CMux=1, C=10; LoadCk; AMD
 
 // PC <- PC plus 2.
-os_odd: A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+26. os_odd: A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+27. A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
 //Initiate fetch from Mem[PC].
-A=6, B=7, MARMux=1; MARCk
+28. A=6, B=7, MARMux=1; MARCk
 //OS<hi> <- T1.
-MemRead, A=11, AMux=1, ALU=0, CMux=1, C=9; LoadCk
-MemRead
-MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+29. MemRead, A=11, AMux=1, ALU=0, CMux=1, C=9; LoadCk
+30. MemRead
+31. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 // OS<lo> <- MDREven, T1 <- MDROdd, PrefetchValid <- true.
-EOMux=0, AMux=0, ALU=0, CMux=1, C=10; LoadCk
-EOMux=1, AMux=0, ALU=0, CMux=1, C=11, pvalid=1; PValidCk, LoadCk; AMD
+32. EOMux=0, AMux=0, ALU=0, CMux=1, C=10; LoadCk
+33. EOMux=1, AMux=0, ALU=0, CMux=1, C=11, pvalid=1; PValidCk, LoadCk; AMD
 
 
 //*****************
@@ -106,8 +115,8 @@ EOMux=1, AMux=0, ALU=0, CMux=1, C=11, pvalid=1; PValidCk, LoadCk; AMD
 //At the of the "nAddr" unit, T6 <- 0xBEEF & T5 <- 0xFE01.
 
 //Immediate Addressing. T6 <- OperSpec. T5 is ignored
-iAddr: A=9, AMux=1, ALU=0, CMux=1, C=20; LoadCk
-A=10, AMux=1, ALU=0, CMux=1, C=21; LoadCk; ISD
+34. iAddr: A=9, AMux=1, ALU=0, CMux=1, C=20; LoadCk
+35. A=10, AMux=1, ALU=0, CMux=1, C=21; LoadCk; ISD
 
 
 //*
@@ -116,60 +125,60 @@ A=10, AMux=1, ALU=0, CMux=1, C=21; LoadCk; ISD
 
 
 //Direct Addressing Mode. T6 <- Mem[OperSpec], T5 <- OperSpec
-dAddr:a=10, amux=1, alu=0, cmux=1, c=19; loadck
-a=9, amux=1, alu=0, cmux=1, c=18; loadck
+36. dAddr:a=10, amux=1, alu=0, cmux=1, c=19; loadck
+37. a=9, amux=1, alu=0, cmux=1, c=18; loadck
 //MAR <- OperSpec, initiate fetch
-A=9, B=10, MARMux=1; MARCk
+38. A=9, B=10, MARMux=1; MARCk
 //If OprSpec<lo> is odd,
-MemRead, A=10, AMux=1, ALU=13; SCk; if BRS d_odd else d_even
+39. MemRead, A=10, AMux=1, ALU=13; SCk; if BRS d_odd else d_even
 
-d_odd: MemRead, A=10, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
+40. d_odd: MemRead, A=10, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+41. MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
 
 //Shared between all "direct derivative" addressing modes.
 //Assumes T4 is address of next byte to fetch, and MDRO contrinas T6<hi>
-d_odd_shared: A=16, B=17, MARMux=1; MARCk
+42. d_odd_shared: A=16, B=17, MARMux=1; MARCk
 //T6<hi> <- MDRO
-MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, C=20; LoadCk
-MemRead
-MemRead, MDREMux=0; MDRECk
+43. MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, C=20; LoadCk
+44. MemRead
+45. MemRead, MDREMux=0; MDRECk
 //T6<lo> <- MDRE
-EOMux=0, AMux=0, ALU=0, CMux=1, C=21; LoadCk; ISD
+46. EOMux=0, AMux=0, ALU=0, CMux=1, C=21; LoadCk; ISD
 
 //Shared between all "direct derivative" addressing modes. Loads an entire aligned word from mem into T6
-d_even: MemRead
-MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+47. d_even: MemRead
+48. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 //T6 <- MDRE & MDRO
-EOMux=0, AMux=0, ALU=0, CMux=1, C=20; LoadCk
-EOMux=1, AMux=0, ALU=0, CMux=1, C=21; LoadCk; ISD
+49. EOMux=0, AMux=0, ALU=0, CMux=1, C=20; LoadCk
+50. EOMux=1, AMux=0, ALU=0, CMux=1, C=21; LoadCk; ISD
 
 
 
 //Stack Relative Addressing Mode. T6 <- Mem[OperSpec plus SP], T5 <- OperSpec plus SP.
-sAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
-A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
+51. sAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
+52. A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
 
 
 
 //indexed Addressing Mode. T6 <- Mem[OperSpec plus X], T5 <- OperSpec plus X.
-xAddr: A=10, B=3, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
-A=9, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
+53. xAddr: A=10, B=3, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
+54. A=9, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
 
 
 
 //Stack Indexed Addressing Mode. T6 <- Mem[OperSpec plus SP plus X], T5 <- OperSpec plus SP plus X.
-sxAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
-A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
-A=19, B=3, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
-A=18, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
+55. sxAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
+56. A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
+57. A=19, B=3, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
+58. A=18, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
 
 //S, X, SX addressing modes all behave like D once the addition is performed.
 //Determine if the memory address being fetched is even. If so goto d_even.
-sx_shared: A=18, B=19, MARMux=1; MARCk
-MemRead, A=19, AMux=1, ALU=13; SCk; if BRS sx_odd else d_even
+59. sx_shared: A=18, B=19, MARMux=1; MARCk
+60. MemRead, A=19, AMux=1, ALU=13; SCk; if BRS sx_odd else d_even
 //Else T4 <- T5 plus 1, MDRO <- Mem[T5]<lo> , goto d_odd_shared
-sx_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
+61. sx_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+62. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
 
 
 //*
@@ -178,51 +187,51 @@ MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MD
 
 //Indirect Addressing Mode. T6 <- Mem[Mem[OperSpec]], T5 <- Mem[OperSpec].
 //Initiate fetch Mem[OperSpec], branch if OperSpec is odd or even
-nAddr: A=9, B=10, MARMux=1; MARCk
-MemRead, A=10, AMux=1, ALU=13; SCk; if BRS n1_odd else n1_even
+63. nAddr: A=9, B=10, MARMux=1; MARCk
+64. MemRead, A=10, AMux=1, ALU=13; SCk; if BRS n1_odd else n1_even
 
 //Even path for first memread
-n1_even: MemRead
-MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+65. n1_even: MemRead
+66. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 //Determine if Mem[OperSpec] is even or odd
-MARMux=0, EOMux=1, AMux=0, ALU=13; SCk, MARCk
+67. MARMux=0, EOMux=1, AMux=0, ALU=13; SCk, MARCk
 //T5 <- Mem[OperSpec]
-eomux=0, amux=0, alu=0,cmux=1,c=18; loadck
-eomux=1, amux=0, alu=0,cmux=1,c=19; loadck
-MemRead; if BRS n2_odd else d_even
+68. eomux=0, amux=0, alu=0,cmux=1,c=18; loadck
+69. eomux=1, amux=0, alu=0,cmux=1,c=19; loadck
+70. MemRead; if BRS n2_odd else d_even
 
 //Odd path for first memread
 //Fetch Mem[OperSpec], T4 <- OperSpec plus 1,
-n1_odd: MemRead, A=10, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
+71. n1_odd: MemRead, A=10, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+72. MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
 //Fetch Mem[T4]
-n1_odd_shared: A=16, B=17, MARMux=1; MARCk
+73. n1_odd_shared: A=16, B=17, MARMux=1; MARCk
 //T5<hi> <- MDRO
-MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, C=18; LoadCk
-MemRead
-MemRead, MDREMux=0; MDRECk
+74. MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, C=18; LoadCk
+75. MemRead
+76. MemRead, MDREMux=0; MDRECk
 //T5<lo> <- MDRE
-EOMux=0, AMux=0, ALU=0, CMux=1, C=19; LoadCk
-A=18, B=19, MARMux=1; MARCk
+77. EOMux=0, AMux=0, ALU=0, CMux=1, C=19; LoadCk
+78. A=18, B=19, MARMux=1; MARCk
 //If T5<lo> is even, remaining fetch is identical to d_even.
-MemRead, A=19, AMux=1, ALU=13; SCk; if BRS n2_odd else d_even
+79. MemRead, A=19, AMux=1, ALU=13; SCk; if BRS n2_odd else d_even
 
 //Otherwise T4 <- T5 plus 1; goto d_odd_shared
-n2_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
+80. n2_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+81. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
 
 
 //Stack Deferred Addressing Mode. T6 <- Mem[Mem[OperSpec plus SP]], T5 <- Mem[OperSpec plus SP].
 //T4 <- OperSpec plus SP
-sfAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+82. sfAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+83. A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
 //Fetch Mem[T4]
-A=16, B=17, MARMux=1; MARCk
+84. A=16, B=17, MARMux=1; MARCk
 //If T4<lo> is even, remaining fetch is identical to n1_even.
-MemRead, A=17, AMux=1, ALU=13; SCk; if BRS sf_odd else n1_even
+85. MemRead, A=17, AMux=1, ALU=13; SCk; if BRS sf_odd else n1_even
 //Otherwise MDRO <- Mem[T4]<lo>; T4 <- T4 plus 1; goto n1_odd_shared
-sf_odd: MemRead, A=17, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto n1_odd_shared
+86. sf_odd: MemRead, A=17, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+87. MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto n1_odd_shared
 
 
 //*
@@ -232,41 +241,41 @@ MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MD
 
 
 //T4 <- OperSpec plus SP
-sfxAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+88. sfxAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+89. A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
 //Fetch Mem[T4]
-A=16, B=17, MARMux=1; MARCk
+90. A=16, B=17, MARMux=1; MARCk
 //Branch if T4<lo> is odd
-MemRead, A=17, AMux=1, ALU=13; SCk; if BRS sfx1_odd else sfx1_even
+91. MemRead, A=17, AMux=1, ALU=13; SCk; if BRS sfx1_odd else sfx1_even
 
 //Even path for first memread
-sfx1_even: MemRead
-MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+92. sfx1_even: MemRead
+93. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 //T5 <- MDRE plus X<hi> plus cin & MDRO plus X<lo>
-B=3, EOMux=1, AMux=0, ALU=1, CMux=1, C=19; SCk, LoadCk
-B=2, EOMux=0, AMux=0, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sfx1_shared
+94. B=3, EOMux=1, AMux=0, ALU=1, CMux=1, C=19; SCk, LoadCk
+95. B=2, EOMux=0, AMux=0, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sfx1_shared
 
 //Odd path for first memread
 //T4 <- T4 plus 1
-sfx1_odd: MemRead, A=17, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
+96. sfx1_odd: MemRead, A=17, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+97. MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
 //Fetch Mem[T4]
-A=16, B=17, MARMux=1; MARCk
-MemRead
-MemRead
-MemRead, MDREMux=0; MDRECk
+98. A=16, B=17, MARMux=1; MARCk
+99. MemRead
+100. MemRead
+101. MemRead, MDREMux=0; MDRECk
 //T5 <- MDRO plus X<hi> plus cin & MDRE plus X<lo>
-B=3, EOMux=0, AMux=0, ALU=1, CMux=1, C=19; SCk, LoadCk
-B=2, EOMux=1, AMux=0, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
+102. B=3, EOMux=0, AMux=0, ALU=1, CMux=1, C=19; SCk, LoadCk
+103. B=2, EOMux=1, AMux=0, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
 
 //Prepare for second memread
-sfx1_shared: A=18, B=19, MARMux=1; MARCk
+104. sfx1_shared: A=18, B=19, MARMux=1; MARCk
 //If T4<lo> is even, remaining fetch is identical to d_even.
-MemRead, A=19, AMux=1, ALU=13; SCk; if BRS sfx2_odd else d_even
+105. MemRead, A=19, AMux=1, ALU=13; SCk; if BRS sfx2_odd else d_even
 
 //Otherwise T4 <- T4 plus 1; goto d_odd_shared
-sfx2_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
+106. sfx2_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+107. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
 
 //*****************
 //
@@ -280,20 +289,20 @@ MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MD
 //*
 
 //Stop Execution
-stop: stop
+108. stop: stop
 
 // A <- SP
-movspa: A=5, AMux=1, ALU=0, CMux=1, C=1; LoadCk
-A=1, AMux=1, ALU=0, CMux=1, C=0; LoadCk; goto start
+109. movspa: A=5, AMux=1, ALU=0, CMux=1, C=1; LoadCk
+110. A=1, AMux=1, ALU=0, CMux=1, C=0; LoadCk; goto start
 
 // A<8-11> <- 0, A<12-15> <- NZVC
-movflga:CMux=0, C=1; LoadCk; goto start
+111. movflga:CMux=0, C=1; LoadCk; goto start
 
 // NZVC <- A<12-15>
-movaflg: A=1, AMux=1, ALU=15, AndZ=0; NCk, ZCk, VCk, CCk; goto start
+112. movaflg: A=1, AMux=1, ALU=15, AndZ=0; NCk, ZCk, VCk, CCk; goto start
 
 //Unary no operation
-nop0: A=5; goto start
+113. nop0: A=5; goto start
 
 
 //*
@@ -302,20 +311,20 @@ nop0: A=5; goto start
 
 
 //A <- ~A; N <- A<0, Z <- A=0
-nota: A=1, AMux=1, ALU=10, AndZ=0, CMux=1, C=1; ZCk, LoadCk
-A=0, AMux=1, ALU=10, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
+114. nota: A=1, AMux=1, ALU=10, AndZ=0, CMux=1, C=1; ZCk, LoadCk
+115. A=0, AMux=1, ALU=10, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
 
 //X <- ~X; N <- X<0, Z <- X=0
-notx: A=3, AMux=1, ALU=10, AndZ=0, CMux=1, C=3; ZCk, LoadCk
-A=2, AMux=1, ALU=10, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
+116. notx: A=3, AMux=1, ALU=10, AndZ=0, CMux=1, C=3; ZCk, LoadCk
+117. A=2, AMux=1, ALU=10, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
 
 //A <- -A; N <- A<0, Z <- A=0, V <- {Overflow}
-nega: A=1, B=23, AMux=1, ALU=3, AndZ=0, CMux=1, C=1; ZCk, SCk, LoadCk
-A=0, B=22, AMux=1, CSMux=1, ALU=4, AndZ=0, CMux=1, C=0; NCk, ZCk, VCk, LoadCk; goto start
+118. nega: A=1, B=23, AMux=1, ALU=3, AndZ=0, CMux=1, C=1; ZCk, SCk, LoadCk
+119. A=0, B=22, AMux=1, CSMux=1, ALU=4, AndZ=0, CMux=1, C=0; NCk, ZCk, VCk, LoadCk; goto start
 
 //X <- -X; N <- X<0, Z <- X=0, V <- {Overflow}
-negx: A=3, B=23, AMux=1, ALU=3, AndZ=0, CMux=1, C=3; ZCk, SCk, LoadCk
-A=2, B=22, AMux=1, CSMux=1, ALU=4, AndZ=0, CMux=1, C=2; NCk, ZCk, VCk, LoadCk; goto start
+120. negx: A=3, B=23, AMux=1, ALU=3, AndZ=0, CMux=1, C=3; ZCk, SCk, LoadCk
+121. A=2, B=22, AMux=1, CSMux=1, ALU=4, AndZ=0, CMux=1, C=2; NCk, ZCk, VCk, LoadCk; goto start
 
 //*
 //* Unary Shift & Rotate Instructions
@@ -323,53 +332,53 @@ A=2, B=22, AMux=1, CSMux=1, ALU=4, AndZ=0, CMux=1, C=2; NCk, ZCk, VCk, LoadCk; g
 
 
 //C <- A<0>, A<0..14> <- A<1..15>, A<15> <- 0; N <- A<0, Z <- A=0, V <- {Overflow}
-asla: A=1, AMux=1, ALU=11, AndZ=0, CMux=1, C=1; ZCk, SCk, LoadCk
-A=0, AMux=1, CSMux=1, ALU=12, AndZ=1, CMux=1, C=0; NCk, ZCk, VCk, CCk, LoadCk; goto start
+122. asla: A=1, AMux=1, ALU=11, AndZ=0, CMux=1, C=1; ZCk, SCk, LoadCk
+123. A=0, AMux=1, CSMux=1, ALU=12, AndZ=1, CMux=1, C=0; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
 //C <- X<0>, X<0..14> <- X<1..15>, X<15> <- 0; N <- X<0, Z <- X=0, V <- {Overflow}
-aslx: A=3, AMux=1, ALU=11, AndZ=0, CMux=1, C=3; ZCk, SCk, LoadCk
-A=2, AMux=1, CSMux=1, ALU=12, AndZ=1, CMux=1, C=2; NCk, ZCk, VCk, CCk, LoadCk; goto start
+124. aslx: A=3, AMux=1, ALU=11, AndZ=0, CMux=1, C=3; ZCk, SCk, LoadCk
+125. A=2, AMux=1, CSMux=1, ALU=12, AndZ=1, CMux=1, C=2; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
 //C <- A<15>, A<1..15> <- A<0..14>; N <- A<0, Z <- A=0
-asra: A=0, AMux=1, ALU=13, AndZ=0, CMux=1, C=0; NCk, ZCk, SCk, LoadCk
-A=1, AMux=1, CSMux=1, ALU=14, AndZ=1, CMux=1, C=1; ZCk, CCk, LoadCk; goto start
+126. asra: A=0, AMux=1, ALU=13, AndZ=0, CMux=1, C=0; NCk, ZCk, SCk, LoadCk
+127. A=1, AMux=1, CSMux=1, ALU=14, AndZ=1, CMux=1, C=1; ZCk, CCk, LoadCk; goto start
 
 //C <- X<15>, X<1..15> <- X<0..14>; N <- X<0, Z <- X=0
-asrx: A=2, AMux=1, ALU=13, AndZ=0, CMux=1, C=2; NCk, ZCk, SCk, LoadCk
-A=3, AMux=1, CSMux=1, ALU=14, AndZ=1, CMux=1, C=3; ZCk, CCk, LoadCk; goto start
+128. asrx: A=2, AMux=1, ALU=13, AndZ=0, CMux=1, C=2; NCk, ZCk, SCk, LoadCk
+129. A=3, AMux=1, CSMux=1, ALU=14, AndZ=1, CMux=1, C=3; ZCk, CCk, LoadCk; goto start
 
 //C <- A<0>, A<0..14> <- A<1..15>, A<15> <- C
-rola: A=1, AMux=1, CSMux=0, ALU=12, CMux=1, C=1; SCk, LoadCk
-A=0, AMux=1, CSMux=1, ALU=12, CMux=1, C=0; CCk, LoadCk; goto start
+130. rola: A=1, AMux=1, CSMux=0, ALU=12, CMux=1, C=1; SCk, LoadCk
+131. A=0, AMux=1, CSMux=1, ALU=12, CMux=1, C=0; CCk, LoadCk; goto start
 
 //C <- X<0>, X<0..14> <- X<1..15>, X<15> <- C
-rolx: A=3, AMux=1, CSMux=0, ALU=12, CMux=1, C=3; SCk, LoadCk
-A=2, AMux=1, CSMux=1, ALU=12, CMux=1, C=2; CCk, LoadCk; goto start
+132. rolx: A=3, AMux=1, CSMux=0, ALU=12, CMux=1, C=3; SCk, LoadCk
+133. A=2, AMux=1, CSMux=1, ALU=12, CMux=1, C=2; CCk, LoadCk; goto start
 
 //C <- A<15>, A<1..15> <- A<0..14>, A<0> <- C
-rora: A=0, AMux=1, CSMux=0, ALU=14, CMux=1, C=0; SCk, LoadCk
-A=1, AMux=1, CSMux=1, ALU=14, CMux=1, C=1; CCk, LoadCk; goto start
+134. rora: A=0, AMux=1, CSMux=0, ALU=14, CMux=1, C=0; SCk, LoadCk
+135. A=1, AMux=1, CSMux=1, ALU=14, CMux=1, C=1; CCk, LoadCk; goto start
 
 //C <- X<15>, X<1..15> <- X<0..14>, X<0> <- C
-rorx: A=2, AMux=1, CSMux=0, ALU=14, CMux=1, C=2; SCk, LoadCk
-A=3, AMux=1, CSMux=1, ALU=14, CMux=1, C=3; CCk, LoadCk; goto start
+136. rorx: A=2, AMux=1, CSMux=0, ALU=14, CMux=1, C=2; SCk, LoadCk
+137. A=3, AMux=1, CSMux=1, ALU=14, CMux=1, C=3; CCk, LoadCk; goto start
 
 //*
 //* Non-Unary Branch Instructions
 //*
 
 //PC <- T6
-br: A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
-A=20, AMux=1, ALU=0, CMux=1, C=6, PValid=0;PValidCk, LoadCk; goto start
+138. br: A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
+139. A=20, AMux=1, ALU=0, CMux=1, C=6, PValid=0;PValidCk, LoadCk; goto start
 
-brle: if BRLE br else start //N=1+Z=1 => (PC <- T6)
-brlt: if BRLT br else start //N=1 => (PC <- T6)
-breq: if BREQ br else start //N=1 => (PC <- T6)
-brne: if BRNE br else start //N=0 => (PC <- T6)
-brge: if BRGE br else start //N=0+Z=1 => (PC <- T6)
-brgt: if BRGT br else start //N=0 => (PC <- T6)
-brv: if BRV br else start //V=1 => (PC <- T6)
-brc: if BRC br else start //C=1 => (PC <- T6)
+140. brle: if BRLE br else start //N=1+Z=1 => (PC <- T6)
+141. brlt: if BRLT br else start //N=1 => (PC <- T6)
+142. breq: if BREQ br else start //N=1 => (PC <- T6)
+143. brne: if BRNE br else start //N=0 => (PC <- T6)
+144. brge: if BRGE br else start //N=0+Z=1 => (PC <- T6)
+145. brgt: if BRGT br else start //N=0 => (PC <- T6)
+146. brv: if BRV br else start //V=1 => (PC <- T6)
+147. brc: if BRC br else start //C=1 => (PC <- T6)
 
 
 //*
@@ -378,128 +387,128 @@ brc: if BRC br else start //C=1 => (PC <- T6)
 
 
 //SP <- SP plus T6
-addsp: A=5, B=21, AMux=1, ALU=1, AndZ=0, CMux=1, C=5; ZCk, SCk, LoadCk
-A=4, B=20, AMux=1, CSMux=1, ALU=2, AndZ=1, CMux=1, C=4; NCk, ZCk, VCk, CCk, LoadCk; goto start
+148. addsp: A=5, B=21, AMux=1, ALU=1, AndZ=0, CMux=1, C=5; ZCk, SCk, LoadCk
+149. A=4, B=20, AMux=1, CSMux=1, ALU=2, AndZ=1, CMux=1, C=4; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
 //SP <- SP minus T6
-subsp: A=5, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=5; ZCk, SCk, LoadCk
-A=4, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=4; NCk, ZCk, VCk, CCk, LoadCk; goto start
+150. subsp: A=5, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=5; ZCk, SCk, LoadCk
+151. A=4, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=4; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
 
 // A <- A plus T6; N <- A<0, Z <- A=0, V <- {Overflow}, C <- {Carry}
-adda: A=1, B=21, AMux=1, ALU=1, AndZ=0, CMux=1, C=1; ZCk, SCk, LoadCk
-A=0, B=20, AMux=1, CSMux=1, ALU=2, AndZ=1, CMux=1, C=0; NCk, ZCk, VCk, CCk, LoadCk; goto start
+152. adda: A=1, B=21, AMux=1, ALU=1, AndZ=0, CMux=1, C=1; ZCk, SCk, LoadCk
+153. A=0, B=20, AMux=1, CSMux=1, ALU=2, AndZ=1, CMux=1, C=0; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
 // X <- X plus T6; N <- A<0, Z <- A=0, V <- {Overflow}, C <- {Carry}
-addx: A=3, B=21, AMux=1, ALU=1, AndZ=0, CMux=1, C=3; ZCk, SCk, LoadCk
-A=2, B=20, AMux=1, CSMux=1, ALU=2, AndZ=1, CMux=1, C=2; NCk, ZCk, VCk, CCk, LoadCk; goto start
+154. addx: A=3, B=21, AMux=1, ALU=1, AndZ=0, CMux=1, C=3; ZCk, SCk, LoadCk
+155. A=2, B=20, AMux=1, CSMux=1, ALU=2, AndZ=1, CMux=1, C=2; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
 // A <- A minus T6; N <- A<0, Z <- A=0, V <- {Overflow}, C <- {Carry}
-suba: A=1, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=1; ZCk, SCk, LoadCk
-A=0, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=0; NCk, ZCk, VCk, CCk, LoadCk; goto start
+156. suba: A=1, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=1; ZCk, SCk, LoadCk
+157. A=0, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=0; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
 // X <- X minus T6; N <- A<0, Z <- A=0, V <- {Overflow}, C <- {Carry}
-subx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=3; ZCk, SCk, LoadCk
-A=2, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=2; NCk, ZCk, VCk, CCk, LoadCk; goto start
+158. subx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=3; ZCk, SCk, LoadCk
+159. A=2, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=2; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
 //*
 //* Non-Unary Logical Instructions
 //*
 
 //A <- A*T6; N <- A<0, Z <- A=0
-anda: A=1, B=21, AMux=1, ALU=5, AndZ=0, CMux=1, C=1; ZCk, LoadCk
-A=0, B=20, AMux=1, ALU=5, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
+160. anda: A=1, B=21, AMux=1, ALU=5, AndZ=0, CMux=1, C=1; ZCk, LoadCk
+161. A=0, B=20, AMux=1, ALU=5, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
 
 //X <- X*T6; X <- A<0, Z <- X=0
-andx: A=3, B=21, AMux=1, ALU=5, AndZ=0, CMux=1, C=3; ZCk, LoadCk
-A=2, B=20, AMux=1, ALU=5, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
+162. andx: A=3, B=21, AMux=1, ALU=5, AndZ=0, CMux=1, C=3; ZCk, LoadCk
+163. A=2, B=20, AMux=1, ALU=5, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
 
 //A <- A+T6; N <- A<0, Z <- A=0
-ora: A=1, B=21, AMux=1, ALU=7, AndZ=0, CMux=1, C=1; ZCk, LoadCk
-A=0, B=20, AMux=1, ALU=7, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
+164. ora: A=1, B=21, AMux=1, ALU=7, AndZ=0, CMux=1, C=1; ZCk, LoadCk
+165. A=0, B=20, AMux=1, ALU=7, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
 
 //A <- A+T6; N <- X<0, Z <- X=0
-orx: A=3, B=21, AMux=1, ALU=7, AndZ=0, CMux=1, C=3; ZCk, LoadCk
-A=2, B=20, AMux=1, ALU=7, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
+166. orx: A=3, B=21, AMux=1, ALU=7, AndZ=0, CMux=1, C=3; ZCk, LoadCk
+167. A=2, B=20, AMux=1, ALU=7, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
 
 //*
 //* Non-Unary Comparison Instructions
 //*
-cpwa: A=1, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; ZCk, SCk, LoadCk
-A=0, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=14; NCk, ZCk, VCk, CCk, LoadCk; goto start
+168. cpwa: A=1, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; ZCk, SCk, LoadCk
+169. A=0, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=14; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
-cpwx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; ZCk, SCk, LoadCk
-A=2, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=14; NCk, ZCk, VCk, CCk, LoadCk; goto start
+170. cpwx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; ZCk, SCk, LoadCk
+171. A=2, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=14; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
-cpba: A=1, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; NCk, ZCk, VCk, CCk, LoadCk; goto start
-cpbx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; NCk, ZCk, VCk, CCk, LoadCk; goto start
+172. cpba: A=1, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; NCk, ZCk, VCk, CCk, LoadCk; goto start
+173. cpbx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
 //*
 //* Load Instructions
 //*
-ldba: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto start
-ldbx: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto start
+174. ldba: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto start
+175. ldbx: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto start
 
-ldwa: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; ZCk, LoadCk
-A=20, AMux=1, ALU=0, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
+176. ldwa: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; ZCk, LoadCk
+177. A=20, AMux=1, ALU=0, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
 
-ldwx: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; ZCk, LoadCk
-A=20, AMux=1, ALU=0, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
+178. ldwx: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; ZCk, LoadCk
+179. A=20, AMux=1, ALU=0, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
 
 //*
 //* Store Instructions
 //*
 //Store Byte Accumulate
-stba: A=20, B=21, MARMux=1; MARCk
-MemRead, A=21, ALU=13; SCk; if BRS stba_o else stba_e
-stba_o: MemRead, A=1, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
-stba_e: MemRead, A=1, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
+180. stba: A=20, B=21, MARMux=1; MARCk
+181. MemRead, A=21, ALU=13; SCk; if BRS stba_o else stba_e
+182. stba_o: MemRead, A=1, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
+183. stba_e: MemRead, A=1, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
 
 
-sbtx: A=20, B=21, MARMux=1; MARCk
-MemRead, A=21, ALU=13; SCk; if BRS stbx_o else stbx_e
-stbx_o: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
-stbx_e: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
+184. sbtx: A=20, B=21, MARMux=1; MARCk
+185. MemRead, A=21, ALU=13; SCk; if BRS stbx_o else stbx_e
+186. stbx_o: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
+187. stbx_e: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
 
 //Shared store byte ode
-stbr_o: MemRead, MDREMux=0; MDRECk; goto mwrte
-stbr_e: MemRead, MDROMux=0; MDROCk
-mwrte: MemWrite
-MemWrite
-mwrte3: MemWrite; goto start
+188. stbr_o: MemRead, MDREMux=0; MDRECk; goto mwrte
+189. stbr_e: MemRead, MDROMux=0; MDROCk
+190. mwrte: MemWrite
+191. MemWrite
+192. mwrte3: MemWrite; goto start
 
 
 //Store word instructions
 //First thing, determine if taking even or odd path
-stwa: a=18, b=19, MARMUX=1; marck
-a=19,amux=1, alu=13; sck; if brs stwa_o else stwa_e
+193. stwa: a=18, b=19, MARMUX=1; marck
+194. a=19,amux=1, alu=13; sck; if brs stwa_o else stwa_e
 
-stwa_o: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
-MemRead, A=0, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
-MemWrite, A=1, amux=1, ALU=0, CMux=1, C=15; LoadCk; goto stwr_o
+195. stwa_o: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+196. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+197. MemRead, A=0, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
+198. MemWrite, A=1, amux=1, ALU=0, CMux=1, C=15; LoadCk; goto stwr_o
 
-stwa_e: MemWrite, A=1, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
-MemWrite, A=0, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto mwrte3
+199. stwa_e: MemWrite, A=1, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
+200. MemWrite, A=0, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto mwrte3
 
 
-stwx: a=18, b=19, MARMUX=1; marck
-a=19,amux=1, alu=13; sck; if brs stwx_o else stwx_e
+201. stwx: a=18, b=19, MARMUX=1; marck
+202. a=19,amux=1, alu=13; sck; if brs stwx_o else stwx_e
 
-stwx_o: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
-MemRead, A=2, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
-MemWrite, A=3,amux=1, ALU=0, CMux=1, C=15; LoadCk; goto stwr_o
+203. stwx_o: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+204. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+205. MemRead, A=2, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
+206. MemWrite, A=3,amux=1, ALU=0, CMux=1, C=15; LoadCk; goto stwr_o
 
-stwx_e: MemWrite, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
-MemWrite, A=2, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto mwrte3
+207. stwx_e: MemWrite, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
+208. MemWrite, A=2, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto mwrte3
 
-stwr_o: MemWrite
-MemWrite
-A=16, B=17, MARMux=1; MARCk
-MemRead, A=15, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
-MemRead
-MemRead, MDROMux=0; MDROCk; goto mwrte
+209. stwr_o: MemWrite
+210. MemWrite
+211. A=16, B=17, MARMux=1; MARCk
+212. MemRead, A=15, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
+213. MemRead
+214. MemRead, MDROMux=0; MDROCk; goto mwrte
 
 
 //*
@@ -508,56 +517,56 @@ MemRead, MDROMux=0; MDROCk; goto mwrte
 //First determine if SP is even
 //If even, then take the aligned path
 //Otherwise, take the unaligned path
-call:A=5, AMux=1, ALU=13; SCk; if BRS call_o else call_e
+215. call:A=5, AMux=1, ALU=13; SCk; if BRS call_o else call_e
 //Decr SP by 2
-call_e:a=5,b=24, c=5, AMUX=1, ALu=3, CMUX=1; loadCK, SCK
-a=4,b=22, c=4, AMUX=1, ALu=4, CSMUX=1, CMUX=1; loadCK
-A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
-MemWrite, A=7, AMux=1, ALU=0, CMUX=1, MDROMux=1; MDROCk
-MemWrite, A=6, AMux=1, ALU=0,CMUX=1, MDREMux=1; MDRECk
-MemWrite, A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
-A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk; goto start
+216. call_e:a=5,b=24, c=5, AMUX=1, ALu=3, CMUX=1; loadCK, SCK
+217. a=4,b=22, c=4, AMUX=1, ALu=4, CSMUX=1, CMUX=1; loadCK
+218. A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
+219. MemWrite, A=7, AMux=1, ALU=0, CMUX=1, MDROMux=1; MDROCk
+220. MemWrite, A=6, AMux=1, ALU=0,CMUX=1, MDREMux=1; MDRECk
+221. MemWrite, A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
+222. A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk; goto start
 
-call_o: A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
+223. call_o: A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
 //Decr SP by 2
-memread, a=5, b=24, c=5, AMUX=1, ALU=3, CMUX=1; loadck, sck
-memread, a=4, b=22, c=4, AMUX=1, ALU=4, CSMUX=1, CMUX=1; loadck
-memread, a=7, amux=1,alu=0,CMUX=1,MDREMux=1, MDROMUX=0; mdrock, mdreck
+224. memread, a=5, b=24, c=5, AMUX=1, ALU=3, CMUX=1; loadck, sck
+225. memread, a=4, b=22, c=4, AMUX=1, ALU=4, CSMUX=1, CMUX=1; loadck
+226. memread, a=7, amux=1,alu=0,CMUX=1,MDREMux=1, MDROMUX=0; mdrock, mdreck
 //Assign PC<hi> to T4<hi>, so that PC can be overriden earlier in the microcode
-memwrite, a=6, amux=1, alu=0, cmux=1, c=16; loadck
-memwrite, a=21, amux=1, alu=0, cmux=1, C=7; loadck
-memwrite, a=20, amux=1, alu=0, cmux=1, c=6; loadck
-A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
-memread
-memread
-memread, a=16, amux=1, alu=0, CMUX=1, MDREMUX=0,mdromux=1; mdreck, mdrock ;goto mwrte
+227. memwrite, a=6, amux=1, alu=0, cmux=1, c=16; loadck
+228. memwrite, a=21, amux=1, alu=0, cmux=1, C=7; loadck
+229. memwrite, a=20, amux=1, alu=0, cmux=1, c=6; loadck
+230. A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
+231. memread
+232. memread
+233. memread, a=16, amux=1, alu=0, CMUX=1, MDREMUX=0,mdromux=1; mdreck, mdrock ;goto mwrte
 
 
 //This one is really really bad if unaligned
-ret: A=4, B=5, MARMux=1, Pvalid=0;PvalidCk, MARCk
-A=5, AMux=1, ALU=13; SCk; if BRS ret_o else ret_e
-ret_o: memread, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
-memread, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; loadck
-memread, MDROMux=0; MDROCK
-A=4, B=5, MARMux=1; marck
-memread
-memread
-memread, EOMUX=1, AMUX=0, ALU=0, CMUX=1, C=6, MDReMUX=0; MDReCK, loadck
-EOMUX=0, AMUX=0, ALU=0, CMUX=1, C=7; loadck;  goto start
-ret_e: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
-MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; SCk
-MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
-EOMux=0, AMux=0, ALU=0, CMux=1, C=6; LoadCk
-EOMux=1, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start
+234. ret: A=4, B=5, MARMux=1, Pvalid=0;PvalidCk, MARCk
+235. A=5, AMux=1, ALU=13; SCk; if BRS ret_o else ret_e
+236. ret_o: memread, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
+237. memread, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; loadck
+238. memread, MDROMux=0; MDROCK
+239. A=4, B=5, MARMux=1; marck
+240. memread
+241. memread
+242. memread, EOMUX=1, AMUX=0, ALU=0, CMUX=1, C=6, MDReMUX=0; MDReCK, loadck
+243. EOMUX=0, AMUX=0, ALU=0, CMUX=1, C=7; loadck;  goto start
+244. ret_e: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
+245. MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; SCk
+246. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+247. EOMux=0, AMux=0, ALU=0, CMux=1, C=6; LoadCk
+248. EOMux=1, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start
 //TODO
-rettr: stop //Don't bother with traps for now
+249. rettr: stop //Don't bother with traps for now
 
 
 //trap instructions
-nop1: A=5; goto trap
-nop: A=5; goto trap
-deci: A=5; goto trap
-deco: A=5; goto trap
-hexo: A=5; goto trap
-stro: A=5
-trap: stop //Don't bother with traps for now
+250. nop1: A=5; goto trap
+251. nop: A=5; goto trap
+252. deci: A=5; goto trap
+253. deco: A=5; goto trap
+254. hexo: A=5; goto trap
+255. stro: A=5
+256. trap: stop //Don't bother with traps for now
