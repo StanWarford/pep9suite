@@ -7,6 +7,7 @@ namespace Ui {
 class IODialog;
 }
 
+class MemorySection;
 class IODialog : public QDialog
 {
     Q_OBJECT
@@ -14,6 +15,7 @@ class IODialog : public QDialog
 public:
     explicit IODialog(QWidget *parent = 0);
     ~IODialog();
+    void bindToMemorySection(MemorySection* memory);
 
 private:
     Ui::IODialog *ui;

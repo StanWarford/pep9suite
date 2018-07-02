@@ -73,7 +73,6 @@ public:
 
     void tab();
     // Post: a tab is inserted in the input pane if it is not read only
-
 public slots:
     void onFontChanged(QFont font);
 

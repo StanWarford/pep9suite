@@ -19,7 +19,7 @@
      <item row="0" column="0">
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="batchIOTab">
         <attribute name="title">
@@ -46,7 +46,7 @@
          <item row="0" column="0">
           <layout class="QGridLayout" name="gridLayout_3">
            <item row="0" column="0">
-            <widget class="TerminalPane" name="widget" native="true"/>
+            <widget class="TerminalPane" name="terminalIO" native="true"/>
            </item>
           </layout>
          </item>

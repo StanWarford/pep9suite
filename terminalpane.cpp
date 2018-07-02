@@ -117,8 +117,7 @@ bool TerminalPane::eventFilter(QObject *, QEvent *event)
             retString.append('\n');
             strokeString.append(retString);
             waiting = false;
-#pragma message("Fix input buffer")
-            //Sim::inputBuffer = retString;
+            emit inputReady(retString);
             retString = "";
             displayTerminal();
             emit inputReceived();

@@ -57,6 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
     auto x = QtConcurrent::run(updateChecker,&UpdateChecker::beginUpdateCheck);
     auto y = new IODialog(this);
     y->setVisible(true);
+    y->bindToMemorySection(memorySection);
+    memorySection->onOPortChanged(65261);
     //Connect Models to necessary components
 
     mainMemory = new MainMemory(ui->mainSplitter);

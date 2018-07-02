@@ -76,6 +76,7 @@ signals:
     void undoAvailable(bool);
     void redoAvailable(bool);
     void inputReceived();
+    void inputReady(const QString&);
 
 };
 
