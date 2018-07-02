@@ -743,7 +743,17 @@ void CpuPane::resumeButtonPushed()
 
     bool finished = controlSection->getExecutionFinished();
 
-    while (!finished) { // we set the flag to false when we're done with simulation, or have errors
+    controlSection->onRun();
+    if(controlSection->hadErrorOnStep())
+    {
+        QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
+        emit stopSimulation();
+        clearCpuControlSignals();
+        return; // we'll just return here instead of letting it fail and go to the bottom
+    }
+    finished = true;
+    scene->invalidate();
+    /*while (!finished) { // we set the flag to false when we're done with simulation, or have errors
         controlSection->onStep();
         if (controlSection->hadErrorOnStep()) {
             // simulation had issues.
@@ -759,7 +769,7 @@ void CpuPane::resumeButtonPushed()
         }
 
         scene->invalidate();
-    }
+    }*/
 
     emit simulationFinished();
     clearCpuControlSignals();

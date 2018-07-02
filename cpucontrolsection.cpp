@@ -9,6 +9,8 @@
 #include "symboltable.h"
 #include "symboltable.h"
 #include "memorysection.h"
+#include <QElapsedTimer>
+QElapsedTimer timer;
 CPUControlSection *CPUControlSection::_instance = nullptr;
 CPUTester *CPUTester::_instance = nullptr;
 CPUControlSection::CPUControlSection(CPUDataSection * data, MemorySection* memory): QObject(nullptr), data(data), memory(memory),
@@ -55,14 +57,15 @@ const MicroCode *CPUControlSection::getCurrentMicrocodeLine() const
 
 QString CPUControlSection::getErrorMessage() const
 {
-    if(data->hadErrorOnStep()) return data->getErrorMessage();
+    if(memory->hadError()) return memory->getErrorMessage();
+    else if(data->hadErrorOnStep()) return data->getErrorMessage();
     else if(hadErrorOnStep()) return errorMessage;
     else return "";
 }
 
 bool CPUControlSection::hadErrorOnStep() const
 {
-    return hadControlError || data->hadErrorOnStep();
+    return hadControlError || data->hadErrorOnStep() || memory->hadError();
 }
 
 bool CPUControlSection::getExecutionFinished() const
@@ -93,7 +96,6 @@ void CPUControlSection::onDebuggingFinished()
     onSimulationFinished();
 }
 
-
 void CPUControlSection::onStep() noexcept
 {
     //Do step logic
@@ -106,7 +108,7 @@ void CPUControlSection::onStep() noexcept
     if(microprogramCounter==0)
     {
         macroCycleCounter++;
-        qDebug()<<"m"<<macroCycleCounter<<" :u "<<microCycleCounter;
+        qDebug()<<"Insturction #"<<macroCycleCounter<<" ; Cyle # "<<microCycleCounter;
     }
 
 }
@@ -126,36 +128,21 @@ void CPUControlSection::onClock()noexcept
 
 void CPUControlSection::onRun()noexcept
 {
-    const MicroCode* prog = program->getCodeLine(microprogramCounter);
+    timer.start();
 #pragma message ("This needs to be ammended for errors in execution")
-    while(prog->getBranchFunction() != Enu::Stop)
+    while(!executionFinished)
     {
-        /*
-         * Handle address decoding of next instruction
-         */
-        if(prog == nullptr)
-        {
-            return;
-        }
-        //
         onStep();
-        //If there was a logical error on data operation
-        if(data->hadErrorOnStep())
-        {
-            //Pass up the error
-            qDebug() << "The data section died";
-            qDebug() << data->errorMessage;
-            break;
-        }
         //If there was an error on the control flow
-        else if(this->hadErrorOnStep())
+        if(this->hadErrorOnStep())
         {
             qDebug() << "The control section died";
             break;
         }
-        prog = program->getCodeLine(microprogramCounter);
 
     }
+    qDebug() <<"Execution time (ms): "<<timer.elapsed();
+    qDebug() <<"Hz rating: "<< microCycleCounter / (((float)timer.elapsed())/1000);
 }
 
 void CPUControlSection::onClearCPU()noexcept
@@ -291,7 +278,7 @@ void CPUControlSection::branchHandler()
         break;
     case Enu::IsUnary:
         byte = data->getRegisterBankByte(8);
-        if(byte < 18|| (byte == 38|| byte == 39))
+        if(Pep::isUnaryMap[Pep::decodeMnemonic[byte]])
         {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -399,7 +386,6 @@ void CPUControlSection::setSignalsFromMicrocode(const MicroCode *line)
         }
         else
         {
-            qDebug() <<"PValid dff was set to" << (bool) val;
             isPrefetchValid = val;
         }
     }
@@ -418,14 +404,11 @@ void CPUControlSection::initCPUStateFromPreconditions()
     {
         if(x->hasUnitPre())preCode.append((UnitPreCode*)x);
     }
+    //Handle data section logic
     for(auto x : preCode)
     {
         x->setUnitPre(data);
     }
-    //Handle any control section logic
-    //None at the moment
-    //Handle data section logic
-
 
 }
 
