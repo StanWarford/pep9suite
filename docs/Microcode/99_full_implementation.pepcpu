@@ -1,6 +1,10 @@
 UnitPre: mem[0x0000]=0x60b0, mem[0x0002]=0x0b06
 UnitPre: mem[0x0004]=0xe100, mem[0x0006]=0x000a
 
+//* This file contains a complete implementation of the microcode needed to execute
+//* the Pep/9 instruction set. In order to test a working program,
+//* Clone this file,
+
 //*****************
 //
 // Instruction Specifier & Operand Specifier Fetch
@@ -11,9 +15,9 @@ UnitPre: mem[0x0004]=0xe100, mem[0x0006]=0x000a
 start: if ISPCE uvnc_even else uvnc_odd
 
 //*
-// * Even Instruction Specifier fetch w/ prefetch
+//* Even Instruction Specifier fetch w/ prefetch
 //*
-uvnc_even: A=6, B=7, MARMux=1; MARCk 
+uvnc_even: A=6, B=7, MARMux=1; MARCk
 // Initiate fetch, PC <- PC plus 1.
 MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
 MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
@@ -25,7 +29,7 @@ EOMux=1, AMux=0, ALU=0, CMux=1, C=11, PVALID=1; LoadCk, PValidck; goto end_is_fe
 
 //*
 //* Odd Instruction Specifier fetch
- //*
+//*
 //Determine if prefetch in T1 is valid.
 uvnc_odd: if ISPREFETCHVALID unvc_odd_v else unvc_odd_i
 
@@ -56,7 +60,7 @@ unary_dispatch: A=5; ISD //Start the unary execution path via the instruction sp
 //*
 //* Operand Specifier Fetch
 //*
- 
+
 //Branch if PC is even or odd
 os_fetch: if ISPCE os_even else os_odd
 
@@ -111,7 +115,7 @@ A=10, AMux=1, ALU=0, CMux=1, C=21; LoadCk; ISD
 //*
 
 
-//Direct Addressing Mode. T6 <- Mem[OperSpec], T5 <- OperSpec 
+//Direct Addressing Mode. T6 <- Mem[OperSpec], T5 <- OperSpec
 dAddr:a=10, amux=1, alu=0, cmux=1, c=19; loadck
 a=9, amux=1, alu=0, cmux=1, c=18; loadck
 //MAR <- OperSpec, initiate fetch
@@ -141,19 +145,19 @@ EOMux=1, AMux=0, ALU=0, CMux=1, C=21; LoadCk; ISD
 
 
 
-//Stack Relative Addressing Mode. T6 <- Mem[OperSpec plus SP], T5 <- OperSpec plus SP. 
+//Stack Relative Addressing Mode. T6 <- Mem[OperSpec plus SP], T5 <- OperSpec plus SP.
 sAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
 A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
 
 
 
-//indexed Addressing Mode. T6 <- Mem[OperSpec plus X], T5 <- OperSpec plus X. 
+//indexed Addressing Mode. T6 <- Mem[OperSpec plus X], T5 <- OperSpec plus X.
 xAddr: A=10, B=3, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
 A=9, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
 
 
 
-//Stack Indexed Addressing Mode. T6 <- Mem[OperSpec plus SP plus X], T5 <- OperSpec plus SP plus X. 
+//Stack Indexed Addressing Mode. T6 <- Mem[OperSpec plus SP plus X], T5 <- OperSpec plus SP plus X.
 sxAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
 A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
 A=19, B=3, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
@@ -172,7 +176,7 @@ MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MD
 //* Indirect Addressing Mode & Derivatives (N & SF)
 //*
 
-//Indirect Addressing Mode. T6 <- Mem[Mem[OperSpec]], T5 <- Mem[OperSpec]. 
+//Indirect Addressing Mode. T6 <- Mem[Mem[OperSpec]], T5 <- Mem[OperSpec].
 //Initiate fetch Mem[OperSpec], branch if OperSpec is odd or even
 nAddr: A=9, B=10, MARMux=1; MARCk
 MemRead, A=10, AMux=1, ALU=13; SCk; if BRS n1_odd else n1_even
@@ -185,7 +189,7 @@ MARMux=0, EOMux=1, AMux=0, ALU=13; SCk, MARCk
 //T5 <- Mem[OperSpec]
 eomux=0, amux=0, alu=0,cmux=1,c=18; loadck
 eomux=1, amux=0, alu=0,cmux=1,c=19; loadck
-MemRead; if BRS n2_odd else d_even 
+MemRead; if BRS n2_odd else d_even
 
 //Odd path for first memread
 //Fetch Mem[OperSpec], T4 <- OperSpec plus 1,
@@ -200,7 +204,7 @@ MemRead, MDREMux=0; MDRECk
 //T5<lo> <- MDRE
 EOMux=0, AMux=0, ALU=0, CMux=1, C=19; LoadCk
 A=18, B=19, MARMux=1; MARCk
-//If T5<lo> is even, remaining fetch is identical to d_even. 
+//If T5<lo> is even, remaining fetch is identical to d_even.
 MemRead, A=19, AMux=1, ALU=13; SCk; if BRS n2_odd else d_even
 
 //Otherwise T4 <- T5 plus 1; goto d_odd_shared
@@ -208,7 +212,7 @@ n2_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
 MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
 
 
-//Stack Deferred Addressing Mode. T6 <- Mem[Mem[OperSpec plus SP]], T5 <- Mem[OperSpec plus SP]. 
+//Stack Deferred Addressing Mode. T6 <- Mem[Mem[OperSpec plus SP]], T5 <- Mem[OperSpec plus SP].
 //T4 <- OperSpec plus SP
 sfAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
 A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
@@ -222,7 +226,7 @@ MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MD
 
 
 //*
-//* Stack Deferred Indexed T6 <- Mem[Mem[OperSpec plus SP] plus X], T5 <- Mem[OperSpec plus SP] plus X. 
+//* Stack Deferred Indexed T6 <- Mem[Mem[OperSpec plus SP] plus X], T5 <- Mem[OperSpec plus SP] plus X.
 //*
 //Unfortunately, this code shares little with other addressing modes due to the multiple additions
 
@@ -510,7 +514,7 @@ call_e:a=5,b=24, c=5, AMUX=1, ALu=3, CMUX=1; loadCK, SCK
 a=4,b=22, c=4, AMUX=1, ALu=4, CSMUX=1, CMUX=1; loadCK
 A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
 MemWrite, A=7, AMux=1, ALU=0, CMUX=1, MDROMux=1; MDROCk
-MemWrite, A=6, AMux=1, ALU=0,CMUX=1, MDREMux=1; MDRECk 
+MemWrite, A=6, AMux=1, ALU=0,CMUX=1, MDREMux=1; MDRECk
 MemWrite, A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
 A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk; goto start
 
@@ -526,10 +530,7 @@ memwrite, a=20, amux=1, alu=0, cmux=1, c=6; loadck
 A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
 memread
 memread
-memread, a=16, amux=1, alu=0, CMUX=1, MDREMUX=0,mdromux=1; mdreck, mdrock //;goto mwrte
-memwrite
-memwrite,
-memwrite; goto start
+memread, a=16, amux=1, alu=0, CMUX=1, MDREMUX=0,mdromux=1; mdreck, mdrock ;goto mwrte
 
 
 //This one is really really bad if unaligned
@@ -542,7 +543,7 @@ A=4, B=5, MARMux=1; marck
 memread
 memread
 memread, EOMUX=1, AMUX=0, ALU=0, CMUX=1, C=6, MDReMUX=0; MDReCK, loadck
-EOMUX=0, AMUX=0, ALU=0, CMUX=1, C=7; loadck;  goto start 
+EOMUX=0, AMUX=0, ALU=0, CMUX=1, C=7; loadck;  goto start
 ret_e: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
 MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; SCk
 MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
@@ -560,6 +561,3 @@ deco: A=5; goto trap
 hexo: A=5; goto trap
 stro: A=5
 trap: stop //Don't bother with traps for now
-
-
-
