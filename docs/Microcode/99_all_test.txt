@@ -320,7 +320,7 @@ A=2, B=22, AMux=1, CSMux=1, ALU=4, AndZ=0, CMux=1, C=2; NCk, ZCk, VCk, LoadCk; g
 
 //C <- A<0>, A<0..14> <- A<1..15>, A<15> <- 0; N <- A<0, Z <- A=0, V <- {Overflow}
 asla: A=1, AMux=1, ALU=11, AndZ=0, CMux=1, C=1; ZCk, SCk, LoadCk
-A=0, AMux=1, CSMux=1, ALU=12, AndZ=1, CMux=1, C=0; NCk, ZCk, VCk, CCk, LoadCk; goto star
+A=0, AMux=1, CSMux=1, ALU=12, AndZ=1, CMux=1, C=0; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
 //C <- X<0>, X<0..14> <- X<1..15>, X<15> <- 0; N <- X<0, Z <- X=0, V <- {Overflow}
 aslx: A=3, AMux=1, ALU=11, AndZ=0, CMux=1, C=3; ZCk, SCk, LoadCk
@@ -504,41 +504,50 @@ MemRead, MDROMux=0; MDROCk; goto mwrte
 //First determine if SP is even
 //If even, then take the aligned path
 //Otherwise, take the unaligned path
-call: A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
-A=5, AMux=1, ALU=13; SCk; if BRS call_o else call_e
-call_o: MemRead, A=5, B=23, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
-MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
-MemRead, A=7, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
-MemWrite, A=6, ALU=0, CMux=1, C=17; LoadCk
-MemWrite, A=5, B=24, AMux=1, ALU=3, CMux=1, C=5; SCk, LoadCk
-MemWrite, A=4, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=4; LoadCk
-A=18, B=19, MARMux=1; MARCk
-MemRead, A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
-MemRead, A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk
-MemRead, A=17, AMux=1, ALU=0, CMux=1, MDREMux=1, MDROMux=0; MDRECk, MDROCk; goto mwrte
-call_e: MemWrite, A=7, AMux=1, ALU=0, MDROMux=1; MDROCk
-MemWrite, A=6, AMux=1, ALU=0, MDREMux=1; MDRECk
-MemWrite, A=5, B=24, AMux=1, ALU=3, CMux=1, C=5; SCk, LoadCk
-A=4, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=4; LoadCk
-A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
-A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk
+call:A=5, AMux=1, ALU=13; SCk; if BRS call_o else call_e
+//Decr SP by 2
+call_e:a=5,b=24, c=5, AMUX=1, ALu=3, CMUX=1; loadCK, SCK
+a=4,b=22, c=4, AMUX=1, ALu=4, CSMUX=1, CMUX=1; loadCK
+A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
+MemWrite, A=7, AMux=1, ALU=0, CMUX=1, MDROMux=1; MDROCk
+MemWrite, A=6, AMux=1, ALU=0,CMUX=1, MDREMux=1; MDRECk 
+MemWrite, A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
+A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk; goto start
+
+call_o: A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
+//Decr SP by 2
+memread, a=5, b=24, c=5, AMUX=1, ALU=3, CMUX=1; loadck, sck
+memread, a=4, b=22, c=4, AMUX=1, ALU=4, CSMUX=1, CMUX=1; loadck
+memread, a=7, amux=1,alu=0,CMUX=1,MDREMux=1, MDROMUX=0; mdrock, mdreck
+//Assign PC<hi> to T4<hi>, so that PC can be overriden earlier in the microcode
+memwrite, a=6, amux=1, alu=0, cmux=1, c=16; loadck
+memwrite, a=21, amux=1, alu=0, cmux=1, C=7; loadck
+memwrite, a=20, amux=1, alu=0, cmux=1, c=6; loadck
+A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
+memread
+memread
+memread, a=16, amux=1, alu=0, CMUX=1, MDREMUX=0,mdromux=1; mdreck, mdrock //;goto mwrte
+memwrite
+memwrite,
+memwrite; goto start
+
 
 //This one is really really bad if unaligned
 ret: A=4, B=5, MARMux=1, Pvalid=0;PvalidCk, MARCk
 A=5, AMux=1, ALU=13; SCk; if BRS ret_o else ret_e
-ret_o: MemRead, A=5, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
-MemRead, MDROMux=0; MDROCk
-A=16, B=17, MARMux=1; MARCk
-MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, C=6; LoadCk
-MemRead, A=17, B=23, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
-MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDREMux=0, C=4; LoadCk, MDRECk
-EOMux=0, AMux=0, ALU=0, CMux=1, C=6; LoadCk
-ret_e: MemRead, A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; SCk
+ret_o: memread, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
+memread, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; loadck
+memread, MDROMux=0; MDROCK
+A=4, B=5, MARMux=1; marck
+memread
+memread
+memread, EOMUX=1, AMUX=0, ALU=0, CMUX=1, C=6, MDReMUX=0; MDReCK, loadck
+EOMUX=0, AMUX=0, ALU=0, CMUX=1, C=7; loadck;  goto start 
+ret_e: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
+MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; SCk
 MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 EOMux=0, AMux=0, ALU=0, CMux=1, C=6; LoadCk
-EOMux=1, AMux=0, ALU=0, CMux=1, C=7; LoadCk
+EOMux=1, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start
 //TODO
 rettr: stop //Don't bother with traps for now
 
@@ -551,5 +560,6 @@ deco: A=5; goto trap
 hexo: A=5; goto trap
 stro: A=5
 trap: stop //Don't bother with traps for now
+
 
 
