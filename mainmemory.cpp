@@ -28,10 +28,10 @@
 #include "cpudatasection.h"
 #include "colors.h"
 #include <QDebug>
-
+#include "memorysection.h"
 MainMemory::MainMemory(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MainMemory),modifiedAddresses(),dataSection(CPUDataSection::getInstance()),
+    ui(new Ui::MainMemory),modifiedAddresses(),memorySection(MemorySection::getInstance()),
     darkMode(false),colors(&PepColors::lightMode)
 {
     ui->setupUi(this);
@@ -49,7 +49,7 @@ MainMemory::MainMemory(QWidget *parent) :
     ui->tableWidget->setVerticalHeaderLabels(rows);
 
     int address = 0x0000;
-    ui->tableWidget->setItem(0, 0, new QTableWidgetItem("0x" + QString("%1").arg(dataSection->getMemoryByte(address), 2, 16).toUpper().trimmed()));
+    ui->tableWidget->setItem(0, 0, new QTableWidgetItem("0x" + QString("%1").arg(memorySection->getMemoryByte(address), 2, 16).toUpper().trimmed()));
 
     refreshMemory();
 
@@ -59,7 +59,7 @@ MainMemory::MainMemory(QWidget *parent) :
     connect(ui->verticalScrollBar, &QAbstractSlider::actionTriggered, this, &MainMemory::sliderMoved);
     connect(ui->tableWidget, &QTableWidget::itemChanged, this, &MainMemory::cellDataChanged);
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &MainMemory::scrollToChanged);
-    connect(dataSection, &CPUDataSection::memoryChanged, this, &MainMemory::onMemoryValueChanged);
+    connect(memorySection, &MemorySection::memoryChanged, this, &MainMemory::onMemoryValueChanged);
     ui->scrollToLabel->setFont(QFont(ui->scrollToLabel->font().family(), ui->scrollToLabel->font().pointSize()));
     ui->lineEdit->setFont(QFont(ui->lineEdit->font().family(), ui->lineEdit->font().pointSize()));
 
@@ -103,7 +103,7 @@ void MainMemory::refreshMemory()
         address = ui->tableWidget->verticalHeaderItem(i)->text().toInt(&ok, 16);
         if (ok) {
             ui->tableWidget->item(i, 0)->setText("0x" +
-                                                 QString("%1").arg(dataSection->getMemoryByte(address), 2, 16, QLatin1Char('0')).toUpper());
+                                                 QString("%1").arg(memorySection->getMemoryByte(address), 2, 16, QLatin1Char('0')).toUpper());
         }
     }
 
@@ -241,7 +241,7 @@ void MainMemory::cellDataChanged(QTableWidgetItem *item)
 {
     // disconnect this signal so that modifying the text of the column next to it doesn't fire this signal; reconnect at the end
     disconnect(ui->tableWidget, &QTableWidget::itemChanged, this, &MainMemory::cellDataChanged);
-    disconnect(dataSection, &CPUDataSection::memoryChanged, this, &MainMemory::onMemoryValueChanged);
+    disconnect(memorySection, &MemorySection::memoryChanged, this, &MainMemory::onMemoryValueChanged);
 
     int row = item->row();
     QString contents = item->text();
@@ -256,13 +256,13 @@ void MainMemory::cellDataChanged(QTableWidgetItem *item)
     data = data % 256;
 
     if (contents.contains(rx) && dataOk && addrConvOk) {
-        dataSection->onSetMemoryByte(address,(quint8)data);
+        memorySection->onSetMemoryByte(address,(quint8)data);
         qDebug() << "Sim::Mem[" << address << "]: " << data;
         ui->tableWidget->item(row, 0)->setText("0x" + QString("%1").arg(data, 2, 16, QLatin1Char('0')).toUpper().trimmed());
     }
     else if (addrConvOk && !dataOk) {
         qDebug() << "Conversion from text to int failed. data = " << item->text();
-        data = dataSection->getMemoryByte(address);
+        data = memorySection->getMemoryByte(address);
         ui->tableWidget->item(row, 0)->setText("0x" + QString("%1").arg(data, 2, 16, QLatin1Char('0')).toUpper().trimmed());
     }
     else if (addrConvOk) { // we have problems, the labels are incorrectly formatted
@@ -270,7 +270,7 @@ void MainMemory::cellDataChanged(QTableWidgetItem *item)
     }
 
     connect(ui->tableWidget, &QTableWidget::itemChanged, this, &MainMemory::cellDataChanged,Qt::UniqueConnection);
-    connect(dataSection, &CPUDataSection::memoryChanged, this, &MainMemory::onMemoryValueChanged);
+    connect(memorySection, &MemorySection::memoryChanged, this, &MainMemory::onMemoryValueChanged);
 }
 
 void MainMemory::scrollToChanged(QString string)
@@ -339,7 +339,7 @@ void MainMemory::resizeEvent(QResizeEvent *)
         for (int row = oldRowCount; row < newRowCount; row++) {
             address = ui->tableWidget->verticalHeaderItem(row)->text().toInt(&addrConvOk, 16);
             if (addrConvOk) {
-                ui->tableWidget->setItem(row, 0, new QTableWidgetItem("0x" + QString("%1").arg(dataSection->getMemoryByte(address), 2, 16).toUpper().trimmed()));
+                ui->tableWidget->setItem(row, 0, new QTableWidgetItem("0x" + QString("%1").arg(memorySection->getMemoryByte(address), 2, 16).toUpper().trimmed()));
                 //ui->tableWidget->itemAt(row, 0)->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
             }
             else { // malformed address labels

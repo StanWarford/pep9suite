@@ -30,7 +30,7 @@ namespace Ui {
 namespace PepColors {
     struct Colors;
 }
-class CPUDataSection;
+class MemorySection;
 
 class MainMemory : public QWidget {
     Q_OBJECT
@@ -97,7 +97,7 @@ private:
     int	highlightedIndex;
     int	currentMemoryOffset;
     char mem[0x10000];
-    CPUDataSection* dataSection;
+    MemorySection* memorySection;
     enum { CELL_COUNT = 30};
 
     int oldRowCount;

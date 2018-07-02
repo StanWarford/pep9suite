@@ -23,6 +23,7 @@
 #include "cpucontrolsection.h"
 #include <QDebug>
 #include "cpudatasection.h"
+#include "memorysection.h"
 Specification::Specification()
 {
 }
@@ -35,23 +36,25 @@ MemSpecification::MemSpecification(int memoryAddress, int memoryValue, int numbe
 
 void MemSpecification::setUnitPre(CPUDataSection *data)
 {
-    if(numBytes==1) data->onSetMemoryByte(memAddress,(quint8)memValue);
-    else data->onSetMemoryWord(memAddress,(quint16)memValue);
+    MemorySection* memory = data->getMemorySection();
+    if(numBytes==1) memory->onSetMemoryByte(memAddress,(quint8)memValue);
+    else memory->onSetMemoryWord(memAddress,(quint16)memValue);
 }
 
 bool MemSpecification::testUnitPost(CPUDataSection *data, QString &errorString)
 {
+    MemorySection* memory = data->getMemorySection();
     bool retVal;
     if(numBytes==1)
     {
-        retVal=data->getMemoryByte(memAddress)==(quint8)memValue;
+        retVal=memory->getMemoryByte(memAddress)==(quint8)memValue;
         if(!retVal)errorString= "// ERROR: Unit test failed for byte Mem[0x"+
                 QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper() + "].";
     }
     else
     {
         //Test each individual byte, to avoid memory alignment issues
-        retVal=data->getMemoryByte(memAddress)==memValue/256&&data->getMemoryByte(memAddress+1)==memValue%256;
+        retVal=memory->getMemoryByte(memAddress)==memValue/256&&memory->getMemoryByte(memAddress+1)==memValue%256;
         if(!retVal)errorString= "// ERROR: Unit test failed for byte Mem[0x"+
                 QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper() + "].";
     }

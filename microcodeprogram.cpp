@@ -60,10 +60,6 @@ MicrocodeProgram::MicrocodeProgram(QVector<Code*>objectCode,SymbolTable* symbolT
             line->setFalseTarget(((MicroCode*)programVec[microcodeVec[it]])->getSymbol());
         }
     }
-    for(auto a : symTable->getSymbolEntries())
-    {
-        qDebug()<<a->getName()<<","<<a->getValue();
-    }
 }
 
 const SymbolTable *MicrocodeProgram::getSymTable() const

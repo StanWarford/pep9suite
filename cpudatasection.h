@@ -9,7 +9,7 @@
 #include "enu.h"
 #include "code.h"
 #include "microcodeprogram.h"
-
+class MemorySection;
 class CPUDataSection: public QObject
 {
     Q_OBJECT
@@ -30,11 +30,6 @@ public:
     bool valueOnBBus(quint8& result) const;
     bool valueOnCBus(quint8& result) const;
     Enu::MainBusState getMainBusState() const;
-
-    //Fetch Values from Memory
-    quint8 getMemoryByte(quint16 address) const;
-    quint16 getMemoryWord(quint16 address) const; //Uses the same even / odd conventions as Pep9
-    const QVector<quint8> getMemory() const; //Returns a shared copy of the memory vector
 
     //Test for Signals and Registers
     quint8 getControlSignals(Enu::EControlSignals controlSignal) const;
@@ -64,6 +59,8 @@ public:
     //Return if the ALU has an ouput, and set result & NZVC bits according to the ALU function
     bool calculateALUOutput(quint8& result,quint8 &NZVC) const;
 
+    MemorySection* getMemorySection();
+    const MemorySection* getMemorySection() const;
 private:
     CPUDataSection(QObject* parent=0);
     static CPUDataSection* _instance;
@@ -73,7 +70,6 @@ private:
     //Data registers
     QVector<quint8> registerBank;
     QVector<quint8> memoryRegisters;
-    QVector<quint8> memory;
     quint8 NZVCSbits;
 
     //Control Signals
@@ -84,14 +80,14 @@ private:
     bool hadDataError=false;
     QString errorMessage="";
 
+    MemorySection* memory;
+
     //Set the values values of the sequential data registers (numbers 22-31)
     void presetStaticRegisters() noexcept;
 
     //Set CPU state and emit appropriate change event
     inline void setMemoryRegister(Enu::EMemoryRegisters,quint8 value);
     inline void setRegisterByte(quint8 register,quint8 value);
-    inline void setMemoryByte(quint16 address, quint8 value);
-    inline void setMemoryWord(quint16 address, quint16 value);
     inline void setStatusBit(Enu::EStatusBit,bool val);
 
     //Simulation stepping logic
@@ -103,12 +99,9 @@ private:
     void clearControlSignals() noexcept;
     void clearClockSignals() noexcept;
     void clearRegisters() noexcept;
-    void clearMemory() noexcept;
     void clearErrors() noexcept;
 public slots:
     void onSetStatusBit(Enu::EStatusBit,bool val);
-    void onSetMemoryByte(quint16 address,quint8 val);
-    void onSetMemoryWord(quint16 address,quint16 val); //This doesn't enforce aligned memory access
     void onSetRegisterByte(quint8 reg,quint8 val);
     void onSetRegisterWord(quint8 reg,quint16 val);
     void onSetMemoryRegister(Enu::EMemoryRegisters,quint8 val);
@@ -117,14 +110,12 @@ public slots:
     void onStep() noexcept;
     void onClock() noexcept;
     void onClearCPU()noexcept;
-    void onClearMemory() noexcept;
 signals:
     void CPUFeaturesChanged(Enu::CPUType newFeatures); //Thrown whenever onCPUFeaturesChanged(...) is called
     void registerChanged(quint8 register,quint8 oldVal,quint8 newVal); //Thrown whenever a register in the register bank is changed.
     void memoryRegisterChanged(Enu::EMemoryRegisters,quint8 oldVal,quint8 newVal); //Thrown whenever a memory register is changed.
     void statusBitChanged(Enu::EStatusBit status,bool value);
     void controlClockChanged(); //Thrown whenever a control line or clock line is changed
-    void memoryChanged(quint16 address,quint8 oldVal, quint8 newVal); //Thrown whenever a memory address is changed
 
 };
 

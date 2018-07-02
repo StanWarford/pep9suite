@@ -8,15 +8,21 @@
 #include "symbolentry.h"
 #include "symboltable.h"
 #include "symboltable.h"
+#include "memorysection.h"
 CPUControlSection *CPUControlSection::_instance = nullptr;
 CPUTester *CPUTester::_instance = nullptr;
+CPUControlSection::CPUControlSection(CPUDataSection * data, MemorySection* memory): QObject(nullptr), data(data), memory(memory),
+    microprogramCounter(0), microCycleCounter(0), macroCycleCounter(0),
+    inSimulation(false), hadControlError(false), isPrefetchValid(false)
+{
 
+}
 
 CPUControlSection *CPUControlSection::getInstance()
 {
     if(_instance == nullptr)
     {
-        _instance = new CPUControlSection(CPUDataSection::getInstance());
+        _instance = new CPUControlSection(CPUDataSection::getInstance(),MemorySection::getInstance());
     }
     return _instance;
 }
@@ -167,13 +173,7 @@ void CPUControlSection::onClearCPU()noexcept
 
 void CPUControlSection::onClearMemory() noexcept
 {
-    data->onClearMemory();
-}
-
-CPUControlSection::CPUControlSection(CPUDataSection * data): QObject(nullptr), data(data),microprogramCounter(0), microCycleCounter(0), macroCycleCounter(0),
-    inSimulation(false), hadControlError(false), isPrefetchValid(false)
-{
-
+    memory->onClearMemory();
 }
 
 void CPUControlSection::branchHandler()

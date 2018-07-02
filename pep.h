@@ -35,6 +35,7 @@ public:
     static const int codeFontSize;
     static const int codeFontSizeSmall;
     static const int codeFontSizeLarge;
+    static const int ioFontSize;
     static const QString labelFont;
     static const int labelFontSize;
     static const int labelFontSizeSmall;

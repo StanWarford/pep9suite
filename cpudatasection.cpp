@@ -1,7 +1,10 @@
 #include "cpudatasection.h"
+#include "memorysection.h"
+
 CPUDataSection* CPUDataSection::_instance = nullptr;
-CPUDataSection::CPUDataSection(QObject *parent): QObject(parent),cpuFeatures(Enu::TwoByteDataBus),mainBusState(Enu::None),
-    registerBank(32),memoryRegisters(6),memory(0XFFFF+1),controlSignals(20),clockSignals(10),hadDataError(false),errorMessage("")
+CPUDataSection::CPUDataSection(QObject *parent): QObject(parent), memory(MemorySection::getInstance()),
+    cpuFeatures(Enu::TwoByteDataBus), mainBusState(Enu::None),
+    registerBank(32), memoryRegisters(6), controlSignals(20), clockSignals(10), hadDataError(false), errorMessage("")
 {
     presetStaticRegisters();
 }
@@ -156,6 +159,16 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
 
 }
 
+MemorySection *CPUDataSection::getMemorySection()
+{
+    return memory;
+}
+
+const MemorySection *CPUDataSection::getMemorySection() const
+{
+    return memory;
+}
+
 void CPUDataSection::setMemoryRegister(Enu::EMemoryRegisters reg, quint8 value)
 {
     //Cache old memory value, so it be emitted with signal
@@ -247,11 +260,6 @@ Enu::MainBusState CPUDataSection::getMainBusState() const
     return mainBusState;
 }
 
-quint8 CPUDataSection::getMemoryByte(quint16 address) const
-{
-    return memory[address];
-}
-
 bool CPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
 {
     switch(statusBit)
@@ -298,24 +306,6 @@ void CPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
         break;
     }
     if(oldVal != val) emit statusBitChanged(statusBit,val);
-}
-
-void CPUDataSection::onSetMemoryByte(quint16 address, quint8 val)
-{
-    quint8 old = memory[address];
-    memory[address]=val;
-    if(old != val) emit memoryChanged(address,old,val);
-}
-
-void CPUDataSection::onSetMemoryWord(quint16 address, quint16 val)
-{
-    //Do not enforce aligned memory access here, as precondition code in homeworks depends on access being unaligned.
-    quint8 old1 = memory[address];
-    quint8 old2= memory[address+1];
-    memory[address]=val/256;
-    memory[address+1]=val%256;
-    if(old1 != val/256) emit memoryChanged(address,old1,val/256);
-    if(old2 != val%256) emit memoryChanged(address+1,old2,val%256);
 }
 
 void CPUDataSection::onSetRegisterByte(quint8 reg, quint8 val)
@@ -400,24 +390,6 @@ void CPUDataSection::setRegisterByte(quint8 reg, quint8 value)
     if(old==value) return; //Don't continue if the new value is the old value
     onSetRegisterByte(reg,value);
     emit registerChanged(reg,old,value);
-}
-
-void CPUDataSection::setMemoryByte(quint16 address, quint8 value)
-{
-    quint8 old= memory[address];
-    if(old == value)return; //Don't continue if the new value is the old value
-    onSetMemoryByte(address,value);
-    emit memoryChanged(address,old,value);
-}
-
-void CPUDataSection::setMemoryWord(quint16 address, quint16 value)
-{
-    address&=0xFFFE; //Memory access ignores the lowest order bit
-    quint8 hi=memory[address],lo=memory[address+1]; //Cache old memory values
-    if((((quint16)hi<<8)|lo)==value)return; //Don't continue if the new value is the old value
-    onSetMemoryWord(address,value);
-    emit memoryChanged(address,hi,value/256); //Signal that two bytes of memory changed
-    emit memoryChanged(address+1,lo,value%256);
 }
 
 void CPUDataSection::setStatusBit(Enu::EStatusBit statusBit, bool val)
@@ -507,7 +479,7 @@ void CPUDataSection::stepTwoByte() noexcept
     {
         quint16 address = (memoryRegisters[Enu::MEM_MARA]<<8)+memoryRegisters[Enu::MEM_MARB];
         address&=0xFFFE; //Memory access ignores lowest order bit
-        setMemoryWord(address,memoryRegisters[Enu::MEM_MDRE]*256+memoryRegisters[Enu::MEM_MDRO]);
+        memory->setMemoryWord(address,memoryRegisters[Enu::MEM_MDRE]*256+memoryRegisters[Enu::MEM_MDRO]);
     }
 
     //MARCk
@@ -563,7 +535,7 @@ void CPUDataSection::stepTwoByte() noexcept
                 errorMessage = "No value from data bus to write to MDRE";
                 return;
             }
-            else setMemoryRegister(Enu::MEM_MDRE,getMemoryByte(address));
+            else setMemoryRegister(Enu::MEM_MDRE,memory->getMemoryByte(address));
             break;
         }
         case 1: //Pick C Bus;
@@ -600,7 +572,7 @@ void CPUDataSection::stepTwoByte() noexcept
                 errorMessage = "No value from data bus to write to MDRO";
                 return;
             }
-            else setMemoryRegister(Enu::MEM_MDRO,getMemoryByte(address));
+            else setMemoryRegister(Enu::MEM_MDRO,memory->getMemoryByte(address));
             break;
         }
         case 1: //Pick C Bus;
@@ -715,15 +687,6 @@ void CPUDataSection::clearRegisters() noexcept
     }
 }
 
-void CPUDataSection::clearMemory() noexcept
-{
-    //Set all memory values to 0
-    for(int it=0;it<memory.length();it++)
-    {
-        memory[it]=0;
-    }
-}
-
 void CPUDataSection::clearErrors() noexcept
 {
     hadDataError=false;
@@ -755,12 +718,4 @@ void CPUDataSection::onClearCPU() noexcept
     clearRegisters();
     clearClockSignals();
     clearControlSignals();
-    clearMemory();
 }
-
-void CPUDataSection::onClearMemory() noexcept
-{
-    //On memory reset, only clear RAM
-    clearMemory();
-}
-

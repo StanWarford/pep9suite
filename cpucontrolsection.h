@@ -28,6 +28,7 @@ THEN
 class MicroCode;
 class MicrocodeProgram;
 class CPUDataSection;
+class MemorySection;
 class CPUControlSection: public QObject
 {
     Q_OBJECT
@@ -52,19 +53,22 @@ public slots:
     void onClock() noexcept;
     void onRun() noexcept;
     void onClearCPU() noexcept; //This event is propogated to the DataSection
-    void onClearMemory() noexcept; //This event is propogated to the DataSection
+    void onClearMemory() noexcept; //This event is propogated to the MemorySection
 signals:
     void simulationStarted();
     void simulationStepped();
     void simulationFinished();
 private:
+    CPUControlSection(CPUDataSection* dataSection, MemorySection* memory);
     static CPUControlSection *_instance;
+
     CPUDataSection* data;
+    MemorySection* memory;
     MicrocodeProgram* program;
     int microprogramCounter,microCycleCounter,macroCycleCounter;
     bool inSimulation,hadControlError,executionFinished,isPrefetchValid;
     QString errorMessage;
-    CPUControlSection(CPUDataSection* dataSection);
+
     void branchHandler(); //Based on the current instruction, set the MPC correctly
     void setSignalsFromMicrocode(const MicroCode *line); //Set signals for the control section based on the microcode program
 };

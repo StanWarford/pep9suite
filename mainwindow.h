@@ -36,13 +36,13 @@
 #include "helpdialog.h"
 #include "aboutpep.h"
 #include "updatechecker.h"
-#include "cpucontrolsection.h"
 #include <QDir>
 
 namespace Ui {
     class MainWindow;
 }
-
+class CPUDataSection;
+class CPUControlSection;
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
@@ -76,6 +76,7 @@ private:
     HelpDialog *helpDialog;
     AboutPep *aboutPepDialog;
 
+    MemorySection* memorySection;
     CPUDataSection* dataSection;
     CPUControlSection* controlSection;
     void readSettings();

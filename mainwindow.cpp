@@ -34,13 +34,17 @@
 #include <QtConcurrent>
 #include <QDebug>
 #include <QFontDialog>
+#include "memorysection.h"
 #include "cpudatasection.h"
+#include "cpucontrolsection.h"
 #include "code.h"
+#include <iodialog.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),updateChecker(new UpdateChecker()),
-    dataSection(CPUDataSection::getInstance()),controlSection(CPUControlSection::getInstance())
+    ui(new Ui::MainWindow), updateChecker(new UpdateChecker()),
+    memorySection(MemorySection::getInstance()), dataSection(CPUDataSection::getInstance()),
+    controlSection(CPUControlSection::getInstance())
 {
     Pep::initMicroEnumMnemonMaps();
     Pep::initEnumMnemonMaps();
@@ -51,7 +55,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // connect and begin update checker
     connect(updateChecker, &UpdateChecker::updateInformation, this, &MainWindow::onUpdateCheck);
     auto x = QtConcurrent::run(updateChecker,&UpdateChecker::beginUpdateCheck);
-
+    auto y = new IODialog(this);
+    y->setVisible(true);
     //Connect Models to necessary components
 
     mainMemory = new MainMemory(ui->mainSplitter);
@@ -805,7 +810,7 @@ void MainWindow::helpCopyToMicrocodeButtonClicked()
 
 void MainWindow::updateMemAddress(int address)
 {
-    mainMemory->setMemAddress(address, dataSection->getMemoryByte(address));
+    mainMemory->setMemAddress(address, memorySection->getMemoryByte(address));
     mainMemory->showMemEdited(address);
 }
 

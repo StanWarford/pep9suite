@@ -53,7 +53,13 @@ SOURCES += main.cpp \
     addrmodewidget.cpp \
     symbolentry.cpp \
     symboltable.cpp \
-    symbolvalue.cpp
+    symbolvalue.cpp \
+    iowidget.cpp \
+    inputpane.cpp \
+    outputpane.cpp \
+    terminalpane.cpp \
+    iodialog.cpp \
+    memorysection.cpp
 HEADERS += mainwindow.h \
     byteconverterhex.h \
     byteconverterdec.h \
@@ -89,7 +95,13 @@ HEADERS += mainwindow.h \
     addrmodewidget.h \
     symbolentry.h \
     symboltable.h \
-    symbolvalue.h
+    symbolvalue.h \
+    iowidget.h \
+    inputpane.h \
+    outputpane.h \
+    terminalpane.h \
+    iodialog.h \
+    memorysection.h
 FORMS += mainwindow.ui \
     byteconverterhex.ui \
     byteconverterdec.ui \
@@ -103,7 +115,12 @@ FORMS += mainwindow.ui \
     byteconverterinstr.ui \
     aboutpep.ui \
     addrmodedialog.ui \
-    addrmodewidget.ui
+    addrmodewidget.ui \
+    iowidget.ui \
+    inputpane.ui \
+    outputpane.ui \
+    terminalpane.ui \
+    iodialog.ui
 OTHER_FILES += help/images/registeraddresssignals.png \
     help/figures/exer1204.pepcpu \
     help/figures/exer1206.pepcpu \
