@@ -77,7 +77,6 @@ private slots:
     void cellDataChanged(QTableWidgetItem* item);
 
     void scrollToChanged(QString string); // used to scroll to the cell corresponding to the line edit at the bottom
-
 protected:
     void changeEvent(QEvent *e);
     void resizeEvent(QResizeEvent *);

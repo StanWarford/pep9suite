@@ -535,7 +535,7 @@ void CPUDataSection::stepTwoByte() noexcept
                 errorMessage = "No value from data bus to write to MDRE";
                 return;
             }
-            else setMemoryRegister(Enu::MEM_MDRE,memory->getMemoryByte(address));
+            else setMemoryRegister(Enu::MEM_MDRE,memory->getMemoryByte(address, true));
             break;
         }
         case 1: //Pick C Bus;
@@ -572,7 +572,7 @@ void CPUDataSection::stepTwoByte() noexcept
                 errorMessage = "No value from data bus to write to MDRO";
                 return;
             }
-            else setMemoryRegister(Enu::MEM_MDRO,memory->getMemoryByte(address));
+            else setMemoryRegister(Enu::MEM_MDRO,memory->getMemoryByte(address, true));
             break;
         }
         case 1: //Pick C Bus;

@@ -2,6 +2,7 @@
 #include "ui_iowidget.h"
 #include "memorysection.h"
 #include <QString>
+#include <QDebug>
 IOWidget::IOWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::IOWidget)

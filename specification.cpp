@@ -47,14 +47,14 @@ bool MemSpecification::testUnitPost(CPUDataSection *data, QString &errorString)
     bool retVal;
     if(numBytes==1)
     {
-        retVal=memory->getMemoryByte(memAddress)==(quint8)memValue;
+        retVal=memory->getMemoryByte(memAddress, false)==(quint8)memValue;
         if(!retVal)errorString= "// ERROR: Unit test failed for byte Mem[0x"+
                 QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper() + "].";
     }
     else
     {
         //Test each individual byte, to avoid memory alignment issues
-        retVal=memory->getMemoryByte(memAddress)==memValue/256&&memory->getMemoryByte(memAddress+1)==memValue%256;
+        retVal=memory->getMemoryByte(memAddress, false)==memValue/256&&memory->getMemoryByte(memAddress+1, false)==memValue%256;
         if(!retVal)errorString= "// ERROR: Unit test failed for byte Mem[0x"+
                 QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper() + "].";
     }

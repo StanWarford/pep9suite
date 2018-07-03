@@ -58,7 +58,6 @@ MainWindow::MainWindow(QWidget *parent) :
     auto y = new IODialog(this);
     y->setVisible(true);
     y->bindToMemorySection(memorySection);
-    memorySection->onOPortChanged(65261);
     //Connect Models to necessary components
 
     mainMemory = new MainMemory(ui->mainSplitter);
@@ -66,11 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
     microcodePane = new MicrocodePane(ui->codeSplitter);
     delete ui->microcodeFrame;
     objectCodePane = new ObjectCodePane(ui->codeSplitter);
-    //objectCodePane->hide();
     delete ui->objectCodeFrame;
-    //cpuPaneOneByteDataBus = new CpuPane(Enu::OneByteDataBus, ui->mainSplitter);
-    //ui->mainSplitter->insertWidget(1, cpuPaneOneByteDataBus);
-    //cpuPane = cpuPaneOneByteDataBus;
 
 
     cpuPaneTwoByteDataBus = new CpuPane(Enu::TwoByteDataBus, ui->mainSplitter);
@@ -337,6 +332,52 @@ QString MainWindow::strippedName(const QString &fullFileName)
 {
     return QFileInfo(fullFileName).fileName();
 }
+QVector<quint8> convertObjectCodeToIntArray(QString line)
+{
+    bool ok = false;
+    quint8 temp;
+    QVector<quint8> output;
+    for(QString byte : line.split(" "))
+    {
+        temp = byte.toShort(&ok,16);
+        if(ok && byte.length()>0) output.append(temp);
+    }
+    return output;
+}
+void MainWindow::loadOperatingSystem()
+{
+    QVector<quint8> values;
+    quint16 startAddress = 0xfc17;
+    QString  osFileString;
+    //In the future, have a switch between loading the aligned and unaligned code
+    if(true) osFileString = (":/help/pep9os.txt");
+    else osFileString = ("nope");
+    QFile osFile(osFileString);
+    if(osFile.open(QFile::ReadOnly))
+    {
+        QTextStream file(&osFile);
+        while(!file.atEnd())
+        {
+            QString text = file.readLine();
+            values.append(convertObjectCodeToIntArray(text));
+        }
+        osFile.close();
+        memorySection->onMemorySizeChanged((1<<16) -1);
+        memorySection->loadObjectCode(startAddress,values);
+        qDebug() << memorySection->getMemoryWord(0xFFF8, false);
+        memorySection->onIPortChanged(memorySection->getMemoryWord(0xFFF8, false));
+        memorySection->onOPortChanged(memorySection->getMemoryWord(0xFFFA, false));
+    }
+    else
+    {
+        qDebug()<<osFile.errorString();
+    }
+}
+
+void MainWindow::loadObjectCodeProgram()
+{
+    #pragma message("todo: load the operating system")
+}
 
 void MainWindow::onUpdateCheck(int val)
 {
@@ -489,16 +530,17 @@ bool MainWindow::on_actionSystem_Start_Debugging_triggered()
 {
     emit beginSimulation();
     MicrocodeProgram* prog;
+    // Load necessary programs into memory
+    loadOperatingSystem();
+    loadObjectCodeProgram();
     if (microcodePane->microAssemble()) {
         ui->statusBar->showMessage("MicroAssembly succeeded", 4000);
         objectCodePane->setObjectCode(microcodePane->getMicrocodeProgram(),nullptr);
         controlSection->setMicrocodeProgram(microcodePane->getMicrocodeProgram());
         prog = microcodePane->getMicrocodeProgram();
         controlSection->onDebuggingStarted();
-        bool hasUnitPre = prog->hasUnitPre();
-        if(hasUnitPre)
+        if(prog->hasUnitPre())
         {
-            // setup preconditions
             controlSection->onClearCPU();
             mainMemory->clearMemory();
             cpuPane->clearCpu();
@@ -516,12 +558,16 @@ bool MainWindow::on_actionSystem_Start_Debugging_triggered()
         return false;
     }
 
+    //Clear all data and views as needed
+
     // enable the actions available while we're debugging
     ui->actionSystem_Stop_Debugging->setEnabled(true);
 
     // disable actions related to editing/starting debugging
     ui->actionSystem_Run->setEnabled(false);
     ui->actionSystem_Start_Debugging->setEnabled(false);
+
+    //Don't allow the microcode pane to be edited while the program is running
     microcodePane->setReadOnly(true);
 
     cpuPane->startDebugging();
@@ -812,7 +858,7 @@ void MainWindow::helpCopyToMicrocodeButtonClicked()
 
 void MainWindow::updateMemAddress(int address)
 {
-    mainMemory->setMemAddress(address, memorySection->getMemoryByte(address));
+    mainMemory->setMemAddress(address, memorySection->getMemoryByte(address, false));
     mainMemory->showMemEdited(address);
 }
 

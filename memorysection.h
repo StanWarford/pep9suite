@@ -13,8 +13,8 @@ class MemorySection : public QObject
 public:
     static MemorySection* getInstance();
     //Fetch Values from Memory
-    quint8 getMemoryByte(quint16 address) const;
-    quint16 getMemoryWord(quint16 address) const; //Uses the same even / odd conventions as Pep9
+    quint8 getMemoryByte(quint16 address, bool useIOPorts) const;
+    quint16 getMemoryWord(quint16 address, bool useIOPorts) const; //Uses the same even / odd conventions as Pep9
     const QVector<quint8> getMemory() const; //Returns a shared copy of the memory vector
     bool hadError() const;
     const QString getErrorMessage();
@@ -24,10 +24,13 @@ public:
     void clearMemory() noexcept;
     void clearErrors() noexcept;
 
+    void loadObjectCode(quint16 address, QVector<quint8> values);
+
 signals:
     void memoryChanged(quint16 address,quint8 oldVal, quint8 newVal); //Thrown whenever a memory address is changed
     void charWrittenToOutput(QChar character);
     void charRequestedFromInput() const;
+
 public slots:
     void onMemorySizeChanged(quint16 maxBytes);
     void onIPortChanged(quint16 newIPort);
@@ -37,6 +40,7 @@ public slots:
     void onSetMemoryByte(quint16 address,quint8 val);
     void onSetMemoryWord(quint16 address,quint16 val); //This doesn't enforce aligned memory access
     void onClearMemory() noexcept;
+
 private:
     explicit MemorySection(QObject *parent = nullptr);
     static MemorySection *instance;

@@ -90,6 +90,9 @@ private:
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
 
+
+    void loadOperatingSystem();
+    void loadObjectCodeProgram();
     QString curFile;
     QString curPath;
 

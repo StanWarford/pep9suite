@@ -49,7 +49,7 @@ MainMemory::MainMemory(QWidget *parent) :
     ui->tableWidget->setVerticalHeaderLabels(rows);
 
     int address = 0x0000;
-    ui->tableWidget->setItem(0, 0, new QTableWidgetItem("0x" + QString("%1").arg(memorySection->getMemoryByte(address), 2, 16).toUpper().trimmed()));
+    ui->tableWidget->setItem(0, 0, new QTableWidgetItem("0x" + QString("%1").arg(memorySection->getMemoryByte(address, false), 2, 16).toUpper().trimmed()));
 
     refreshMemory();
 
@@ -78,10 +78,9 @@ void MainMemory::populateMemoryItems()
     // disconnect this signal so that modifying the text of the column next to it doesn't fire this signal; reconnect at the end
     disconnect(ui->tableWidget, &QTableWidget::itemChanged, this, &MainMemory::cellDataChanged);
 
-    rows.clear();
-
     //qDebug() << "scroll value: " << QString("%1").arg(ui->verticalScrollBar->value(), 4, 16, QLatin1Char('0'));
     int scrollBarValue = ui->verticalScrollBar->value();
+    rows.clear();
     for (int i = scrollBarValue; i < scrollBarValue + ui->tableWidget->rowCount(); i++) {
         rows << QString("%1").arg(i, 4, 16, QLatin1Char('0')).toUpper();
     }
@@ -103,7 +102,7 @@ void MainMemory::refreshMemory()
         address = ui->tableWidget->verticalHeaderItem(i)->text().toInt(&ok, 16);
         if (ok) {
             ui->tableWidget->item(i, 0)->setText("0x" +
-                                                 QString("%1").arg(memorySection->getMemoryByte(address), 2, 16, QLatin1Char('0')).toUpper());
+                                                 QString("%1").arg(memorySection->getMemoryByte(address, false), 2, 16, QLatin1Char('0')).toUpper());
         }
     }
 
@@ -179,7 +178,6 @@ void MainMemory::scrollToAddress(int address)
 {
     // disconnect this signal so that modifying the text of the column next to it doesn't fire this signal; reconnect at the end
     //disconnect(ui->tableWidget, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(cellDataChanged(QTableWidgetItem*)));
-
     if (address >= 0 && address <= 0xffff) { // defensive programming!
         if (address > ui->verticalScrollBar->maximum()) { // ensure we only scroll to the bottom, and don't show values larger than 0xffff
             ui->verticalScrollBar->setValue(ui->verticalScrollBar->maximum());
@@ -257,12 +255,12 @@ void MainMemory::cellDataChanged(QTableWidgetItem *item)
 
     if (contents.contains(rx) && dataOk && addrConvOk) {
         memorySection->onSetMemoryByte(address,(quint8)data);
-        qDebug() << "Sim::Mem[" << address << "]: " << data;
+        //qDebug() << "Sim::Mem[" << address << "]: " << data;
         ui->tableWidget->item(row, 0)->setText("0x" + QString("%1").arg(data, 2, 16, QLatin1Char('0')).toUpper().trimmed());
     }
     else if (addrConvOk && !dataOk) {
         qDebug() << "Conversion from text to int failed. data = " << item->text();
-        data = memorySection->getMemoryByte(address);
+        data = memorySection->getMemoryByte(address, false);
         ui->tableWidget->item(row, 0)->setText("0x" + QString("%1").arg(data, 2, 16, QLatin1Char('0')).toUpper().trimmed());
     }
     else if (addrConvOk) { // we have problems, the labels are incorrectly formatted
@@ -280,11 +278,12 @@ void MainMemory::scrollToChanged(QString string)
     if (string.startsWith("0x", Qt::CaseInsensitive)) {
         byte = string.toInt(&ok, 16);
         if (ok) {
-            if (byte > 65535) {
-                ui->lineEdit->setText("0xFFFF");
+            if (byte > ui->verticalScrollBar->maximum()) {
+                ui->lineEdit->setText("0x"+QString::number(ui->verticalScrollBar->maximum(),16).toUpper());
+                ui->verticalScrollBar->setValue(ui->verticalScrollBar->maximum());
             } else {
                 ui->verticalScrollBar->setValue(byte);
-                sliderMoved(0);
+                            sliderMoved(0);
             }
         }
         else {
@@ -298,6 +297,7 @@ void MainMemory::scrollToChanged(QString string)
     // make sure the cells are correctly highlighted
     hightlightModifiedBytes();
 }
+
 
 void MainMemory::changeEvent(QEvent *e)
 {
@@ -316,11 +316,10 @@ void MainMemory::resizeEvent(QResizeEvent *)
     int newRowCount = ui->tableWidget->height()/ui->tableWidget->rowHeight(0) - 1;
 
     // Set the maximum row count to be 64k - (num visible rows)
-    ui->verticalScrollBar->setMaximum(ui->verticalScrollBar->maximum() - newRowCount + 1);
-
+    ui->verticalScrollBar->setMaximum((2<<15)-1 - newRowCount +1);
     // make sure the scroll bar stays at the bottom when resizing
-    if (ui->verticalScrollBar->value() > ui->verticalScrollBar->maximum() - newRowCount) {
-        ui->verticalScrollBar->setValue(ui->verticalScrollBar->maximum()); //0xffff - newRowCount);
+    if (ui->verticalScrollBar->value() > ui->verticalScrollBar->maximum()) {
+        ui->verticalScrollBar->setValue(ui->verticalScrollBar->maximum()-newRowCount); //0xffff - newRowCount);
     }
 
     if (newRowCount > oldRowCount) {
@@ -339,7 +338,7 @@ void MainMemory::resizeEvent(QResizeEvent *)
         for (int row = oldRowCount; row < newRowCount; row++) {
             address = ui->tableWidget->verticalHeaderItem(row)->text().toInt(&addrConvOk, 16);
             if (addrConvOk) {
-                ui->tableWidget->setItem(row, 0, new QTableWidgetItem("0x" + QString("%1").arg(memorySection->getMemoryByte(address), 2, 16).toUpper().trimmed()));
+                ui->tableWidget->setItem(row, 0, new QTableWidgetItem("0x" + QString("%1").arg(memorySection->getMemoryByte(address, false), 2, 16).toUpper().trimmed()));
                 //ui->tableWidget->itemAt(row, 0)->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
             }
             else { // malformed address labels

@@ -10,7 +10,7 @@ MemorySection *MemorySection::getInstance()
     return MemorySection::instance;
 }
 
-MemorySection::MemorySection(QObject *parent) : QObject(parent), waiting(true), inBuffer(), maxBytes(0xffff), iPort(-2), oPort(-4),
+MemorySection::MemorySection(QObject *parent) : QObject(parent), waiting(true), inBuffer(), maxBytes(0xffff), iPort(1560), oPort(1562),
     hadMemoryError(false), errorMessage()
 {
     initializeMemory();
@@ -18,12 +18,16 @@ MemorySection::MemorySection(QObject *parent) : QObject(parent), waiting(true), 
 
 void MemorySection::initializeMemory()
 {
-    memory = QVector<quint8>(maxBytes);
+    memory = QVector<quint8>(maxBytes+1);
 }
 
-quint8 MemorySection::getMemoryByte(quint16 address) const
+quint8 MemorySection::getMemoryByte(quint16 address, bool useIOPorts) const
 {
-    if(address == iPort || address == iPort + 1)
+    if(address == iPort )
+    {
+        int i=4;
+    }
+    if(address == iPort && useIOPorts )
     {
         quint8 value;
         waiting = true;
@@ -45,10 +49,10 @@ quint8 MemorySection::getMemoryByte(quint16 address) const
     return memory[address];
 }
 
-quint16 MemorySection::getMemoryWord(quint16 address) const
+quint16 MemorySection::getMemoryWord(quint16 address, bool useIOPorts) const
 {
     if(address>0xfffe) return 0;
-    return ((quint16)getMemoryByte(address)<<8)|getMemoryByte(address+1);
+    return ((quint16)getMemoryByte(address,useIOPorts)<<8)|getMemoryByte(address+1,useIOPorts);
 }
 
 const QVector<quint8> MemorySection::getMemory() const
@@ -68,11 +72,6 @@ const QString MemorySection::getErrorMessage()
 
 void MemorySection::setMemoryByte(quint16 address, quint8 value)
 {
-    if(address>=maxBytes)
-    {
-        hadMemoryError = true;
-        errorMessage = "Memory Error: Out of bounds access at byte "+QString::number(address,16);
-    }
     quint8 old= memory[address];
     if(old == value)return; //Don't continue if the new value is the old value
     onSetMemoryByte(address,value);
@@ -99,6 +98,15 @@ void MemorySection::clearErrors() noexcept
 {
     hadMemoryError = false;
     errorMessage = "";
+}
+
+void MemorySection::loadObjectCode(quint16 address, QVector<quint8> values)
+{
+    int idx = 0;
+    for(; idx < values.length() && idx + address <= maxBytes; idx++)
+    {
+        memory[idx + address] = values[idx];
+    }
 }
 
 void MemorySection::onMemorySizeChanged(quint16 maxBytes)
@@ -129,13 +137,8 @@ void MemorySection::onCancelWaiting()
 
 void MemorySection::onSetMemoryByte(quint16 address, quint8 val)
 {
-    if(address>=maxBytes)
-    {
-        hadMemoryError = true;
-        errorMessage = "Memory Error: Out of bounds access at byte "+QString::number(address,16);
-    }
     quint8 old = memory[address];
-    if(address == oPort || address == oPort + 1)
+    if(address == oPort)
     {
         emit this->charWrittenToOutput(val);
     }

@@ -1,12 +1,5 @@
 //Auto-generated from object code sources. This loads the user's program into memory
-UnitPre:  Mem[0x0000]=0x1200, Mem[0x0002]=0x5200, Mem[0x0004]=0x0018, Mem[0x0006]=0x0000, Mem[0x0008]=0x5800, Mem[0x000a]=0x04C0, Mem[0x000c]=0x0002, Mem[0x000e]=0xE300
-UnitPre:  Mem[0x0010]=0x02C3, Mem[0x0012]=0x0006, Mem[0x0014]=0x2400, Mem[0x0016]=0x6AEB, Mem[0x0018]=0x0000, Mem[0x001a]=0xC000, Mem[0x001c]=0x01E5, Mem[0x001e]=0x0000
-UnitPre:  Mem[0x0020]=0xE500, Mem[0x0022]=0x02CB, Mem[0x0024]=0x0002, Mem[0x0026]=0xAB00, Mem[0x0028]=0x061E, Mem[0x002a]=0x0044, Mem[0x002c]=0x0B78, Mem[0x002e]=0x0004
-UnitPre:  Mem[0x0030]=0x6700, Mem[0x0032]=0x0068, Mem[0x0034]=0x0004, Mem[0x0036]=0xE700, Mem[0x0038]=0x000D, Mem[0x003a]=0x6800, Mem[0x003c]=0x01EB, Mem[0x003e]=0x0002
-UnitPre:  Mem[0x0040]=0x1200, Mem[0x0042]=0x2626, Mem[0x0044]=0xE300, Mem[0x0046]=0x08CB, Mem[0x0048]=0x0000, Mem[0x004a]=0x2400, Mem[0x004c]=0x6850, Mem[0x004e]=0x0004
-UnitPre:  Mem[0x0050]=0x0100, Mem[0x0052]=0xC100, Mem[0x0054]=0x04E3, Mem[0x0056]=0xFFFC, Mem[0x0058]=0x5800, Mem[0x005a]=0x0424, Mem[0x005c]=0x0008, Mem[0x005e]=0x5000
-UnitPre:  Mem[0x0060]=0x04C3, Mem[0x0062]=0xFFFE, Mem[0x0064]=0xE100, Mem[0x0066]=0x0600, Mem[0x0068]=0x2601, Mem[0x006a]=0xC900, Mem[0x006c]=0x7461, Mem[0x006e]=0x0074
-UnitPre:  Mem[0x0070]=0xE100, Mem[0x0072]=0x7401, Mem[0x0074]=0x0076, Mem[0x0076]=0x0000
+UnitPre:  Mem[0x0000]=0x4900, Mem[0x0002]=0x0400, Mem[0x0004]=0x4869, Mem[0x0006]=0x0000, 
 //Auto-generated from Pep9 spec. This initializes registers properly
 UnitPre: SP=0xFB8F
 
@@ -446,69 +439,84 @@ UnitPre: SP=0xFB8F
 //*
 //* Load Instructions
 //*
-174. ldba: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto start
-175. ldbx: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto start
+//Load byte instructions have to decide which of the two bytes to use
+//If immediate, use leftmost byte.
+//Otherwise, if T5 is even, use right, else use left.
+//Store the AAA field in t4
+174. ldba: a=27,b=23, c=17, amux=1, alu=3, cmux=1; loadck
+175. a=8,b=17,AMux=1, alu=5, cmux=1,c=17; loadck
+176. a=17,b=31,amux=1,alu=1;sck;  if BRS ldba_eo else ldba_oi
+177. ldba_eo: a=19,amux=1,alu=13; sck ;if BRS ldba_oi else ldba_e 
+178. ldba_oi:a=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto start
+179. ldba_e:A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto start
 
-176. ldwa: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; ZCk, LoadCk
-177. A=20, AMux=1, ALU=0, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
+180. ldbx: a=27,b=23, c=17, amux=1, alu=3, cmux=1; loadck
+181. a=8,b=17,AMux=1, alu=5, cmux=1,c=17; loadck
+182. a=17,b=31,amux=1,alu=1;sck; if BRS ldbx_eo else ldbx_oi
+183. ldbx_eo: a=19,amux=1,alu=13; sck; if BRS ldbx_oi else ldbx_e
+184. ldbx_oi:a=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto start
+185. ldbx_e:A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto start
 
-178. ldwx: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; ZCk, LoadCk
-179. A=20, AMux=1, ALU=0, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
+186. ldwa: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; ZCk, LoadCk
+187. A=20, AMux=1, ALU=0, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
+
+188. ldwx: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; ZCk, LoadCk
+189. A=20, AMux=1, ALU=0, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
 
 //*
 //* Store Instructions
 //*
 //Store Byte Accumulate
-180. stba: A=20, B=21, MARMux=1; MARCk
-181. MemRead, A=21, ALU=13; SCk; if BRS stba_o else stba_e
-182. stba_o: MemRead, A=1, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
-183. stba_e: MemRead, A=1, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
+190. stba: A=20, B=21, MARMux=1; MARCk
+191. MemRead, A=21,AMUX=1, ALU=13; SCk; if BRS stba_o else stba_e
+192. stba_o: MemRead, A=1, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
+193. stba_e: MemRead, A=1, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
 
 
-184. sbtx: A=20, B=21, MARMux=1; MARCk
-185. MemRead, A=21, ALU=13; SCk; if BRS stbx_o else stbx_e
-186. stbx_o: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
-187. stbx_e: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
+194. sbtx: A=20, B=21, MARMux=1; MARCk
+195. MemRead, A=21,AMUX=1, ALU=13; SCk; if BRS stbx_o else stbx_e
+196. stbx_o: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
+197. stbx_e: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
 
 //Shared store byte ode
-188. stbr_o: MemRead, MDREMux=0; MDRECk; goto mwrte
-189. stbr_e: MemRead, MDROMux=0; MDROCk
-190. mwrte: MemWrite
-191. MemWrite
-192. mwrte3: MemWrite; goto start
+198. stbr_o: MemRead, MDREMux=0; MDRECk; goto mwrte
+199. stbr_e: MemRead, MDROMux=0; MDROCk
+200. mwrte: MemWrite
+201. MemWrite
+202. mwrte3: MemWrite; goto start
 
 
 //Store word instructions
 //First thing, determine if taking even or odd path
-193. stwa: a=18, b=19, MARMUX=1; marck
-194. a=19,amux=1, alu=13; sck; if brs stwa_o else stwa_e
+203. stwa: a=18, b=19, MARMUX=1; marck
+204. a=19,amux=1, alu=13; sck; if brs stwa_o else stwa_e
 
-195. stwa_o: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-196. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
-197. MemRead, A=0, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
-198. MemWrite, A=1, amux=1, ALU=0, CMux=1, C=15; LoadCk; goto stwr_o
+205. stwa_o: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+206. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+207. MemRead, A=0, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
+208. MemWrite, A=1, amux=1, ALU=0, CMux=1, C=15; LoadCk; goto stwr_o
 
-199. stwa_e: MemWrite, A=1, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
-200. MemWrite, A=0, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto mwrte3
+209. stwa_e: MemWrite, A=1, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
+210. MemWrite, A=0, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto mwrte3
 
 
-201. stwx: a=18, b=19, MARMUX=1; marck
-202. a=19,amux=1, alu=13; sck; if brs stwx_o else stwx_e
+211. stwx: a=18, b=19, MARMUX=1; marck
+212. a=19,amux=1, alu=13; sck; if brs stwx_o else stwx_e
 
-203. stwx_o: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-204. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
-205. MemRead, A=2, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
-206. MemWrite, A=3,amux=1, ALU=0, CMux=1, C=15; LoadCk; goto stwr_o
+213. stwx_o: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+214. MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+215. MemRead, A=2, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
+216. MemWrite, A=3,amux=1, ALU=0, CMux=1, C=15; LoadCk; goto stwr_o
 
-207. stwx_e: MemWrite, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
-208. MemWrite, A=2, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto mwrte3
+217. stwx_e: MemWrite, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
+218. MemWrite, A=2, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto mwrte3
 
-209. stwr_o: MemWrite
-210. MemWrite
-211. A=16, B=17, MARMux=1; MARCk
-212. MemRead, A=15, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
-213. MemRead
-214. MemRead, MDROMux=0; MDROCk; goto mwrte
+219. stwr_o: MemWrite
+220. MemWrite
+221. A=16, B=17, MARMux=1; MARCk
+222. MemRead, A=15, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
+223. MemRead
+224. MemRead, MDROMux=0; MDROCk; goto mwrte
 
 
 //*
@@ -517,56 +525,123 @@ UnitPre: SP=0xFB8F
 //First determine if SP is even
 //If even, then take the aligned path
 //Otherwise, take the unaligned path
-215. call:A=5, AMux=1, ALU=13; SCk; if BRS call_o else call_e
+225. call:A=5, AMux=1, ALU=13; SCk; if BRS call_o else call_e
 //Decr SP by 2
-216. call_e:a=5,b=24, c=5, AMUX=1, ALu=3, CMUX=1; loadCK, SCK
-217. a=4,b=22, c=4, AMUX=1, ALu=4, CSMUX=1, CMUX=1; loadCK
-218. A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
-219. MemWrite, A=7, AMux=1, ALU=0, CMUX=1, MDROMux=1; MDROCk
-220. MemWrite, A=6, AMux=1, ALU=0,CMUX=1, MDREMux=1; MDRECk
-221. MemWrite, A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
-222. A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk; goto start
+226. call_e:a=5,b=24, c=5, AMUX=1, ALu=3, CMUX=1; loadCK, SCK
+227. a=4,b=22, c=4, AMUX=1, ALu=4, CSMUX=1, CMUX=1; loadCK
+228. A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
+229. MemWrite, A=7, AMux=1, ALU=0, CMUX=1, MDROMux=1; MDROCk
+230. MemWrite, A=6, AMux=1, ALU=0,CMUX=1, MDREMux=1; MDRECk
+231. MemWrite, A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
+232. A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk; goto start
 
-223. call_o: A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
+233. call_o: A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
 //Decr SP by 2
-224. memread, a=5, b=24, c=5, AMUX=1, ALU=3, CMUX=1; loadck, sck
-225. memread, a=4, b=22, c=4, AMUX=1, ALU=4, CSMUX=1, CMUX=1; loadck
-226. memread, a=7, amux=1,alu=0,CMUX=1,MDREMux=1, MDROMUX=0; mdrock, mdreck
+234. memread, a=5, b=24, c=5, AMUX=1, ALU=3, CMUX=1; loadck, sck
+235. memread, a=4, b=22, c=4, AMUX=1, ALU=4, CSMUX=1, CMUX=1; loadck
+236. memread, a=7, amux=1,alu=0,CMUX=1,MDREMux=1, MDROMUX=0; mdrock, mdreck
 //Assign PC<hi> to T4<hi>, so that PC can be overriden earlier in the microcode
-227. memwrite, a=6, amux=1, alu=0, cmux=1, c=16; loadck
-228. memwrite, a=21, amux=1, alu=0, cmux=1, C=7; loadck
-229. memwrite, a=20, amux=1, alu=0, cmux=1, c=6; loadck
-230. A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
-231. memread
-232. memread
-233. memread, a=16, amux=1, alu=0, CMUX=1, MDREMUX=0,mdromux=1; mdreck, mdrock ;goto mwrte
+237. memwrite, a=6, amux=1, alu=0, cmux=1, c=16; loadck
+238. memwrite, a=21, amux=1, alu=0, cmux=1, C=7; loadck
+239. memwrite, a=20, amux=1, alu=0, cmux=1, c=6; loadck
+240. A=4, B=5, MARMux=1, PValid=0; PValidCk, MARCk
+241. memread
+242. memread
+243. memread, a=16, amux=1, alu=0, CMUX=1, MDREMUX=0,mdromux=1; mdreck, mdrock ;goto mwrte
 
 
 //This one is really really bad if unaligned
-234. ret: A=4, B=5, MARMux=1, Pvalid=0;PvalidCk, MARCk
-235. A=5, AMux=1, ALU=13; SCk; if BRS ret_o else ret_e
-236. ret_o: memread, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
-237. memread, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; loadck
-238. memread, MDROMux=0; MDROCK
-239. A=4, B=5, MARMux=1; marck
-240. memread
-241. memread
-242. memread, EOMUX=1, AMUX=0, ALU=0, CMUX=1, C=6, MDReMUX=0; MDReCK, loadck
-243. EOMUX=0, AMUX=0, ALU=0, CMUX=1, C=7; loadck;  goto start
-244. ret_e: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
-245. MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; SCk
-246. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
-247. EOMux=0, AMux=0, ALU=0, CMux=1, C=6; LoadCk
-248. EOMux=1, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start
+244. ret: A=4, B=5, MARMux=1, Pvalid=0;PvalidCk, MARCk
+245. A=5, AMux=1, ALU=13; SCk; if BRS ret_o else ret_e
+246. ret_o: memread, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
+247. memread, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; loadck
+248. memread, MDROMux=0; MDROCK
+249. A=4, B=5, MARMux=1; marck
+250. memread
+251. memread
+252. memread, EOMUX=1, AMUX=0, ALU=0, CMUX=1, C=6, MDReMUX=0; MDReCK, loadck
+253. EOMUX=0, AMUX=0, ALU=0, CMUX=1, C=7; loadck;  goto start
+254. ret_e: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
+255. MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; SCk
+256. MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+257. EOMux=0, AMux=0, ALU=0, CMux=1, C=6; LoadCk
+258. EOMux=1, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start
 //TODO
-249. rettr: stop //Don't bother with traps for now
+259. rettr: stop //Don't bother with traps for now
 
 
 //trap instructions
-250. nop1: A=5; goto trap
-251. nop: A=5; goto trap
-252. deci: A=5; goto trap
-253. deco: A=5; goto trap
-254. hexo: A=5; goto trap
-255. stro: A=5
-256. trap: stop //Don't bother with traps for now
+260. nop1: A=5; goto trap
+261. nop: A=5; goto trap
+262. deci: A=5; goto trap
+263. deco: A=5; goto trap
+264. hexo: A=5; goto trap
+265. stro: A=5
+//T4 <- Mem[0xFFF6]. Registers T1, T4, T5, T6 are in use.
+266. trap: a=31, b=29, MARMux=1, PValid=0; marck, PValidCK
+267. memread
+268. memread
+269. memread, MDREMUX=0, MDROMUX=0; MDRECK, MDROCK
+270. EOMux=0, AMux=0, ALU=0, CMux=1, C=16; LoadCk
+271. EOMux=1, AMux=0, ALU=0, CMux=1, C=17; LoadCk
+//Mem[T - 1] <- IR<0..7?
+//Preserve T, Store T-1
+272. a=16, b=17, MARMux=1; marck
+//T4 <- (T - 3)
+273. memread, a=17, b=25, c=17, AMUX=1, alu=3, CMUX=1; Loadck, SCK
+274. memread, a=16, b=22, c=16, AMUX=1, ALU=4, CSMUX=1, CMUX=1; loadck
+275. memread, A=8,AMUX=1, ALU=0, CMux=1, MDROMUX=0, MDREMUX=1; MDROCK, MDRECK
+//T3 <- (T-5)
+276. memwrite, a=17, b=24, c=15, AMUX=1, alu=3, CMUX=1; Loadck, SCK
+277. memwrite, a=16, b=22, c=14, AMUX=1, ALU=4, CSMUX=1, CMUX=1; loadck
+278. memwrite
+
+//Store T-2, Store T-3
+279. a=16, b=17, MARMux=1; marck
+280. memwrite, a=5, amux=1, alu=0, cmux=1, MDROMUX=1; MDROCK
+281. memwrite, a=4, amux=1, alu=0, cmux=1, MDREMUX=1; MDRECK
+//Calculate lo order of T-7
+282. memwrite, a=15, b=24, c=17, AMUX=1, alu=3, CMUX=1; Loadck, SCK
+
+//Store T-4, Store T-5
+283. a=14, b=15, MARMux=1; marck
+284. memwrite, a=7, amux=1, alu=0, cmux=1, MDROMUX=1; MDROCK
+285. memwrite, a=6, amux=1, alu=0, cmux=1, MDREMUX=1; MDRECK
+//Calculate hi order of t-7
+286. memwrite, a=14, b=22, c=16, AMUX=1, ALU=4, CSMUX=1, CMUX=1; loadck
+
+
+//Store T-6, Store T-7
+287. a=16, b=17, MARMux=1; marck
+288. memwrite, a=3, amux=1, alu=0, cmux=1, MDROMUX=1; MDROCK
+289. memwrite, a=2, amux=1, alu=0, cmux=1, MDREMUX=1; MDRECK
+//Calculate lo orde of T-9
+290. memwrite, a=17, b=24, c=17, AMUX=1, alu=3, CMUX=1; Loadck, SCK
+
+
+//Store T-8, Store T-9
+//Calculate hi order of T-9
+291. a=16, b=22, c=16, AMUX=1, ALU=4, CSMUX=1, CMUX=1; loadck
+292. a=16, b=17, MARMux=1; marck
+293. memwrite, a=1, amux=1, alu=0, cmux=1, MDROMUX=1; MDROCK
+294. memwrite, a=0, amux=1, alu=0, cmux=1, MDREMUX=1; MDRECK
+//Calculate lo order of T-10 in sp
+295. memwrite, a=17, b=23, c=5, AMUX=1, alu=3, CMUX=1; Loadck, SCK
+
+
+//Store T-10, Preserve T-11
+//Calculate high order of t-10
+296. a=16, b=22, c=4, AMUX=1, ALU=4, CSMUX=1, CMUX=1; loadck
+297. a=4, b=5, MARMux=1; marck
+298. memwrite, cmux=0, MDREMux=1; MDRECK
+299. memwrite
+300. memwrite
+
+//Load to PC
+301. a=31, b=30, MARMux=1; marck
+302. memread
+303. memread
+304. memread, MDREMUX=0, MDROMUX=0; mdrock, mdreck
+305. EOMux=0, AMux=0, alu=0, cmux=1, c=6; loadck
+306. EOMux=1, AMux=0, alu=0, cmux=1, c=7; loadck; goto start
+

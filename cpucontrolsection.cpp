@@ -99,6 +99,8 @@ void CPUControlSection::onDebuggingFinished()
 void CPUControlSection::onStep() noexcept
 {
     //Do step logic
+    int PC;
+    if(microprogramCounter == 0) PC = data->getRegisterBankWord(6);
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
     this->setSignalsFromMicrocode(prog);
     data->setSignalsFromMicrocode(prog);
@@ -108,7 +110,21 @@ void CPUControlSection::onStep() noexcept
     if(microprogramCounter==0)
     {
         macroCycleCounter++;
-        qDebug()<<"Insturction #"<<macroCycleCounter<<" ; Cyle # "<<microCycleCounter;
+        //qDebug()<<"Insturction #"<<macroCycleCounter<<" ; Cyle # "<<microCycleCounter;
+        auto temp = data->getRegisterBankByte(8);
+        const QString format("0x%1: ");
+        if(Pep::isUnaryMap[Pep::decodeMnemonic[temp]])
+        {
+            qDebug().noquote().nospace()<<format.arg(QString::number(PC,16),4,'0')
+                                        << QString("%1").arg(Pep::enumToMnemonMap[Pep::decodeMnemonic[temp]].toLower(),6,' ');
+        }
+        else
+        {
+            qDebug().noquote().nospace()<< format.arg(QString::number(PC,16),4,'0')
+                                        << QString("%1").arg(Pep::enumToMnemonMap[Pep::decodeMnemonic[temp]].toLower(),6,' ')
+                                        << "  "<< QString("%1").arg(QString::number(data->getRegisterBankWord(9),16),4,'0')
+                                        << ", " <<Pep::intToAddrMode(Pep::decodeAddrMode[temp]).toLower();
+        }
     }
 
 }
@@ -139,8 +155,8 @@ void CPUControlSection::onRun()noexcept
             qDebug() << "The control section died";
             break;
         }
-
     }
+    qDebug().noquote().nospace() << QString("%1").arg(Pep::enumToMnemonMap[Pep::decodeMnemonic[data->getRegisterBankByte(8)]].toLower(),6,' ');
     qDebug() <<"Execution time (ms): "<<timer.elapsed();
     qDebug() <<"Hz rating: "<< microCycleCounter / (((float)timer.elapsed())/1000);
 }
@@ -300,7 +316,6 @@ void CPUControlSection::branchHandler()
     case Enu::AddressingModeDecoder:
         temp = data->getRegisterBankByte(8);
         tempString = Pep::intToAddrMode(Pep::decodeAddrMode[temp]).toLower()+"Addr";
-        qDebug()<< "Using addr mode: "<<tempString;
         if(symTable->exists(tempString))
         {
             val = symTable->getValue(tempString);
@@ -326,7 +341,6 @@ void CPUControlSection::branchHandler()
     case Enu::InstructionSpecifierDecoder:
         temp = data->getRegisterBankByte(8);
         tempString = Pep::enumToMnemonMap[Pep::decodeMnemonic[temp]].toLower();
-        qDebug()<< "Using instr: "<<tempString;
         if(symTable->exists(tempString))
         {
             val = symTable->getValue(tempString);
