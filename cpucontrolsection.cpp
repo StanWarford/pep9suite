@@ -89,6 +89,8 @@ void CPUControlSection::onSimulationFinished()
 void CPUControlSection::onDebuggingStarted()
 {
     onSimulationStarted();
+    cur = {0,};
+    prev = {0,};
 }
 
 void CPUControlSection::onDebuggingFinished()
@@ -122,8 +124,10 @@ QString CPUControlSection::generateLine()
     //1 is address of instruction, 2 is inst specifier, 3 is optional oprsndspc + , + addr.
     //4 is data block (AXSP) for all NZVCS for BR, PCB & stack tracefor call
     const QString format("0x%1: %2 %3 %4");
-    const QString stackFrame("\n===CALL===\nPC=0x%1, SP=0x%2, depth=%3\n===CALL===\n");
-    const QString trapFrame("\n===TRAP===\nPC=0x%1, SP=0x%2, depth=%3\n===TRAP===\n");
+    const QString stackFramepu("\n===CALL===\nPC=0x%1, SP=0x%2, depth=%3\n===CALL===\n");
+    const QString stackFramepo("\n===RET====\nPC=0x%1, SP=0x%2, depth=%3\n===RET====\n");
+    const QString trapFramepu("\n===TRAP===\nPC=0x%1, SP=0x%2, depth=%3\n===TRAP===\n");
+    const QString trapFramepo("\n===RETR===\nPC=0x%1, SP=0x%2, depth=%3\n===RETR===\n");
     QString RHS ="";
 
 
@@ -132,15 +136,15 @@ QString CPUControlSection::generateLine()
     {
         if(Pep::isTrapMap[Pep::decodeMnemonic[cur.ir]])
         {
-            out.append(trapFrame.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
+            out.append(trapFramepu.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
         }
         else if(Pep::decodeMnemonic[cur.ir] == Enu::EMnemonic::RET)
         {
-            out.append(stackFrame.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
+            out.append(stackFramepo.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
         }
         else if(Pep::decodeMnemonic[cur.ir] == Enu::EMnemonic::RETTR)
         {
-            out.append(trapFrame.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
+            out.append(trapFramepo.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
         }
         out.append(format.arg(fmtadr(cur.pc),fmtis(cur.ir),fmtu(),RHS));
     }
@@ -148,7 +152,7 @@ QString CPUControlSection::generateLine()
     {
         if(cur.ir>=36 && cur.ir<=37)
         {
-            out.append(stackFrame.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
+            out.append(stackFramepu.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
         }
         else if(cur.ir>=20 && cur.ir <=35)
         {
