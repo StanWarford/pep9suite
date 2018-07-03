@@ -21,16 +21,18 @@ void IOWidget::bindToMemorySection(MemorySection *memory)
     connect(memory,&MemorySection::charRequestedFromInput,this,&IOWidget::onDataRequested);
     connect(memory,&MemorySection::charWrittenToOutput,this,&IOWidget::onDataReceived);
 }
-
+//quint8 called=0;
 void IOWidget::onDataReceived(QChar data)
 {
+    QString oData = QString::number((quint8)data.toLatin1(),16).leftJustified(2,'0')+" ";
+    //qDebug()<<called++;
     switch(ui->tabWidget->currentIndex())
     {
     case 0:
-        ui->batchOutput->appendOutput(QString(data));
+        ui->batchOutput->appendOutput(QString(oData));
         break;
     case 1:
-        ui->terminalIO->appendOutput(QString(data));
+        ui->terminalIO->appendOutput(QString(oData));
         break;
     default:
         break;

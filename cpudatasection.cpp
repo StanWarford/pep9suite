@@ -606,7 +606,18 @@ void CPUDataSection::stepTwoByte() noexcept
     //ZCk
     if(clockSignals[Enu::ZCk])
     {
-        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput) setStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
+        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput)
+        {
+            if(controlSignals[Enu::AndZ]==0)
+            {
+                setStatusBit(Enu::STATUS_Z,Enu::NMask & NZVC);
+            }
+            else if(controlSignals[Enu::AndZ]==1)
+            {
+                setStatusBit(Enu::STATUS_Z,(bool)(Enu::NMask & NZVC) && getStatusBit(Enu::STATUS_Z));
+            }
+            else statusBitError = true;
+        }
         else statusBitError = true;
     }
 
