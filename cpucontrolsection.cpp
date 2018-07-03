@@ -163,8 +163,13 @@ QString CPUControlSection::generateLine()
     if(1); //If call, ret, trp, rettr generate generateSF
     return out;
 }
+
+#include <qmutex.h>
+#include <QMutexLocker>
+QMutex dontEnter;
 void CPUControlSection::onStep() noexcept
 {
+    QMutexLocker mutty(&dontEnter);
     //Do step logic
     if(microprogramCounter == 0)
     {
@@ -176,7 +181,7 @@ void CPUControlSection::onStep() noexcept
     data->onStep();
     branchHandler();
     microCycleCounter++;
-    if(microprogramCounter==0)
+    if(microprogramCounter==0 ||hadErrorOnStep() ||executionFinished)
     {
         macroCycleCounter++;
         cur.ir = data->getRegisterBankByte(8);
@@ -194,7 +199,6 @@ void CPUControlSection::onStep() noexcept
         //qDebug()<<"Insturction #"<<macroCycleCounter<<" ; Cyle # "<<microCycleCounter;
         qDebug().noquote() << generateLine();
     }
-
 }
 
 void CPUControlSection::onClock()noexcept

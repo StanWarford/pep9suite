@@ -610,11 +610,11 @@ void CPUDataSection::stepTwoByte() noexcept
         {
             if(controlSignals[Enu::AndZ]==0)
             {
-                setStatusBit(Enu::STATUS_Z,Enu::NMask & NZVC);
+                setStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
             }
             else if(controlSignals[Enu::AndZ]==1)
             {
-                setStatusBit(Enu::STATUS_Z,(bool)(Enu::NMask & NZVC) && getStatusBit(Enu::STATUS_Z));
+                setStatusBit(Enu::STATUS_Z,(bool)(Enu::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z));
             }
             else statusBitError = true;
         }

@@ -27,7 +27,7 @@ quint8 MemorySection::getMemoryByte(quint16 address, bool useIOPorts) const
     {
         int i=4;
     }
-    if(address == iPort && useIOPorts )
+    if(address == iPort && useIOPorts && false )
     {
         quint8 value;
         waiting = true;
