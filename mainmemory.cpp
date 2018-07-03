@@ -230,7 +230,6 @@ void MainMemory::onDarkModeChange(bool darkMode)
 
 void MainMemory::sliderMoved(int pos)
 {
-    qDebug() << "slider moved: " << pos;
     populateMemoryItems();
     hightlightModifiedBytes();
 }
