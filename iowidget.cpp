@@ -29,10 +29,10 @@ void IOWidget::onDataReceived(QChar data)
     switch(ui->tabWidget->currentIndex())
     {
     case 0:
-        ui->batchOutput->appendOutput(QString(oData));
+        ui->batchOutput->appendOutput(QString(data));
         break;
     case 1:
-        ui->terminalIO->appendOutput(QString(oData));
+        ui->terminalIO->appendOutput(QString(data));
         break;
     default:
         break;
