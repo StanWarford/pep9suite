@@ -29,9 +29,11 @@ class MicroCode;
 class MicrocodeProgram;
 class CPUDataSection;
 class MemorySection;
+class CPUMemoizer;
 class CPUControlSection: public QObject
 {
     Q_OBJECT
+    friend class CPUMemoizer;
 public:
     static CPUControlSection* getInstance();
     virtual ~CPUControlSection();
@@ -61,7 +63,7 @@ signals:
 private:
     CPUControlSection(CPUDataSection* dataSection, MemorySection* memory);
     static CPUControlSection *_instance;
-
+    CPUMemoizer* memoizer;
     CPUDataSection* data;
     MemorySection* memory;
     MicrocodeProgram* program;
@@ -71,13 +73,6 @@ private:
 
     void branchHandler(); //Based on the current instruction, set the MPC correctly
     void setSignalsFromMicrocode(const MicroCode *line); //Set signals for the control section based on the microcode program
-    void captureState();
-    QString generateLine();
-    struct amb5State //State as visible from an assembly machine
-    {
-        quint16 callDepth=0, a=0, x=0, sp=0, pc=0, OS=0;
-        quint8 nzvcs=0, ir=0;
-    }cur,prev;
 };
 
 class CPUTester: public QObject

@@ -86,5 +86,6 @@
         <file>help/beta.html</file>
         <file>help/images/switchbus.png</file>
         <file>help/pep9os.txt</file>
+        <file>help/osunalignedsymbols.txt</file>
     </qresource>
 </RCC>

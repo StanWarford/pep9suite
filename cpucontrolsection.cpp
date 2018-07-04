@@ -9,11 +9,12 @@
 #include "symboltable.h"
 #include "symboltable.h"
 #include "memorysection.h"
+#include "cpumemoizer.h"
 #include <QElapsedTimer>
 QElapsedTimer timer;
 CPUControlSection *CPUControlSection::_instance = nullptr;
 CPUTester *CPUTester::_instance = nullptr;
-CPUControlSection::CPUControlSection(CPUDataSection * data, MemorySection* memory): QObject(nullptr), data(data), memory(memory),
+CPUControlSection::CPUControlSection(CPUDataSection * data, MemorySection* memory): QObject(nullptr),memoizer(new CPUMemoizer(*this)), data(data), memory(memory),
     microprogramCounter(0), microCycleCounter(0), macroCycleCounter(0),
     inSimulation(false), hadControlError(false), isPrefetchValid(false)
 {
@@ -89,79 +90,12 @@ void CPUControlSection::onSimulationFinished()
 void CPUControlSection::onDebuggingStarted()
 {
     onSimulationStarted();
-    cur = {0,};
-    prev = {0,};
+    memoizer->clear();
 }
 
 void CPUControlSection::onDebuggingFinished()
 {
     onSimulationFinished();
-}
-
-QString fhnum(quint16 num){
-    return QString("%1").arg(QString::number(num,16),4,'0');
-}
-QString fmtadr(quint16 addr){
-    return fhnum(addr);}
-#include <enu.h>
-QString emn2str(quint8 ir)
-{
-    QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
-    return QString(metaenum.valueToKey((int)Pep::decodeMnemonic[ir]));
-}
-QString fmtis(quint8 ir){
-    return QString(emn2str(ir)).toLower().leftJustified(5,' ');
-}
-QString fmtu(){
-    return QString().leftJustified(9,' ');
-}
-QString fmtn (quint16 os, quint8 ir){
-    return fhnum(os)+QString(", "+Pep::intToAddrMode(Pep::decodeAddrMode[ir])).leftJustified(5,' ');
-}
-QString CPUControlSection::generateLine()
-{
-    QString out="";
-    //1 is address of instruction, 2 is inst specifier, 3 is optional oprsndspc + , + addr.
-    //4 is data block (AXSP) for all NZVCS for BR, PCB & stack tracefor call
-    const QString format("0x%1: %2 %3 %4");
-    const QString stackFramepu("\n===CALL===\nPC=0x%1, SP=0x%2, depth=%3\n===CALL===\n");
-    const QString stackFramepo("\n===RET====\nPC=0x%1, SP=0x%2, depth=%3\n===RET====\n");
-    const QString trapFramepu("\n===TRAP===\nPC=0x%1, SP=0x%2, depth=%3\n===TRAP===\n");
-    const QString trapFramepo("\n===RETR===\nPC=0x%1, SP=0x%2, depth=%3\n===RETR===\n");
-    QString RHS ="";
-
-
-
-    if(Pep::isUnaryMap[Pep::decodeMnemonic[cur.ir]])
-    {
-        if(Pep::isTrapMap[Pep::decodeMnemonic[cur.ir]])
-        {
-            out.append(trapFramepu.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
-        }
-        else if(Pep::decodeMnemonic[cur.ir] == Enu::EMnemonic::RET)
-        {
-            out.append(stackFramepo.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
-        }
-        else if(Pep::decodeMnemonic[cur.ir] == Enu::EMnemonic::RETTR)
-        {
-            out.append(trapFramepo.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
-        }
-        out.append(format.arg(fmtadr(cur.pc),fmtis(cur.ir),fmtu(),RHS));
-    }
-    else
-    {
-        if(cur.ir>=36 && cur.ir<=37)
-        {
-            out.append(stackFramepu.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
-        }
-        else if(cur.ir>=20 && cur.ir <=35)
-        {
-            RHS = "NZVCS="+QString::number(cur.nzvcs,2).leftJustified(5,'0');
-        }
-        out.append(format.arg(fmtadr(cur.pc),fmtis(cur.ir),fmtn(cur.OS,cur.ir),RHS));
-    }
-    if(1); //If call, ret, trp, rettr generate generateSF
-    return out;
 }
 
 #include <qmutex.h>
@@ -171,9 +105,10 @@ void CPUControlSection::onStep() noexcept
 {
     QMutexLocker mutty(&dontEnter);
     //Do step logic
-    if(microprogramCounter == 0)
+    if(microprogramCounter==0)
     {
-        captureState();
+        //Store PC at the start of the cycle, so that we know where the instruction started from
+        memoizer->storePC();
     }
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
     this->setSignalsFromMicrocode(prog);
@@ -181,23 +116,12 @@ void CPUControlSection::onStep() noexcept
     data->onStep();
     branchHandler();
     microCycleCounter++;
+
     if(microprogramCounter==0 ||hadErrorOnStep() ||executionFinished)
     {
-        macroCycleCounter++;
-        cur.ir = data->getRegisterBankByte(8);
-        cur.OS =  data->getRegisterBankWord(9);
-        if(Pep::decodeMnemonic[cur.ir] == Enu::EMnemonic::CALL || Pep::isTrapMap[Pep::decodeMnemonic[cur.ir]])
-        {
-            cur.callDepth = prev.callDepth+1;
-        }
-        else if(Pep::decodeMnemonic[cur.ir] == Enu::EMnemonic::RET || Pep::decodeMnemonic[cur.ir] == Enu::EMnemonic::RETTR)
-        {
-            cur.callDepth = prev.callDepth-1;
-        }
-        else cur.callDepth = prev.callDepth;
-
+        memoizer->storeState();
         //qDebug()<<"Insturction #"<<macroCycleCounter<<" ; Cyle # "<<microCycleCounter;
-        qDebug().noquote() << generateLine();
+        qDebug().noquote() << memoizer->memoize();
     }
 }
 
@@ -228,7 +152,6 @@ void CPUControlSection::onRun()noexcept
             break;
         }
     }
-    qDebug().noquote().nospace() << QString("%1").arg(Pep::enumToMnemonMap[Pep::decodeMnemonic[data->getRegisterBankByte(8)]].toLower(),6,' ');
     qDebug() <<"Execution time (ms): "<<timer.elapsed();
     qDebug() <<"Hz rating: "<< microCycleCounter / (((float)timer.elapsed())/1000);
 }
@@ -475,21 +398,6 @@ void CPUControlSection::setSignalsFromMicrocode(const MicroCode *line)
             isPrefetchValid = val;
         }
     }
-}
-
-void CPUControlSection::captureState()
-{
-    this->prev=cur;
-    cur.a = data->getRegisterBankWord(0);
-    cur.x = data->getRegisterBankWord(2);
-    cur.sp = data->getRegisterBankWord(4);
-    cur.pc = data->getRegisterBankWord(6);
-    cur.nzvcs =
-            data->getStatusBit(Enu::STATUS_N) * Enu::NMask
-          | data->getStatusBit(Enu::STATUS_Z) * Enu::ZMask
-          | data->getStatusBit(Enu::STATUS_V) * Enu::VMask
-          | data->getStatusBit(Enu::STATUS_C) * Enu::CMask
-          | data->getStatusBit(Enu::STATUS_S) * Enu::SMask;
 }
 
 void CPUControlSection::initCPUStateFromPreconditions()

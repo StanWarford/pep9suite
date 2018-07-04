@@ -59,7 +59,8 @@ SOURCES += main.cpp \
     outputpane.cpp \
     terminalpane.cpp \
     iodialog.cpp \
-    memorysection.cpp
+    memorysection.cpp \
+    cpumemoizer.cpp
 HEADERS += mainwindow.h \
     byteconverterhex.h \
     byteconverterdec.h \
@@ -101,7 +102,8 @@ HEADERS += mainwindow.h \
     outputpane.h \
     terminalpane.h \
     iodialog.h \
-    memorysection.h
+    memorysection.h \
+    cpumemoizer.h
 FORMS += mainwindow.ui \
     byteconverterhex.ui \
     byteconverterdec.ui \
@@ -150,7 +152,9 @@ DISTFILES += \
     config/control.js \
     packages/pep9cpu/installscript.js \
     rc/License.md \
-    ProjectDefs.pri
+    ProjectDefs.pri \
+    help/osunalignedsymbols.txt \
+    help/osunalignedsymbols.txt
 
 #Add this include to the bottom of your project to enable automated installer creation
 #Include the definitions file that sets all variables needed for the InstallerConfig Script
