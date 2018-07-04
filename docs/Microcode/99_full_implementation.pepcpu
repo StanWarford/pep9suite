@@ -1,7 +1,9 @@
 //Auto-generated from object code sources. This loads the user's program into memory
-UnitPre:  Mem[0x0000]=0x4900, Mem[0x0002]=0x0626, Mem[0x0004]=0x0000, Mem[0x0006]=0x6869, 
+UnitPre:  Mem[0x0000]=0x4900, Mem[0x0002]=0x0400,
+UnitPre:  Mem[0x0004]=0x4865, Mem[0x0006]=0x6c6c, Mem[0x0008]=0x6f20, Mem[0x000a]=0x576f, 
+UnitPre:  Mem[0x000c]=0x726c, Mem[0x000e]=0x6421, Mem[0x0010]=0x2100
 //Auto-generated from Pep9 spec. This initializes registers properly
-UnitPre: SP=0xFB8F, N=1, Z=1,V=1,C=1, a=0xaabb, x=0xccdd
+UnitPre: SP=0xFB8F, N=1, Z=1,V=1,C=1
 
 //* This file contains a complete implementation of the microcode needed to execute
 //* the Pep/9 instruction set. In order to test a working program,
