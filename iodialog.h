@@ -16,7 +16,8 @@ public:
     explicit IODialog(QWidget *parent = 0);
     ~IODialog();
     void bindToMemorySection(MemorySection* memory);
-
+public slots:
+    void onClear();
 private:
     Ui::IODialog *ui;
 };

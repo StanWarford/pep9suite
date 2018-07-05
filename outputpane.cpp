@@ -70,6 +70,11 @@ void OutputPane::copy()
     ui->plainTextEdit->copy();
 }
 
+void OutputPane::clearText()
+{
+    ui->plainTextEdit->clear();
+}
+
 void OutputPane::onFontChanged(QFont font)
 {
     ui->plainTextEdit->setFont(font);

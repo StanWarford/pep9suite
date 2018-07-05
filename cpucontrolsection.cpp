@@ -11,6 +11,7 @@
 #include "memorysection.h"
 #include "cpumemoizer.h"
 #include <QElapsedTimer>
+#include <QApplication>
 QElapsedTimer timer;
 CPUControlSection *CPUControlSection::_instance = nullptr;
 CPUTester *CPUTester::_instance = nullptr;
@@ -120,7 +121,8 @@ void CPUControlSection::onStep() noexcept
     if(microprogramCounter==0 ||hadErrorOnStep() ||executionFinished)
     {
         memoizer->storeState();
-        //qDebug()<<"Insturction #"<<macroCycleCounter<<" ; Cyle # "<<microCycleCounter;
+        macroCycleCounter++;
+
         qDebug().noquote() << memoizer->memoize();
     }
 }
@@ -144,6 +146,10 @@ void CPUControlSection::onRun()noexcept
 #pragma message ("This needs to be ammended for errors in execution")
     while(!executionFinished)
     {
+        if(microCycleCounter%100==0)
+        {
+            QApplication::processEvents();
+        }
         onStep();
         //If there was an error on the control flow
         if(this->hadErrorOnStep())
@@ -152,8 +158,9 @@ void CPUControlSection::onRun()noexcept
             break;
         }
     }
-    qDebug() <<"Execution time (ms): "<<timer.elapsed();
-    qDebug() <<"Hz rating: "<< microCycleCounter / (((float)timer.elapsed())/1000);
+    qDebug().nospace().noquote()<<"Executed "<<macroCycleCounter<<" instructions in "<<microCycleCounter<< " cycles.";
+    qDebug().nospace().noquote() <<"Execution time (ms): "<<timer.elapsed();
+    qDebug().nospace().noquote() <<"Hz rating: "<< microCycleCounter / (((float)timer.elapsed())/1000);
 }
 
 void CPUControlSection::onClearCPU()noexcept
@@ -188,7 +195,7 @@ void CPUControlSection::branchHandler()
         temp = prog->getTrueTarget()->getValue();
         break;
     case Enu::uBRGT:
-        if((!data->getStatusBit(Enu::STATUS_N)))
+        if((!data->getStatusBit(Enu::STATUS_N) && !data->getStatusBit(Enu::STATUS_Z)))
         {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -198,7 +205,7 @@ void CPUControlSection::branchHandler()
         }
         break;
     case Enu::uBRGE:
-        if((!data->getStatusBit(Enu::STATUS_N)) || data->getStatusBit(Enu::STATUS_Z))
+        if((!data->getStatusBit(Enu::STATUS_N)))
         {
             temp = prog->getTrueTarget()->getValue();
         }

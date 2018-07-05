@@ -50,6 +50,7 @@ public:
     void copy();
     // Post: selected text in the text edit is copied to the clipboard
 
+    void clearText();
 public slots:
     void onFontChanged(QFont font);
 

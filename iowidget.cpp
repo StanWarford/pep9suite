@@ -21,6 +21,13 @@ void IOWidget::bindToMemorySection(MemorySection *memory)
     connect(memory,&MemorySection::charRequestedFromInput,this,&IOWidget::onDataRequested);
     connect(memory,&MemorySection::charWrittenToOutput,this,&IOWidget::onDataReceived);
 }
+
+void IOWidget::onClear()
+{
+    ui->batchOutput->clearText();
+    ui->terminalIO->clearTerminal();
+}
+
 //quint8 called=0;
 void IOWidget::onDataReceived(QChar data)
 {

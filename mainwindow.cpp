@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     auto y = new IODialog(this);
     y->setVisible(true);
     y->bindToMemorySection(memorySection);
+    connect(this,&MainWindow::beginSimulation,y,&IODialog::onClear);
     //Connect Models to necessary components
 
     mainMemory = new MainMemory(ui->mainSplitter);

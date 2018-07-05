@@ -22,6 +22,7 @@ public slots:
     void onDataReceived(QChar data);
     void onDataRequested();
     void onSimulationStart();
+    void onClear();
 private:
     Ui::IOWidget *ui;
     MemorySection* memory;

@@ -1,7 +1,7 @@
          BR      main        
          .ALIGN  2
 ;#####################
-gDepth:  .WORD   4          ;#2d Change the value of this word to change which fib number is calculated
+gDepth:  .WORD   23          ;#2d Change the value of this word to change which fib number is calculated
 ;######################
 gRes:    .BLOCK  2           ;#2d
 retVal:  .EQUATE 8           ;#2d
@@ -51,7 +51,7 @@ main:    LDWA    gDepth,d
          ADDSP   4,i         ;pop ##retVal #depth
          LDWA    -2,s        
          STWA    gRes,d      
-         ;DECO    gRes,d      ;implemented as nop in MAL
+         HEXO    gRes,d      ;implemented as nop in MAL
          STOP                
 ;Assuming delete actually did something
 del:     NOP0                
