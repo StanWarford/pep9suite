@@ -24,11 +24,11 @@
 #include <QString>
 #include <QMap>
 #include "enu.h"
-#include "specification.h"
-#include "mainmemory.h"
-#include "cpupane.h"
+class CpuGraphicsItems;
 class CPUDataSection; //Forward declare CPUDataSection to avoid inclusion loops
 class SymbolEntry;
+class Specification;
+
 // Abstract code class
 class Code
 {

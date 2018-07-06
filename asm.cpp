@@ -24,6 +24,7 @@
 #include "asm.h"
 #include "pep.h"
 #include "code.h"
+#include "specification.h"
 #include "symboltable.h"
 #include "symbolvalue.h"
 #include "symbolentry.h"

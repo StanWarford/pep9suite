@@ -21,7 +21,6 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "cpucontrolsection.h"
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QSettings>
@@ -34,11 +33,24 @@
 #include <QtConcurrent>
 #include <QDebug>
 #include <QFontDialog>
-#include "memorysection.h"
+
+#include "aboutpep.h"
+#include "byteconverterbin.h"
+#include "byteconverterchar.h"
+#include "byteconverterdec.h"
+#include "byteconverterhex.h"
+#include "code.h"
 #include "cpudatasection.h"
 #include "cpucontrolsection.h"
-#include "code.h"
-#include <iodialog.h>
+#include "cpupane.h"
+#include "helpdialog.h"
+#include "iodialog.h"
+#include "memorydumppane.h"
+#include "memorysection.h"
+#include "microcodepane.h"
+#include "microcodeprogram.h"
+#include "objectcodepane.h"
+#include "updatechecker.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -55,13 +67,9 @@ MainWindow::MainWindow(QWidget *parent) :
     // connect and begin update checker
     connect(updateChecker, &UpdateChecker::updateInformation, this, &MainWindow::onUpdateCheck);
     auto x = QtConcurrent::run(updateChecker,&UpdateChecker::beginUpdateCheck);
-    auto y = new IODialog(this);
-    y->setVisible(true);
-    y->bindToMemorySection(memorySection);
-    connect(this,&MainWindow::beginSimulation,y,&IODialog::onClear);
-    //Connect Models to necessary components
 
-    mainMemory = new MainMemory(ui->mainSplitter);
+    //Connect Models to necessary components
+    mainMemory = new MemoryDumpPane(memorySection, dataSection, ui->mainSplitter);
     delete ui->memoryFrame;
     microcodePane = new MicrocodePane(ui->codeSplitter);
     delete ui->microcodeFrame;
@@ -70,7 +78,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     cpuPaneTwoByteDataBus = new CpuPane(Enu::TwoByteDataBus, ui->mainSplitter);
-    //cpuPaneTwoByteDataBus->hide();
     ui->mainSplitter->insertWidget(1, cpuPaneTwoByteDataBus);
     cpuPane = cpuPaneTwoByteDataBus;
 
@@ -127,8 +134,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::darkModeChanged, objectCodePane, &ObjectCodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, cpuPaneTwoByteDataBus, &CpuPane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, microcodePane->getEditor(), &MicrocodeEditor::onDarkModeChanged);
-    connect(this, &MainWindow::darkModeChanged, mainMemory, &MainMemory::onDarkModeChange);
+    connect(this, &MainWindow::darkModeChanged, mainMemory, &MemoryDumpPane::onDarkModeChanged);
     qApp->installEventFilter(this);
+
     //Load Style sheets
     QFile f(":qdarkstyle/dark_style.qss");
     f.open(QFile::ReadOnly | QFile::Text);
@@ -136,6 +144,17 @@ MainWindow::MainWindow(QWidget *parent) :
     darkStyle= ts.readAll();
     lightStyle = this->styleSheet();
     connect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
+
+    //Events necessary for IO
+    auto y = new IODialog(this);
+    y->setVisible(true);
+    y->bindToMemorySection(memorySection);
+
+    connect(this,&MainWindow::beginSimulation,y,&IODialog::onClear);
+    //Events necessary for asynchronous run
+    connect(controlSection,&CPUControlSection::simulationFinished,this,&MainWindow::onSimulationFinished);
+
+    //Lastly, read in settings
     readSettings();
 }
 
@@ -200,6 +219,16 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
         return true;
     }
     return false;
+}
+
+void MainWindow::connectDrawEvents()
+{
+
+}
+
+void MainWindow::disconnectDrawEvents()
+{
+
 }
 
 void MainWindow::readSettings()
@@ -333,6 +362,7 @@ QString MainWindow::strippedName(const QString &fullFileName)
 {
     return QFileInfo(fullFileName).fileName();
 }
+
 QVector<quint8> convertObjectCodeToIntArray(QString line)
 {
     bool ok = false;
@@ -345,6 +375,7 @@ QVector<quint8> convertObjectCodeToIntArray(QString line)
     }
     return output;
 }
+
 void MainWindow::loadOperatingSystem()
 {
     QVector<quint8> values;
@@ -523,6 +554,8 @@ void MainWindow::on_actionEdit_Reset_font_to_Default_triggered()
 void MainWindow::on_actionSystem_Run_triggered()
 {
     if (on_actionSystem_Start_Debugging_triggered()) {
+        mainMemory->setUpdatesEnabled(false);
+        cpuPane->setUpdatesEnabled(false);
         cpuPane->run();
     }
 }
@@ -530,6 +563,7 @@ void MainWindow::on_actionSystem_Run_triggered()
 bool MainWindow::on_actionSystem_Start_Debugging_triggered()
 {
     emit beginSimulation();
+    QApplication::processEvents();
     MicrocodeProgram* prog;
     // Load necessary programs into memory
     loadOperatingSystem();
@@ -543,7 +577,7 @@ bool MainWindow::on_actionSystem_Start_Debugging_triggered()
         if(prog->hasUnitPre())
         {
             controlSection->onClearCPU();
-            mainMemory->clearMemory();
+            mainMemory->refreshMemory();
             cpuPane->clearCpu();
             controlSection->initCPUStateFromPreconditions();
         }
@@ -599,8 +633,16 @@ void MainWindow::on_actionSystem_Clear_CPU_triggered()
 
 void MainWindow::on_actionSystem_Clear_Memory_triggered()
 {
-    mainMemory->clearMemory();
+    mainMemory->refreshMemory();
     controlSection->onClearMemory();
+}
+
+void MainWindow::onSimulationFinished()
+{
+    mainMemory->setUpdatesEnabled(true);
+    cpuPane->setUpdatesEnabled(true);
+    cpuPane->update();
+    mainMemory->refreshMemory();
 }
 
 void MainWindow::on_actionDark_Mode_triggered()
@@ -838,7 +880,7 @@ void MainWindow::simulationFinished()
     // feature, not a bug: we will display the "passed unit test" even
     // on the empty case - no postconditions
 
-    ui->statusBar->showMessage("Passed unit test", 4000);
+    ui->statusBar->showMessage("Execution Finished", 4000);
 }
 
 void MainWindow::appendMicrocodeLine(QString line)
@@ -859,8 +901,9 @@ void MainWindow::helpCopyToMicrocodeButtonClicked()
 
 void MainWindow::updateMemAddress(int address)
 {
-    mainMemory->setMemAddress(address, memorySection->getMemoryByte(address, false));
-    mainMemory->showMemEdited(address);
+#pragma message("TODO: Connect Memory Dump Pane to event loop")
+    //mainMemory->setMemAddress(address, memorySection->getMemoryByte(address, false));
+    //mainMemory->showMemEdited(address);
 }
 
 

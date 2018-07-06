@@ -8,15 +8,9 @@
 #include "enu.h"
 
 /*
-Still left to do:
-    Implement setting of memory registers from preconditions
-    Implement jumps instead of increment in control section
 
 THEN
-    Remove all CPUPane stepping code
-    Remove all state code from Sim
     Fix format-from microcode
-    Have CPU pane listen to data section, and pass on value changes to CPUGraphicsItems
 
  */
 
@@ -60,6 +54,7 @@ signals:
     void simulationStarted();
     void simulationStepped();
     void simulationFinished();
+    void simulationInstructionFinished();
 private:
     CPUControlSection(CPUDataSection* dataSection, MemorySection* memory);
     static CPUControlSection *_instance;
@@ -73,6 +68,8 @@ private:
 
     void branchHandler(); //Based on the current instruction, set the MPC correctly
     void setSignalsFromMicrocode(const MicroCode *line); //Set signals for the control section based on the microcode program
+    //Update simulation state at the start of a assembly level instruction
+    void updateStateAtInstructionStart();
 };
 
 class CPUTester: public QObject

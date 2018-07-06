@@ -23,26 +23,26 @@
 
 #include <QtWidgets/QMainWindow>
 
-#include "byteconverterdec.h"
-#include "byteconverterhex.h"
-#include "byteconverterbin.h"
-#include "byteconverterchar.h"
-
-#include "cpupane.h"
-#include "mainmemory.h"
-#include "microcodepane.h"
-#include "objectcodepane.h"
 #include "pep.h"
-#include "helpdialog.h"
-#include "aboutpep.h"
-#include "updatechecker.h"
 #include <QDir>
 
 namespace Ui {
     class MainWindow;
 }
-class CPUDataSection;
+class AboutPep;
+class ByteConverterBin;
+class ByteConverterChar;
+class ByteConverterDec;
+class ByteConverterHex;
 class CPUControlSection;
+class CPUDataSection;
+class CpuPane;
+class HelpDialog;
+class MemoryDumpPane;
+class MemorySection;
+class MicrocodePane;
+class ObjectCodePane;
+class UpdateChecker;
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
@@ -67,7 +67,7 @@ private:
     ByteConverterChar *byteConverterChar;
 
     // Main Memory
-    MainMemory *mainMemory;
+    MemoryDumpPane *mainMemory;
     CpuPane *cpuPane;
     CpuPane *cpuPaneTwoByteDataBus;
     MicrocodePane *microcodePane;
@@ -79,6 +79,12 @@ private:
     MemorySection* memorySection;
     CPUDataSection* dataSection;
     CPUControlSection* controlSection;
+
+    //Disconnect or reconnect draw events from the model.
+    //These allow the screen to not be updated when the "run" option is picked
+    void connectDrawEvents();
+    void disconnectDrawEvents();
+
     void readSettings();
     void writeSettings();
 
@@ -121,6 +127,8 @@ private slots:
     void on_actionSystem_Stop_Debugging_triggered();
     void on_actionSystem_Clear_CPU_triggered();
     void on_actionSystem_Clear_Memory_triggered();
+    //Run events
+    void onSimulationFinished();
     // View
     void on_actionDark_Mode_triggered();
     // Help

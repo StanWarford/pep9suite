@@ -1,6 +1,7 @@
 #include "cpudatasection.h"
+#include "code.h"
 #include "memorysection.h"
-
+#include "microcodeprogram.h"
 CPUDataSection* CPUDataSection::_instance = nullptr;
 CPUDataSection::CPUDataSection(QObject *parent): QObject(parent), memory(MemorySection::getInstance()),
     cpuFeatures(Enu::TwoByteDataBus), mainBusState(Enu::None),
@@ -219,6 +220,16 @@ quint16 CPUDataSection::getRegisterBankWord(quint8 registerNumber) const
     }
     return returnValue;
 
+}
+
+quint8 CPUDataSection::getRegisterBankByte(CPURegisters registerNumber) const
+{
+    return getRegisterBankByte((quint8)registerNumber);
+}
+
+quint16 CPUDataSection::getRegisterBankWord(CPURegisters registerNumber) const
+{
+    return getRegisterBankWord((quint8)registerNumber);
 }
 
 bool CPUDataSection::valueOnABus(quint8 &result) const

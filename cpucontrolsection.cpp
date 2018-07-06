@@ -121,6 +121,8 @@ void CPUControlSection::onStep() noexcept
     if(microprogramCounter==0 ||hadErrorOnStep() ||executionFinished)
     {
         memoizer->storeState();
+        updateStateAtInstructionStart();
+        emit simulationInstructionFinished();
         macroCycleCounter++;
 
         qDebug().noquote() << memoizer->memoize();
@@ -146,13 +148,23 @@ void CPUControlSection::onRun()noexcept
 #pragma message ("This needs to be ammended for errors in execution")
     while(!executionFinished)
     {
-        if(microCycleCounter%100==0)
+        if(microCycleCounter%500==0)
         {
             QApplication::processEvents();
         }
         onStep();
         //If there was an error on the control flow
-        if(this->hadErrorOnStep())
+        if(memory->hadError())
+        {
+            qDebug() << "Memory section reporting an error";
+            break;
+        }
+        else if(data->hadErrorOnStep())
+        {
+            qDebug() << "Data section reporting an error";
+            break;
+        }
+        else if(this->hadErrorOnStep())
         {
             qDebug() << "The control section died";
             break;
@@ -161,11 +173,13 @@ void CPUControlSection::onRun()noexcept
     qDebug().nospace().noquote()<<"Executed "<<macroCycleCounter<<" instructions in "<<microCycleCounter<< " cycles.";
     qDebug().nospace().noquote() <<"Execution time (ms): "<<timer.elapsed();
     qDebug().nospace().noquote() <<"Hz rating: "<< microCycleCounter / (((float)timer.elapsed())/1000);
+    emit simulationFinished();
 }
 
 void CPUControlSection::onClearCPU()noexcept
 {
     data->onClearCPU();
+    memoizer->clear();
     inSimulation = false;
     microprogramCounter = 0;
     microCycleCounter = 0;
@@ -405,6 +419,11 @@ void CPUControlSection::setSignalsFromMicrocode(const MicroCode *line)
             isPrefetchValid = val;
         }
     }
+}
+
+void CPUControlSection::updateStateAtInstructionStart()
+{
+#pragma message("Todo: Update CPU state at start of instruction")
 }
 
 void CPUControlSection::initCPUStateFromPreconditions()

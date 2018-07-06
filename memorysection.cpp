@@ -160,3 +160,8 @@ void MemorySection::onClearMemory() noexcept
     clearMemory();
     clearErrors();
 }
+
+void MemorySection::onInstructionFinished() noexcept
+{
+#pragma message ("TODO")
+}

@@ -26,14 +26,12 @@ SOURCES += main.cpp \
     byteconverterdec.cpp \
     byteconverterchar.cpp \
     byteconverterbin.cpp \
-    mainmemory.cpp \
     pep.cpp \
     microcodepane.cpp \
     cpupane.cpp \
     helpdialog.cpp \
     pephighlighter.cpp \
     microcodeeditor.cpp \
-    memoryitemdelegate.cpp \
     objectcodepane.cpp \
     code.cpp \
     asm.cpp \
@@ -60,13 +58,13 @@ SOURCES += main.cpp \
     terminalpane.cpp \
     iodialog.cpp \
     memorysection.cpp \
-    cpumemoizer.cpp
+    cpumemoizer.cpp \
+    memorydumppane.cpp
 HEADERS += mainwindow.h \
     byteconverterhex.h \
     byteconverterdec.h \
     byteconverterchar.h \
     byteconverterbin.h \
-    mainmemory.h \
     pep.h \
     microcodepane.h \
     cpupane.h \
@@ -74,7 +72,6 @@ HEADERS += mainwindow.h \
     pephighlighter.h \
     enu.h \
     microcodeeditor.h \
-    memoryitemdelegate.h \
     objectcodepane.h \
     code.h \
     asm.h \
@@ -103,13 +100,13 @@ HEADERS += mainwindow.h \
     terminalpane.h \
     iodialog.h \
     memorysection.h \
-    cpumemoizer.h
+    cpumemoizer.h \
+    memorydumppane.h
 FORMS += mainwindow.ui \
     byteconverterhex.ui \
     byteconverterdec.ui \
     byteconverterchar.ui \
     byteconverterbin.ui \
-    mainmemory.ui \
     microcodepane.ui \
     cpupane.ui \
     helpdialog.ui \
@@ -122,7 +119,8 @@ FORMS += mainwindow.ui \
     inputpane.ui \
     outputpane.ui \
     terminalpane.ui \
-    iodialog.ui
+    iodialog.ui \
+    memorydumppane.ui
 OTHER_FILES += help/images/registeraddresssignals.png \
     help/figures/exer1204.pepcpu \
     help/figures/exer1206.pepcpu \

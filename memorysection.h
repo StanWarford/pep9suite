@@ -32,14 +32,17 @@ signals:
     void charRequestedFromInput() const;
 
 public slots:
+    void onSetMemoryByte(quint16 address,quint8 val);
+    void onSetMemoryWord(quint16 address,quint16 val); //This doesn't enforce aligned memory access
+    void onClearMemory() noexcept;
+#pragma message("TODO: Make memory section report on bytes changed")
+    void onInstructionFinished() noexcept;
+
     void onMemorySizeChanged(quint16 maxBytes);
     void onIPortChanged(quint16 newIPort);
     void onOPortChanged(quint16 newIPort);
     void onAppendInBuffer(const QString& newData);
     void onCancelWaiting();
-    void onSetMemoryByte(quint16 address,quint8 val);
-    void onSetMemoryWord(quint16 address,quint16 val); //This doesn't enforce aligned memory access
-    void onClearMemory() noexcept;
 
 private:
     explicit MemorySection(QObject *parent = nullptr);
@@ -52,6 +55,7 @@ private:
 
     quint16 maxBytes, iPort, oPort;
     QVector<quint8> memory;
+    //QSet<quint16> modifiedAddresses,inProgressAddresses;
     void initializeMemory();
 };
 

@@ -20,11 +20,15 @@
 */
 
 #include "code.h"
+#include <QMetaEnum>
+
 #include "cpugraphicsitems.h"
 #include "pep.h"
 #include "cpudatasection.h"
 #include "symbolentry.h"
-#include <QMetaEnum>
+#include "specification.h"
+#include "cpupane.h"
+
 MicroCode::MicroCode():controlSignals(22),clockSignals(12),branchFunc(Enu::Assembler_Assigned),
     symbol(nullptr),trueTargetAddr(nullptr),falseTargetAddr(nullptr)
 {

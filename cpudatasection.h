@@ -7,9 +7,20 @@
 #include <QException>
 #include <QString>
 #include "enu.h"
-#include "code.h"
-#include "microcodeprogram.h"
+class Code;
 class MemorySection;
+class MicroCode;
+enum class CPURegisters: quint8
+{
+    //Two byte registers
+    A = 0, X = 2, SP = 4, PC = 6, OS = 9, T2 = 12, T3 = 14,
+    T4 = 14, T5 = 18, T7 = 20, M1 = 22, M2 = 24, M3 = 26,
+    M4 = 28, M5 = 30,
+
+    //One byte registers
+    IS=8, T1=11
+};
+
 class CPUDataSection: public QObject
 {
     Q_OBJECT
@@ -23,6 +34,8 @@ public:
     //Access CPU registers
     quint8 getRegisterBankByte(quint8 registerNumber) const;
     quint16 getRegisterBankWord(quint8 registerNumber) const; //Follows even/odd conventions of pep/9
+    quint8 getRegisterBankByte(CPURegisters registerNumber) const;
+    quint16 getRegisterBankWord(CPURegisters registerNumber) const; //Follows even/odd conventions of pep/9
     quint8 getMemoryRegister(Enu::EMemoryRegisters registerNumber)const;
 
     //Access register & Memory Buses
@@ -84,7 +97,6 @@ private:
 
     //Set the values values of the sequential data registers (numbers 22-31)
     void presetStaticRegisters() noexcept;
-
     //Set CPU state and emit appropriate change event
     inline void setMemoryRegister(Enu::EMemoryRegisters,quint8 value);
     inline void setRegisterByte(quint8 register,quint8 value);
