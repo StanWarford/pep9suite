@@ -127,7 +127,7 @@ void CPUControlSection::onStep() noexcept
         emit simulationInstructionFinished();
         macroCycleCounter++;
 
-        qDebug().noquote() << memoizer->memoize();
+        //qDebug().noquote() << memoizer->memoize();
     }
 }
 
@@ -147,7 +147,6 @@ void CPUControlSection::onClock()noexcept
 void CPUControlSection::onRun()noexcept
 {
     timer.start();
-#pragma message ("This needs to be ammended for errors in execution")
     while(!executionFinished)
     {
         if(microCycleCounter%500==0)
@@ -156,25 +155,31 @@ void CPUControlSection::onRun()noexcept
         }
         onStep();
         //If there was an error on the control flow
-        if(memory->hadErroronStep())
+        if(hadErrorOnStep())
         {
-            qDebug() << "Memory section reporting an error";
-            break;
-        }
-        else if(data->hadErrorOnStep())
-        {
-            qDebug() << "Data section reporting an error";
-            break;
-        }
-        else if(this->hadErrorOnStep())
-        {
-            qDebug() << "The control section died";
-            break;
+            if(memory->hadErroronStep())
+            {
+                qDebug() << "Memory section reporting an error";
+                break;
+            }
+            else if(data->hadErrorOnStep())
+            {
+                qDebug() << "Data section reporting an error";
+                break;
+            }
+            else
+            {
+                qDebug() << "The control section died";
+                break;
+            }
         }
     }
-    qDebug().nospace().noquote()<<"Executed "<<macroCycleCounter<<" instructions in "<<microCycleCounter<< " cycles.";
-    qDebug().nospace().noquote() <<"Execution time (ms): "<<timer.elapsed();
-    qDebug().nospace().noquote() <<"Hz rating: "<< microCycleCounter / (((float)timer.elapsed())/1000);
+    auto value = timer.elapsed();
+    qDebug().nospace().noquote() <<"Executed "<<macroCycleCounter<<" instructions in "<<microCycleCounter<< " cycles.";
+    qDebug().nospace().noquote() <<"Averaging "<<microCycleCounter/macroCycleCounter<<" cycles per instruction.";
+    qDebug().nospace().noquote() <<"Execution time (ms): " << value;
+    qDebug().nospace().noquote() <<"Cycles per second: "<< microCycleCounter / (((float)value/1000));
+    qDebug().nospace().noquote() <<"Instructions per second: "<< macroCycleCounter / (((float)value/1000));
     emit simulationFinished();
 }
 
