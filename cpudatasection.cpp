@@ -232,6 +232,11 @@ quint16 CPUDataSection::getRegisterBankWord(CPURegisters registerNumber) const
     return getRegisterBankWord((quint8)registerNumber);
 }
 
+quint8 CPUDataSection::getMemoryRegister(Enu::EMemoryRegisters registerNumber) const
+{
+    return memoryRegisters[registerNumber];
+}
+
 bool CPUDataSection::valueOnABus(quint8 &result) const
 {
     if(controlSignals[Enu::A]==Enu::signalDisabled) return false;

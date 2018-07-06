@@ -1,17 +1,22 @@
 #include "cpucontrolsection.h"
+#include <QApplication>
+#include <QDebug>
+#include <QElapsedTimer>
+#include <qmutex.h>
+#include <QMutexLocker>
+
 #include "cpudatasection.h"
 #include "code.h"
 #include "microcodeprogram.h"
 #include "symbolentry.h"
 #include "pep.h"
-#include <QDebug>
 #include "symbolentry.h"
 #include "symboltable.h"
 #include "symboltable.h"
 #include "memorysection.h"
 #include "cpumemoizer.h"
-#include <QElapsedTimer>
-#include <QApplication>
+
+QMutex dontEnter;
 QElapsedTimer timer;
 CPUControlSection *CPUControlSection::_instance = nullptr;
 CPUTester *CPUTester::_instance = nullptr;
@@ -59,7 +64,7 @@ const MicroCode *CPUControlSection::getCurrentMicrocodeLine() const
 
 QString CPUControlSection::getErrorMessage() const
 {
-    if(memory->hadError()) return memory->getErrorMessage();
+    if(memory->hadErroronStep()) return memory->getErrorMessage();
     else if(data->hadErrorOnStep()) return data->getErrorMessage();
     else if(hadErrorOnStep()) return errorMessage;
     else return "";
@@ -67,7 +72,7 @@ QString CPUControlSection::getErrorMessage() const
 
 bool CPUControlSection::hadErrorOnStep() const
 {
-    return hadControlError || data->hadErrorOnStep() || memory->hadError();
+    return hadControlError || data->hadErrorOnStep() || memory->hadErroronStep();
 }
 
 bool CPUControlSection::getExecutionFinished() const
@@ -99,9 +104,6 @@ void CPUControlSection::onDebuggingFinished()
     onSimulationFinished();
 }
 
-#include <qmutex.h>
-#include <QMutexLocker>
-QMutex dontEnter;
 void CPUControlSection::onStep() noexcept
 {
     QMutexLocker mutty(&dontEnter);
@@ -121,7 +123,7 @@ void CPUControlSection::onStep() noexcept
     if(microprogramCounter==0 ||hadErrorOnStep() ||executionFinished)
     {
         memoizer->storeState();
-        updateStateAtInstructionStart();
+        updateAtInstructionEnd();
         emit simulationInstructionFinished();
         macroCycleCounter++;
 
@@ -154,7 +156,7 @@ void CPUControlSection::onRun()noexcept
         }
         onStep();
         //If there was an error on the control flow
-        if(memory->hadError())
+        if(memory->hadErroronStep())
         {
             qDebug() << "Memory section reporting an error";
             break;
@@ -421,9 +423,10 @@ void CPUControlSection::setSignalsFromMicrocode(const MicroCode *line)
     }
 }
 
-void CPUControlSection::updateStateAtInstructionStart()
+void CPUControlSection::updateAtInstructionEnd()
 {
 #pragma message("Todo: Update CPU state at start of instruction")
+    memory->onInstructionFinished();
 }
 
 void CPUControlSection::initCPUStateFromPreconditions()

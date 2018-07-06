@@ -33,13 +33,14 @@ public:
     virtual ~CPUControlSection();
     void initCPUStateFromPreconditions();
     bool testPost();
-    void setMicrocodeProgram(MicrocodeProgram* program);
     int getLineNumber() const;
     const MicrocodeProgram* getProgram() const;
     const MicroCode* getCurrentMicrocodeLine() const;
     bool getExecutionFinished() const;
     bool hadErrorOnStep() const;
     QString getErrorMessage() const;
+
+    void setMicrocodeProgram(MicrocodeProgram* program);
 public slots:
     void onSimulationStarted();
     void onSimulationFinished();
@@ -69,7 +70,7 @@ private:
     void branchHandler(); //Based on the current instruction, set the MPC correctly
     void setSignalsFromMicrocode(const MicroCode *line); //Set signals for the control section based on the microcode program
     //Update simulation state at the start of a assembly level instruction
-    void updateStateAtInstructionStart();
+    void updateAtInstructionEnd();
 };
 
 class CPUTester: public QObject

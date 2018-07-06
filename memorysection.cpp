@@ -1,5 +1,6 @@
 #include "memorysection.h"
 #include <QApplication>
+
 MemorySection* MemorySection::instance = nullptr;
 MemorySection *MemorySection::getInstance()
 {
@@ -60,7 +61,7 @@ const QVector<quint8> MemorySection::getMemory() const
     return memory;
 }
 
-bool MemorySection::hadError() const
+bool MemorySection::hadErroronStep() const
 {
     return hadMemoryError;
 }
@@ -70,10 +71,15 @@ const QString MemorySection::getErrorMessage()
     return errorMessage;
 }
 
+const QSet<quint16> MemorySection::changedAddresses() const
+{
+    return completedCycle;
+}
+
 void MemorySection::setMemoryByte(quint16 address, quint8 value)
 {
     quint8 old= memory[address];
-    //if(old == value)return; //Don't continue if the new value is the old value
+    if(old == value)return; //Don't continue if the new value is the old value
     onSetMemoryByte(address,value);
 }
 
@@ -81,7 +87,7 @@ void MemorySection::setMemoryWord(quint16 address, quint16 value)
 {
     address&=0xFFFE; //Memory access ignores the lowest order bit
     quint8 hi=memory[address],lo=memory[address+1]; //Cache old memory values
-    //if((((quint16)hi<<8)|lo)==value)return; //Don't continue if the new value is the old value
+    if((((quint16)hi<<8)|lo)==value)return; //Don't continue if the new value is the old value
     onSetMemoryWord(address,value);
 }
 
@@ -143,7 +149,8 @@ void MemorySection::onSetMemoryByte(quint16 address, quint8 val)
         emit this->charWrittenToOutput(val);
     }
     memory[address] = val;
-    if(old != val) emit memoryChanged(address,old,val);
+    inProgress.insert(address);
+    emit memoryChanged(address,old,val);
 }
 
 void MemorySection::onSetMemoryWord(quint16 address, quint16 val)
@@ -163,5 +170,6 @@ void MemorySection::onClearMemory() noexcept
 
 void MemorySection::onInstructionFinished() noexcept
 {
-#pragma message ("TODO")
+    completedCycle = this->inProgress;
+    inProgress.clear();
 }

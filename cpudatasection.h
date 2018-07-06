@@ -14,7 +14,7 @@ enum class CPURegisters: quint8
 {
     //Two byte registers
     A = 0, X = 2, SP = 4, PC = 6, OS = 9, T2 = 12, T3 = 14,
-    T4 = 14, T5 = 18, T7 = 20, M1 = 22, M2 = 24, M3 = 26,
+    T4 = 14, T5 = 18, T6 = 20, M1 = 22, M2 = 24, M3 = 26,
     M4 = 28, M5 = 30,
 
     //One byte registers

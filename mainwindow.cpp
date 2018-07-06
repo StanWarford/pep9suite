@@ -70,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Connect Models to necessary components
     mainMemory = new MemoryDumpPane(memorySection, dataSection, ui->mainSplitter);
+    mainMemory->refreshMemory();
     delete ui->memoryFrame;
     microcodePane = new MicrocodePane(ui->codeSplitter);
     delete ui->microcodeFrame;
@@ -154,6 +155,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //Events necessary for asynchronous run
     connect(controlSection,&CPUControlSection::simulationFinished,this,&MainWindow::onSimulationFinished);
 
+    connectMicroDraw();
     //Lastly, read in settings
     readSettings();
 }
@@ -161,6 +163,11 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::microResume()
+{
+    disconnectMicroDraw();
 }
 
 void MainWindow::changeEvent(QEvent *e)
@@ -221,14 +228,24 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
     return false;
 }
 
-void MainWindow::connectDrawEvents()
+void MainWindow::connectMicroDraw()
 {
-
+    connect(memorySection, &MemorySection::memoryChanged,mainMemory, &MemoryDumpPane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
+    connect(cpuPaneTwoByteDataBus, &CpuPane::simulationFinished, controlSection, &CPUControlSection::onSimulationFinished, Qt::ConnectionType::UniqueConnection);
+    connect(cpuPaneTwoByteDataBus, &CpuPane::registerChanged, dataSection, &CPUDataSection::onSetRegisterByte, Qt::ConnectionType::UniqueConnection);
+    connect(dataSection, &CPUDataSection::statusBitChanged, cpuPaneTwoByteDataBus, &CpuPane::onStatusBitChanged, Qt::ConnectionType::UniqueConnection);
+    connect(dataSection, &CPUDataSection::registerChanged, cpuPaneTwoByteDataBus, &CpuPane::onRegisterChanged, Qt::ConnectionType::UniqueConnection);
+    connect(dataSection, &CPUDataSection::memoryRegisterChanged, cpuPaneTwoByteDataBus, &CpuPane::onMemoryRegisterChanged, Qt::ConnectionType::UniqueConnection);
 }
 
-void MainWindow::disconnectDrawEvents()
+void MainWindow::disconnectMicroDraw()
 {
-
+    disconnect(memorySection,&MemorySection::memoryChanged,mainMemory,&MemoryDumpPane::onMemoryChanged);
+    disconnect(cpuPaneTwoByteDataBus, &CpuPane::simulationFinished, controlSection, &CPUControlSection::onSimulationFinished);
+    disconnect(cpuPaneTwoByteDataBus, &CpuPane::registerChanged, dataSection, &CPUDataSection::onSetRegisterByte);
+    disconnect(dataSection, &CPUDataSection::statusBitChanged, cpuPaneTwoByteDataBus, &CpuPane::onStatusBitChanged);
+    disconnect(dataSection, &CPUDataSection::registerChanged, cpuPaneTwoByteDataBus, &CpuPane::onRegisterChanged);
+    disconnect(dataSection, &CPUDataSection::memoryRegisterChanged, cpuPaneTwoByteDataBus, &CpuPane::onMemoryRegisterChanged);
 }
 
 void MainWindow::readSettings()
@@ -554,16 +571,19 @@ void MainWindow::on_actionEdit_Reset_font_to_Default_triggered()
 void MainWindow::on_actionSystem_Run_triggered()
 {
     if (on_actionSystem_Start_Debugging_triggered()) {
-        mainMemory->setUpdatesEnabled(false);
-        cpuPane->setUpdatesEnabled(false);
+        disconnectMicroDraw();
         cpuPane->run();
+        //mainMemory->setUpdatesEnabled(false);
+        //cpuPane->setUpdatesEnabled(false);
     }
 }
 
 bool MainWindow::on_actionSystem_Start_Debugging_triggered()
 {
+    connectMicroDraw();
+    //mainMemory->refreshMemory();
     emit beginSimulation();
-    QApplication::processEvents();
+
     MicrocodeProgram* prog;
     // Load necessary programs into memory
     loadOperatingSystem();
@@ -606,11 +626,13 @@ bool MainWindow::on_actionSystem_Start_Debugging_triggered()
     microcodePane->setReadOnly(true);
 
     cpuPane->startDebugging();
+    QApplication::processEvents();
     return true;
 }
 
 void MainWindow::on_actionSystem_Stop_Debugging_triggered()
 {
+    connectMicroDraw();
     microcodePane->clearSimulationView();
     objectCodePane->clearSimulationView();
     // disable the actions available while we're debugging
@@ -639,10 +661,8 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
 
 void MainWindow::onSimulationFinished()
 {
-    mainMemory->setUpdatesEnabled(true);
-    cpuPane->setUpdatesEnabled(true);
-    cpuPane->update();
-    mainMemory->refreshMemory();
+    cpuPane->recalculateFromModel();
+    //mainMemory->refreshMemory();
 }
 
 void MainWindow::on_actionDark_Mode_triggered()

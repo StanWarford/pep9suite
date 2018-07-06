@@ -2,6 +2,7 @@
 #define MEMORYSECTION_H
 
 #include <QObject>
+#include <QSet>
 #include <QVector>
 enum IOMode
 {
@@ -16,8 +17,9 @@ public:
     quint8 getMemoryByte(quint16 address, bool useIOPorts) const;
     quint16 getMemoryWord(quint16 address, bool useIOPorts) const; //Uses the same even / odd conventions as Pep9
     const QVector<quint8> getMemory() const; //Returns a shared copy of the memory vector
-    bool hadError() const;
+    bool hadErroronStep() const;
     const QString getErrorMessage();
+    const QSet<quint16> changedAddresses() const;
 
     void setMemoryByte(quint16 address, quint8 value);
     void setMemoryWord(quint16 address, quint16 value);
@@ -25,7 +27,6 @@ public:
     void clearErrors() noexcept;
 
     void loadObjectCode(quint16 address, QVector<quint8> values);
-
 signals:
     void memoryChanged(quint16 address,quint8 oldVal, quint8 newVal); //Thrown whenever a memory address is changed
     void charWrittenToOutput(QChar character);
@@ -55,7 +56,7 @@ private:
 
     quint16 maxBytes, iPort, oPort;
     QVector<quint8> memory;
-    //QSet<quint16> modifiedAddresses,inProgressAddresses;
+    QSet<quint16> completedCycle,inProgress;
     void initializeMemory();
 };
 

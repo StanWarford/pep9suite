@@ -9,6 +9,7 @@ UnitPre:  Mem[0x0070]=0x6100, Mem[0x0072]=0x78E1, Mem[0x0074]=0x0078, Mem[0x0076
 //Auto-generated from Pep9 spec. This initializes registers properly
 UnitPre: SP=0xFB8F
 
+
 //* This file contains a complete implementation of the microcode needed to execute
 //* the Pep/9 instruction set. In order to test a working program,
 //* Clone this file,
@@ -479,7 +480,7 @@ UnitPre: SP=0xFB8F
 193. stba_e: MemRead, A=1, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
 
 
-194. sbtx: A=18, B=19, MARMux=1; MARCk
+194. stbx: A=18, B=19, MARMux=1; MARCk
 195. MemRead, A=21,AMUX=1, ALU=13; SCk; if BRS stbx_o else stbx_e
 196. stbx_o: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
 197. stbx_e: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
@@ -648,7 +649,8 @@ UnitPre: SP=0xFB8F
 306. memwrite, a=8,c=21,amux=1,alu=13,cmux=1; loadck
 
 //Mem[T-5] <- PC
-307. a=14, b=15, MARMux=1; marck
+//NZVC bits go to T5<lo>
+307. a=14, b=15, MARMux=1, cmux=0,c=19; marck, loadck
 //Calculate if the IR is unary or nonunary, and increment the PC before pushing it onto the stack
 308. a=21,c=21,amux=1,alu=13,cmux=1; loadck
 309. a=21,b=23, c=21,amux=1,alu=1,cmux=1; loadck
@@ -688,7 +690,7 @@ UnitPre: SP=0xFB8F
 //Calculate high order of t-10
 326. a=16, b=22, c=4, AMUX=1, ALU=4, CSMUX=1, CMUX=1; loadck
 327. a=4, b=5, MARMux=1; marck
-328. memwrite, cmux=0, MDRoMux=1; MDRoCK
+328. memwrite, a=19,amux=1,alu=0, cmux=1, MDRoMux=1; MDRoCK
 329. memwrite
 330. memwrite
 

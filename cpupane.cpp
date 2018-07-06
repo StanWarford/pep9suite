@@ -45,11 +45,6 @@ CpuPane::CpuPane(CPUType type, QWidget *parent) :
         ui(new Ui::CpuPane)
 {
     ui->setupUi(this);
-    connect(this, &CpuPane::simulationFinished, controlSection, &CPUControlSection::onSimulationFinished);
-    connect(this, &CpuPane::registerChanged, dataSection, &CPUDataSection::onSetRegisterByte);
-    connect(dataSection, &CPUDataSection::statusBitChanged, this, &CpuPane::onStatusBitChanged);
-    connect(dataSection, &CPUDataSection::registerChanged, this, &CpuPane::onRegisterChanged);
-    connect(dataSection, &CPUDataSection::memoryRegisterChanged, this, &CpuPane::onMemoryRegisterChanged);
     connect(ui->spinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CpuPane::zoomFactorChanged);
     cpuPaneItems = NULL;
     scene = new QGraphicsScene(nullptr);
@@ -62,17 +57,6 @@ CpuPane::CpuPane(CPUType type, QWidget *parent) :
     ui->spinBox->hide();
     ui->graphicsView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     ui->singleStepPushButton->setEnabled(false);
-    if (type == Enu::TwoByteDataBus) {
-        this->setMaximumWidth(730);
-
-//        ui->graphicsView->hide();
-//        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-//        QWebEngineView *webView = new QWebEngineView(this);
-//        webView->load(QUrl("qrc:/help/beta.html"));
-//        ui->verticalLayout->insertWidget(1, webView);
-//        webView->setSizePolicy(sizePolicy);
-    }
 }
 
 CpuPane::~CpuPane()
@@ -717,8 +701,6 @@ void CpuPane::singleStepButtonPushed()
 
     if (controlSection->getExecutionFinished()) { // this should be detected on the previous step, but let's be defensive:
         emit simulationFinished();
-        //dataSection->clearClockSignals();
-        //dataSection->clearControlSignals();
         clearCpuControlSignals();
     }
     else {
@@ -742,7 +724,6 @@ void CpuPane::resumeButtonPushed()
 {
 
     bool finished = controlSection->getExecutionFinished();
-
     controlSection->onRun();
     if(controlSection->hadErrorOnStep())
     {
@@ -753,24 +734,6 @@ void CpuPane::resumeButtonPushed()
     }
     finished = true;
     scene->invalidate();
-    /*while (!finished) { // we set the flag to false when we're done with simulation, or have errors
-        controlSection->onStep();
-        if (controlSection->hadErrorOnStep()) {
-            // simulation had issues.
-            QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
-            finished = true;
-            emit stopSimulation();
-            clearCpuControlSignals();
-            return; // we'll just return here instead of letting it fail and go to the bottom
-        }
-
-        if (controlSection->getExecutionFinished()) {
-            finished = true; // this will fail the loop next time and go to the bottom
-        }
-
-        scene->invalidate();
-    }*/
-
     emit simulationFinished();
     clearCpuControlSignals();
 
@@ -1047,6 +1010,31 @@ void CpuPane::repaintOnScroll(int distance)
 {
     (void)distance; //Ugly fix to get compiler to silence unused variable warning
     cpuPaneItems->update();
+}
+
+void CpuPane::recalculateFromModel()
+{
+    setRegister(Enu::Acc, dataSection->getRegisterBankWord(CPURegisters::A));
+    setRegister(Enu::X, dataSection->getRegisterBankWord(CPURegisters::X));
+    setRegister(Enu::SP, dataSection->getRegisterBankWord(CPURegisters::SP));
+    setRegister(Enu::PC, dataSection->getRegisterBankWord(CPURegisters::PC));
+    setRegister(Enu::IR, ((quint32)dataSection->getRegisterBankByte(CPURegisters::IS)<<16) + dataSection->getRegisterBankWord(CPURegisters::OS));
+    setRegister(Enu::T1, dataSection->getRegisterBankByte(CPURegisters::T1));
+    setRegister(Enu::T2, dataSection->getRegisterBankWord(CPURegisters::T2));
+    setRegister(Enu::T3, dataSection->getRegisterBankWord(CPURegisters::T3));
+    setRegister(Enu::T4, dataSection->getRegisterBankWord(CPURegisters::T4));
+    setRegister(Enu::T5, dataSection->getRegisterBankWord(CPURegisters::T5));
+    setRegister(Enu::T6, dataSection->getRegisterBankWord(CPURegisters::T6));
+    setRegister(Enu::MARAREG, dataSection->getMemoryRegister(Enu::MEM_MARA));
+    setRegister(Enu::MARBREG, dataSection->getMemoryRegister(Enu::MEM_MARB));
+    setRegister(Enu::MDROREG, dataSection->getMemoryRegister(Enu::MEM_MDRO));
+    setRegister(Enu::MDREREG, dataSection->getMemoryRegister(Enu::MEM_MDRE));
+    setStatusBit(Enu::N, dataSection->getStatusBit(Enu::STATUS_N));
+    setStatusBit(Enu::Z, dataSection->getStatusBit(Enu::STATUS_Z));
+    setStatusBit(Enu::V, dataSection->getStatusBit(Enu::STATUS_V));
+    setStatusBit(Enu::Cbit, dataSection->getStatusBit(Enu::STATUS_C));
+    setStatusBit(Enu::S, dataSection->getStatusBit(Enu::STATUS_S));
+    update();
 }
 
 void CpuPane::onDarkModeChanged(bool darkMode)

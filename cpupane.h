@@ -103,6 +103,7 @@ public slots:
     void onMemoryRegisterChanged(Enu::EMemoryRegisters,quint8 oldVal,quint8 newVal);
     void onStatusBitChanged(Enu::EStatusBit,bool value);
     void repaintOnScroll(int distance);
+    void recalculateFromModel();
     void onDarkModeChanged(bool);
 
 signals:

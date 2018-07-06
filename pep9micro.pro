@@ -156,9 +156,9 @@ DISTFILES += \
 
 #Add this include to the bottom of your project to enable automated installer creation
 #Include the definitions file that sets all variables needed for the InstallerConfig Script
-include("ProjectDefs.pri")
+#include("ProjectDefs.pri")
 
 #Lastly, include and run the installer config script
-include("Installer/InstallerConfig.pri")
+#include("Installer/InstallerConfig.pri")
 
 

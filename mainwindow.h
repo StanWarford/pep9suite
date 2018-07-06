@@ -48,7 +48,7 @@ class MainWindow : public QMainWindow {
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
+    void microResume(); //The microcode simulator resumed
 protected:
     void changeEvent(QEvent *e);
     void closeEvent(QCloseEvent *e);
@@ -82,8 +82,8 @@ private:
 
     //Disconnect or reconnect draw events from the model.
     //These allow the screen to not be updated when the "run" option is picked
-    void connectDrawEvents();
-    void disconnectDrawEvents();
+    void connectMicroDraw();
+    void disconnectMicroDraw();
 
     void readSettings();
     void writeSettings();
