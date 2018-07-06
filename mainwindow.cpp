@@ -148,8 +148,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Events necessary for IO
     auto y = new IODialog(this);
-    y->setVisible(true);
+    y->show();
     y->bindToMemorySection(memorySection);
+    y->raise();
+    y->activateWindow();
 
     connect(this,&MainWindow::beginSimulation,y,&IODialog::onClear);
     //Events necessary for asynchronous run
