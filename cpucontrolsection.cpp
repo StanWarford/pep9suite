@@ -127,7 +127,7 @@ void CPUControlSection::onStep() noexcept
         emit simulationInstructionFinished();
         macroCycleCounter++;
 
-        //qDebug().noquote() << memoizer->memoize();
+        qDebug().noquote() << memoizer->memoize();
     }
 }
 

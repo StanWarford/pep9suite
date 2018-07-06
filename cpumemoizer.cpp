@@ -13,14 +13,14 @@ static quint8 max_symLen=0;
 static quint8 inst_size=6;
 static quint8 oper_addr_size=12;
 
-CPUMemoizer::CPUMemoizer(CPUControlSection& item):item(item),registers(CPUState({0,})),OSSymTable()
+CPUMemoizer::CPUMemoizer(CPUControlSection& item):item(item),registers(CPUState()),OSSymTable()
 {
     loadSymbols();
 }
 
 void CPUMemoizer::clear()
 {
-    registers = CPUState({0,});
+    registers = CPUState();
 }
 
 void CPUMemoizer::storeState()

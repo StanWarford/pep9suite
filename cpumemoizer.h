@@ -19,7 +19,7 @@ struct callStack
 
 struct CPUState
 {
-    CPURegisterState regState = {0,};
+    CPURegisterState regState = CPURegisterState();
   //QVector<callStack> call_tracer;
 };
 class CPUMemoizer
