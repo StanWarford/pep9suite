@@ -20,6 +20,7 @@ void IOWidget::bindToMemorySection(MemorySection *memory)
     connect(ui->terminalIO,&TerminalPane::inputReady,memory,&MemorySection::onAppendInBuffer);
     connect(memory,&MemorySection::charRequestedFromInput,this,&IOWidget::onDataRequested);
     connect(memory,&MemorySection::charWrittenToOutput,this,&IOWidget::onDataReceived);
+    this->memory = memory;
 }
 
 void IOWidget::onClear()

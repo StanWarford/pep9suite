@@ -31,6 +31,7 @@ signals:
     void memoryChanged(quint16 address,quint8 oldVal, quint8 newVal); //Thrown whenever a memory address is changed
     void charWrittenToOutput(QChar character);
     void charRequestedFromInput() const;
+    void receivedInput() const;
 
 public slots:
     void onSetMemoryByte(quint16 address,quint8 val);

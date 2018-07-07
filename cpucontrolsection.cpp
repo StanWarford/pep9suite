@@ -90,6 +90,7 @@ void CPUControlSection::onSimulationFinished()
 {
     data->clearClockSignals();
     data->clearControlSignals();
+    memory->onCancelWaiting();
     executionFinished = true;
 }
 

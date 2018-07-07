@@ -156,7 +156,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this,&MainWindow::beginSimulation,y,&IODialog::onClear);
     //Events necessary for asynchronous run
     connect(controlSection,&CPUControlSection::simulationFinished,this,&MainWindow::onSimulationFinished);
-
+    connect(memorySection,&MemorySection::charRequestedFromInput,this,&MainWindow::onInputRequested);
+    connect(memorySection, &MemorySection::receivedInput,this,&MainWindow::onInputReceived);
     connectMicroDraw();
     //Lastly, read in settings
     readSettings();
@@ -414,8 +415,8 @@ void MainWindow::loadOperatingSystem()
         }
         osFile.close();
         memorySection->onMemorySizeChanged((1<<16) -1);
+        startAddress = 0xffff - values.length() + 1;
         memorySection->loadObjectCode(startAddress,values);
-        qDebug() << memorySection->getMemoryWord(0xFFF8, false);
         memorySection->onIPortChanged(memorySection->getMemoryWord(0xFFF8, false));
         memorySection->onOPortChanged(memorySection->getMemoryWord(0xFFFA, false));
     }
@@ -646,6 +647,7 @@ void MainWindow::on_actionSystem_Stop_Debugging_triggered()
     microcodePane->setReadOnly(false);
 
     cpuPane->stopDebugging();
+    onInputReceived(); //If the program cancelled while waiting for input, simulate activating it again.
     emit endSimulation();
 }
 
@@ -899,9 +901,6 @@ void MainWindow::simulationFinished()
             return;
         }
     }
-    // feature, not a bug: we will display the "passed unit test" even
-    // on the empty case - no postconditions
-
     ui->statusBar->showMessage("Execution Finished", 4000);
 }
 
@@ -926,6 +925,21 @@ void MainWindow::updateMemAddress(int address)
 #pragma message("TODO: Connect Memory Dump Pane to event loop")
     //mainMemory->setMemAddress(address, memorySection->getMemoryByte(address, false));
     //mainMemory->showMemEdited(address);
+}
+
+void MainWindow::onInputRequested()
+{
+    microcodePane->setEnabled(false);
+    cpuPane->setEnabled(false);
+}
+
+void MainWindow::onInputReceived()
+{
+    if(controlSection->getExecutionFinished()==false)
+    {
+    }
+    microcodePane->setEnabled(true);
+    cpuPane->setEnabled(true);
 }
 
 

@@ -4,11 +4,12 @@ L3        FE56
 L4        FE62
 L5        FE6E
 L6        FE8A
+TRUE      0001
 addrD     FCF2
 addrErr   FC96
 addrI     FCE8
 addrJT    FCD8
-addrMask  FC0F
+addrMask  FC0E
 addrN     FCFF
 addrS     FD0F
 addrSF    FD1F
@@ -17,9 +18,9 @@ addrSX    FD42
 addrX     FD32
 asciiCh   000A
 assertAd  FC7C
-byteTemp  FC0E
-charIn    FC13
-charOut   FC15
+byteTemp  FC0c
+charIn    FC12
+charOut   FC14
 checkOut  FF68
 checkZ    FE9F
 combine   FC3F
@@ -51,7 +52,7 @@ oldNZVC   000F
 oldPC4    0009
 oldSP4    000B
 oldX4     0007
-opAddr    FC11
+opAddr    FC10
 opcode26  FD6B
 opcode27  FD6C
 opcode28  FD6D
@@ -59,7 +60,7 @@ opcode30  FD77
 opcode38  FEEB
 opcode40  FF76
 opcode48  FFC2
-osRAM     FB8D
+osRAM     FB8b
 outYet    0002
 outYet2   0004
 ovfl1     FE3C
@@ -97,6 +98,6 @@ trapMsg   FCA9
 unary     FC5B
 unaryJT   FC63
 valAscii  0008
-wordTemp  FC0D
+wordTemp  FC0b
 writeHex  FFBE
 writeNum  FF59

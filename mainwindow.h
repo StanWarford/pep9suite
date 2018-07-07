@@ -161,6 +161,10 @@ private slots:
     void helpCopyToMicrocodeButtonClicked();
 
     void updateMemAddress(int address);
+
+    //Disable UI elements for IO
+    void onInputRequested();
+    void onInputReceived();
 signals:
     void beginUpdateCheck();
     void beginSimulation();

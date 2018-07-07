@@ -24,15 +24,11 @@ void MemorySection::initializeMemory()
 
 quint8 MemorySection::getMemoryByte(quint16 address, bool useIOPorts) const
 {
-    if(address == iPort )
-    {
-        int i=4;
-    }
-    if(address == iPort && useIOPorts && false )
+    if(address == iPort && useIOPorts )
     {
         quint8 value;
         waiting = true;
-        emit this->charRequestedFromInput();
+        emit charRequestedFromInput();
         while(waiting)
         {
             QApplication::processEvents();
