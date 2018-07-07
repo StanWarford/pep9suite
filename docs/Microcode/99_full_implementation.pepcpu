@@ -387,12 +387,12 @@ UnitPre: SP=0xFB8F
 
 
 //SP <- SP plus T6
-148. addsp: A=5, B=21, AMux=1, ALU=1, AndZ=0, CMux=1, C=5; ZCk, SCk, LoadCk
-149. A=4, B=20, AMux=1, CSMux=1, ALU=2, AndZ=1, CMux=1, C=4; NCk, ZCk, VCk, CCk, LoadCk; goto start
+148. addsp: A=5, B=21, AMux=1, ALU=1,  CMux=1, C=5; SCk, LoadCk
+149. A=4, B=20, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; LoadCk; goto start
 
 //SP <- SP minus T6
-150. subsp: A=5, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=5; ZCk, SCk, LoadCk
-151. A=4, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=4; NCk, ZCk, VCk, CCk, LoadCk; goto start
+150. subsp: A=5, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=5;  SCk, LoadCk
+151. A=4, B=20, AMux=1, CSMux=1, ALU=4, CMux=1, C=4; LoadCk; goto start
 
 
 // A <- A plus T6; N <- A<0, Z <- A=0, V <- {Overflow}, C <- {Carry}
