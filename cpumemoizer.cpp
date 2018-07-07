@@ -129,11 +129,11 @@ QString CPUMemoizer::generateStackFrame(CPUState& state, bool enter)
 {
     if(enter)
     {
-        return stackFrameEnter.arg("Enter");
+        return stackFrameEnter.arg("SP=%1\nEnter").arg(formatAddress(registers.regState.reg_SP));
     }
     else
     {
-        return stackFrameLeave.arg("Leave");
+        return stackFrameLeave.arg("SP=%1\nLeave").arg(formatAddress(registers.regState.reg_SP));
     }
 }
 
@@ -141,11 +141,11 @@ QString CPUMemoizer::generateTrapFrame(CPUState& state, bool enter)
 {
     if(enter)
     {
-        return trapEnter.arg("Enter");
+        return trapEnter.arg("SP=%1\nEnter").arg(formatAddress(registers.regState.reg_SP));
     }
     else
     {
-        return trapLeave.arg("Leave");
+        return trapLeave.arg("SP=%1\nLeave").arg(formatAddress(registers.regState.reg_SP));
     }
 }
 

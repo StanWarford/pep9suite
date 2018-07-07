@@ -38,7 +38,8 @@ TerminalPane::TerminalPane(QWidget *parent) :
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
     ui->plainTextEdit->setFont(QFont(Pep::codeFont, Pep::ioFontSize));
 
-    qApp->installEventFilter(this);
+    installEventFilter(this);
+    ui->plainTextEdit->installEventFilter(this);
 }
 
 TerminalPane::~TerminalPane()

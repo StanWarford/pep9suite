@@ -23,6 +23,14 @@ void IOWidget::bindToMemorySection(MemorySection *memory)
     this->memory = memory;
 }
 
+void IOWidget::batchInputToBuffer()
+{
+    if(ui->tabWidget->currentIndex() == 0)
+    {
+        memory->onAppendInBuffer(ui->batchInput->toPlainText());
+    }
+}
+
 void IOWidget::onClear()
 {
     ui->batchOutput->clearText();
@@ -56,6 +64,8 @@ void IOWidget::onDataRequested()
         //So, let the simulation begin to error and unwind.
         memory->onCancelWaiting();
         break;
+    case 1:
+        ui->terminalIO->waitingForInput();
     default:
         break;
     }
@@ -67,7 +77,7 @@ void IOWidget::onSimulationStart()
     {
     case 0:
         //When the simulation starts, pass all needed input to memory's input buffer
-        memory->onAppendInBuffer(ui->batchInput->toPlainText());
+        memory->onAppendInBuffer(ui->batchInput->toPlainText().append('\n'));
         break;
     default:
         break;

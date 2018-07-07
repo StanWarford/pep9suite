@@ -404,7 +404,6 @@ void CpuPane::setStatusPrecondition(Enu::EKeywords bit, bool value)
 void CpuPane::clearCpu()
 {
     clearCpuControlSignals();
-    controlSection->onClearCPU();
     setRegister(Enu::Acc, 0);
     setRegister(Enu::X, 0);
     setRegister(Enu::SP, 0);
@@ -719,11 +718,20 @@ void CpuPane::singleStepButtonPushed()
     scene->invalidate();
 
 }
-
+#include <mainwindow.h>
 void CpuPane::resumeButtonPushed()
 {
 
     bool finished = controlSection->getExecutionFinished();
+    MainWindow* mainWindow = qobject_cast<MainWindow*>(parent());
+    if(mainWindow == nullptr)
+    {
+        //throw bad_cast();
+    }
+    else
+    {
+        mainWindow->microResume();
+    }
     controlSection->onRun();
     if(controlSection->hadErrorOnStep())
     {

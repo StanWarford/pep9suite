@@ -12,7 +12,7 @@ MemorySection *MemorySection::getInstance()
 }
 
 MemorySection::MemorySection(QObject *parent) : QObject(parent), waiting(true), inBuffer(), maxBytes(0xffff), iPort(1560), oPort(1562),
-    hadMemoryError(false), errorMessage()
+    hadMemoryError(false), errorMessage(), bufferIdx(0)
 {
     initializeMemory();
 }
@@ -20,6 +20,8 @@ MemorySection::MemorySection(QObject *parent) : QObject(parent), waiting(true), 
 void MemorySection::initializeMemory()
 {
     memory = QVector<quint8>(maxBytes+1);
+    bufferIdx = 0;
+    inBuffer = "";
 }
 
 quint8 MemorySection::getMemoryByte(quint16 address, bool useIOPorts) const
@@ -27,19 +29,29 @@ quint8 MemorySection::getMemoryByte(quint16 address, bool useIOPorts) const
     if(address == iPort && useIOPorts )
     {
         quint8 value;
-        waiting = true;
-        emit charRequestedFromInput();
-        while(waiting)
+        if(inBuffer.length()<=bufferIdx)
         {
-            QApplication::processEvents();
+            waiting = true;
+            bool exitedByCancel = true;
+            emit charRequestedFromInput();
+            while(waiting)
+            {
+                QApplication::processEvents();
+                if(inBuffer.length()>bufferIdx)
+                {
+                    waiting = false;
+                    exitedByCancel = false;
+                    emit receivedInput();
+                }
+
+            }
+            if(exitedByCancel)
+            {
+                hadMemoryError = true;
+                errorMessage = "Memory Error: Requested input but received no input.";
+            }
         }
-        if(waiting == false && inBuffer.isEmpty())
-        {
-            hadMemoryError = true;
-            errorMessage = "Memory Error: Requested input but received no input.";
-        }
-        value = inBuffer[0].toLatin1();
-        inBuffer.remove(0,1);
+        value = inBuffer[bufferIdx++].toLatin1();
         return value;
 
     }
@@ -72,6 +84,7 @@ const QSet<quint16> MemorySection::changedAddresses() const
     return completedCycle;
 }
 
+#include <QDebug>
 void MemorySection::setMemoryByte(quint16 address, quint8 value)
 {
     quint8 old= memory[address];
@@ -94,6 +107,8 @@ void MemorySection::clearMemory() noexcept
     {
         memory[it]=0;
     }
+    bufferIdx = 0;
+    inBuffer = "";
 }
 
 void MemorySection::clearErrors() noexcept
@@ -144,6 +159,7 @@ void MemorySection::onSetMemoryByte(quint16 address, quint8 val)
     {
         emit this->charWrittenToOutput(val);
     }
+    qDebug()<<QString("Mem[0x%1] = %2").arg(QString::number(address,16),4,'0').arg(QString::number(val,16),2,'0');
     memory[address] = val;
     inProgress.insert(address);
     emit memoryChanged(address,old,val);

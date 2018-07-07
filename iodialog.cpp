@@ -19,6 +19,11 @@ void IODialog::bindToMemorySection(MemorySection *memory)
     ui->ioWidget->bindToMemorySection(memory);
 }
 
+void IODialog::batchInputToBuffer()
+{
+    ui->ioWidget->batchInputToBuffer();
+}
+
 void IODialog::onClear()
 {
     ui->ioWidget->onClear();

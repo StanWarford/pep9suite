@@ -147,13 +147,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(cpuPane, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
 
     //Events necessary for IO
-    auto y = new IODialog(this);
-    y->show();
-    y->bindToMemorySection(memorySection);
-    y->raise();
-    y->activateWindow();
+    ioDialog = new IODialog(this);
+    ioDialog->show();
+    ioDialog->bindToMemorySection(memorySection);
+    ioDialog->raise();
+    ioDialog->activateWindow();
 
-    connect(this,&MainWindow::beginSimulation,y,&IODialog::onClear);
+    connect(this,&MainWindow::beginSimulation,ioDialog,&IODialog::onClear);
     //Events necessary for asynchronous run
     connect(controlSection,&CPUControlSection::simulationFinished,this,&MainWindow::onSimulationFinished);
     connect(memorySection,&MemorySection::charRequestedFromInput,this,&MainWindow::onInputRequested);
@@ -414,7 +414,6 @@ void MainWindow::loadOperatingSystem()
             values.append(convertObjectCodeToIntArray(text));
         }
         osFile.close();
-        memorySection->onMemorySizeChanged((1<<16) -1);
         startAddress = 0xffff - values.length() + 1;
         memorySection->loadObjectCode(startAddress,values);
         memorySection->onIPortChanged(memorySection->getMemoryWord(0xFFF8, false));
@@ -589,8 +588,6 @@ bool MainWindow::on_actionSystem_Start_Debugging_triggered()
 
     MicrocodeProgram* prog;
     // Load necessary programs into memory
-    loadOperatingSystem();
-    loadObjectCodeProgram();
     if (microcodePane->microAssemble()) {
         ui->statusBar->showMessage("MicroAssembly succeeded", 4000);
         objectCodePane->setObjectCode(microcodePane->getMicrocodeProgram(),nullptr);
@@ -599,10 +596,9 @@ bool MainWindow::on_actionSystem_Start_Debugging_triggered()
         controlSection->onDebuggingStarted();
         if(prog->hasUnitPre())
         {
-            controlSection->onClearCPU();
+            controlSection->initCPUStateFromPreconditions();
             mainMemory->refreshMemory();
             cpuPane->clearCpu();
-            controlSection->initCPUStateFromPreconditions();
         }
     }
     else {
@@ -610,12 +606,8 @@ bool MainWindow::on_actionSystem_Start_Debugging_triggered()
         return false;
     }
 
-    // prevent simulation from starting if there's nothing to simulate
-    bool hasMicrocode = prog->hasMicrocode(); //The compiler might warn here, but the only way to get here is if microassembly succeded, and thus there is a valid program
-    if (!hasMicrocode) {
-        return false;
-    }
-
+    loadOperatingSystem();
+    loadObjectCodeProgram();
     //Clear all data and views as needed
 
     // enable the actions available while we're debugging
@@ -629,6 +621,7 @@ bool MainWindow::on_actionSystem_Start_Debugging_triggered()
     microcodePane->setReadOnly(true);
 
     cpuPane->startDebugging();
+    ioDialog->batchInputToBuffer();
     QApplication::processEvents();
     return true;
 }
@@ -931,6 +924,8 @@ void MainWindow::onInputRequested()
 {
     microcodePane->setEnabled(false);
     cpuPane->setEnabled(false);
+    ioDialog->show();
+    ioDialog->raise();
 }
 
 void MainWindow::onInputReceived()

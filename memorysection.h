@@ -53,6 +53,7 @@ private:
     mutable bool waiting;
     mutable bool hadMemoryError = false;
     mutable QString errorMessage = "";
+    mutable qint32 bufferIdx;
     mutable QString inBuffer;
 
     quint16 maxBytes, iPort, oPort;

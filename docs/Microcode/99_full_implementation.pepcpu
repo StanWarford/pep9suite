@@ -481,7 +481,7 @@ UnitPre: SP=0xFB8F
 
 
 194. stbx: A=18, B=19, MARMux=1; MARCk
-195. MemRead, A=21,AMUX=1, ALU=13; SCk; if BRS stbx_o else stbx_e
+195. MemRead, A=19,AMUX=1, ALU=13; SCk; if BRS stbx_o else stbx_e
 196. stbx_o: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
 197. stbx_e: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
 

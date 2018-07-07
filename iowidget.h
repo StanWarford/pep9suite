@@ -16,6 +16,7 @@ public:
     ~IOWidget();
 
     void bindToMemorySection(MemorySection* memory);
+    void batchInputToBuffer(); //Move batch input to MemorySection if needed;
 signals:
     void dataEntered(const QString &data);
 public slots:

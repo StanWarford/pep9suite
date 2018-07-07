@@ -38,6 +38,7 @@ class CPUControlSection;
 class CPUDataSection;
 class CpuPane;
 class HelpDialog;
+class IODialog;
 class MemoryDumpPane;
 class MemorySection;
 class MicrocodePane;
@@ -79,6 +80,8 @@ private:
     MemorySection* memorySection;
     CPUDataSection* dataSection;
     CPUControlSection* controlSection;
+
+    IODialog* ioDialog;
 
     //Disconnect or reconnect draw events from the model.
     //These allow the screen to not be updated when the "run" option is picked
