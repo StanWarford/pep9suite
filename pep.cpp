@@ -358,8 +358,8 @@ void Pep::initMnemonicMaps()
     initMnemMapHelper(EMnemonic::NOTA, 6, true, false, false);
     initMnemMapHelper(EMnemonic::NOTX, 7, true, false, false);
 
-    initMnemMapHelper(EMnemonic::ORA, 144, false, true, true);
-    initMnemMapHelper(EMnemonic::ORX, 152, false, true, true);
+    initMnemMapHelper(EMnemonic::ORA, 144, false, true, false);
+    initMnemMapHelper(EMnemonic::ORX, 152, false, true, false);
 
     initMnemMapHelper(EMnemonic::RET, 1, true, false, false);
     initMnemMapHelper(EMnemonic::RETTR, 2, true, false, false);

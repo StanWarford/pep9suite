@@ -5,10 +5,10 @@
 #include "cpudatasection.h"
 #include "memorysection.h"
 #include <QDebug>
-const QString stackFrameEnter("\n===CALL===\n%1\n===CALL===\n");
-const QString stackFrameLeave("\n===RET====\n%1\n===RET====\n");
-const QString trapEnter("\n===TRAP===\n%1\n===TRAP===\n");
-const QString trapLeave("\n===RETR===\n%1\n===RETR===\n");
+const QString stackFrameEnter("%1\n===CALL===\n");
+const QString stackFrameLeave("%1\n===RET====\n");
+const QString trapEnter("%1\n===TRAP===\n");
+const QString trapLeave("%1\n===RETR===\n");
 static quint8 max_symLen=0;
 static quint8 inst_size=6;
 static quint8 oper_addr_size=12;
@@ -28,9 +28,13 @@ void CPUMemoizer::storeState()
     registers.regState.reg_A = item.data->getRegisterBankWord(0);
     registers.regState.reg_X = item.data->getRegisterBankWord(2);
     registers.regState.reg_SP = item.data->getRegisterBankWord(4);
-    registers.regState.reg_PC_end = item.data->getRegisterBankWord(6);
-    registers.regState.reg_IR = item.data->getRegisterBankByte(8);
-    registers.regState.reg_OS = item.data->getRegisterBankWord(9);
+    //registers.regState.reg_PC_end = item.data->getRegisterBankWord(6);
+    registers.regState.reg_IR = item.memory->getMemoryByte(registers.regState.reg_PC_start,false);
+    if(!Pep::isUnaryMap[Pep::decodeMnemonic[registers.regState.reg_IR]])
+    {
+        registers.regState.reg_OS = item.memory->getMemoryWord(registers.regState.reg_PC_start +1,false);
+    }
+
     registers.regState.bits_NZVCS =
             item.data->getStatusBit(Enu::STATUS_N) * Enu::NMask
           | item.data->getStatusBit(Enu::STATUS_Z) * Enu::ZMask
@@ -42,12 +46,17 @@ void CPUMemoizer::storeState()
 void CPUMemoizer::storePC()
 {
     registers.regState.reg_PC_start = item.data->getRegisterBankWord(6);
+    registers.instructionsCalled[item.memory->getMemoryByte(registers.regState.reg_PC_start,false)]++;
 }
 
 QString CPUMemoizer::memoize()
 {
+    QString AX = QString(" A=%1, X=%2,").arg(formatNum(registers.regState.reg_A),formatNum(registers.regState.reg_X));
+    QString NZVC = QString(" NZVC=") % QString("%1").arg(QString::number(registers.regState.bits_NZVCS & ~Enu::SMask,2), 4, '0') % ",";
     QString build = (attempSymAddrReplace(registers.regState.reg_PC_start) + QString(":")).leftJustified(10) %
             formatInstr(registers.regState.reg_IR,registers.regState.reg_OS);
+    build += "  " + AX;
+    build += NZVC;
     if(Pep::isTrapMap[Pep::decodeMnemonic[registers.regState.reg_IR]])
     {
         build += generateTrapFrame(registers);
@@ -64,11 +73,40 @@ QString CPUMemoizer::memoize()
     {
         build += generateStackFrame(registers,false);
     }
-    else if(registers.regState.reg_IR <= 35 && registers.regState.reg_IR >= 14)
-    {
-        build += QString(" SNZVC=") % QString::number(registers.regState.bits_NZVCS,2).leftJustified(5,'0');
-    }
+
     return build;
+}
+
+QString CPUMemoizer::finalStatistics()
+{
+    Enu::EMnemonic mnemon = Enu::EMnemonic::STOP;
+    QList<Enu::EMnemonic> mnemonList = QList<Enu::EMnemonic>();
+    mnemonList.append(mnemon);
+    QList<quint32> tally = QList<quint32>();
+    tally.append(0);
+    int tallyIt=0;
+    for(int it=0; it<256; it++)
+    {
+        if(mnemon == Pep::decodeMnemonic[it])
+        {
+            tally[tallyIt]+= registers.instructionsCalled[it];
+        }
+        else
+        {
+            tally.append(registers.instructionsCalled[it]);
+            tallyIt++;
+            mnemon = Pep::decodeMnemonic[it];
+            mnemonList.append(mnemon);
+        }
+    }
+    //qSort(tally);
+    QString output="";
+    for(int index = 0; index < tally.length(); index++)
+    {
+        if(tally[index] == 0) continue;
+        output.append(QString("%1").arg(mnemonDecode(mnemonList[index]),5) % QString(": ") % QString::number(tally[index]) % QString("\n"));
+    }
+    return output;
 }
 
 //Properly formats a number as a 4 char hex
@@ -95,6 +133,12 @@ QString CPUMemoizer::mnemonDecode(quint8 instrSpec)
     static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
     return QString(metaenum.valueToKey((int)Pep::decodeMnemonic[instrSpec])).toLower();
 }
+//Convert a mnemonix into it's string
+QString CPUMemoizer::mnemonDecode(Enu::EMnemonic instrSpec)
+{
+    static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
+    return QString(metaenum.valueToKey((int)instrSpec)).toLower();
+}
 
 QString CPUMemoizer::formatIS(quint8 instrSpec)
 {
@@ -103,7 +147,7 @@ QString CPUMemoizer::formatIS(quint8 instrSpec)
 
 QString CPUMemoizer::formatUnary(quint8 instrSpec)
 {
-    return formatIS(instrSpec).leftJustified(oper_addr_size);
+    return formatIS(instrSpec).leftJustified(inst_size+max_symLen+2+4);
 }
 
 QString CPUMemoizer::formatNonUnary(quint8 instrSpec,quint16 oprSpec)
@@ -129,11 +173,11 @@ QString CPUMemoizer::generateStackFrame(CPUState& state, bool enter)
 {
     if(enter)
     {
-        return stackFrameEnter.arg("SP=%1\nEnter").arg(formatAddress(registers.regState.reg_SP));
+        return stackFrameEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
     else
     {
-        return stackFrameLeave.arg("SP=%1\nLeave").arg(formatAddress(registers.regState.reg_SP));
+        return stackFrameLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
 }
 
@@ -141,11 +185,11 @@ QString CPUMemoizer::generateTrapFrame(CPUState& state, bool enter)
 {
     if(enter)
     {
-        return trapEnter.arg("SP=%1\nEnter").arg(formatAddress(registers.regState.reg_SP));
+        return trapEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
     else
     {
-        return trapLeave.arg("SP=%1\nLeave").arg(formatAddress(registers.regState.reg_SP));
+        return trapLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
 }
 

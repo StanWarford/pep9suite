@@ -88,7 +88,7 @@ const QSet<quint16> MemorySection::changedAddresses() const
 void MemorySection::setMemoryByte(quint16 address, quint8 value)
 {
     quint8 old= memory[address];
-    if(old == value)return; //Don't continue if the new value is the old value
+    //if(old == value)return; //Don't continue if the new value is the old value
     onSetMemoryByte(address,value);
 }
 
@@ -96,7 +96,7 @@ void MemorySection::setMemoryWord(quint16 address, quint16 value)
 {
     address&=0xFFFE; //Memory access ignores the lowest order bit
     quint8 hi=memory[address],lo=memory[address+1]; //Cache old memory values
-    if((((quint16)hi<<8)|lo)==value)return; //Don't continue if the new value is the old value
+    //if((((quint16)hi<<8)|lo)==value)return; //Don't continue if the new value is the old value
     onSetMemoryWord(address,value);
 }
 
@@ -159,7 +159,7 @@ void MemorySection::onSetMemoryByte(quint16 address, quint8 val)
     {
         emit this->charWrittenToOutput(val);
     }
-    qDebug()<<QString("Mem[0x%1] = %2").arg(QString::number(address,16),4,'0').arg(QString::number(val,16),2,'0');
+    //qDebug()<<QString("Mem[0x%1] = %2").arg(QString::number(address,16),4,'0').arg(QString::number(val,16),2,'0');
     memory[address] = val;
     inProgress.insert(address);
     emit memoryChanged(address,old,val);

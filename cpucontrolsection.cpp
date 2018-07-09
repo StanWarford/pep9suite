@@ -113,10 +113,7 @@ void CPUControlSection::onStep() noexcept
     {
         //Store PC at the start of the cycle, so that we know where the instruction started from
         memoizer->storePC();
-        if(Pep::decodeMnemonic[memory->getMemoryByte(data->getRegisterBankWord(CPURegisters::PC),false)]==Enu::EMnemonic::RET)
-        {
-            int i=5; //Catch when we return
-        }
+        //memoizer->storeState();
     }
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
     this->setSignalsFromMicrocode(prog);
@@ -178,6 +175,7 @@ void CPUControlSection::onRun()noexcept
         }
     }
     auto value = timer.elapsed();
+    qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
     qDebug().nospace().noquote() <<"Executed "<<macroCycleCounter<<" instructions in "<<microCycleCounter<< " cycles.";
     qDebug().nospace().noquote() <<"Averaging "<<microCycleCounter/macroCycleCounter<<" cycles per instruction.";
     qDebug().nospace().noquote() <<"Execution time (ms): " << value;
