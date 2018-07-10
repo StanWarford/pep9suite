@@ -36,6 +36,96 @@
 
 #include "shapes_two_byte_data_bus.h"
 
+void addLabelToScene(QLabel** labelLoc, QGraphicsScene *scene, QString name, const QRect& geometry)
+{
+    *labelLoc = new QLabel(name);
+    (*labelLoc)->setGeometry(geometry);
+    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    scene->addWidget(*labelLoc);
+}
+
+void addCenteredLabelToScene(QLabel** labelLoc, QGraphicsScene *scene, QString name, const QRect& geometry)
+{
+    addLabelToScene(labelLoc, scene,  name, geometry);
+    (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+}
+
+void addDLabelToScene(QLabel** labelLoc, QGraphicsScene *scene, QString name, const QRect& geometry)
+{
+    *labelLoc = new QLabel(name);
+    (*labelLoc)->setGeometry(geometry);
+    (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    scene->addWidget(*labelLoc);
+}
+
+void addLineEditToScene(QLineEdit** lineEdit, QGraphicsScene *scene, QRegExp validator, const QRect& geometry){
+    (*lineEdit) = new QLineEdit();
+    (*lineEdit)->setAlignment(Qt::AlignCenter);
+    (*lineEdit)->setGeometry(geometry);
+    (*lineEdit)->setValidator(new QRegExpValidator(validator, (*lineEdit)));
+    (*lineEdit)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    scene->addWidget(*lineEdit);
+}
+
+void addTLabel(TristateLabel** labelLoc, QGraphicsScene *scene, const QRect& geometry){
+    (*labelLoc) = new TristateLabel(0, TristateLabel::Tristate);
+    (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    (*labelLoc)->setGeometry(geometry);
+    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    scene->addWidget(*labelLoc);
+}
+
+void addStatusLabel(TristateLabel** labelLoc, QGraphicsScene* scene, const QRect& geometry){
+    (*labelLoc) = new TristateLabel(0, TristateLabel::ZeroOne);
+    (*labelLoc)->setText("0");
+    (*labelLoc)->setGeometry(geometry);
+    (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    scene->addWidget(*labelLoc);
+}
+
+void addRegisterText(QVector<QLabel*> &labelVec, QGraphicsScene* scene, QString text, const QRect& geometry, const PepColors::Colors* colorScheme){
+    QLabel* ph = new QLabel(text);
+    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
+    ph->setGeometry(geometry);
+    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
+    scene->addWidget(ph);
+    labelVec.append(ph);
+}
+
+void addEditableRegister(QLineEdit** edit, QVector<QLineEdit*> &editorVector, QGraphicsScene* scene,
+                         QString text, QRegExp regex, const QRect& geometry, const PepColors::Colors* colorScheme){
+    (*edit) = new QLineEdit(text);
+    (*edit)->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+    (*edit)->setGeometry(geometry);
+    (*edit)->setValidator(new QRegExpValidator(regex,*edit));
+    (*edit)->setPalette(QPalette(colorScheme->seqCircuitColor));
+    (*edit)->setFrame(false);
+    (*edit)->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
+    scene->addWidget(*edit);
+    editorVector.append(*edit);
+}
+
+void addStaticRegister(QVector<QLabel*> &labelVec, QGraphicsScene* scene, QString text, const QRect& geometry, const PepColors::Colors* colorScheme){
+    QLabel* ph = new QLabel(text);
+    ph->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+    ph->setGeometry(geometry);
+    ph->setPalette(QPalette(PepColors::transparent));
+    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
+    scene->addWidget(ph);
+    labelVec.append(ph);
+}
+
+void addCheckToScene(QCheckBox** checkLoc, QGraphicsScene *scene,QString name, const QRect& geometry)
+{
+    *checkLoc = new QCheckBox(name);
+    (*checkLoc)->setGeometry(geometry);
+    (*checkLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    scene->addWidget(*checkLoc);
+}
+
 CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
                                                    QGraphicsItem *itemParent,
                                                    QGraphicsScene *scene)
@@ -50,212 +140,72 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
     // ************************************
     // two byte exclusive stuff
     // ************************************
-    MARMuxerDataLabel = new QLabel("MARMux");
-    MARMuxerDataLabel->setGeometry(TwoByteShapes::MARMuxerDataLabel);
-    MARMuxerDataLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MARMuxerDataLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MARMuxerDataLabel);
+    addDLabelToScene(&MARMuxerDataLabel, scene, "MARMux", TwoByteShapes::MARMuxerDataLabel);
+    addCheckToScene(&MDROCk, scene, "MDROCk", TwoByteShapes::MDROCkCheckbox);
+    addCheckToScene(&MDRECk, scene, "MDRECk", TwoByteShapes::MDRECkCheckbox);
+    addLabelToScene(&MDROMuxLabel, scene, "MDROMux", TwoByteShapes::MDROMuxLabel);
+    addDLabelToScene(&MDROMuxerDataLabel, scene, "MDROMux", TwoByteShapes::MDROMuxerDataLabel);
+    addTLabel(&MDROMuxTristateLabel, scene, TwoByteShapes::MDROMuxTristateLabel);
+    addLabelToScene(&MDREMuxLabel, scene, "MDREMux", TwoByteShapes::MDREMuxLabel);
+    addDLabelToScene(&MDREMuxerDataLabel, scene, "MDREMux", TwoByteShapes::MDREMuxerDataLabel);
+    addTLabel(&MDREMuxTristateLabel, scene, TwoByteShapes::MDREMuxTristateLabel);
+    addLabelToScene(&EOMuxLabel, scene, "EOMux", TwoByteShapes::EOMuxLabel);
+    addDLabelToScene(&EOMuxerDataLabel, scene, "EOMux", TwoByteShapes::EOMuxerDataLabel);
+    addTLabel(&EOMuxTristateLabel, scene, TwoByteShapes::EOMuxTristateLabel);
 
-    MDROCk = new QCheckBox("MDROCk");
-    MDROCk->setGeometry(TwoByteShapes::MDROCkCheckbox);
-    MDROCk->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDROCk);
-
-    MDRECk = new QCheckBox("MDRECk");
-    MDRECk->setGeometry(TwoByteShapes::MDRECkCheckbox);
-    MDRECk->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDRECk);
-
-    MDROMuxLabel = new QLabel("MDROMux");
-    MDROMuxLabel->setGeometry(TwoByteShapes::MDROMuxLabel);
-    MDROMuxLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDROMuxLabel);
-    MDROMuxerDataLabel = new QLabel("MDROMux");
-    MDROMuxerDataLabel->setGeometry(TwoByteShapes::MDROMuxerDataLabel);
-    MDROMuxerDataLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MDROMuxerDataLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDROMuxerDataLabel);
-    MDROMuxTristateLabel = new TristateLabel(0, TristateLabel::Tristate);
-    MDROMuxTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MDROMuxTristateLabel->setGeometry(TwoByteShapes::MDROMuxTristateLabel);
-    MDROMuxTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDROMuxTristateLabel);
-
-    MDREMuxLabel = new QLabel("MDREMux");
-    MDREMuxLabel->setGeometry(TwoByteShapes::MDREMuxLabel);
-    MDREMuxLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDREMuxLabel);
-    MDREMuxerDataLabel = new QLabel("MDREMux");
-    MDREMuxerDataLabel->setGeometry(TwoByteShapes::MDREMuxerDataLabel);
-    MDREMuxerDataLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MDREMuxerDataLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDREMuxerDataLabel);
-    MDREMuxTristateLabel = new TristateLabel(0, TristateLabel::Tristate);
-    MDREMuxTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MDREMuxTristateLabel->setGeometry(TwoByteShapes::MDREMuxTristateLabel);
-    MDREMuxTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDREMuxTristateLabel);
-
-    EOMuxLabel = new QLabel("EOMux");
-    EOMuxLabel->setGeometry(TwoByteShapes::EOMuxLabel);
-    EOMuxLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(EOMuxLabel);
-
-    EOMuxerDataLabel = new QLabel("EOMux");
-    EOMuxerDataLabel->setGeometry(TwoByteShapes::EOMuxerDataLabel);
-    EOMuxerDataLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    EOMuxerDataLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(EOMuxerDataLabel);
-
-    EOMuxTristateLabel = new TristateLabel(0, TristateLabel::Tristate);
-    EOMuxTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    EOMuxTristateLabel->setGeometry(TwoByteShapes::EOMuxTristateLabel);
-    EOMuxTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(EOMuxTristateLabel);
-
-    MDRELabel = new QLabel("0x00");
-    MDRELabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MDRELabel->setGeometry(TwoByteShapes::MDRELabel);
-    MDRELabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDRELabel);
-
-    MDROLabel = new QLabel("0x00");
-    MDROLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MDROLabel->setGeometry(TwoByteShapes::MDROLabel);
-    MDROLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDROLabel);
-
-    MARMuxLabel = new QLabel("MARMux");
-    MARMuxLabel->setGeometry(TwoByteShapes::MARMuxLabel);
-    MARMuxLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MARMuxLabel);
-    MARMuxTristateLabel = new TristateLabel(0, TristateLabel::Tristate);
-    MARMuxTristateLabel->setGeometry(TwoByteShapes::MARMuxTristateLabel);
-    MARMuxTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MARMuxTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MARMuxTristateLabel);
-
+    addCenteredLabelToScene(&MDRELabel, scene, "0x00", TwoByteShapes::MDRELabel);
+    addCenteredLabelToScene(&MDROLabel, scene, "0x00", TwoByteShapes::MDROLabel);
+    addLabelToScene(&MARMuxLabel, scene, "MARMux", TwoByteShapes::MARMuxLabel);
+    addTLabel(&MARMuxTristateLabel, scene, TwoByteShapes::MARMuxTristateLabel);
 
     // ************************************
     // end two byte exclusive stuff
     // ************************************
 
-
-    // MARA & MARB
-    MARALabel = new QLabel("0x00");
-    MARALabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    //MARA & MARB
+    addCenteredLabelToScene(&MARALabel, scene, "0x00", TwoByteShapes::MARALabel);
+    addCenteredLabelToScene(&MARBLabel, scene, "0x00", TwoByteShapes::MARBLabel);
     MARALabel->setAutoFillBackground(false);
-    MARALabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MARALabel);
-    MARBLabel = new QLabel("0x00");
-    MARBLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MARBLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MARBLabel);
+    MARBLabel->setAutoFillBackground(false);
 
     // LoadCk
-    loadCk = new QCheckBox("LoadCk");
-    loadCk->setGeometry(OneByteShapes::loadCkCheckbox);
-    loadCk->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(loadCk);
+    addCheckToScene(&loadCk, scene, "LoadCk", TwoByteShapes::loadCkCheckbox);
 
     // C
     // Note: the line edits must be added first, otherwise they cover the
     //  labels that go with them.
     QRegExp cbaRegExp("^((3[0-1])|([0-2][0-9])|([0-9]))$");
-    cLineEdit = new QLineEdit();
-    cLineEdit->setAlignment(Qt::AlignCenter);
-    cLineEdit->setGeometry(OneByteShapes::cLineEdit);
-    cLineEdit->setValidator(new QRegExpValidator(cbaRegExp, cLineEdit));
-    cLineEdit->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(cLineEdit);
-    cLabel = new QLabel("C");
-    cLabel->setGeometry(OneByteShapes::cLabel);
-    cLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(cLabel);
+    addLineEditToScene(&cLineEdit, scene, cbaRegExp, TwoByteShapes::cLineEdit);
+    addLabelToScene(&cLabel, scene, "C", TwoByteShapes::cLabel);
 
     // B
-    bLineEdit = new QLineEdit();
-    bLineEdit->setAlignment(Qt::AlignCenter);
-    bLineEdit->setGeometry(OneByteShapes::bLineEdit);
-    bLineEdit->setValidator(new QRegExpValidator(cbaRegExp, bLineEdit));
-    bLineEdit->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(bLineEdit);
-    bLabel = new QLabel("B");
-    bLabel->setGeometry(OneByteShapes::bLabel);
-    bLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(bLabel);
+    addLineEditToScene(&bLineEdit, scene, cbaRegExp, TwoByteShapes::bLineEdit);
+    addLabelToScene(&bLabel, scene, "B", TwoByteShapes::bLabel);
 
     // A
-    aLineEdit = new QLineEdit();
-    aLineEdit->setAlignment(Qt::AlignCenter);
-    aLineEdit->setGeometry(OneByteShapes::aLineEdit);
-    aLineEdit->setValidator(new QRegExpValidator(cbaRegExp, aLineEdit));
-    aLineEdit->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(aLineEdit);
-    aLabel = new QLabel("A");
-    aLabel->setGeometry(OneByteShapes::aLabel);
-    aLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(aLabel);
+    addLineEditToScene(&aLineEdit, scene, cbaRegExp, TwoByteShapes::aLineEdit);
+    addLabelToScene(&aLabel, scene, "A", TwoByteShapes::aLabel);
 
     // MARCk
-    MARCk = new QCheckBox("MARCk");
-    MARCk->setGeometry(OneByteShapes::MARCkCheckbox);
-    MARCk->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MARCk);
+    addCheckToScene(&MARCk, scene, "MARCk", TwoByteShapes::MARCkCheckbox);
+
 
     // AMux
-    aMuxLabel = new QLabel("AMux");
-    aMuxLabel->setGeometry(OneByteShapes::aMuxLabel);
-    aMuxLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(aMuxLabel);
-    aMuxerDataLabel = new QLabel("AMux");
-    aMuxerDataLabel->setGeometry(OneByteShapes::aMuxerDataLabel);
-    aMuxerDataLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    aMuxerDataLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(aMuxerDataLabel);
-    aMuxTristateLabel = new TristateLabel(0, TristateLabel::Tristate);
-    aMuxTristateLabel->setGeometry(OneByteShapes::aMuxTristateLabel);
-    aMuxTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    aMuxTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(aMuxTristateLabel);
+    addLabelToScene(&aMuxLabel, scene, "AMux", TwoByteShapes::aMuxLabel);
+    addDLabelToScene(&aMuxerDataLabel, scene, "AMux", TwoByteShapes::aMuxerDataLabel);
+    addTLabel(&aMuxTristateLabel, scene, OneByteShapes::aMuxTristateLabel);
 
     // CMux
-    cMuxLabel = new QLabel("CMux");
-    cMuxLabel->setGeometry(OneByteShapes::cMuxLabel);
-    cMuxLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(cMuxLabel);
-    cMuxerLabel = new QLabel("CMux");
-    cMuxerLabel->setGeometry(OneByteShapes::cMuxerLabel);
-    cMuxerLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    cMuxerLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(cMuxerLabel);
-    cMuxTristateLabel = new TristateLabel(0, TristateLabel::Tristate);
-    cMuxTristateLabel->setGeometry(OneByteShapes::cMuxTristateLabel);
-    cMuxTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    cMuxTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(cMuxTristateLabel);
+    addLabelToScene(&cMuxLabel, scene, "CMux", TwoByteShapes::cMuxLabel);
+    addDLabelToScene(&cMuxerLabel, scene, "CMux", TwoByteShapes::cMuxerLabel);
+    addTLabel(&cMuxTristateLabel, scene, OneByteShapes::cMuxTristateLabel);
 
     // ALU
     // keep this before the label that goes with it, or the line edit
     //  appears on top of the label
-    ALULineEdit = new QLineEdit();
-    ALULineEdit->setAlignment(Qt::AlignCenter);
-    ALULineEdit->setGeometry(OneByteShapes::ALULineEdit);
-    ALULineEdit->setValidator(new QRegExpValidator(
-                                  QRegExp("^((1[0-5])|(0[0-9])|[0-9])$"),
-                                  ALULineEdit));
-    ALULineEdit->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(ALULineEdit);
-    ALULabel = new QLabel("ALU");
-    ALULabel->setGeometry(OneByteShapes::ALULabel);
-    ALULabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(ALULabel);
-
-    ALUFunctionLabel = new QLabel("");
-    ALUFunctionLabel->setGeometry(OneByteShapes::ALUFunctionLabel);
-    ALUFunctionLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    ALUFunctionLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSizeSmall));
-    scene->addWidget(ALUFunctionLabel);
+    addLineEditToScene(&ALULineEdit, scene, QRegExp("^((1[0-5])|(0[0-9])|[0-9])$"), TwoByteShapes::ALULineEdit);
+    addLabelToScene(&ALULabel, scene, "ALU", TwoByteShapes::ALULabel);
+    addCenteredLabelToScene(&ALUFunctionLabel, scene, "", TwoByteShapes::ALUFunctionLabel);
 
     // ALU shape
     ALUPoly = scene->addPolygon(OneByteShapes::ALUPoly,
@@ -267,115 +217,40 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
     ALUPoly->setZValue(-1);
 
     // CSMux
-    CSMuxLabel = new QLabel("CSMux");
-    CSMuxLabel->setGeometry(OneByteShapes::CSMuxLabel);
-    CSMuxLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(CSMuxLabel);
-    CSMuxerDataLabel = new QLabel("CSMux");
-    CSMuxerDataLabel->setGeometry(OneByteShapes::CSMuxerDataLabel);
-    CSMuxerDataLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    CSMuxerDataLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(CSMuxerDataLabel);
-    CSMuxTristateLabel = new TristateLabel(0, TristateLabel::Tristate);
-    CSMuxTristateLabel->setGeometry(OneByteShapes::CSMuxTristateLabel);
-    CSMuxTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    CSMuxTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(CSMuxTristateLabel);
+    addLabelToScene(&CSMuxLabel, scene, "CSMux", TwoByteShapes::CSMuxLabel);
+    addDLabelToScene(&CSMuxerDataLabel, scene, "CSMux", TwoByteShapes::CSMuxerDataLabel);
+    addTLabel(&CSMuxTristateLabel, scene, TwoByteShapes::CSMuxTristateLabel);
 
     // SCk
-    SCkCheckBox = new QCheckBox ("SCk");
-    SCkCheckBox->setGeometry(OneByteShapes::SCkCheckBox);
-    SCkCheckBox->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(SCkCheckBox);
-    sBitLabel = new TristateLabel(0, TristateLabel::ZeroOne);
-    sBitLabel->setText("0");
-    sBitLabel->setGeometry(OneByteShapes::sBitLabel);
-    sBitLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    sBitLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(sBitLabel);
+    addCheckToScene(&SCkCheckBox, scene, "SCk", TwoByteShapes::SCkCheckBox);
+    addStatusLabel(&sBitLabel, scene, TwoByteShapes::sBitLabel);
 
     // CCk
-    CCkCheckBox = new QCheckBox ("CCk");
-    CCkCheckBox->setGeometry(OneByteShapes::CCkCheckBox);
-    CCkCheckBox->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(CCkCheckBox);
-    cBitLabel = new TristateLabel(0, TristateLabel::ZeroOne);
-    cBitLabel->setText("0");
-    cBitLabel->setGeometry(OneByteShapes::cBitLabel);
-    cBitLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    cBitLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(cBitLabel);
+    addCheckToScene(&CCkCheckBox, scene, "CCk", TwoByteShapes::CCkCheckBox);
+    addStatusLabel(&cBitLabel, scene, TwoByteShapes::cBitLabel);
 
     // VCk
-    VCkCheckBox = new QCheckBox("VCk");
-    VCkCheckBox->setGeometry(OneByteShapes::VCkCheckBox);
-    VCkCheckBox->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(VCkCheckBox);
-    vBitLabel = new TristateLabel(0, TristateLabel::ZeroOne);
-    vBitLabel->setText("0");
-    vBitLabel->setGeometry(OneByteShapes::vBitLabel);
-    vBitLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    vBitLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(vBitLabel);
+    addCheckToScene(&VCkCheckBox, scene, "VCk", TwoByteShapes::VCkCheckBox);
+    addStatusLabel(&vBitLabel, scene, TwoByteShapes::vBitLabel);
 
     // AndZ
-    AndZLabel = new QLabel("AndZ");
-    AndZLabel->setGeometry(OneByteShapes::AndZLabel);
-    AndZLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(AndZLabel);
-    AndZTristateLabel = new TristateLabel(0, TristateLabel::Tristate);
-    AndZTristateLabel->setGeometry(OneByteShapes::AndZTristateLabel);
-    AndZTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    AndZTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(AndZTristateLabel);
-
-    AndZMuxLabel = new QLabel("AndZ");
-    AndZMuxLabel->setGeometry(OneByteShapes::AndZMuxLabel);
-    AndZMuxLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    AndZMuxLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(AndZMuxLabel);
+    addLabelToScene(&AndZLabel, scene, "AndZ", TwoByteShapes::AndZLabel);
+    addTLabel(&AndZTristateLabel, scene, TwoByteShapes::AndZTristateLabel);
+    addDLabelToScene(&AndZMuxLabel, scene, "AndZ", TwoByteShapes::AndZMuxLabel);
 
     // ZCk
-    ZCkCheckBox = new QCheckBox("ZCk");
-    ZCkCheckBox->setGeometry(OneByteShapes::ZCkCheckBox);
-    ZCkCheckBox->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(ZCkCheckBox);
-    zBitLabel = new TristateLabel(0, TristateLabel::ZeroOne);
-    zBitLabel->setText("0");
-    zBitLabel->setGeometry(OneByteShapes::zBitLabel);
-    zBitLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    zBitLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(zBitLabel);
+    addCheckToScene(&ZCkCheckBox, scene, "ZCk", TwoByteShapes::ZCkCheckBox);
+    addStatusLabel(&zBitLabel, scene, TwoByteShapes::zBitLabel);
 
     // NCk
-    NCkCheckBox = new QCheckBox ("NCk");
-    NCkCheckBox->setGeometry(OneByteShapes::NCkCheckBox);
-    NCkCheckBox->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(NCkCheckBox);
-    nBitLabel = new TristateLabel(0, TristateLabel::ZeroOne);
-    nBitLabel->setText("0");
-    nBitLabel->setGeometry(OneByteShapes::nBitLabel);
-    nBitLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    nBitLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(nBitLabel);
+    addCheckToScene(&NCkCheckBox, scene, "NCk", TwoByteShapes::NCkCheckBox);
+    addStatusLabel(&nBitLabel, scene, TwoByteShapes::nBitLabel);
 
     // MemRead/Write
-    MemWriteLabel = new QLabel("MemWrite");
-    MemWriteLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MemWriteLabel);
-    MemWriteTristateLabel = new TristateLabel(0, TristateLabel::OneUndefined);
-    MemWriteTristateLabel->setGeometry(OneByteShapes::MemWriteTristateLabel);
-    MemWriteTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MemWriteTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MemWriteTristateLabel);
-
-    MemReadLabel = new QLabel("MemRead");
-    MemReadLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MemReadLabel);
-    MemReadTristateLabel = new TristateLabel(0, TristateLabel::OneUndefined);
-    MemReadTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MemReadTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MemReadTristateLabel);
+    addLabelToScene(&MemWriteLabel, scene, "MemWrite", TwoByteShapes::MemWriteLabel);
+    addTLabel(&MemWriteTristateLabel, scene, TwoByteShapes::MemWriteTristateLabel);
+    addLabelToScene(&MemReadLabel, scene, "MemRead", TwoByteShapes::MemReadLabel);
+    addTLabel(&MemReadTristateLabel, scene, TwoByteShapes::MemReadTristateLabel);
 
 
     // Registers
@@ -384,421 +259,75 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
                                         Qt::SquareCap,
                                         Qt::MiterJoin), QBrush(colorScheme->seqCircuitColor));
 
+    auto wordRegExp = QRegExp("(0x){0,1}([0-9a-fA-F]){0,4}");
+    auto irRegExp = QRegExp("(0x){0,1}([0-9a-fA-F]){0,6}");
+    auto byteRegExp = QRegExp("(0x){0,1}([0-9a-fA-F]){0,2}");
+    QString dtext = "0x0000";
     QLabel *ph;
-    ph = new QLabel("0,1");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(1, 1));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("A");
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(1, 1));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    aRegLineEdit = new QLineEdit("0x0000");
-    aRegLineEdit->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    aRegLineEdit->setGeometry(OneByteShapes::aRegLineEdit);
-    aRegLineEdit->setValidator(new QRegExpValidator(
-                                   QRegExp("(0x){0,1}([0-9a-fA-F]){0,4}"),
-                                   aRegLineEdit));
-    aRegLineEdit->setPalette(QPalette(colorScheme->seqCircuitColor));
-    aRegLineEdit->setFrame(false);
-    aRegLineEdit->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(aRegLineEdit);
-    editorVector.append(aRegLineEdit);
-    //    QObject::connect(A, SIGNAL(valueChanged()),
-                           //this, SLOT(slotRegisterChanged()));
 
-    ph = new QLabel("2,3");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(1, 2));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("X");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(1, 2));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    xRegLineEdit = new QLineEdit("0x0000");
-    xRegLineEdit->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    xRegLineEdit->setGeometry(OneByteShapes::xRegLineEdit);
-    xRegLineEdit->setValidator(new QRegExpValidator(
-                                   QRegExp("(0x){0,1}([0-9a-fA-F]){0,4}"),
-                                   xRegLineEdit));
-    xRegLineEdit->setPalette(QPalette(colorScheme->seqCircuitColor));
-    xRegLineEdit->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    xRegLineEdit->setFrame(false);
-    scene->addWidget(xRegLineEdit);
-    editorVector.append(xRegLineEdit);
+    addRegisterText(labelVec, scene, "0,1", OneByteShapes::getRegNoRect(1, 1), colorScheme);
+    addRegisterText(labelVec, scene, "A", OneByteShapes::getRegLabelRect(1, 1), colorScheme);
+    addEditableRegister(&aRegLineEdit, editorVector, scene, dtext, wordRegExp, TwoByteShapes::aRegLineEdit, colorScheme);
 
-    ph = new QLabel("4,5");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(1, 3));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("SP");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(1, 3));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    spRegLineEdit = new QLineEdit("0x0000");
-    spRegLineEdit->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    spRegLineEdit->setGeometry(OneByteShapes::spRegLineEdit);
-    spRegLineEdit->setValidator(new QRegExpValidator(
-                                    QRegExp("(0x){0,1}[0-9a-fA-F]{0,4}"),
-                                    spRegLineEdit));
-    spRegLineEdit->setPalette(QPalette(colorScheme->seqCircuitColor));
-    spRegLineEdit->setFrame(false);
-    spRegLineEdit->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(spRegLineEdit);
-    editorVector.append(spRegLineEdit);
+    addRegisterText(labelVec, scene, "2,3", OneByteShapes::getRegNoRect(1, 2), colorScheme);
+    addRegisterText(labelVec, scene, "X", OneByteShapes::getRegLabelRect(1, 2), colorScheme);
+    addEditableRegister(&xRegLineEdit, editorVector, scene, dtext, wordRegExp, TwoByteShapes::xRegLineEdit, colorScheme);
 
-    ph = new QLabel("6,7");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(1, 4));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("PC");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(1, 4));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    pcRegLineEdit = new QLineEdit("0x0000");
-    pcRegLineEdit->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    pcRegLineEdit->setGeometry(OneByteShapes::pcRegLineEdit);
-    pcRegLineEdit->setValidator(new QRegExpValidator(
-                                    QRegExp("(0x){0,1}([0-9a-fA-F]){0,4}"),
-                                    pcRegLineEdit));
-    pcRegLineEdit->setPalette(QPalette(colorScheme->seqCircuitColor));
-    pcRegLineEdit->setFrame(false);
-    pcRegLineEdit->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(pcRegLineEdit);
-    editorVector.append(pcRegLineEdit);
+    addRegisterText(labelVec, scene, "4,5", OneByteShapes::getRegNoRect(1, 3), colorScheme);
+    addRegisterText(labelVec, scene, "SP", OneByteShapes::getRegLabelRect(1, 3), colorScheme);
+    addEditableRegister(&spRegLineEdit, editorVector, scene, dtext, wordRegExp, TwoByteShapes::spRegLineEdit, colorScheme);
 
+    addRegisterText(labelVec, scene, "6,7", OneByteShapes::getRegNoRect(1, 4), colorScheme);
+    addRegisterText(labelVec, scene, "PC", OneByteShapes::getRegLabelRect(1, 4), colorScheme);
+    addEditableRegister(&pcRegLineEdit, editorVector, scene, dtext, wordRegExp, TwoByteShapes::pcRegLineEdit, colorScheme);
 
-    ph = new QLabel("8-10");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(2, 1));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("IR");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(2, 1));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    irRegLineEdit = new QLineEdit("0x000000");
-    irRegLineEdit->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    irRegLineEdit->setGeometry(OneByteShapes::irRegLineEdit);
-    irRegLineEdit->setValidator(new QRegExpValidator(
-                                    QRegExp("(0x){0,1}([0-9a-fA-F]){0,6}"),
-                                    irRegLineEdit));
-    irRegLineEdit->setPalette(QPalette(colorScheme->seqCircuitColor));
-    irRegLineEdit->setFrame(false);
-    irRegLineEdit->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(irRegLineEdit);
-    editorVector.append(irRegLineEdit);
+    addRegisterText(labelVec, scene, "8-10",OneByteShapes::getRegNoRect(2, 1), colorScheme);
+    addRegisterText(labelVec, scene, "IR",OneByteShapes::getRegLabelRect(2, 1), colorScheme);
+    addEditableRegister(&irRegLineEdit, editorVector, scene, "0x000000", irRegExp, TwoByteShapes::irRegLineEdit, colorScheme);
 
-    ph = new QLabel("11");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(2, 2));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("T1");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(2, 2));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    t1RegLineEdit = new QLineEdit("0x00");
-    t1RegLineEdit->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    t1RegLineEdit->setGeometry(OneByteShapes::t1RegLineEdit);
-    t1RegLineEdit->setValidator(new QRegExpValidator(
-                                    QRegExp("(0x){0,1}([0-9a-fA-F]){0,2}"),
-                                    t1RegLineEdit));
-    t1RegLineEdit->setPalette(QPalette(colorScheme->seqCircuitColor));
-    t1RegLineEdit->setFrame(false);
-    t1RegLineEdit->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(t1RegLineEdit);
-    editorVector.append(t1RegLineEdit);
+    addRegisterText(labelVec, scene, "11", OneByteShapes::getRegNoRect(2, 2), colorScheme);
+    addRegisterText(labelVec, scene, "T1", OneByteShapes::getRegLabelRect(2, 2), colorScheme);
+    addEditableRegister(&t1RegLineEdit, editorVector, scene, "0x00", byteRegExp, TwoByteShapes::t1RegLineEdit, colorScheme);
 
-    ph = new QLabel("12,13");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(2, 3));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("T2");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(2, 3));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    t2RegLineEdit = new QLineEdit("0x0000");
-    t2RegLineEdit->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    t2RegLineEdit->setGeometry(OneByteShapes::t2RegLineEdit);
-    t2RegLineEdit->setValidator(new QRegExpValidator(
-                                    QRegExp("(0x){0,1}([0-9a-fA-F]){0,4}"),
-                                    t2RegLineEdit));
-    t2RegLineEdit->setPalette(QPalette(colorScheme->seqCircuitColor));
-    t2RegLineEdit->setFrame(false);
-    t2RegLineEdit->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(t2RegLineEdit);
-    editorVector.append(t2RegLineEdit);
+    addRegisterText(labelVec, scene, "12,13", OneByteShapes::getRegNoRect(2, 3), colorScheme);
+    addRegisterText(labelVec, scene, "T2", OneByteShapes::getRegLabelRect(2, 3), colorScheme);
+    addEditableRegister(&t2RegLineEdit, editorVector, scene, dtext, wordRegExp, TwoByteShapes::t2RegLineEdit, colorScheme);
 
-    ph = new QLabel("14,15");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(2, 4));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("T3");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(2, 4));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    t3RegLineEdit = new QLineEdit("0x0000");
-    t3RegLineEdit->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    t3RegLineEdit->setGeometry(OneByteShapes::t3RegLineEdit);
-    t3RegLineEdit->setValidator(new QRegExpValidator(
-                                    QRegExp("(0x){0,1}([0-9a-fA-F]){0,4}"),
-                                    t3RegLineEdit));
-    t3RegLineEdit->setPalette(QPalette(colorScheme->seqCircuitColor));
-    t3RegLineEdit->setFrame(false);
-    t3RegLineEdit->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(t3RegLineEdit);
-    editorVector.append(t3RegLineEdit);
+    addRegisterText(labelVec, scene, "14,15",OneByteShapes::getRegNoRect(2, 4), colorScheme);
+    addRegisterText(labelVec, scene, "T3",OneByteShapes::getRegLabelRect(2, 4), colorScheme);
+    addEditableRegister(&t3RegLineEdit, editorVector, scene, dtext, wordRegExp, TwoByteShapes::t3RegLineEdit, colorScheme);
 
-    ph = new QLabel("16,17");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(3, 1));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("T4");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(3, 1));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    t4RegLineEdit = new QLineEdit("0x0000");
-    t4RegLineEdit->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    t4RegLineEdit->setGeometry(OneByteShapes::t4RegLineEdit);
-    t4RegLineEdit->setValidator(new QRegExpValidator(
-                                    QRegExp("(0x){0,1}([0-9a-fA-F]){0,4}"),
-                                    t4RegLineEdit));
-    t4RegLineEdit->setPalette(QPalette(colorScheme->seqCircuitColor));
-    t4RegLineEdit->setFrame(false);
-    t4RegLineEdit->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(t4RegLineEdit);
-    editorVector.append(t4RegLineEdit);
+    addRegisterText(labelVec, scene, "16,17", OneByteShapes::getRegNoRect(3, 1), colorScheme);
+    addRegisterText(labelVec, scene, "T4", OneByteShapes::getRegLabelRect(3, 1), colorScheme);
+    addEditableRegister(&t4RegLineEdit, editorVector, scene, dtext, wordRegExp, TwoByteShapes::t4RegLineEdit, colorScheme);
 
-    ph = new QLabel("18,19");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(3, 2));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("T5");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(3, 2));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    t5RegLineEdit = new QLineEdit("0x0000");
-    t5RegLineEdit->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    t5RegLineEdit->setGeometry(OneByteShapes::t5RegLineEdit);
-    t5RegLineEdit->setValidator(new QRegExpValidator(
-                                    QRegExp("(0x){0,1}([0-9a-fA-F]){0,4}"),
-                                    t5RegLineEdit));
-    t5RegLineEdit->setPalette(QPalette(colorScheme->seqCircuitColor));
-    t5RegLineEdit->setFrame(false);
-    t5RegLineEdit->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(t5RegLineEdit);
-    editorVector.append(t5RegLineEdit);
+    addRegisterText(labelVec, scene, "18,19", OneByteShapes::getRegNoRect(3, 2), colorScheme);
+    addRegisterText(labelVec, scene, "T5", OneByteShapes::getRegLabelRect(3, 2), colorScheme);
+    addEditableRegister(&t5RegLineEdit, editorVector, scene, dtext, wordRegExp, TwoByteShapes::t5RegLineEdit, colorScheme);
 
-    ph = new QLabel("20,21");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(3, 3));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("T6");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(3, 3));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    t6RegLineEdit = new QLineEdit("0x0000");
-    t6RegLineEdit->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    t6RegLineEdit->setGeometry(OneByteShapes::t6RegLineEdit);
-    t6RegLineEdit->setValidator(new QRegExpValidator(
-                                    QRegExp("(0x){0,1}([0-9a-fA-F]){0,4}"),
-                                    t6RegLineEdit));
-    t6RegLineEdit->setPalette(QPalette(colorScheme->seqCircuitColor));
-    t6RegLineEdit->setFrame(false);
-    t6RegLineEdit->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(t6RegLineEdit);
-    editorVector.append(t6RegLineEdit);
+    addRegisterText(labelVec, scene, "20,21", OneByteShapes::getRegNoRect(3, 3), colorScheme);
+    addRegisterText(labelVec, scene, "T6", OneByteShapes::getRegLabelRect(3, 3), colorScheme);
+    addEditableRegister(&t6RegLineEdit, editorVector, scene, dtext, wordRegExp, TwoByteShapes::t6RegLineEdit, colorScheme);
 
-    ph = new QLabel("22,23");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegNoRect(3, 4));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("M1");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(colorScheme->seqCircuitColor));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(3, 4));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("0x0001");
-    ph->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    ph->setGeometry(OneByteShapes::m1RegLabel);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(ph);
-    labelVec.append(ph);
+    addRegisterText(labelVec, scene, "22,23", OneByteShapes::getRegNoRect(3, 4), colorScheme);
+    addRegisterText(labelVec, scene, "M1", OneByteShapes::getRegLabelRect(3, 4), colorScheme);
+    addStaticRegister(labelVec, scene, "0x0001", OneByteShapes::m1RegLabel, colorScheme);
 
-    ph = new QLabel("24,25");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setGeometry(OneByteShapes::getRegNoRect(4, 1));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("M2");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(4, 1));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("0x0203");
-    ph->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    ph->setGeometry(OneByteShapes::m2RegLabel);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(ph);
-    labelVec.append(ph);
+    addRegisterText(labelVec, scene, "24,25", OneByteShapes::getRegNoRect(4, 1), colorScheme);
+    addRegisterText(labelVec, scene, "M2", OneByteShapes::getRegLabelRect(4, 1), colorScheme);
+    addStaticRegister(labelVec, scene, "0x0203", OneByteShapes::m2RegLabel, colorScheme);
 
-    ph = new QLabel("26,27");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setGeometry(OneByteShapes::getRegNoRect(4, 2));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("M3");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(4, 2));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("0x0408");
-    ph->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    ph->setGeometry(OneByteShapes::m3RegLabel);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(ph);
-    labelVec.append(ph);
+    addRegisterText(labelVec, scene, "26,27", OneByteShapes::getRegNoRect(4, 2), colorScheme);
+    addRegisterText(labelVec, scene, "M3", OneByteShapes::getRegLabelRect(4, 2), colorScheme);
+    addStaticRegister(labelVec, scene, "0x0408", OneByteShapes::m3RegLabel, colorScheme);
 
-    ph = new QLabel("28,29");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setGeometry(OneByteShapes::getRegNoRect(4, 3));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("M4");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(4, 3));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("0xF0F6");
-    ph->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    ph->setGeometry(OneByteShapes::m4RegLabel);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(ph);
-    labelVec.append(ph);
+    addRegisterText(labelVec, scene, "28,29", OneByteShapes::getRegNoRect(4, 3), colorScheme);
+    addRegisterText(labelVec, scene, "M4", OneByteShapes::getRegLabelRect(4, 3), colorScheme);
+    addStaticRegister(labelVec, scene, "0xF0F6", OneByteShapes::m4RegLabel, colorScheme);
 
-    ph = new QLabel("30,31");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setGeometry(OneByteShapes::getRegNoRect(4, 4));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeSmall));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("M5");
-    ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setGeometry(OneByteShapes::getRegLabelRect(4, 4));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSizeLarge));
-    ph->setFont(QFont(ph->font().family(), ph->font().pointSize(), QFont::Bold));
-    scene->addWidget(ph);
-    labelVec.append(ph);
-    ph = new QLabel("0xFEFF");
-    ph->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    ph->setGeometry(OneByteShapes::m5RegLabel);
-    ph->setPalette(QPalette(PepColors::transparent));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
-    scene->addWidget(ph);
-    labelVec.append(ph);
+    addRegisterText(labelVec, scene, "30,31", OneByteShapes::getRegNoRect(4, 4), colorScheme);
+    addRegisterText(labelVec, scene, "M5", OneByteShapes::getRegLabelRect(4, 4), colorScheme);
+    addStaticRegister(labelVec, scene, "0xFEFF", OneByteShapes::m5RegLabel, colorScheme);
 
     //outline around register bank
     regBankOutline = scene->addRect(OneByteShapes::RegBank, QPen(QBrush(QColor(colorScheme->arrowColorOn),
@@ -814,71 +343,6 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
 
         // ALU drawing:
         ALUPoly->moveBy(TwoByteShapes::controlOffsetX, TwoByteShapes::aluOffsetY);
-
-        // ***************************************
-        // fix geometry for the two byte bus
-        // ***************************************
-        // MAR
-        MARALabel->setGeometry(TwoByteShapes::MARALabel);
-        MARBLabel->setGeometry(TwoByteShapes::MARBLabel);
-
-        // register signals
-        loadCk->setGeometry(TwoByteShapes::loadCkCheckbox);
-        cLineEdit->setGeometry(TwoByteShapes::cLineEdit);
-        cLabel->setGeometry(TwoByteShapes::cLabel);
-        bLineEdit->setGeometry(TwoByteShapes::bLineEdit);
-        bLabel->setGeometry(TwoByteShapes::bLabel);
-        aLineEdit->setGeometry(TwoByteShapes::aLineEdit);
-        aLabel->setGeometry(TwoByteShapes::aLabel);
-
-        // misc control signals
-        MARCk->setGeometry(TwoByteShapes::MARCkCheckbox);
-        aMuxLabel->setGeometry(TwoByteShapes::aMuxLabel);
-        aMuxerDataLabel->setGeometry(TwoByteShapes::aMuxerDataLabel);
-        aMuxTristateLabel->setGeometry(TwoByteShapes::aMuxTristateLabel);
-        cMuxLabel->setGeometry(TwoByteShapes::cMuxLabel);
-        cMuxerLabel->setGeometry(TwoByteShapes::cMuxerLabel);
-        cMuxTristateLabel->setGeometry(TwoByteShapes::cMuxTristateLabel);
-        ALULineEdit->setGeometry(TwoByteShapes::ALULineEdit);
-        ALULabel->setGeometry(TwoByteShapes::ALULabel);
-        ALUFunctionLabel->setGeometry(TwoByteShapes::ALUFunctionLabel);
-
-        // status bit control signals
-        CSMuxLabel->setGeometry(TwoByteShapes::CSMuxLabel);
-        CSMuxerDataLabel->setGeometry(TwoByteShapes::CSMuxerDataLabel);
-        CSMuxTristateLabel->setGeometry(TwoByteShapes::CSMuxTristateLabel);
-        SCkCheckBox->setGeometry(TwoByteShapes::SCkCheckBox);
-        sBitLabel->setGeometry(TwoByteShapes::sBitLabel);
-        CCkCheckBox->setGeometry(TwoByteShapes::CCkCheckBox);
-        cBitLabel->setGeometry(TwoByteShapes::cBitLabel);
-        VCkCheckBox->setGeometry(TwoByteShapes::VCkCheckBox);
-        vBitLabel->setGeometry(TwoByteShapes::vBitLabel);
-        AndZLabel->setGeometry(TwoByteShapes::AndZLabel);
-        AndZTristateLabel->setGeometry(TwoByteShapes::AndZTristateLabel);
-        AndZMuxLabel->setGeometry(TwoByteShapes::AndZMuxLabel);
-        ZCkCheckBox->setGeometry(TwoByteShapes::ZCkCheckBox);
-        zBitLabel->setGeometry(TwoByteShapes::zBitLabel);
-        NCkCheckBox->setGeometry(TwoByteShapes::NCkCheckBox);
-        nBitLabel->setGeometry(TwoByteShapes::nBitLabel);
-
-
-
-        // Status Bits
-        CSMuxerDataLabel->setGeometry(TwoByteShapes::CSMuxerDataLabel);
-        sBitLabel->setGeometry(TwoByteShapes::sBitLabel);
-        cBitLabel->setGeometry(TwoByteShapes::cBitLabel);
-        vBitLabel->setGeometry(TwoByteShapes::vBitLabel);
-        AndZMuxLabel->setGeometry(TwoByteShapes::AndZMuxLabel);
-        zBitLabel->setGeometry(TwoByteShapes::zBitLabel);
-        nBitLabel->setGeometry(TwoByteShapes::nBitLabel);
-
-
-        // MemRead/Write
-        MemWriteLabel->setGeometry(TwoByteShapes::MemWriteLabel);
-        MemReadLabel->setGeometry(TwoByteShapes::MemReadLabel);
-        MemWriteTristateLabel->setGeometry(TwoByteShapes::MemWriteTristateLabel);
-        MemReadTristateLabel->setGeometry(TwoByteShapes::MemReadTristateLabel);
-
     // Status Bits
     onDarkModeChanged(false);
 }
