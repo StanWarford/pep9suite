@@ -35,11 +35,12 @@
 #include "tristatelabel.h"
 #include "pep.h"
 #include "code.h"
+#include "mainwindow.h"
 
 #include <QDebug>
 
 using namespace Enu;
-CpuPane::CpuPane(CPUType type, QWidget *parent) :
+CpuPane::CpuPane( QWidget *parent) :
         QWidget(parent),
         controlSection(CPUControlSection::getInstance()),dataSection(CPUDataSection::getInstance()),
         ui(new Ui::CpuPane)
@@ -52,11 +53,17 @@ CpuPane::CpuPane(CPUType type, QWidget *parent) :
 
     ui->graphicsView->setFont(QFont(Pep::cpuFont, Pep::cpuFontSize));
 
-    initModel(type);
+    initModel();
 
     ui->spinBox->hide();
     ui->graphicsView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     ui->singleStepPushButton->setEnabled(false);
+    this->setMinimumWidth(cpuPaneItems->boundingRect().right()+45);
+}
+
+void CpuPane::init(MainWindow *mainWindow)
+{
+    this->mainWindow = mainWindow;
 }
 
 CpuPane::~CpuPane()
@@ -84,9 +91,9 @@ void CpuPane::giveFocus()
     ui->graphicsView->setFocus();
 }
 
-void CpuPane::initModel(Enu::CPUType type)
+void CpuPane::initModel()
 {
-    cpuPaneItems = new CpuGraphicsItems(type, ui->graphicsView, 0, scene);
+    cpuPaneItems = new CpuGraphicsItems(Enu::TwoByteDataBus, ui->graphicsView, 0, scene);
 
     ui->graphicsView->scene()->addItem(cpuPaneItems);
 
@@ -102,15 +109,11 @@ void CpuPane::initModel(Enu::CPUType type)
     connect(cpuPaneItems->aLineEdit, &QLineEdit::textChanged, this, &CpuPane::onBusChanged);
 
     connect(cpuPaneItems->MARCk, SIGNAL(clicked()), scene, SLOT(invalidate()));
-    connect(cpuPaneItems->MDRCk, SIGNAL(clicked()), scene, SLOT(invalidate()));
     connect(cpuPaneItems->MARCk, &QCheckBox::clicked, this, &CpuPane::onClockChanged);
-    connect(cpuPaneItems->MDRCk, &QCheckBox::clicked, this, &CpuPane::onClockChanged);
 
     connect(cpuPaneItems->aMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->aMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
 
-    connect(cpuPaneItems->MDRMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
-    connect(cpuPaneItems->MDRMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
 
     connect(cpuPaneItems->cMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->cMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
@@ -261,9 +264,6 @@ void CpuPane::setRegister(Enu::EKeywords reg, int value)
         break;
     case Enu::MARBREG:
         cpuPaneItems->MARBLabel->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
-        break;
-    case Enu::MDRREG:
-        cpuPaneItems->MDRLabel->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
         break;
     case Enu::MDROREG:
         cpuPaneItems->MDROLabel->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
@@ -438,9 +438,7 @@ void CpuPane::clearCpuControlSignals()
     cpuPaneItems->bLineEdit->setText("");
     cpuPaneItems->aLineEdit->setText("");
     cpuPaneItems->MARCk->setChecked(false);
-    cpuPaneItems->MDRCk->setChecked(false);
     cpuPaneItems->aMuxTristateLabel->setText("");
-    cpuPaneItems->MDRMuxTristateLabel->setText("");
     cpuPaneItems->cMuxTristateLabel->setText("");
     cpuPaneItems->ALULineEdit->setText("");
     cpuPaneItems->CSMuxTristateLabel->setText("");
@@ -612,10 +610,7 @@ void CpuPane::labelClicked()
         temp = cpuPaneItems->aMuxTristateLabel->text();
         control= Enu::AMux;
     }
-    else if(label == cpuPaneItems->MDRMuxTristateLabel){
-        temp = cpuPaneItems->MDRMuxTristateLabel->text();
-        control= Enu::MDRMux;
-    }
+
     else if(label == cpuPaneItems->cMuxTristateLabel){
         temp = cpuPaneItems->cMuxTristateLabel->text();
         control= Enu::CMux;
@@ -718,12 +713,11 @@ void CpuPane::singleStepButtonPushed()
     scene->invalidate();
 
 }
-#include <mainwindow.h>
+
 void CpuPane::resumeButtonPushed()
 {
 
     bool finished = controlSection->getExecutionFinished();
-    MainWindow* mainWindow = qobject_cast<MainWindow*>(parent());
     if(mainWindow == nullptr)
     {
         //throw bad_cast();
@@ -768,14 +762,8 @@ void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
     if (cpuPaneItems->MARMuxTristateLabel->text() != "") { // 2 byte bus
         code.setControlSignal(Enu::MARMux, cpuPaneItems->MARMuxTristateLabel->text().toInt());
     }
-    if (cpuPaneItems->MDRCk->isChecked()) {
-        code.setClockSingal(Enu::MDRCk, 1);
-    }
     if (cpuPaneItems->aMuxTristateLabel->text() != "") {
         code.setControlSignal(Enu::AMux, cpuPaneItems->aMuxTristateLabel->text().toInt());
-    }
-    if (cpuPaneItems->MDRMuxTristateLabel->text() != "") {
-        code.setControlSignal(Enu::MDRMux, cpuPaneItems->MDRMuxTristateLabel->text().toInt());
     }
     if (cpuPaneItems->MDROCk->isChecked()) { // 2 byte bus
         code.setClockSingal(Enu::MDROCk, 1);
@@ -925,10 +913,6 @@ void CpuPane::onClockChanged()
     {
         dataSection->onSetClock(Enu::MARCk,cpuPaneItems->MARCk->checkState());
     }
-    else if(send==cpuPaneItems->MDRCk)
-    {
-        dataSection->onSetClock(Enu::MDRCk,cpuPaneItems->MDRCk->checkState());
-    }
     else if(send==cpuPaneItems->MDRECk)
     {
         dataSection->onSetClock(Enu::MDRECk,cpuPaneItems->MDRECk->checkState());
@@ -978,9 +962,6 @@ void CpuPane::onMemoryRegisterChanged(EMemoryRegisters reg, quint8, quint8 newVa
         break;
     case Enu::MEM_MARB:
         cpuPaneItems->MARBLabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());
-        break;
-    case Enu::MEM_MDR:
-        cpuPaneItems->MDRLabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());
         break;
     case Enu::MEM_MDRE:
         cpuPaneItems->MDRELabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());

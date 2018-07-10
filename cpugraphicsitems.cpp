@@ -203,12 +203,6 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
     MARCk->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
     scene->addWidget(MARCk);
 
-    // MDRCk
-    MDRCk = new QCheckBox("MDRCk");
-    MDRCk->setGeometry(OneByteShapes::MDRCkCheckbox);
-    MDRCk->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDRCk);
-
     // AMux
     aMuxLabel = new QLabel("AMux");
     aMuxLabel->setGeometry(OneByteShapes::aMuxLabel);
@@ -224,28 +218,6 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
     aMuxTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     aMuxTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
     scene->addWidget(aMuxTristateLabel);
-
-    // MDRMux
-    MDRMuxLabel = new QLabel("MDRMux");
-    MDRMuxLabel->setGeometry(OneByteShapes::MDRMuxLabel);
-    MDRMuxLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDRMuxLabel);
-    MDRMuxerDataLabel = new QLabel("MDRMux");
-    MDRMuxerDataLabel->setGeometry(OneByteShapes::MDRMuxerDataLabel);
-    MDRMuxerDataLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MDRMuxerDataLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDRMuxerDataLabel);
-    MDRMuxTristateLabel = new TristateLabel(0, TristateLabel::Tristate);
-    MDRMuxTristateLabel->setGeometry(OneByteShapes::MDRMuxTristateLabel);
-    MDRMuxTristateLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MDRMuxTristateLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDRMuxTristateLabel);
-    MDRLabel = new QLabel("0x00");
-    MDRLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    MDRLabel->setGeometry(OneByteShapes::MDRLabel);
-    MDRLabel->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(MDRLabel);
-
 
     // CMux
     cMuxLabel = new QLabel("CMux");
@@ -835,51 +807,7 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
                                                 Qt::MiterJoin));
 
     // do stuff based on the current model:
-    if (model == Enu::OneByteDataBus) {
-        // hide 2 byte bus stuff:
-        MDROCk->hide();
-        MDRECk->hide();
-        MDROMuxTristateLabel->hide();
-        MDREMuxTristateLabel->hide();
-        EOMuxTristateLabel->hide();
-        MARMuxerDataLabel->hide();
-        MARMuxTristateLabel->hide();
-        MDROMuxerDataLabel->hide();
-        MDREMuxerDataLabel->hide();
-        MDROMuxLabel->hide();
-        MDREMuxLabel->hide();
-        EOMuxLabel->hide();
-        EOMuxerDataLabel->hide();
-        MDRELabel->hide();
-        MDROLabel->hide();
-        MARMuxLabel->hide();
-
-        // MARBus (MARA/MARB output bus)
-        // MAR
-        MARALabel->setGeometry(OneByteShapes::MARALabel);
-        MARBLabel->setGeometry(OneByteShapes::MARBLabel);
-
-        // MDR
-        //scene->addRect(OneByteShapes::MDRLabel);
-        // MDR data section
-
-        // MDRBus (output from MDR, right arrow):
-        // note: left arrow gets drawn in repaintMemWrite
-
-        // MemRead/Write
-        MemWriteLabel->setGeometry(OneByteShapes::MemWriteLabel);
-        MemReadLabel->setGeometry(OneByteShapes::MemReadLabel);
-        MemWriteTristateLabel->setGeometry(OneByteShapes::MemWriteTristateLabel);
-        MemReadTristateLabel->setGeometry(OneByteShapes::MemReadTristateLabel);
-    }
-    else if (model == Enu::TwoByteDataBus) {
         // hide 1 byte bus stuff:
-        MDRCk->hide();
-        MDRLabel->hide();
-        MDRMuxerDataLabel->hide();
-        MDRMuxLabel->hide();
-        MDRMuxTristateLabel->hide();
-
         // MARBus (MARA/MARB output bus)
         scene->addPolygon(TwoByteShapes::MARBus,
                           QPen(QBrush(colorScheme->arrowColorOn), 1), QBrush(colorScheme->combCircuitYellow));
@@ -950,7 +878,6 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
         MemReadLabel->setGeometry(TwoByteShapes::MemReadLabel);
         MemWriteTristateLabel->setGeometry(TwoByteShapes::MemWriteTristateLabel);
         MemReadTristateLabel->setGeometry(TwoByteShapes::MemReadTristateLabel);
-    }
 
     // Status Bits
     onDarkModeChanged(false);
@@ -968,15 +895,10 @@ CpuGraphicsItems::~CpuGraphicsItems()
     delete MARCk;
     delete MARALabel;
     delete MARBLabel;
-    delete MDRCk;
     delete aMuxLabel;
     delete aMuxerDataLabel;
     delete aMuxerBorder;
     delete aMuxTristateLabel;
-    delete MDRMuxLabel;
-    delete MDRMuxerDataLabel;
-    delete MDRMuxTristateLabel;
-    delete MDRLabel;
     delete cMuxLabel;
     delete cMuxTristateLabel;
     delete cMuxerLabel;
@@ -1029,13 +951,7 @@ CpuGraphicsItems::~CpuGraphicsItems()
 
 QRectF CpuGraphicsItems::boundingRect() const
 {
-    if (dataSection->getCPUFeatures() == Enu::OneByteDataBus) {
-        return QRectF(0,0, 650, 670);
-    }
-    else if (dataSection->getCPUFeatures() == Enu::TwoByteDataBus) {
-        return QRectF(0,0, 650, TwoByteShapes::BottomOfAlu+TwoByteShapes::MemReadYOffsetFromALU+TwoByteShapes::labelTriH+10);
-    }
-    return QRectF(0,0, 650, 670);
+        return QRectF(0,0, 650+20, TwoByteShapes::BottomOfAlu+TwoByteShapes::MemReadYOffsetFromALU+TwoByteShapes::labelTriH+10);
 }
 
 bool CpuGraphicsItems::aluHasCorrectOutput()
@@ -1094,29 +1010,11 @@ void CpuGraphicsItems::paint(QPainter *painter,
     repaintCSelect(painter);
     repaintBSelect(painter);
     repaintASelect(painter);
-    repaintMARCk(painter);
+    repaintMARCkTwoByteModel(painter);
     repaintAMuxSelect(painter); // Needs to be painted before buses
     repaintCMuxSelect(painter);
     painter->setPen(colorScheme->arrowColorOn);
 
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-
-        //Paint the buses in the correct order for the One Byte Bus
-        /*
-         * In the one byte bus, the buses must be drawn in the folling order C, B, A.
-         * The B bus overlaps with the A bus, and the C bus overlaps with the B bus.
-         * So, this rendering order prevents graphical issues.
-         */
-        repaintCBusOneByteModel(painter);
-        repaintBBusOneByteModel(painter);
-        repaintABusOneByteModel(painter);
-
-        repaintMDRMuxSelect(painter);
-
-        repaintMDRCk(painter);
-        break;
-    case Enu::TwoByteDataBus:
         repaintMDROCk(painter);
         repaintMDRECk(painter);
         repaintEOMuxSelect(painter);
@@ -1133,13 +1031,6 @@ void CpuGraphicsItems::paint(QPainter *painter,
         repaintBBusTwoByteModel(painter);
         repaintCBusTwoByteModel(painter);
 
-        break;
-    default:
-        break;
-    }
-
-
-
     repaintCSMuxSelect(painter);
 
     repaintSCk(painter);
@@ -1147,9 +1038,9 @@ void CpuGraphicsItems::paint(QPainter *painter,
     repaintVCk(painter);
     repaintZCk(painter);
     repaintNCk(painter);
-    repaintMemCommon(painter);
-    repaintMemRead(painter);
-    repaintMemWrite(painter);
+    repaintMemCommonTwoByte(painter);
+    repaintMemReadTwoByteModel(painter);
+    repaintMemWriteTwoByteModel(painter);
     repaintSBitOut(painter);
     repaintCBitOut(painter);
     repaintVBitOut(painter);
@@ -1157,7 +1048,7 @@ void CpuGraphicsItems::paint(QPainter *painter,
     repaintNBitOut(painter);
 
     repaintAndZSelect(painter);
-    repaintALUSelect(painter);
+    repaintALUSelectTwoByteModel(painter);
 
 }
 
@@ -1176,29 +1067,6 @@ void CpuGraphicsItems::drawDiagramFreeText(QPainter *painter)
     painter->setFont(font);
     painter->drawText(-260,35, "System Bus");
     painter->restore();
-    switch(dataSection->getCPUFeatures())
-    {
-    case Enu::CPUType::OneByteDataBus:
-        painter->drawText(7, 395, "Data");
-        painter->drawText(372,132, "ABus");
-        painter->drawText(433,132, "BBus");
-        painter->drawText(300,132, "CBus");
-        // alu select line text
-        painter->drawText(OneByteShapes::ctrlInputX - 23, ALULineEdit->y() + 5, "4");
-
-        painter->drawText(368,388, "ALU");
-
-        // NZVC data path text
-        painter->drawText(314,531, "0");
-        painter->drawText(314,541, "0");
-        painter->drawText(314,551, "0");
-        painter->drawText(314,561, "0");
-
-        painter->drawText(OneByteShapes::MARALabel.x() - 37, OneByteShapes::MARALabel.y() + 13, "MARA");
-        painter->drawText(OneByteShapes::MARBLabel.x() - 37, OneByteShapes::MARBLabel.y() + 13, "MARB");
-
-        break;
-    case Enu::CPUType::TwoByteDataBus:
         painter->drawText(7, TwoByteShapes::DataArrowMidpointY+TwoByteShapes::DataArrowOuterYSpread+10, "Data");
         painter->drawText(427,132, "ABus");
         painter->drawText(483,132, "BBus");
@@ -1219,8 +1087,7 @@ void CpuGraphicsItems::drawDiagramFreeText(QPainter *painter)
                           561 + TwoByteShapes::aluOffsetY, "0");
         painter->drawText(TwoByteShapes::MARALabel.x() - 37, TwoByteShapes::MARALabel.y() + 13, "MARA");
         painter->drawText(TwoByteShapes::MARBLabel.x() - 37, TwoByteShapes::MARBLabel.y() + 13, "MARB");
-        break;
-    }
+
 }
 
 void CpuGraphicsItems::drawLabels()
@@ -1286,13 +1153,6 @@ void CpuGraphicsItems::drawLabels()
     MemReadTristateLabel->setPalette(seqColor);
     MemWriteLabel->setPalette(seqColor);
     MemWriteTristateLabel->setPalette(seqColor);
-    //One byte exclusive labels
-    MDRLabel->setPalette(combColor);
-    MDRMuxLabel->setPalette(seqColor);
-    MDRMuxTristateLabel->setPalette(seqColor);
-    MDRMuxerDataLabel->setPalette(seqColor);
-    MDRCk->setPalette(seqColor);
-
 
     //Two Byte Exclusive Labels
     MARMuxLabel->setPalette(seqColor);
@@ -1323,42 +1183,7 @@ void CpuGraphicsItems::drawStaticRects(QPainter* paint)
     paint->drawRect(QRectF(zBitLabel->pos(), zBitLabel->size())); // Z
     paint->drawRect(QRectF(nBitLabel->pos(), nBitLabel->size())); // N
     paint->drawRect(QRectF(sBitLabel->pos(), sBitLabel->size())); // S
-    if(CPUDataSection::getInstance()->getCPUFeatures()==Enu::OneByteDataBus)
-    {
-        auto penOn = QPen(colorScheme->arrowColorOn);
-        auto penOff = QPen(colorScheme->arrowColorOff);
-        paint->setPen(penOn);
-        paint->drawRect(OneByteShapes::MDRLabel);
-        paint->drawRect(OneByteShapes::MARBLabel);
-        paint->drawRect(OneByteShapes::MARALabel);
-        paint->drawRect(OneByteShapes::MDRMuxerDataLabel);
 
-        paint->drawRect(OneByteShapes::cMuxerLabel);
-        paint->drawRect(OneByteShapes::aMuxerDataLabel);
-        paint->drawRect(QRectF(CSMuxerDataLabel->pos(), CSMuxerDataLabel->size()));
-        paint->drawRect(OneByteShapes::AndZMuxLabel);
-        paint->drawLine(OneByteShapes::NZVCDataLine);
-        // NZVC data path to CMux, vertical black line
-        paint->setPen(penOff);
-        paint->drawRect(QRectF(CSMuxTristateLabel->pos(), CSMuxTristateLabel->size()));
-        paint->drawRect(QRectF(AndZTristateLabel->pos(), AndZTristateLabel->size()));
-        paint->drawRect(QRectF(MemReadTristateLabel->pos(),
-                              MemReadTristateLabel->size())); //gray
-        paint->drawRect(QRectF(MemWriteTristateLabel->pos(),
-                              MemWriteTristateLabel->size())); //gray
-
-        paint->drawRect(OneByteShapes::aMuxTristateLabel); //gray
-        paint->drawRect(OneByteShapes::cMuxTristateLabel); //gray
-        paint->drawRect(OneByteShapes::MDRMuxTristateLabel); //gray
-        paint->setPen(penOn);
-        paint->setBrush(QBrush(colorScheme->combCircuitYellow));
-        paint->drawRect(OneByteShapes::MDRBusOutRect);
-        paint->drawPolygon(OneByteShapes::MDRBusOutArrow);
-        paint->drawPolygon(OneByteShapes::NZVCDataPath);
-        paint->drawPolygon(OneByteShapes::MARBus);
-    }
-    else if(CPUDataSection::getInstance()->getCPUFeatures()==Enu::TwoByteDataBus)
-    {
         auto penOn = QPen(colorScheme->arrowColorOn);
         auto penOff = QPen(colorScheme->arrowColorOff);
         paint->setPen(penOn);
@@ -1395,7 +1220,7 @@ void CpuGraphicsItems::drawStaticRects(QPainter* paint)
         paint->drawRect(TwoByteShapes::MDREMuxTristateLabel); //gray
         paint->drawRect(TwoByteShapes::EOMuxTristateLabel); //gray
         paint->drawRect(TwoByteShapes::MARMuxTristateLabel); //gray
-    }
+
 }
 
 void CpuGraphicsItems::drawALUPoly()
@@ -1439,26 +1264,11 @@ void CpuGraphicsItems::repaintLoadCk(QPainter *painter)
     color = loadCk->isChecked() ? colorScheme->arrowColorOn : Qt::gray;
     painter->setPen(QPen(QBrush(color), 1));
     painter->setBrush(color);
+    painter->drawLines(TwoByteShapes::loadCkSelect._lines);
 
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLines(OneByteShapes::loadCkSelect._lines);
-
-        for (int i = 0; i < OneByteShapes::loadCkSelect._arrowheads.length(); i++) {
-            painter->drawImage(OneByteShapes::loadCkSelect._arrowheads.at(i),
-                               color == Qt::gray ? arrowLeftGray : arrowLeft);
-        }
-        break;
-    case Enu::TwoByteDataBus:
-        painter->drawLines(TwoByteShapes::loadCkSelect._lines);
-
-        for (int i = 0; i < TwoByteShapes::loadCkSelect._arrowheads.length(); i++) {
-            painter->drawImage(TwoByteShapes::loadCkSelect._arrowheads.at(i),
-                               color == Qt::gray ? arrowLeftGray : arrowLeft);
-        }
-        break;
-    default:
-        break;
+    for (int i = 0; i < TwoByteShapes::loadCkSelect._arrowheads.length(); i++) {
+        painter->drawImage(TwoByteShapes::loadCkSelect._arrowheads.at(i),
+                           color == Qt::gray ? arrowLeftGray : arrowLeft);
     }
 }
 
@@ -1473,16 +1283,7 @@ void CpuGraphicsItems::repaintCSelect(QPainter *painter)
     painter->setBrush(color);
 
     // Draw select lines
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLines(OneByteShapes::CSelect._lines);
-        break;
-    case Enu::TwoByteDataBus:
-        painter->drawLines(TwoByteShapes::CSelect._lines);
-        break;
-    default:
-        break;
-    }
+    painter->drawLines(TwoByteShapes::CSelect._lines);
 
     painter->drawImage(QPoint(499,47),
                        color == Qt::gray ? arrowLeftGray : arrowLeft);
@@ -1504,16 +1305,7 @@ void CpuGraphicsItems::repaintBSelect(QPainter *painter)
                        color == Qt::gray ? arrowLeftGray : arrowLeft);
 
     // Draw select lines
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLines(OneByteShapes::BSelect._lines);
-        break;
-    case Enu::TwoByteDataBus:
-        painter->drawLines(TwoByteShapes::BSelect._lines);
-        break;
-    default:
-        break;
-    }
+    painter->drawLines(TwoByteShapes::BSelect._lines);
 
 }
 
@@ -1532,30 +1324,7 @@ void CpuGraphicsItems::repaintASelect(QPainter *painter)
                        color == Qt::gray ? arrowLeftGray : arrowLeft);
 
     // Draw select lines
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLines(OneByteShapes::ASelect._lines);
-        break;
-    case Enu::TwoByteDataBus:
-        painter->drawLines(TwoByteShapes::ASelect._lines);
-        break;
-    default:
-        break;
-    }
-}
-
-void CpuGraphicsItems::repaintMARCk(QPainter *painter)
-{
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        repaintMARCkOneByteModel(painter);
-        break;
-    case Enu::TwoByteDataBus:
-        repaintMARCkTwoByteModel(painter);
-        break;
-    default:
-        break;
-    }
+    painter->drawLines(TwoByteShapes::ASelect._lines);
 }
 
 void CpuGraphicsItems::repaintAMuxSelect(QPainter *painter)
@@ -1568,19 +1337,9 @@ void CpuGraphicsItems::repaintAMuxSelect(QPainter *painter)
     painter->setPen(QPen(QBrush(color), 1));
     painter->setBrush(color);
     // Draw AMux select depending on the enabled feature set
-    switch(dataSection->getCPUFeatures())
-    {
-    case Enu::OneByteDataBus:
-        painter->drawLines(OneByteShapes::AMuxSelect._lines);
-        painter->drawImage(QPoint(380,300),
-                           color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawLines(TwoByteShapes::AMuxSelect._lines);
         painter->drawImage(TwoByteShapes::AMuxSelect._arrowheads.first(), //Should more arrowheads be added, this will need to be a proper for loop.
                            color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    }
     QPalette pal = aMuxerDataLabel->palette();
     if (ok) {
 
@@ -1632,15 +1391,7 @@ void CpuGraphicsItems::repaintAMuxSelect(QPainter *painter)
     painter->setBrush(color);
 
     // Draw AMux bus depending on the enabled feature set
-    switch(dataSection->getCPUFeatures())
-    {
-    case Enu::OneByteDataBus:
-        painter->drawPolygon(OneByteShapes::AMuxBus);
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawPolygon(TwoByteShapes::AMuxBus);
-        break;
-    }
 
 }
 
@@ -1688,20 +1439,9 @@ void CpuGraphicsItems::repaintCMuxSelect(QPainter *painter)
     painter->setBrush(color);
 
     // CMux Select
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLines(OneByteShapes::CMuxSelect._lines);
-        painter->drawImage(OneByteShapes::CMuxSelect._arrowheads.first(),
-                           color == Qt::gray ? arrowDownGray : arrowDown);
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawLines(TwoByteShapes::CMuxSelect._lines);
         painter->drawImage(TwoByteShapes::CMuxSelect._arrowheads.first(),
                            color == Qt::gray ? arrowDownGray : arrowDown);
-        break;
-    default:
-        break;
-    }
     // CMuxBus (output)
 }
 
@@ -1714,26 +1454,11 @@ void CpuGraphicsItems::repaintSCk(QPainter *painter)
     painter->setBrush(color);
 
     // line from checkbox to data
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLine(OneByteShapes::SBitSelect);
-        // arrow
-        painter->drawImage(QPoint(OneByteShapes::sBitLabel.right() + OneByteShapes::arrowHOffset,
-                                  OneByteShapes::SBitSelect.y1() - 3),
-                           color == Qt::gray ? arrowLeftGray : arrowLeft);
-
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawLine(TwoByteShapes::SBitSelect);
         // arrow
         painter->drawImage(QPoint(TwoByteShapes::sBitLabel.right() + TwoByteShapes::arrowHOffset,
                                   TwoByteShapes::SBitSelect.y1() - 3),
                            color == Qt::gray ? arrowLeftGray : arrowLeft);
-
-        break;
-    default:
-        break;
-    }
 
 }
 
@@ -1746,24 +1471,11 @@ void CpuGraphicsItems::repaintCCk(QPainter *painter)
     painter->setBrush(color);
 
     // line from checkbox to data
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLine(OneByteShapes::CBitSelect);
-        // arrow
-        painter->drawImage(QPoint(OneByteShapes::cBitLabel.right() + OneByteShapes::arrowHOffset,
-                                  OneByteShapes::CBitSelect.y1() - 3),
-                           color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawLine(TwoByteShapes::CBitSelect);
         // arrow
         painter->drawImage(QPoint(TwoByteShapes::cBitLabel.right() + TwoByteShapes::arrowHOffset,
                                   TwoByteShapes::CBitSelect.y1() - 3),
                            color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    default:
-        break;
-    }
 
 }
 
@@ -1774,24 +1486,10 @@ void CpuGraphicsItems::repaintVCk(QPainter *painter)
     color = VCkCheckBox->isChecked() ? colorScheme->arrowColorOn : Qt::gray;
     painter->setPen(QPen(QBrush(color), 1));
     painter->setBrush(color);
-
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLine(OneByteShapes::VBitSelect);
-        painter->drawImage(QPoint(OneByteShapes::vBitLabel.right() + OneByteShapes::arrowHOffset,
-                                  OneByteShapes::VBitSelect.y1() - 3),
-                           color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawLine(TwoByteShapes::VBitSelect);
         painter->drawImage(QPoint(TwoByteShapes::vBitLabel.right() + TwoByteShapes::arrowHOffset,
                                   TwoByteShapes::VBitSelect.y1() - 3),
                            color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    default:
-        break;
-    }
-
 }
 
 void CpuGraphicsItems::repaintZCk(QPainter *painter)
@@ -1801,24 +1499,10 @@ void CpuGraphicsItems::repaintZCk(QPainter *painter)
     color = ZCkCheckBox->isChecked() ? colorScheme->arrowColorOn : Qt::gray;
     painter->setPen(QPen(QBrush(color), 1));
     painter->setBrush(color);
-
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLine(OneByteShapes::ZBitSelect);
-        painter->drawImage(QPoint(OneByteShapes::zBitLabel.right() + OneByteShapes::arrowHOffset,
-                                  OneByteShapes::ZBitSelect.y1() - 3),
-                           color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawLine(TwoByteShapes::ZBitSelect);
         painter->drawImage(QPoint(TwoByteShapes::zBitLabel.right() + TwoByteShapes::arrowHOffset,
                                   TwoByteShapes::ZBitSelect.y1() - 3),
                            color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    default:
-        break;
-    }
-
 }
 
 void CpuGraphicsItems::repaintNCk(QPainter *painter)
@@ -1828,64 +1512,10 @@ void CpuGraphicsItems::repaintNCk(QPainter *painter)
     color = NCkCheckBox->isChecked() ? colorScheme->arrowColorOn : Qt::gray;
     painter->setPen(QPen(QBrush(color), 1));
     painter->setBrush(color);
-
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLine(OneByteShapes::NBitSelect);
-        painter->drawImage(QPoint(OneByteShapes::nBitLabel.right() + OneByteShapes::arrowHOffset,
-                                  OneByteShapes::NBitSelect.y1() - 3),
-                           color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawLine(TwoByteShapes::NBitSelect);
         painter->drawImage(QPoint(TwoByteShapes::nBitLabel.right() + TwoByteShapes::arrowHOffset,
                                   TwoByteShapes::NBitSelect.y1() - 3),
                            color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    default:
-        break;
-    }
-
-}
-
-void CpuGraphicsItems::repaintMemCommon(QPainter *painter)
-{
-    switch(dataSection->getCPUFeatures())
-    {
-    case Enu::OneByteDataBus:
-        break;
-    case Enu::TwoByteDataBus:
-        repaintMemCommonTwoByte(painter);
-        break;
-    }
-}
-
-void CpuGraphicsItems::repaintMemRead(QPainter *painter)
-{
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        repaintMemReadOneByteModel(painter);
-        break;
-    case Enu::TwoByteDataBus:
-        repaintMemReadTwoByteModel(painter);
-        break;
-    default:
-        break;
-    }
-}
-
-void CpuGraphicsItems::repaintMemWrite(QPainter *painter)
-{
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        repaintMemWriteOneByteModel(painter);
-        break;
-    case Enu::TwoByteDataBus:
-        repaintMemWriteTwoByteModel(painter);
-        break;
-    default:
-        break;
-    }
 }
 
 void CpuGraphicsItems::repaintSBitOut(QPainter *painter)
@@ -1896,22 +1526,10 @@ void CpuGraphicsItems::repaintSBitOut(QPainter *painter)
 
     painter->setPen(QPen(QBrush(color), 1));
     painter->setBrush(color);
-
-    switch(dataSection->getCPUFeatures())
-    {
-    case Enu::OneByteDataBus:
-        // line from S bit to CSMux
-        painter->drawLines(OneByteShapes::SBitToCSMux._lines);
-        // arrow:
-        painter->drawImage(OneByteShapes::SBitToCSMux._arrowheads.first(), arrowUp);
-        break;
-    case Enu::TwoByteDataBus:
         // line from S bit to CSMux
         painter->drawLines(TwoByteShapes::SBitToCSMux._lines);
         // arrow:
         painter->drawImage(TwoByteShapes::SBitToCSMux._arrowheads.first(), arrowUp);
-        break;
-    }
 }
 
 void CpuGraphicsItems::repaintCBitOut(QPainter *painter)
@@ -1922,25 +1540,6 @@ void CpuGraphicsItems::repaintCBitOut(QPainter *painter)
 
     painter->setPen(QPen(QBrush(color), 1));
     painter->setBrush(color);
-
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        // line from C bit to NZVC bus
-        painter->drawLines(OneByteShapes::CBitToNZVC._lines);
-        // arrow to the NZVC data bus
-        painter->drawImage(OneByteShapes::CBitToNZVC._arrowheads.first(), arrowLeft);
-
-        // line from C bit to CSMux
-        painter->drawLines(OneByteShapes::CBitToCSMux._lines);
-        // arrow to the CSMux
-        painter->drawImage(QPoint(OneByteShapes::CBitToCSMux._arrowheads.first()), arrowUp);
-
-        // CIN line back to the ALU
-        painter->drawLines(OneByteShapes::CInToALU._lines);
-        // CIN arrow to the ALU
-        painter->drawImage(OneByteShapes::CInToALU._arrowheads.first(), arrowLeft);
-        break;
-    case Enu::TwoByteDataBus:
         // line from C bit to NZVC bus
         painter->drawLines(TwoByteShapes::CBitToNZVC._lines);
         // arrow to the NZVC data bus
@@ -1955,11 +1554,6 @@ void CpuGraphicsItems::repaintCBitOut(QPainter *painter)
         painter->drawLines(TwoByteShapes::CInToALU._lines);
         // CIN arrow to the ALU
         painter->drawImage(TwoByteShapes::CInToALU._arrowheads.first(), arrowLeft);
-        break;
-    default:
-        break;
-    }
-
 }
 
 void CpuGraphicsItems::repaintVBitOut(QPainter *painter)
@@ -1970,24 +1564,9 @@ void CpuGraphicsItems::repaintVBitOut(QPainter *painter)
 
     painter->setPen(QPen(QBrush(color), 1));
     painter->setBrush(color);
-
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLines(OneByteShapes::VBitOut._lines);
-
-        painter->drawImage(OneByteShapes::VBitOut._arrowheads.first(), arrowLeft);
-
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawLines(TwoByteShapes::VBitOut._lines);
 
         painter->drawImage(TwoByteShapes::VBitOut._arrowheads.first(), arrowLeft);
-
-        break;
-    default:
-        break;
-    }
-
 }
 
 void CpuGraphicsItems::repaintZBitOut(QPainter *painter)
@@ -2000,15 +1579,6 @@ void CpuGraphicsItems::repaintZBitOut(QPainter *painter)
     painter->setBrush(color);
 
     QPoint point = QPoint(437,582);
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawEllipse(point, 2, 2);
-        painter->drawLines(OneByteShapes::ZBitOut._lines);
-
-        painter->drawImage(OneByteShapes::ZBitOut._arrowheads.first(), arrowLeft);
-        painter->drawImage(OneByteShapes::ZBitOut._arrowheads.last(), arrowUp);  // AndZ arrow upwards
-        break;
-    case Enu::TwoByteDataBus:
         point.setX(point.x() + TwoByteShapes::controlOffsetX);
         point.setY(point.y() + TwoByteShapes::aluOffsetY);
         painter->drawEllipse(point, 2, 2);
@@ -2016,11 +1586,6 @@ void CpuGraphicsItems::repaintZBitOut(QPainter *painter)
 
         painter->drawImage(TwoByteShapes::ZBitOut._arrowheads.first(), arrowLeft);
         painter->drawImage(TwoByteShapes::ZBitOut._arrowheads.last(), arrowUp);  // AndZ arrow upwards
-        break;
-    default:
-        break;
-    }
-
 }
 
 void CpuGraphicsItems::repaintNBitOut(QPainter *painter)
@@ -2032,23 +1597,9 @@ void CpuGraphicsItems::repaintNBitOut(QPainter *painter)
 
     painter->setPen(QPen(QBrush(color), 1));
     painter->setBrush(color);
-
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLines(OneByteShapes::NBitOut._lines);
-
-        painter->drawImage(OneByteShapes::NBitOut._arrowheads.first(), arrowLeft);
-
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawLines(TwoByteShapes::NBitOut._lines);
 
         painter->drawImage(TwoByteShapes::NBitOut._arrowheads.first(), arrowLeft);
-
-        break;
-    default:
-        break;
-    }
 }
 
 void CpuGraphicsItems::repaintCSMuxSelect(QPainter *painter)
@@ -2058,27 +1609,12 @@ void CpuGraphicsItems::repaintCSMuxSelect(QPainter *painter)
     color = CSMuxTristateLabel->text() != "" ? colorScheme->arrowColorOn : Qt::gray;
     painter->setPen(QPen(QBrush(color), 1));
     painter->setBrush(color);
-
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        // line from checkbox to data
-        painter->drawLine(OneByteShapes::CSMuxSelect);
-        // arrow
-        painter->drawImage(QPoint(OneByteShapes::CSMuxerDataLabel.right() + OneByteShapes::arrowHOffset,
-                                  OneByteShapes::CSMuxSelect.y1() - 3),
-                           color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    case Enu::TwoByteDataBus:
         // line from checkbox to data
         painter->drawLine(TwoByteShapes::CSMuxSelect);
         // arrow
         painter->drawImage(QPoint(TwoByteShapes::CSMuxerDataLabel.right() + TwoByteShapes::arrowHOffset,
                                   TwoByteShapes::CSMuxSelect.y1() - 3),
                            color == Qt::gray ? arrowLeftGray : arrowLeft);
-        break;
-    default:
-        break;
-    }
 }
 
 void CpuGraphicsItems::repaintAndZSelect(QPainter *painter)
@@ -2094,25 +1630,10 @@ void CpuGraphicsItems::repaintAndZSelect(QPainter *painter)
     painter->setBrush(color);
 
     // lines coming out of tristate label
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLine(OneByteShapes::AndZOut._lines[0]);
-        painter->drawLine(OneByteShapes::AndZOut._lines[1]);
-
-        painter->drawImage(OneByteShapes::AndZOut._arrowheads.first(),
-                           color == Qt::gray ? arrowDownGray : arrowDown);
-
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawLine(TwoByteShapes::AndZOut._lines[0]);
         painter->drawLine(TwoByteShapes::AndZOut._lines[1]);
         painter->drawImage(TwoByteShapes::AndZOut._arrowheads.first(),
                            color == Qt::gray ? arrowDownGray : arrowDown);
-
-        break;
-    default:
-        break;
-    }
 
     color = Qt::gray;
     if (aluHasCorrectOutput() && AndZTristateLabel->text() != "") {
@@ -2125,468 +1646,12 @@ void CpuGraphicsItems::repaintAndZSelect(QPainter *painter)
     painter->setBrush(color);
 
     // AndZ out
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        painter->drawLine(OneByteShapes::AndZOut._lines[2]);
-        painter->drawImage(QPoint(OneByteShapes::zBitLabel.x()-13,OneByteShapes::AndZMuxLabel.y()+OneByteShapes::AndZMuxLabel.height()/2-4),
-                           color == Qt::gray ? arrowRightGray : arrowRight);
-
-        break;
-    case Enu::TwoByteDataBus:
         painter->drawLine(TwoByteShapes::AndZOut._lines[2]);
         //The arrow is ~10 pixels long, and another 3 are needed for it to fit comfortably next to the box
         //The arrow is 8 pixels high, align the the center of the arrow with the middle of the box.
         painter->drawImage(QPoint(TwoByteShapes::zBitLabel.x()-13,TwoByteShapes::AndZMuxLabel.y()+TwoByteShapes::AndZMuxLabel.height()/2-4),
                            color == Qt::gray ? arrowRightGray : arrowRight);
-
-        break;
-    default:
-        break;
-    }
-
-
 }
-
-void CpuGraphicsItems::repaintALUSelect(QPainter *painter)
-{
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-        repaintALUSelectOneByteModel(painter);
-        break;
-    case Enu::TwoByteDataBus:
-        repaintALUSelectTwoByteModel(painter);
-        break;
-    default:
-        break;
-    }
-}
-
-void CpuGraphicsItems::repaintMDRMuxSelect(QPainter *painter)
-{
-    QColor color;
-    QPalette pal = MDRMuxerDataLabel->palette();
-    painter->setPen(colorScheme->arrowColorOn);
-    if(MDRCk->isChecked()){
-        if(MDRMuxTristateLabel->text()=="0"&&dataSection->getMainBusState()==Enu::MemReadSecondWait){
-            color = colorScheme->combCircuitGreen;
-            pal.setColor(QPalette::Background,colorScheme->muxCircuitGreen);
-            MDRMuxerDataLabel->setPalette(pal);
-        }
-        else if(MDRMuxTristateLabel->text()=="1"&&cMuxTristateLabel->text()=="0"){
-            color = colorScheme->combCircuitYellow;
-            pal.setColor(QPalette::Background,colorScheme->muxCircuitYellow);
-            MDRMuxerDataLabel->setPalette(pal);
-        }
-        else if(MDRMuxTristateLabel->text()=="1"&&cMuxTristateLabel->text()=="1"&&aluHasCorrectOutput()){
-            color = colorScheme->combCircuitBlue;
-            pal.setColor(QPalette::Background,colorScheme->muxCircuitBlue);
-            MDRMuxerDataLabel->setPalette(pal);
-        }
-        else{
-            color = colorScheme->backgroundFill;
-            pal.setColor(QPalette::Background,color);
-            MDRMuxerDataLabel->setPalette(pal);
-        }
-
-    }
-    else{
-        color = colorScheme->backgroundFill;
-        pal.setColor(QPalette::Background,color);
-        MDRMuxerDataLabel->setPalette(pal);
-    }
-
-    painter->setBrush(color);
-    // MDRMuxOutBus (MDRMux to MDR arrow)
-    painter->drawPolygon(OneByteShapes::MDRMuxOutBus);
-
-    // finish up by drawing select lines:
-    color = Qt::gray;
-    if (MDRMuxTristateLabel->text() != "") {
-        color = colorScheme->arrowColorOn;
-    }
-    painter->setPen(color);
-    painter->setBrush(color);
-
-    // MDRMux Select
-    painter->drawLine(257,303, 265,303); painter->drawLine(265,303, 265,324);
-    painter->drawLine(265,324, 279,324); painter->drawLine(291,324, 335,324);
-    painter->drawLine(347,324, 416,324); painter->drawLine(428,324, 543,324);
-
-    painter->drawImage(QPoint(249,300),
-                       color == Qt::gray ? arrowLeftGray : arrowLeft);
-}
-
-
-// ***************************************************************************
-// One byte model-specific functionality:
-// ***************************************************************************
-
-void CpuGraphicsItems::repaintMARCkOneByteModel(QPainter *painter)
-{
-    QColor color;
-
-    color = MARCk->isChecked() ? colorScheme->arrowColorOn : Qt::gray;
-    painter->setPen(QPen(QBrush(color), 1));
-    painter->setBrush(color);
-
-    // MARCk
-    painter->drawLines(OneByteShapes::MARCk._lines);
-
-    painter->drawEllipse(QPoint(235,177), 2, 2);
-
-    painter->drawImage(OneByteShapes::MARCk._arrowheads.first(),
-                       color == Qt::gray ? arrowUpGray : arrowUp);
-    painter->drawImage(OneByteShapes::MARCk._arrowheads.last(),
-                       color == Qt::gray ? arrowDownGray : arrowDown);
-}
-
-void CpuGraphicsItems::repaintMDRCk(QPainter *painter)
-{
-    QColor color;
-
-    switch (dataSection->getCPUFeatures()) {
-    case Enu::OneByteDataBus:
-
-        color = MDRCk->isChecked() ? colorScheme->arrowColorOn : Qt::gray;
-        painter->setPen(QPen(QBrush(color), 1));
-        painter->setBrush(color);
-
-        // MDRCk
-        painter->drawLines(OneByteShapes::MDRCk._lines);
-
-        painter->drawImage(OneByteShapes::MDRCk._arrowheads.first(),
-                           color == Qt::gray ? arrowDownGray : arrowDown);
-        break;
-    case Enu::TwoByteDataBus:
-
-        break;
-    default:
-        break;
-    }
-
-}
-
-void CpuGraphicsItems::repaintALUSelectOneByteModel(QPainter *painter)
-{
-    QColor color;
-
-    color = ALULineEdit->text() != "" ? colorScheme->arrowColorOn : Qt::gray;
-    painter->setPen(QPen(QBrush(color), 1));
-    painter->setBrush(color);
-
-    // ALU Select
-    painter->drawLines(OneByteShapes::ALUSelect._lines);
-
-    painter->drawImage(OneByteShapes::ALUSelect._arrowheads.first(),
-                       color == Qt::gray ? arrowLeftGray : arrowLeft);
-
-    painter->setPen(colorScheme->arrowColorOn);
-
-    if (ALULineEdit->text() != "" && ALULineEdit->text() != "15") {
-        if (aMuxTristateLabel->text() == "0" && dataSection->aluFnIsUnary()) {
-            painter->setBrush(colorScheme->combCircuitBlue);
-        }
-        else if (aMuxTristateLabel->text() == "0" && bLineEdit->text() != "") {
-            painter->setBrush(colorScheme->combCircuitBlue);
-        }
-        else if (aMuxTristateLabel->text() == "1") {
-            if (aLineEdit->text() != "" && dataSection->aluFnIsUnary()) {
-                painter->setBrush(colorScheme->combCircuitBlue);
-            }
-            else if (aLineEdit->text() != "" && bLineEdit->text() != "") {
-                painter->setBrush(colorScheme->combCircuitBlue);
-            }
-            else {
-                painter->setBrush(colorScheme->backgroundFill);
-            }
-        }
-        else {
-            painter->setBrush(colorScheme->backgroundFill);
-        }
-    }
-    else {
-        painter->setBrush(colorScheme->backgroundFill);
-    }
-
-    // CBus
-    painter->drawPolygon(OneByteShapes::ALUOutBus);
-
-    // Draw status bit lines
-    color = aluHasCorrectOutput() ? colorScheme->arrowColorOn : Qt::gray;
-    painter->setPen(color);
-    painter->setBrush(color);
-
-    painter->drawLines(OneByteShapes::ALUSelectOut._lines);
-
-    for (int i = 0; i < OneByteShapes::ALUSelectOut._arrowheads.length(); i++) {
-        painter->drawImage(OneByteShapes::ALUSelectOut._arrowheads.at(i),
-                           color == Qt::gray ? arrowRightGray : arrowRight);
-    }
-
-    // S ellipse
-    painter->drawEllipse(QPoint(416,446), 2, 2); //437+9
-}
-
-void CpuGraphicsItems::repaintMemReadOneByteModel(QPainter *painter)
-{
-    QPolygon poly;
-    QColor color;
-    bool isHigh = MemReadTristateLabel->text() == "1";
-
-    // Draw memread select line
-    if (isHigh) {
-        MemWriteTristateLabel->setDisabled(true);
-        color = colorScheme->arrowColorOn;
-    }
-    else {
-        MemWriteTristateLabel->setDisabled(false);
-        color = Qt::gray;
-    }
-    painter->setPen(QPen(QBrush(color), 1));
-    painter->setBrush(color);
-
-    // memRead line from label to bus:
-    painter->drawLine(OneByteShapes::MemReadSelect);
-
-    painter->drawImage(QPoint(OneByteShapes::DataBus.right()+5,
-                              OneByteShapes::MemReadSelect.y1() - 3),
-                       color == Qt::gray ? arrowLeftGray : arrowLeft);
-
-    if (MemWriteTristateLabel->text() == "1") {
-        // Do not paint main bus if MemWrite is isHigh
-        return;
-    }
-
-    // Draw ADDR bus stuff:
-    isHigh ? color = colorScheme->combCircuitYellow : color = colorScheme->backgroundFill;
-
-    painter->setPen(QPen(QBrush(colorScheme->arrowColorOn), 1));
-    painter->setBrush(color);
-
-    // Main Bus
-    // ADDR bus:
-    painter->drawRect(OneByteShapes::AddrBus);
-    // left arrow to addr:
-    painter->drawPolygon(OneByteShapes::AddrArrow);
-
-    painter->setBrush(colorScheme->backgroundFill);
-
-    // Draw DATA bus stuff:
-    if (isHigh && (dataSection->getMainBusState() == Enu::MemReadReady ||
-                dataSection->getMainBusState() == Enu::MemReadSecondWait)) {
-        color = colorScheme->combCircuitGreen;
-    }
-    else {
-        color = colorScheme->backgroundFill;
-    }
-    painter->setBrush(color);
-
-    // Data bus:
-    painter->drawRect(OneByteShapes::DataBus);
-
-    // Mem Data Bus
-    poly.clear();
-    // arrowhead into the main bus:
-    if (color == colorScheme->combCircuitGreen) {
-        // square end (when reading):
-        poly << QPoint(3, 365) << QPoint(3, 375);
-    }
-    else {
-        // arrowhead (normally):
-        poly << QPoint(13, 365) << QPoint(13, 360) << QPoint(3, 370)
-             << QPoint(13, 380) << QPoint(13, 375);
-    }
-    poly << QPoint(29, 375) << QPoint(29, 380) << QPoint(39, 370)
-         << QPoint(29, 360) << QPoint(29, 365);
-    painter->drawPolygon(poly);
-
-    // right arrow from Bus to MDRMux:
-    painter->drawPolygon(OneByteShapes::DataToMDRMuxBus);
-
-}
-
-void CpuGraphicsItems::repaintMemWriteOneByteModel(QPainter *painter)
-{
-    QPolygon poly;
-    QColor color;
-    bool isHigh = MemWriteTristateLabel->text() == "1";
-
-    // Draw memwrite select line
-    if (isHigh) {
-        MemReadTristateLabel->setDisabled(true);
-        color = colorScheme->arrowColorOn;
-    }
-    else {
-        MemReadTristateLabel->setDisabled(false);
-        color = Qt::gray;
-    }
-
-    painter->setPen(QPen(QBrush(color), 1));
-    painter->setBrush(color);
-
-    // memWrite line from the label to the bus:
-    painter->drawLine(OneByteShapes::MemWriteSelect);
-    painter->drawImage(QPoint(OneByteShapes::DataBus.right()+5,
-                              OneByteShapes::MemWriteSelect.y1() - 3),
-                       color == Qt::gray ? arrowLeftGray : arrowLeft);
-
-    // draw line from memWrite to MDR out:
-    painter->drawEllipse(QPoint(OneByteShapes::DataBus.right()+25,
-                                OneByteShapes::MemWriteSelect.y1()),
-                         2, 2);
-    painter->drawLine(OneByteShapes::DataBus.right()+25, OneByteShapes::MemWriteSelect.y1() - 3,
-                      OneByteShapes::DataBus.right()+25,345);
-    // memWrite line from the label to the bus:
-    painter->drawLine(OneByteShapes::DataBus.right()+25,333, OneByteShapes::DataBus.right()+25,280); //268+12
-    painter->drawImage(QPoint(OneByteShapes::DataBus.right()+22,271), //96-3 //268+12-9
-                       color == Qt::gray ? arrowUpGray : arrowUp);
-
-    // repaint the MDR-to-main-bus line, based on if MemWrite is set or not
-    // note: it should be lighter (disabled) when MemWrite is not set.
-    color = colorScheme->combCircuitGreen;
-    if (!isHigh) {
-        color = color.lighter(120);
-    }
-    painter->setBrush(color);
-    painter->setPen(QPen(QBrush(colorScheme->arrowColorOn), 1));
-
-    // mdr to data bus
-    painter->drawPolygon(OneByteShapes::MDRToDataBus);
-
-
-    if (MemReadTristateLabel->text() == "1") {
-        // Do not paint main bus if MemRead is high
-        return;
-    }
-
-    // Draw ADDR bus stuff:
-    if (isHigh) {
-        // qDebug() << "mainBusState: " << dataSection->getMainBusState();
-        // ADDR bus is yellow if the bus is high
-        color = colorScheme->combCircuitYellow;
-    }
-    else {
-        color = colorScheme->backgroundFill;
-    }
-
-    painter->setPen(QPen(QBrush(colorScheme->arrowColorOn), 1));
-    painter->setBrush(color);
-
-    // Main Bus
-    // Main ADDR bus:
-    painter->drawRect(OneByteShapes::AddrBus);
-    // left arrow from addr bus to memory:
-    painter->drawPolygon(OneByteShapes::AddrArrow);
-
-    // Draw DATA bus stuff:
-    // figure out the color:
-    if (isHigh && (dataSection->getMainBusState() == Enu::MemWriteReady ||
-                dataSection->getMainBusState() == Enu::MemWriteSecondWait)) {
-        color = colorScheme->combCircuitGreen;
-    }
-    else {
-        color = colorScheme->backgroundFill;
-    }
-    painter->setBrush(color);
-
-    // Main Data bus:
-    painter->drawRect(OneByteShapes::DataBus);
-
-    // Mem Data Bus (bidirectional arrow)
-    poly.clear();
-    // arrowhead:
-    poly << QPoint(13, 365) << QPoint(13, 360) << QPoint(3, 370)
-         << QPoint(13, 380) << QPoint(13, 375);
-    // other end of the bus:
-    if (color == QColor(16, 150, 24)) {
-        // flat end
-        poly << QPoint(40, 375) << QPoint(40, 365);
-    }
-    else {
-        // arrowhead
-        poly << QPoint(29, 375) << QPoint(29, 380) << QPoint(39, 370)
-             << QPoint(29, 360) << QPoint(29, 365);
-    }
-    painter->drawPolygon(poly);
-
-    // Main Bus to MDRMux is ALWAYS white on a memWrite:
-    painter->setBrush(colorScheme->backgroundFill);
-
-    // right arrow from Bus to MDRMux:
-    painter->drawPolygon(OneByteShapes::DataToMDRMuxBus);
-
-}
-
-void CpuGraphicsItems::repaintABusOneByteModel(QPainter *painter)
-{
-    bool ok;
-    aLineEdit->text().toInt(&ok, 10);
-    QColor color;
-    color = ok ? colorScheme->arrowColorOn : Qt::gray;
-    painter->setPen(QPen(QBrush(color), 1));
-    painter->setBrush(color);
-
-    color = ok ? colorScheme->combCircuitRed : colorScheme->backgroundFill;
-
-    painter->setPen(QPen(QBrush(colorScheme->arrowColorOn), 1));
-    painter->setBrush(color);
-    // ABus
-    painter->drawPolygon(OneByteShapes::ABus1);
-    painter->drawPolygon(OneByteShapes::ABus2);
-}
-
-void CpuGraphicsItems::repaintBBusOneByteModel(QPainter *painter)
-{
-    bool ok;
-    bLineEdit->text().toInt(&ok, 10);;
-    QColor color;
-    color = ok ? colorScheme->arrowColorOn : Qt::gray;
-    painter->setPen(QPen(QBrush(color), 1));
-    painter->setBrush(color);
-
-    color = ok ? colorScheme->combCircuitRed : colorScheme->backgroundFill;
-
-    painter->setPen(QPen(QBrush(colorScheme->arrowColorOn), 1));
-    painter->setBrush(color);
-    // ABus
-    painter->drawPolygon(OneByteShapes::BBus1);
-    painter->drawPolygon(OneByteShapes::BBus2);
-    painter->drawPolygon(OneByteShapes::BBusRect);
-}
-
-void CpuGraphicsItems::repaintCBusOneByteModel(QPainter *painter)
-{
-    QColor color;
-    QPalette pal = cMuxerLabel->palette();
-    if (cMuxTristateLabel->text() == "0") {
-        color = colorScheme->combCircuitYellow;
-        pal.setColor(QPalette::Background,colorScheme->muxCircuitYellow);
-        cMuxerLabel->setPalette(pal);
-    }
-    else if (cMuxTristateLabel->text() == "1") {
-        if (!aluHasCorrectOutput() || ALULineEdit->text() == "15") {
-            // CBus.state == UNDEFINED or NZVC A
-            qDebug() << "WARNING: CMux select: There is no ALU output";
-            color = colorScheme->backgroundFill;
-            pal.setColor(QPalette::Background,color);
-            cMuxerLabel->setPalette(pal);
-        }
-        else {
-            color = colorScheme->combCircuitBlue;
-            pal.setColor(QPalette::Background,colorScheme->muxCircuitBlue);
-            cMuxerLabel->setPalette(pal);
-        }
-    }
-    else {
-        color = colorScheme->backgroundFill;
-        pal.setColor(QPalette::Background,color);
-        cMuxerLabel->setPalette(pal);
-    }
-    painter->setPen(QPen(QBrush(colorScheme->arrowColorOn), 1));
-    painter->setBrush(color);
-    painter->drawPolygon(OneByteShapes::CBus);
-}
-
 
 
 // ***************************************************************************

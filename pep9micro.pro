@@ -56,7 +56,6 @@ SOURCES += main.cpp \
     inputpane.cpp \
     outputpane.cpp \
     terminalpane.cpp \
-    iodialog.cpp \
     memorysection.cpp \
     cpumemoizer.cpp \
     memorydumppane.cpp
@@ -98,7 +97,6 @@ HEADERS += mainwindow.h \
     inputpane.h \
     outputpane.h \
     terminalpane.h \
-    iodialog.h \
     memorysection.h \
     cpumemoizer.h \
     memorydumppane.h

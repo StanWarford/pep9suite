@@ -35,7 +35,9 @@ class MemoryDumpPane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(MemoryDumpPane)
 public:
-    explicit MemoryDumpPane(MemorySection *memory, CPUDataSection *data, QWidget *parent = 0);
+    explicit MemoryDumpPane(QWidget *parent = 0);
+    //Needs to be called before this class can be used
+    void init(MemorySection *memory, CPUDataSection *data);
     virtual ~MemoryDumpPane();
 
     void refreshMemory();
@@ -76,10 +78,10 @@ public slots:
     void onMemoryChanged(quint16 address, quint8, quint8);
 
 private:
+    quint32 lineSize;
     Ui::MemoryDumpPane *ui;
     MemorySection *memory;
     CPUDataSection *data;
-    QString emptyLine;
     QList<quint16> highlightedData;
     // This is a list of bytes that are currently highlighted.
 

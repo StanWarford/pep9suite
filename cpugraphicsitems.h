@@ -62,13 +62,6 @@ public:
     QGraphicsRectItem *aMuxerBorder; // data section
     TristateLabel *aMuxTristateLabel;
 
-    // 1 byte data bus:
-    QCheckBox *MDRCk;
-    QLabel *MDRMuxLabel;
-    QLabel *MDRMuxerDataLabel; // data section
-    TristateLabel *MDRMuxTristateLabel;
-    QLabel *MDRLabel; // data section
-
     QLabel *cMuxLabel;
     TristateLabel *cMuxTristateLabel;
     QLabel *cMuxerLabel; // data section
@@ -195,18 +188,6 @@ private:
     void repaintALUSelect(QPainter *painter);
     void repaintMDRMuxSelect(QPainter *painter);
 
-    // one byte specific repainting methods
-    void repaintMARCkOneByteModel(QPainter *painter);
-
-    void repaintMDRCk(QPainter *painter);
-
-    void repaintALUSelectOneByteModel(QPainter *painter);
-
-    void repaintMemReadOneByteModel(QPainter *painter);
-    void repaintMemWriteOneByteModel(QPainter *painter);
-    void repaintABusOneByteModel(QPainter *painter);
-    void repaintBBusOneByteModel(QPainter *painter);
-    void repaintCBusOneByteModel(QPainter *painter);
     // two byte specific repainting methods
     void repaintMARMuxSelect(QPainter *painter);
     void repaintMARCkTwoByteModel(QPainter *painter);

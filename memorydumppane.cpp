@@ -29,12 +29,12 @@
 
 #include "cpudatasection.h"
 #include "memorysection.h"
-MemoryDumpPane::MemoryDumpPane(MemorySection *memory, CPUDataSection *data, QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::MemoryDumpPane), memory(memory),data(data)
+MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
+    QWidget(parent), lineSize(0),
+    ui(new Ui::MemoryDumpPane)
 {
     ui->setupUi(this);
-
+    ui->textEdit->setReadOnly(true);
     if (Pep::getSystem() != "Mac") {
         ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
         ui->textEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
@@ -43,6 +43,12 @@ MemoryDumpPane::MemoryDumpPane(MemorySection *memory, CPUDataSection *data, QWid
     connect(ui->pcPushButton, SIGNAL(clicked()), this, SLOT(scrollToPC()));
     connect(ui->spPushButton, SIGNAL(clicked()), this, SLOT(scrollToSP()));
     connect(ui->scrollToLineEdit, SIGNAL(textChanged(QString)), this, SLOT(scrollToAddress(QString)));
+}
+
+void MemoryDumpPane::init(MemorySection *memory, CPUDataSection *data)
+{
+    this->memory = memory;
+    this->data=data;
 }
 
 MemoryDumpPane::~MemoryDumpPane()
@@ -73,6 +79,8 @@ void MemoryDumpPane::refreshMemory()
         }
         memoryDump.append(memoryDumpLine);
     }
+    quint32 tempSize = ui->textEdit->fontMetrics().width(memoryDumpLine);
+    lineSize = tempSize > 10?tempSize:10;
     ui->textEdit->setText(memoryDump.join("\n"));
 }
 
@@ -116,7 +124,8 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
         ui->textEdit->insertPlainText(memoryDumpLine);
         cursor.movePosition(QTextCursor::NextBlock);
     }
-
+    quint32 tempSize = ui->textEdit->fontMetrics().width(memoryDumpLine);
+    lineSize = tempSize > 10?tempSize:10;
     ui->textEdit->verticalScrollBar()->setValue(vertScrollBarPosition);
     ui->textEdit->horizontalScrollBar()->setValue(horizScrollBarPosition);
 }
@@ -305,10 +314,11 @@ void MemoryDumpPane::copy()
 
 int MemoryDumpPane::memoryDumpWidth()
 {
-    return ui->textEdit->document()->documentLayout()->documentSize().toSize().width() +
-            ui->textEdit->verticalScrollBar()->width() + 6;
+    quint32 a = this->lineSize;
+    quint32 b = ui->textEdit->style()->pixelMetric(QStyle::PM_ScrollBarExtent);
+    quint32 c = 15;
+    return  a + b + c;
 }
-
 
 void MemoryDumpPane::onFontChanged(QFont font)
 {
@@ -349,9 +359,9 @@ void MemoryDumpPane::mouseReleaseEvent(QMouseEvent *)
 
 void MemoryDumpPane::scrollToByte(quint16 byte)
 {
-    quint16 min = ui->textEdit->verticalScrollBar()->minimum();
-    quint16 max = ui->textEdit->verticalScrollBar()->maximum();
-    ui->textEdit->verticalScrollBar()->setValue(min + static_cast<quint16>(8 * (byte / 4096 - 8) + ((byte - byte % 8) / 65536.0) * (max - min)));
+    quint32 min = ui->textEdit->verticalScrollBar()->minimum();
+    quint32 max = ui->textEdit->verticalScrollBar()->maximum();
+    ui->textEdit->verticalScrollBar()->setValue(min + static_cast<quint32>(8 * (byte / 4096 - 8) + ((byte - byte % 8) / 65536.0) * (max - min)));
 }
 
 void MemoryDumpPane::scrollToPC()

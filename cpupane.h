@@ -36,17 +36,19 @@ namespace Ui {
 }
 class CPUControlSection;
 class CPUDataSection;
+class MainWindow;
 class CpuPane : public QWidget {
     Q_OBJECT
 public:
-    CpuPane(Enu::CPUType type, QWidget *parent = 0);
+    explicit CpuPane(QWidget *parent = 0);
+    void init(MainWindow* mainWindow);
     ~CpuPane();
 
     void highlightOnFocus();
     bool hasFocus();
     void giveFocus();
 
-    void initModel(Enu::CPUType type);
+    void initModel();
 
     void startDebugging();
     void stopDebugging();
@@ -76,6 +78,7 @@ protected:
 
 private:
     Ui::CpuPane *ui;
+    MainWindow* mainWindow;
     void initRegisters();
 
 protected slots:

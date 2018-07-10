@@ -27,7 +27,7 @@ void IOWidget::batchInputToBuffer()
 {
     if(ui->tabWidget->currentIndex() == 0)
     {
-        memory->onAppendInBuffer(ui->batchInput->toPlainText());
+        memory->onAppendInBuffer(ui->batchInput->toPlainText()+'\n');
     }
 }
 
