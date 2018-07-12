@@ -19,21 +19,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "pephighlighter.h"
+#include "pepmicrohighlighter.h"
 #include "pep.h"
 #include "cpudatasection.h"
-PepHighlighter::PepHighlighter(PepColors::Colors color,QTextDocument *parent)
+PepMicroHighlighter::PepMicroHighlighter(PepColors::Colors color,QTextDocument *parent)
     : QSyntaxHighlighter(parent),forcedFeatures(false)
 {
     rebuildHighlightingRules(color);
 }
 
-void PepHighlighter::forceAllFeatures(bool features)
+void PepMicroHighlighter::forceAllFeatures(bool features)
 {
     forcedFeatures=features;
 }
 
-void PepHighlighter::rebuildHighlightingRules(PepColors::Colors color)
+void PepMicroHighlighter::rebuildHighlightingRules(PepColors::Colors color)
 {
     HighlightingRule rule;
 
@@ -133,7 +133,7 @@ void PepHighlighter::rebuildHighlightingRules(PepColors::Colors color)
     commentEndExpression = QRegExp("$");
 }
 
-void PepHighlighter::highlightBlock(const QString &text)
+void PepMicroHighlighter::highlightBlock(const QString &text)
 {
     QVector<HighlightingRule> highlightingRules;
     if(forcedFeatures){

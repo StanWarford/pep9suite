@@ -26,7 +26,7 @@
 #include "ui_memorydumppane.h"
 #include "pep.h"
 #include "enu.h"
-
+#include <QStyle>
 #include "cpudatasection.h"
 #include "memorysection.h"
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :

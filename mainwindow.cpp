@@ -48,7 +48,7 @@
 #include "memorysection.h"
 #include "microcodepane.h"
 #include "microcodeprogram.h"
-#include "objectcodepane.h"
+#include "microobjectcodepane.h"
 #include "updatechecker.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -865,8 +865,8 @@ void MainWindow::simulationFinished()
 
     on_actionSystem_Stop_Debugging_triggered();
 
-    QVector<Code*> prog = ui->microcodeWidget->getMicrocodeProgram()->getObjectCode();
-    for (Code* x : prog) {
+    QVector<AsmCode*> prog = ui->microcodeWidget->getMicrocodeProgram()->getObjectCode();
+    for (AsmCode* x : prog) {
         if (x->hasUnitPost()&&!((UnitPostCode*)x)->testPostcondition(dataSection, errorString)) {
             ((UnitPostCode*)x)->testPostcondition(dataSection, errorString);
             ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);

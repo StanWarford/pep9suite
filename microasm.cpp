@@ -158,7 +158,7 @@ bool MicroAsm::getToken(QString &sourceLine, ELexicalToken &token, QString &toke
     return false;
 }
 
-bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&code, QString &errorString)
+bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AsmCode *&code, QString &errorString)
 {
     MicroAsm::ELexicalToken token; // Passed to getToken.
     QString tokenString; // Passed to getToken.

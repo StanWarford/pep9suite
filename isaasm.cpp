@@ -18,26 +18,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "asm.h"
-#include "argument.h"
-#include "code.h"
+#include "isaasm.h"
+#include "asmargument.h"
+#include "asmcode.h"
 
 // Regular expressions for lexical analysis
-QRegExp Asm::rxAddrMode("^((,)(\\s*)(i|d|x|n|s(?![fx])|sx(?![f])|sf|sfx){1}){1}");
-QRegExp Asm::rxCharConst("^((\')(?![\'])(([^\'\\\\]){1}|((\\\\)([\'|b|f|n|r|t|v|\"|\\\\]))|((\\\\)(([x|X])([0-9|A-F|a-f]{2}))))(\'))");
-QRegExp Asm::rxComment("^((;{1})(.)*)");
-QRegExp Asm::rxDecConst("^((([+|-]{0,1})([0-9]+))|^(([1-9])([0-9]*)))");
-QRegExp Asm::rxDotCommand("^((.)(([A-Z|a-z]{1})(\\w)*))");
-QRegExp Asm::rxHexConst("^((0(?![x|X]))|((0)([x|X])([0-9|A-F|a-f])+)|((0)([0-9]+)))");
-QRegExp Asm::rxIdentifier("^((([A-Z|a-z|_]{1})(\\w*))(:){0,1})");
-QRegExp Asm::rxStringConst("^((\")((([^\"\\\\])|((\\\\)([\'|b|f|n|r|t|v|\"|\\\\]))|((\\\\)(([x|X])([0-9|A-F|a-f]{2}))))*)(\"))");
+QRegExp IsaAsm::rxAddrMode("^((,)(\\s*)(i|d|x|n|s(?![fx])|sx(?![f])|sf|sfx){1}){1}");
+QRegExp IsaAsm::rxCharConst("^((\')(?![\'])(([^\'\\\\]){1}|((\\\\)([\'|b|f|n|r|t|v|\"|\\\\]))|((\\\\)(([x|X])([0-9|A-F|a-f]{2}))))(\'))");
+QRegExp IsaAsm::rxComment("^((;{1})(.)*)");
+QRegExp IsaAsm::rxDecConst("^((([+|-]{0,1})([0-9]+))|^(([1-9])([0-9]*)))");
+QRegExp IsaAsm::rxDotCommand("^((.)(([A-Z|a-z]{1})(\\w)*))");
+QRegExp IsaAsm::rxHexConst("^((0(?![x|X]))|((0)([x|X])([0-9|A-F|a-f])+)|((0)([0-9]+)))");
+QRegExp IsaAsm::rxIdentifier("^((([A-Z|a-z|_]{1})(\\w*))(:){0,1})");
+QRegExp IsaAsm::rxStringConst("^((\")((([^\"\\\\])|((\\\\)([\'|b|f|n|r|t|v|\"|\\\\]))|((\\\\)(([x|X])([0-9|A-F|a-f]{2}))))*)(\"))");
 
 // Regular expressions for trace tag analysis
-QRegExp Asm::rxFormatTag("(#((1c)|(1d)|(1h)|(2d)|(2h))((\\d)+a)?(\\s|$))");
-QRegExp Asm::rxSymbolTag("#([a-zA-Z][a-zA-Z0-9]{0,7})");
-QRegExp Asm::rxArrayMultiplier("((\\d)+)a");
+QRegExp IsaAsm::rxFormatTag("(#((1c)|(1d)|(1h)|(2d)|(2h))((\\d)+a)?(\\s|$))");
+QRegExp IsaAsm::rxSymbolTag("#([a-zA-Z][a-zA-Z0-9]{0,7})");
+QRegExp IsaAsm::rxArrayMultiplier("((\\d)+)a");
 
-bool Asm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenString)
+bool IsaAsm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenString)
 {
     sourceLine = sourceLine.trimmed();
     if (sourceLine.length() == 0) {
@@ -133,10 +133,10 @@ bool Asm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenStri
     return false;
 }
 
-QList<QString> Asm::listOfReferencedSymbols;
-QList<int> Asm::listOfReferencedSymbolLineNums;
+QList<QString> IsaAsm::listOfReferencedSymbols;
+QList<int> IsaAsm::listOfReferencedSymbolLineNums;
 
-bool Asm::startsWithHexPrefix(QString str)
+bool IsaAsm::startsWithHexPrefix(QString str)
 {
     if (str.length() < 2) return false;
     if (str[0] != '0') return false;
@@ -144,7 +144,7 @@ bool Asm::startsWithHexPrefix(QString str)
     return false;
 }
 
-Enu::EAddrMode Asm::stringToAddrMode(QString str)
+Enu::EAddrMode IsaAsm::stringToAddrMode(QString str)
 {
     str.remove(0, 1); // Remove the comma.
     str = str.trimmed().toUpper();
@@ -159,25 +159,25 @@ Enu::EAddrMode Asm::stringToAddrMode(QString str)
     return Enu::EAddrMode::NONE;
 }
 
-int Asm::charStringToInt(QString str)
+int IsaAsm::charStringToInt(QString str)
 {
     str.remove(0, 1); // Remove the leftmost single quote.
     str.chop(1); // Remove the rightmost single quote.
     int value;
-    Asm::unquotedStringToInt(str, value);
+    IsaAsm::unquotedStringToInt(str, value);
     return value;
 }
 
-int Asm::string2ArgumentToInt(QString str) {
+int IsaAsm::string2ArgumentToInt(QString str) {
     int valueA, valueB;
     str.remove(0, 1); // Remove the leftmost double quote.
     str.chop(1); // Remove the rightmost double quote.
-    Asm::unquotedStringToInt(str, valueA);
+    IsaAsm::unquotedStringToInt(str, valueA);
     if (str.length() == 0) {
         return valueA;
     }
     else {
-        Asm::unquotedStringToInt(str, valueB);
+        IsaAsm::unquotedStringToInt(str, valueB);
         valueA = 256 * valueA + valueB;
         if (valueA < 0) {
             valueA += 65536; // Stored as two-byte unsigned.
@@ -186,7 +186,7 @@ int Asm::string2ArgumentToInt(QString str) {
     }
 }
 
-void Asm::unquotedStringToInt(QString &str, int &value)
+void IsaAsm::unquotedStringToInt(QString &str, int &value)
 {
     QString s;
     if (str.startsWith("\\x") || str.startsWith("\\X")) {
@@ -230,7 +230,7 @@ void Asm::unquotedStringToInt(QString &str, int &value)
     value += value < 0 ? 256 : 0;
 }
 
-int Asm::byteStringLength(QString str)
+int IsaAsm::byteStringLength(QString str)
 {
     str.remove(0, 1); // Remove the leftmost double quote.
     str.chop(1); // Remove the rightmost double quote.
@@ -250,7 +250,7 @@ int Asm::byteStringLength(QString str)
     return length;
 }
 
-Enu::ESymbolFormat Asm::formatTagType(QString formatTag) {
+Enu::ESymbolFormat IsaAsm::formatTagType(QString formatTag) {
     if (formatTag.startsWith("#1c")) return Enu::ESymbolFormat::F_1C;
     if (formatTag.startsWith("#1d")) return Enu::ESymbolFormat::F_1D;
     if (formatTag.startsWith("#2d")) return Enu::ESymbolFormat::F_2D;
@@ -259,7 +259,7 @@ Enu::ESymbolFormat Asm::formatTagType(QString formatTag) {
     return Enu::ESymbolFormat::F_NONE; // Should not occur
 }
 
-int Asm::tagNumBytes(Enu::ESymbolFormat symbolFormat) {
+int IsaAsm::tagNumBytes(Enu::ESymbolFormat symbolFormat) {
     switch (symbolFormat) {
     case Enu::ESymbolFormat::F_1C: return 1;
     case Enu::ESymbolFormat::F_1D: return 1;
@@ -271,10 +271,10 @@ int Asm::tagNumBytes(Enu::ESymbolFormat symbolFormat) {
     }
 }
 
-int Asm::formatMultiplier(QString formatTag) {
-    int pos = Asm::rxArrayMultiplier.indexIn(formatTag);
+int IsaAsm::formatMultiplier(QString formatTag) {
+    int pos = IsaAsm::rxArrayMultiplier.indexIn(formatTag);
     if (pos > -1) {
-        QString multiplierTag = Asm::rxArrayMultiplier.cap(0);
+        QString multiplierTag = IsaAsm::rxArrayMultiplier.cap(0);
         multiplierTag.chop(1); // Remove the last character 'a' from the array tag.
         return multiplierTag.toInt();
     }
@@ -283,9 +283,9 @@ int Asm::formatMultiplier(QString formatTag) {
     }
 }
 
-bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QString &errorString, bool &dotEndDetected)
+bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, QString &errorString, bool &dotEndDetected)
 {
-    Asm::ELexicalToken token; // Passed to getToken.
+    IsaAsm::ELexicalToken token; // Passed to getToken.
     QString tokenString; // Passed to getToken.
     QString localSymbolDef = ""; // Saves symbol definition for processing in the following state.
     Enu::EMnemonic localEnumMnemonic; // Key to Pep:: table lookups.
@@ -306,15 +306,15 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
     BlankLine *blankLine = NULL;
 
     dotEndDetected = false;
-    Asm::ParseState state = Asm::PS_START;
+    IsaAsm::ParseState state = IsaAsm::PS_START;
     do {
         if (!getToken(sourceLine, token, tokenString)) {
             errorString = tokenString;
             return false;
         }
         switch (state) {
-        case Asm::PS_START:
-            if (token == Asm::LT_IDENTIFIER) {
+        case IsaAsm::PS_START:
+            if (token == IsaAsm::LT_IDENTIFIER) {
                 if (Pep::mnemonToEnumMap.contains(tokenString.toUpper())) {
                     localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
                     if (Pep::isUnaryMap.value(localEnumMnemonic)) {
@@ -324,7 +324,7 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                         code = unaryInstruction;
                         code->memAddress = Pep::byteCount;
                         Pep::byteCount += 1; // One byte generated for unary instruction.
-                        state = Asm::PS_CLOSE;
+                        state = IsaAsm::PS_CLOSE;
                     }
                     else {
                         nonUnaryInstruction = new NonUnaryInstruction;
@@ -333,7 +333,7 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                         code = nonUnaryInstruction;
                         code->memAddress = Pep::byteCount;
                         Pep::byteCount += 3; // Three bytes generated for nonunary instruction.
-                        state = Asm::PS_INSTRUCTION;
+                        state = IsaAsm::PS_INSTRUCTION;
                     }
                 }
                 else {
@@ -341,7 +341,7 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     return false;
                 }
             }
-            else if (token == Asm::LT_DOT_COMMAND) {
+            else if (token == IsaAsm::LT_DOT_COMMAND) {
                 tokenString.remove(0, 1); // Remove the period
                 tokenString = tokenString.toUpper();
                 if (tokenString == "ADDRSS") {
@@ -349,42 +349,42 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     dotAddrss->symbolDef = "";
                     code = dotAddrss;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_ADDRSS;
+                    state = IsaAsm::PS_DOT_ADDRSS;
                 }
                 else if (tokenString == "ALIGN") {
                     dotAlign = new DotAlign;
                     dotAlign->symbolDef = "";
                     code = dotAlign;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_ALIGN;
+                    state = IsaAsm::PS_DOT_ALIGN;
                 }
                 else if (tokenString == "ASCII") {
                     dotAscii = new DotAscii;
                     dotAscii->symbolDef = "";
                     code = dotAscii;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_ASCII;
+                    state = IsaAsm::PS_DOT_ASCII;
                 }
                 else if (tokenString == "BLOCK") {
                     dotBlock = new DotBlock;
                     dotBlock->symbolDef = "";
                     code = dotBlock;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_BLOCK;
+                    state = IsaAsm::PS_DOT_BLOCK;
                 }
                 else if (tokenString == "BURN") {
                     dotBurn = new DotBurn;
                     dotBurn->symbolDef = "";
                     code = dotBurn;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_BURN;
+                    state = IsaAsm::PS_DOT_BURN;
                 }
                 else if (tokenString == "BYTE") {
                     dotByte = new DotByte;
                     dotByte->symbolDef = "";
                     code = dotByte;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_BYTE;
+                    state = IsaAsm::PS_DOT_BYTE;
                 }
                 else if (tokenString == "END") {
                     dotEnd = new DotEnd;
@@ -392,28 +392,28 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     code = dotEnd;
                     code->memAddress = Pep::byteCount;
                     dotEndDetected = true;
-                    state = Asm::PS_DOT_END;
+                    state = IsaAsm::PS_DOT_END;
                 }
                 else if (tokenString == "EQUATE") {
                     dotEquate = new DotEquate;
                     dotEquate->symbolDef = "";
                     code = dotEquate;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_EQUATE;
+                    state = IsaAsm::PS_DOT_EQUATE;
                 }
                 else if (tokenString == "WORD") {
                     dotWord = new DotWord;
                     dotWord->symbolDef = "";
                     code = dotWord;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_WORD;
+                    state = IsaAsm::PS_DOT_WORD;
                 }
                 else {
                     errorString = ";ERROR: Invalid dot command.";
                     return false;
                 }
             }
-            else if (token == Asm::LT_SYMBOL_DEF) {
+            else if (token == IsaAsm::LT_SYMBOL_DEF) {
                 tokenString.chop(1); // Remove the colon
                 if (tokenString.length() > 8) {
                     errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
@@ -426,21 +426,21 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                 localSymbolDef = tokenString;
                 Pep::symbolTable.insert(localSymbolDef, Pep::byteCount);
                 Pep::adjustSymbolValueForBurn.insert(localSymbolDef, true);
-                state = Asm::PS_SYMBOL_DEF;
+                state = IsaAsm::PS_SYMBOL_DEF;
             }
-            else if (token == Asm::LT_COMMENT) {
+            else if (token == IsaAsm::LT_COMMENT) {
                 commentOnly = new CommentOnly;
                 commentOnly->comment = tokenString;
                 code = commentOnly;
                 code->memAddress = Pep::byteCount;
-                state = Asm::PS_COMMENT;
+                state = IsaAsm::PS_COMMENT;
             }
-            else if (token == Asm::LT_EMPTY) {
+            else if (token == IsaAsm::LT_EMPTY) {
                 blankLine = new BlankLine;
                 code = blankLine;
                 code->memAddress = Pep::byteCount;
                 code->sourceCodeLine = lineNum;
-                state = Asm::PS_FINISH;
+                state = IsaAsm::PS_FINISH;
             }
             else {
                 errorString = ";ERROR: Line must start with symbol definition, mnemonic, dot command, or comment.";
@@ -448,8 +448,8 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_SYMBOL_DEF:
-            if (token == Asm::LT_IDENTIFIER){
+        case IsaAsm::PS_SYMBOL_DEF:
+            if (token == IsaAsm::LT_IDENTIFIER){
                 if (Pep::mnemonToEnumMap.contains(tokenString.toUpper())) {
                     localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
                     if (Pep::isUnaryMap.value(localEnumMnemonic)) {
@@ -459,7 +459,7 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                         code = unaryInstruction;
                         code->memAddress = Pep::byteCount;
                         Pep::byteCount += 1; // One byte generated for unary instruction.
-                        state = Asm::PS_CLOSE;
+                        state = IsaAsm::PS_CLOSE;
                     }
                     else {
                         nonUnaryInstruction = new NonUnaryInstruction;
@@ -468,7 +468,7 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                         code = nonUnaryInstruction;
                         code->memAddress = Pep::byteCount;
                         Pep::byteCount += 3; // Three bytes generated for unary instruction.
-                        state = Asm::PS_INSTRUCTION;
+                        state = IsaAsm::PS_INSTRUCTION;
                     }
                 }
                 else {
@@ -476,7 +476,7 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     return false;
                 }
             }
-            else if (token == Asm::LT_DOT_COMMAND) {
+            else if (token == IsaAsm::LT_DOT_COMMAND) {
                 tokenString.remove(0, 1); // Remove the period
                 tokenString = tokenString.toUpper();
                 if (tokenString == "ADDRSS") {
@@ -484,35 +484,35 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     dotAddrss->symbolDef = localSymbolDef;
                     code = dotAddrss;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_ADDRSS;
+                    state = IsaAsm::PS_DOT_ADDRSS;
                 }
                 else if (tokenString == "ASCII") {
                     dotAscii = new DotAscii;
                     dotAscii->symbolDef = localSymbolDef;
                     code = dotAscii;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_ASCII;
+                    state = IsaAsm::PS_DOT_ASCII;
                 }
                 else if (tokenString == "BLOCK") {
                     dotBlock = new DotBlock;
                     dotBlock->symbolDef = localSymbolDef;
                     code = dotBlock;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_BLOCK;
+                    state = IsaAsm::PS_DOT_BLOCK;
                 }
                 else if (tokenString == "BURN") {
                     dotBurn = new DotBurn;
                     dotBurn->symbolDef = localSymbolDef;
                     code = dotBurn;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_BURN;
+                    state = IsaAsm::PS_DOT_BURN;
                 }
                 else if (tokenString == "BYTE") {
                     dotByte = new DotByte;
                     dotByte->symbolDef = localSymbolDef;
                     code = dotByte;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_BYTE;
+                    state = IsaAsm::PS_DOT_BYTE;
                 }
                 else if (tokenString == "END") {
                     dotEnd = new DotEnd;
@@ -520,21 +520,21 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     code = dotEnd;
                     code->memAddress = Pep::byteCount;
                     dotEndDetected = true;
-                    state = Asm::PS_DOT_END;
+                    state = IsaAsm::PS_DOT_END;
                 }
                 else if (tokenString == "EQUATE") {
                     dotEquate = new DotEquate;
                     dotEquate->symbolDef = localSymbolDef;
                     code = dotEquate;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_EQUATE;
+                    state = IsaAsm::PS_DOT_EQUATE;
                 }
                 else if (tokenString == "WORD") {
                     dotWord = new DotWord;
                     dotWord->symbolDef = localSymbolDef;
                     code = dotWord;
                     code->memAddress = Pep::byteCount;
-                    state = Asm::PS_DOT_WORD;
+                    state = IsaAsm::PS_DOT_WORD;
                 }
                 else {
                     errorString = ";ERROR: Invalid dot command.";
@@ -547,39 +547,39 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_INSTRUCTION:
-            if (token == Asm::LT_IDENTIFIER) {
+        case IsaAsm::PS_INSTRUCTION:
+            if (token == IsaAsm::LT_IDENTIFIER) {
                 if (tokenString.length() > 8) {
                     errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
                     return false;
                 }
                 nonUnaryInstruction->argument = new SymbolRefArgument(tokenString);
-                Asm::listOfReferencedSymbols.append(tokenString);
-                Asm::listOfReferencedSymbolLineNums.append(lineNum);
-                state = Asm::PS_ADDRESSING_MODE;
+                IsaAsm::listOfReferencedSymbols.append(tokenString);
+                IsaAsm::listOfReferencedSymbolLineNums.append(lineNum);
+                state = IsaAsm::PS_ADDRESSING_MODE;
             }
-            else if (token == Asm::LT_STRING_CONSTANT) {
-                if (Asm::byteStringLength(tokenString) > 2) {
+            else if (token == IsaAsm::LT_STRING_CONSTANT) {
+                if (IsaAsm::byteStringLength(tokenString) > 2) {
                     errorString = ";ERROR: String operands must have length at most two.";
                     return false;
                 }
                 nonUnaryInstruction->argument = new StringArgument(tokenString);
-                state = Asm::PS_ADDRESSING_MODE;
+                state = IsaAsm::PS_ADDRESSING_MODE;
             }
-            else if (token == Asm::LT_HEX_CONSTANT) {
+            else if (token == IsaAsm::LT_HEX_CONSTANT) {
                 tokenString.remove(0, 2); // Remove "0x" prefix.
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
                     nonUnaryInstruction->argument = new HexArgument(value);
-                    state = Asm::PS_ADDRESSING_MODE;
+                    state = IsaAsm::PS_ADDRESSING_MODE;
                 }
                 else {
                     errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
                     return false;
                 }
             }
-            else if (token == Asm::LT_DEC_CONSTANT) {
+            else if (token == IsaAsm::LT_DEC_CONSTANT) {
                 bool ok;
                 int value = tokenString.toInt(&ok, 10);
                 if ((-32768 <= value) && (value <= 65535)) {
@@ -590,16 +590,16 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     else {
                         nonUnaryInstruction->argument = new UnsignedDecArgument(value);
                     }
-                    state = Asm::PS_ADDRESSING_MODE;
+                    state = IsaAsm::PS_ADDRESSING_MODE;
                 }
                 else {
                     errorString = ";ERROR: Decimal constant is out of range (-32768..65535).";
                     return false;
                 }
             }
-            else if (token == Asm::LT_CHAR_CONSTANT) {
+            else if (token == IsaAsm::LT_CHAR_CONSTANT) {
                 nonUnaryInstruction->argument = new CharArgument(tokenString);
-                state = Asm::PS_ADDRESSING_MODE;
+                state = IsaAsm::PS_ADDRESSING_MODE;
             }
             else {
                 errorString = ";ERROR: Operand specifier expected after mnemonic.";
@@ -607,15 +607,15 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_ADDRESSING_MODE:
-            if (token == Asm::LT_ADDRESSING_MODE) {
-                Enu::EAddrMode addrMode = Asm::stringToAddrMode(tokenString);
+        case IsaAsm::PS_ADDRESSING_MODE:
+            if (token == IsaAsm::LT_ADDRESSING_MODE) {
+                Enu::EAddrMode addrMode = IsaAsm::stringToAddrMode(tokenString);
                 if ((static_cast<int>(addrMode) & Pep::addrModesMap.value(localEnumMnemonic)) == 0) { // Nested parens required.
                     errorString = ";ERROR: Illegal addressing mode for this instruction.";
                     return false;
                 }
                 nonUnaryInstruction->addressingMode = addrMode;
-                state = Asm::PS_CLOSE;
+                state = IsaAsm::PS_CLOSE;
             }
             else if (Pep::addrModeRequiredMap.value(localEnumMnemonic)) {
                 errorString = ";ERROR: Addressing mode required for this instruction.";
@@ -623,13 +623,13 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             else { // Must be branch type instruction with no addressing mode. Assign default addressing mode.
                 nonUnaryInstruction->addressingMode = Enu::EAddrMode::I;
-                if (token == Asm::LT_COMMENT) {
+                if (token == IsaAsm::LT_COMMENT) {
                     code->comment = tokenString;
-                    state = Asm::PS_COMMENT;
+                    state = IsaAsm::PS_COMMENT;
                 }
-                else if (token == Asm::LT_EMPTY) {
+                else if (token == IsaAsm::LT_EMPTY) {
                     code->sourceCodeLine = lineNum;
-                    state = Asm::PS_FINISH;
+                    state = IsaAsm::PS_FINISH;
                 }
                 else {
                     errorString = ";ERROR: Comment expected following instruction.";
@@ -638,17 +638,17 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_DOT_ADDRSS:
-            if (token == Asm::LT_IDENTIFIER) {
+        case IsaAsm::PS_DOT_ADDRSS:
+            if (token == IsaAsm::LT_IDENTIFIER) {
                 if (tokenString.length() > 8) {
                     errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
                     return false;
                 }
                 dotAddrss->argument = new SymbolRefArgument(tokenString);
-                Asm::listOfReferencedSymbols.append(tokenString);
-                Asm::listOfReferencedSymbolLineNums.append(lineNum);
+                IsaAsm::listOfReferencedSymbols.append(tokenString);
+                IsaAsm::listOfReferencedSymbolLineNums.append(lineNum);
                 Pep::byteCount += 2;
-                state = Asm::PS_CLOSE;
+                state = IsaAsm::PS_CLOSE;
             }
             else {
                 errorString = ";ERROR: .ADDRSS requires a symbol argument.";
@@ -656,8 +656,8 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_DOT_ALIGN:
-            if (token == Asm::LT_DEC_CONSTANT) {
+        case IsaAsm::PS_DOT_ALIGN:
+            if (token == IsaAsm::LT_DEC_CONSTANT) {
                 bool ok;
                 int value = tokenString.toInt(&ok, 10);
                 if (value == 2 || value == 4 || value == 8) {
@@ -665,7 +665,7 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     dotAlign->argument = new UnsignedDecArgument(value);
                     dotAlign->numBytesGenerated = new UnsignedDecArgument(numBytes);
                     Pep::byteCount += numBytes;
-                    state = Asm::PS_CLOSE;
+                    state = IsaAsm::PS_CLOSE;
                 }
                 else {
                     errorString = ";ERROR: Decimal constant is out of range (2, 4, 8).";
@@ -678,11 +678,11 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_DOT_ASCII:
-            if (token == Asm::LT_STRING_CONSTANT) {
+        case IsaAsm::PS_DOT_ASCII:
+            if (token == IsaAsm::LT_STRING_CONSTANT) {
                 dotAscii->argument = new StringArgument(tokenString);
-                Pep::byteCount += Asm::byteStringLength(tokenString);
-                state = Asm::PS_CLOSE;
+                Pep::byteCount += IsaAsm::byteStringLength(tokenString);
+                state = IsaAsm::PS_CLOSE;
             }
             else {
                 errorString = ";ERROR: .ASCII requires a string constant argument.";
@@ -690,8 +690,8 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_DOT_BLOCK:
-            if (token == Asm::LT_DEC_CONSTANT) {
+        case IsaAsm::PS_DOT_BLOCK:
+            if (token == IsaAsm::LT_DEC_CONSTANT) {
                 bool ok;
                 int value = tokenString.toInt(&ok, 10);
                 if ((0 <= value) && (value <= 65535)) {
@@ -703,21 +703,21 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                         dotBlock->argument = new UnsignedDecArgument(value);
                     }
                     Pep::byteCount += value;
-                    state = Asm::PS_CLOSE;
+                    state = IsaAsm::PS_CLOSE;
                 }
                 else {
                     errorString = ";ERROR: Decimal constant is out of range (0..65535).";
                     return false;
                 }
             }
-            else if (token == Asm::LT_HEX_CONSTANT) {
+            else if (token == IsaAsm::LT_HEX_CONSTANT) {
                 tokenString.remove(0, 2); // Remove "0x" prefix.
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
                     dotBlock->argument = new HexArgument(value);
                     Pep::byteCount += value;
-                    state = Asm::PS_CLOSE;
+                    state = IsaAsm::PS_CLOSE;
                 }
                 else {
                     errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
@@ -730,8 +730,8 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_DOT_BURN:
-            if (token == Asm::LT_HEX_CONSTANT) {
+        case IsaAsm::PS_DOT_BURN:
+            if (token == IsaAsm::LT_HEX_CONSTANT) {
                 tokenString.remove(0, 2); // Remove "0x" prefix.
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
@@ -740,7 +740,7 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     Pep::burnCount++;
                     Pep::dotBurnArgument = value;
                     Pep::romStartAddress = Pep::byteCount;
-                    state = Asm::PS_CLOSE;
+                    state = IsaAsm::PS_CLOSE;
                 }
                 else {
                     errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
@@ -753,13 +753,13 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_DOT_BYTE:
-            if (token == Asm::LT_CHAR_CONSTANT) {
+        case IsaAsm::PS_DOT_BYTE:
+            if (token == IsaAsm::LT_CHAR_CONSTANT) {
                 dotByte->argument = new CharArgument(tokenString);
                 Pep::byteCount += 1;
-                state = Asm::PS_CLOSE;
+                state = IsaAsm::PS_CLOSE;
             }
-            else if (token == Asm::LT_DEC_CONSTANT) {
+            else if (token == IsaAsm::LT_DEC_CONSTANT) {
                 bool ok;
                 int value = tokenString.toInt(&ok, 10);
                 if ((-128 <= value) && (value <= 255)) {
@@ -768,35 +768,35 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     }
                     dotByte->argument = new DecArgument(value);
                     Pep::byteCount += 1;
-                    state = Asm::PS_CLOSE;
+                    state = IsaAsm::PS_CLOSE;
                 }
                 else {
                     errorString = ";ERROR: Decimal constant is out of byte range (-128..255).";
                     return false;
                 }
             }
-            else if (token == Asm::LT_HEX_CONSTANT) {
+            else if (token == IsaAsm::LT_HEX_CONSTANT) {
                 tokenString.remove(0, 2); // Remove "0x" prefix.
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 256) {
                     dotByte->argument = new HexArgument(value);
                     Pep::byteCount += 1;
-                    state = Asm::PS_CLOSE;
+                    state = IsaAsm::PS_CLOSE;
                 }
                 else {
                     errorString = ";ERROR: Hex constant is out of byte range (0x00..0xFF).";
                     return false;
                 }
             }
-            else if (token == Asm::LT_STRING_CONSTANT) {
-                if (Asm::byteStringLength(tokenString) > 1) {
+            else if (token == IsaAsm::LT_STRING_CONSTANT) {
+                if (IsaAsm::byteStringLength(tokenString) > 1) {
                     errorString = ";ERROR: .BYTE string operands must have length one.";
                     return false;
                 }
                 dotByte->argument = new StringArgument(tokenString);
                 Pep::byteCount += 1;
-                state = Asm::PS_CLOSE;
+                state = IsaAsm::PS_CLOSE;
             }
             else {
                 errorString = ";ERROR: .BYTE requires a char, dec, hex, or string constant argument.";
@@ -804,16 +804,16 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_DOT_END:
-            if (token == Asm::LT_COMMENT) {
+        case IsaAsm::PS_DOT_END:
+            if (token == IsaAsm::LT_COMMENT) {
                 dotEnd->comment = tokenString;
                 code->sourceCodeLine = lineNum;
-                state = Asm::PS_FINISH;
+                state = IsaAsm::PS_FINISH;
             }
-            else if (token == Asm::LT_EMPTY) {
+            else if (token == IsaAsm::LT_EMPTY) {
                 dotEnd->comment = "";
                 code->sourceCodeLine = lineNum;
-                state = Asm::PS_FINISH;
+                state = IsaAsm::PS_FINISH;
             }
             else {
                 errorString = ";ERROR: Only a comment can follow .END.";
@@ -821,12 +821,12 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_DOT_EQUATE:
+        case IsaAsm::PS_DOT_EQUATE:
             if (dotEquate->symbolDef == "") {
                 errorString = ";ERROR: .EQUATE must have a symbol definition.";
                 return false;
             }
-            else if (token == Asm::LT_DEC_CONSTANT) {
+            else if (token == IsaAsm::LT_DEC_CONSTANT) {
                 bool ok;
                 int value = tokenString.toInt(&ok, 10);
                 if ((-32768 <= value) && (value <= 65535)) {
@@ -840,14 +840,14 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     }
                     Pep::symbolTable.insert(dotEquate->symbolDef, value);
                     Pep::adjustSymbolValueForBurn.insert(dotEquate->symbolDef, false);
-                    state = Asm::PS_CLOSE;
+                    state = IsaAsm::PS_CLOSE;
                 }
                 else {
                     errorString = ";ERROR: Decimal constant is out of range (-32768..65535).";
                     return false;
                 }
             }
-            else if (token == Asm::LT_HEX_CONSTANT) {
+            else if (token == IsaAsm::LT_HEX_CONSTANT) {
                 tokenString.remove(0, 2); // Remove "0x" prefix.
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
@@ -855,28 +855,28 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                     dotEquate->argument = new HexArgument(value);
                     Pep::symbolTable.insert(dotEquate->symbolDef, value);
                     Pep::adjustSymbolValueForBurn.insert(dotEquate->symbolDef, false);
-                    state = Asm::PS_CLOSE;
+                    state = IsaAsm::PS_CLOSE;
                 }
                 else {
                     errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
                     return false;
                 }
             }
-            else if (token == Asm::LT_STRING_CONSTANT) {
-                if (Asm::byteStringLength(tokenString) > 2) {
+            else if (token == IsaAsm::LT_STRING_CONSTANT) {
+                if (IsaAsm::byteStringLength(tokenString) > 2) {
                     errorString = ";ERROR: .EQUATE string operand must have length at most two.";
                     return false;
                 }
                 dotEquate->argument = new StringArgument(tokenString);
-                Pep::symbolTable.insert(dotEquate->symbolDef, Asm::string2ArgumentToInt(tokenString));
+                Pep::symbolTable.insert(dotEquate->symbolDef, IsaAsm::string2ArgumentToInt(tokenString));
                 Pep::adjustSymbolValueForBurn.insert(dotEquate->symbolDef, false);
-                state = Asm::PS_CLOSE;
+                state = IsaAsm::PS_CLOSE;
             }
-            else if (token == Asm::LT_CHAR_CONSTANT) {
+            else if (token == IsaAsm::LT_CHAR_CONSTANT) {
                 dotEquate->argument = new CharArgument(tokenString);
-                Pep::symbolTable.insert(dotEquate->symbolDef, Asm::charStringToInt(tokenString));
+                Pep::symbolTable.insert(dotEquate->symbolDef, IsaAsm::charStringToInt(tokenString));
                 Pep::adjustSymbolValueForBurn.insert(dotEquate->symbolDef, false);
-                state = Asm::PS_CLOSE;
+                state = IsaAsm::PS_CLOSE;
             }
             else {
                 errorString = ";ERROR: .EQUATE requires a dec, hex, or string constant argument.";
@@ -884,13 +884,13 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_DOT_WORD:
-            if (token == Asm::LT_CHAR_CONSTANT) {
+        case IsaAsm::PS_DOT_WORD:
+            if (token == IsaAsm::LT_CHAR_CONSTANT) {
                 dotWord->argument = new CharArgument(tokenString);
                 Pep::byteCount += 2;
-                state = Asm::PS_CLOSE;
+                state = IsaAsm::PS_CLOSE;
             }
-            else if (token == Asm::LT_DEC_CONSTANT) {
+            else if (token == IsaAsm::LT_DEC_CONSTANT) {
                 bool ok;
                 int value = tokenString.toInt(&ok, 10);
                 if ((-32768 <= value) && (value < 65536)) {
@@ -903,35 +903,35 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
                         dotWord->argument = new UnsignedDecArgument(value);
                     }
                     Pep::byteCount += 2;
-                    state = Asm::PS_CLOSE;
+                    state = IsaAsm::PS_CLOSE;
                 }
                 else {
                     errorString = ";ERROR: Decimal constant is out of range (-32768..65535).";
                     return false;
                 }
             }
-            else if (token == Asm::LT_HEX_CONSTANT) {
+            else if (token == IsaAsm::LT_HEX_CONSTANT) {
                 tokenString.remove(0, 2); // Remove "0x" prefix.
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
                     dotWord->argument = new HexArgument(value);
                     Pep::byteCount += 2;
-                    state = Asm::PS_CLOSE;
+                    state = IsaAsm::PS_CLOSE;
                 }
                 else {
                     errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
                     return false;
                 }
             }
-            else if (token == Asm::LT_STRING_CONSTANT) {
-                if (Asm::byteStringLength(tokenString) > 2) {
+            else if (token == IsaAsm::LT_STRING_CONSTANT) {
+                if (IsaAsm::byteStringLength(tokenString) > 2) {
                     errorString = ";ERROR: .WORD string operands must have length at most two.";
                     return false;
                 }
                 dotWord->argument = new StringArgument(tokenString);
                 Pep::byteCount += 2;
-                state = Asm::PS_CLOSE;
+                state = IsaAsm::PS_CLOSE;
             }
             else {
                 errorString = ";ERROR: .WORD requires a char, dec, hex, or string constant argument.";
@@ -939,14 +939,14 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_CLOSE:
-            if (token == Asm::LT_EMPTY) {
+        case IsaAsm::PS_CLOSE:
+            if (token == IsaAsm::LT_EMPTY) {
                 code->sourceCodeLine = lineNum;
-                state = Asm::PS_FINISH;
+                state = IsaAsm::PS_FINISH;
             }
-            else if (token == Asm::LT_COMMENT) {
+            else if (token == IsaAsm::LT_COMMENT) {
                 code->comment = tokenString;
-                state = Asm::PS_COMMENT;
+                state = IsaAsm::PS_COMMENT;
             }
             else {
                 errorString = ";ERROR: Comment expected following instruction.";
@@ -954,10 +954,10 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             }
             break;
 
-        case Asm::PS_COMMENT:
-            if (token == Asm::LT_EMPTY) {
+        case IsaAsm::PS_COMMENT:
+            if (token == IsaAsm::LT_EMPTY) {
                 code->sourceCodeLine = lineNum;
-                state = Asm::PS_FINISH;
+                state = IsaAsm::PS_FINISH;
             }
             else {
                 // This error should not occur, as all characters are allowed in comments.
@@ -970,6 +970,6 @@ bool Asm::processSourceLine(QString sourceLine, int lineNum, Code *&code, QStrin
             break;
         }
     }
-    while (state != Asm::PS_FINISH);
+    while (state != IsaAsm::PS_FINISH);
     return true;
 }

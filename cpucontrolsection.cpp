@@ -446,7 +446,7 @@ void CPUControlSection::initCPUStateFromPreconditions()
     {
         qDebug()<<"Can't init from null program";
     }
-    for(Code* x : program->getObjectCode())
+    for(AsmCode* x : program->getObjectCode())
     {
         if(x->hasUnitPre())preCode.append((UnitPreCode*)x);
     }
@@ -465,7 +465,7 @@ bool CPUControlSection::testPost()
     {
         qDebug()<<"Can't init from null program";
     }
-    for(Code* x : program->getObjectCode())
+    for(AsmCode* x : program->getObjectCode())
     {
         if(x->hasUnitPost())preCode.append((UnitPreCode*)x);
     }

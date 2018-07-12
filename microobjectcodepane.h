@@ -28,10 +28,10 @@ class MicrocodeProgram;
 class SymbolTable;
 class RotatedHeaderView;
 namespace Ui {
-    class ObjectCodePane;
+    class MicroObjectCodePane;
 }
 
-class ObjectCodePane : public QWidget {
+class MicroObjectCodePane : public QWidget {
     Q_OBJECT
     MicrocodeProgram* program;
     SymbolTable* symTable;
@@ -41,8 +41,8 @@ class ObjectCodePane : public QWidget {
     QStandardItemModel* model;
     bool inSimulation;
 public:
-    ObjectCodePane(QWidget *parent = 0);
-    ~ObjectCodePane();
+    MicroObjectCodePane(QWidget *parent = 0);
+    ~MicroObjectCodePane();
 
     void initCPUModelState();
 
@@ -68,7 +68,7 @@ protected:
     void changeEvent(QEvent *e) override;
 
 private:
-    Ui::ObjectCodePane *ui;
+    Ui::MicroObjectCodePane *ui;
 
 };
 

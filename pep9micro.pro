@@ -20,110 +20,83 @@ QMAKE_MAC_SDK = macosx10.13
 #Windows RC file for icon:
 RC_FILE = pep9resources.rc
 
-SOURCES += main.cpp \
-    mainwindow.cpp \
-    byteconverterhex.cpp \
-    byteconverterdec.cpp \
-    byteconverterchar.cpp \
-    byteconverterbin.cpp \
-    pep.cpp \
-    microcodepane.cpp \
-    cpupane.cpp \
-    helpdialog.cpp \
-    pephighlighter.cpp \
-    microcodeeditor.cpp \
-    objectcodepane.cpp \
-    tristatelabel.cpp \
-    specification.cpp \
-    byteconverterinstr.cpp \
-    aboutpep.cpp \
-    cpugraphicsitems.cpp \
-    updatechecker.cpp \
-    microcodeprogram.cpp \
-    rotatedheaderview.cpp \
-    disableselectionmodel.cpp \
-    colors.cpp \
-    cpudatasection.cpp \
-    cpucontrolsection.cpp \
-    addrmodedialog.cpp \
-    addrmodewidget.cpp \
-    symbolentry.cpp \
-    symboltable.cpp \
-    symbolvalue.cpp \
-    iowidget.cpp \
-    inputpane.cpp \
-    outputpane.cpp \
-    terminalpane.cpp \
-    memorysection.cpp \
-    cpumemoizer.cpp \
-    memorydumppane.cpp \
-    microasm.cpp \
-    asm.cpp \
-    microcode.cpp \
-    code.cpp
-HEADERS += mainwindow.h \
-    byteconverterhex.h \
-    byteconverterdec.h \
-    byteconverterchar.h \
-    byteconverterbin.h \
-    pep.h \
-    microcodepane.h \
-    cpupane.h \
-    helpdialog.h \
-    pephighlighter.h \
-    enu.h \
-    microcodeeditor.h \
-    objectcodepane.h \
-    tristatelabel.h \
-    specification.h \
-    byteconverterinstr.h \
-    aboutpep.h \
-    cpugraphicsitems.h \
-    shapes_one_byte_data_bus.h \
-    shapes_two_byte_data_bus.h \
-    updatechecker.h \
-    microcodeprogram.h \
-    rotatedheaderview.h \
-    disableselectionmodel.h \
-    colors.h \
-    cpudatasection.h \
-    cpucontrolsection.h \
-    addrmodedialog.h \
-    addrmodewidget.h \
-    symbolentry.h \
-    symboltable.h \
-    symbolvalue.h \
-    iowidget.h \
-    inputpane.h \
-    outputpane.h \
-    terminalpane.h \
-    memorysection.h \
-    cpumemoizer.h \
-    memorydumppane.h \
-    microasm.h \
-    asm.h \
-    argument.h \
-    microcode.h \
-    code.h
-FORMS += mainwindow.ui \
-    byteconverterhex.ui \
-    byteconverterdec.ui \
-    byteconverterchar.ui \
-    byteconverterbin.ui \
-    microcodepane.ui \
-    cpupane.ui \
-    helpdialog.ui \
-    objectcodepane.ui \
-    byteconverterinstr.ui \
+FORMS += \
     aboutpep.ui \
     addrmodedialog.ui \
     addrmodewidget.ui \
-    iowidget.ui \
-    inputpane.ui \
-    outputpane.ui \
-    terminalpane.ui \
-    iodialog.ui \
-    memorydumppane.ui
+    cpupane.ui \
+    helpdialog.ui \
+    mainwindow.ui \
+    memorydumppane.ui \
+    microcodepane.ui \
+    microobjectcodepane.ui
+
+HEADERS += \
+    aboutpep.h \
+    addrmodedialog.h \
+    addrmodewidget.h \
+    colors.h \
+    cpucontrolsection.h \
+    cpudatasection.h \
+    cpugraphicsitems.h \
+    cpumemoizer.h \
+    cpupane.h \
+    disableselectionmodel.h \
+    enu.h \
+    helpdialog.h \
+    mainwindow.h \
+    memorydumppane.h \
+    memorysection.h \
+    microasm.h \
+    microcode.h \
+    microcodeeditor.h \
+    microcodepane.h \
+    microcodeprogram.h \
+    pep.h \
+    pepmicrohighlighter.h \
+    rotatedheaderview.h \
+    shapes_one_byte_data_bus.h \
+    shapes_two_byte_data_bus.h \
+    specification.h \
+    symbolentry.h \
+    symboltable.h \
+    symbolvalue.h \
+    tristatelabel.h \
+    updatechecker.h \
+    microobjectcodepane.h
+
+SOURCES += \
+    aboutpep.cpp \
+    addrmodedialog.cpp \
+    addrmodewidget.cpp \
+    colors.cpp \
+    cpucontrolsection.cpp \
+    cpudatasection.cpp \
+    cpugraphicsitems.cpp \
+    cpumemoizer.cpp \
+    cpupane.cpp \
+    disableselectionmodel.cpp \
+    helpdialog.cpp \
+    main.cpp \
+    mainwindow.cpp \
+    memorydumppane.cpp \
+    memorysection.cpp \
+    microasm.cpp \
+    microcode.cpp \
+    microcodeeditor.cpp \
+    microcodepane.cpp \
+    microcodeprogram.cpp \
+    pep.cpp \
+    pepmicrohighlighter.cpp \
+    rotatedheaderview.cpp \
+    specification.cpp \
+    symbolentry.cpp \
+    symboltable.cpp \
+    symbolvalue.cpp \
+    tristatelabel.cpp \
+    updatechecker.cpp \
+    microobjectcodepane.cpp
+
 OTHER_FILES += help/images/registeraddresssignals.png \
     help/figures/exer1204.pepcpu \
     help/figures/exer1206.pepcpu \
@@ -155,13 +128,17 @@ DISTFILES += \
     rc/License.md \
     ProjectDefs.pri \
     help/osunalignedsymbols.txt \
-    help/osunalignedsymbols.txt
+    help/osunalignedsymbols.txt \
+    pepcpu.pri \
+    pepui.pri
 
+
+include("pepisa.pri")
+include("pepui.pri")
 #Add this include to the bottom of your project to enable automated installer creation
 #Include the definitions file that sets all variables needed for the InstallerConfig Script
 #include("ProjectDefs.pri")
 
 #Lastly, include and run the installer config script
 #include("Installer/InstallerConfig.pri")
-
 

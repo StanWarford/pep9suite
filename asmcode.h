@@ -19,20 +19,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CODE_H
-#define CODE_H
+#ifndef ASMCODE_H
+#define ASMCODE_H
 
 #include "pep.h"
 #include "enu.h"
 
-class Argument; // Forward declaration for attributes of code classes.
+class AsmArgument; // Forward declaration for attributes of code classes.
 
 // Abstract Code class
-class Code
+class AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 public:
-    virtual ~Code() { }
+    virtual ~AsmCode() { }
     virtual void appendObjectCode(QList<int> &objectCode) = 0;
     virtual void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox) = 0;
     void adjustMemAddress(int addressDelta) { memAddress += addressDelta; }
@@ -47,9 +47,9 @@ protected:
 };
 
 // Concrete code classes
-class UnaryInstruction: public Code
+class UnaryInstruction: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 private:
     Enu::EMnemonic mnemonic;
 public:
@@ -59,13 +59,13 @@ public:
 //    bool processSymbolTraceTags(int &sourceLine, QString &errorString);
 };
 
-class NonUnaryInstruction: public Code
+class NonUnaryInstruction: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 private:
     Enu::EMnemonic mnemonic;
     Enu::EAddrMode addressingMode;
-    Argument *argument;
+    AsmArgument *argument;
 public:
     // ~NonUnaryInstruction() { delete argument; }
     void appendObjectCode(QList<int> &objectCode);
@@ -74,42 +74,42 @@ public:
     bool processSymbolTraceTags(int &sourceLine, QString &errorString);
 };
 
-class DotAddrss: public Code
+class DotAddrss: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 private:
-    Argument *argument;
+    AsmArgument *argument;
 public:
     void appendObjectCode(QList<int> &objectCode);
     void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
 };
 
-class DotAlign: public Code
+class DotAlign: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 private:
-    Argument *argument;
-    Argument *numBytesGenerated;
+    AsmArgument *argument;
+    AsmArgument *numBytesGenerated;
 public:
     void appendObjectCode(QList<int> &objectCode);
     void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
 };
 
-class DotAscii: public Code
+class DotAscii: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 private:
-    Argument *argument;
+    AsmArgument *argument;
 public:
     void appendObjectCode(QList<int> &objectCode);
     void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
 };
 
-class DotBlock: public Code
+class DotBlock: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 private:
-    Argument *argument;
+    AsmArgument *argument;
 public:
     void appendObjectCode(QList<int> &objectCode);
     void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
@@ -117,66 +117,66 @@ public:
     bool processSymbolTraceTags(int &sourceLine, QString &errorString);
 };
 
-class DotBurn: public Code
+class DotBurn: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 private:
-    Argument *argument;
+    AsmArgument *argument;
 public:
     void appendObjectCode(QList<int> &objectCode);
     void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
 };
 
-class DotByte: public Code
+class DotByte: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 private:
-    Argument *argument;
+    AsmArgument *argument;
 public:
     void appendObjectCode(QList<int> &objectCode);
     void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
 };
 
-class DotEnd: public Code
+class DotEnd: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 public:
     void appendObjectCode(QList<int> &objectCode);
     void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
 };
 
-class DotEquate: public Code
+class DotEquate: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 private:
-    Argument *argument;
+    AsmArgument *argument;
 public:
     void appendObjectCode(QList<int> &objectCode);
     void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
     bool processFormatTraceTags(int &sourceLine, QString &errorString);
 };
 
-class DotWord: public Code
+class DotWord: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 private:
-    Argument *argument;
+    AsmArgument *argument;
 public:
     void appendObjectCode(QList<int> &objectCode);
     void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
 };
 
-class CommentOnly: public Code
+class CommentOnly: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 public:
     void appendObjectCode(QList<int> &objectCode);
     void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
 };
 
-class BlankLine: public Code
+class BlankLine: public AsmCode
 {
-    friend class Asm;
+    friend class IsaAsm;
 public:
     void appendObjectCode(QList<int> &objectCode);
     void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);

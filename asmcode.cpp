@@ -18,10 +18,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "code.h"
-#include "argument.h"
+#include "asmcode.h"
+#include "asmargument.h"
 #include "pep.h"
-#include "asm.h"
+#include "isaasm.h"
 #include <QRegExp>
 #include <QDebug>
 
@@ -76,7 +76,7 @@ void DotAscii::appendObjectCode(QList<int> &objectCode)
         str.remove(0, 1); // Remove the leftmost double quote.
         str.chop(1); // Remove the rightmost double quote.
         while (str.length() > 0) {
-            Asm::unquotedStringToInt(str, value);
+            IsaAsm::unquotedStringToInt(str, value);
             objectCode.append(value);
         }
     }
@@ -273,7 +273,7 @@ void DotAscii::appendSourceLine(QStringList &assemblerListingList, QStringList &
     int value;
     QString codeStr = "";
     while ((str.length() > 0) && (codeStr.length() < 6)) {
-        Asm::unquotedStringToInt(str, value);
+        IsaAsm::unquotedStringToInt(str, value);
         codeStr.append(QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
     }
     if ((Pep::burnCount == 1) && (memAddress < Pep::romStartAddress)) {
@@ -299,7 +299,7 @@ void DotAscii::appendSourceLine(QStringList &assemblerListingList, QStringList &
         while (str.length() > 0) {
             codeStr = "";
             while ((str.length() > 0) && (codeStr.length() < 6)) {
-                Asm::unquotedStringToInt(str, value);
+                IsaAsm::unquotedStringToInt(str, value);
                 codeStr.append(QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
             }
             lineStr = QString("      %1").arg(codeStr, -7, QLatin1Char(' '));
@@ -480,12 +480,12 @@ bool DotBlock::processFormatTraceTags(int &sourceLine, QString &errorString) {
     if (symbolDef.isEmpty()) {
         return true;
     }
-    int pos = Asm::rxFormatTag.indexIn(comment);
+    int pos = IsaAsm::rxFormatTag.indexIn(comment);
     if (pos > -1) {
-        QString formatTag = Asm::rxFormatTag.cap(0);
-        Enu::ESymbolFormat tagType = Asm::formatTagType(formatTag);
-        int multiplier = Asm::formatMultiplier(formatTag);
-        if (argument->getArgumentValue() != Asm::tagNumBytes(tagType) * multiplier) {
+        QString formatTag = IsaAsm::rxFormatTag.cap(0);
+        Enu::ESymbolFormat tagType = IsaAsm::formatTagType(formatTag);
+        int multiplier = IsaAsm::formatMultiplier(formatTag);
+        if (argument->getArgumentValue() != IsaAsm::tagNumBytes(tagType) * multiplier) {
             errorString = ";WARNING: Format tag does not match number of bytes allocated by .BLOCK.";
             sourceLine = sourceCodeLine;
             return false;
@@ -501,11 +501,11 @@ bool DotEquate::processFormatTraceTags(int &, QString &) {
     if (symbolDef.isEmpty()) {
         return true;
     }
-    int pos = Asm::rxFormatTag.indexIn(comment);
+    int pos = IsaAsm::rxFormatTag.indexIn(comment);
     if (pos > -1) {
-        QString formatTag = Asm::rxFormatTag.cap(0);
-        Pep::symbolFormat.insert(symbolDef, Asm::formatTagType(formatTag));
-        Pep::symbolFormatMultiplier.insert(symbolDef, Asm::formatMultiplier(formatTag));
+        QString formatTag = IsaAsm::rxFormatTag.cap(0);
+        Pep::symbolFormat.insert(symbolDef, IsaAsm::formatTagType(formatTag));
+        Pep::symbolFormatMultiplier.insert(symbolDef, IsaAsm::formatMultiplier(formatTag));
         Pep::equateSymbols.append(symbolDef);
     }
     return true;
@@ -525,16 +525,16 @@ bool DotBlock::processSymbolTraceTags(int &sourceLine, QString &errorString) {
     QStringList list;
     int numBytesListed = 0;
     int pos = 0;
-    while ((pos = Asm::rxSymbolTag.indexIn(comment, pos)) != -1) {
-        symbol = Asm::rxSymbolTag.cap(1);
+    while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
+        symbol = IsaAsm::rxSymbolTag.cap(1);
         if (!Pep::equateSymbols.contains(symbol)) {
             errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
             sourceLine = sourceCodeLine;
             return false;
         }
-        numBytesListed += Asm::tagNumBytes(Pep::symbolFormat.value(symbol)) * Pep::symbolFormatMultiplier.value(symbol);
+        numBytesListed += IsaAsm::tagNumBytes(Pep::symbolFormat.value(symbol)) * Pep::symbolFormatMultiplier.value(symbol);
         list.append(symbol);
-        pos += Asm::rxSymbolTag.matchedLength();
+        pos += IsaAsm::rxSymbolTag.matchedLength();
     }
     if (numBytesAllocated != numBytesListed && numBytesListed > 0) {
         errorString = ";WARNING: Number of bytes allocated (" + QString("%1").arg(numBytesAllocated) +
@@ -549,12 +549,12 @@ bool DotBlock::processSymbolTraceTags(int &sourceLine, QString &errorString) {
 
 bool NonUnaryInstruction::processFormatTraceTags(int &, QString &) {
     if (mnemonic == Enu::EMnemonic::CALL && argument->getArgumentString() == "malloc") {
-        int pos = Asm::rxFormatTag.indexIn(comment);
+        int pos = IsaAsm::rxFormatTag.indexIn(comment);
         if (pos > -1) {
             QStringList list;
-            QString formatTag = Asm::rxFormatTag.cap(0);
-            Enu::ESymbolFormat tagType = Asm::formatTagType(formatTag);
-            int multiplier = Asm::formatMultiplier(formatTag);
+            QString formatTag = IsaAsm::rxFormatTag.cap(0);
+            Enu::ESymbolFormat tagType = IsaAsm::formatTagType(formatTag);
+            int multiplier = IsaAsm::formatMultiplier(formatTag);
             QString symbolDef = QString("%1").arg(memAddress); // Dummy symbol for format tag in malloc
             if (!Pep::equateSymbols.contains(symbolDef)){
                 // Limitation: only one dummy format per program
@@ -582,16 +582,16 @@ bool NonUnaryInstruction::processSymbolTraceTags(int &sourceLine, QString &error
         QStringList list;
         int numBytesListed = 0;
         int pos = 0;
-        while ((pos = Asm::rxSymbolTag.indexIn(comment, pos)) != -1) {
-            symbol = Asm::rxSymbolTag.cap(1);
+        while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
+            symbol = IsaAsm::rxSymbolTag.cap(1);
             if (!Pep::equateSymbols.contains(symbol)) {
                 errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
                 sourceLine = sourceCodeLine;
                 return false;
             }
-            numBytesListed += Asm::tagNumBytes(Pep::symbolFormat.value(symbol)) * Pep::symbolFormatMultiplier.value(symbol);
+            numBytesListed += IsaAsm::tagNumBytes(Pep::symbolFormat.value(symbol)) * Pep::symbolFormatMultiplier.value(symbol);
             list.append(symbol);
-            pos += Asm::rxSymbolTag.matchedLength();
+            pos += IsaAsm::rxSymbolTag.matchedLength();
         }
         if (numBytesAllocated != numBytesListed) {
             QString message = (mnemonic == Enu::EMnemonic::ADDSP) ? "deallocated" : "allocated";
@@ -607,15 +607,15 @@ bool NonUnaryInstruction::processSymbolTraceTags(int &sourceLine, QString &error
         int pos = 0;
         QString symbol;
         QStringList list;
-        while ((pos = Asm::rxSymbolTag.indexIn(comment, pos)) != -1) {
-            symbol = Asm::rxSymbolTag.cap(1);
+        while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
+            symbol = IsaAsm::rxSymbolTag.cap(1);
             if (!Pep::equateSymbols.contains(symbol) && !Pep::blockSymbols.contains(symbol)) {
                 errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
                 sourceLine = sourceCodeLine;
                 return false;
             }
             list.append(symbol);
-            pos += Asm::rxSymbolTag.matchedLength();
+            pos += IsaAsm::rxSymbolTag.matchedLength();
         }
 
         if (!list.isEmpty()) {

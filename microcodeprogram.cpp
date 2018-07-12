@@ -15,11 +15,11 @@ MicrocodeProgram::~MicrocodeProgram()
     }
 }
 
-MicrocodeProgram::MicrocodeProgram(QVector<Code*>objectCode,SymbolTable* symbolTable):
+MicrocodeProgram::MicrocodeProgram(QVector<AsmCode*>objectCode,SymbolTable* symbolTable):
     symTable(symbolTable),programVec(objectCode),
     preconditionsVec(),postconditionsVec(),microcodeVec()
 {
-    Code* x;
+    AsmCode* x;
     for(int it=0; it<objectCode.size();it++)
     {
         x=objectCode[it];
@@ -67,7 +67,7 @@ const SymbolTable *MicrocodeProgram::getSymTable() const
     return this->symTable;
 }
 
-const QVector<Code*> MicrocodeProgram::getObjectCode() const
+const QVector<AsmCode*> MicrocodeProgram::getObjectCode() const
 {
     return this->programVec;
 }
@@ -75,7 +75,7 @@ const QVector<Code*> MicrocodeProgram::getObjectCode() const
 const QString MicrocodeProgram::format() const
 {
     QString output = "";
-    for(Code* line : programVec)
+    for(AsmCode* line : programVec)
     {
         output.append(line->getSourceCode()  +"\n");
     }

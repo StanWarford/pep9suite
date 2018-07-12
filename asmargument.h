@@ -22,33 +22,33 @@
 #ifndef ARGUMENT_H
 #define ARGUMENT_H
 
-#include "asm.h"
+#include "isaasm.h"
 #include "pep.h"
 
 // Abstract Argument class
-class Argument
+class AsmArgument
 {
-    friend class Asm;
+    friend class IsaAsm;
 public:
-    virtual ~Argument() { }
+    virtual ~AsmArgument() { }
     virtual int getArgumentValue() = 0;
     virtual QString getArgumentString() = 0;
 };
 
 // Concrete argument classes
 // All methods are defined in this argument.h file.
-class CharArgument: public Argument
+class CharArgument: public AsmArgument
 {
-    friend class Asm;
+    friend class IsaAsm;
 private:
     QString charValue;
 public:
     CharArgument(QString cValue) { charValue = cValue; }
-    int getArgumentValue() { return Asm::charStringToInt(charValue); }
+    int getArgumentValue() { return IsaAsm::charStringToInt(charValue); }
     QString getArgumentString() { return charValue; }
 };
 
-class DecArgument: public Argument
+class DecArgument: public AsmArgument
 {
 private:
     int decValue;
@@ -61,7 +61,7 @@ public:
     }
 };
 
-class UnsignedDecArgument: public Argument
+class UnsignedDecArgument: public AsmArgument
 {
 private:
     int decValue;
@@ -73,7 +73,7 @@ public:
     }
 };
 
-class HexArgument: public Argument
+class HexArgument: public AsmArgument
 {
 private:
     int hexValue;
@@ -83,17 +83,17 @@ public:
     QString getArgumentString() { return "0x" + QString("%1").arg(hexValue, 4, 16, QLatin1Char('0')).toUpper(); }
 };
 
-class StringArgument: public Argument
+class StringArgument: public AsmArgument
 {
 private:
     QString stringValue;
 public:
     StringArgument(QString sValue) { stringValue = sValue; }
-    int getArgumentValue() { return Asm::string2ArgumentToInt(stringValue); }
+    int getArgumentValue() { return IsaAsm::string2ArgumentToInt(stringValue); }
     QString getArgumentString() { return stringValue; }
 };
 
-class SymbolRefArgument: public Argument
+class SymbolRefArgument: public AsmArgument
 {
 private:
     QString symbolRefValue;

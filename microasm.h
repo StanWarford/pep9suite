@@ -23,7 +23,7 @@
 
 #include <QRegExp>
 
-class Code; // Forward declaration for argument of processSourceLine.
+class AsmCode; // Forward declaration for argument of processSourceLine.
 class SymbolTable;
 class MicroAsm
 {
@@ -60,7 +60,7 @@ public:
     // beginning of sourceLine and returned in tokenString, true is returned, and token is set to the token type.
     // Post: If false is returned, then tokenString is set to the lexical error message.
 
-    static bool processSourceLine(SymbolTable* symTable,QString sourceLine, Code *&code, QString &errorString);
+    static bool processSourceLine(SymbolTable* symTable,QString sourceLine, AsmCode *&code, QString &errorString);
     // Pre: sourceLine has one line of source code.
     // Pre: lineNum is the line number of the source code.
     // Post: If the source line is valid, true is returned and code is set to the source code for the line.

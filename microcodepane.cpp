@@ -72,17 +72,17 @@ void MicrocodePane::initCPUModelState()
     if (highlighter != NULL) {
         delete highlighter;
     }
-    highlighter = new PepHighlighter(PepColors::lightMode,editor->document());
+    highlighter = new PepMicroHighlighter(PepColors::lightMode,editor->document());
 
 }
 
 bool MicrocodePane::microAssemble()
 {
-    QVector<Code*> codeList;
+    QVector<AsmCode*> codeList;
     QString sourceLine;
     QString errorString;
     QStringList sourceCodeList;
-    Code *code;
+    AsmCode *code;
     int lineNum = 0;
     removeErrorMessages();
     QString sourceCode = editor->toPlainText().trimmed();

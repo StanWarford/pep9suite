@@ -32,10 +32,10 @@ QT_BEGIN_NAMESPACE
 class QTextDocument;
 QT_END_NAMESPACE
 
-class PepHighlighter : public QSyntaxHighlighter
+class PepMicroHighlighter : public QSyntaxHighlighter
 {
 public:
-    PepHighlighter(PepColors::Colors colors,QTextDocument *parent = 0);
+    PepMicroHighlighter(PepColors::Colors colors,QTextDocument *parent = 0);
     void forceAllFeatures(bool features);
     void rebuildHighlightingRules(PepColors::Colors color);
 protected:

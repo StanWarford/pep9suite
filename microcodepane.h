@@ -22,7 +22,7 @@
 #define MICROCODEPANE_H
 
 #include <QWidget>
-#include "pephighlighter.h"
+#include "pepmicrohighlighter.h"
 #include "microcodeeditor.h"
 #include "microasm.h" // For Code in QList<Code> codeList;
 
@@ -100,7 +100,7 @@ private:
     Ui::MicrocodePane *ui;
 
     QSharedPointer<SymbolTable> symbolTable;
-    PepHighlighter *highlighter;
+    PepMicroHighlighter *highlighter;
     MicrocodeEditor *editor;
     MicrocodeProgram* program;
 

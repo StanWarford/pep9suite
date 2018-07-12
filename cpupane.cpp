@@ -698,7 +698,7 @@ void CpuPane::singleStepButtonPushed()
         clearCpuControlSignals();
     }
     else {
-        const Code *code = controlSection->getCurrentMicrocodeLine();
+        const AsmCode *code = controlSection->getCurrentMicrocodeLine();
         if (!code->isMicrocode()) {
             // this will trigger if we're at the end of the simulation and have nothing more to execute
             emit simulationFinished();

@@ -65,7 +65,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <property name="documentMode">
          <bool>false</bool>
@@ -80,6 +80,22 @@
          <attribute name="title">
           <string>Assembler</string>
          </attribute>
+         <layout class="QGridLayout" name="gridLayout_6">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayout_5">
+            <item row="0" column="0">
+             <widget class="QSplitter" name="codeSplitter">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <widget class="AsmSourceCodePane" name="AsmSourceCodeWidgetPane" native="true"/>
+              <widget class="AsmObjectCodePane" name="AsmObjectCodeWidgetPane" native="true"/>
+              <widget class="AssemblerListingPane" name="AssemblerListingWidgetPane" native="true"/>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
         <widget class="QWidget" name="debuggerTab">
          <attribute name="title">
@@ -656,6 +672,24 @@
    <class>MicrocodePane</class>
    <extends>QWidget</extends>
    <header>microcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AssemblerListingPane</class>
+   <extends>QWidget</extends>
+   <header>assemblerlistingpane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AsmSourceCodePane</class>
+   <extends>QWidget</extends>
+   <header>asmsourcecodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AsmObjectCodePane</class>
+   <extends>QWidget</extends>
+   <header>asmobjectcodepane.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

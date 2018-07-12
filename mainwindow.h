@@ -25,7 +25,7 @@
 
 #include "pep.h"
 #include <QDir>
-#include "asm.h"
+#include "isaasm.h"
 namespace Ui {
     class MainWindow;
 }
@@ -40,7 +40,7 @@ class CpuPane;
 class HelpDialog;
 class MemorySection;
 class MicrocodePane;
-class ObjectCodePane;
+class MicroObjectCodePane;
 class UpdateChecker;
 class MainWindow : public QMainWindow {
     Q_OBJECT
