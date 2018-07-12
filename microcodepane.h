@@ -24,7 +24,7 @@
 #include <QWidget>
 #include "pephighlighter.h"
 #include "microcodeeditor.h"
-#include "asm.h" // For Code in QList<Code> codeList;
+#include "microasm.h" // For Code in QList<Code> codeList;
 
 #include <QPlainTextEdit>
 #include <QObject>

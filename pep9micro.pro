@@ -33,8 +33,6 @@ SOURCES += main.cpp \
     pephighlighter.cpp \
     microcodeeditor.cpp \
     objectcodepane.cpp \
-    code.cpp \
-    asm.cpp \
     tristatelabel.cpp \
     specification.cpp \
     byteconverterinstr.cpp \
@@ -58,7 +56,11 @@ SOURCES += main.cpp \
     terminalpane.cpp \
     memorysection.cpp \
     cpumemoizer.cpp \
-    memorydumppane.cpp
+    memorydumppane.cpp \
+    microasm.cpp \
+    asm.cpp \
+    microcode.cpp \
+    code.cpp
 HEADERS += mainwindow.h \
     byteconverterhex.h \
     byteconverterdec.h \
@@ -72,8 +74,6 @@ HEADERS += mainwindow.h \
     enu.h \
     microcodeeditor.h \
     objectcodepane.h \
-    code.h \
-    asm.h \
     tristatelabel.h \
     specification.h \
     byteconverterinstr.h \
@@ -99,7 +99,12 @@ HEADERS += mainwindow.h \
     terminalpane.h \
     memorysection.h \
     cpumemoizer.h \
-    memorydumppane.h
+    memorydumppane.h \
+    microasm.h \
+    asm.h \
+    argument.h \
+    microcode.h \
+    code.h
 FORMS += mainwindow.ui \
     byteconverterhex.ui \
     byteconverterdec.ui \

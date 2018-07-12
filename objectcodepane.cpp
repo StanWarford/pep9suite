@@ -32,7 +32,7 @@
 #include <QKeyEvent>
 #include <rotatedheaderview.h>
 #include "cpucontrolsection.h"
-#include "code.h"
+#include "microcode.h"
 #include "symboltable.h"
 #include "symbolentry.h"
 #include "symbolvalue.h"

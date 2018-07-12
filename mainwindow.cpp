@@ -39,7 +39,7 @@
 #include "byteconverterchar.h"
 #include "byteconverterdec.h"
 #include "byteconverterhex.h"
-#include "code.h"
+#include "microcode.h"
 #include "cpudatasection.h"
 #include "cpucontrolsection.h"
 #include "cpupane.h"

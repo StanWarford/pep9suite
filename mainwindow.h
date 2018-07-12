@@ -25,7 +25,7 @@
 
 #include "pep.h"
 #include <QDir>
-
+#include "asm.h"
 namespace Ui {
     class MainWindow;
 }

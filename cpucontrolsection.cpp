@@ -6,7 +6,7 @@
 #include <QMutexLocker>
 
 #include "cpudatasection.h"
-#include "code.h"
+#include "microcode.h"
 #include "microcodeprogram.h"
 #include "symbolentry.h"
 #include "pep.h"

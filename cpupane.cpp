@@ -34,7 +34,7 @@
 
 #include "tristatelabel.h"
 #include "pep.h"
-#include "code.h"
+#include "microcode.h"
 #include "mainwindow.h"
 
 #include <QDebug>

@@ -1,9 +1,9 @@
 // File: asm.h
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
-
-    Copyright (C) 2010  J. Stanley Warford, Pepperdine University
+    Pep9 is a virtual machine for writing machine language and assembly
+    language programs.
+    
+    Copyright (C) 2009  J. Stanley Warford, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,41 +18,46 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef ASM_H
 #define ASM_H
 
 #include <QRegExp>
+#include "enu.h"
 
 class Code; // Forward declaration for argument of processSourceLine.
-class SymbolTable;
+
 class Asm
 {
 public:
     // Lexical tokens
     enum ELexicalToken
     {
-        LT_COMMA, LT_COMMENT, LT_DIGIT, LT_EQUALS, LT_EMPTY, LT_IDENTIFIER, LT_PRE_POST, LT_SEMICOLON,
-        LT_LEFT_BRACKET, LT_RIGHT_BRACKET, LT_HEX_CONSTANT,
-        LTE_SYMBOL,LTE_GOTO,LTE_IF,LTE_ELSE,LTE_STOP, LTE_AMD, LTE_ISD,
+        LT_ADDRESSING_MODE, LT_CHAR_CONSTANT, LT_COMMENT, LT_DEC_CONSTANT, LT_DOT_COMMAND,
+        LT_EMPTY, LT_HEX_CONSTANT, LT_IDENTIFIER, LT_STRING_CONSTANT, LT_SYMBOL_DEF
     };
 
     enum ParseState
     {
-        PS_COMMENT, PS_CONTINUE_POST_SEMICOLON, PS_CONTINUE_PRE_SEMICOLON, PS_CONTINUE_PRE_SEMICOLON_POST_COMMA,
-        PS_DEC_CONTROL, PS_EQUAL_DEC, PS_FINISH, PS_START, PS_START_POST_SEMICOLON, PS_START_SPECIFICATION,
-        PS_EXPECT_LEFT_BRACKET, PS_EXPECT_MEM_ADDRESS, PS_EXPECT_RIGHT_BRACKET, PS_EXPECT_MEM_EQUALS, PS_EXPECT_MEM_VALUE,
-        PS_EXPECT_SPEC_COMMA, PS_EXPECT_REG_EQUALS, PS_EXPECT_REG_VALUE, PS_EXPECT_STATUS_EQUALS, PS_EXPECT_STATUS_VALUE,
-        PSE_SYMBOL,
-        PSE_LONE_GOTO,PSE_OPTIONAL_COMMENT,PSE_EXPECT_EMPTY,
-        PSE_AFTER_SEMI,PSE_IF,PSE_CONDITIONAL_BRANCH,PSE_TRUE_TARGET,PSE_ELSE,PSE_FALSE_TARGET,
-        PSE_JT_JUMP
+        PS_ADDRESSING_MODE, PS_CLOSE, PS_COMMENT, PS_DOT_ADDRSS, PS_DOT_ALIGN, PS_DOT_ASCII,
+        PS_DOT_BLOCK, PS_DOT_BURN, PS_DOT_BYTE, PS_DOT_END, PS_DOT_EQUATE, PS_DOT_WORD,
+        PS_FINISH, PS_INSTRUCTION, PS_START, PS_STRING, PS_SYMBOL_DEF
     };
 
     // Regular expressions for lexical analysis
+    static QRegExp rxAddrMode;
+    static QRegExp rxCharConst;
     static QRegExp rxComment;
-    static QRegExp rxDigit;
-    static QRegExp rxIdentifier;
+    static QRegExp rxDecConst;
+    static QRegExp rxDotCommand;
     static QRegExp rxHexConst;
+    static QRegExp rxIdentifier;
+    static QRegExp rxStringConst;
+
+    // Regular expressions for trace tag analysis
+    static QRegExp rxFormatTag;
+    static QRegExp rxSymbolTag;
+    static QRegExp rxArrayMultiplier;
 
     static bool getToken(QString &sourceLine, ELexicalToken &token, QString &tokenString);
     // Pre: sourceLine has one line of source code.
@@ -60,16 +65,53 @@ public:
     // beginning of sourceLine and returned in tokenString, true is returned, and token is set to the token type.
     // Post: If false is returned, then tokenString is set to the lexical error message.
 
-    static bool processSourceLine(SymbolTable* symTable,QString sourceLine, Code *&code, QString &errorString);
+    static bool processSourceLine(QString sourceLine, int lineNum, Code *&code, QString &errorString, bool &dotEndDetected);
     // Pre: sourceLine has one line of source code.
     // Pre: lineNum is the line number of the source code.
     // Post: If the source line is valid, true is returned and code is set to the source code for the line.
+    // Post: dotEndDetected is set to true if .END is processed. Otherwise it is set to false.
+    // Post: Pep::byteCount is incremented by the number of bytes generated.
     // Post: If the source line is not valid, false is returned and errorString is set to the error message.
-    // Checks for out of range integer values.
-    // The only detected resource conflict checked is for duplicated fields.
+
+    static QList<QString> listOfReferencedSymbols;
+    static QList<int> listOfReferencedSymbolLineNums;
 
     static bool startsWithHexPrefix(QString str);
     // Post: Returns true if str starts with the characters 0x or 0X. Otherwise returns false.
+
+    static Enu::EAddrMode stringToAddrMode(QString str);
+    // Post: Returns the addressing mode integer defined in Pep from its string representation.
+
+    static int charStringToInt(QString str);
+    // Pre: str is enclosed in single quotes.
+    // Post: Returns the ASCII integer value of the character accounting for \ quoted characters.
+
+    static int string2ArgumentToInt(QString str);
+    // Pre: str is enclosed in double quotes and contains at most two possibly quoted characters.
+    // Post: Returns the two-byte ASCII integer value for the string.
+
+    static void unquotedStringToInt(QString &str, int &value);
+    // Pre: str is a character or string stripped of its single or double quotes.
+    // Post: The sequence of characters representing the first possibly \ quoted character
+    // is stripped from the beginning of str.
+    // Post: value is the ASCII integer value of the first possibly \ quoted character.
+
+    static int byteStringLength(QString str);
+    // Pre: str is a double quoted string.
+    // Post: Returns the byte length of str accounting for possibly \ quoted characters.
+
+    static Enu::ESymbolFormat formatTagType(QString formatTag);
+    // Pre: formatTag is a valid format trace tag.
+    // Post: Returns the enumerated trace tag format type.
+
+    static int tagNumBytes(Enu::ESymbolFormat symbolFormat);
+    // Pre: symbolFormat is a valid format trace tag type.
+    // Post: Returns the corresponding integer number of bytes.
+
+    static int formatMultiplier(QString formatTag);
+    // Pre: format tag is a valid format trace tag.
+    // Post: If the format tag specifies an array, returns the array multiplier.
+    // Otherwise, returns 1.
 
 };
 

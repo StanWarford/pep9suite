@@ -1,9 +1,9 @@
 // File: code.h
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
-
-    Copyright (C) 2010  J. Stanley Warford, Pepperdine University
+    Pep9 is a virtual machine for writing machine language and assembly
+    language programs.
+    
+    Copyright (C) 2009  J. Stanley Warford, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,109 +18,168 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef CODE_H
 #define CODE_H
 
-#include <QString>
-#include <QMap>
+#include "pep.h"
 #include "enu.h"
-class CpuGraphicsItems;
-class CPUDataSection; //Forward declare CPUDataSection to avoid inclusion loops
-class SymbolEntry;
-class Specification;
 
-// Abstract code class
+class Argument; // Forward declaration for attributes of code classes.
+
+// Abstract Code class
 class Code
-{
-public:
-    virtual ~Code() { }
-    virtual bool isMicrocode() const { return false; }
-    virtual void setCpuLabels(CpuGraphicsItems *)const { }
-    virtual QString getObjectCode() const { return ""; }
-    virtual QString getSourceCode() const { return ""; }
-    virtual bool hasUnitPre() const { return false; }
-    virtual bool hasUnitPost() const{return false;}
-};
-
-// Concrete code classes
-// Code is the union of the elements of the one-byte bus model and two-byte bus model
-class MicroCode: public Code
 {
     friend class Asm;
 public:
-    MicroCode();
-    bool isMicrocode() const override;
-    QString getObjectCode() const override;
-    QString getSourceCode() const override;
-    bool hasSymbol() const;
-    bool hasControlSignal(Enu::EControlSignals field) const;
-    bool hasClockSignal(Enu::EClockSignals field) const;
-    int getControlSignal(Enu::EControlSignals field) const;
-    bool getClockSignal(Enu::EClockSignals field) const;
-    Enu::EBranchFunctions getBranchFunction() const;
-    const SymbolEntry* getSymbol() const;
-    const SymbolEntry* getTrueTarget() const;
-    const SymbolEntry* getFalseTarget() const;
+    virtual ~Code() { }
+    virtual void appendObjectCode(QList<int> &objectCode) = 0;
+    virtual void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox) = 0;
+    void adjustMemAddress(int addressDelta) { memAddress += addressDelta; }
+    virtual bool processFormatTraceTags(int &, QString &) { return true; }
+    virtual bool processSymbolTraceTags(int &, QString &) { return true; }
 
-    bool inRange(Enu::EControlSignals field, int value) const;
-    void setCpuLabels(CpuGraphicsItems *cpuPaneItems)const override;
-    void setControlSignal(Enu::EControlSignals field,quint8 value);
-    void setClockSingal(Enu::EClockSignals field,bool value);
-    void setBranchFunction(Enu::EBranchFunctions branch);
-    void setSymbol(SymbolEntry* symbol);
-    SymbolEntry* getSymbol();
-    void setTrueTarget(const SymbolEntry* target);
-    void setFalseTarget(const SymbolEntry* target);
-
-private:
-    QVector<quint8> controlSignals;
-    QVector<bool> clockSignals;
-    QString cComment;
-    Enu::EBranchFunctions branchFunc = Enu::Unconditional;
-    SymbolEntry* symbol;
-    const SymbolEntry* trueTargetAddr;
-    const SymbolEntry* falseTargetAddr;
+protected:
+    int memAddress;
+    int sourceCodeLine;
+    QString symbolDef;
+    QString comment;
 };
 
-class CommentOnlyCode: public Code
+// Concrete code classes
+class UnaryInstruction: public Code
 {
+    friend class Asm;
+private:
+    Enu::EMnemonic mnemonic;
 public:
-    CommentOnlyCode(QString comment);
-    QString getSourceCode() const override;
-private:
-    QString cComment;
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+//    NO LONGER WITH PEP/9. FOR RET1, RET2, ..., RET7
+//    bool processSymbolTraceTags(int &sourceLine, QString &errorString);
 };
 
-class UnitPreCode: public Code
+class NonUnaryInstruction: public Code
 {
+    friend class Asm;
+private:
+    Enu::EMnemonic mnemonic;
+    Enu::EAddrMode addressingMode;
+    Argument *argument;
 public:
-    ~UnitPreCode();
-    QString getSourceCode() const override;
-    bool hasUnitPre() const override;
-    void setUnitPre(CPUDataSection* data);
-    void appendSpecification(Specification *specification);
-    void setComment(QString comment);
-private:
-    QList<Specification *> unitPreList;
-    QString cComment;
+    // ~NonUnaryInstruction() { delete argument; }
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    bool processFormatTraceTags(int &sourceLine, QString &errorString);
+    bool processSymbolTraceTags(int &sourceLine, QString &errorString);
 };
 
-class UnitPostCode: public Code
+class DotAddrss: public Code
 {
+    friend class Asm;
+private:
+    Argument *argument;
 public:
-    ~UnitPostCode();
-    QString getSourceCode() const override;
-    bool testPostcondition(CPUDataSection *data,QString &err);
-    void appendSpecification(Specification *specification);
-    void setComment(QString comment);
-    bool hasUnitPost() const override;
-private:
-    QList<Specification *> unitPostList;
-    QString cComment;
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
 };
 
-class BlankLineCode: public Code
+class DotAlign: public Code
 {
+    friend class Asm;
+private:
+    Argument *argument;
+    Argument *numBytesGenerated;
+public:
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+};
+
+class DotAscii: public Code
+{
+    friend class Asm;
+private:
+    Argument *argument;
+public:
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+};
+
+class DotBlock: public Code
+{
+    friend class Asm;
+private:
+    Argument *argument;
+public:
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    bool processFormatTraceTags(int &sourceLine, QString &errorString);
+    bool processSymbolTraceTags(int &sourceLine, QString &errorString);
+};
+
+class DotBurn: public Code
+{
+    friend class Asm;
+private:
+    Argument *argument;
+public:
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+};
+
+class DotByte: public Code
+{
+    friend class Asm;
+private:
+    Argument *argument;
+public:
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+};
+
+class DotEnd: public Code
+{
+    friend class Asm;
+public:
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+};
+
+class DotEquate: public Code
+{
+    friend class Asm;
+private:
+    Argument *argument;
+public:
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    bool processFormatTraceTags(int &sourceLine, QString &errorString);
+};
+
+class DotWord: public Code
+{
+    friend class Asm;
+private:
+    Argument *argument;
+public:
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+};
+
+class CommentOnly: public Code
+{
+    friend class Asm;
+public:
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+};
+
+class BlankLine: public Code
+{
+    friend class Asm;
+public:
+    void appendObjectCode(QList<int> &objectCode);
+    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
 };
 
 #endif // CODE_H

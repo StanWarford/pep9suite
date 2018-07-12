@@ -21,7 +21,7 @@
 
 #include "microcodepane.h"
 #include "ui_microcodepane.h"
-#include "code.h"
+#include "microcode.h"
 #include "pep.h"
 #include "microcodeprogram.h"
 #include "symboltable.h"
@@ -94,7 +94,7 @@ bool MicrocodePane::microAssemble()
     symbolTable = QSharedPointer<SymbolTable>(new SymbolTable());
     while (lineNum < sourceCodeList.size()) {
         sourceLine = sourceCodeList[lineNum];
-        if (!Asm::processSourceLine(symbolTable.data(),sourceLine, code, errorString)) {
+        if (!MicroAsm::processSourceLine(symbolTable.data(),sourceLine, code, errorString)) {
             appendMessageInSourceCodePaneAt(lineNum, errorString);
             return false;
         }
