@@ -35,7 +35,7 @@
      <number>6</number>
     </property>
     <item row="0" column="0">
-     <layout class="QGridLayout" name="gridLayout_2">
+     <layout class="QGridLayout" name="mainGridLayout">
       <item row="0" column="0">
        <widget class="MemoryDumpPane" name="memoryWidget" native="true">
         <property name="sizePolicy">
@@ -82,11 +82,14 @@
          </attribute>
          <layout class="QGridLayout" name="gridLayout_6">
           <item row="0" column="0">
-           <layout class="QGridLayout" name="gridLayout_5">
+           <layout class="QGridLayout" name="assemblerGridLayout">
             <item row="0" column="0">
              <widget class="QSplitter" name="codeSplitter">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
+              </property>
+              <property name="opaqueResize">
+               <bool>true</bool>
               </property>
               <widget class="AsmSourceCodePane" name="AsmSourceCodeWidgetPane" native="true"/>
               <widget class="AsmObjectCodePane" name="AsmObjectCodeWidgetPane" native="true"/>

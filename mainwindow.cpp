@@ -569,6 +569,11 @@ bool MainWindow::on_actionSystem_Start_Debugging_triggered()
     // Load necessary programs into memory
     if (ui->microcodeWidget->microAssemble()) {
         ui->statusBar->showMessage("MicroAssembly succeeded", 4000);
+        if(ui->microcodeWidget->getMicrocodeProgram()->hasMicrocode()==false)
+        {
+            ui->statusBar->showMessage("No microcode program to build", 4000);
+            return false;
+        }
         //objectCodePane->setObjectCode(microcodePane->getMicrocodeProgram(),nullptr);
         controlSection->setMicrocodeProgram(ui->microcodeWidget->getMicrocodeProgram());
         prog = ui->microcodeWidget->getMicrocodeProgram();
