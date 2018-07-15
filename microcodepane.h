@@ -67,6 +67,12 @@ public:
     bool hasFocus();
     // Returns if the text edit has focus
 
+    void setCurrentFile(QString string);
+    // Post: Title bar of the window is set to "string"
+
+    const QFile& getCurrentFile() const;
+    // Post: Returns the file (if any) associated with the window
+
     void cut();
     void copy();
     void paste();
@@ -86,7 +92,6 @@ public:
 
     void unCommentSelection();
 
-    void setFilename(QString fileName);
     void readSettings(QSettings &settings);
     void writeSettings(QSettings &settings);
     MicrocodeEditor* getEditor();
@@ -103,6 +108,7 @@ private:
     PepMicroHighlighter *highlighter;
     MicrocodeEditor *editor;
     MicrocodeProgram* program;
+    QFile currentFile;
 
 private slots:
     void setLabelToModified(bool modified);

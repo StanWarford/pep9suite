@@ -104,7 +104,10 @@ public:
     // Post: Contents of the source code pane are returned
 
     void setCurrentFile(QString string);
-    // Post: Title bar of the window is set to "Object Code - 'string'"
+    // Post: Title bar of the window is set to "Object Code - 'string'", and the currentFile is updated
+
+    const QFile& getCurrentFile() const;
+    // Post: Returns the file associated with the pane.
 
     void highlightOnFocus();
     // Post: Highlights the label based on the label window color saved in the UI file
@@ -152,6 +155,7 @@ private:
 
     PepASMHighlighter *pepHighlighter;
 
+    QFile currentFile;
     void mouseReleaseEvent(QMouseEvent *);
 
     void mouseDoubleClickEvent(QMouseEvent *);

@@ -7,7 +7,6 @@
 #include <QException>
 #include <QString>
 #include "enu.h"
-class AsmCode;
 class MemorySection;
 class MicroCode;
 enum class CPURegisters: quint8

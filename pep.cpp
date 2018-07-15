@@ -332,10 +332,10 @@ void Pep::initMnemonicMaps()
     initMnemMapHelper(EMnemonic::CPWA, 160, false, true, false);
     initMnemMapHelper(EMnemonic::CPWX, 168, false, true, false);
 
-    initMnemMapHelper(EMnemonic::DECI, 48, true, true, true);
-    initMnemMapHelper(EMnemonic::DECO, 56, true, true, true);
+    initMnemMapHelper(EMnemonic::DECI, 48, false, true, true);
+    initMnemMapHelper(EMnemonic::DECO, 56, false, true, true);
 
-    initMnemMapHelper(EMnemonic::HEXO, 64, true, true, true);
+    initMnemMapHelper(EMnemonic::HEXO, 64, false, true, true);
 
     initMnemMapHelper(EMnemonic::LDBA, 208, false, true, false);
     initMnemMapHelper(EMnemonic::LDBX, 216, false, true, false);
@@ -352,7 +352,7 @@ void Pep::initMnemonicMaps()
     //opCodeMap.insert(MOVSPA, 3); isUnaryMap.insert(MOVSPA, true); addrModeRequiredMap.insert(MOVSPA, true); isTrapMap.insert(MOVSPA, false);
     initMnemMapHelper(EMnemonic::NEGA, 8, true, false, false);
     initMnemMapHelper(EMnemonic::NEGX, 9, true, false, false);
-    initMnemMapHelper(EMnemonic::NOP, 40, true, true, true);
+    initMnemMapHelper(EMnemonic::NOP, 40, false, true, true);
     initMnemMapHelper(EMnemonic::NOP0, 38, true, false, false);
     initMnemMapHelper(EMnemonic::NOP1, 39, true, false, true);
     initMnemMapHelper(EMnemonic::NOTA, 6, true, false, false);
@@ -373,7 +373,7 @@ void Pep::initMnemonicMaps()
     initMnemMapHelper(EMnemonic::STWA, 224, false, true, false);
     initMnemMapHelper(EMnemonic::STWX, 232, false, true, false);
     initMnemMapHelper(EMnemonic::STOP, 0, true, false, false);
-    initMnemMapHelper(EMnemonic::STRO, 72, true, true, true);
+    initMnemMapHelper(EMnemonic::STRO, 72, false, true, true);
     initMnemMapHelper(EMnemonic::SUBA, 112, false, true, false);
     initMnemMapHelper(EMnemonic::SUBX, 120, false, true, false);
     initMnemMapHelper(EMnemonic::SUBSP, 88, false, true, false);

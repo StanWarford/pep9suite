@@ -100,7 +100,7 @@ void MicroObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* s
     controls.append(Pep::decControlToMnemonMap.keys());
     QList<Enu::EClockSignals> clocks = Pep::clockControlToMnemonMap.keys();
     model->setRowCount(0);
-    for(AsmCode* row : program->getObjectCode())
+    for(MicroCodeBase* row : program->getObjectCode())
     {
         if(!row->isMicrocode())
         {

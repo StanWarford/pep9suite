@@ -29,7 +29,7 @@
 
 AssemblerListingPane::AssemblerListingPane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::AssemblerListingPane)
+        ui(new Ui::AssemblerListingPane), currentFile()
 {
     ui->setupUi(this);
 
@@ -100,11 +100,18 @@ QString AssemblerListingPane::toPlainText()
 void AssemblerListingPane::setCurrentFile(QString string)
 {
     if (!string.isEmpty()) {
-        ui->label->setText("Assembler Listing - " + string);
+        currentFile.setFileName(string);
+        ui->label->setText("Assembler Listing - " + QFileInfo(currentFile).fileName());
     }
     else {
+        currentFile.setFileName("");
         ui->label->setText("Assembler Listing - untitled.pepl");
     }
+}
+
+const QFile &AssemblerListingPane::getCurrentFile() const
+{
+    return currentFile;
 }
 
 void AssemblerListingPane::highlightOnFocus()

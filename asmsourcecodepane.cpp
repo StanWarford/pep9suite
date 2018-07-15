@@ -29,13 +29,15 @@
 #include "asmsourcecodepane.h"
 #include "ui_asmsourcecodepane.h"
 #include "asmcode.h"
+#include "memorysection.h"
 #include "pep.h"
+
 
 // #include <QDebug>
 
 AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::SourceCodePane)
+        ui(new Ui::SourceCodePane), currentFile()
 {
     ui->setupUi(this);
 
@@ -79,6 +81,10 @@ bool AsmSourceCodePane::assemble()
     while (!codeList.isEmpty()) {
         delete codeList.takeFirst();
     }
+    //Insert CharIn CharOut
+#pragma message ("handle input and output when not using BURN at FFFF")
+    Pep::symbolTable.insert("CharIn",MemorySection::getInstance()->getMemoryWord(0xFFF8,false));
+    Pep::symbolTable.insert("CharOut",MemorySection::getInstance()->getMemoryWord(0xFFFA,false));
     QString sourceCode = ui->textEdit->toPlainText();
     sourceCodeList = sourceCode.split('\n');
     Pep::byteCount = 0;
@@ -304,7 +310,18 @@ QString AsmSourceCodePane::toPlainText()
 
 void AsmSourceCodePane::setCurrentFile(QString string)
 {
-    ui->label->setText("Source Code - " + string);
+    currentFile.setFileName(string);
+    if(!currentFile.fileName().isEmpty()) {
+        ui->label->setText("Source Code - " + QFileInfo(currentFile).fileName());
+    }
+    else {
+        ui->label->setText("Source Code - untitled.pep");
+    }
+}
+
+const QFile& AsmSourceCodePane::getCurrentFile() const
+{
+    return currentFile;
 }
 
 void AsmSourceCodePane::highlightOnFocus()

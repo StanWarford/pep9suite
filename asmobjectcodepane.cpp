@@ -25,7 +25,7 @@
 
 AsmObjectCodePane::AsmObjectCodePane(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::ObjectCodePane)
+    ui(new Ui::ObjectCodePane), currentFile()
 {
     ui->setupUi(this);
 
@@ -104,11 +104,19 @@ QString AsmObjectCodePane::toPlainText()
 void AsmObjectCodePane::setCurrentFile(QString string)
 {
     if (!string.isEmpty()) {
-        ui->label->setText("Object Code - " + string);
+                currentFile.setFileName(string);
+        ui->label->setText("Object Code - " + QFileInfo(currentFile).fileName());
     }
     else {
+        #pragma message ("Is this the proper initialization for an empty file?")
+        currentFile.setFileName("");
         ui->label->setText("Object Code - untitled.pepo");
     }
+}
+
+const QFile& AsmObjectCodePane::getCurrentFile() const
+{
+    return currentFile;
 }
 
 void AsmObjectCodePane::highlightOnFocus()

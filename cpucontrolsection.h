@@ -31,8 +31,7 @@ class CPUControlSection: public QObject
 public:
     static CPUControlSection* getInstance();
     virtual ~CPUControlSection();
-    void initCPUStateFromPreconditions();
-    bool testPost();
+    void initCPU();
     int getLineNumber() const;
     const MicrocodeProgram* getProgram() const;
     const MicroCode* getCurrentMicrocodeLine() const;

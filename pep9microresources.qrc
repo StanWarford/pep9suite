@@ -24,5 +24,7 @@
         <file>images/debugger_step_into.png</file>
         <file>images/debugger_step_out.png</file>
         <file>images/debugger_step_over.png</file>
+        <file>images/flash.svg</file>
+        <file>images/load-source.png</file>
     </qresource>
 </RCC>

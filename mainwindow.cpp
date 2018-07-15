@@ -33,19 +33,24 @@
 #include <QtConcurrent>
 #include <QDebug>
 #include <QFontDialog>
+#include <QPrinter>
+#include <QPrintDialog>
 
 #include "aboutpep.h"
+#include "asmargument.h"
+#include "asmcode.h"
 #include "byteconverterbin.h"
 #include "byteconverterchar.h"
 #include "byteconverterdec.h"
 #include "byteconverterhex.h"
-#include "microcode.h"
 #include "cpudatasection.h"
 #include "cpucontrolsection.h"
 #include "cpupane.h"
 #include "helpdialog.h"
+#include "isaasm.h"
 #include "memorydumppane.h"
 #include "memorysection.h"
+#include "microcode.h"
 #include "microcodepane.h"
 #include "microcodeprogram.h"
 #include "microobjectcodepane.h"
@@ -121,7 +126,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QFile f(":qdarkstyle/dark_style.qss");
     f.open(QFile::ReadOnly | QFile::Text);
     QTextStream ts(&f);
-    darkStyle= ts.readAll();
+    darkStyle = ts.readAll();
     lightStyle = this->styleSheet();
     connect(ui->cpuWidget, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
 
@@ -141,6 +146,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->memoryWidget->setMinimumWidth(maxSize);
     ui->memoryWidget->setMaximumWidth(maxSize);
     ui->ioWidget->setMaximumWidth(maxSize);
+
+    //Initialize state for ISA level simulation
+    Pep::memAddrssToAssemblerListing = &Pep::memAddrssToAssemblerListingProg;
+    Pep::listingRowChecked = &Pep::listingRowCheckedProg;
+
+    //Initialize Microcode panes
+    QFile file("://help/pep9micro.pepcpu");
+    if(file.open(QFile::ReadOnly | QFile::Text)){
+        QTextStream in(&file);
+        ui->microcodeWidget->setMicrocode(in.readAll());
+        ui->microcodeWidget->setModifiedFalse();
+    }
+
     //Lastly, read in settings
     readSettings();
 }
@@ -207,7 +225,7 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
             ui->statusBar->showMessage("Open failed, currently debugging.", 4000);
             return false;
         }
-        loadFile(static_cast<QFileOpenEvent *>(event)->file());
+        //loadFile(static_cast<QFileOpenEvent *>(event)->file());
         return true;
     }
     return false;
@@ -261,7 +279,6 @@ void MainWindow::readSettings()
     emit fontChanged(codeFont);
     resize(size);
     move(pos);
-
     curPath = settings.value("filePath", QDir::homePath()).toString();
     settings.endGroup();
     //Handle reading for all children
@@ -274,45 +291,116 @@ void MainWindow::writeSettings()
     settings.beginGroup("MainWindow");
     settings.setValue("pos", pos());
     settings.setValue("size", size());
-    settings.setValue("filePath", curPath);
     settings.setValue("font",codeFont);
+    settings.setValue("filePath", curPath);
     settings.endGroup();
     //Handle writing for all children
     ui->microcodeWidget->writeSettings(settings);
 }
 
 // Save methods
-bool MainWindow::save()
+bool MainWindow::save(Enu::EPane which)
 {
-    if (curFile.isEmpty()) {
-        return on_actionFile_Save_As_triggered();
+    bool retVal = true;
+    switch(which)
+    {
+    case Enu::EPane::ESource:
+        if(QFileInfo(ui->AsmSourceCodeWidgetPane->getCurrentFile()).absoluteFilePath().isEmpty())
+        {
+            retVal = saveAsFile(Enu::EPane::ESource);
+        }
+        else retVal = saveFile(ui->AsmSourceCodeWidgetPane->getCurrentFile().fileName(),Enu::EPane::ESource);
+        if(retVal) ui->AsmSourceCodeWidgetPane->setModifiedFalse();
+        break;
+    case Enu::EPane::EObject:
+        if(QFileInfo(ui->AsmObjectCodeWidgetPane->getCurrentFile()).absoluteFilePath().isEmpty())
+        {
+            retVal = saveAsFile(Enu::EPane::EObject);
+        }
+        if(retVal) ui->AsmObjectCodeWidgetPane->setModifiedFalse();
+        break;
+    case Enu::EPane::EListing:
+        if(QFileInfo(ui->AssemblerListingWidgetPane->getCurrentFile()).absoluteFilePath().isEmpty())
+        {
+            retVal = saveAsFile(Enu::EPane::EListing);
+        }
+        break;
+    case Enu::EPane::EMicrocode:
+        if(QFileInfo(ui->microcodeWidget->getCurrentFile()).absoluteFilePath().isEmpty())
+        {
+            retVal = saveAsFile(Enu::EPane::EMicrocode);
+        }
+        else retVal = saveFile(ui->microcodeWidget->getCurrentFile().fileName(),Enu::EPane::EMicrocode);
+        if(retVal) ui->microcodeWidget->setModifiedFalse();
+        break;
     }
-    else {
-        return saveFile(curFile);
-    }
+    return retVal;
 }
 
 bool MainWindow::maybeSave()
 {
-    if (ui->microcodeWidget->isModified()) {
-        QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(this, "Pep/9 CPU",
-                                   "The microcode has been modified.\n"
-                                   "Do you want to save your changes?",
-                                   QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        if (ret == QMessageBox::Save)
-            return save();
-        else if (ret == QMessageBox::Cancel)
-            return false;
+    static QMetaEnum metaenum = QMetaEnum::fromType<Enu::EPane>();
+    bool retVal = true;
+    for(int it = 0; it < metaenum.keyCount(); it++)
+    {
+        retVal = retVal && maybeSave(static_cast<Enu::EPane>(metaenum.value(it)));
     }
-    return true;
+    return retVal;
 }
 
-void MainWindow::loadFile(const QString &fileName)
+bool MainWindow::maybeSave(Enu::EPane which)
+{
+    const QString dlgTitle = "Pep/9 Micro";
+    const QString msgEnd = "The %1 has been modified.\nDo you want to save your changes?";
+    const QString sourceText = msgEnd.arg("assembler source");
+    const QString objectText = msgEnd.arg("object code");
+    const QString microcodeText = msgEnd.arg("microcode");
+    const auto buttons = QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel;
+    QMessageBox::StandardButton ret;
+    bool retVal = true;
+    switch(which)
+    {
+    case Enu::EPane::ESource:
+        if(ui->AsmSourceCodeWidgetPane->isModified())
+        {
+            ret = QMessageBox::warning(this, dlgTitle,sourceText,buttons);
+            if (ret == QMessageBox::Save)
+                retVal = save(Enu::EPane::ESource);
+            else if (ret == QMessageBox::Cancel)
+                retVal = false;
+        }
+        break;
+    case Enu::EPane::EObject:
+        if(ui->AsmObjectCodeWidgetPane->isModified())
+        {
+            ret = QMessageBox::warning(this, dlgTitle,objectText,buttons);
+            if (ret == QMessageBox::Save)
+                retVal = save(Enu::EPane::EObject);
+            else if (ret == QMessageBox::Cancel)
+                retVal = false;
+        }
+        break;
+    case Enu::EPane::EMicrocode:
+        if(ui->microcodeWidget->isModified())
+        {
+            ret = QMessageBox::warning(this, dlgTitle,microcodeText,buttons);
+            if (ret == QMessageBox::Save)
+                retVal = save(Enu::EPane::EMicrocode);
+            else if (ret == QMessageBox::Cancel)
+                retVal = false;
+        }
+        break;
+    default:
+        break;
+    }
+    return retVal;
+}
+
+void MainWindow::loadFile(const QString &fileName, Enu::EPane which) //Todo
 {
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Pep/9 CPU"), tr("Cannot read file %1:\n%2.")
+        QMessageBox::warning(this, tr("Pep/9 Micro"), tr("Cannot read file %1:\n%2.")
                              .arg(fileName).arg(file.errorString()));
         return;
     }
@@ -320,18 +408,62 @@ void MainWindow::loadFile(const QString &fileName)
     QTextStream in(&file);
     in.setCodec(QTextCodec::codecForName("ISO 8859-1"));
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    // Set source code pane text
-    ui->microcodeWidget->setMicrocode(in.readAll());
-    setCurrentFile(fileName);
+    switch(which)
+    {
+    case Enu::EPane::ESource:
+        ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
+        ui->AsmSourceCodeWidgetPane->setFocus();
+        ui->AsmSourceCodeWidgetPane->setCurrentFile(fileName);
+        ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(in.readAll());
+        ui->AsmSourceCodeWidgetPane->setModifiedFalse();
+        break;
+    case Enu::EPane::EObject:
+        ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
+        ui->AsmObjectCodeWidgetPane->setFocus();
+        ui->AsmObjectCodeWidgetPane->setCurrentFile(fileName);
+        ui->AsmObjectCodeWidgetPane->setObjectCodePaneText(in.readAll());
+        ui->AsmObjectCodeWidgetPane->setModifiedFalse();
+        break;
+    case Enu::EPane::EMicrocode:
+        ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
+        ui->microcodeWidget->setFocus();
+        ui->microcodeWidget->setCurrentFile(fileName);
+        ui->microcodeWidget->setMicrocode(in.readAll());
+        ui->microcodeWidget->setModifiedFalse();
+        break;
+    }
+    curPath = QFileInfo(file).dir().absolutePath();
     statusBar()->showMessage(tr("File loaded"), 4000);
     QApplication::restoreOverrideCursor();
 }
 
-bool MainWindow::saveFile(const QString &fileName)
+bool MainWindow::saveFile(Enu::EPane which) //Todo
 {
+    QString fileName;
+    switch(which)
+    {
+    case Enu::EPane::ESource:
+        fileName = QFileInfo(ui->AsmSourceCodeWidgetPane->getCurrentFile()).absoluteFilePath();
+        break;
+    case Enu::EPane::EObject:
+        fileName = QFileInfo(ui->AsmObjectCodeWidgetPane->getCurrentFile()).absoluteFilePath();
+        break;
+    case Enu::EPane::EListing:
+        fileName = QFileInfo(ui->AssemblerListingWidgetPane->getCurrentFile()).absoluteFilePath();
+        break;
+    case Enu::EPane::EMicrocode:
+        fileName = QFileInfo(ui->microcodeWidget->getCurrentFile()).absoluteFilePath();
+        break;
+    }
+    return saveFile(fileName, which);
+}
+
+bool MainWindow::saveFile(const QString &fileName, Enu::EPane which)
+{
+
     QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Pep/9 CPU"),
+        QMessageBox::warning(this, tr("Pep/9 Micro"),
                              tr("Cannot write file %1:\n%2.")
                              .arg(fileName)
                              .arg(file.errorString()));
@@ -341,28 +473,161 @@ bool MainWindow::saveFile(const QString &fileName)
     QTextStream out(&file);
     out.setCodec(QTextCodec::codecForName("ISO 8859-1"));
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    out << Pep::addCycleNumbers(ui->microcodeWidget->getMicrocode());
+    const QString msgSource = "Source saved";
+    const QString msgObject = "Object code saved";
+    const QString msgListing = "Listing saved";
+    const QString msgMicro = "Microcode saved";
+    const QString *msgOutput; //Mutable pointer to const data
+    switch(which)
+    {
+    case Enu::EPane::ESource:
+        out << ui->AsmSourceCodeWidgetPane->toPlainText();
+        msgOutput = &msgSource;
+        break;
+    case Enu::EPane::EObject:
+        out << ui->AsmObjectCodeWidgetPane->toPlainText();
+        msgOutput = &msgObject;
+        break;
+    case Enu::EPane::EListing:
+        out << ui->AssemblerListingWidgetPane->toPlainText();
+        msgOutput = &msgListing;
+        break;
+    case Enu::EPane::EMicrocode:
+        out << ui->microcodeWidget->getMicrocode();
+        msgOutput = &msgMicro;
+        break;
+    }
     QApplication::restoreOverrideCursor();
-
-    setCurrentFile(fileName);
-    statusBar()->showMessage("Microcode saved", 4000);
+    curPath = QFileInfo(file).dir().absolutePath();
+    statusBar()->showMessage(*msgOutput, 4000);
     return true;
 }
 
-void MainWindow::setCurrentFile(const QString &fileName)
+bool MainWindow::saveAsFile(Enu::EPane which)
 {
-    ui->microcodeWidget->setFilename(QFileInfo(fileName).fileName());
-    curFile = fileName;
-    ui->microcodeWidget->setModifiedFalse();
-
-    if (!fileName.isEmpty()) {
-        curPath = QFileInfo(fileName).path();
+    const QString defSourceFile = "untitled.pep";
+    const QString defObjectFile = "untitled.pepo";
+    const QString defListingFile = "untitled.pepl";
+    const QString defMicroFile = "untitled.pepcpu";
+    QString usingFile;
+    const QString titleBase = "Save %1";
+    const QString sourceTitle = titleBase.arg("Assembler Source Code");
+    const QString objectTitle = titleBase.arg("Object Code");
+    const QString listingTitle = titleBase.arg("Assembler Listing");
+    const QString microTitle = titleBase.arg("Microcode");
+    const QString *usingTitle;
+    const QString sourceTypes = "Pep9 Source (*.pep *.txt)";
+    const QString objectTypes = "Pep9 Object (*.pepo *.txt)";
+    const QString listingTypes = "Pep9 Listing (*.pepl)";
+    const QString microTypes = "Pep9 Microcode (*.pepcpu *.txt)";
+    const QString *usingTypes;
+    switch(which)
+    {
+    case Enu::EPane::ESource:
+        if(ui->AsmSourceCodeWidgetPane->getCurrentFile().fileName().isEmpty()) {
+            usingFile = QDir(curPath).absoluteFilePath(defSourceFile);
+        }
+        else usingFile = ui->AsmSourceCodeWidgetPane->getCurrentFile().fileName();
+        usingTitle = &sourceTitle;
+        usingTypes = &sourceTypes;
+        break;
+    case Enu::EPane::EObject:
+        if(ui->AsmObjectCodeWidgetPane->getCurrentFile().fileName().isEmpty()) {
+            usingFile = QDir(curPath).absoluteFilePath(defObjectFile);
+        }
+        else usingFile = ui->AsmObjectCodeWidgetPane->getCurrentFile().fileName();
+        usingTitle = &objectTitle;
+        usingTypes = &objectTypes;
+        break;
+    case Enu::EPane::EListing:
+        if(ui->AssemblerListingWidgetPane->getCurrentFile().fileName().isEmpty()) {
+            usingFile = QDir(curPath).absoluteFilePath(defListingFile);
+        }
+        else usingFile = ui->AssemblerListingWidgetPane->getCurrentFile().fileName();
+        usingTitle = &listingTitle;
+        usingTypes = &listingTypes;
+        break;
+    case Enu::EPane::EMicrocode:
+        if(ui->microcodeWidget->getCurrentFile().fileName().isEmpty()) {
+            usingFile = QDir(curPath).absoluteFilePath(defMicroFile);
+        }
+        else usingFile = ui->microcodeWidget->getCurrentFile().fileName();
+        usingTitle = &microTitle;
+        usingTypes = &microTypes;
+        break;
     }
+    QString fileName = QFileDialog::getSaveFileName(
+                this,
+                *usingTitle,
+                usingFile,
+                *usingTypes);
+    if (fileName.isEmpty()) {
+        return false;
+    }
+    else if (saveFile(fileName, which)) {
+        switch(which)
+        {
+        case Enu::EPane::ESource:
+            ui->AsmSourceCodeWidgetPane->setCurrentFile(fileName);
+            break;
+        case Enu::EPane::EObject:
+            ui->AsmObjectCodeWidgetPane->setCurrentFile(fileName);
+            break;
+        case Enu::EPane::EListing:
+            ui->AssemblerListingWidgetPane->setCurrentFile(fileName);
+            break;
+        case Enu::EPane::EMicrocode:
+            ui->microcodeWidget->setCurrentFile(fileName);
+            break;
+        }
+        return true;
+    }
+    else return false;
 }
 
 QString MainWindow::strippedName(const QString &fullFileName)
 {
     return QFileInfo(fullFileName).fileName();
+}
+
+void MainWindow::print(Enu::EPane which)
+{
+    const QString *text;
+    const QString base = "Print %1";
+    const QString source = base.arg("Assembler Source Code");
+    const QString object = base.arg("Object Code");
+    const QString listing = base.arg("Assembler Listing");
+    const QString micro = base.arg("Microcode");
+    const QString *title;
+    switch(which)
+    {
+    case Enu::EPane::ESource:
+        title = &source;
+        text = &ui->AsmSourceCodeWidgetPane->toPlainText();
+        break;
+    case Enu::EPane::EObject:
+        title = &object;
+        text = &ui->AsmObjectCodeWidgetPane->toPlainText();
+        break;
+    case Enu::EPane::EListing:
+        title = &listing;
+        text = &ui->AssemblerListingWidgetPane->toPlainText();
+        break;
+    case Enu::EPane::EMicrocode:
+        title = &micro;
+        text = &ui->microcodeWidget->getMicrocode();
+        break;
+    }
+    QTextDocument document(*text, this);
+    document.setDefaultFont(QFont("Courier", 10, -1));
+
+    QPrinter printer(QPrinter::HighResolution);
+
+    QPrintDialog *dialog = new QPrintDialog(&printer, this);
+    dialog->setWindowTitle(*title);
+    if (dialog->exec() == QDialog::Accepted) {
+        document.print(&printer);
+    }
 }
 
 QVector<quint8> convertObjectCodeToIntArray(QString line)
@@ -409,7 +674,29 @@ void MainWindow::loadOperatingSystem()
 
 void MainWindow::loadObjectCodeProgram()
 {
-    #pragma message("todo: load the operating system")
+    QString lines = ui->AsmObjectCodeWidgetPane->toPlainText();
+    QVector<quint8> data;
+    for(auto line : lines.split("\n",QString::SkipEmptyParts))
+    {
+        data.append(convertObjectCodeToIntArray(line));
+    }
+    memorySection->loadObjectCode((quint16)0, data);
+}
+
+void MainWindow::set_Obj_Listing_filenames_from_Source()
+{
+    QFileInfo inf(ui->AsmSourceCodeWidgetPane->getCurrentFile());
+    QString obj, lst;
+    if(inf.fileName().isEmpty()){
+        obj = "";
+        lst = "";
+    }
+    else {
+        obj = inf.absoluteDir().absoluteFilePath(inf.baseName()+".pepo");
+        lst = inf.absoluteDir().absoluteFilePath(inf.baseName()+".pepl");
+    }
+    ui->AsmObjectCodeWidgetPane->setCurrentFile(obj);
+    ui->AssemblerListingWidgetPane->setCurrentFile(lst);
 }
 
 void MainWindow::onUpdateCheck(int val)
@@ -420,55 +707,104 @@ void MainWindow::onUpdateCheck(int val)
 }
 
 // File MainWindow triggers
-void MainWindow::on_actionFile_New_triggered()
+void MainWindow::on_actionFile_New_Asm_triggered()
 {
-    if (maybeSave()) {
+    if (maybeSave(Enu::EPane::ESource)) {
+        ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
+        ui->AsmSourceCodeWidgetPane->setFocus();
+        ui->AsmSourceCodeWidgetPane->clearSourceCode();
+        ui->AsmSourceCodeWidgetPane->setCurrentFile("");
+        ui->AsmObjectCodeWidgetPane->clearObjectCode();
+        ui->AsmObjectCodeWidgetPane->setCurrentFile("");
+        ui->AssemblerListingWidgetPane->clearAssemblerListing();
+        ui->AssemblerListingWidgetPane->setCurrentFile("");
+    }
+}
+
+void MainWindow::on_actionFile_New_Microcode_triggered()
+{
+    if (maybeSave(Enu::EPane::EMicrocode)) {
+        ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
+        ui->microcodeWidget->setFocus();
         ui->microcodeWidget->setMicrocode("");
-#pragma message("TODO: fixe object code pane")
+        ui->microcodeWidget->setCurrentFile("");
+#pragma message("TODO: fix object code pane")
         //objectCodePane->setObjectCode();
-        setCurrentFile("");
     }
 }
 
 void MainWindow::on_actionFile_Open_triggered()
 {
-    if (maybeSave()) {
-        QString fileName = QFileDialog::getOpenFileName(
-                    this,
-                    "Open text file",
-                    curPath,
-                    "Text files (*.pepcpu *.txt)");
-        if (!fileName.isEmpty()) {
-            loadFile(fileName);
-            curPath = QFileInfo(fileName).path();
-        }
-    }
-}
-
-bool MainWindow::on_actionFile_Save_triggered()
-{
-    if (curFile.isEmpty()) {
-        return on_actionFile_Save_As_triggered();
-    }
-    else {
-        return saveFile(curFile);
-    }
-}
-
-bool MainWindow::on_actionFile_Save_As_triggered()
-{
-    QString fileName = QFileDialog::getSaveFileName(
+    QString fileName = QFileDialog::getOpenFileName(
                 this,
-                "Save Microcode",
-                curFile.isEmpty() ? curPath + "/untitled.pepcpu" : curPath + "/" + strippedName(curFile),
-                "Pep9 Source (*.pepcpu *.txt)");
-    if (fileName.isEmpty()) {
-        return false;
+                "Open text file",
+                curPath,
+                "Pep/9 files (*.pep *.pepo *.pepl *.pepcpu *.txt)");
+    Enu::EPane which;
+    if (!fileName.isEmpty()) {
+        if(fileName.endsWith("pep",Qt::CaseInsensitive)) which = Enu::EPane::ESource;
+        else if(fileName.endsWith("pepo",Qt::CaseInsensitive)) which = Enu::EPane::EObject;
+        else if(fileName.endsWith("pepl",Qt::CaseInsensitive)) which = Enu::EPane::EListing;
+        else if(fileName.endsWith("pepcpu",Qt::CaseInsensitive)) which = Enu::EPane::EMicrocode;
+        if(maybeSave(which)){
+            loadFile(fileName, which);
+        }
+        curPath = QFileInfo(fileName).absolutePath();
     }
-    return saveFile(fileName);
+}
+
+bool MainWindow::on_actionFile_Save_Asm_triggered()
+{
+    return save(Enu::EPane::ESource);
+}
+
+bool MainWindow::on_actionFile_Save_Microcode_triggered()
+{
+    return save(Enu::EPane::EMicrocode);
+}
+
+bool MainWindow::on_actionFile_Save_Asm_Source_As_triggered()
+{
+    return saveAsFile(Enu::EPane::ESource);
+}
+
+bool MainWindow::on_actionFile_Save_Object_Code_As_triggered()
+{
+    return saveAsFile(Enu::EPane::EObject);
+}
+
+bool MainWindow::on_actionFile_Save_Assembler_Listing_As_triggered()
+{
+    return saveAsFile(Enu::EPane::EListing);
+}
+
+bool MainWindow::on_actionFile_Save_Microcode_As_triggered()
+{
+    return saveAsFile(Enu::EPane::EMicrocode);
+}
+
+void MainWindow::on_actionFile_Print_Assembler_Source_triggered()
+{
+    print(Enu::EPane::ESource);
+}
+
+void MainWindow::on_actionFile_Print_Object_Code_triggered()
+{
+    print(Enu::EPane::EObject);
+}
+
+void MainWindow::on_actionFile_Print_Assembler_Listing_triggered()
+{
+    print(Enu::EPane::EListing);
+}
+
+void MainWindow::on_actionFile_Print_Microcode_triggered()
+{
+    print(Enu::EPane::EMicrocode);
 }
 
 // Edit MainWindow triggers
+
 void MainWindow::on_actionEdit_Undo_triggered()
 {
     if (ui->microcodeWidget->hasFocus() && ui->actionSystem_Start_Debugging->isEnabled()) {
@@ -549,16 +885,59 @@ void MainWindow::on_actionEdit_Reset_font_to_Default_triggered()
     emit fontChanged(codeFont);
 }
 
-// System MainWindow triggers
-void MainWindow::on_actionSystem_Run_triggered()
+//Build Events
+void MainWindow::on_ActionBuild_Assemble_triggered()
+{
+    loadOperatingSystem();
+    Pep::burnCount = 0;
+    if(ui->AsmSourceCodeWidgetPane->assemble()){
+#pragma message ("TODO: cancel run on burn and reset prog state")
+        if(Pep::burnCount > 0) (void)0;
+        ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
+        ui->AssemblerListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList());
+        //listingTracePane->setListingTrace(sourceCodePane->getAssemblerListingList(), sourceCodePane->getHasCheckBox());
+        //memoryTracePane->setMemoryTrace();
+        //listingTracePane->showAssemblerListing();
+        set_Obj_Listing_filenames_from_Source();
+        loadObjectCodeProgram();
+    }
+    else {
+#pragma message ("TODO: fix current file title if problematic")
+        ui->AsmObjectCodeWidgetPane->clearObjectCode();
+        ui->AssemblerListingWidgetPane->clearAssemblerListing();
+        // listingTracePane->clearListingTrace();
+        // ui->pepCodeTraceTab->setCurrentIndex(0); // Make source code pane visible
+        loadObjectCodeProgram();
+    }
+
+}
+
+void MainWindow::on_actionBuild_Load_Object_triggered()
+{
+    loadOperatingSystem();
+    loadObjectCodeProgram();
+    ui->memoryWidget->refreshMemory();
+}
+
+void MainWindow::on_actionBuild_Run_Object_triggered()
 {
     if (on_actionSystem_Start_Debugging_triggered()) {
         disconnectMicroDraw();
         ui->cpuWidget->run();
-        //mainMemory->setUpdatesEnabled(false);
-        //cpuPane->setUpdatesEnabled(false);
     }
 }
+
+void MainWindow::on_actionBuild_Run_triggered()
+{
+    if (on_actionSystem_Start_Debugging_triggered()) {
+        disconnectMicroDraw();
+        loadOperatingSystem();
+        loadObjectCodeProgram();
+        ui->cpuWidget->run();
+    }
+}
+// System MainWindow triggers
+
 
 bool MainWindow::on_actionSystem_Start_Debugging_triggered()
 {
@@ -576,36 +955,28 @@ bool MainWindow::on_actionSystem_Start_Debugging_triggered()
         }
         //objectCodePane->setObjectCode(microcodePane->getMicrocodeProgram(),nullptr);
         controlSection->setMicrocodeProgram(ui->microcodeWidget->getMicrocodeProgram());
-        prog = ui->microcodeWidget->getMicrocodeProgram();
-        controlSection->onDebuggingStarted();
-        if(prog->hasUnitPre())
-        {
-            controlSection->initCPUStateFromPreconditions();
-            ui->memoryWidget->refreshMemory();
-            ui->cpuWidget->clearCpu();
-        }
     }
     else {
         ui->statusBar->showMessage("MicroAssembly failed", 4000);
         return false;
     }
-
-    loadOperatingSystem();
-    loadObjectCodeProgram();
+    ui->cpuWidget->clearCpu();
+    controlSection->onClearCPU();
+    controlSection->onDebuggingStarted();
+    controlSection->initCPU();
     //Clear all data and views as needed
 
     // enable the actions available while we're debugging
     ui->actionSystem_Stop_Debugging->setEnabled(true);
 
     // disable actions related to editing/starting debugging
-    ui->actionSystem_Run->setEnabled(false);
+    ui->actionBuild_Run->setEnabled(false);
     ui->actionSystem_Start_Debugging->setEnabled(false);
 
     //Don't allow the microcode pane to be edited while the program is running
     ui->microcodeWidget->setReadOnly(true);
 
     ui->cpuWidget->startDebugging();
-#pragma message ("todo: hook in batch input to memory buffer")
     ui->ioWidget->batchInputToBuffer();
     QApplication::processEvents();
     return true;
@@ -620,7 +991,7 @@ void MainWindow::on_actionSystem_Stop_Debugging_triggered()
     ui->actionSystem_Stop_Debugging->setEnabled(false);
 
     // enable actions related to editing/starting debugging
-    ui->actionSystem_Run->setEnabled(true);
+    ui->actionBuild_Run->setEnabled(true);
     ui->actionSystem_Start_Debugging->setEnabled(true);
     ui->microcodeWidget->setReadOnly(false);
 
@@ -870,8 +1241,8 @@ void MainWindow::simulationFinished()
 
     on_actionSystem_Stop_Debugging_triggered();
 
-    QVector<AsmCode*> prog = ui->microcodeWidget->getMicrocodeProgram()->getObjectCode();
-    for (AsmCode* x : prog) {
+    QVector<MicroCodeBase*> prog = ui->microcodeWidget->getMicrocodeProgram()->getObjectCode();
+    for (MicroCodeBase* x : prog) {
         if (x->hasUnitPost()&&!((UnitPostCode*)x)->testPostcondition(dataSection, errorString)) {
             ((UnitPostCode*)x)->testPostcondition(dataSection, errorString);
             ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);

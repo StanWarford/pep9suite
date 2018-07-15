@@ -55,6 +55,7 @@ protected:
 
 private:
     Ui::MainWindow *ui;
+    QString curPath;
     QString darkStyle;
     QString lightStyle;
     QFont codeFont;
@@ -83,27 +84,42 @@ private:
     void writeSettings();
 
     // Save methods
-    bool save();
+    bool save(Enu::EPane which);
     bool maybeSave();
-    void loadFile(const QString &fileName);
-    bool saveFile(const QString &fileName);
-    void setCurrentFile(const QString &fileName);
+    bool maybeSave(Enu::EPane which);
+    void loadFile(const QString &fileName, Enu::EPane which);
+    bool saveFile(Enu::EPane which);
+    bool saveFile(const QString& fileName, Enu::EPane which);
+    bool saveAsFile(Enu::EPane which);
     QString strippedName(const QString &fullFileName);
 
+    void print(Enu::EPane which);
 
     void loadOperatingSystem();
     void loadObjectCodeProgram();
-    QString curFile;
-    QString curPath;
 
+    void set_Obj_Listing_filenames_from_Source();
 private slots:
     // Update Check
     void onUpdateCheck(int val);
     // File
-    void on_actionFile_New_triggered();
-    void on_actionFile_Open_triggered();
-    bool on_actionFile_Save_triggered();
-    bool on_actionFile_Save_As_triggered();
+    void on_actionFile_New_Asm_triggered();
+    void on_actionFile_New_Microcode_triggered();
+    void on_actionFile_Open_triggered(); //Todo
+
+    bool on_actionFile_Save_Microcode_triggered();
+    bool on_actionFile_Save_Asm_triggered();
+
+    bool on_actionFile_Save_Asm_Source_As_triggered(); //Todo
+    bool on_actionFile_Save_Object_Code_As_triggered(); //Todo
+    bool on_actionFile_Save_Assembler_Listing_As_triggered(); //Todo
+    bool on_actionFile_Save_Microcode_As_triggered();
+
+    void on_actionFile_Print_Assembler_Source_triggered();
+    void on_actionFile_Print_Object_Code_triggered();
+    void on_actionFile_Print_Assembler_Listing_triggered();
+    void on_actionFile_Print_Microcode_triggered();
+
     // Edit
     void on_actionEdit_Undo_triggered();
     void on_actionEdit_Redo_triggered();
@@ -115,8 +131,14 @@ private slots:
     void on_actionEdit_Remove_Error_Messages_triggered();
     void on_actionEdit_Font_triggered();
     void on_actionEdit_Reset_font_to_Default_triggered();
+
+    // Build
+    void on_ActionBuild_Assemble_triggered();
+    void on_actionBuild_Load_Object_triggered();
+    void on_actionBuild_Run_Object_triggered();
+    void on_actionBuild_Run_triggered();
+
     // System
-    void on_actionSystem_Run_triggered();
     bool on_actionSystem_Start_Debugging_triggered();
     void on_actionSystem_Stop_Debugging_triggered();
     void on_actionSystem_Clear_CPU_triggered();

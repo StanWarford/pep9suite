@@ -100,16 +100,7 @@ private:
 public:
     SymbolRefArgument(QString sRefValue) { symbolRefValue = sRefValue; }
     int getArgumentValue() {
-        #pragma message("Handle charIn charOut")
-        if (symbolRefValue == "charIn") {
-            //return Pep::symbolTable.contains("charIn") ? Pep::symbolTable.value(symbolRefValue) : 256 * Sim::Mem[Pep::dotBurnArgument - 7] + Sim::Mem[Pep::dotBurnArgument - 6];
-        }
-        else if (symbolRefValue == "charOut") {
-            //return Pep::symbolTable.contains("charOut") ? Pep::symbolTable.value(symbolRefValue) : 256 * Sim::Mem[Pep::dotBurnArgument - 5] + Sim::Mem[Pep::dotBurnArgument - 4];
-        }
-        else {
-            return Pep::symbolTable.value(symbolRefValue);
-        }
+        return Pep::symbolTable.value(symbolRefValue);
     }
     QString getArgumentString() { return symbolRefValue; }
 };

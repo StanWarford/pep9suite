@@ -47,11 +47,15 @@ public:
     void setCurrentFile(QString string);
     // Post: Title bar of the window is set to "Assembler Listing - 'string'"
 
+    const QFile& getCurrentFile() const;
+    // Post: Returns the file associated with the pane.
+
     void highlightOnFocus();
     // Post: Highlights the label based on the label window color saved in the UI file
 
     bool hasFocus();
     // Post: returns if the pane has focus
+
 
     void copy();
     // Copies selected text to the clipboard
@@ -70,6 +74,8 @@ private:
     Ui::AssemblerListingPane *ui;
 
     PepASMHighlighter *pepHighlighter;
+
+    QFile currentFile;
 
     void mouseReleaseEvent(QMouseEvent *);
 

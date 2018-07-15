@@ -30,10 +30,10 @@ class SymbolEntry;
 class Specification;
 
 // Abstract code class
-class AsmCode
+class MicroCodeBase
 {
 public:
-    virtual ~AsmCode() { }
+    virtual ~MicroCodeBase() { }
     virtual bool isMicrocode() const { return false; }
     virtual void setCpuLabels(CpuGraphicsItems *)const { }
     virtual QString getObjectCode() const { return ""; }
@@ -44,7 +44,7 @@ public:
 
 // Concrete code classes
 // Code is the union of the elements of the one-byte bus model and two-byte bus model
-class MicroCode: public AsmCode
+class MicroCode: public MicroCodeBase
 {
     friend class MicroAsm;
 public:
@@ -82,7 +82,7 @@ private:
     const SymbolEntry* falseTargetAddr;
 };
 
-class CommentOnlyCode: public AsmCode
+class CommentOnlyCode: public MicroCodeBase
 {
 public:
     CommentOnlyCode(QString comment);
@@ -91,7 +91,7 @@ private:
     QString cComment;
 };
 
-class UnitPreCode: public AsmCode
+class UnitPreCode: public MicroCodeBase
 {
 public:
     ~UnitPreCode();
@@ -105,7 +105,7 @@ private:
     QString cComment;
 };
 
-class UnitPostCode: public AsmCode
+class UnitPostCode: public MicroCodeBase
 {
 public:
     ~UnitPostCode();
@@ -119,7 +119,7 @@ private:
     QString cComment;
 };
 
-class BlankLineCode: public AsmCode
+class BlankLineCode: public MicroCodeBase
 {
 };
 

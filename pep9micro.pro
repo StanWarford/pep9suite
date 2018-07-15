@@ -110,9 +110,10 @@ OTHER_FILES += help/images/registeraddresssignals.png \
     help/examples.html \
     help/debugging.html \
     help/cpu.html
-RESOURCES += pep9cpuresources.qrc \
+RESOURCES += \
     helpresources.qrc \
-    dark_style.qrc
+    dark_style.qrc \
+    pep9microresources.qrc
 
 DISTFILES += \
     package/package.xml \

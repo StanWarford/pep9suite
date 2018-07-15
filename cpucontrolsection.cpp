@@ -41,6 +41,12 @@ CPUControlSection::~CPUControlSection()
     //This object should last the lifetime of the  program, it does not need to be cleaned up
 }
 
+void CPUControlSection::initCPU()
+{
+    data->setRegisterByte(4,0xFB);
+    data->setRegisterByte(5,0xF8);
+}
+
 void CPUControlSection::setMicrocodeProgram(MicrocodeProgram *program)
 {
     this->program = program;
@@ -127,7 +133,7 @@ void CPUControlSection::onStep() noexcept
         updateAtInstructionEnd();
         emit simulationInstructionFinished();
         macroCycleCounter++;
-        qDebug().noquote() << memoizer->memoize();
+        //qDebug().noquote() << memoizer->memoize();
     }
 }
 
@@ -187,7 +193,6 @@ void CPUControlSection::onRun()noexcept
 void CPUControlSection::onClearCPU()noexcept
 {
     data->onClearCPU();
-    memory->clearMemory();
     memory->clearErrors();
     memoizer->clear();
     inSimulation = false;
@@ -320,7 +325,7 @@ void CPUControlSection::branchHandler()
         break;
     case Enu::IsUnary:
         byte = data->getRegisterBankByte(8);
-        if(Pep::isUnaryMap[Pep::decodeMnemonic[byte]])
+        if(Pep::isUnaryMap[Pep::decodeMnemonic[byte]] || Pep::isTrapMap[Pep::decodeMnemonic[byte]])
         {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -435,49 +440,6 @@ void CPUControlSection::updateAtInstructionEnd()
 {
 #pragma message("Todo: Update CPU state at start of instruction")
     memory->onInstructionFinished();
-}
-
-void CPUControlSection::initCPUStateFromPreconditions()
-{
-    onClearCPU();
-    QList<UnitPreCode*> preCode;
-    microprogramCounter=0;
-    if(program == nullptr)
-    {
-        qDebug()<<"Can't init from null program";
-    }
-    for(AsmCode* x : program->getObjectCode())
-    {
-        if(x->hasUnitPre())preCode.append((UnitPreCode*)x);
-    }
-    //Handle data section logic
-    for(auto x : preCode)
-    {
-        x->setUnitPre(data);
-    }
-
-}
-
-bool CPUControlSection::testPost()
-{
-    QList<UnitPreCode*> preCode;
-    if(program == nullptr)
-    {
-        qDebug()<<"Can't init from null program";
-    }
-    for(AsmCode* x : program->getObjectCode())
-    {
-        if(x->hasUnitPost())preCode.append((UnitPreCode*)x);
-    }
-    QString err;
-    bool t=false;
-    for(auto x : preCode)
-    {
-       ((UnitPostCode*) x)->testPostcondition(data,err);
-        if(err!="")t=true;
-    }
-    qDebug()<<"The postcondtions were:"<<!t;
-    return !t;
 }
 
 CPUTester *CPUTester::getInstance()

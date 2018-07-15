@@ -63,6 +63,9 @@ public:
     void setCurrentFile(QString string);
     // Post: Title bar of the window is set to "Object Code - 'string'"
 
+    const QFile& getCurrentFile() const;
+    // Post: Returns the file (if any) associated with the window
+
     void highlightOnFocus();
     // Post: Highlights the label based on the label window color saved in the UI file
 
@@ -96,6 +99,8 @@ public slots:
     void onFontChanged(QFont);
 private:
     Ui::ObjectCodePane *ui;
+
+    QFile currentFile;
 
     void mouseReleaseEvent(QMouseEvent *);
 

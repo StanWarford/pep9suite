@@ -153,7 +153,7 @@ namespace Enu
         SFX = 128,
         ALL = 255
     };
-    Q_ENUM_NS(EAddrMode);;
+    Q_ENUM_NS(EAddrMode);
     // Format for symbols
     enum class ESymbolFormat
     {
@@ -183,6 +183,9 @@ namespace Enu
         EMemoryTrace,
         EBatchIO,
         ETerminal,
+        EMicrocode,
+        EDataSection,
     };
+    Q_ENUM_NS(EPane);
 }
 #endif // ENU_H
