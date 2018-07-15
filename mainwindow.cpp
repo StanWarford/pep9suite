@@ -71,9 +71,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->memoryWidget->init(memorySection,dataSection);
     ui->cpuWidget->init(this);
 
-    // connect and begin update checker
-    connect(updateChecker, &UpdateChecker::updateInformation, this, &MainWindow::onUpdateCheck);
-    auto x = QtConcurrent::run(updateChecker,&UpdateChecker::beginUpdateCheck);
 
     helpDialog = new HelpDialog(this);
     aboutPepDialog = new AboutPep(this);
@@ -96,30 +93,39 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(helpDialog, &HelpDialog::copyToMicrocodeClicked, this, &MainWindow::helpCopyToMicrocodeButtonClicked);
 
     connect(qApp->instance(), SIGNAL(focusChanged(QWidget*, QWidget*)), this, SLOT(focusChanged(QWidget*, QWidget*)));
+
+    //Connect Undo / Redo events
     connect(ui->microcodeWidget, &MicrocodePane::undoAvailable, this, &MainWindow::setUndoability);
     connect(ui->microcodeWidget, &MicrocodePane::redoAvailable, this, &MainWindow::setRedoability);
 
+    //Connect CPU widget
     connect(ui->cpuWidget, &CpuPane::updateSimulation, this, &MainWindow::updateSimulation);
     connect(ui->cpuWidget, &CpuPane::simulationFinished, this, &MainWindow::simulationFinished);
     connect(ui->cpuWidget, &CpuPane::stopSimulation, this, &MainWindow::stopSimulation);
     connect(ui->cpuWidget, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
 
-    //Connect events that pass on CPU Feature changes
-    //Pep::initEnumMnemonMaps();
     //Connect Simulation events
 #pragma message ("TODO: fix micro object code pane")
     //connect(this, &MainWindow::beginSimulation,this->objectCodePane,&ObjectCodePane::onBeginSimulation);
     //connect(this, &MainWindow::endSimulation,this->objectCodePane,&ObjectCodePane::onEndSimulation);
     connect(this, &MainWindow::endSimulation,this->controlSection,&CPUControlSection::onSimulationFinished);
+
     //Connect font change events
-    //connect(this, &MainWindow::fontChanged, microcodePane, &MicrocodePane::onFontChanged);
+    connect(this, &MainWindow::fontChanged, ui->microcodeWidget, &MicrocodePane::onFontChanged);
     connect(this, &MainWindow::fontChanged, helpDialog, &HelpDialog::onFontChanged);
+    connect(this,&MainWindow::fontChanged,ui->ioWidget,&IOWidget::onFontChanged);
+    connect(this,SIGNAL(fontChanged(QFont)),ui->AsmSourceCodeWidgetPane,SLOT(onFontChanged(QFont)));
+    connect(this,SIGNAL(fontChanged(QFont)),ui->AsmObjectCodeWidgetPane,SLOT(onFontChanged(QFont)));
+    connect(this,SIGNAL(fontChanged(QFont)),ui->AssemblerListingWidgetPane,SLOT(onFontChanged(QFont)));
+
+    //Connect dark mode events
     connect(this, &MainWindow::darkModeChanged, ui->microcodeWidget, &MicrocodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, helpDialog, &HelpDialog::onDarkModeChanged);
     //connect(this, &MainWindow::darkModeChanged, objectCodePane, &ObjectCodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->cpuWidget, &CpuPane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->microcodeWidget->getEditor(), &MicrocodeEditor::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->memoryWidget, &MemoryDumpPane::onDarkModeChanged);
+
     qApp->installEventFilter(this);
 
     //Load Style sheets
@@ -158,7 +164,11 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->microcodeWidget->setMicrocode(in.readAll());
         ui->microcodeWidget->setModifiedFalse();
     }
+    //Connect assembler pane widgets
 
+    connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
+    connect(ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
+    connect(ui->AssemblerListingWidgetPane, &AssemblerListingPane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
     //Lastly, read in settings
     readSettings();
 }
@@ -697,6 +707,32 @@ void MainWindow::set_Obj_Listing_filenames_from_Source()
     }
     ui->AsmObjectCodeWidgetPane->setCurrentFile(obj);
     ui->AssemblerListingWidgetPane->setCurrentFile(lst);
+}
+
+void MainWindow::doubleClickedCodeLabel(Enu::EPane which)
+{
+    QList<int> list;
+    switch(which)
+    {
+    case Enu::EPane::ESource:
+        list.append(3000);
+        list.append(1);
+        list.append(1);
+        ui->codeSplitter->setSizes(list);
+        break;
+    case Enu::EPane::EObject:
+        list.append(1);
+        list.append(3000);
+        list.append(1);
+        ui->codeSplitter->setSizes(list);
+        break;
+    case Enu::EPane::EListing:
+        list.append(1);
+        list.append(1);
+        list.append(3000);
+        ui->codeSplitter->setSizes(list);
+        break;
+    }
 }
 
 void MainWindow::onUpdateCheck(int val)

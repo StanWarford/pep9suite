@@ -24,6 +24,7 @@ public slots:
     void onDataRequested();
     void onSimulationStart();
     void onClear();
+    void onFontChanged(QFont font);
 private:
     Ui::IOWidget *ui;
     MemorySection* memory;

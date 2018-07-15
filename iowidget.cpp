@@ -37,6 +37,13 @@ void IOWidget::onClear()
     ui->terminalIO->clearTerminal();
 }
 
+void IOWidget::onFontChanged(QFont font)
+{
+    ui->batchInput->onFontChanged(font);
+    ui->batchOutput->onFontChanged(font);
+    ui->terminalIO->onFontChanged(font);
+}
+
 //quint8 called=0;
 void IOWidget::onDataReceived(QChar data)
 {

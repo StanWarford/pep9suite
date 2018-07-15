@@ -99,6 +99,7 @@ private:
     void loadObjectCodeProgram();
 
     void set_Obj_Listing_filenames_from_Source();
+    void doubleClickedCodeLabel(Enu::EPane which);
 private slots:
     // Update Check
     void onUpdateCheck(int val);
