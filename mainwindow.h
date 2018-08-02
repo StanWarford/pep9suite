@@ -178,8 +178,20 @@ private slots:
 
     void on_actionDebug_Continue_triggered();
 
+    //Merges the behavior of Step Into and Step Over.
+    //If it it a trap & we are tracing traps, then step into the trap.
+    //If it is a trap & we are not tracing trpas, the step over the trap.
+    //If it is a call, step into the call.
+    //Else, execute a single ISA instruction
+    void on_actionDebug_Single_Step_Assembler_triggered();
+
+    //Stores the call depth, and continues to execute ISA instructions until the new call depth equals the old call depth.
     void on_actionDebug_Step_Over_Assembler_triggered();
+
+    //Uncoditionally executes the next ISA instruction, including going into function calls and traps.
     void on_actionDebug_Step_Into_Assembler_triggered();
+
+    //Executes the next ISA instructions until the call depth is decreased by 1.
     void on_actionDebug_Step_Out_Assembler_triggered();
 
     void on_actionDebug_Single_Step_Microcode_triggered();

@@ -274,25 +274,14 @@ void MainWindow::readSettings()
     int screenWidth = desktop->width();
     int screenHeight = desktop->height();
     settings.beginGroup("MainWindow");
-    QPoint pos = settings.value("pos", QPoint((screenWidth - width) / 2, (screenHeight - height) / 2)).toPoint();
-    QSize size = settings.value("size", QSize(width, height)).toSize();
-    if (Pep::getSystem() == "Mac") {
-        pos.setY(pos.y() + 20); // Every time the app launches, it seems OSX moves the window 20 pixels up the screen, so we compensate here.
-    }
-    else if (Pep::getSystem() == "Linux") { // Linux has a similar issue, so compensate here.
-        pos.setY(pos.y() - 20);
-    }
-    if (pos.x() > width || pos.x() < 0 || pos.y() > height || pos.y() < 0) {
-        pos = QPoint(0, 0);
-    }
+    QByteArray readGeometry = settings.value("geometry", saveGeometry()).toByteArray();
+    restoreGeometry(readGeometry);
     QVariant val = settings.value("font",codeFont);
     if(val.canConvert<QFont>())
     {
         codeFont = qvariant_cast<QFont>(val);
     }
     emit fontChanged(codeFont);
-    resize(size);
-    move(pos);
     curPath = settings.value("filePath", QDir::homePath()).toString();
     settings.endGroup();
     //Handle reading for all children
@@ -303,8 +292,7 @@ void MainWindow::writeSettings()
 {
     QSettings settings("cslab.pepperdine","PEP9CPU");
     settings.beginGroup("MainWindow");
-    settings.setValue("pos", pos());
-    settings.setValue("size", size());
+    settings.setValue("geometry", saveGeometry());
     settings.setValue("font",codeFont);
     settings.setValue("filePath", curPath);
     settings.endGroup();
@@ -1094,7 +1082,9 @@ void MainWindow::on_actionBuild_Run_Object_triggered()
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
         disconnectMicroDraw();
-        ui->memoryWidget->updateMemory();
+#pragma message("TODO: Replace memory clear followed by memory refresh with a performant memory unit.")
+        memorySection->clearModifiedBytes();
+        ui->memoryWidget->refreshMemory();
         controlSection->onRun();
     }
 }
@@ -1106,7 +1096,8 @@ void MainWindow::on_actionBuild_Run_triggered()
         disconnectMicroDraw();
         loadOperatingSystem();
         loadObjectCodeProgram();
-        ui->memoryWidget->updateMemory();
+        memorySection->clearModifiedBytes();
+        ui->memoryWidget->refreshMemory();
         controlSection->onRun();
     }
 }
@@ -1121,7 +1112,7 @@ void MainWindow::handleDebugButtons()
     switch(debugState)
     {
     case DebugState::DISABLED:
-        enabledButtons = DebugButtons::RUN | DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
+        enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
         break;
     case DebugState::RUN:
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;
@@ -1177,7 +1168,8 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     ui->cpuWidget->stopDebugging();
     handleDebugButtons();
     highlightActiveLines();
-    ui->memoryWidget->updateMemory();
+    memorySection->clearModifiedBytes();
+    ui->memoryWidget->refreshMemory();
     emit simulationFinished();
 }
 
@@ -1198,18 +1190,45 @@ void MainWindow::on_actionDebug_Continue_triggered()
 
 }
 
-void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
+void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
 {
-    debugState = DebugState::DEBUG_ISA;
-    int callDepth = controlSection->getCallDepth();
-    do{
+    Enu::EMnemonic mnemon = Pep::decodeMnemonic[memorySection->getMemoryByte(dataSection->getRegisterBankWord(CPURegisters::PC), false)];
+    bool isTrap = Pep::isTrapMap[mnemon];
+    if(isTrap && ui->actionSystem_Trace_Traps->isChecked()){ //If it is a trap instruction & we are tracing traps, step into the trap.
+        on_actionDebug_Step_Into_Assembler_triggered();
+    }
+    else if(isTrap) { //If we aren't tracing traps, step over the trap
+        on_actionDebug_Step_Over_Assembler_triggered();
+    }
+    else{ //Otherwise, execute a single ISA step
         controlSection->onISAStep();
         if (controlSection->hadErrorOnStep()) {
             // simulation had issues.
             QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
             onSimulationFinished();
         }
-    } while(callDepth < controlSection->getCallDepth());
+    }
+    handleDebugButtons();
+    highlightActiveLines();
+    emit updateSimulation();
+}
+
+void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
+{
+    debugState = DebugState::DEBUG_ISA;
+    int callDepth = controlSection->getCallDepth();
+    //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
+    disconnectMicroDraw();
+    do{
+        controlSection->onISAStep();
+        if (controlSection->hadErrorOnStep()) {
+            // simulation had issues.
+            QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
+            onSimulationFinished();
+            break;
+        }
+    } while(callDepth < controlSection->getCallDepth() && !controlSection->getExecutionFinished());
+    connectMicroDraw();
 
     handleDebugButtons();
     highlightActiveLines();
@@ -1234,15 +1253,18 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
 {
     debugState = DebugState::DEBUG_ISA;
     int callDepth = controlSection->getCallDepth();
+    //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
+    disconnectMicroDraw();
     do{
         controlSection->onISAStep();
         if (controlSection->hadErrorOnStep()) {
             // simulation had issues.
             QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
             onSimulationFinished();
+            break;
         }
-    } while(callDepth <= controlSection->getCallDepth());
-
+    } while(callDepth <= controlSection->getCallDepth() && !controlSection->getExecutionFinished());
+    connectMicroDraw();
     handleDebugButtons();
     highlightActiveLines();
     emit updateSimulation();

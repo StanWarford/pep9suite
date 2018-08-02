@@ -272,7 +272,7 @@ void MemoryDumpPane::updateMemory()
     lineNum = 0;
     for(auto x: list)
     {
-        refreshMemoryLines(x, x+1);
+        refreshMemoryLines(x*8, x*8+1);
     }
     /*while (!list.isEmpty()) {
         while (lineNum < list.first()) {
