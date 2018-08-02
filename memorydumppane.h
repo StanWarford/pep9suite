@@ -25,7 +25,7 @@
 #include <QWidget>
 #include <QScrollBar>
 #include <QSet>
-
+#include "colors.h"
 namespace Ui {
     class MemoryDumpPane;
 }
@@ -88,6 +88,7 @@ private:
     Ui::MemoryDumpPane *ui;
     MemorySection *memory;
     CPUDataSection *data;
+    const PepColors::Colors *colors;
     QList<quint16> highlightedData;
     // This is a list of bytes that are currently highlighted.
 

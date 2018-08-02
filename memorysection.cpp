@@ -98,7 +98,6 @@ void MemorySection::setMemoryByte(quint16 address, quint8 value)
 {
     quint8 old = memory[address];
     //if(old == value)return; //Don't continue if the new value is the old value
-    lastWrittenBytes.clear();
     lastWrittenBytes.insert(address);
     onSetMemoryByte(address,value);
 }
@@ -108,7 +107,6 @@ void MemorySection::setMemoryWord(quint16 address, quint16 value)
     address &= 0xFFFE; //Memory access ignores the lowest order bit
     quint8 hi = memory[address], lo = memory[address + 1]; //Cache old memory values
     //if((((quint16)hi<<8)|lo)==value)return; //Don't continue if the new value is the old value
-    lastWrittenBytes.clear();
     lastWrittenBytes.insert(address);
     lastWrittenBytes.insert((quint16) address + 1);
     onSetMemoryWord(address,value);

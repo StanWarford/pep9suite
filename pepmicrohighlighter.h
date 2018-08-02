@@ -35,7 +35,7 @@ QT_END_NAMESPACE
 class PepMicroHighlighter : public QSyntaxHighlighter
 {
 public:
-    PepMicroHighlighter(PepColors::Colors colors,QTextDocument *parent = 0);
+    PepMicroHighlighter(PepColors::Colors colors, QTextDocument *parent = 0);
     void forceAllFeatures(bool features);
     void rebuildHighlightingRules(PepColors::Colors color);
 protected:
@@ -57,7 +57,7 @@ private:
     QTextCharFormat oprndFormat;
     QTextCharFormat numFormat;
     QTextCharFormat singleLineCommentFormat;
-    QTextCharFormat multiLineCommentFormat;
+    QTextCharFormat errorCommentFormat;
     QTextCharFormat symbolFormat;
     QTextCharFormat identFormat;
     QTextCharFormat conditionalFormat;

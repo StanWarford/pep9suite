@@ -116,7 +116,7 @@ private:
     {
         static const int RUN = 1<<0, RUN_OBJECT = 1<<1, DEBUG = 1<<2, DEBUG_OBJECT = 1<<3, DEBUG_LOADER = 1<<4,
         INTERRUPT = 1<<5, CONTINUE = 1<<6, RESTART = 1<<7, STOP = 1<<8, STEP_OVER_ASM = 1<<9, STEP_INTO_ASM = 1<<10,
-        STEP_OUT_ASM = 1<<11, SINGLE_STEP_MICRO = 1<<12;
+        STEP_OUT_ASM = 1<<11, SINGLE_STEP_MICRO = 1<<12, SINGLE_STEP_ASM = 1<<13, BUILD_ASM = 1<<14, BUILD_MICRO = 1<<15;
     };
     // Which debug buttons to enable, based on integer cracking of the above struct. It is not strongly typed with an enum, because all of the casting
     // would add signifcant code volume, and it would not increase code clarity.
@@ -165,6 +165,7 @@ private slots:
     void on_actionEdit_Reset_font_to_Default_triggered();
 
     // Build
+    void on_actionBuild_Microcode_triggered();
     void on_ActionBuild_Assemble_triggered();
     void on_actionBuild_Load_Object_triggered();
     void on_actionBuild_Run_Object_triggered();
@@ -176,24 +177,21 @@ private slots:
     bool on_actionDebug_Start_Debugging_triggered();
     void on_actionDebug_Stop_Debugging_triggered();
 
+    void on_actionDebug_Interupt_Execution_triggered();
     void on_actionDebug_Continue_triggered();
-
+    void on_actionDebug_Restart_Debugging_triggered();
     //Merges the behavior of Step Into and Step Over.
     //If it it a trap & we are tracing traps, then step into the trap.
     //If it is a trap & we are not tracing trpas, the step over the trap.
     //If it is a call, step into the call.
     //Else, execute a single ISA instruction
     void on_actionDebug_Single_Step_Assembler_triggered();
-
     //Stores the call depth, and continues to execute ISA instructions until the new call depth equals the old call depth.
     void on_actionDebug_Step_Over_Assembler_triggered();
-
     //Uncoditionally executes the next ISA instruction, including going into function calls and traps.
     void on_actionDebug_Step_Into_Assembler_triggered();
-
     //Executes the next ISA instructions until the call depth is decreased by 1.
     void on_actionDebug_Step_Out_Assembler_triggered();
-
     void on_actionDebug_Single_Step_Microcode_triggered();
 
     // System

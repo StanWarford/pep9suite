@@ -93,7 +93,7 @@
               </property>
               <widget class="AsmSourceCodePane" name="AsmSourceCodeWidgetPane" native="true"/>
               <widget class="AsmObjectCodePane" name="AsmObjectCodeWidgetPane" native="true"/>
-              <widget class="AssemblerListingPane" name="AssemblerListingWidgetPane" native="true"/>
+              <widget class="AsmListingPane" name="AsmListingWidgetPane" native="true"/>
              </widget>
             </item>
            </layout>
@@ -228,6 +228,7 @@
     <property name="title">
      <string>Build</string>
     </property>
+    <addaction name="actionBuild_Microcode"/>
     <addaction name="ActionBuild_Assemble"/>
     <addaction name="actionBuild_Load_Object"/>
     <addaction name="actionBuild_Run_Object"/>
@@ -695,13 +696,16 @@
     <string>Load Object Code</string>
    </property>
   </action>
-  <action name="actionInstall_Microcode">
+  <action name="actionBuild_Microcode">
    <property name="icon">
     <iconset resource="pep9microresources.qrc">
      <normaloff>:/images/flash.svg</normaloff>:/images/flash.svg</iconset>
    </property>
    <property name="text">
-    <string>Install Microcode</string>
+    <string>Build Microcode</string>
+   </property>
+   <property name="toolTip">
+    <string>Build Microcode</string>
    </property>
   </action>
   <action name="actionDebug_Interupt_Execution">
@@ -841,9 +845,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>AssemblerListingPane</class>
+   <class>AsmListingPane</class>
    <extends>QWidget</extends>
-   <header>assemblerlistingpane.h</header>
+   <header>asmlistingpane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

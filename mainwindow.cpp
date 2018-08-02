@@ -121,7 +121,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::fontChanged, ui->ioWidget, &IOWidget::onFontChanged);
     connect(this, &MainWindow::fontChanged, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onFontChanged);
     connect(this, &MainWindow::fontChanged, ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::onFontChanged);
-    connect(this, &MainWindow::fontChanged, ui->AssemblerListingWidgetPane, &AssemblerListingPane::onFontChanged);
+    connect(this, &MainWindow::fontChanged, ui->AsmListingWidgetPane, &AsmListingPane::onFontChanged);
 
     //Connect dark mode events
     connect(this, &MainWindow::darkModeChanged, ui->microcodeWidget, &MicrocodePane::onDarkModeChanged);
@@ -130,6 +130,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::darkModeChanged, ui->cpuWidget, &CpuPane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->microcodeWidget->getEditor(), &MicrocodeEditor::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->memoryWidget, &MemoryDumpPane::onDarkModeChanged);
+    connect(this, &MainWindow::darkModeChanged, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onDarkModeChanged);
+    connect(this, &MainWindow::darkModeChanged, ui->AsmListingWidgetPane, &AsmListingPane::onDarkModeChanged);
 
     qApp->installEventFilter(this);
 
@@ -179,7 +181,7 @@ MainWindow::MainWindow(QWidget *parent) :
     handleDebugButtons();
     connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
     connect(ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
-    connect(ui->AssemblerListingWidgetPane, &AssemblerListingPane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
+    connect(ui->AsmListingWidgetPane, &AsmListingPane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
     //Lastly, read in settings
     readSettings();
 }
@@ -254,6 +256,7 @@ void MainWindow::connectMicroDraw()
     connect(dataSection, &CPUDataSection::statusBitChanged, ui->cpuWidget, &CpuPane::onStatusBitChanged, Qt::ConnectionType::UniqueConnection);
     connect(dataSection, &CPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged, Qt::ConnectionType::UniqueConnection);
     connect(dataSection, &CPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged, Qt::ConnectionType::UniqueConnection);
+    connect(this, &MainWindow::updateSimulation, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
 }
 
 void MainWindow::disconnectMicroDraw()
@@ -263,16 +266,13 @@ void MainWindow::disconnectMicroDraw()
     disconnect(dataSection, &CPUDataSection::statusBitChanged, ui->cpuWidget, &CpuPane::onStatusBitChanged);
     disconnect(dataSection, &CPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged);
     disconnect(dataSection, &CPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged);
+    disconnect(this, &MainWindow::updateSimulation, ui->cpuWidget, &CpuPane::onSimulationUpdate);
 }
 
 void MainWindow::readSettings()
 {
     QSettings settings("cslab.pepperdine","PEP9CPU");
     QDesktopWidget *desktop = QApplication::desktop();
-    int width = static_cast<int>(desktop->width() * 0.80);
-    int height = static_cast<int>(desktop->height() * 0.70);
-    int screenWidth = desktop->width();
-    int screenHeight = desktop->height();
     settings.beginGroup("MainWindow");
     QByteArray readGeometry = settings.value("geometry", saveGeometry()).toByteArray();
     restoreGeometry(readGeometry);
@@ -326,7 +326,7 @@ bool MainWindow::save(Enu::EPane which)
         if(retVal) ui->AsmObjectCodeWidgetPane->setModifiedFalse();
         break;
     case Enu::EPane::EListing:
-        if(QFileInfo(ui->AssemblerListingWidgetPane->getCurrentFile()).absoluteFilePath().isEmpty())
+        if(QFileInfo(ui->AsmListingWidgetPane->getCurrentFile()).absoluteFilePath().isEmpty())
         {
             retVal = saveAsFile(Enu::EPane::EListing);
         }
@@ -459,7 +459,7 @@ bool MainWindow::saveFile(Enu::EPane which)
         fileName = QFileInfo(ui->AsmObjectCodeWidgetPane->getCurrentFile()).absoluteFilePath();
         break;
     case Enu::EPane::EListing:
-        fileName = QFileInfo(ui->AssemblerListingWidgetPane->getCurrentFile()).absoluteFilePath();
+        fileName = QFileInfo(ui->AsmListingWidgetPane->getCurrentFile()).absoluteFilePath();
         break;
     case Enu::EPane::EMicrocode:
         fileName = QFileInfo(ui->microcodeWidget->getCurrentFile()).absoluteFilePath();
@@ -499,7 +499,7 @@ bool MainWindow::saveFile(const QString &fileName, Enu::EPane which)
         msgOutput = &msgObject;
         break;
     case Enu::EPane::EListing:
-        out << ui->AssemblerListingWidgetPane->toPlainText();
+        out << ui->AsmListingWidgetPane->toPlainText();
         msgOutput = &msgListing;
         break;
     case Enu::EPane::EMicrocode:
@@ -550,10 +550,10 @@ bool MainWindow::saveAsFile(Enu::EPane which)
         usingTypes = &objectTypes;
         break;
     case Enu::EPane::EListing:
-        if(ui->AssemblerListingWidgetPane->getCurrentFile().fileName().isEmpty()) {
+        if(ui->AsmListingWidgetPane->getCurrentFile().fileName().isEmpty()) {
             usingFile = QDir(curPath).absoluteFilePath(defListingFile);
         }
-        else usingFile = ui->AssemblerListingWidgetPane->getCurrentFile().fileName();
+        else usingFile = ui->AsmListingWidgetPane->getCurrentFile().fileName();
         usingTitle = &listingTitle;
         usingTypes = &listingTypes;
         break;
@@ -584,7 +584,7 @@ bool MainWindow::saveAsFile(Enu::EPane which)
             ui->AsmObjectCodeWidgetPane->setCurrentFile(fileName);
             break;
         case Enu::EPane::EListing:
-            ui->AssemblerListingWidgetPane->setCurrentFile(fileName);
+            ui->AsmListingWidgetPane->setCurrentFile(fileName);
             break;
         case Enu::EPane::EMicrocode:
             ui->microcodeWidget->setCurrentFile(fileName);
@@ -624,7 +624,7 @@ void MainWindow::print(Enu::EPane which)
         break;
     case Enu::EPane::EListing:
         title = &listing;
-        text = &ui->AssemblerListingWidgetPane->toPlainText();
+        text = &ui->AsmListingWidgetPane->toPlainText();
         break;
     case Enu::EPane::EMicrocode:
         title = &micro;
@@ -712,7 +712,7 @@ void MainWindow::set_Obj_Listing_filenames_from_Source()
         listing = fileInfo.absoluteDir().absoluteFilePath(fileInfo.baseName()+".pepl");
     }
     ui->AsmObjectCodeWidgetPane->setCurrentFile(object);
-    ui->AssemblerListingWidgetPane->setCurrentFile(listing);
+    ui->AsmListingWidgetPane->setCurrentFile(listing);
 }
 
 void MainWindow::doubleClickedCodeLabel(Enu::EPane which)
@@ -744,6 +744,16 @@ void MainWindow::doubleClickedCodeLabel(Enu::EPane which)
 void MainWindow::buttonEnableHelper(const int which)
 {
     // Crack the parameter using DebugButtons to properly enable and disable all buttons related to debugging and running.
+    //Build Actions
+    ui->ActionBuild_Assemble->setEnabled(which&DebugButtons::BUILD_ASM);
+    ui->actionEdit_Remove_Error_Assembler->setEnabled(which&DebugButtons::BUILD_ASM);
+    ui->actionEdit_Format_Assembler->setEnabled(which&DebugButtons::BUILD_ASM);
+    ui->actionBuild_Load_Object->setEnabled(which&DebugButtons::BUILD_ASM);
+    ui->actionBuild_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
+    ui->actionEdit_Remove_Error_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
+    ui->actionEdit_Format_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
+
+    //Debug & Run Actions
     ui->actionBuild_Run->setEnabled(which&DebugButtons::RUN);
     ui->actionBuild_Run_Object->setEnabled(which&DebugButtons::RUN_OBJECT);
     ui->actionDebug_Start_Debugging->setEnabled(which&DebugButtons::DEBUG);
@@ -753,6 +763,7 @@ void MainWindow::buttonEnableHelper(const int which)
     ui->actionDebug_Continue->setEnabled(which&DebugButtons::CONTINUE);
     ui->actionDebug_Restart_Debugging->setEnabled(which&DebugButtons::RESTART);
     ui->actionDebug_Stop_Debugging->setEnabled(which&DebugButtons::STOP);
+    ui->actionDebug_Single_Step_Assembler->setEnabled(which&DebugButtons::SINGLE_STEP_ASM);
     ui->actionDebug_Step_Over_Assembler->setEnabled(which&DebugButtons::STEP_OVER_ASM);
     ui->actionDebug_Step_Into_Assembler->setEnabled(which&DebugButtons::STEP_INTO_ASM);
     ui->actionDebug_Step_Out_Assembler->setEnabled(which&DebugButtons::STEP_OUT_ASM);
@@ -825,8 +836,8 @@ void MainWindow::on_actionFile_New_Asm_triggered()
         ui->AsmSourceCodeWidgetPane->setCurrentFile("");
         ui->AsmObjectCodeWidgetPane->clearObjectCode();
         ui->AsmObjectCodeWidgetPane->setCurrentFile("");
-        ui->AssemblerListingWidgetPane->clearAssemblerListing();
-        ui->AssemblerListingWidgetPane->setCurrentFile("");
+        ui->AsmListingWidgetPane->clearAssemblerListing();
+        ui->AsmListingWidgetPane->setCurrentFile("");
     }
 }
 
@@ -1043,6 +1054,16 @@ void MainWindow::on_actionEdit_Reset_font_to_Default_triggered()
     emit fontChanged(codeFont);
 }
 
+void MainWindow::on_actionBuild_Microcode_triggered()
+{
+    if(ui->microcodeWidget->microAssemble()) {
+        ui->statusBar->showMessage("MicroAssembly succeeded", 4000);
+    }
+    else {
+        ui->statusBar->showMessage("MicroAssembly failed", 4000);
+    }
+}
+
 //Build Events
 void MainWindow::on_ActionBuild_Assemble_triggered()
 {
@@ -1052,20 +1073,22 @@ void MainWindow::on_ActionBuild_Assemble_triggered()
 #pragma message ("TODO: cancel run on burn and reset prog state")
         if(Pep::burnCount > 0) (void)0;
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
-        ui->AssemblerListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList());
+        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList());
         //listingTracePane->setListingTrace(sourceCodePane->getAssemblerListingList(), sourceCodePane->getHasCheckBox());
         //memoryTracePane->setMemoryTrace();
         //listingTracePane->showAssemblerListing();
         set_Obj_Listing_filenames_from_Source();
         loadObjectCodeProgram();
+        ui->statusBar->showMessage("Assembly succeeded", 4000);
     }
     else {
 #pragma message ("TODO: fix current file title if problematic")
         ui->AsmObjectCodeWidgetPane->clearObjectCode();
-        ui->AssemblerListingWidgetPane->clearAssemblerListing();
+        ui->AsmListingWidgetPane->clearAssemblerListing();
         // listingTracePane->clearListingTrace();
         // ui->pepCodeTraceTab->setCurrentIndex(0); // Make source code pane visible
         loadObjectCodeProgram();
+        ui->statusBar->showMessage("Assembly failed", 4000);
     }
 
 }
@@ -1113,18 +1136,19 @@ void MainWindow::handleDebugButtons()
     {
     case DebugState::DISABLED:
         enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
+        enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO;
         break;
     case DebugState::RUN:
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;
         break;
     case DebugState::DEBUG_ISA:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE;
-        enabledButtons |= DebugButtons::STEP_OUT_ASM | DebugButtons::STEP_OVER_ASM | DebugButtons::SINGLE_STEP_MICRO;
+        enabledButtons |= DebugButtons::SINGLE_STEP_ASM | DebugButtons::STEP_OUT_ASM | DebugButtons::STEP_OVER_ASM | DebugButtons::SINGLE_STEP_MICRO;
         enabledButtons |= DebugButtons::STEP_INTO_ASM*(enable_into);
         break;
     case DebugState::DEBUG_MICRO:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE;
-        enabledButtons |= DebugButtons::STEP_OVER_ASM | DebugButtons::SINGLE_STEP_MICRO;
+        enabledButtons |= DebugButtons::SINGLE_STEP_ASM | DebugButtons::SINGLE_STEP_MICRO;
         break;
     case DebugState::DEBUG_RESUMED:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART;
@@ -1156,13 +1180,8 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     connectMicroDraw();
     debugState = DebugState::DISABLED;
     ui->microcodeWidget->clearSimulationView();
-    //objectCodePane->clearSimulationView();
-    // disable the actions available while we're debugging
-    ui->actionDebug_Stop_Debugging->setEnabled(false);
 
-    // enable actions related to editing/starting debugging
-    ui->actionBuild_Run->setEnabled(true);
-    ui->actionDebug_Start_Debugging->setEnabled(true);
+    //objectCodePane->clearSimulationView();
     ui->microcodeWidget->setReadOnly(false);
 
     ui->cpuWidget->stopDebugging();
@@ -1171,6 +1190,11 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     memorySection->clearModifiedBytes();
     ui->memoryWidget->refreshMemory();
     emit simulationFinished();
+}
+
+void MainWindow::on_actionDebug_Interupt_Execution_triggered()
+{
+    on_actionDebug_Stop_Debugging_triggered();
 }
 
 void MainWindow::on_actionDebug_Continue_triggered()
@@ -1188,6 +1212,12 @@ void MainWindow::on_actionDebug_Continue_triggered()
     }
     onSimulationFinished();
 
+}
+
+void MainWindow::on_actionDebug_Restart_Debugging_triggered()
+{
+    on_actionDebug_Stop_Debugging_triggered();
+    on_actionDebug_Start_Debugging_triggered();
 }
 
 void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
@@ -1229,7 +1259,7 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
         }
     } while(callDepth < controlSection->getCallDepth() && !controlSection->getExecutionFinished());
     connectMicroDraw();
-
+    ui->memoryWidget->updateMemory();
     handleDebugButtons();
     highlightActiveLines();
     emit updateSimulation();
@@ -1265,6 +1295,7 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
         }
     } while(callDepth <= controlSection->getCallDepth() && !controlSection->getExecutionFinished());
     connectMicroDraw();
+    ui->memoryWidget->updateMemory();
     handleDebugButtons();
     highlightActiveLines();
     emit updateSimulation();

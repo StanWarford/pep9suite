@@ -29,8 +29,9 @@
 #include <QStyle>
 #include "cpudatasection.h"
 #include "memorysection.h"
+#include "colors.h"
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
-    QWidget(parent), lineSize(0),
+    QWidget(parent), lineSize(0), colors(&PepColors::lightMode),
     ui(new Ui::MemoryDumpPane)
 {
     ui->setupUi(this);
@@ -132,21 +133,23 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
 
 void MemoryDumpPane::clearHighlight()
 {
+
     while (!highlightedData.isEmpty()) {
-        highlightByte(highlightedData.takeFirst(), Qt::black, Qt::white);
+        highlightByte(highlightedData.takeFirst(), ui->textEdit->palette().text().color(), Qt::transparent);
     }
 }
 
 void MemoryDumpPane::highlightPC_SP()
 {
-    highlightByte(data->getRegisterBankWord(CPURegisters::SP), Qt::white, Qt::darkMagenta);
+
+    highlightByte(data->getRegisterBankWord(CPURegisters::SP), colors->altTextHighlight, colors->memoryHighlightSP);
     highlightedData.append(data->getRegisterBankWord(CPURegisters::SP));
     quint16 programCounter = data->getRegisterBankWord(CPURegisters::PC);
     if (!Pep::isUnaryMap[Pep::decodeMnemonic[memory->getMemoryByte(programCounter,false)]]) {
         QTextCursor cursor(ui->textEdit->document());
         QTextCharFormat format;
-        format.setBackground(Qt::blue);
-        format.setForeground(Qt::white);
+        format.setBackground(colors->memoryHighlightPC);
+        format.setForeground(colors->altTextHighlight);
         cursor.setPosition(0);
         for (int i = 0; i < programCounter / 8; i++) {
             cursor.movePosition(QTextCursor::NextBlock);
@@ -187,7 +190,7 @@ void MemoryDumpPane::highlightPC_SP()
         highlightedData.append(programCounter + 2);
     }
     else { // unary.
-        highlightByte(programCounter, Qt::white, Qt::blue);
+        highlightByte(programCounter, colors->altTextHighlight, colors->memoryHighlightPC);
         highlightedData.append(programCounter);
     }
     bytesWrittenLastStep = bytesWrittenLastStep.toSet().toList();
@@ -210,7 +213,7 @@ void MemoryDumpPane::highlightLastWritten()
     auto vals = memory->writtenLastCycle();
     for(quint16 byte : vals)
     {
-        highlightByte(byte, Qt::white, Qt::red);
+        highlightByte(byte, colors->altTextHighlight, colors->memoryHighlightChanged);
         highlightedData.append(byte);
     }
 }
@@ -350,7 +353,8 @@ void MemoryDumpPane::onFontChanged(QFont font)
 
 void MemoryDumpPane::onDarkModeChanged(bool darkMode)
 {
-#pragma message ("TODO: handle dark mode changes gracefully")
+    if(darkMode) colors = &PepColors::darkMode;
+    else colors = &PepColors::lightMode;
 }
 
 void MemoryDumpPane::onMemoryChanged(quint16 address, quint8, quint8)

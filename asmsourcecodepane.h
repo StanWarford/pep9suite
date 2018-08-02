@@ -145,6 +145,7 @@ public:
     void readSettings(QSettings& settings);
 public slots:
     void onFontChanged(QFont font);
+    void onDarkModeChanged(bool darkMode);
 private:
     Ui::SourceCodePane *ui;
     QList<AsmCode *> codeList;
