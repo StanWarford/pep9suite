@@ -36,11 +36,11 @@ ByteConverterInstr::~ByteConverterInstr()
     delete ui;
 }
 
-//void ByteConverterInstr::setValue(int data)
-//{
-//    ui->label->setText(" " + Pep::enumToMnemonMap.value(Pep::decodeMnemonic[data])
-//                       + Pep::commaSpaceToAddrMode(Pep::decodeAddrMode[data]));
-//}
+void ByteConverterInstr::setValue(int data)
+{
+    ui->label->setText(" " + Pep::enumToMnemonMap.value(Pep::decodeMnemonic[data])
+                       + Pep::addrModeToCommaSpace(Pep::decodeAddrMode[data]));
+}
 
 void ByteConverterInstr::changeEvent(QEvent *e)
 {

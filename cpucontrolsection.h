@@ -33,6 +33,9 @@ public:
     virtual ~CPUControlSection();
     void initCPU();
     int getLineNumber() const;
+    // Returns the current call stack depth of the CPU which is equal to the (#CALL + #Traps) - (#RET + #RETTR).
+    // This is helpful information for a debugger.
+    int getCallDepth() const;
     const MicrocodeProgram* getProgram() const;
     const MicroCode* getCurrentMicrocodeLine() const;
     bool getExecutionFinished() const;
@@ -46,6 +49,7 @@ public slots:
     void onDebuggingStarted();
     void onDebuggingFinished();
     void onStep() noexcept;
+    void onISAStep() noexcept; //Step until µPc == 0
     void onClock() noexcept;
     void onRun() noexcept;
     void onClearCPU() noexcept; //This event is propogated to the DataSection
@@ -62,8 +66,8 @@ private:
     CPUDataSection* data;
     MemorySection* memory;
     MicrocodeProgram* program;
-    int microprogramCounter,microCycleCounter,macroCycleCounter;
-    bool inSimulation,hadControlError,executionFinished,isPrefetchValid;
+    int microprogramCounter, microCycleCounter, instructionCounter, callDepth;
+    bool inSimulation, hadControlError, executionFinished, isPrefetchValid;
     QString errorMessage;
 
     void branchHandler(); //Based on the current instruction, set the MPC correctly

@@ -47,8 +47,14 @@ public:
     // Post: The memory dump is refresed from the line containing startByte to the line
     // containing endByte. Called by load().
 
-    void highlightMemory(bool b);
-    // Post: Everything is unhighlighted. If b, current program counter is highlighted.
+    void clearHighlight();
+    // Post: Everything is unhighlighted.
+
+    void highlightPC_SP();
+    // Post: The current program counter & current stack pointer are highlighted.
+
+    void highlightLastWritten();
+    // Post: The byte or word written last cycle is highlighted.
 
     void cacheModifiedBytes();
     // Post: Changed bytes from Sim are added to the QSet modifiedBytes

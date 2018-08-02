@@ -57,7 +57,6 @@ CpuPane::CpuPane( QWidget *parent) :
 
     ui->spinBox->hide();
     ui->graphicsView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-    ui->singleStepPushButton->setEnabled(false);
     this->setMinimumWidth(cpuPaneItems->boundingRect().right()+45);
 }
 
@@ -150,8 +149,6 @@ void CpuPane::initModel()
 
     // Simulation control connections
     connect(ui->clockPushButton, &QAbstractButton::clicked, this, &CpuPane::clockButtonPushed);
-    connect(ui->singleStepPushButton, &QAbstractButton::clicked, this, &CpuPane::singleStepButtonPushed);
-    connect(ui->resumePushButton, &QAbstractButton::clicked, this, &CpuPane::resumeButtonPushed);
 
     // Register editing connnections
     connect(cpuPaneItems->aRegLineEdit, &QLineEdit::textEdited, this, &CpuPane::regTextEdited);
@@ -203,8 +200,6 @@ void CpuPane::initModel()
 
 void CpuPane::startDebugging()
 {
-    ui->resumePushButton->setEnabled(true);
-    ui->singleStepPushButton->setEnabled(true);
     initRegisters();
     controlSection->onDebuggingStarted();
     ui->clockPushButton->setEnabled(false);
@@ -216,8 +211,6 @@ void CpuPane::startDebugging()
 
 void CpuPane::stopDebugging()
 {
-    ui->resumePushButton->setEnabled(false);
-    ui->singleStepPushButton->setEnabled(false);
     controlSection->onDebuggingFinished();
     ui->clockPushButton->setEnabled(true);
     ui->copyToMicrocodePushButton->setEnabled(true);
@@ -460,11 +453,6 @@ void CpuPane::clearCpuControlSignals()
 
 }
 
-void CpuPane::singleStep()
-{
-    singleStepButtonPushed();
-}
-
 void CpuPane::clock()
 {
     clockButtonPushed();
@@ -683,64 +671,6 @@ void CpuPane::clockButtonPushed()
     clearCpuControlSignals();
 }
 
-void CpuPane::singleStepButtonPushed()
-{
-    controlSection->onStep();
-    if (controlSection->hadErrorOnStep()) {
-        // simulation had issues.
-        QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
-        emit stopSimulation();
-
-    }
-
-    if (controlSection->getExecutionFinished()) { // this should be detected on the previous step, but let's be defensive:
-        emit simulationFinished();
-        clearCpuControlSignals();
-    }
-    else {
-        const MicroCodeBase *code = controlSection->getCurrentMicrocodeLine();
-        if (!code->isMicrocode()) {
-            // this will trigger if we're at the end of the simulation and have nothing more to execute
-            emit simulationFinished();
-            clearCpuControlSignals();
-            scene->invalidate();
-            return;
-        }
-        code->setCpuLabels(cpuPaneItems);
-        emit updateSimulation();
-    }
-
-    scene->invalidate();
-
-}
-
-void CpuPane::resumeButtonPushed()
-{
-
-    bool finished = controlSection->getExecutionFinished();
-    if(mainWindow == nullptr)
-    {
-        //throw bad_cast();
-    }
-    else
-    {
-        mainWindow->microResume();
-    }
-    controlSection->onRun();
-    if(controlSection->hadErrorOnStep())
-    {
-        QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
-        emit stopSimulation();
-        clearCpuControlSignals();
-        return; // we'll just return here instead of letting it fail and go to the bottom
-    }
-    finished = true;
-    scene->invalidate();
-    emit simulationFinished();
-    clearCpuControlSignals();
-
-}
-
 void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
 {
     MicroCode code;
@@ -880,12 +810,6 @@ void CpuPane::ALUTextEdited(QString str)
     }
 }
 
-void CpuPane::run()
-{
-    // Run; these are really equivalent:
-    resumeButtonPushed();
-}
-
 void CpuPane::onClockChanged()
 {
     QCheckBox* send = qobject_cast<QCheckBox*>(sender());
@@ -1001,7 +925,7 @@ void CpuPane::repaintOnScroll(int distance)
     cpuPaneItems->update();
 }
 
-void CpuPane::recalculateFromModel()
+void CpuPane::onSimulationUpdate()
 {
     setRegister(Enu::Acc, dataSection->getRegisterBankWord(CPURegisters::A));
     setRegister(Enu::X, dataSection->getRegisterBankWord(CPURegisters::X));

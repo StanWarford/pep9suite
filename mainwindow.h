@@ -34,6 +34,7 @@ class ByteConverterBin;
 class ByteConverterChar;
 class ByteConverterDec;
 class ByteConverterHex;
+class ByteConverterInstr;
 class CPUControlSection;
 class CPUDataSection;
 class CpuPane;
@@ -42,12 +43,16 @@ class MemorySection;
 class MicrocodePane;
 class MicroObjectCodePane;
 class UpdateChecker;
+enum class DebugState
+{
+    DISABLED, DEBUG_ISA, DEBUG_MICRO, DEBUG_RESUMED, RUN
+};
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void microResume(); //The microcode simulator resumed
 protected:
     void changeEvent(QEvent *e);
     void closeEvent(QCloseEvent *e);
@@ -55,17 +60,19 @@ protected:
 
 private:
     Ui::MainWindow *ui;
+    DebugState debugState;
     QString curPath;
     QString darkStyle;
     QString lightStyle;
     QFont codeFont;
     UpdateChecker *updateChecker;
+
     // Byte converter
-    ByteConverterDec *byteConverterDec;
-    ByteConverterHex *byteConverterHex;
     ByteConverterBin *byteConverterBin;
     ByteConverterChar *byteConverterChar;
-
+    ByteConverterDec *byteConverterDec;
+    ByteConverterHex *byteConverterHex;
+    ByteConverterInstr *byteConverterInstr;
     // Main Memory
 
     HelpDialog *helpDialog;
@@ -100,6 +107,28 @@ private:
 
     void set_Obj_Listing_filenames_from_Source();
     void doubleClickedCodeLabel(Enu::EPane which);
+
+    // Debug helper functions
+
+    // This struct contains bit masks for each button that needs to be enabled or disabled deppending on the current state of the debugging FSM
+    // See buttonEnableHelper(int)
+    struct DebugButtons
+    {
+        static const int RUN = 1<<0, RUN_OBJECT = 1<<1, DEBUG = 1<<2, DEBUG_OBJECT = 1<<3, DEBUG_LOADER = 1<<4,
+        INTERRUPT = 1<<5, CONTINUE = 1<<6, RESTART = 1<<7, STOP = 1<<8, STEP_OVER_ASM = 1<<9, STEP_INTO_ASM = 1<<10,
+        STEP_OUT_ASM = 1<<11, SINGLE_STEP_MICRO = 1<<12;
+    };
+    // Which debug buttons to enable, based on integer cracking of the above struct. It is not strongly typed with an enum, because all of the casting
+    // would add signifcant code volume, and it would not increase code clarity.
+    // To enable only the run and stop buttons one would call "buttonEnableHelper(DebugButtons::RUN | DebugButtons::STOP)".
+    void buttonEnableHelper(const int which);
+
+    // Coordinates higlighting of memory, microcode pane, micro object code pane, and assembler listings.
+    void highlightActiveLines();
+
+    // Update the views and initialize the models in a way that can be used for debugging or running.
+    bool initializeSimulation();
+
 private slots:
     // Update Check
     void onUpdateCheck(int val);
@@ -128,8 +157,10 @@ private slots:
     void on_actionEdit_Copy_triggered();
     void on_actionEdit_Paste_triggered();
     void on_actionEdit_UnComment_Line_triggered();
-    void on_actionEdit_Auto_Format_Microcode_triggered();
-    void on_actionEdit_Remove_Error_Messages_triggered();
+    void on_actionEdit_Format_Assembler_triggered();
+    void on_actionEdit_Format_Microcode_triggered();
+    void on_actionEdit_Remove_Error_Assembler_triggered();
+    void on_actionEdit_Remove_Error_Microcode_triggered();
     void on_actionEdit_Font_triggered();
     void on_actionEdit_Reset_font_to_Default_triggered();
 
@@ -139,13 +170,28 @@ private slots:
     void on_actionBuild_Run_Object_triggered();
     void on_actionBuild_Run_triggered();
 
+
+    //Debug Events
+    void handleDebugButtons();
+    bool on_actionDebug_Start_Debugging_triggered();
+    void on_actionDebug_Stop_Debugging_triggered();
+
+    void on_actionDebug_Continue_triggered();
+
+    void on_actionDebug_Step_Over_Assembler_triggered();
+    void on_actionDebug_Step_Into_Assembler_triggered();
+    void on_actionDebug_Step_Out_Assembler_triggered();
+
+    void on_actionDebug_Single_Step_Microcode_triggered();
+
     // System
-    bool on_actionSystem_Start_Debugging_triggered();
-    void on_actionSystem_Stop_Debugging_triggered();
+
     void on_actionSystem_Clear_CPU_triggered();
     void on_actionSystem_Clear_Memory_triggered();
+
     //Run events
     void onSimulationFinished();
+
     // View
     void on_actionDark_Mode_triggered();
     // Help
@@ -170,9 +216,6 @@ private slots:
     void setUndoability(bool b);
     void setRedoability(bool b);
 
-    void updateSimulation();
-    void stopSimulation();
-    void simulationFinished();
     void appendMicrocodeLine(QString string);
 
     void helpCopyToMicrocodeButtonClicked();
@@ -185,7 +228,8 @@ private slots:
 signals:
     void beginUpdateCheck();
     void beginSimulation();
-    void endSimulation();
+    void updateSimulation();
+    void simulationFinished();
     //If a sub-compnent wants to be notified that fonts should be restored to their default values, connect to this signal.
     void fontChanged(QFont font);
     void darkModeChanged(bool);

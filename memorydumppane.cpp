@@ -130,84 +130,106 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
     ui->textEdit->horizontalScrollBar()->setValue(horizScrollBarPosition);
 }
 
-void MemoryDumpPane::highlightMemory(bool b)
+void MemoryDumpPane::clearHighlight()
 {
     while (!highlightedData.isEmpty()) {
         highlightByte(highlightedData.takeFirst(), Qt::black, Qt::white);
     }
+}
 
-    if (b) {
-        highlightByte(data->getRegisterBankWord(CPURegisters::SP), Qt::white, Qt::darkMagenta);
-        highlightedData.append(data->getRegisterBankWord(CPURegisters::SP));
-        quint16 programCounter = data->getRegisterBankWord(CPURegisters::PC);
-        if (!Pep::isUnaryMap[Pep::decodeMnemonic[memory->getMemoryByte(programCounter,false)]]) {
-            QTextCursor cursor(ui->textEdit->document());
-            QTextCharFormat format;
-            format.setBackground(Qt::blue);
-            format.setForeground(Qt::white);
-            cursor.setPosition(0);
-            for (int i = 0; i < programCounter / 8; i++) {
-                cursor.movePosition(QTextCursor::NextBlock);
-            }
-            for (int i = 0; i < 7 + 3 * (programCounter % 8); i++) {
-                cursor.movePosition(QTextCursor::NextCharacter);
-            }
+void MemoryDumpPane::highlightPC_SP()
+{
+    highlightByte(data->getRegisterBankWord(CPURegisters::SP), Qt::white, Qt::darkMagenta);
+    highlightedData.append(data->getRegisterBankWord(CPURegisters::SP));
+    quint16 programCounter = data->getRegisterBankWord(CPURegisters::PC);
+    if (!Pep::isUnaryMap[Pep::decodeMnemonic[memory->getMemoryByte(programCounter,false)]]) {
+        QTextCursor cursor(ui->textEdit->document());
+        QTextCharFormat format;
+        format.setBackground(Qt::blue);
+        format.setForeground(Qt::white);
+        cursor.setPosition(0);
+        for (int i = 0; i < programCounter / 8; i++) {
+            cursor.movePosition(QTextCursor::NextBlock);
+        }
+        for (int i = 0; i < 7 + 3 * (programCounter % 8); i++) {
+            cursor.movePosition(QTextCursor::NextCharacter);
+        }
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
+        cursor.mergeCharFormat(format);
+        highlightedData.append(programCounter);
+        if (programCounter / 8 == (programCounter + 1) / 8) {
+            cursor.clearSelection();
+            cursor.movePosition(QTextCursor::NextCharacter);
             cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
             cursor.mergeCharFormat(format);
-            highlightedData.append(programCounter);
-            if (programCounter / 8 == (programCounter + 1) / 8) {
-                cursor.clearSelection();
-                cursor.movePosition(QTextCursor::NextCharacter);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
-                cursor.mergeCharFormat(format);
-            }
-            else {
-                cursor.clearSelection();
-                cursor.movePosition(QTextCursor::NextBlock);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, 7);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
-                cursor.mergeCharFormat(format);
-            }
-            highlightedData.append(programCounter + 1);
-            if ((programCounter + 1) / 8 == (programCounter + 2) / 8) {
-                cursor.clearSelection();
-                cursor.movePosition(QTextCursor::NextCharacter);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
-                cursor.mergeCharFormat(format);
-            }
-            else {
-                cursor.clearSelection();
-                cursor.movePosition(QTextCursor::NextBlock);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, 7);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
-                cursor.mergeCharFormat(format);
-            }
-            highlightedData.append(programCounter + 2);
         }
-        else { // unary.
-            highlightByte(programCounter, Qt::white, Qt::blue);
-            highlightedData.append(programCounter);
+        else {
+            cursor.clearSelection();
+            cursor.movePosition(QTextCursor::NextBlock);
+            cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, 7);
+            cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
+            cursor.mergeCharFormat(format);
         }
+        highlightedData.append(programCounter + 1);
+        if ((programCounter + 1) / 8 == (programCounter + 2) / 8) {
+            cursor.clearSelection();
+            cursor.movePosition(QTextCursor::NextCharacter);
+            cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
+            cursor.mergeCharFormat(format);
+        }
+        else {
+            cursor.clearSelection();
+            cursor.movePosition(QTextCursor::NextBlock);
+            cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, 7);
+            cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
+            cursor.mergeCharFormat(format);
+        }
+        highlightedData.append(programCounter + 2);
+    }
+    else { // unary.
+        highlightByte(programCounter, Qt::white, Qt::blue);
+        highlightedData.append(programCounter);
+    }
+    bytesWrittenLastStep = bytesWrittenLastStep.toSet().toList();
+          qSort(bytesWrittenLastStep);
+          #pragma message("Todo: prevent memory highlighting while in trap")
+          /*while (!bytesWrittenLastStep.isEmpty()) {
+              // This is to prevent bytes modified by the OS from being highlighted when we are not tracing traps:
+              if (bytesWrittenLastStep.at(0) < Sim::readWord(Pep::dotBurnArgument - 0x7) || Sim::trapped) {
+                  highlightByte(bytesWrittenLastStep.at(0), Qt::white, Qt::red);
+                  highlightedData.append(bytesWrittenLastStep.takeFirst());
+              }
+              else {
+                  return;
+              }
+          */
+}
 
-        bytesWrittenLastStep = bytesWrittenLastStep.toSet().toList();
-        qSort(bytesWrittenLastStep);
-        #pragma message("Todo: prevent memory highlighting while in trap")
-        /*while (!bytesWrittenLastStep.isEmpty()) {
-            // This is to prevent bytes modified by the OS from being highlighted when we are not tracing traps:
-            if (bytesWrittenLastStep.at(0) < Sim::readWord(Pep::dotBurnArgument - 0x7) || Sim::trapped) {
-                highlightByte(bytesWrittenLastStep.at(0), Qt::white, Qt::red);
-                highlightedData.append(bytesWrittenLastStep.takeFirst());
-            }
-            else {
-                return;
-            }
-        }*/
+void MemoryDumpPane::highlightLastWritten()
+{
+    auto vals = memory->writtenLastCycle();
+    for(quint16 byte : vals)
+    {
+        highlightByte(byte, Qt::white, Qt::red);
+        highlightedData.append(byte);
     }
 }
 
 void MemoryDumpPane::cacheModifiedBytes()
 {
-    #pragma message("TODO: Handle clear of memory bytes")
+    QSet<quint16> tempConstruct, tempDestruct = memory->modifiedBytes();
+    modifiedBytes = memory->modifiedBytes();
+    memory->clearModifiedBytes();
+    for(quint16 val : tempDestruct)
+    {
+        if(tempConstruct.contains(val)) continue;
+        for(quint16 temp = val - val%8;temp%8<=7;temp++)
+        {
+            tempConstruct.insert(temp);
+        }
+        refreshMemoryLines(val - val%8,val - val%8 + 1);
+
+    }
     /*modifiedBytes.unite(Sim::modifiedBytes);
     if (Sim::tracingTraps) {
         bytesWrittenLastStep.clear();
@@ -237,10 +259,8 @@ void MemoryDumpPane::updateMemory()
     QChar ch;
     quint16 byteNum;
     quint16 lineNum;
-    const QVector<quint8> values = memory->getMemory();
-#pragma message("TODO: Handle bytes changed")
-    /*
-    modifiedBytes.unite(Sim::modifiedBytes);
+    modifiedBytes.unite(memory->modifiedBytes());
+    memory->clearModifiedBytes();
     list = modifiedBytes.toList();
     while(!list.isEmpty()) {
         linesToBeUpdated.insert(list.takeFirst() / 8);
@@ -250,7 +270,11 @@ void MemoryDumpPane::updateMemory()
     QTextCursor cursor(ui->textEdit->document());
     cursor.setPosition(0);
     lineNum = 0;
-    while (!list.isEmpty()) {
+    for(auto x: list)
+    {
+        refreshMemoryLines(x, x+1);
+    }
+    /*while (!list.isEmpty()) {
         while (lineNum < list.first()) {
             cursor.movePosition(QTextCursor::NextBlock);
             lineNum++;
@@ -260,12 +284,12 @@ void MemoryDumpPane::updateMemory()
         byteNum = lineNum * 8;
         memoryDumpLine.append(QString("%1 | ").arg(byteNum, 4, 16, QLatin1Char('0')).toUpper());
         for (int j = 0; j < 8; j++) {
-            memoryDumpLine.append(QString("%1 ").arg(Sim::Mem[byteNum++], 2, 16, QLatin1Char('0')).toUpper());
+            memoryDumpLine.append(QString("%1 ").arg(memory->getMemoryByte(byteNum++,false), 2, 16, QLatin1Char('0')).toUpper());
         }
         memoryDumpLine.append("|");
         byteNum = lineNum * 8;
         for (int j = 0; j < 8; j++) {
-            ch = QChar(Sim::Mem[byteNum++]);
+            ch = QChar(memory->getMemoryByte(byteNum++,false));
             if (ch.isPrint()) {
                 memoryDumpLine.append(ch);
             } else {
@@ -278,12 +302,11 @@ void MemoryDumpPane::updateMemory()
         cursor.movePosition(QTextCursor::NextBlock);
         lineNum++;
         list.removeFirst();
-    }
+    }*/
     modifiedBytes.clear();
 
     ui->textEdit->verticalScrollBar()->setValue(vertScrollBarPosition);
     ui->textEdit->horizontalScrollBar()->setValue(horizScrollBarPosition);
-*/
 }
 
 void MemoryDumpPane::scrollToTop()
