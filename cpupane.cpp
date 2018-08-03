@@ -947,6 +947,8 @@ void CpuPane::onSimulationUpdate()
     setStatusBit(Enu::V, dataSection->getStatusBit(Enu::STATUS_V));
     setStatusBit(Enu::Cbit, dataSection->getStatusBit(Enu::STATUS_C));
     setStatusBit(Enu::S, dataSection->getStatusBit(Enu::STATUS_S));
+    const MicroCodeBase *code = controlSection->getCurrentMicrocodeLine();
+    code->setCpuLabels(cpuPaneItems);
     update();
 }
 

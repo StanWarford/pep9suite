@@ -105,8 +105,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::redoAvailable, this, &MainWindow::setRedoability);
     //connect(ui->microcodeWidget, &MicrocodePane::undoAvailable, this, &MainWindow::setUndoability);
     //connect(ui->microcodeWidget, &MicrocodePane::redoAvailable, this, &MainWindow::setRedoability);
-    //Connect CPU widget
-    connect(ui->cpuWidget, &CpuPane::writeByte, this, &MainWindow::updateMemAddress);
 
     //Connect Simulation events
 #pragma message ("TODO: fix micro object code pane")
@@ -1222,6 +1220,7 @@ void MainWindow::on_actionDebug_Restart_Debugging_triggered()
 
 void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
 {
+    debugState = DebugState::DEBUG_ISA;
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[memorySection->getMemoryByte(dataSection->getRegisterBankWord(CPURegisters::PC), false)];
     bool isTrap = Pep::isTrapMap[mnemon];
     if(isTrap && ui->actionSystem_Trace_Traps->isChecked()){ //If it is a trap instruction & we are tracing traps, step into the trap.
@@ -1310,7 +1309,6 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
         QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
-
     handleDebugButtons();
     highlightActiveLines();
     emit updateSimulation();
@@ -1590,13 +1588,6 @@ void MainWindow::helpCopyToMicrocodeButtonClicked()
         helpDialog->hide();
         statusBar()->showMessage("Copied to microcode", 4000);
     }
-}
-
-void MainWindow::updateMemAddress(int address)
-{
-#pragma message("TODO: Connect Memory Dump Pane to event loop")
-    //mainMemory->setMemAddress(address, memorySection->getMemoryByte(address, false));
-    //mainMemory->showMemEdited(address);
 }
 
 void MainWindow::onInputRequested()
