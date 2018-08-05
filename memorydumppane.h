@@ -25,6 +25,7 @@
 #include <QWidget>
 #include <QScrollBar>
 #include <QSet>
+#include <QStandardItemModel>
 #include "colors.h"
 namespace Ui {
     class MemoryDumpPane;
@@ -37,7 +38,7 @@ class MemoryDumpPane : public QWidget {
 public:
     explicit MemoryDumpPane(QWidget *parent = 0);
     //Needs to be called before this class can be used
-    void init(MemorySection *memory, CPUDataSection *data);
+    void init(MemorySection *memorySection, CPUDataSection *dataSection);
     virtual ~MemoryDumpPane();
 
     void refreshMemory();
@@ -84,10 +85,11 @@ public slots:
     void onMemoryChanged(quint16 address, quint8, quint8);
 
 private:
-    quint32 lineSize;
     Ui::MemoryDumpPane *ui;
-    MemorySection *memory;
-    CPUDataSection *data;
+    quint32 lineSize;
+    QStandardItemModel* data;
+    MemorySection *memorySection;
+    CPUDataSection *dataSection;
     const PepColors::Colors *colors;
     QList<quint16> highlightedData;
     // This is a list of bytes that are currently highlighted.

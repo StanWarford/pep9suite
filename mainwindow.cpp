@@ -1161,6 +1161,8 @@ bool MainWindow::on_actionDebug_Start_Debugging_triggered()
 {
     connectMicroDraw();
     debugState = DebugState::DEBUG_ISA;
+    loadObjectCodeProgram();
+    loadOperatingSystem();
     if(initializeSimulation()) {
         controlSection->onDebuggingStarted();
         ui->cpuWidget->startDebugging();
@@ -1323,8 +1325,8 @@ void MainWindow::on_actionSystem_Clear_CPU_triggered()
 
 void MainWindow::on_actionSystem_Clear_Memory_triggered()
 {
-    ui->memoryWidget->refreshMemory();
     controlSection->onClearMemory();
+    ui->memoryWidget->refreshMemory();
 }
 
 void MainWindow::onSimulationFinished()
