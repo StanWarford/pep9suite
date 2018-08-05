@@ -17,9 +17,13 @@ public:
     quint8 getMemoryByte(quint16 address, bool useIOPorts) const;
     quint16 getMemoryWord(quint16 address, bool useIOPorts) const; //Uses the same even / odd conventions as Pep9
     const QVector<quint8> getMemory() const; //Returns a shared copy of the memory vector
-    bool hadErroronStep() const;
+    bool hadErrorOnStep() const;
     const QString getErrorMessage();
-    const QSet<quint16> changedAddresses() const;
+    //Returns a set containing the last byte or word that was modified
+    const QSet<quint16> writtenLastCycle() const;
+    //Returns a set containing the bytes modifed since clearModifiedBytes or clearMemory was called.
+    const QSet<quint16> modifiedBytes() const;
+    void clearModifiedBytes();
 
     void setMemoryByte(quint16 address, quint8 value);
     void setMemoryWord(quint16 address, quint16 value);
@@ -38,7 +42,7 @@ public slots:
     void onSetMemoryWord(quint16 address,quint16 val); //This doesn't enforce aligned memory access
     void onClearMemory() noexcept;
 #pragma message("TODO: Make memory section report on bytes changed")
-    void onInstructionFinished() noexcept;
+    void onInstructionStarted() noexcept;
 
     void onMemorySizeChanged(quint16 maxBytes);
     void onIPortChanged(quint16 newIPort);
@@ -58,7 +62,7 @@ private:
 
     quint16 maxBytes, iPort, oPort;
     QVector<quint8> memory;
-    QSet<quint16> completedCycle,inProgress;
+    QSet<quint16> modifiedBytesSet, lastWrittenBytes;
     void initializeMemory();
 };
 

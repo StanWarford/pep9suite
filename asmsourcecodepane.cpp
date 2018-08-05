@@ -31,7 +31,7 @@
 #include "asmcode.h"
 #include "memorysection.h"
 #include "pep.h"
-
+#include "colors.h"
 
 // #include <QDebug>
 
@@ -43,7 +43,7 @@ AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
 
     connect(ui->textEdit->document(), SIGNAL(modificationChanged(bool)), this, SLOT(setLabelToModified(bool)));
 
-    pepHighlighter = new PepASMHighlighter(ui->textEdit->document());
+    pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->textEdit->document());
 
     connect(ui->textEdit, SIGNAL(undoAvailable(bool)), this, SIGNAL(undoAvailable(bool)));
     connect(ui->textEdit, SIGNAL(redoAvailable(bool)), this, SIGNAL(redoAvailable(bool)));
@@ -426,6 +426,13 @@ void AsmSourceCodePane::readSettings(QSettings &settings)
 void AsmSourceCodePane::onFontChanged(QFont font)
 {
     ui->textEdit->setFont(font);
+}
+
+void AsmSourceCodePane::onDarkModeChanged(bool darkMode)
+{
+    if(darkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
+    else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
+    pepHighlighter->rehighlight();
 }
 
 void AsmSourceCodePane::mouseReleaseEvent(QMouseEvent *)

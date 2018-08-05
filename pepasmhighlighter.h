@@ -26,7 +26,7 @@
 
 #include <QHash>
 #include <QTextCharFormat>
-
+#include "colors.h"
 QT_BEGIN_NAMESPACE
 class QTextDocument;
 QT_END_NAMESPACE
@@ -34,8 +34,8 @@ QT_END_NAMESPACE
 class PepASMHighlighter : public QSyntaxHighlighter
 {
 public:
-    PepASMHighlighter(QTextDocument *parent = 0);
-
+    PepASMHighlighter(PepColors::Colors colors, QTextDocument *parent = 0);
+    void rebuildHighlightingRules(PepColors::Colors color);
 protected:
     void highlightBlock(const QString &text);
 
@@ -45,6 +45,7 @@ private:
         QRegExp pattern;
         QTextCharFormat format;
     };
+    PepColors::Colors colors;
     QVector<HighlightingRule> highlightingRules;
 
     QRegExp commentStartExpression;
@@ -54,7 +55,7 @@ private:
     QTextCharFormat dotFormat;
     QTextCharFormat symbolFormat;
     QTextCharFormat singleLineCommentFormat;
-    QTextCharFormat multiLineCommentFormat;
+    QTextCharFormat errorCommentFormat;
     QTextCharFormat singleQuotationFormat;
     QTextCharFormat doubleQuotationFormat;
     QTextCharFormat warningFormat;

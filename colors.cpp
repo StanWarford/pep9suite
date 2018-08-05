@@ -7,9 +7,12 @@ const PepColors::Colors PepColors::initDark()
     retVal.comment = QColor(Qt::green).lighter();
     retVal.leftOfExpression = QColor("lightsteelblue");
     retVal.rightOfExpression = QColor(Qt::red).lighter();
-    retVal.symbolHighlight =QColor("firebrick");
+    retVal.symbolHighlight = QColor("firebrick");
     retVal.conditionalHighlight = QColor("orange");
     retVal.branchFunctionHighlight = QColor("lightblue");
+    retVal.warningHighlight = QColor("lightsteelblue");
+    retVal.errorHighlight = QColor("orangered");
+    retVal.altTextHighlight = Qt::black;
 
     retVal.seqCircuitColor= QColor(0x3B3630).lighter(200); //Used to be 370 0x3B3630
     retVal.combCircuitRed = QColor(0xDF5A49);
@@ -31,7 +34,9 @@ const PepColors::Colors PepColors::initDark()
     retVal.arrowImageOn=(":/images/arrowhead_dark.png");
     retVal.arrowImageOff=(":/images/arrowhead_gray.png");
 
-    retVal.memoryHighlight = retVal.muxCircuitGreen;
+    retVal.memoryHighlightSP = QColor("Magenta");
+    retVal.memoryHighlightPC = QColor("skyblue");
+    retVal.memoryHighlightChanged = QColor("orangered");
     retVal.lineAreaBackground = retVal.backgroundFill;
     retVal.lineAreaText = PepColors::invert(retVal.lineAreaBackground).lighter(130);
     retVal.lineAreaHighlight = QColor(Qt::red).darker(170);
@@ -48,6 +53,9 @@ const PepColors::Colors PepColors::initLight()
     retVal.symbolHighlight =QColor("firebrick");
     retVal.conditionalHighlight = QColor("orange");
     retVal.branchFunctionHighlight = QColor("red");
+    retVal.warningHighlight = Qt::darkBlue;
+    retVal.errorHighlight = Qt::red;
+    retVal.altTextHighlight = Qt::white;
 
     retVal.seqCircuitColor= QColor(0x3B3630).lighter(370);
     retVal.combCircuitRed = QColor(0xD92405).lighter(140);
@@ -69,7 +77,9 @@ const PepColors::Colors PepColors::initLight()
     retVal.arrowImageOn=(":/images/arrowhead.png");
     retVal.arrowImageOff=(":/images/arrowhead_gray.png");
 
-    retVal.memoryHighlight = retVal.muxCircuitGreen;
+    retVal.memoryHighlightSP = Qt::darkMagenta;
+    retVal.memoryHighlightPC = Qt::blue;
+    retVal.memoryHighlightChanged = Qt::red;
     retVal.lineAreaBackground = retVal.backgroundFill;
     retVal.lineAreaText = PepColors::invert(retVal.lineAreaBackground);
     retVal.lineAreaHighlight = QColor(Qt::red).lighter(170);

@@ -21,30 +21,30 @@
 
 #include <QScrollBar>
 #include <QFontDialog>
-#include "assemblerlistingpane.h"
-#include "ui_assemblerlistingpane.h"
+#include "asmlistingpane.h"
+#include "ui_asmlistingpane.h"
 #include "pep.h"
 #include "pepasmhighlighter.h"
 #include <QMouseEvent>
-
-AssemblerListingPane::AssemblerListingPane(QWidget *parent) :
+#include "colors.h"
+AsmListingPane::AsmListingPane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::AssemblerListingPane), currentFile()
+        ui(new Ui::AsmListingPane), currentFile()
 {
     ui->setupUi(this);
 
-    pepHighlighter = new PepASMHighlighter(ui->textEdit->document());
+    pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->textEdit->document());
 
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
     ui->textEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
 }
 
-AssemblerListingPane::~AssemblerListingPane()
+AsmListingPane::~AsmListingPane()
 {
     delete ui;
 }
 
-void AssemblerListingPane::setAssemblerListing(QStringList assemblerListingList) {
+void AsmListingPane::setAssemblerListing(QStringList assemblerListingList) {
     clearAssemblerListing();
     ui->textEdit->append("-------------------------------------------------------------------------------");
     ui->textEdit->append("      Object");
@@ -82,22 +82,22 @@ void AssemblerListingPane::setAssemblerListing(QStringList assemblerListingList)
     ui->textEdit->verticalScrollBar()->setValue(ui->textEdit->verticalScrollBar()->minimum());
 }
 
-void AssemblerListingPane::clearAssemblerListing()
+void AsmListingPane::clearAssemblerListing()
 {
     ui->textEdit->clear();
 }
 
-bool AssemblerListingPane::isModified()
+bool AsmListingPane::isModified()
 {
     return ui->textEdit->document()->isModified();
 }
 
-QString AssemblerListingPane::toPlainText()
+QString AsmListingPane::toPlainText()
 {
     return ui->textEdit->toPlainText();
 }
 
-void AssemblerListingPane::setCurrentFile(QString string)
+void AsmListingPane::setCurrentFile(QString string)
 {
     if (!string.isEmpty()) {
         currentFile.setFileName(string);
@@ -109,12 +109,12 @@ void AssemblerListingPane::setCurrentFile(QString string)
     }
 }
 
-const QFile &AssemblerListingPane::getCurrentFile() const
+const QFile &AsmListingPane::getCurrentFile() const
 {
     return currentFile;
 }
 
-void AssemblerListingPane::highlightOnFocus()
+void AsmListingPane::highlightOnFocus()
 {
     if (ui->textEdit->hasFocus()) {
         ui->label->setAutoFillBackground(true);
@@ -124,37 +124,44 @@ void AssemblerListingPane::highlightOnFocus()
     }
 }
 
-bool AssemblerListingPane::hasFocus()
+bool AsmListingPane::hasFocus()
 {
     return ui->textEdit->hasFocus();
 }
 
-void AssemblerListingPane::copy()
+void AsmListingPane::copy()
 {
     ui->textEdit->copy();
 }
 
-void AssemblerListingPane::setFocus()
+void AsmListingPane::setFocus()
 {
     ui->textEdit->setFocus();
 }
 
-bool AssemblerListingPane::isEmpty()
+bool AsmListingPane::isEmpty()
 {
     return ui->textEdit->toPlainText() == "";
 }
 
-void AssemblerListingPane::onFontChanged(QFont font)
+void AsmListingPane::onFontChanged(QFont font)
 {
     ui->textEdit->setFont(font);
 }
 
-void AssemblerListingPane::mouseReleaseEvent(QMouseEvent *)
+void AsmListingPane::onDarkModeChanged(bool darkMode)
+{
+    if(darkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
+    else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
+    pepHighlighter->rehighlight();
+}
+
+void AsmListingPane::mouseReleaseEvent(QMouseEvent *)
 {
     ui->textEdit->setFocus();
 }
 
-void AssemblerListingPane::mouseDoubleClickEvent(QMouseEvent *)
+void AsmListingPane::mouseDoubleClickEvent(QMouseEvent *)
 {
     emit labelDoubleClicked(Enu::EPane::EListing);
 }

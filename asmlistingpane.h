@@ -27,14 +27,14 @@
 #include "enu.h"
 #include "pepasmhighlighter.h"
 namespace Ui {
-    class AssemblerListingPane;
+    class AsmListingPane;
 }
-class AssemblerListingPane : public QWidget {
+class AsmListingPane : public QWidget {
     Q_OBJECT
-    Q_DISABLE_COPY(AssemblerListingPane)
+    Q_DISABLE_COPY(AsmListingPane)
 public:
-    explicit AssemblerListingPane(QWidget *parent = 0);
-    virtual ~AssemblerListingPane();
+    explicit AsmListingPane(QWidget *parent = 0);
+    virtual ~AsmListingPane();
     void setAssemblerListing(QStringList assemblerListingList);
     void clearAssemblerListing();
 
@@ -69,9 +69,9 @@ public:
 
 public slots:
     void onFontChanged(QFont font);
-
+    void onDarkModeChanged(bool darkMode);
 private:
-    Ui::AssemblerListingPane *ui;
+    Ui::AsmListingPane *ui;
 
     PepASMHighlighter *pepHighlighter;
 

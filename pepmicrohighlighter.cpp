@@ -35,6 +35,7 @@ void PepMicroHighlighter::forceAllFeatures(bool features)
 
 void PepMicroHighlighter::rebuildHighlightingRules(PepColors::Colors color)
 {
+    colors = color;
     HighlightingRule rule;
 
     highlightingRulesOne.clear();
@@ -126,8 +127,8 @@ void PepMicroHighlighter::rebuildHighlightingRules(PepColors::Colors color)
 
     highlightingRulesAll.append(highlightingRulesOne);
     highlightingRulesAll.append(highlightingRulesTwo);
-    multiLineCommentFormat.setForeground(Qt::white);
-    multiLineCommentFormat.setBackground(Qt::red);
+    errorCommentFormat.setForeground(color.altTextHighlight);
+    errorCommentFormat.setBackground(color.errorHighlight);
 
     commentStartExpression = QRegExp("//\\sERROR:[\\s]");
     commentEndExpression = QRegExp("$");
@@ -170,7 +171,7 @@ void PepMicroHighlighter::highlightBlock(const QString &text)
             commentLength = endIndex - startIndex
                             + commentEndExpression.matchedLength();
         }
-        setFormat(startIndex, commentLength, multiLineCommentFormat);
+        setFormat(startIndex, commentLength, errorCommentFormat);
         startIndex = commentStartExpression.indexIn(text, startIndex + commentLength);
     }
 }
