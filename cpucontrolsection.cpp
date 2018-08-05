@@ -43,8 +43,8 @@ CPUControlSection::~CPUControlSection()
 
 void CPUControlSection::initCPU()
 {
-    data->setRegisterByte(4,0xFB);
-    data->setRegisterByte(5,0xF8);
+    data->onSetRegisterByte(4,0xFB);
+    data->onSetRegisterByte(5,0xF8);
 }
 
 void CPUControlSection::setMicrocodeProgram(MicrocodeProgram *program)

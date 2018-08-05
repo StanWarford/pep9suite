@@ -96,10 +96,6 @@ private:
 
     //Set the values values of the sequential data registers (numbers 22-31)
     void presetStaticRegisters() noexcept;
-    //Set CPU state and emit appropriate change event
-    inline void setMemoryRegister(Enu::EMemoryRegisters,quint8 value);
-    inline void setRegisterByte(quint8 register,quint8 value);
-    inline void setStatusBit(Enu::EStatusBit,bool val);
 
     //Simulation stepping logic
     void handleMainBusState() noexcept;

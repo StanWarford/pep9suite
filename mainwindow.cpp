@@ -602,7 +602,8 @@ QString MainWindow::strippedName(const QString &fullFileName)
 
 void MainWindow::print(Enu::EPane which)
 {
-    const QString *text;
+    //Don't use a pointer here, because one will receive a pointer to a temporary object from toPlainText()
+    QString text;
     const QString base = "Print %1";
     const QString source = base.arg("Assembler Source Code");
     const QString object = base.arg("Object Code");
@@ -613,22 +614,22 @@ void MainWindow::print(Enu::EPane which)
     {
     case Enu::EPane::ESource:
         title = &source;
-        text = &ui->AsmSourceCodeWidgetPane->toPlainText();
+        text = ui->AsmSourceCodeWidgetPane->toPlainText();
         break;
     case Enu::EPane::EObject:
         title = &object;
-        text = &ui->AsmObjectCodeWidgetPane->toPlainText();
+        text = ui->AsmObjectCodeWidgetPane->toPlainText();
         break;
     case Enu::EPane::EListing:
         title = &listing;
-        text = &ui->AssemblerListingWidgetPane->toPlainText();
+        text = ui->AssemblerListingWidgetPane->toPlainText();
         break;
     case Enu::EPane::EMicrocode:
         title = &micro;
-        text = &ui->microcodeWidget->getMicrocode();
+        text = ui->microcodeWidget->getMicrocode();
         break;
     }
-    QTextDocument document(*text, this);
+    QTextDocument document(text, this);
     document.setDefaultFont(QFont("Courier", 10, -1));
 
     QPrinter printer(QPrinter::HighResolution);
