@@ -156,8 +156,7 @@ void MemoryDumpPane::highlightPC_SP()
 
 void MemoryDumpPane::highlightLastWritten()
 {
-    auto vals = memorySection->writtenLastCycle();
-    for(quint16 byte : vals) {
+    for(quint16 byte : modifiedBytes) {
         highlightByte(byte, colors->altTextHighlight, colors->memoryHighlightChanged);
         highlightedData.append(byte);
     }

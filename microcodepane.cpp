@@ -143,7 +143,7 @@ void MicrocodePane::appendMessageInSourceCodePaneAt(int lineNumber, QString mess
     QTextCursor cursor(editor->document());
     if (lineNumber == -2) {
         cursor.setPosition(editor->textCursor().position());
-        cursor.movePosition(QTextCursor::NextBlock);
+        cursor.movePosition(QTextCursor::EndOfLine);
         cursor.clearSelection();
         editor->setTextCursor(cursor);
         editor->ensureCursorVisible();

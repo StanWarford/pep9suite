@@ -743,6 +743,7 @@ void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
     if (cpuPaneItems->MemWriteTristateLabel->text() != "") {
         code.setControlSignal(Enu::MemWrite, cpuPaneItems->MemWriteTristateLabel->text().toInt());
     }
+    code.setBranchFunction(Enu::Assembler_Assigned);
     emit appendMicrocodeLine(code.getSourceCode());
 }
 

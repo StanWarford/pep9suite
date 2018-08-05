@@ -1,6 +1,5 @@
 HEADERS += \
     $$PWD/pepasmhighlighter.h \
-    $$PWD/listingtracepane.h \
     $$PWD/isaasm.h \
     $$PWD/asmcode.h \
     $$PWD/asmobjectcodepane.h \
@@ -10,7 +9,6 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/pepasmhighlighter.cpp \
-    $$PWD/listingtracepane.cpp \
     $$PWD/isaasm.cpp \
     $$PWD/asmcode.cpp \
     $$PWD/asmobjectcodepane.cpp \
@@ -18,7 +16,6 @@ SOURCES += \
     $$PWD/asmlistingpane.cpp
 
 FORMS += \
-    $$PWD/listingtracepane.ui \
     $$PWD/asmobjectcodepane.ui \
     $$PWD/asmsourcecodepane.ui \
     $$PWD/asmlistingpane.ui

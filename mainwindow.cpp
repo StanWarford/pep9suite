@@ -103,16 +103,18 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::redoAvailable, this, &MainWindow::setRedoability);
     connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::undoAvailable, this, &MainWindow::setUndoability);
     connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::redoAvailable, this, &MainWindow::setRedoability);
-    //connect(ui->microcodeWidget, &MicrocodePane::undoAvailable, this, &MainWindow::setUndoability);
-    //connect(ui->microcodeWidget, &MicrocodePane::redoAvailable, this, &MainWindow::setRedoability);
 
     //Connect Simulation events
-#pragma message ("TODO: fix micro object code pane")
-    //connect(this, &MainWindow::beginSimulation,this->objectCodePane,&ObjectCodePane::onBeginSimulation);
-    //connect(this, &MainWindow::endSimulation,this->objectCodePane,&ObjectCodePane::onEndSimulation);
-    connect(this, &MainWindow::simulationFinished, this->controlSection,&CPUControlSection::onSimulationFinished);
+    connect(this, &MainWindow::beginSimulation, ui->microObjectCodePane, &MicroObjectCodePane::onBeginSimulation);
+    connect(this, &MainWindow::simulationFinished, ui->microObjectCodePane, &MicroObjectCodePane::onEndSimulation);
+    connect(this, &MainWindow::simulationFinished, this->controlSection, &CPUControlSection::onSimulationFinished);
     connect(this, &MainWindow::updateSimulation, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationFinished, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
+
+    //Internal Simulation events
+    connect(this, &MainWindow::updateSimulation, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
+    connect(this, &MainWindow::updateSimulation, this, &MainWindow::highlightActiveLines, Qt::UniqueConnection);
+
     //Connect font change events
     connect(this, &MainWindow::fontChanged, ui->microcodeWidget, &MicrocodePane::onFontChanged);
     connect(this, &MainWindow::fontChanged, helpDialog, &HelpDialog::onFontChanged);
@@ -124,7 +126,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //Connect dark mode events
     connect(this, &MainWindow::darkModeChanged, ui->microcodeWidget, &MicrocodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, helpDialog, &HelpDialog::onDarkModeChanged);
-    //connect(this, &MainWindow::darkModeChanged, objectCodePane, &ObjectCodePane::onDarkModeChanged);
+    connect(this, &MainWindow::darkModeChanged, ui->microObjectCodePane, &MicroObjectCodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->cpuWidget, &CpuPane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->microcodeWidget->getEditor(), &MicrocodeEditor::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->memoryWidget, &MemoryDumpPane::onDarkModeChanged);
@@ -231,7 +233,7 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
                 return true;
             }
             else if (ui->actionDebug_Stop_Debugging->isEnabled() &&
-                     (ui->microcodeWidget->hasFocus() /*|| objectCodePane->hasFocus()*/)) {
+                     (ui->microcodeWidget->hasFocus() || ui->microObjectCodePane->hasFocus())) {
                 ui->cpuWidget->giveFocus();
             }
         }
@@ -255,6 +257,8 @@ void MainWindow::connectMicroDraw()
     connect(dataSection, &CPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged, Qt::ConnectionType::UniqueConnection);
     connect(dataSection, &CPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged, Qt::ConnectionType::UniqueConnection);
     connect(this, &MainWindow::updateSimulation, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
+    connect(this, &MainWindow::updateSimulation, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
+    connect(this, &MainWindow::updateSimulation, this, &MainWindow::highlightActiveLines, Qt::UniqueConnection);
 }
 
 void MainWindow::disconnectMicroDraw()
@@ -265,6 +269,8 @@ void MainWindow::disconnectMicroDraw()
     disconnect(dataSection, &CPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged);
     disconnect(dataSection, &CPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged);
     disconnect(this, &MainWindow::updateSimulation, ui->cpuWidget, &CpuPane::onSimulationUpdate);
+    disconnect(this, &MainWindow::updateSimulation, this, &MainWindow::handleDebugButtons);
+    disconnect(this, &MainWindow::updateSimulation, this, &MainWindow::highlightActiveLines);
 }
 
 void MainWindow::readSettings()
@@ -770,11 +776,8 @@ void MainWindow::buttonEnableHelper(const int which)
 
 void MainWindow::highlightActiveLines()
 {
-    if(true) //If in microcode, highlight the active line
-    {
-        ui->microcodeWidget->updateSimulationView();
-        //objectCodePane->highlightCurrentInstruction();
-    }
+    ui->microcodeWidget->updateSimulationView();
+    ui->microObjectCodePane->highlightCurrentInstruction();
     if(controlSection->getLineNumber() == 0) //If the µPC is 0, hihglight the instruction at the current PC in the listing & memory
     {
         ui->memoryWidget->clearHighlight();
@@ -794,8 +797,7 @@ bool MainWindow::initializeSimulation()
             ui->statusBar->showMessage("No microcode program to build", 4000);
             return false;
         }
-#pragma message("TODO: Reimplement object code pane")
-        //objectCodePane->setObjectCode(microcodePane->getMicrocodeProgram(),nullptr);
+        ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
         controlSection->setMicrocodeProgram(ui->microcodeWidget->getMicrocodeProgram());
     }
     else {
@@ -814,7 +816,6 @@ bool MainWindow::initializeSimulation()
 
     // If there is batch input, move input to  input buffer in the MemorySection
     ui->ioWidget->batchInputToBuffer();
-    handleDebugButtons();
     return true;
 }
 
@@ -846,8 +847,7 @@ void MainWindow::on_actionFile_New_Microcode_triggered()
         ui->microcodeWidget->setFocus();
         ui->microcodeWidget->setMicrocode("");
         ui->microcodeWidget->setCurrentFile("");
-#pragma message("TODO: fix object code pane")
-        //objectCodePane->setObjectCode();
+        ui->microObjectCodePane->setObjectCode();
     }
 }
 
@@ -1056,6 +1056,7 @@ void MainWindow::on_actionBuild_Microcode_triggered()
 {
     if(ui->microcodeWidget->microAssemble()) {
         ui->statusBar->showMessage("MicroAssembly succeeded", 4000);
+        ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
     }
     else {
         ui->statusBar->showMessage("MicroAssembly failed", 4000);
@@ -1103,9 +1104,8 @@ void MainWindow::on_actionBuild_Run_Object_triggered()
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
         disconnectMicroDraw();
-#pragma message("TODO: Replace memory clear followed by memory refresh with a performant memory unit.")
         memorySection->clearModifiedBytes();
-        ui->memoryWidget->refreshMemory();
+        ui->memoryWidget->updateMemory();
         controlSection->onRun();
     }
 }
@@ -1164,11 +1164,12 @@ bool MainWindow::on_actionDebug_Start_Debugging_triggered()
     loadObjectCodeProgram();
     loadOperatingSystem();
     if(initializeSimulation()) {
+        ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
         controlSection->onDebuggingStarted();
         ui->cpuWidget->startDebugging();
         ui->memoryWidget->updateMemory();
         highlightActiveLines();
-
+        handleDebugButtons();
         QApplication::processEvents();
         return true;
     }
@@ -1181,7 +1182,7 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     debugState = DebugState::DISABLED;
     ui->microcodeWidget->clearSimulationView();
 
-    //objectCodePane->clearSimulationView();
+    ui->microObjectCodePane->clearSimulationView();
     ui->microcodeWidget->setReadOnly(false);
 
     ui->cpuWidget->stopDebugging();
@@ -1201,7 +1202,6 @@ void MainWindow::on_actionDebug_Continue_triggered()
 {
     debugState = DebugState::DEBUG_RESUMED;
     handleDebugButtons();
-    highlightActiveLines();
     disconnectMicroDraw();
     controlSection->onRun();
     if(controlSection->hadErrorOnStep())
@@ -1211,7 +1211,6 @@ void MainWindow::on_actionDebug_Continue_triggered()
         return; // we'll just return here instead of letting it fail and go to the bottom
     }
     onSimulationFinished();
-
 }
 
 void MainWindow::on_actionDebug_Restart_Debugging_triggered()
@@ -1239,8 +1238,6 @@ void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
             onSimulationFinished();
         }
     }
-    handleDebugButtons();
-    highlightActiveLines();
     emit updateSimulation();
 }
 
@@ -1261,8 +1258,6 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
     } while(callDepth < controlSection->getCallDepth() && !controlSection->getExecutionFinished());
     connectMicroDraw();
     ui->memoryWidget->updateMemory();
-    handleDebugButtons();
-    highlightActiveLines();
     emit updateSimulation();
 }
 
@@ -1275,8 +1270,6 @@ void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
         QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
-    handleDebugButtons();
-    highlightActiveLines();
     emit updateSimulation();
 }
 
@@ -1297,8 +1290,6 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
     } while(callDepth <= controlSection->getCallDepth() && !controlSection->getExecutionFinished());
     connectMicroDraw();
     ui->memoryWidget->updateMemory();
-    handleDebugButtons();
-    highlightActiveLines();
     emit updateSimulation();
 }
 
@@ -1311,8 +1302,6 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
         QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
-    handleDebugButtons();
-    highlightActiveLines();
     emit updateSimulation();
 }
 
@@ -1445,6 +1434,7 @@ void MainWindow::slotByteConverterCharEdited(const QString &str)
         byteConverterInstr->setValue(data);
     }
 }
+
 void MainWindow::slotByteConverterDecEdited(const QString &str)
 {
     if (str.length() > 0) {
@@ -1491,7 +1481,7 @@ void MainWindow::focusChanged(QWidget *, QWidget *)
 {
     ui->microcodeWidget->highlightOnFocus();
     ui->memoryWidget->highlightOnFocus();
-    //objectCodePane->highlightOnFocus();
+    ui->microObjectCodePane->highlightOnFocus();
     ui->cpuWidget->highlightOnFocus();
 
     if (ui->microcodeWidget->hasFocus()) {
@@ -1515,13 +1505,13 @@ void MainWindow::focusChanged(QWidget *, QWidget *)
         ui->actionEdit_Copy->setDisabled(true);
         ui->actionEdit_Paste->setDisabled(true);
     }
-    /*else if (objectCodePane->hasFocus()) {
+    else if (ui->microObjectCodePane->hasFocus()) {
         ui->actionEdit_Undo->setDisabled(true);
         ui->actionEdit_Redo->setDisabled(true);
         ui->actionEdit_Cut->setDisabled(true);
         ui->actionEdit_Copy->setDisabled(false);
         ui->actionEdit_Paste->setDisabled(true);
-    }*/
+    }
 }
 
 void MainWindow::setUndoability(bool b)
@@ -1542,9 +1532,9 @@ void MainWindow::setUndoability(bool b)
         ui->actionEdit_Undo->setEnabled(b);
     }
 #pragma message("TODO: Set undoability for IO Panes / µObjectPane")
-    /*else if (objectCodePane->hasFocus()) {
+    else if (ui->microObjectCodePane->hasFocus()) {
         ui->actionEdit_Redo->setDisabled(true);
-    }*/
+    }
 }
 
 void MainWindow::setRedoability(bool b)
@@ -1570,10 +1560,10 @@ void MainWindow::setRedoability(bool b)
     }
     else if (terminalPane->hasFocus()) {
         ui->actionEdit_Redo->setDisabled(!b);
-    }
-    else if (objectCodePane->hasFocus()) {
-        ui->actionEdit_Redo->setDisabled(true);
     }*/
+    else if (ui->microObjectCodePane->hasFocus()) {
+        ui->actionEdit_Redo->setDisabled(true);
+    }
 }
 
 void MainWindow::appendMicrocodeLine(QString line)
@@ -1586,7 +1576,7 @@ void MainWindow::helpCopyToMicrocodeButtonClicked()
     if (maybeSave()) {
         ui->microcodeWidget->setMicrocode(helpDialog->getExampleText());
         ui->microcodeWidget->microAssemble();
-        //objectCodePane->setObjectCode(microcodePane->getMicrocodeProgram(),nullptr);
+        ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(),nullptr);
         helpDialog->hide();
         statusBar()->showMessage("Copied to microcode", 4000);
     }
