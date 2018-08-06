@@ -235,8 +235,8 @@ private slots:
     void onInputReceived();
 signals:
     void beginUpdateCheck();
-    void beginSimulation();
-    void updateSimulation();
+    void simulationStarted();
+    void simulationUpdate();
     void simulationFinished();
     //If a sub-compnent wants to be notified that fonts should be restored to their default values, connect to this signal.
     void fontChanged(QFont font);

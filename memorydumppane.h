@@ -51,11 +51,9 @@ public:
     void clearHighlight();
     // Post: Everything is unhighlighted.
 
-    void highlightPC_SP();
+    void highlight();
     // Post: The current program counter & current stack pointer are highlighted.
-
-    void highlightLastWritten();
-    // Post: The byte or word written last cycle is highlighted.
+    // The last written bytes are highlighted.
 
     void cacheModifiedBytes();
     // Post: Changed bytes from Sim are added to the QSet modifiedBytes
@@ -83,6 +81,8 @@ public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
     void onMemoryChanged(quint16 address, quint8, quint8);
+    void onSimulationStarted();
+    void onSimulationFinished();
 
 private:
     Ui::MemoryDumpPane *ui;
@@ -94,14 +94,14 @@ private:
     QList<quint16> highlightedData;
     // This is a list of bytes that are currently highlighted.
 
-    QSet<quint16> modifiedBytes;
+    QSet<quint16> modifiedBytes, lastModifiedBytes;
     // This is a list of bytes that were modified since the last update. This is cached for a convenient time to update
     // such as when we hit a breakpoint, the program finishes, or the end of the single step.
 
     QList<quint16> bytesWrittenLastStep;
     // This is a list of bytes written last step, which is used to highlight recently modified bytes
 
-    bool delayLastStepClear, darkModeEnabled;
+    bool delayLastStepClear, darkModeEnabled, inSimulation;
     // This is used to delay a clear of the QList bytesWrittenLastStep when leaving a trap that modifies bytes
     // to allow highlighting of modified bytes in trap instructions.
 

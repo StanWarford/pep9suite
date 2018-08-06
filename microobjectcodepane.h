@@ -60,8 +60,8 @@ signals:
     void beginSimulation();
     void endSimulation();
 public slots:
-    void onBeginSimulation();
-    void onEndSimulation();
+    void onSimulationStarted();
+    void onSimulationFinished();
     void onDarkModeChanged(bool);
 
 protected:

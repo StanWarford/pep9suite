@@ -331,12 +331,27 @@
    <property name="windowTitle">
     <string>Debug Tools</string>
    </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionDebug_Single_Step_Assembler"/>
+   <addaction name="actionDebug_Step_Over_Assembler"/>
+   <addaction name="actionDebug_Step_Into_Assembler"/>
+   <addaction name="actionDebug_Step_Out_Assembler"/>
+   <addaction name="separator"/>
+   <addaction name="actionDebug_Single_Step_Microcode"/>
   </widget>
   <action name="actionFile_New_Asm">
    <property name="icon">
@@ -727,21 +742,37 @@
    </property>
   </action>
   <action name="actionDebug_Step_Over_Assembler">
+   <property name="icon">
+    <iconset resource="pep9microresources.qrc">
+     <normaloff>:/images/debugger_step_over.png</normaloff>:/images/debugger_step_over.png</iconset>
+   </property>
    <property name="text">
     <string>Step Over - Assembler</string>
    </property>
   </action>
   <action name="actionDebug_Step_Into_Assembler">
+   <property name="icon">
+    <iconset resource="pep9microresources.qrc">
+     <normaloff>:/images/debugger_step_into.png</normaloff>:/images/debugger_step_into.png</iconset>
+   </property>
    <property name="text">
     <string>Step Into - Assembler</string>
    </property>
   </action>
   <action name="actionDebug_Step_Out_Assembler">
+   <property name="icon">
+    <iconset resource="pep9microresources.qrc">
+     <normaloff>:/images/debugger_step_over.png</normaloff>:/images/debugger_step_over.png</iconset>
+   </property>
    <property name="text">
     <string>Step Out - Assembler</string>
    </property>
   </action>
   <action name="actionDebug_Single_Step_Microcode">
+   <property name="icon">
+    <iconset resource="pep9microresources.qrc">
+     <normaloff>:/images/debug_single_step_micro.png</normaloff>:/images/debug_single_step_micro.png</iconset>
+   </property>
    <property name="text">
     <string>Single Step - Microcode</string>
    </property>
@@ -812,6 +843,10 @@
    </property>
   </action>
   <action name="actionDebug_Single_Step_Assembler">
+   <property name="icon">
+    <iconset resource="pep9microresources.qrc">
+     <normaloff>:/images/debug_single_step_asm.png</normaloff>:/images/debug_single_step_asm.png</iconset>
+   </property>
    <property name="text">
     <string>Single Step - Assembler</string>
    </property>

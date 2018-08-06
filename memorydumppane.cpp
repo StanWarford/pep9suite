@@ -32,7 +32,7 @@
 #include "colors.h"
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     QWidget(parent), data(new QStandardItemModel(this)), lineSize(320), colors(&PepColors::lightMode),
-    ui(new Ui::MemoryDumpPane)
+    ui(new Ui::MemoryDumpPane), inSimulation(false)
 {
     ui->setupUi(this);
     if (Pep::getSystem() != "Mac") {
@@ -46,11 +46,6 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
         data->setData(data->index(it, 0), QString("0x%1").arg(it*8, 4, 16, QChar('0')));
     }
     ui->tableView->setModel(data);
-    ui->tableView->horizontalHeader()->setStretchLastSection(true);
-    ui->tableView->horizontalHeader()->hide();
-    ui->tableView->verticalHeader()->hide();
-    ui->tableView->setShowGrid(false);
-    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->tableView->resizeRowsToContents();
     connect(ui->pcPushButton, &QAbstractButton::clicked, this, &MemoryDumpPane::scrollToPC);
     connect(ui->spPushButton, &QAbstractButton::clicked, this, &MemoryDumpPane::scrollToSP);
@@ -90,11 +85,9 @@ void MemoryDumpPane::refreshMemory()
         data->setData(data->index(row, 1+8), memoryDumpLine);
     }
     ui->tableView->setUpdatesEnabled(updates);
-    quint32 tempSize = ui->tableView->fontMetrics().width(memoryDumpLine);
     clearHighlight();
     //lineSize = tempSize > 10?tempSize:10;
     ui->tableView->resizeColumnsToContents();
-    ui->tableView->setColumnWidth(1+8,tempSize+5);
 }
 
 void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
@@ -135,7 +128,7 @@ void MemoryDumpPane::clearHighlight()
     }
 }
 
-void MemoryDumpPane::highlightPC_SP()
+void MemoryDumpPane::highlight()
 {
 
     highlightByte(dataSection->getRegisterBankWord(CPURegisters::SP), colors->altTextHighlight, colors->memoryHighlightSP);
@@ -151,15 +144,11 @@ void MemoryDumpPane::highlightPC_SP()
         highlightByte(dataSection->getRegisterBankWord(CPURegisters::PC), colors->altTextHighlight, colors->memoryHighlightPC);
         highlightedData.append(dataSection->getRegisterBankWord(CPURegisters::PC));
     }
-
-}
-
-void MemoryDumpPane::highlightLastWritten()
-{
-    for(quint16 byte : modifiedBytes) {
+    for(quint16 byte : lastModifiedBytes) {
         highlightByte(byte, colors->altTextHighlight, colors->memoryHighlightChanged);
         highlightedData.append(byte);
     }
+
 }
 
 void MemoryDumpPane::cacheModifiedBytes()
@@ -167,6 +156,7 @@ void MemoryDumpPane::cacheModifiedBytes()
     QSet<quint16> tempConstruct, tempDestruct = memorySection->modifiedBytes();
     modifiedBytes = memorySection->modifiedBytes();
     memorySection->clearModifiedBytes();
+    lastModifiedBytes = memorySection->writtenLastCycle();
     for(quint16 val : tempDestruct) {
         if(tempConstruct.contains(val)) continue;
         for(quint16 temp = val - val%8;temp%8<=7;temp++) {
@@ -198,6 +188,7 @@ void MemoryDumpPane::updateMemory()
     QSet<quint16> linesToBeUpdated;
     modifiedBytes.unite(memorySection->modifiedBytes());
     memorySection->clearModifiedBytes();
+    lastModifiedBytes = memorySection->writtenLastCycle();
     list = modifiedBytes.toList();
     while(!list.isEmpty()) {
         linesToBeUpdated.insert(list.takeFirst() / 8);
@@ -209,6 +200,7 @@ void MemoryDumpPane::updateMemory()
         refreshMemoryLines(x*8, x*8);
     }
     modifiedBytes.clear();
+    ui->tableView->resizeColumnsToContents();
 }
 
 void MemoryDumpPane::scrollToTop()
@@ -253,11 +245,25 @@ void MemoryDumpPane::onDarkModeChanged(bool darkMode)
 {
     if(darkMode) colors = &PepColors::darkMode;
     else colors = &PepColors::lightMode;
+    if(inSimulation) {
+        clearHighlight();
+        highlight();
+    }
 }
 
 void MemoryDumpPane::onMemoryChanged(quint16 address, quint8, quint8)
 {
     this->refreshMemoryLines(address,address);
+}
+
+void MemoryDumpPane::onSimulationStarted()
+{
+    inSimulation = true;
+}
+
+void MemoryDumpPane::onSimulationFinished()
+{
+    inSimulation = false;
 }
 
 void MemoryDumpPane::highlightByte(quint16 memAddr, QColor foreground, QColor background)

@@ -105,15 +105,19 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::redoAvailable, this, &MainWindow::setRedoability);
 
     //Connect Simulation events
-    connect(this, &MainWindow::beginSimulation, ui->microObjectCodePane, &MicroObjectCodePane::onBeginSimulation);
-    connect(this, &MainWindow::simulationFinished, ui->microObjectCodePane, &MicroObjectCodePane::onEndSimulation);
+    connect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationStarted, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationStarted);
+    connect(this, &MainWindow::simulationFinished, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationFinished);
     connect(this, &MainWindow::simulationFinished, this->controlSection, &CPUControlSection::onSimulationFinished);
-    connect(this, &MainWindow::updateSimulation, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationFinished, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationStarted, ui->memoryWidget, &MemoryDumpPane::onSimulationStarted);
+    connect(this, &MainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished);
+
 
     //Internal Simulation events
-    connect(this, &MainWindow::updateSimulation, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
-    connect(this, &MainWindow::updateSimulation, this, &MainWindow::highlightActiveLines, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, this, &MainWindow::highlightActiveLines, Qt::UniqueConnection);
 
     //Connect font change events
     connect(this, &MainWindow::fontChanged, ui->microcodeWidget, &MicrocodePane::onFontChanged);
@@ -145,7 +149,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Connect events for IO tab
     ui->ioWidget->bindToMemorySection(memorySection);
-    connect(this,&MainWindow::beginSimulation,ui->ioWidget,&IOWidget::onClear);
+    connect(this,&MainWindow::simulationStarted,ui->ioWidget,&IOWidget::onClear);
 
     //Events necessary for asynchronous run
     connect(controlSection,&CPUControlSection::simulationFinished,this,&MainWindow::onSimulationFinished);
@@ -158,7 +162,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(dataSection, &CPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged, Qt::ConnectionType::UniqueConnection);
 
     //Pre-render memory
-    ui->memoryWidget->refreshMemory();
     quint32 maxSize = ui->memoryWidget->memoryDumpWidth();
     ui->memoryWidget->setMinimumWidth(maxSize);
     ui->memoryWidget->setMaximumWidth(maxSize);
@@ -256,9 +259,10 @@ void MainWindow::connectMicroDraw()
     connect(dataSection, &CPUDataSection::statusBitChanged, ui->cpuWidget, &CpuPane::onStatusBitChanged, Qt::ConnectionType::UniqueConnection);
     connect(dataSection, &CPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged, Qt::ConnectionType::UniqueConnection);
     connect(dataSection, &CPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged, Qt::ConnectionType::UniqueConnection);
-    connect(this, &MainWindow::updateSimulation, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
-    connect(this, &MainWindow::updateSimulation, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
-    connect(this, &MainWindow::updateSimulation, this, &MainWindow::highlightActiveLines, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, this, &MainWindow::highlightActiveLines, Qt::UniqueConnection);
 }
 
 void MainWindow::disconnectMicroDraw()
@@ -268,9 +272,10 @@ void MainWindow::disconnectMicroDraw()
     disconnect(dataSection, &CPUDataSection::statusBitChanged, ui->cpuWidget, &CpuPane::onStatusBitChanged);
     disconnect(dataSection, &CPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged);
     disconnect(dataSection, &CPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged);
-    disconnect(this, &MainWindow::updateSimulation, ui->cpuWidget, &CpuPane::onSimulationUpdate);
-    disconnect(this, &MainWindow::updateSimulation, this, &MainWindow::handleDebugButtons);
-    disconnect(this, &MainWindow::updateSimulation, this, &MainWindow::highlightActiveLines);
+    disconnect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory);
+    disconnect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate);
+    disconnect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons);
+    disconnect(this, &MainWindow::simulationUpdate, this, &MainWindow::highlightActiveLines);
 }
 
 void MainWindow::readSettings()
@@ -782,14 +787,13 @@ void MainWindow::highlightActiveLines()
     if(controlSection->getLineNumber() == 0) //If the µPC is 0, hihglight the instruction at the current PC in the listing & memory
     {
         ui->memoryWidget->clearHighlight();
-        ui->memoryWidget->highlightPC_SP();
-        ui->memoryWidget->highlightLastWritten();
+        ui->memoryWidget->highlight();
     }
 }
 
 bool MainWindow::initializeSimulation()
 {
-    emit beginSimulation();
+    emit simulationStarted();
     // Load microprogram into the micro control store
     if (ui->microcodeWidget->microAssemble()) {
         ui->statusBar->showMessage("MicroAssembly succeeded", 4000);
@@ -1097,7 +1101,7 @@ void MainWindow::on_actionBuild_Load_Object_triggered()
 {
     loadOperatingSystem();
     loadObjectCodeProgram();
-    ui->memoryWidget->updateMemory();
+    ui->memoryWidget->refreshMemory();
 }
 
 void MainWindow::on_actionBuild_Run_Object_triggered()
@@ -1106,7 +1110,7 @@ void MainWindow::on_actionBuild_Run_Object_triggered()
     if (initializeSimulation()) {
         disconnectMicroDraw();
         memorySection->clearModifiedBytes();
-        ui->memoryWidget->updateMemory();
+        ui->memoryWidget->refreshMemory();
         controlSection->onRun();
     }
 }
@@ -1190,7 +1194,7 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     handleDebugButtons();
     highlightActiveLines();
     memorySection->clearModifiedBytes();
-    ui->memoryWidget->refreshMemory();
+    ui->memoryWidget->updateMemory();
     emit simulationFinished();
 }
 
@@ -1239,7 +1243,7 @@ void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
             onSimulationFinished();
         }
     }
-    emit updateSimulation();
+    emit simulationUpdate();
 }
 
 void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
@@ -1258,8 +1262,7 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
         }
     } while(callDepth < controlSection->getCallDepth() && !controlSection->getExecutionFinished());
     connectMicroDraw();
-    ui->memoryWidget->updateMemory();
-    emit updateSimulation();
+    emit simulationUpdate();
 }
 
 void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
@@ -1271,7 +1274,7 @@ void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
         QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
-    emit updateSimulation();
+    emit simulationUpdate();
 }
 
 void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
@@ -1290,8 +1293,7 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
         }
     } while(callDepth <= controlSection->getCallDepth() && !controlSection->getExecutionFinished());
     connectMicroDraw();
-    ui->memoryWidget->updateMemory();
-    emit updateSimulation();
+    emit simulationUpdate();
 }
 
 void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
@@ -1303,7 +1305,7 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
         QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
-    emit updateSimulation();
+    emit simulationUpdate();
 }
 
 // System MainWindow triggers

@@ -199,12 +199,12 @@ void MicroObjectCodePane::assignHeaders()
     ui->codeTable->resizeColumnsToContents();
 }
 
-void MicroObjectCodePane::onBeginSimulation()
+void MicroObjectCodePane::onSimulationStarted()
 {
     emit beginSimulation();
 }
 
-void MicroObjectCodePane::onEndSimulation()
+void MicroObjectCodePane::onSimulationFinished()
 {
     emit endSimulation();
 }

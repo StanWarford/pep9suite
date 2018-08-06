@@ -26,5 +26,7 @@
         <file>images/debugger_step_over.png</file>
         <file>images/flash.svg</file>
         <file>images/load-source.png</file>
+        <file>images/debug_single_step_asm.png</file>
+        <file>images/debug_single_step_micro.png</file>
     </qresource>
 </RCC>
