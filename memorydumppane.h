@@ -26,18 +26,20 @@
 #include <QScrollBar>
 #include <QSet>
 #include <QStandardItemModel>
+#include <QStyledItemDelegate>
 #include "colors.h"
 namespace Ui {
     class MemoryDumpPane;
 }
 class MemorySection;
+class MemoryDumpDelegate;
 class CPUDataSection;
 class MemoryDumpPane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(MemoryDumpPane)
 public:
     explicit MemoryDumpPane(QWidget *parent = 0);
-    //Needs to be called before this class can be used
+    // Needs to be called after construction but before this class can be used, otherwise the class is in an incomplete state.
     void init(MemorySection *memorySection, CPUDataSection *dataSection);
     virtual ~MemoryDumpPane();
 
@@ -79,8 +81,14 @@ public:
 
 public slots:
     void onFontChanged(QFont font);
+    // Post: the font used in the memory dump
+
+    // Handle switching styles to and from dark mode & potential re-highlighting
     void onDarkModeChanged(bool darkMode);
+
+    // Allow memory lines to be updated whenever an address is changed.
     void onMemoryChanged(quint16 address, quint8, quint8);
+
     void onSimulationStarted();
     void onSimulationFinished();
 
@@ -90,6 +98,7 @@ private:
     QStandardItemModel* data;
     MemorySection *memorySection;
     CPUDataSection *dataSection;
+    MemoryDumpDelegate *delegate;
     const PepColors::Colors *colors;
     QList<quint16> highlightedData;
     // This is a list of bytes that are currently highlighted.
@@ -97,6 +106,7 @@ private:
     QSet<quint16> modifiedBytes, lastModifiedBytes;
     // This is a list of bytes that were modified since the last update. This is cached for a convenient time to update
     // such as when we hit a breakpoint, the program finishes, or the end of the single step.
+    // lastModifiedBytes indicates which bytes were written in the last ISA instruction.
 
     QList<quint16> bytesWrittenLastStep;
     // This is a list of bytes written last step, which is used to highlight recently modified bytes
@@ -105,13 +115,12 @@ private:
     // This is used to delay a clear of the QList bytesWrittenLastStep when leaving a trap that modifies bytes
     // to allow highlighting of modified bytes in trap instructions.
 
+        // Used to highlight/unhighlight individual bytes.
     void highlightByte(quint16 memAddr, QColor foreground, QColor background);
-    // Used to highlight/unhighlight individual bytes.
 
     void mouseReleaseEvent(QMouseEvent *);
 
     void scrollToByte(quint16 byte);
-
 
 private slots:
     void scrollToPC();
@@ -119,4 +128,28 @@ private slots:
     void scrollToAddress(QString string);
 };
 
+/*
+ * Item delegate that handles input validation of hex constants, and disables editing of address and hex dump columns.
+ * Eventually, it can be extended to be signaled to enable or disable editing
+ */
+class MemoryDumpDelegate: public QStyledItemDelegate {
+private:
+    MemorySection* memorySection;
+    bool canEdit;
+public:
+    MemoryDumpDelegate(MemorySection* memorySection, QObject* parent = 0);
+    virtual ~MemoryDumpDelegate();
+    // See http://doc.qt.io/qt-5/qstyleditemdelegate.html#subclassing-qstyleditemdelegate for explanation on the methods being reimplemented.
+
+    // If the index is editable, create an editor that validates byte hex constants, otherwise return nullptr
+    virtual QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    // Provides editor widget with starting data for editing.
+    virtual void setEditorData(QWidget * editor, const QModelIndex & index) const override;
+    // Ensure that editor is displayed correctly on the item view
+    virtual void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+    // Handle updating data in the model via calling the memorySection
+    virtual void setModelData(QWidget *editor,
+                                    QAbstractItemModel *model,
+                                    const QModelIndex &index) const override;
+};
 #endif // MEMORYDUMPPANE_H

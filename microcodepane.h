@@ -109,7 +109,6 @@ private:
     MicrocodeEditor *editor;
     MicrocodeProgram* program;
     QFile currentFile;
-
 private slots:
     void setLabelToModified(bool modified);
 

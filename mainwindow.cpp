@@ -22,19 +22,20 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QApplication>
-#include <QDesktopWidget>
-#include <QSettings>
-#include <QMessageBox>
-#include <QTextStream>
-#include <QTextCodec>
-#include <QFileDialog>
-#include <QDesktopServices>
-#include <QUrl>
 #include <QtConcurrent>
 #include <QDebug>
+#include <QDesktopServices>
+#include <QDesktopWidget>
+#include <QFileDialog>
 #include <QFontDialog>
+#include <QMessageBox>
 #include <QPrinter>
 #include <QPrintDialog>
+#include <QSettings>
+#include <QTextStream>
+#include <QTextCodec>
+#include <QUrl>
+
 
 #include "aboutpep.h"
 #include "asmargument.h"
@@ -63,21 +64,27 @@ MainWindow::MainWindow(QWidget *parent) :
     memorySection(MemorySection::getInstance()), dataSection(CPUDataSection::getInstance()),
     controlSection(CPUControlSection::getInstance())
 {
+    // Initialize all global maps.
     Pep::initMicroEnumMnemonMaps();
     Pep::initEnumMnemonMaps();
     Pep::initMnemonicMaps();
     Pep::initAddrModesMap();
     Pep::initDecoderTables();
+
+    // Install this class as the global event filter.
+    qApp->installEventFilter(this);
+
+    // Perform any additional setup needed for UI objects.
     ui->setupUi(this);
     ui->memoryWidget->init(memorySection,dataSection);
     ui->cpuWidget->init(this);
 
-
+    // Create & connect all dialogs.
     helpDialog = new HelpDialog(this);
+    connect(helpDialog, &HelpDialog::copyToMicrocodeClicked, this, &MainWindow::helpCopyToMicrocodeButtonClicked);
     aboutPepDialog = new AboutPep(this);
 
-    // Byte converter setup
-    // Byte converter setup
+    // Byte converter setup.
     byteConverterDec = new ByteConverterDec();
     ui->byteConverterToolBar->addWidget(byteConverterDec);
     byteConverterHex = new ByteConverterHex();
@@ -92,42 +99,58 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(byteConverterChar, &ByteConverterChar::textEdited, this, &MainWindow::slotByteConverterCharEdited);
     connect(byteConverterDec, &ByteConverterDec::textEdited, this, &MainWindow::slotByteConverterDecEdited);
     connect(byteConverterHex, &ByteConverterHex::textEdited, this, &MainWindow::slotByteConverterHexEdited);
-    connect(helpDialog, &HelpDialog::copyToMicrocodeClicked, this, &MainWindow::helpCopyToMicrocodeButtonClicked);
 
     connect(qApp->instance(), SIGNAL(focusChanged(QWidget*, QWidget*)), this, SLOT(focusChanged(QWidget*, QWidget*)));
 
-    //Connect Undo / Redo events
+    // Connect IOWidget to memory
+    ui->ioWidget->bindToMemorySection(memorySection);
+    // Connect IO events
+    connect(memorySection, &MemorySection::charRequestedFromInput, this, &MainWindow::onInputRequested);
+    connect(memorySection, &MemorySection::receivedInput, this, &MainWindow::onInputReceived);
+
+    // Connect Undo / Redo events
     connect(ui->microcodeWidget, &MicrocodePane::undoAvailable, this, &MainWindow::setUndoability);
     connect(ui->microcodeWidget, &MicrocodePane::redoAvailable, this, &MainWindow::setRedoability);
     connect(ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::undoAvailable, this, &MainWindow::setUndoability);
     connect(ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::redoAvailable, this, &MainWindow::setRedoability);
     connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::undoAvailable, this, &MainWindow::setUndoability);
     connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::redoAvailable, this, &MainWindow::setRedoability);
+    connect(ui->ioWidget, &IOWidget::undoAvailable, this, &MainWindow::setUndoability);
+    connect(ui->ioWidget, &IOWidget::redoAvailable, this, &MainWindow::setRedoability);
 
-    //Connect Simulation events
+    // Connect simulation events.
+    // Events that fire on simulationUpdate should be UniqueConnections, as they will be repeatedly connected and disconnected
+    // via connectMicroDraw() and disconnectMicroDraw().
     connect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationStarted, ui->memoryWidget, &MemoryDumpPane::onSimulationStarted);
+    // Clear IOWidget every time a simulation is started.
+    connect(this, &MainWindow::simulationStarted, ui->ioWidget, &IOWidget::onClear);
     connect(this, &MainWindow::simulationStarted, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationStarted);
     connect(this, &MainWindow::simulationFinished, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationFinished);
     connect(this, &MainWindow::simulationFinished, this->controlSection, &CPUControlSection::onSimulationFinished);
-    connect(this, &MainWindow::simulationFinished, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
-    connect(this, &MainWindow::simulationStarted, ui->memoryWidget, &MemoryDumpPane::onSimulationStarted);
+    connect(this, &MainWindow::simulationFinished, ui->cpuWidget, &CpuPane::onSimulationUpdate);
     connect(this, &MainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished);
+    // Connect MainWindow so that it can propogate simulationFinished event and clean up when execution is finished.
+    connect(controlSection, &CPUControlSection::simulationFinished, this, &MainWindow::onSimulationFinished);
 
 
-    //Internal Simulation events
+    // Connect simulation events that are internal to the class.
     connect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, this, &MainWindow::highlightActiveLines, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationStarted, this, &MainWindow::handleDebugButtons);
+    connect(this, &MainWindow::simulationStarted, this, &MainWindow::highlightActiveLines);
 
-    //Connect font change events
+    // Connect font change events.
     connect(this, &MainWindow::fontChanged, ui->microcodeWidget, &MicrocodePane::onFontChanged);
     connect(this, &MainWindow::fontChanged, helpDialog, &HelpDialog::onFontChanged);
     connect(this, &MainWindow::fontChanged, ui->ioWidget, &IOWidget::onFontChanged);
     connect(this, &MainWindow::fontChanged, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onFontChanged);
     connect(this, &MainWindow::fontChanged, ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::onFontChanged);
     connect(this, &MainWindow::fontChanged, ui->AsmListingWidgetPane, &AsmListingPane::onFontChanged);
+    connect(this, &MainWindow::fontChanged, ui->memoryWidget, &MemoryDumpPane::onFontChanged);
 
-    //Connect dark mode events
+    // Connect dark mode events.
     connect(this, &MainWindow::darkModeChanged, ui->microcodeWidget, &MicrocodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, helpDialog, &HelpDialog::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->microObjectCodePane, &MicroObjectCodePane::onDarkModeChanged);
@@ -137,31 +160,33 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::darkModeChanged, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->AsmListingWidgetPane, &AsmListingPane::onDarkModeChanged);
 
-    qApp->installEventFilter(this);
-
-    //Load Style sheets
-    QFile f(":qdarkstyle/dark_style.qss");
-    f.open(QFile::ReadOnly | QFile::Text);
-    QTextStream ts(&f);
-    darkStyle = ts.readAll();
-    lightStyle = this->styleSheet();
     connect(ui->cpuWidget, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
 
-    //Connect events for IO tab
-    ui->ioWidget->bindToMemorySection(memorySection);
-    connect(this,&MainWindow::simulationStarted,ui->ioWidget,&IOWidget::onClear);
+    //Connect assembler pane widgets
+    connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
+    connect(ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
+    connect(ui->AsmListingWidgetPane, &AsmListingPane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
 
-    //Events necessary for asynchronous run
-    connect(controlSection,&CPUControlSection::simulationFinished,this,&MainWindow::onSimulationFinished);
-    connect(memorySection,&MemorySection::charRequestedFromInput,this,&MainWindow::onInputRequested);
-    connect(memorySection, &MemorySection::receivedInput,this,&MainWindow::onInputReceived);
+    // Events that notify view of changes in model.
+    // These events are disconnected whenevr "run" or "continue" are called, because they have significant overhead,
+    // but the provide no benefit when running.
+    // They are reconnected at the end of execution, and the receiving widgets are manually notified that changes may have occured.
     connect(memorySection, &MemorySection::memoryChanged, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
     connect(ui->cpuWidget, &CpuPane::registerChanged, dataSection, &CPUDataSection::onSetRegisterByte, Qt::ConnectionType::UniqueConnection);
     connect(dataSection, &CPUDataSection::statusBitChanged, ui->cpuWidget, &CpuPane::onStatusBitChanged, Qt::ConnectionType::UniqueConnection);
     connect(dataSection, &CPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged, Qt::ConnectionType::UniqueConnection);
     connect(dataSection, &CPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged, Qt::ConnectionType::UniqueConnection);
 
-    //Pre-render memory
+    // Load dark mode style sheet.
+    QFile f(":qdarkstyle/dark_style.qss");
+    f.open(QFile::ReadOnly | QFile::Text);
+    QTextStream ts(&f);
+    darkStyle = ts.readAll();
+    lightStyle = this->styleSheet();
+
+
+
+    //Pre-render memory & fix maximum widget size.
     quint32 maxSize = ui->memoryWidget->memoryDumpWidth();
     ui->memoryWidget->setMinimumWidth(maxSize);
     ui->memoryWidget->setMaximumWidth(maxSize);
@@ -178,13 +203,10 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->microcodeWidget->setMicrocode(in.readAll());
         ui->microcodeWidget->setModifiedFalse();
     }
-    //Connect assembler pane widgets
 
     //Initialize debug menu
     handleDebugButtons();
-    connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
-    connect(ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
-    connect(ui->AsmListingWidgetPane, &AsmListingPane::labelDoubleClicked, this, &MainWindow::doubleClickedCodeLabel);
+
     //Lastly, read in settings
     readSettings();
 }
@@ -192,6 +214,8 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete helpDialog;
+    delete aboutPepDialog;
 }
 
 void MainWindow::changeEvent(QEvent *e)
@@ -252,7 +276,7 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
     return false;
 }
 
-void MainWindow::connectMicroDraw()
+void MainWindow::connectViewUpdate()
 {
     connect(memorySection, &MemorySection::memoryChanged, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
     connect(ui->cpuWidget, &CpuPane::registerChanged, dataSection, &CPUDataSection::onSetRegisterByte, Qt::ConnectionType::UniqueConnection);
@@ -265,7 +289,7 @@ void MainWindow::connectMicroDraw()
     connect(this, &MainWindow::simulationUpdate, this, &MainWindow::highlightActiveLines, Qt::UniqueConnection);
 }
 
-void MainWindow::disconnectMicroDraw()
+void MainWindow::disconnectViewUpdate()
 {
     disconnect(memorySection,&MemorySection::memoryChanged, ui->memoryWidget,&MemoryDumpPane::onMemoryChanged);
     disconnect(ui->cpuWidget, &CpuPane::registerChanged, dataSection, &CPUDataSection::onSetRegisterByte);
@@ -281,18 +305,24 @@ void MainWindow::disconnectMicroDraw()
 void MainWindow::readSettings()
 {
     QSettings settings("cslab.pepperdine","PEP9CPU");
-    QDesktopWidget *desktop = QApplication::desktop();
+
     settings.beginGroup("MainWindow");
+
+    // Restore screen dimensions
     QByteArray readGeometry = settings.value("geometry", saveGeometry()).toByteArray();
     restoreGeometry(readGeometry);
-    QVariant val = settings.value("font",codeFont);
-    if(val.canConvert<QFont>())
-    {
+
+    // Restore last used font
+    QVariant val = settings.value("font", codeFont);
+    if(val.canConvert<QFont>()) {
         codeFont = qvariant_cast<QFont>(val);
     }
     emit fontChanged(codeFont);
+
+    //Restore last used file path
     curPath = settings.value("filePath", QDir::homePath()).toString();
     settings.endGroup();
+
     //Handle reading for all children
     ui->microcodeWidget->readSettings(settings);
 }
@@ -313,8 +343,7 @@ void MainWindow::writeSettings()
 bool MainWindow::save(Enu::EPane which)
 {
     bool retVal = true;
-    switch(which)
-    {
+    switch(which) {
     /* For each pane, first check if there is already a file associated with the pane.
      * if there is not, then pass control to the save as function.
      * If there is a file, then attempt save to it, then remove any modified flags from the pane if it succeded.
@@ -356,9 +385,8 @@ bool MainWindow::maybeSave()
 {
     static QMetaEnum metaenum = QMetaEnum::fromType<Enu::EPane>();
     bool retVal = true;
-    //Iterate over all the panes, and attempt to save any modified panes before closing.
-    for(int it = 0; it < metaenum.keyCount(); it++)
-    {
+    // Iterate over all the panes, and attempt to save any modified panes before closing.
+    for(int it = 0; it < metaenum.keyCount(); it++) {
         retVal = retVal && maybeSave(static_cast<Enu::EPane>(metaenum.value(it)));
     }
     return retVal;
@@ -415,7 +443,7 @@ bool MainWindow::maybeSave(Enu::EPane which)
     return retVal;
 }
 
-void MainWindow::loadFile(const QString &fileName, Enu::EPane which) //Todo
+void MainWindow::loadFile(const QString &fileName, Enu::EPane which)
 {
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
@@ -427,8 +455,13 @@ void MainWindow::loadFile(const QString &fileName, Enu::EPane which) //Todo
     QTextStream in(&file);
     in.setCodec(QTextCodec::codecForName("ISO 8859-1"));
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    switch(which)
-    {
+    switch(which) {
+    /*
+     * For each pane, switch to the tab which contains that pane.
+     * Give that pane focus, notify the pane of the new file's name,
+     * and set the pane's text to the contents of the file.
+     * Ensure that the modified (*) flag is not set.
+     */
     case Enu::EPane::ESource:
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
         ui->AsmSourceCodeWidgetPane->setFocus();
@@ -461,6 +494,7 @@ bool MainWindow::saveFile(Enu::EPane which)
     QString fileName;
     switch(which)
     {
+    //Get the filename associated with the dialog
     case Enu::EPane::ESource:
         fileName = QFileInfo(ui->AsmSourceCodeWidgetPane->getCurrentFile()).absoluteFilePath();
         break;
@@ -492,13 +526,16 @@ bool MainWindow::saveFile(const QString &fileName, Enu::EPane which)
     QTextStream out(&file);
     out.setCodec(QTextCodec::codecForName("ISO 8859-1"));
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    const QString msgSource = "Source saved";
-    const QString msgObject = "Object code saved";
-    const QString msgListing = "Listing saved";
-    const QString msgMicro = "Microcode saved";
-    const QString *msgOutput; //Mutable pointer to const data
+
+    // Messages for status bar.
+    static const QString msgSource = "Source saved";
+    static const QString msgObject = "Object code saved";
+    static const QString msgListing = "Listing saved";
+    static const QString msgMicro = "Microcode saved";
+    const QString *msgOutput; // Mutable pointer to const data.
     switch(which)
     {
+    // Set the output text & the pointer to the status bar message.
     case Enu::EPane::ESource:
         out << ui->AsmSourceCodeWidgetPane->toPlainText();
         msgOutput = &msgSource;
@@ -524,24 +561,34 @@ bool MainWindow::saveFile(const QString &fileName, Enu::EPane which)
 
 bool MainWindow::saveAsFile(Enu::EPane which)
 {
-    const QString defSourceFile = "untitled.pep";
-    const QString defObjectFile = "untitled.pepo";
-    const QString defListingFile = "untitled.pepl";
-    const QString defMicroFile = "untitled.pepcpu";
+    // Default filenames for each pane.
+    static const QString defSourceFile = "untitled.pep";
+    static const QString defObjectFile = "untitled.pepo";
+    static const QString defListingFile = "untitled.pepl";
+    static const QString defMicroFile = "untitled.pepcpu";
     QString usingFile;
-    const QString titleBase = "Save %1";
-    const QString sourceTitle = titleBase.arg("Assembler Source Code");
-    const QString objectTitle = titleBase.arg("Object Code");
-    const QString listingTitle = titleBase.arg("Assembler Listing");
-    const QString microTitle = titleBase.arg("Microcode");
+
+    // Titles for each pane.
+    static const QString titleBase = "Save %1";
+    static const QString sourceTitle = titleBase.arg("Assembler Source Code");
+    static const QString objectTitle = titleBase.arg("Object Code");
+    static const QString listingTitle = titleBase.arg("Assembler Listing");
+    static const QString microTitle = titleBase.arg("Microcode");
     const QString *usingTitle;
-    const QString sourceTypes = "Pep9 Source (*.pep *.txt)";
-    const QString objectTypes = "Pep9 Object (*.pepo *.txt)";
-    const QString listingTypes = "Pep9 Listing (*.pepl)";
-    const QString microTypes = "Pep9 Microcode (*.pepcpu *.txt)";
+
+    // Patterns for source code files.
+    static const QString sourceTypes = "Pep9 Source (*.pep *.txt)";
+    static const QString objectTypes = "Pep9 Object (*.pepo *.txt)";
+    static const QString listingTypes = "Pep9 Listing (*.pepl)";
+    static const QString microTypes = "Pep9 Microcode (*.pepcpu *.txt)";
     const QString *usingTypes;
+
     switch(which)
     {
+    /*
+     * For each pane, get the file associated with each pane, or the default if there is none.
+     * Set the title and source code patterns for the pane.
+     */
     case Enu::EPane::ESource:
         if(ui->AsmSourceCodeWidgetPane->getCurrentFile().fileName().isEmpty()) {
             usingFile = QDir(curPath).absoluteFilePath(defSourceFile);
@@ -575,6 +622,7 @@ bool MainWindow::saveAsFile(Enu::EPane which)
         usingTypes = &microTypes;
         break;
     }
+
     QString fileName = QFileDialog::getSaveFileName(
                 this,
                 *usingTitle,
@@ -584,6 +632,7 @@ bool MainWindow::saveAsFile(Enu::EPane which)
         return false;
     }
     else if (saveFile(fileName, which)) {
+        // If the file is successfully saved, then change the file associated with the pane.
         switch(which)
         {
         case Enu::EPane::ESource:
@@ -622,7 +671,7 @@ void MainWindow::print(Enu::EPane which)
     switch(which)
     {
     /*
-     * Set the pointer to the text-to-print and dialog title based on which pane is to be printed
+     * Store text-to-print and dialog title based on which pane is to be printed
      */
     case Enu::EPane::ESource:
         title = &source;
@@ -660,9 +709,10 @@ QVector<quint8> convertObjectCodeToIntArray(QString line)
     bool ok = false;
     quint8 temp;
     QVector<quint8> output;
-    for(QString byte : line.split(" "))
-    {
-        temp = byte.toShort(&ok,16);
+    for(QString byte : line.split(" ")) {
+        // toShort(...) should never throw any errors, so there should be no concerns if byte is not a hex constant.
+        temp = byte.toShort(&ok, 16);
+        // There could be a loss in precision if given text outside the range of an uchar but in range of a ushort.
         if(ok && byte.length()>0) output.append(temp);
     }
     return output;
@@ -700,20 +750,25 @@ void MainWindow::loadOperatingSystem()
 
 void MainWindow::loadObjectCodeProgram()
 {
+    // Get the object code, and convert it to an integer array.
     QString lines = ui->AsmObjectCodeWidgetPane->toPlainText();
     QVector<quint8> data;
-    for(auto line : lines.split("\n",QString::SkipEmptyParts))
-    {
+    for(auto line : lines.split("\n", QString::SkipEmptyParts)) {
         data.append(convertObjectCodeToIntArray(line));
     }
+    // Imitate the behavior of Pep/9.
+    // Always copy bytes to memory starting at 0x0000, instead of invoking the loader.
     memorySection->loadObjectCode((quint16)0, data);
 }
 
 void MainWindow::set_Obj_Listing_filenames_from_Source()
 {
+    // If source code pane has a file, set the object code and listing to have the same file name.
+    // Otherwise, set the filenames to empty.
     QFileInfo fileInfo(ui->AsmSourceCodeWidgetPane->getCurrentFile());
     QString object, listing;
     if(fileInfo.fileName().isEmpty()){
+#pragma message("TODO: Determine title of object and listing panes")
         object = "";
         listing = "";
     }
@@ -730,6 +785,7 @@ void MainWindow::doubleClickedCodeLabel(Enu::EPane which)
     QList<int> list;
     switch(which)
     {
+    // Give the selected pane the majority of the screen space.
     case Enu::EPane::ESource:
         list.append(3000);
         list.append(1);
@@ -751,10 +807,10 @@ void MainWindow::doubleClickedCodeLabel(Enu::EPane which)
     }
 }
 
-void MainWindow::buttonEnableHelper(const int which)
+void MainWindow::debugButtonEnableHelper(const int which)
 {
     // Crack the parameter using DebugButtons to properly enable and disable all buttons related to debugging and running.
-    //Build Actions
+    // Build Actions
     ui->ActionBuild_Assemble->setEnabled(which&DebugButtons::BUILD_ASM);
     ui->actionEdit_Remove_Error_Assembler->setEnabled(which&DebugButtons::BUILD_ASM);
     ui->actionEdit_Format_Assembler->setEnabled(which&DebugButtons::BUILD_ASM);
@@ -763,7 +819,7 @@ void MainWindow::buttonEnableHelper(const int which)
     ui->actionEdit_Remove_Error_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
     ui->actionEdit_Format_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
 
-    //Debug & Run Actions
+    // Debug & Run Actions
     ui->actionBuild_Run->setEnabled(which&DebugButtons::RUN);
     ui->actionBuild_Run_Object->setEnabled(which&DebugButtons::RUN_OBJECT);
     ui->actionDebug_Start_Debugging->setEnabled(which&DebugButtons::DEBUG);
@@ -782,6 +838,7 @@ void MainWindow::buttonEnableHelper(const int which)
 
 void MainWindow::highlightActiveLines()
 {
+    //always highlight the current microinstruction
     ui->microcodeWidget->updateSimulationView();
     ui->microObjectCodePane->highlightCurrentInstruction();
     if(controlSection->getLineNumber() == 0) //If the µPC is 0, hihglight the instruction at the current PC in the listing & memory
@@ -793,7 +850,6 @@ void MainWindow::highlightActiveLines()
 
 bool MainWindow::initializeSimulation()
 {
-    emit simulationStarted();
     // Load microprogram into the micro control store
     if (ui->microcodeWidget->microAssemble()) {
         ui->statusBar->showMessage("MicroAssembly succeeded", 4000);
@@ -821,6 +877,7 @@ bool MainWindow::initializeSimulation()
 
     // If there is batch input, move input to  input buffer in the MemorySection
     ui->ioWidget->batchInputToBuffer();
+    emit simulationStarted();
     return true;
 }
 
@@ -833,6 +890,7 @@ void MainWindow::onUpdateCheck(int val)
 // File MainWindow triggers
 void MainWindow::on_actionFile_New_Asm_triggered()
 {
+    //Try to save source code before clearing it, the object code pane, and the listing pane.
     if (maybeSave(Enu::EPane::ESource)) {
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
         ui->AsmSourceCodeWidgetPane->setFocus();
@@ -847,6 +905,7 @@ void MainWindow::on_actionFile_New_Asm_triggered()
 
 void MainWindow::on_actionFile_New_Microcode_triggered()
 {
+    //Try to save the microcode pane before clearing it & the micro-object-code pane.
     if (maybeSave(Enu::EPane::EMicrocode)) {
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
         ui->microcodeWidget->setFocus();
@@ -864,12 +923,13 @@ void MainWindow::on_actionFile_Open_triggered()
                 curPath,
                 "Pep/9 files (*.pep *.pepo *.pepl *.pepcpu *.txt)");
     Enu::EPane which;
+    // Depending on the file ending, change which pane will be loaded into.
     if (!fileName.isEmpty()) {
-        if(fileName.endsWith("pep",Qt::CaseInsensitive)) which = Enu::EPane::ESource;
-        else if(fileName.endsWith("pepo",Qt::CaseInsensitive)) which = Enu::EPane::EObject;
-        else if(fileName.endsWith("pepl",Qt::CaseInsensitive)) which = Enu::EPane::EListing;
-        else if(fileName.endsWith("pepcpu",Qt::CaseInsensitive)) which = Enu::EPane::EMicrocode;
-        if(maybeSave(which)){
+        if(fileName.endsWith("pep", Qt::CaseInsensitive)) which = Enu::EPane::ESource;
+        else if(fileName.endsWith("pepo", Qt::CaseInsensitive)) which = Enu::EPane::EObject;
+        else if(fileName.endsWith("pepl", Qt::CaseInsensitive)) which = Enu::EPane::EListing;
+        else if(fileName.endsWith("pepcpu", Qt::CaseInsensitive)) which = Enu::EPane::EMicrocode;
+        if(maybeSave(which)) {
             loadFile(fileName, which);
         }
         curPath = QFileInfo(fileName).absolutePath();
@@ -941,6 +1001,9 @@ void MainWindow::on_actionEdit_Undo_triggered()
     else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
         ui->AsmObjectCodeWidgetPane->undo();
     }
+    else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
+        ui->ioWidget->undo();
+    }
 }
 
 void MainWindow::on_actionEdit_Redo_triggered()
@@ -956,6 +1019,9 @@ void MainWindow::on_actionEdit_Redo_triggered()
     else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
         ui->AsmObjectCodeWidgetPane->redo();
     }
+    else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
+        ui->ioWidget->redo();
+    }
 }
 
 void MainWindow::on_actionEdit_Cut_triggered()
@@ -968,6 +1034,9 @@ void MainWindow::on_actionEdit_Cut_triggered()
     }
     else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
         ui->AsmObjectCodeWidgetPane->cut();
+    }
+    else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
+        ui->ioWidget->cut();
     }
 }
 
@@ -985,6 +1054,9 @@ void MainWindow::on_actionEdit_Copy_triggered()
     else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
         ui->AsmObjectCodeWidgetPane->copy();
     }
+    else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
+        ui->ioWidget->copy();
+    }
     // other panes should not be able to copy
 }
 
@@ -998,6 +1070,9 @@ void MainWindow::on_actionEdit_Paste_triggered()
     }
     else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
         ui->AsmObjectCodeWidgetPane->paste();
+    }
+    else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
+        ui->ioWidget->paste();
     }
     // other panes should not be able to paste
 }
@@ -1069,7 +1144,7 @@ void MainWindow::on_actionBuild_Microcode_triggered()
 }
 
 //Build Events
-void MainWindow::on_ActionBuild_Assemble_triggered()
+bool MainWindow::on_ActionBuild_Assemble_triggered()
 {
     loadOperatingSystem();
     Pep::burnCount = 0;
@@ -1084,6 +1159,7 @@ void MainWindow::on_ActionBuild_Assemble_triggered()
         set_Obj_Listing_filenames_from_Source();
         loadObjectCodeProgram();
         ui->statusBar->showMessage("Assembly succeeded", 4000);
+        return true;
     }
     else {
 #pragma message ("TODO: fix current file title if problematic")
@@ -1093,6 +1169,7 @@ void MainWindow::on_ActionBuild_Assemble_triggered()
         // ui->pepCodeTraceTab->setCurrentIndex(0); // Make source code pane visible
         loadObjectCodeProgram();
         ui->statusBar->showMessage("Assembly failed", 4000);
+        return false;
     }
 
 }
@@ -1108,24 +1185,33 @@ void MainWindow::on_actionBuild_Run_Object_triggered()
 {
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
-        disconnectMicroDraw();
-        memorySection->clearModifiedBytes();
+        disconnectViewUpdate();
         ui->memoryWidget->refreshMemory();
         controlSection->onRun();
+        connectViewUpdate();
     }
+    else {
+        debugState = DebugState::DISABLED;
+    }
+    emit simulationFinished();
 }
 
 void MainWindow::on_actionBuild_Run_triggered()
 {
+    if(!on_ActionBuild_Assemble_triggered()) return;
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
-        disconnectMicroDraw();
+        disconnectViewUpdate();
         loadOperatingSystem();
         loadObjectCodeProgram();
-        memorySection->clearModifiedBytes();
         ui->memoryWidget->refreshMemory();
         controlSection->onRun();
+        connectViewUpdate();
     }
+    else {
+        debugState = DebugState::DISABLED;
+    }
+    emit simulationFinished();
 }
 
 // Debug slots
@@ -1159,31 +1245,40 @@ void MainWindow::handleDebugButtons()
     default:
         break;
     }
-    buttonEnableHelper(enabledButtons);
+    debugButtonEnableHelper(enabledButtons);
 }
 
 bool MainWindow::on_actionDebug_Start_Debugging_triggered()
-{
-    connectMicroDraw();
-    debugState = DebugState::DEBUG_ISA;
+{  
     loadObjectCodeProgram();
     loadOperatingSystem();
+    return on_actionDebug_Start_Debugging_Object_triggered();
+
+}
+
+bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
+{
+    connectViewUpdate();
+    debugState = DebugState::DEBUG_ISA;
     if(initializeSimulation()) {
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
         controlSection->onDebuggingStarted();
         ui->cpuWidget->startDebugging();
         ui->memoryWidget->updateMemory();
-        highlightActiveLines();
-        handleDebugButtons();
-        QApplication::processEvents();
         return true;
     }
     return false;
 }
 
+bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
+{
+#pragma message("TODO: Implement 'Start Debugging Loader' once the operating system is implemented")
+    return false;
+}
+
 void MainWindow::on_actionDebug_Stop_Debugging_triggered()
 {
-    connectMicroDraw();
+    connectViewUpdate();
     debugState = DebugState::DISABLED;
     ui->microcodeWidget->clearSimulationView();
 
@@ -1193,7 +1288,6 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     ui->cpuWidget->stopDebugging();
     handleDebugButtons();
     highlightActiveLines();
-    memorySection->clearModifiedBytes();
     ui->memoryWidget->updateMemory();
     emit simulationFinished();
 }
@@ -1207,7 +1301,7 @@ void MainWindow::on_actionDebug_Continue_triggered()
 {
     debugState = DebugState::DEBUG_RESUMED;
     handleDebugButtons();
-    disconnectMicroDraw();
+    disconnectViewUpdate();
     controlSection->onRun();
     if(controlSection->hadErrorOnStep())
     {
@@ -1251,7 +1345,7 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
     debugState = DebugState::DEBUG_ISA;
     int callDepth = controlSection->getCallDepth();
     //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
-    disconnectMicroDraw();
+    disconnectViewUpdate();
     do{
         controlSection->onISAStep();
         if (controlSection->hadErrorOnStep()) {
@@ -1261,7 +1355,7 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
             break;
         }
     } while(callDepth < controlSection->getCallDepth() && !controlSection->getExecutionFinished());
-    connectMicroDraw();
+    connectViewUpdate();
     emit simulationUpdate();
 }
 
@@ -1282,7 +1376,7 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
     debugState = DebugState::DEBUG_ISA;
     int callDepth = controlSection->getCallDepth();
     //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
-    disconnectMicroDraw();
+    disconnectViewUpdate();
     do{
         controlSection->onISAStep();
         if (controlSection->hadErrorOnStep()) {
@@ -1292,7 +1386,7 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
             break;
         }
     } while(callDepth <= controlSection->getCallDepth() && !controlSection->getExecutionFinished());
-    connectMicroDraw();
+    connectViewUpdate();
     emit simulationUpdate();
 }
 
@@ -1351,7 +1445,6 @@ void MainWindow::on_actionDark_Mode_triggered()
     }
     emit darkModeChanged(ui->actionDark_Mode->isChecked());
 }
-
 
 // help:
 void MainWindow::on_actionHelp_UsingPep9CPU_triggered()
@@ -1480,41 +1573,59 @@ void MainWindow::slotByteConverterHexEdited(const QString &str)
 }
 
 // Focus Coloring. Activates and deactivates undo/redo/cut/copy/paste actions contextually
-void MainWindow::focusChanged(QWidget *, QWidget *)
+void MainWindow::focusChanged(QWidget *oldFocus, QWidget * newFocus)
 {
-    ui->microcodeWidget->highlightOnFocus();
-    ui->memoryWidget->highlightOnFocus();
-    ui->microObjectCodePane->highlightOnFocus();
-    ui->cpuWidget->highlightOnFocus();
+    if(oldFocus == ui->microcodeWidget || newFocus == ui->microcodeWidget)
+        ui->microcodeWidget->highlightOnFocus();
+    if(oldFocus == ui->microObjectCodePane || newFocus == ui->microObjectCodePane)
+        ui->microObjectCodePane->highlightOnFocus();
 
+    if(oldFocus == ui->memoryWidget || newFocus == ui->memoryWidget)
+        ui->memoryWidget->highlightOnFocus();
+
+    if(oldFocus == ui->cpuWidget || newFocus == ui->cpuWidget)
+        ui->cpuWidget->highlightOnFocus();
+    if(oldFocus == ui->AsmSourceCodeWidgetPane || newFocus == ui->AsmSourceCodeWidgetPane)
+        ui->AsmSourceCodeWidgetPane->highlightOnFocus();
+    if(oldFocus == ui->AsmObjectCodeWidgetPane || newFocus == ui->AsmObjectCodeWidgetPane)
+        ui->AsmObjectCodeWidgetPane->highlightOnFocus();
+    if(oldFocus == ui->AsmListingWidgetPane || newFocus == ui->AsmListingWidgetPane)
+        ui->AsmListingWidgetPane->highlightOnFocus();
+
+    int which = 0;
     if (ui->microcodeWidget->hasFocus()) {
-        ui->actionEdit_Undo->setDisabled(!ui->microcodeWidget->isUndoable());
-        ui->actionEdit_Redo->setDisabled(!ui->microcodeWidget->isRedoable());
-        ui->actionEdit_Cut->setDisabled(false);
-        ui->actionEdit_Copy->setDisabled(false);
-        ui->actionEdit_Paste->setDisabled(false);
+        which = EditButtons::COPY | EditButtons::CUT | EditButtons::PASTE;
+        which |= EditButtons::UNDO*ui->microcodeWidget->isUndoable() | EditButtons::REDO*ui->microcodeWidget->isRedoable();
     }
     else if (ui->memoryWidget->hasFocus()) {
-        ui->actionEdit_Undo->setDisabled(true);
-        ui->actionEdit_Redo->setDisabled(true);
-        ui->actionEdit_Cut->setDisabled(true);
-        ui->actionEdit_Copy->setDisabled(true);
-        ui->actionEdit_Paste->setDisabled(true);
+        which = 0;
     }
     else if (ui->cpuWidget->hasFocus()) {
-        ui->actionEdit_Undo->setDisabled(true);
-        ui->actionEdit_Redo->setDisabled(true);
-        ui->actionEdit_Cut->setDisabled(true);
-        ui->actionEdit_Copy->setDisabled(true);
-        ui->actionEdit_Paste->setDisabled(true);
+        which = 0;
     }
     else if (ui->microObjectCodePane->hasFocus()) {
-        ui->actionEdit_Undo->setDisabled(true);
-        ui->actionEdit_Redo->setDisabled(true);
-        ui->actionEdit_Cut->setDisabled(true);
-        ui->actionEdit_Copy->setDisabled(false);
-        ui->actionEdit_Paste->setDisabled(true);
+        which = EditButtons::COPY;
     }
+    else if (ui->AsmSourceCodeWidgetPane->hasFocus()) {
+        which = EditButtons::COPY | EditButtons::CUT | EditButtons::PASTE;
+        which |= EditButtons::UNDO * ui->AsmSourceCodeWidgetPane->isUndoable() | EditButtons::REDO * ui->AsmSourceCodeWidgetPane->isRedoable();
+    }
+    else if (ui->AsmObjectCodeWidgetPane->hasFocus()) {
+        which = EditButtons::COPY | EditButtons::CUT | EditButtons::PASTE;
+        which |= EditButtons::UNDO * ui->AsmObjectCodeWidgetPane->isUndoable() | EditButtons::REDO * ui->AsmObjectCodeWidgetPane->isRedoable();
+    }
+    else if (ui->AsmListingWidgetPane->hasFocus()) {
+        which = EditButtons::COPY;
+    }
+    else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
+        which = ui->ioWidget->editActions();
+    }
+
+    ui->actionEdit_Undo->setEnabled(which & EditButtons::UNDO);
+    ui->actionEdit_Redo->setEnabled(which & EditButtons::REDO);
+    ui->actionEdit_Cut->setEnabled(which & EditButtons::CUT);
+    ui->actionEdit_Copy->setEnabled(which & EditButtons::COPY);
+    ui->actionEdit_Paste->setEnabled(which & EditButtons::PASTE);
 }
 
 void MainWindow::setUndoability(bool b)
@@ -1534,9 +1645,11 @@ void MainWindow::setUndoability(bool b)
     else if (ui->AsmObjectCodeWidgetPane->hasFocus()) {
         ui->actionEdit_Undo->setEnabled(b);
     }
-#pragma message("TODO: Set undoability for IO Panes / µObjectPane")
     else if (ui->microObjectCodePane->hasFocus()) {
         ui->actionEdit_Redo->setDisabled(true);
+    }
+    else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
+        ui->actionEdit_Undo->setEnabled(b);
     }
 }
 
@@ -1557,15 +1670,11 @@ void MainWindow::setRedoability(bool b)
     else if (ui->AsmObjectCodeWidgetPane->hasFocus()) {
         ui->actionEdit_Redo->setEnabled(b);
     }
-    #pragma message("TODO: Set redoability for IO Panes / µObjectPane")
-    /*else if (inputPane->hasFocus()) {
-        ui->actionEdit_Redo->setDisabled(!b);
-    }
-    else if (terminalPane->hasFocus()) {
-        ui->actionEdit_Redo->setDisabled(!b);
-    }*/
     else if (ui->microObjectCodePane->hasFocus()) {
         ui->actionEdit_Redo->setDisabled(true);
+    }
+    else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
+        ui->actionEdit_Redo->setEnabled(b);
     }
 }
 
@@ -1599,9 +1708,3 @@ void MainWindow::onInputReceived()
     ui->microcodeWidget->setEnabled(true);
     ui->cpuWidget->setEnabled(true);
 }
-
-
-
-
-
-

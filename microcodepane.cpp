@@ -357,4 +357,3 @@ void MicrocodePane::changeEvent(QEvent *e)
         break;
     }
 }
-

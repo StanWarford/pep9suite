@@ -43,11 +43,27 @@ class MemorySection;
 class MicrocodePane;
 class MicroObjectCodePane;
 class UpdateChecker;
+#pragma message("TODO: Type up debugger FSM")
+/*
+ * The set of possible states for the debugger.
+ * For the transitions between debug states, see docs/debuggerFSM
+ */
 enum class DebugState
 {
-    DISABLED, DEBUG_ISA, DEBUG_MICRO, DEBUG_RESUMED, RUN
+    DISABLED, // The simulation is neither being debugged or run.
+    DEBUG_ISA,  // The simulation is being stepped through at the assembly level.
+    DEBUG_MICRO,  // The simulation is being stepped through at the microcode level.
+    DEBUG_RESUMED,  // The simulation is being debugged, and resume has been called.
+    RUN, // The simulation is being run, not debugged.
 };
 
+/*
+ * Bit masks that signal which editing actions should be available through context menus
+ */
+struct EditButtons
+{
+    static const int COPY = 1<<0, CUT = 1<<1, PASTE = 1<<2, UNDO = 1<<3, REDO = 1<<4;
+};
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
@@ -62,8 +78,7 @@ private:
     Ui::MainWindow *ui;
     DebugState debugState;
     QString curPath;
-    QString darkStyle;
-    QString lightStyle;
+    QString lightStyle, darkStyle;
     QFont codeFont;
     UpdateChecker *updateChecker;
 
@@ -82,16 +97,19 @@ private:
     CPUDataSection* dataSection;
     CPUControlSection* controlSection;
 
-    //Disconnect or reconnect draw events from the model.
-    //These allow the screen to not be updated when the "run" option is picked
-    void connectMicroDraw();
-    void disconnectMicroDraw();
+    // Disconnect or reconnect events that notify views of changes in model,
+    // Disconnecting these events allow for faster execution when running or continuing.
+    void connectViewUpdate();
+    void disconnectViewUpdate();
 
+    // Methods to persist & restore class to file.
     void readSettings();
     void writeSettings();
 
     // Save methods
+    // Save a pane if it is associated with a file. If not, it switches to saveAsFile(which)
     bool save(Enu::EPane which);
+    // Try to save all modified panes.
     bool maybeSave();
     bool maybeSave(Enu::EPane which);
     void loadFile(const QString &fileName, Enu::EPane which);
@@ -100,11 +118,14 @@ private:
     bool saveAsFile(Enu::EPane which);
     QString strippedName(const QString &fullFileName);
 
+    //Print a pane to file using a print dialog
     void print(Enu::EPane which);
 
+    //Methods to load user compiled code
     void loadOperatingSystem();
     void loadObjectCodeProgram();
 
+    //
     void set_Obj_Listing_filenames_from_Source();
     void doubleClickedCodeLabel(Enu::EPane which);
 
@@ -118,10 +139,11 @@ private:
         INTERRUPT = 1<<5, CONTINUE = 1<<6, RESTART = 1<<7, STOP = 1<<8, STEP_OVER_ASM = 1<<9, STEP_INTO_ASM = 1<<10,
         STEP_OUT_ASM = 1<<11, SINGLE_STEP_MICRO = 1<<12, SINGLE_STEP_ASM = 1<<13, BUILD_ASM = 1<<14, BUILD_MICRO = 1<<15;
     };
+
     // Which debug buttons to enable, based on integer cracking of the above struct. It is not strongly typed with an enum, because all of the casting
     // would add signifcant code volume, and it would not increase code clarity.
     // To enable only the run and stop buttons one would call "buttonEnableHelper(DebugButtons::RUN | DebugButtons::STOP)".
-    void buttonEnableHelper(const int which);
+    void debugButtonEnableHelper(const int which);
 
     // Coordinates higlighting of memory, microcode pane, micro object code pane, and assembler listings.
     void highlightActiveLines();
@@ -135,14 +157,14 @@ private slots:
     // File
     void on_actionFile_New_Asm_triggered();
     void on_actionFile_New_Microcode_triggered();
-    void on_actionFile_Open_triggered(); //Todo
+    void on_actionFile_Open_triggered();
 
     bool on_actionFile_Save_Microcode_triggered();
     bool on_actionFile_Save_Asm_triggered();
 
-    bool on_actionFile_Save_Asm_Source_As_triggered(); //Todo
-    bool on_actionFile_Save_Object_Code_As_triggered(); //Todo
-    bool on_actionFile_Save_Assembler_Listing_As_triggered(); //Todo
+    bool on_actionFile_Save_Asm_Source_As_triggered();
+    bool on_actionFile_Save_Object_Code_As_triggered();
+    bool on_actionFile_Save_Assembler_Listing_As_triggered();
     bool on_actionFile_Save_Microcode_As_triggered();
 
     void on_actionFile_Print_Assembler_Source_triggered();
@@ -166,7 +188,7 @@ private slots:
 
     // Build
     void on_actionBuild_Microcode_triggered();
-    void on_ActionBuild_Assemble_triggered();
+    bool on_ActionBuild_Assemble_triggered(); //Returns true if assembly succeded.
     void on_actionBuild_Load_Object_triggered();
     void on_actionBuild_Run_Object_triggered();
     void on_actionBuild_Run_triggered();
@@ -175,27 +197,31 @@ private slots:
     //Debug Events
     void handleDebugButtons();
     bool on_actionDebug_Start_Debugging_triggered();
-    void on_actionDebug_Stop_Debugging_triggered();
+    bool on_actionDebug_Start_Debugging_Object_triggered();
+    bool on_actionDebug_Start_Debugging_Loader_triggered();
 
     void on_actionDebug_Interupt_Execution_triggered();
     void on_actionDebug_Continue_triggered();
     void on_actionDebug_Restart_Debugging_triggered();
-    //Merges the behavior of Step Into and Step Over.
-    //If it it a trap & we are tracing traps, then step into the trap.
-    //If it is a trap & we are not tracing trpas, the step over the trap.
-    //If it is a call, step into the call.
-    //Else, execute a single ISA instruction
+    void on_actionDebug_Stop_Debugging_triggered();
+
+    // Single Step Assembler is the default behavior of Pep/9
+    // Merges the behavior of Step Into and Step Over.
+    // If it it a trap & we are tracing traps, then step into the trap.
+    // If it is a trap & we are not tracing trpas, the step over the trap.
+    // If it is a call, step into the call.
+    // Else, execute a single ISA instruction.
     void on_actionDebug_Single_Step_Assembler_triggered();
-    //Stores the call depth, and continues to execute ISA instructions until the new call depth equals the old call depth.
+    // Stores the call depth, and continues to execute ISA instructions until the new call depth equals the old call depth.
     void on_actionDebug_Step_Over_Assembler_triggered();
-    //Uncoditionally executes the next ISA instruction, including going into function calls and traps.
+    // Uncoditionally executes the next ISA instruction, including going into function calls and traps.
     void on_actionDebug_Step_Into_Assembler_triggered();
-    //Executes the next ISA instructions until the call depth is decreased by 1.
+    // Executes the next ISA instructions until the call depth is decreased by 1.
     void on_actionDebug_Step_Out_Assembler_triggered();
+    // Executes a single line of microcode, which is the behavior of Pep/9CPU
     void on_actionDebug_Single_Step_Microcode_triggered();
 
     // System
-
     void on_actionSystem_Clear_CPU_triggered();
     void on_actionSystem_Clear_Memory_triggered();
 
@@ -204,6 +230,7 @@ private slots:
 
     // View
     void on_actionDark_Mode_triggered();
+
     // Help
     void on_actionHelp_UsingPep9CPU_triggered();
     void on_actionHelp_InteractiveUse_triggered();
@@ -233,10 +260,14 @@ private slots:
     //Disable UI elements for IO
     void onInputRequested();
     void onInputReceived();
+
 signals:
     void beginUpdateCheck();
+    // Emitted once when a simulation is begun
     void simulationStarted();
+    // Emitted whenever a step has occured in the simulation.
     void simulationUpdate();
+    // Emitted once when a simulation is finished(). Rebroadcasted from CPUControlSection::simulationFinished
     void simulationFinished();
     //If a sub-compnent wants to be notified that fonts should be restored to their default values, connect to this signal.
     void fontChanged(QFont font);

@@ -51,11 +51,18 @@ public:
     bool hasFocus();
     // Post: returns if the pane has focus
 
-    void copy();
-    // Post: selected text in the text edit is copied to the clipboard
+    bool isUndoable() const;
+    bool isRedoable() const;
 
 public slots:
     void onFontChanged(QFont font);
+
+    void copy() const;
+    // Post: selected text in the text edit is copied to the clipboard
+    void cut();
+    void paste();
+    void undo();
+    void redo();
 
 private:
     Ui::TerminalPane *ui;

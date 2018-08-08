@@ -176,7 +176,7 @@ void MemorySection::onSetMemoryByte(quint16 address, quint8 val)
     if(old == val) return;
     modifiedBytesSet.insert(address);
     memory[address] = val;
-    emit memoryChanged(address,old,val);
+    emit memoryChanged(address, old, val);
 }
 
 void MemorySection::onSetMemoryWord(quint16 address, quint16 val)
