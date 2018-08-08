@@ -5,12 +5,15 @@
 namespace PepColors{
     struct Colors
     {
-        QColor comment;
-        QColor rightOfExpression;
-        QColor leftOfExpression;
-        QColor symbolHighlight;
+        QColor comment; //Used for normal comments in micro & asm.
+        QColor rightOfExpression; //Used for right hand side of expressions in micro, and mnemonics and pseudo-ops in asm
+        QColor leftOfExpression; //Used for numbers in micro, and symbols in asm.
+        QColor symbolHighlight; //Used for symbols in micro & unused in asm.
         QColor conditionalHighlight;
         QColor branchFunctionHighlight;
+        QColor warningHighlight; //Unused in micro, and used as warnings in asm.
+        QColor errorHighlight; //Used by errors in micro & asm, and strings in asm.
+        QColor altTextHighlight; //Text color opposite of the default text color (e.g. white when the default is black).
 
         QColor seqCircuitColor;
         QColor combCircuitRed;
@@ -29,7 +32,9 @@ namespace PepColors{
         QString arrowImageOn;
         QString arrowImageOff;
 
-        QColor memoryHighlight;
+        QColor memoryHighlightPC;
+        QColor memoryHighlightSP;
+        QColor memoryHighlightChanged;
         QColor lineAreaBackground;
         QColor lineAreaText;
         QColor lineAreaHighlight;

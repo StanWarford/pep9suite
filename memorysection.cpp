@@ -1,6 +1,6 @@
 #include "memorysection.h"
 #include <QApplication>
-
+#include <QDebug>
 MemorySection* MemorySection::instance = nullptr;
 MemorySection *MemorySection::getInstance()
 {
@@ -69,7 +69,7 @@ const QVector<quint8> MemorySection::getMemory() const
     return memory;
 }
 
-bool MemorySection::hadErroronStep() const
+bool MemorySection::hadErrorOnStep() const
 {
     return hadMemoryError;
 }
@@ -79,24 +79,36 @@ const QString MemorySection::getErrorMessage()
     return errorMessage;
 }
 
-const QSet<quint16> MemorySection::changedAddresses() const
+const QSet<quint16> MemorySection::writtenLastCycle() const
 {
-    return completedCycle;
+    return lastWrittenBytes;
 }
 
-#include <QDebug>
+const QSet<quint16> MemorySection::modifiedBytes() const
+{
+    return modifiedBytesSet;
+}
+
+void MemorySection::clearModifiedBytes()
+{
+    modifiedBytesSet.clear();
+}
+
 void MemorySection::setMemoryByte(quint16 address, quint8 value)
 {
-    quint8 old= memory[address];
+    quint8 old = memory[address];
     //if(old == value)return; //Don't continue if the new value is the old value
+    lastWrittenBytes.insert(address);
     onSetMemoryByte(address,value);
 }
 
 void MemorySection::setMemoryWord(quint16 address, quint16 value)
 {
-    address&=0xFFFE; //Memory access ignores the lowest order bit
-    quint8 hi=memory[address],lo=memory[address+1]; //Cache old memory values
+    address &= 0xFFFE; //Memory access ignores the lowest order bit
+    quint8 hi = memory[address], lo = memory[address + 1]; //Cache old memory values
     //if((((quint16)hi<<8)|lo)==value)return; //Don't continue if the new value is the old value
+    lastWrittenBytes.insert(address);
+    lastWrittenBytes.insert((quint16) address + 1);
     onSetMemoryWord(address,value);
 }
 
@@ -122,6 +134,7 @@ void MemorySection::loadObjectCode(quint16 address, QVector<quint8> values)
     int idx = 0;
     for(; idx < values.length() && idx + address <= maxBytes; idx++)
     {
+        modifiedBytesSet.insert(idx+address);
         memory[idx + address] = values[idx];
     }
 }
@@ -160,9 +173,10 @@ void MemorySection::onSetMemoryByte(quint16 address, quint8 val)
         emit this->charWrittenToOutput(val);
     }
     //qDebug()<<QString("Mem[0x%1] = %2").arg(QString::number(address,16),4,'0').arg(QString::number(val,16),2,'0');
+    if(old == val) return;
+    modifiedBytesSet.insert(address);
     memory[address] = val;
-    inProgress.insert(address);
-    emit memoryChanged(address,old,val);
+    emit memoryChanged(address, old, val);
 }
 
 void MemorySection::onSetMemoryWord(quint16 address, quint16 val)
@@ -178,10 +192,11 @@ void MemorySection::onClearMemory() noexcept
     //On memory reset, only clear RAM
     clearMemory();
     clearErrors();
+    clearModifiedBytes();
+    lastWrittenBytes.clear();
 }
 
-void MemorySection::onInstructionFinished() noexcept
+void MemorySection::onInstructionStarted() noexcept
 {
-    completedCycle = this->inProgress;
-    inProgress.clear();
+    lastWrittenBytes.clear();
 }

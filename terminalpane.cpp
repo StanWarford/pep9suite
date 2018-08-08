@@ -83,14 +83,46 @@ bool TerminalPane::hasFocus()
     return ui->plainTextEdit->hasFocus();
 }
 
-void TerminalPane::copy()
+bool TerminalPane::isUndoable() const
 {
-    ui->plainTextEdit->copy();
+#pragma message("TODO: Terminal pane isUndoable/redoable")
+    return false;
 }
+
+bool TerminalPane::isRedoable() const
+{
+    return false;
+}
+
+
 
 void TerminalPane::onFontChanged(QFont font)
 {
     ui->plainTextEdit->setFont(font);
+}
+void TerminalPane::copy() const
+{
+    ui->plainTextEdit->copy();
+}
+
+void TerminalPane::cut()
+{
+#pragma message("TODO: Terminal pane cut")
+}
+
+void TerminalPane::paste()
+{
+#pragma message("TODO: Terminal pane paste")
+}
+
+void TerminalPane::undo()
+{
+#pragma message("TODO: Terminal pane undo / redo")
+}
+
+void TerminalPane::redo()
+{
+
 }
 
 void TerminalPane::displayTerminal()

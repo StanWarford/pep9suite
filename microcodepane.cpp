@@ -21,7 +21,7 @@
 
 #include "microcodepane.h"
 #include "ui_microcodepane.h"
-#include "code.h"
+#include "microcode.h"
 #include "pep.h"
 #include "microcodeprogram.h"
 #include "symboltable.h"
@@ -34,7 +34,7 @@
 #include "symboltable.h"
 MicrocodePane::MicrocodePane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::MicrocodePane),symbolTable(nullptr),program(nullptr)
+        ui(new Ui::MicrocodePane),symbolTable(nullptr),program(nullptr),currentFile()
 {
     ui->setupUi(this);
 
@@ -72,18 +72,22 @@ void MicrocodePane::initCPUModelState()
     if (highlighter != NULL) {
         delete highlighter;
     }
-    highlighter = new PepHighlighter(PepColors::lightMode,editor->document());
+    highlighter = new PepMicroHighlighter(PepColors::lightMode,editor->document());
 
 }
 
 bool MicrocodePane::microAssemble()
 {
-    QVector<Code*> codeList;
+    QVector<MicroCodeBase*> codeList;
     QString sourceLine;
     QString errorString;
     QStringList sourceCodeList;
-    Code *code;
+    MicroCodeBase *code;
     int lineNum = 0;
+    if(isModified() == false && program != nullptr)
+    {
+        return true;
+    }
     removeErrorMessages();
     QString sourceCode = editor->toPlainText().trimmed();
     sourceCodeList = sourceCode.split('\n');
@@ -94,13 +98,14 @@ bool MicrocodePane::microAssemble()
     symbolTable = QSharedPointer<SymbolTable>(new SymbolTable());
     while (lineNum < sourceCodeList.size()) {
         sourceLine = sourceCodeList[lineNum];
-        if (!Asm::processSourceLine(symbolTable.data(),sourceLine, code, errorString)) {
+        if (!MicroAsm::processSourceLine(symbolTable.data(),sourceLine, code, errorString)) {
             appendMessageInSourceCodePaneAt(lineNum, errorString);
             return false;
         }
         codeList.append(code);
         lineNum++;
     }
+    if(program) delete program;
     program = new MicrocodeProgram(codeList,symbolTable.data());
     for(auto sym : symbolTable->getSymbolEntries()){
             if(sym->isUndefined()){
@@ -138,7 +143,7 @@ void MicrocodePane::appendMessageInSourceCodePaneAt(int lineNumber, QString mess
     QTextCursor cursor(editor->document());
     if (lineNumber == -2) {
         cursor.setPosition(editor->textCursor().position());
-        cursor.movePosition(QTextCursor::NextBlock);
+        cursor.movePosition(QTextCursor::EndOfLine);
         cursor.clearSelection();
         editor->setTextCursor(cursor);
         editor->ensureCursorVisible();
@@ -182,7 +187,8 @@ void MicrocodePane::setMicrocode(QString microcode)
     }
     microcode = sourceCodeList.join("\n");
     editor->setPlainText(microcode);
-
+    delete this->program;
+    program = nullptr;
     setLabelToModified(true);
 }
 
@@ -199,6 +205,23 @@ void MicrocodePane::highlightOnFocus()
     else {
         ui->label->setAutoFillBackground(false);
     }
+}
+
+void MicrocodePane::setCurrentFile(QString fileName)
+{
+    if (fileName.isEmpty()) {
+        currentFile.setFileName("");
+        ui->label->setText("Microcode -untitled.pepcpu");
+    }
+    else {
+        currentFile.setFileName(fileName);
+        ui->label->setText(QString("Microcode - %1").arg(QFileInfo(currentFile).fileName()));
+    }
+}
+
+const QFile &MicrocodePane::getCurrentFile() const
+{
+    return currentFile;
 }
 
 bool MicrocodePane::hasFocus()
@@ -254,6 +277,7 @@ bool MicrocodePane::isModified()
 void MicrocodePane::setModifiedFalse()
 {
     editor->document()->setModified(false);
+    setLabelToModified(false);
 }
 
 void MicrocodePane::updateSimulationView()
@@ -269,16 +293,6 @@ void MicrocodePane::clearSimulationView()
 void MicrocodePane::unCommentSelection()
 {
     editor->unCommentSelection();
-}
-
-void MicrocodePane::setFilename(QString fileName)
-{
-    if (fileName == "") {
-        ui->label->setText("Microcode");
-    }
-    else {
-        ui->label->setText(QString("Microcode - %1").arg(fileName));
-    }
 }
 
 void MicrocodePane::readSettings(QSettings &settings)
@@ -343,4 +357,3 @@ void MicrocodePane::changeEvent(QEvent *e)
         break;
     }
 }
-

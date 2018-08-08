@@ -6,7 +6,7 @@
 #include <QMutexLocker>
 
 #include "cpudatasection.h"
-#include "code.h"
+#include "microcode.h"
 #include "microcodeprogram.h"
 #include "symbolentry.h"
 #include "pep.h"
@@ -21,7 +21,7 @@ QElapsedTimer timer;
 CPUControlSection *CPUControlSection::_instance = nullptr;
 CPUTester *CPUTester::_instance = nullptr;
 CPUControlSection::CPUControlSection(CPUDataSection * data, MemorySection* memory): QObject(nullptr),memoizer(new CPUMemoizer(*this)), data(data), memory(memory),
-    microprogramCounter(0), microCycleCounter(0), macroCycleCounter(0),
+    microprogramCounter(0), microCycleCounter(0), instructionCounter(0), callDepth(0),
     inSimulation(false), hadControlError(false), isPrefetchValid(false)
 {
 
@@ -29,8 +29,7 @@ CPUControlSection::CPUControlSection(CPUDataSection * data, MemorySection* memor
 
 CPUControlSection *CPUControlSection::getInstance()
 {
-    if(_instance == nullptr)
-    {
+    if(_instance == nullptr) {
         _instance = new CPUControlSection(CPUDataSection::getInstance(),MemorySection::getInstance());
     }
     return _instance;
@@ -39,6 +38,12 @@ CPUControlSection *CPUControlSection::getInstance()
 CPUControlSection::~CPUControlSection()
 {
     //This object should last the lifetime of the  program, it does not need to be cleaned up
+}
+
+void CPUControlSection::initCPU()
+{
+    data->onSetRegisterByte(4,0xFB);
+    data->onSetRegisterByte(5,0xF8);
 }
 
 void CPUControlSection::setMicrocodeProgram(MicrocodeProgram *program)
@@ -50,6 +55,11 @@ void CPUControlSection::setMicrocodeProgram(MicrocodeProgram *program)
 int CPUControlSection::getLineNumber() const
 {
     return microprogramCounter;
+}
+
+int CPUControlSection::getCallDepth() const
+{
+    return callDepth;
 }
 
 const MicrocodeProgram *CPUControlSection::getProgram() const
@@ -64,7 +74,7 @@ const MicroCode *CPUControlSection::getCurrentMicrocodeLine() const
 
 QString CPUControlSection::getErrorMessage() const
 {
-    if(memory->hadErroronStep()) return memory->getErrorMessage();
+    if(memory->hadErrorOnStep()) return memory->getErrorMessage();
     else if(data->hadErrorOnStep()) return data->getErrorMessage();
     else if(hadErrorOnStep()) return errorMessage;
     else return "";
@@ -72,7 +82,7 @@ QString CPUControlSection::getErrorMessage() const
 
 bool CPUControlSection::hadErrorOnStep() const
 {
-    return hadControlError || data->hadErrorOnStep() || memory->hadErroronStep();
+    return hadControlError || data->hadErrorOnStep() || memory->hadErrorOnStep();
 }
 
 bool CPUControlSection::getExecutionFinished() const
@@ -109,37 +119,58 @@ void CPUControlSection::onStep() noexcept
 {
     QMutexLocker mutty(&dontEnter);
     //Do step logic
-    if(microprogramCounter==0)
-    {
+    if(microprogramCounter==0) {
         //Store PC at the start of the cycle, so that we know where the instruction started from
         memoizer->storePC();
+        memory->onInstructionStarted();
         //memoizer->storeState();
     }
+
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
     this->setSignalsFromMicrocode(prog);
     data->setSignalsFromMicrocode(prog);
     data->onStep();
     branchHandler();
     microCycleCounter++;
-    if(microprogramCounter==0 ||hadErrorOnStep() ||executionFinished)
-    {
+
+    if(microprogramCounter==0 || hadErrorOnStep() ||executionFinished) {
         memoizer->storeState();
         updateAtInstructionEnd();
         emit simulationInstructionFinished();
-        macroCycleCounter++;
-        qDebug().noquote() << memoizer->memoize();
+        instructionCounter++;
+        //qDebug().noquote() << memoizer->memoize();
     }
+}
+
+void CPUControlSection::onISAStep() noexcept
+{
+    do {
+        onStep();
+        if(hadErrorOnStep()) {
+            if(memory->hadErrorOnStep()) {
+                qDebug() << "Memory section reporting an error";
+                break;
+            }
+            else if(data->hadErrorOnStep()) {
+                qDebug() << "Data section reporting an error";
+                break;
+            }
+            else {
+                qDebug() << "Control section reporting an error";
+                break;
+            }
+        }
+    } while(!executionFinished && microprogramCounter != 0);
+    if(executionFinished) emit simulationFinished();
 }
 
 void CPUControlSection::onClock()noexcept
 {
     //Do clock logic
-    if(!inSimulation)
-    {
+    if(!inSimulation) {
         data->onClock();
     }
-    else
-    {
+    else {
         //One should not get here, otherwise that would mean that we clocked in a simulation
     }
 }
@@ -147,53 +178,47 @@ void CPUControlSection::onClock()noexcept
 void CPUControlSection::onRun()noexcept
 {
     timer.start();
-    while(!executionFinished)
-    {
-        if(microCycleCounter%500==0)
-        {
+    while(!executionFinished) {
+        if(microCycleCounter%500==0) {
             QApplication::processEvents();
         }
         onStep();
         //If there was an error on the control flow
-        if(hadErrorOnStep())
-        {
-            if(memory->hadErroronStep())
-            {
+        if(hadErrorOnStep()) {
+            if(memory->hadErrorOnStep()) {
                 qDebug() << "Memory section reporting an error";
                 break;
             }
-            else if(data->hadErrorOnStep())
-            {
+            else if(data->hadErrorOnStep()) {
                 qDebug() << "Data section reporting an error";
                 break;
             }
-            else
-            {
-                qDebug() << "The control section died";
+            else {
+                qDebug() << "Control section reporting an error";
                 break;
             }
         }
     }
     auto value = timer.elapsed();
     qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
-    qDebug().nospace().noquote() <<"Executed "<<macroCycleCounter<<" instructions in "<<microCycleCounter<< " cycles.";
-    qDebug().nospace().noquote() <<"Averaging "<<microCycleCounter/macroCycleCounter<<" cycles per instruction.";
+    qDebug().nospace().noquote() <<"Executed "<<instructionCounter<<" instructions in "<<microCycleCounter<< " cycles.";
+    qDebug().nospace().noquote() <<"Averaging "<<microCycleCounter / instructionCounter<<" cycles per instruction.";
     qDebug().nospace().noquote() <<"Execution time (ms): " << value;
     qDebug().nospace().noquote() <<"Cycles per second: "<< microCycleCounter / (((float)value/1000));
-    qDebug().nospace().noquote() <<"Instructions per second: "<< macroCycleCounter / (((float)value/1000));
+    qDebug().nospace().noquote() <<"Instructions per second: "<< instructionCounter / (((float)value/1000));
     emit simulationFinished();
 }
 
 void CPUControlSection::onClearCPU()noexcept
 {
     data->onClearCPU();
-    memory->clearMemory();
     memory->clearErrors();
     memoizer->clear();
     inSimulation = false;
     microprogramCounter = 0;
     microCycleCounter = 0;
-    macroCycleCounter = 0;
+    instructionCounter = 0;
+    callDepth = 0;
     hadControlError = false;
     executionFinished = false;
     isPrefetchValid = false;
@@ -320,7 +345,7 @@ void CPUControlSection::branchHandler()
         break;
     case Enu::IsUnary:
         byte = data->getRegisterBankByte(8);
-        if(Pep::isUnaryMap[Pep::decodeMnemonic[byte]])
+        if(Pep::isUnaryMap[Pep::decodeMnemonic[byte]] || Pep::isTrapMap[Pep::decodeMnemonic[byte]])
         {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -401,14 +426,12 @@ void CPUControlSection::branchHandler()
     {
         executionFinished = true;
     }
-    else if(temp == microprogramCounter&&prog->getBranchFunction()!=Enu::Stop)
-    {
+    else if(temp == microprogramCounter&&prog->getBranchFunction()!=Enu::Stop) {
         hadControlError = true;
         errorMessage = "Don't branch to yourself";
         executionFinished  = true;
     }
-    else
-    {
+    else {
         microprogramCounter = temp;
     }
 }
@@ -416,16 +439,13 @@ void CPUControlSection::branchHandler()
 void CPUControlSection::setSignalsFromMicrocode(const MicroCode *line)
 {
     int val;
-    if(line->getClockSignal(Enu::EClockSignals::PValidCk))
-    {
+    if(line->getClockSignal(Enu::EClockSignals::PValidCk)) {
         val = line->getControlSignal(Enu::EControlSignals::PValid);
-        if(val == Enu::signalDisabled)
-        {
+        if(val == Enu::signalDisabled) {
             errorMessage = "Error: Asserted PValidCk, but PValid was disabled.";
             hadControlError = true;
         }
-        else
-        {
+        else {
             isPrefetchValid = val;
         }
     }
@@ -434,56 +454,23 @@ void CPUControlSection::setSignalsFromMicrocode(const MicroCode *line)
 void CPUControlSection::updateAtInstructionEnd()
 {
 #pragma message("Todo: Update CPU state at start of instruction")
-    memory->onInstructionFinished();
-}
-
-void CPUControlSection::initCPUStateFromPreconditions()
-{
-    onClearCPU();
-    QList<UnitPreCode*> preCode;
-    microprogramCounter=0;
-    if(program == nullptr)
-    {
-        qDebug()<<"Can't init from null program";
+    if(Pep::decodeMnemonic[data->getRegisterBankByte(CPURegisters::IS)] == Enu::EMnemonic::CALL){
+        callDepth++;
     }
-    for(Code* x : program->getObjectCode())
-    {
-        if(x->hasUnitPre())preCode.append((UnitPreCode*)x);
+    else if(Pep::isTrapMap[Pep::decodeMnemonic[data->getRegisterBankByte(CPURegisters::IS)]]){
+        callDepth++;
     }
-    //Handle data section logic
-    for(auto x : preCode)
-    {
-        x->setUnitPre(data);
+    else if(Pep::decodeMnemonic[data->getRegisterBankByte(CPURegisters::IS)] == Enu::EMnemonic::RET){
+        callDepth--;
     }
-
-}
-
-bool CPUControlSection::testPost()
-{
-    QList<UnitPreCode*> preCode;
-    if(program == nullptr)
-    {
-        qDebug()<<"Can't init from null program";
+    else if(Pep::decodeMnemonic[data->getRegisterBankByte(CPURegisters::IS)] == Enu::EMnemonic::RETTR){
+        callDepth--;
     }
-    for(Code* x : program->getObjectCode())
-    {
-        if(x->hasUnitPost())preCode.append((UnitPreCode*)x);
-    }
-    QString err;
-    bool t=false;
-    for(auto x : preCode)
-    {
-       ((UnitPostCode*) x)->testPostcondition(data,err);
-        if(err!="")t=true;
-    }
-    qDebug()<<"The postcondtions were:"<<!t;
-    return !t;
 }
 
 CPUTester *CPUTester::getInstance()
 {
-    if(_instance == nullptr)
-    {
+    if(_instance == nullptr) {
         _instance = new CPUTester(CPUControlSection::getInstance(),CPUDataSection::getInstance());
     }
     return _instance;

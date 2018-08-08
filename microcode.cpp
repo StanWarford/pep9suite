@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "code.h"
+#include "microcode.h"
 #include <QMetaEnum>
 
 #include "cpugraphicsitems.h"
@@ -200,20 +200,23 @@ QString MicroCode::getSourceCode() const
         if (str.endsWith(", ") || str.endsWith("; ")) { str.chop(2); }
     }
 
-    if (branchFunc == Enu::Unconditional){
-        if(symbol->getValue()+1==trueTargetAddr->getValue()){
-
+    if (branchFunc == Enu::Unconditional) {
+        if(symbol->getValue()+1==trueTargetAddr->getValue()) {
+            //A jump to the next line is assumed by the microassembler, so nothing further must be done
         }
-        else{
-            if(str.isEmpty()){
+        else {
+            if(str.isEmpty()) {
                 str.append("goto "+trueTargetAddr->getName());
             }
-            else{
+            else {
                str.append("; goto "+trueTargetAddr->getName());
             }
         }
     }
-    else if (branchFunc == Enu::Stop){
+    else if(branchFunc == Enu::Assembler_Assigned) {
+        //Assume that a jump to the next line will be used unless otherwise specified.
+    }
+    else if (branchFunc == Enu::Stop) {
         if(str.isEmpty()){
             str.append("stop");
         }
@@ -221,18 +224,18 @@ QString MicroCode::getSourceCode() const
            str.append("; stop");
         }
     }
-    else if (branchFunc == Enu::InstructionSpecifierDecoder){
+    else if (branchFunc == Enu::InstructionSpecifierDecoder) {
         str.append("; "+Pep::branchFuncToMnemonMap[branchFunc]);
     }
-    else if (branchFunc == Enu::AddressingModeDecoder){
+    else if (branchFunc == Enu::AddressingModeDecoder) {
         str.append("; "+Pep::branchFuncToMnemonMap[branchFunc]);
     }
-    else{
-        if(str.isEmpty()){
+    else {
+        if(str.isEmpty()) {
             str.append("if "+Pep::branchFuncToMnemonMap[branchFunc]+" "+
                        trueTargetAddr->getName()+" else "+falseTargetAddr->getName());
         }
-        else{
+        else {
             str.append("; if "+Pep::branchFuncToMnemonMap[branchFunc]+" "+
                        trueTargetAddr->getName()+" else "+falseTargetAddr->getName());
         }

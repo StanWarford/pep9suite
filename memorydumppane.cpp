@@ -26,188 +26,173 @@
 #include "ui_memorydumppane.h"
 #include "pep.h"
 #include "enu.h"
-
+#include <QStyle>
 #include "cpudatasection.h"
 #include "memorysection.h"
+#include "colors.h"
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
-    QWidget(parent), lineSize(0),
-    ui(new Ui::MemoryDumpPane)
+    QWidget(parent), data(new QStandardItemModel(this)), lineSize(320), colors(&PepColors::lightMode),
+    ui(new Ui::MemoryDumpPane), inSimulation(false)
 {
     ui->setupUi(this);
-    ui->textEdit->setReadOnly(true);
     if (Pep::getSystem() != "Mac") {
         ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
-        ui->textEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+        ui->tableView->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    }
+    // Insert 1 column for address, 8 for memory bytes, and 1 for character dump
+    data->insertColumns(0, 1+8+1);
+    // Insert enough rows to hold 64k of memory
+    data->insertRows(0, (1<<16)/8);
+    // Set the addresses of every row now, as they will not change during execution of the program.
+    for(int it = 0; it < (1<<16) /8; it++) {
+        data->setData(data->index(it, 0), QString("0x%1").arg(it*8, 4, 16, QChar('0')));
     }
 
-    connect(ui->pcPushButton, SIGNAL(clicked()), this, SLOT(scrollToPC()));
-    connect(ui->spPushButton, SIGNAL(clicked()), this, SLOT(scrollToSP()));
-    connect(ui->scrollToLineEdit, SIGNAL(textChanged(QString)), this, SLOT(scrollToAddress(QString)));
+    // Hook the table view into the model, and size everything correctly
+    ui->tableView->setModel(data);
+    ui->tableView->resizeRowsToContents();
+
+    // Connect scrolling events
+    connect(ui->pcPushButton, &QAbstractButton::clicked, this, &MemoryDumpPane::scrollToPC);
+    connect(ui->spPushButton, &QAbstractButton::clicked, this, &MemoryDumpPane::scrollToSP);
+    connect(ui->scrollToLineEdit, &QLineEdit::textChanged, this, &MemoryDumpPane::scrollToAddress);
 }
 
 void MemoryDumpPane::init(MemorySection *memory, CPUDataSection *data)
 {
-    this->memory = memory;
-    this->data=data;
+    this->memorySection = memory;
+    this->dataSection = data;
+    delegate = new MemoryDumpDelegate(memorySection, ui->tableView);
+    ui->tableView->setItemDelegate(delegate);
+    refreshMemory();
 }
 
 MemoryDumpPane::~MemoryDumpPane()
 {
     delete ui;
+    delete data;
+    delete delegate;
 }
 
 void MemoryDumpPane::refreshMemory()
 {
-    QStringList memoryDump;
-    QString memoryDumpLine;
+    quint8 tempData;
     QChar ch;
-    const QVector<quint8> values = memory->getMemory();
-    for (int i = 0; i < 65536; i += 8) {
-        memoryDumpLine = "";
-        memoryDumpLine.append(QString("%1 | ").arg(i, 4, 16, QLatin1Char('0')).toUpper());
-        for (int j = 0; j < 8; j++) {
-            memoryDumpLine.append(QString("%1 ").arg(values[i + j], 2, 16, QLatin1Char('0')).toUpper());
-        }
-        memoryDumpLine.append("|");
-        for (int j = 0; j < 8; j++) {
-            ch = QChar(values[i + j]);
+    QString memoryDumpLine;
+    // Disable screen updates while re-writing all data fields to save execution time.
+    bool updates = ui->tableView->updatesEnabled();
+    ui->tableView->setUpdatesEnabled(false);
+
+    for(int row = 0; row < (1<<16)/8; row++) {
+        memoryDumpLine.clear();
+        for(int col = 0; col < 8; col++) {
+            // Use the data in the memory section to set the value in the model.
+            tempData = memorySection->getMemoryByte(row*8 + col, false);
+            data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')));
+            ch = QChar(tempData);
             if (ch.isPrint()) {
                 memoryDumpLine.append(ch);
             } else {
                 memoryDumpLine.append(".");
             }
         }
-        memoryDump.append(memoryDumpLine);
+        data->setData(data->index(row, 1+8), memoryDumpLine);
     }
-    quint32 tempSize = ui->textEdit->fontMetrics().width(memoryDumpLine);
-    lineSize = tempSize > 10?tempSize:10;
-    ui->textEdit->setText(memoryDump.join("\n"));
+
+    ui->tableView->setUpdatesEnabled(updates);
+    clearHighlight();
+    ui->tableView->resizeColumnsToContents();
+    lineSize = 0;
+    for(int it = 0; it<data->columnCount() ; it++) {
+        lineSize += ui->tableView->columnWidth(it);
+    }
 }
 
 void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
 {
-    int vertScrollBarPosition = ui->textEdit->verticalScrollBar()->value();
-    int horizScrollBarPosition = ui->textEdit->horizontalScrollBar()->value();
-
     quint16 firstLine = firstByte / 8;
     quint16 lastLine = lastByte / 8;
-
-    QTextCursor cursor(ui->textEdit->document());
-    cursor.setPosition(0);
-    for (quint16 i = 0; i < firstLine; i++) {
-        cursor.movePosition(QTextCursor::NextBlock);
-    }
-
-    QString memoryDumpLine;
+    quint8 tempData;
     QChar ch;
-    quint16 byteNum;
-    const QVector<quint8> values = memory->getMemory();
-    for (quint16 i = firstLine; i <= lastLine; i++) {
-        memoryDumpLine = "";
-        byteNum = i * 8;
-        memoryDumpLine.append(QString("%1 | ").arg(byteNum, 4, 16, QLatin1Char('0')).toUpper());
-        for (quint16 j = 0; j < 8; j++) {
-            memoryDumpLine.append(QString("%1 ").arg(values[byteNum++], 2, 16, QLatin1Char('0')).toUpper());
-        }
-        memoryDumpLine.append("|");
-        byteNum = i * 8;
-        for (quint16 j = 0; j < 8; j++) {
-            ch = QChar(values[byteNum++]);
+    QString memoryDumpLine;
+    // Disable screen updates while re-writing all data fields to save execution time.
+    bool updates = ui->tableView->updatesEnabled();
+    ui->tableView->setUpdatesEnabled(false);
+    // Use <= comparison, so when firstLine == lastLine that the line is stil refreshed
+    for(int row = firstLine; row <= lastLine; row++) {
+        memoryDumpLine .clear();
+        for(int col = 0; col < 8; col++) {
+            // Use the data in the memory section to set the value in the model.
+            tempData = memorySection->getMemoryByte(row*8 + col, false);
+            data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')));
+            ch = QChar(tempData);
             if (ch.isPrint()) {
                 memoryDumpLine.append(ch);
             } else {
                 memoryDumpLine.append(".");
             }
         }
-        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
-        ui->textEdit->setTextCursor(cursor);
-        ui->textEdit->insertPlainText(memoryDumpLine);
-        cursor.movePosition(QTextCursor::NextBlock);
+        data->setData(data->index(row, 1+8), memoryDumpLine);
     }
-    quint32 tempSize = ui->textEdit->fontMetrics().width(memoryDumpLine);
-    lineSize = tempSize > 10?tempSize:10;
-    ui->textEdit->verticalScrollBar()->setValue(vertScrollBarPosition);
-    ui->textEdit->horizontalScrollBar()->setValue(horizScrollBarPosition);
+    lineSize = 0;
+    for(int it = 0; it< data->columnCount(); it++) {
+        lineSize += ui->tableView->columnWidth(it);
+    }
+
+    ui->tableView->setUpdatesEnabled(updates);
 }
 
-void MemoryDumpPane::highlightMemory(bool b)
+void MemoryDumpPane::clearHighlight()
 {
+    // Don't to remove BackgroundRole & ForegroundRole from data->itemData(...) map,
+    // followed by a data->setItemData(...) call.
+    // Even though items were removed from the map and both calls were successful, the tableView would not remove the old highlighting.
+    // Explicitly setting the field to QVariant (nothing) reutrns the field to default styling.
     while (!highlightedData.isEmpty()) {
-        highlightByte(highlightedData.takeFirst(), Qt::black, Qt::white);
+        quint16 address = highlightedData.takeFirst();
+        QStandardItem *item = data->item(address/8, address%8 +1);
+        item->setData(QVariant(), Qt::BackgroundRole);
+        item->setData(QVariant(), Qt::ForegroundRole);
+    }
+}
+
+void MemoryDumpPane::highlight()
+{
+    highlightByte(dataSection->getRegisterBankWord(CPURegisters::SP), colors->altTextHighlight, colors->memoryHighlightSP);
+    highlightedData.append(dataSection->getRegisterBankWord(CPURegisters::SP));
+
+    quint16 programCounter = dataSection->getRegisterBankWord(CPURegisters::PC);
+    if(!Pep::isUnaryMap[Pep::decodeMnemonic[memorySection->getMemoryByte(programCounter,false)]]) {
+        for(int it = 0; it < 3; it++) {
+            highlightByte(dataSection->getRegisterBankWord(CPURegisters::PC)+it, colors->altTextHighlight, colors->memoryHighlightPC);
+            highlightedData.append(dataSection->getRegisterBankWord(CPURegisters::PC)+it);
+        }
+    }
+    else {
+        highlightByte(dataSection->getRegisterBankWord(CPURegisters::PC), colors->altTextHighlight, colors->memoryHighlightPC);
+        highlightedData.append(dataSection->getRegisterBankWord(CPURegisters::PC));
     }
 
-    if (b) {
-        highlightByte(data->getRegisterBankWord(CPURegisters::SP), Qt::white, Qt::darkMagenta);
-        highlightedData.append(data->getRegisterBankWord(CPURegisters::SP));
-        quint16 programCounter = data->getRegisterBankWord(CPURegisters::PC);
-        if (!Pep::isUnaryMap[Pep::decodeMnemonic[memory->getMemoryByte(programCounter,false)]]) {
-            QTextCursor cursor(ui->textEdit->document());
-            QTextCharFormat format;
-            format.setBackground(Qt::blue);
-            format.setForeground(Qt::white);
-            cursor.setPosition(0);
-            for (int i = 0; i < programCounter / 8; i++) {
-                cursor.movePosition(QTextCursor::NextBlock);
-            }
-            for (int i = 0; i < 7 + 3 * (programCounter % 8); i++) {
-                cursor.movePosition(QTextCursor::NextCharacter);
-            }
-            cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
-            cursor.mergeCharFormat(format);
-            highlightedData.append(programCounter);
-            if (programCounter / 8 == (programCounter + 1) / 8) {
-                cursor.clearSelection();
-                cursor.movePosition(QTextCursor::NextCharacter);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
-                cursor.mergeCharFormat(format);
-            }
-            else {
-                cursor.clearSelection();
-                cursor.movePosition(QTextCursor::NextBlock);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, 7);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
-                cursor.mergeCharFormat(format);
-            }
-            highlightedData.append(programCounter + 1);
-            if ((programCounter + 1) / 8 == (programCounter + 2) / 8) {
-                cursor.clearSelection();
-                cursor.movePosition(QTextCursor::NextCharacter);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
-                cursor.mergeCharFormat(format);
-            }
-            else {
-                cursor.clearSelection();
-                cursor.movePosition(QTextCursor::NextBlock);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, 7);
-                cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
-                cursor.mergeCharFormat(format);
-            }
-            highlightedData.append(programCounter + 2);
-        }
-        else { // unary.
-            highlightByte(programCounter, Qt::white, Qt::blue);
-            highlightedData.append(programCounter);
-        }
-
-        bytesWrittenLastStep = bytesWrittenLastStep.toSet().toList();
-        qSort(bytesWrittenLastStep);
-        #pragma message("Todo: prevent memory highlighting while in trap")
-        /*while (!bytesWrittenLastStep.isEmpty()) {
-            // This is to prevent bytes modified by the OS from being highlighted when we are not tracing traps:
-            if (bytesWrittenLastStep.at(0) < Sim::readWord(Pep::dotBurnArgument - 0x7) || Sim::trapped) {
-                highlightByte(bytesWrittenLastStep.at(0), Qt::white, Qt::red);
-                highlightedData.append(bytesWrittenLastStep.takeFirst());
-            }
-            else {
-                return;
-            }
-        }*/
+    for(quint16 byte : lastModifiedBytes) {
+        highlightByte(byte, colors->altTextHighlight, colors->memoryHighlightChanged);
+        highlightedData.append(byte);
     }
+
 }
 
 void MemoryDumpPane::cacheModifiedBytes()
 {
-    #pragma message("TODO: Handle clear of memory bytes")
+    QSet<quint16> tempConstruct, tempDestruct = memorySection->modifiedBytes();
+    modifiedBytes = memorySection->modifiedBytes();
+    memorySection->clearModifiedBytes();
+    lastModifiedBytes = memorySection->writtenLastCycle();
+    for(quint16 val : tempDestruct) {
+        if(tempConstruct.contains(val)) continue;
+        for(quint16 temp = val - val%8;temp%8<=7;temp++) {
+            tempConstruct.insert(temp);
+        }
+        refreshMemoryLines(val - val%8,val - val%8 + 1);
+    }
     /*modifiedBytes.unite(Sim::modifiedBytes);
     if (Sim::tracingTraps) {
         bytesWrittenLastStep.clear();
@@ -228,73 +213,37 @@ void MemoryDumpPane::cacheModifiedBytes()
 
 void MemoryDumpPane::updateMemory()
 {
-    int vertScrollBarPosition = ui->textEdit->verticalScrollBar()->value();
-    int horizScrollBarPosition = ui->textEdit->horizontalScrollBar()->value();
-
     QList<quint16> list;
     QSet<quint16> linesToBeUpdated;
-    QString memoryDumpLine;
-    QChar ch;
-    quint16 byteNum;
-    quint16 lineNum;
-    const QVector<quint8> values = memory->getMemory();
-#pragma message("TODO: Handle bytes changed")
-    /*
-    modifiedBytes.unite(Sim::modifiedBytes);
+    modifiedBytes.unite(memorySection->modifiedBytes());
+    memorySection->clearModifiedBytes();
+    lastModifiedBytes = memorySection->writtenLastCycle();
     list = modifiedBytes.toList();
+
     while(!list.isEmpty()) {
         linesToBeUpdated.insert(list.takeFirst() / 8);
     }
     list = linesToBeUpdated.toList();
     qSort(list.begin(), list.end());
-    QTextCursor cursor(ui->textEdit->document());
-    cursor.setPosition(0);
-    lineNum = 0;
-    while (!list.isEmpty()) {
-        while (lineNum < list.first()) {
-            cursor.movePosition(QTextCursor::NextBlock);
-            lineNum++;
-        }
 
-        memoryDumpLine = "";
-        byteNum = lineNum * 8;
-        memoryDumpLine.append(QString("%1 | ").arg(byteNum, 4, 16, QLatin1Char('0')).toUpper());
-        for (int j = 0; j < 8; j++) {
-            memoryDumpLine.append(QString("%1 ").arg(Sim::Mem[byteNum++], 2, 16, QLatin1Char('0')).toUpper());
-        }
-        memoryDumpLine.append("|");
-        byteNum = lineNum * 8;
-        for (int j = 0; j < 8; j++) {
-            ch = QChar(Sim::Mem[byteNum++]);
-            if (ch.isPrint()) {
-                memoryDumpLine.append(ch);
-            } else {
-                memoryDumpLine.append(".");
-            }
-        }
-        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
-        ui->textEdit->setTextCursor(cursor);
-        ui->textEdit->insertPlainText(memoryDumpLine);
-        cursor.movePosition(QTextCursor::NextBlock);
-        lineNum++;
-        list.removeFirst();
+    for(auto x: list)
+    {
+        //Multiply by 8 to convert from line # to address of first byte on a line.
+        refreshMemoryLines(x*8, x*8);
     }
-    modifiedBytes.clear();
 
-    ui->textEdit->verticalScrollBar()->setValue(vertScrollBarPosition);
-    ui->textEdit->horizontalScrollBar()->setValue(horizScrollBarPosition);
-*/
+    modifiedBytes.clear();
+    ui->tableView->resizeColumnsToContents();
 }
 
 void MemoryDumpPane::scrollToTop()
 {
-    ui->textEdit->verticalScrollBar()->setValue(0);
-    ui->textEdit->horizontalScrollBar()->setValue(0);
+    ui->tableView->scrollToTop();
 }
 
 void MemoryDumpPane::highlightOnFocus()
 {
-    if (ui->textEdit->hasFocus() || ui->scrollToLineEdit->hasFocus()) {
+    if (ui->tableView->hasFocus() || ui->scrollToLineEdit->hasFocus()) {
         ui->label->setAutoFillBackground(true);
     }
     else {
@@ -304,74 +253,88 @@ void MemoryDumpPane::highlightOnFocus()
 
 bool MemoryDumpPane::hasFocus()
 {
-    return ui->textEdit->hasFocus() || ui->scrollToLineEdit->hasFocus();
+    return ui->tableView->hasFocus() || ui->scrollToLineEdit->hasFocus();
 }
 
 void MemoryDumpPane::copy()
 {
-    ui->textEdit->copy();
+#pragma message("TODO: Copy mechanics on memory pane")
+    //ui->textEdit->copy();
 }
 
 int MemoryDumpPane::memoryDumpWidth()
 {
-    quint32 a = this->lineSize;
-    quint32 b = ui->textEdit->style()->pixelMetric(QStyle::PM_ScrollBarExtent);
-    quint32 c = 15;
-    return  a + b + c;
+    quint32 tableSize = lineSize;
+    quint32 extraPad = 35;
+    return  tableSize + extraPad;
 }
 
 void MemoryDumpPane::onFontChanged(QFont font)
 {
-    ui->textEdit->setFont(font);
+    ui->tableView->setFont(font);
+    ui->scrollToLineEdit->setFont(font);
+    ui->tableView->resizeColumnsToContents();
 }
 
 void MemoryDumpPane::onDarkModeChanged(bool darkMode)
 {
-#pragma message ("TODO: handle dark mode changes gracefully")
+    if(darkMode) colors = &PepColors::darkMode;
+    else colors = &PepColors::lightMode;
+    // Explicitly rehighlight if in simulation, otherwise old highlighting colors will still be used until the next cycle.
+    if(inSimulation) {
+        clearHighlight();
+        highlight();
+    }
 }
 
 void MemoryDumpPane::onMemoryChanged(quint16 address, quint8, quint8)
 {
-    this->refreshMemoryLines(address,address+1);
+    // Do not use address+1 or address-1, as an address at the end of a line
+    // would incorrectly trigger a refresh of an adjacent line.
+    // Refresh memoryLines(...) will work correctly if both start and end addresses are the same.
+    this->refreshMemoryLines(address, address);
+}
+
+void MemoryDumpPane::onSimulationStarted()
+{
+    inSimulation = true;
+}
+
+void MemoryDumpPane::onSimulationFinished()
+{
+    inSimulation = false;
 }
 
 void MemoryDumpPane::highlightByte(quint16 memAddr, QColor foreground, QColor background)
 {
-    QTextCursor cursor(ui->textEdit->document());
-    cursor.setPosition(0);
-    for (int i = 0; i < memAddr / 8; i++) {
-        cursor.movePosition(QTextCursor::NextBlock);
-    }
-    for (int i = 0; i < 7 + 3 * (memAddr % 8); i++) {
-        cursor.movePosition(QTextCursor::NextCharacter);
-    }
-    cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, 2);
-    QTextCharFormat format;
-    format.setBackground(background);
-    format.setForeground(foreground);
-    cursor.mergeCharFormat(format);
+    // Rows contain 8 bytes of memory.
+    // The first column is an address, so the first byte in a row is in column one.
+    QModelIndex index = data->index(memAddr/8, memAddr%8 +1);
+    // Set style data of item from parameters.
+    data->setData(index, foreground ,Qt::ForegroundRole);
+    data->setData(index, background, Qt::BackgroundRole);
 }
 
 void MemoryDumpPane::mouseReleaseEvent(QMouseEvent *)
 {
-    ui->textEdit->setFocus();
+    ui->tableView->setFocus();
 }
 
 void MemoryDumpPane::scrollToByte(quint16 byte)
 {
-    quint32 min = ui->textEdit->verticalScrollBar()->minimum();
-    quint32 max = ui->textEdit->verticalScrollBar()->maximum();
-    ui->textEdit->verticalScrollBar()->setValue(min + static_cast<quint32>(8 * (byte / 4096 - 8) + ((byte - byte % 8) / 65536.0) * (max - min)));
+    // Rows contain 8 bytes of memory.
+    // The first column is an address, so the first byte in a row is in column one.
+    ui->tableView->scrollTo(data->index(byte/8, byte%8 + 1));
 }
 
 void MemoryDumpPane::scrollToPC()
 {
-    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(data->getRegisterBankWord(CPURegisters::PC), 4, 16, QLatin1Char('0')).toUpper());
+    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(dataSection->getRegisterBankWord(CPURegisters::PC), 4, 16, QLatin1Char('0')).toUpper());
 }
 
 void MemoryDumpPane::scrollToSP()
 {
-    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(data->getRegisterBankWord(CPURegisters::SP), 4, 16, QLatin1Char('0')).toUpper());
+    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(dataSection->getRegisterBankWord(CPURegisters::SP), 4, 16, QLatin1Char('0')).toUpper());
 }
 
 void MemoryDumpPane::scrollToAddress(QString string)
@@ -395,3 +358,59 @@ void MemoryDumpPane::scrollToAddress(QString string)
         ui->scrollToLineEdit->setText("0x");
     }
 }
+
+MemoryDumpDelegate::MemoryDumpDelegate(MemorySection* memorySection, QObject *parent): QStyledItemDelegate(parent),
+    memorySection(memorySection), canEdit(true)
+{
+
+}
+
+MemoryDumpDelegate::~MemoryDumpDelegate()
+{
+
+}
+
+QWidget *MemoryDumpDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    // The first and last columns are not user editable, so do not create an editor.
+    if(index.column() == 0 || index.column() == 1+8 || !canEdit) return 0;
+    // Otherwise, defer to QStyledItemDelegate's implementation, which returns a LineEdit
+    QLineEdit *line = qobject_cast<QLineEdit*>(QStyledItemDelegate::createEditor(parent, option, index));
+    // Apply a validator, so that a user cannot input anything other than a one byte hexadecimal constant
+    line->setValidator(new QRegExpValidator(QRegExp("[a-fA-F0-9][a-fA-F0-9]|[a-fA-F0-9]"), line));
+    return line;
+}
+
+void MemoryDumpDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+    // The default value in the line edit should be the text currently in that cell.
+    QString value = index.model()->data(index, Qt::EditRole).toString();
+        QLineEdit *line = static_cast<QLineEdit*>(editor);
+        line->setText(value);
+}
+
+void MemoryDumpDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    // Pass geometry information to the editor.
+    editor->setGeometry(option.rect);
+}
+
+void MemoryDumpDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+    // Get text from editor and convert it to a integer
+    QLineEdit *line = static_cast<QLineEdit*>(editor);
+    QString value = line->text();
+    bool ok;
+    quint64 hexValue = value.toInt(&ok, 16);
+    // Use column-1 since the first column is the address
+    quint16 addr = index.row()*8 + index.column() - 1;
+    // Even though there is a regexp validator in place, validate data again.
+    if(ok && hexValue< 1<<16) {
+        // Instead of inserting data directly into the item model, notify the MemorySection of a change.
+        // The memory section will signal back to the MemoryDump to update the value that changed.
+        // This is done to avoid an infinite loop of signals between the memory section and the item model.
+        memorySection->setMemoryByte(addr, hexValue);
+    }
+}
+
+

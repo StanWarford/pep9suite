@@ -23,7 +23,7 @@
 
 #include <QDialog>
 #include <QTreeWidgetItem>
-#include "pephighlighter.h"
+#include "pepmicrohighlighter.h"
 #include "microcodeeditor.h"
 
 #include "pep.h"
@@ -56,7 +56,7 @@ private:
     Ui::HelpDialog *ui;
 
     MicrocodeEditor *microcodeEditor;
-    PepHighlighter *leftHighlighter;
+    PepMicroHighlighter *leftHighlighter;
 
     enum Row {
         eUSINGPEP9CPU = 0,

@@ -21,21 +21,21 @@
 
 #include<QStringList>
 #include <QDebug>
-#include "asm.h"
+#include "microasm.h"
 #include "pep.h"
-#include "code.h"
+#include "microcode.h"
 #include "specification.h"
 #include "symboltable.h"
 #include "symbolvalue.h"
 #include "symbolentry.h"
 
 // Regular expressions for lexical analysis
-QRegExp Asm::rxComment("^//.*");
-QRegExp Asm::rxDigit("^[0-9]+");
-QRegExp Asm::rxIdentifier("^((([A-Z|a-z]{1})(\\w*))(:){0,1})");
-QRegExp Asm::rxHexConst("^((0(?![x|X]))|((0)([x|X])([0-9|A-F|a-f])+)|((0)([0-9]+)))");
+QRegExp MicroAsm::rxComment("^//.*");
+QRegExp MicroAsm::rxDigit("^[0-9]+");
+QRegExp MicroAsm::rxIdentifier("^((([A-Z|a-z]{1})(\\w*))(:){0,1})");
+QRegExp MicroAsm::rxHexConst("^((0(?![x|X]))|((0)([x|X])([0-9|A-F|a-f])+)|((0)([0-9]+)))");
 
-bool Asm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenString)
+bool MicroAsm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenString)
 {
     sourceLine = sourceLine.trimmed();
     if (sourceLine.length() == 0) {
@@ -158,9 +158,9 @@ bool Asm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenStri
     return false;
 }
 
-bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&code, QString &errorString)
+bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, MicroCodeBase *&code, QString &errorString)
 {
-    Asm::ELexicalToken token; // Passed to getToken.
+    MicroAsm::ELexicalToken token; // Passed to getToken.
     QString tokenString; // Passed to getToken.
     QString localIdentifier = ""; // Saves identifier for processing in the following state.
     int localValue;
@@ -174,7 +174,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
     UnitPreCode *preconditionCode = NULL;
     UnitPostCode *postconditionCode = NULL;
     BlankLineCode *blankLineCode = NULL;
-    Asm::ParseState state = Asm::PS_START;
+    MicroAsm::ParseState state = MicroAsm::PS_START;
     do {
         if (!getToken(sourceLine, token, tokenString)) {
             errorString = tokenString;
@@ -182,8 +182,8 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
         }
         //        qDebug() << "tokenString: " << tokenString;
         switch (state) {
-        case Asm::PS_START:
-            if (token == Asm::LTE_SYMBOL)
+        case MicroAsm::PS_START:
+            if (token == MicroAsm::LTE_SYMBOL)
             {
                 microCode = new MicroCode();
                 code = microCode;
@@ -200,22 +200,22 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                    symTable->insertSymbol(tokenString.left(tokenString.length()-1));
                 }
                 microCode->setSymbol(symTable->getValue(tokenString.left(tokenString.length()-1)).get());
-                state = Asm::PS_CONTINUE_PRE_SEMICOLON_POST_COMMA;
+                state = MicroAsm::PS_CONTINUE_PRE_SEMICOLON_POST_COMMA;
             }
-            else if (token == Asm::LT_IDENTIFIER) {
+            else if (token == MicroAsm::LT_IDENTIFIER) {
                 if (Pep::mnemonToDecControlMap.contains(tokenString.toUpper())) {
                     microCode = new MicroCode();
                     code = microCode;
                     localEnumMnemonic = Pep::mnemonToDecControlMap.value(tokenString.toUpper());
                     localIdentifier = tokenString;
-                    state = Asm::PS_EQUAL_DEC;
+                    state = MicroAsm::PS_EQUAL_DEC;
                 }
                 else if (Pep::mnemonToMemControlMap.contains(tokenString.toUpper())) {
                     microCode = new MicroCode;
                     code = microCode;
                     localEnumMnemonic = Pep::mnemonToMemControlMap.value(tokenString.toUpper());
                     microCode->setControlSignal((Enu::EControlSignals)localEnumMnemonic, 1);
-                    state = Asm::PS_CONTINUE_PRE_SEMICOLON;
+                    state = MicroAsm::PS_CONTINUE_PRE_SEMICOLON;
                 }
                 else if (Pep::mnemonToClockControlMap.contains(tokenString.toUpper())) {
                     errorString = "// ERROR: Clock signal " + tokenString + " must appear after semicolon";
@@ -226,16 +226,16 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                     return false;
                 }
             }
-            else if (token == Asm::LT_SEMICOLON) {
+            else if (token == MicroAsm::LT_SEMICOLON) {
                 errorString = "// ERROR: No control signals before semicolon.";
                 return false;
             }
-            else if (token == Asm::LT_COMMENT) {
+            else if (token == MicroAsm::LT_COMMENT) {
                 commentOnlyCode = new CommentOnlyCode(tokenString);
                 code = commentOnlyCode;
-                state = Asm::PS_COMMENT;
+                state = MicroAsm::PS_COMMENT;
             }
-            else if (token == Asm::LT_PRE_POST) {
+            else if (token == MicroAsm::LT_PRE_POST) {
                 if (Pep::mnemonToSpecificationMap.contains(tokenString.toUpper())) {
                     if (Pep::mnemonToSpecificationMap.value(tokenString.toUpper()) == Enu::Pre) {
                         processingPrecondition = true;
@@ -255,14 +255,14 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                     return false;
                 }
             }
-            else if (token == Asm::LT_EMPTY) {
+            else if (token == MicroAsm::LT_EMPTY) {
                 blankLineCode = new BlankLineCode();
                 code = blankLineCode;
-                state = Asm::PS_FINISH;
+                state = MicroAsm::PS_FINISH;
             }
-            else if (token == Asm::LTE_IF)
+            else if (token == MicroAsm::LTE_IF)
             {
-                state = Asm::PSE_IF;
+                state = MicroAsm::PSE_IF;
             }
             else {
                 errorString = "// ERROR: Syntax error where control signal or comment expected";
@@ -270,9 +270,9 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_EQUAL_DEC:
-            if (token == Asm::LT_EQUALS) {
-                state = Asm::PS_DEC_CONTROL;
+        case MicroAsm::PS_EQUAL_DEC:
+            if (token == MicroAsm::LT_EQUALS) {
+                state = MicroAsm::PS_DEC_CONTROL;
             }
             else {
                 errorString = "// ERROR: Expected = after " + localIdentifier;
@@ -281,8 +281,8 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_DEC_CONTROL:
-            if (token == Asm::LT_DIGIT) {
+        case MicroAsm::PS_DEC_CONTROL:
+            if (token == MicroAsm::LT_DIGIT) {
                 if (microCode->hasControlSignal((Enu::EControlSignals)localEnumMnemonic)) {
                     errorString = "// ERROR: Duplicate control signal, " + localIdentifier;
                     delete code;
@@ -296,7 +296,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                     return false;
                 }
                 microCode->setControlSignal((Enu::EControlSignals)localEnumMnemonic, localValue);
-                state = Asm::PS_CONTINUE_PRE_SEMICOLON;
+                state = MicroAsm::PS_CONTINUE_PRE_SEMICOLON;
             }
             else {
                 errorString = "// ERROR: Expected decimal number after " + localIdentifier + "=";
@@ -305,19 +305,19 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_CONTINUE_PRE_SEMICOLON:
-            if (token == Asm::LT_COMMA) {
-                state = Asm::PS_CONTINUE_PRE_SEMICOLON_POST_COMMA;
+        case MicroAsm::PS_CONTINUE_PRE_SEMICOLON:
+            if (token == MicroAsm::LT_COMMA) {
+                state = MicroAsm::PS_CONTINUE_PRE_SEMICOLON_POST_COMMA;
             }
-            else if (token == Asm::LT_SEMICOLON) {
-                state = Asm::PS_START_POST_SEMICOLON;
+            else if (token == MicroAsm::LT_SEMICOLON) {
+                state = MicroAsm::PS_START_POST_SEMICOLON;
             }
-            else if (token == Asm::LT_COMMENT) {
+            else if (token == MicroAsm::LT_COMMENT) {
                 microCode->cComment = tokenString;
-                state = Asm::PS_COMMENT;
+                state = MicroAsm::PS_COMMENT;
             }
-            else if (token == Asm::LT_EMPTY) {
-                state = Asm::PS_FINISH;
+            else if (token == MicroAsm::LT_EMPTY) {
+                state = MicroAsm::PS_FINISH;
             }
             else {
                 errorString = "// ERROR: Expected ',' or ';' after control signal";
@@ -326,8 +326,8 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_CONTINUE_PRE_SEMICOLON_POST_COMMA:
-            if (token == Asm::LT_IDENTIFIER) {
+        case MicroAsm::PS_CONTINUE_PRE_SEMICOLON_POST_COMMA:
+            if (token == MicroAsm::LT_IDENTIFIER) {
                 if (Pep::mnemonToDecControlMap.contains(tokenString.toUpper())) {
                     localEnumMnemonic = Pep::mnemonToDecControlMap.value(tokenString.toUpper());
                     if (microCode->hasControlSignal((Enu::EControlSignals)localEnumMnemonic)) {
@@ -336,7 +336,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                         return false;
                     }
                     localIdentifier = tokenString;
-                    state = Asm::PS_EQUAL_DEC;
+                    state = MicroAsm::PS_EQUAL_DEC;
                 }
                 else if (Pep::mnemonToMemControlMap.contains(tokenString.toUpper())) {
                     localEnumMnemonic = Pep::mnemonToMemControlMap.value(tokenString.toUpper());
@@ -356,7 +356,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                         return false;
                     }
                     microCode->setControlSignal((Enu::EControlSignals)localEnumMnemonic, 1);
-                    state = Asm::PS_CONTINUE_PRE_SEMICOLON;
+                    state = MicroAsm::PS_CONTINUE_PRE_SEMICOLON;
                 }
                 else if (Pep::mnemonToClockControlMap.contains(tokenString.toUpper())) {
                     errorString = "// ERROR: Clock signal (" + tokenString + ") must appear after semicolon";
@@ -369,24 +369,24 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                     return false;
                 }
             }
-            else if (token == Asm::LT_SEMICOLON) {
+            else if (token == MicroAsm::LT_SEMICOLON) {
                 errorString = "// ERROR: Control signal expected after comma.";
                 delete code;
                 return false;
             }
-            else if (token == Asm::LT_COMMENT) {
+            else if (token == MicroAsm::LT_COMMENT) {
                 microCode->cComment = tokenString;
-                state = Asm::PS_COMMENT;
+                state = MicroAsm::PS_COMMENT;
             }
-            else if (token == Asm::LT_EMPTY) {
-                state = Asm::PS_FINISH;
+            else if (token == MicroAsm::LT_EMPTY) {
+                state = MicroAsm::PS_FINISH;
             }
-            else if (token == Asm::LTE_IF){
-                state = Asm::PSE_IF;
+            else if (token == MicroAsm::LTE_IF){
+                state = MicroAsm::PSE_IF;
             }
-            else if (token == Asm::LTE_STOP){
+            else if (token == MicroAsm::LTE_STOP){
                 microCode->setBranchFunction(Enu::Stop);
-                state = Asm::PSE_OPTIONAL_COMMENT;
+                state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
             else {
                 errorString = "// ERROR: Syntax error where control signal or comment expected";
@@ -395,8 +395,8 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_START_POST_SEMICOLON:
-            if (token == Asm::LT_IDENTIFIER) {
+        case MicroAsm::PS_START_POST_SEMICOLON:
+            if (token == MicroAsm::LT_IDENTIFIER) {
                 if (Pep::mnemonToClockControlMap.contains(tokenString.toUpper())) {
                     localEnumMnemonic = Pep::mnemonToClockControlMap.value(tokenString.toUpper());
                     if (microCode->hasClockSignal((Enu::EClockSignals)localEnumMnemonic)) {
@@ -405,7 +405,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                         return false;
                     }
                     microCode->setClockSingal((Enu::EClockSignals)localEnumMnemonic, 1);
-                    state = Asm::PS_CONTINUE_POST_SEMICOLON;
+                    state = MicroAsm::PS_CONTINUE_POST_SEMICOLON;
                 }
                 else if (Pep::mnemonToDecControlMap.contains(tokenString.toUpper())) {
                     errorString = "// ERROR: Control signal " + tokenString + " after ';'";
@@ -423,40 +423,40 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                     return false;
                 }
             }
-            else if (token == Asm::LT_SEMICOLON) {
+            else if (token == MicroAsm::LT_SEMICOLON) {
                 errorString = "// ERROR: Multiple semicolons.";
                 delete code;
                 return false;
             }
-            else if (token == Asm::LT_COMMENT) {
+            else if (token == MicroAsm::LT_COMMENT) {
                 microCode->cComment = tokenString;
-                state = Asm::PS_COMMENT;
+                state = MicroAsm::PS_COMMENT;
             }
-            else if (token == Asm::LT_EMPTY) {
-                state = Asm::PS_FINISH;
+            else if (token == MicroAsm::LT_EMPTY) {
+                state = MicroAsm::PS_FINISH;
             }
-            else if (token == Asm::LTE_GOTO)
+            else if (token == MicroAsm::LTE_GOTO)
             {
-                state = Asm::PSE_LONE_GOTO;
+                state = MicroAsm::PSE_LONE_GOTO;
             }
-            else if (token == Asm::LTE_IF)
+            else if (token == MicroAsm::LTE_IF)
             {
-                state = Asm::PSE_IF;
+                state = MicroAsm::PSE_IF;
             }
-            else if (token == Asm::LTE_STOP)
+            else if (token == MicroAsm::LTE_STOP)
             {
                 microCode->setBranchFunction(Enu::Stop);
-                state = Asm::PSE_OPTIONAL_COMMENT;
+                state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
-            else if (token == Asm::LTE_AMD)
+            else if (token == MicroAsm::LTE_AMD)
             {
                 microCode->setBranchFunction(Enu::AddressingModeDecoder);
-                state = Asm::PSE_OPTIONAL_COMMENT;
+                state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
-            else if (token == Asm::LTE_ISD)
+            else if (token == MicroAsm::LTE_ISD)
             {
                 microCode->setBranchFunction(Enu::InstructionSpecifierDecoder);
-                state = Asm::PSE_OPTIONAL_COMMENT;
+                state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
             else {
                 errorString = "// ERROR: Syntax error where clock signal or comment expected.";
@@ -465,19 +465,19 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_CONTINUE_POST_SEMICOLON:
-            if (token == Asm::LT_COMMA) {
-                state = Asm::PS_START_POST_SEMICOLON;
+        case MicroAsm::PS_CONTINUE_POST_SEMICOLON:
+            if (token == MicroAsm::LT_COMMA) {
+                state = MicroAsm::PS_START_POST_SEMICOLON;
             }
-            else if (token == Asm::LT_SEMICOLON) {
-                state = Asm::PSE_AFTER_SEMI;
+            else if (token == MicroAsm::LT_SEMICOLON) {
+                state = MicroAsm::PSE_AFTER_SEMI;
             }
-            else if (token == Asm::LT_COMMENT) {
+            else if (token == MicroAsm::LT_COMMENT) {
                 microCode->cComment = tokenString;
-                state = Asm::PS_COMMENT;
+                state = MicroAsm::PS_COMMENT;
             }
-            else if (token == Asm::LT_EMPTY) {
-                state = Asm::PS_FINISH;
+            else if (token == MicroAsm::LT_EMPTY) {
+                state = MicroAsm::PS_FINISH;
             }
             else {
                 errorString = "// ERROR: Expected ',' after clock signal";
@@ -486,19 +486,19 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_START_SPECIFICATION:
-            if (token == Asm::LT_IDENTIFIER) {
+        case MicroAsm::PS_START_SPECIFICATION:
+            if (token == MicroAsm::LT_IDENTIFIER) {
                 if (Pep::mnemonToMemSpecMap.contains(tokenString.toUpper())) {
                     localEnumMnemonic = Pep::mnemonToMemSpecMap.value(tokenString.toUpper());
-                    state = Asm::PS_EXPECT_LEFT_BRACKET;
+                    state = MicroAsm::PS_EXPECT_LEFT_BRACKET;
                 }
                 else if (Pep::mnemonToRegSpecMap.contains(tokenString.toUpper())) {
                     localEnumMnemonic = Pep::mnemonToRegSpecMap.value(tokenString.toUpper());
-                    state = Asm::PS_EXPECT_REG_EQUALS;
+                    state = MicroAsm::PS_EXPECT_REG_EQUALS;
                 }
                 else if (Pep::mnemonToStatusSpecMap.contains(tokenString.toUpper())) {
                     localEnumMnemonic = Pep::mnemonToStatusSpecMap.value(tokenString.toUpper());
-                    state = Asm::PS_EXPECT_STATUS_EQUALS;
+                    state = MicroAsm::PS_EXPECT_STATUS_EQUALS;
                 }
                 else {
                     errorString = "// ERROR: Unrecognized specification symbol: " + tokenString;
@@ -506,17 +506,17 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                     return false;
                 }
             }
-            else if (token == Asm::LT_COMMENT) {
+            else if (token == MicroAsm::LT_COMMENT) {
                 if (processingPrecondition) {
                     preconditionCode->setComment(tokenString);
                 }
                 else {
                     postconditionCode->setComment(tokenString);
                 }
-                state = Asm::PS_COMMENT;
+                state = MicroAsm::PS_COMMENT;
             }
-            else if (token == Asm::LT_EMPTY) {
-                state = Asm::PS_FINISH;
+            else if (token == MicroAsm::LT_EMPTY) {
+                state = MicroAsm::PS_FINISH;
             }
             else {
                 errorString = "// ERROR: Syntax error starting with: " + tokenString;
@@ -525,9 +525,9 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_EXPECT_LEFT_BRACKET:
-            if (token == Asm::LT_LEFT_BRACKET) {
-                state = Asm::PS_EXPECT_MEM_ADDRESS;
+        case MicroAsm::PS_EXPECT_LEFT_BRACKET:
+            if (token == MicroAsm::LT_LEFT_BRACKET) {
+                state = MicroAsm::PS_EXPECT_MEM_ADDRESS;
             }
             else {
                 errorString = "// ERROR: Expected [ after Mem.";
@@ -536,8 +536,8 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_EXPECT_MEM_ADDRESS:
-            if (token == Asm::LT_HEX_CONSTANT) {
+        case MicroAsm::PS_EXPECT_MEM_ADDRESS:
+            if (token == MicroAsm::LT_HEX_CONSTANT) {
                 tokenString.remove(0, 2); // Remove "0x" prefix.
                 bool ok;
                 localAddressValue = tokenString.toInt(&ok, 16);
@@ -546,7 +546,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                     delete code;
                     return false;
                 }
-                state = Asm::PS_EXPECT_RIGHT_BRACKET;
+                state = MicroAsm::PS_EXPECT_RIGHT_BRACKET;
             }
             else {
                 errorString = "// ERROR: Expected hex memory address after [.";
@@ -555,9 +555,9 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_EXPECT_RIGHT_BRACKET:
-            if (token == Asm::LT_RIGHT_BRACKET) {
-                state = Asm::PS_EXPECT_MEM_EQUALS;
+        case MicroAsm::PS_EXPECT_RIGHT_BRACKET:
+            if (token == MicroAsm::LT_RIGHT_BRACKET) {
+                state = MicroAsm::PS_EXPECT_MEM_EQUALS;
             }
             else {
                 errorString = "// ERROR: Expected ] after memory address.";
@@ -566,9 +566,9 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_EXPECT_MEM_EQUALS:
-            if (token == Asm::LT_EQUALS) {
-                state = Asm::PS_EXPECT_MEM_VALUE;
+        case MicroAsm::PS_EXPECT_MEM_EQUALS:
+            if (token == MicroAsm::LT_EQUALS) {
+                state = MicroAsm::PS_EXPECT_MEM_VALUE;
             }
             else {
                 errorString = "// ERROR: Expected = after ].";
@@ -577,8 +577,8 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_EXPECT_MEM_VALUE:
-            if (token == Asm::LT_HEX_CONSTANT) {
+        case MicroAsm::PS_EXPECT_MEM_VALUE:
+            if (token == MicroAsm::LT_HEX_CONSTANT) {
                 tokenString.remove(0, 2); // Remove "0x" prefix.
                 bool ok;
                 localValue = tokenString.toInt(&ok, 16);
@@ -593,7 +593,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 else {
                     postconditionCode->appendSpecification(new MemSpecification(localAddressValue, localValue, tokenString.length() > 2 ? 2 : 1));
                 }
-                state = Asm::PS_EXPECT_SPEC_COMMA;
+                state = MicroAsm::PS_EXPECT_SPEC_COMMA;
             }
             else {
                 errorString = "// ERROR: Expected hex constant after =.";
@@ -602,9 +602,9 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_EXPECT_REG_EQUALS:
-            if (token == Asm::LT_EQUALS) {
-                state = Asm::PS_EXPECT_REG_VALUE;
+        case MicroAsm::PS_EXPECT_REG_EQUALS:
+            if (token == MicroAsm::LT_EQUALS) {
+                state = MicroAsm::PS_EXPECT_REG_VALUE;
             }
             else {
                 errorString = "// ERROR: Expected = after " + Pep::regSpecToMnemonMap.value((Enu::EKeywords)localEnumMnemonic);
@@ -613,8 +613,8 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_EXPECT_REG_VALUE:
-            if (token == Asm::LT_HEX_CONSTANT) {
+        case MicroAsm::PS_EXPECT_REG_VALUE:
+            if (token == MicroAsm::LT_HEX_CONSTANT) {
                 tokenString.remove(0, 2); // Remove "0x" prefix.
                 bool ok;
                 localValue = tokenString.toInt(&ok, 16);
@@ -639,7 +639,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 else {
                     postconditionCode->appendSpecification(new RegSpecification((Enu::EKeywords)localEnumMnemonic, localValue));
                 }
-                state = Asm::PS_EXPECT_SPEC_COMMA;
+                state = MicroAsm::PS_EXPECT_SPEC_COMMA;
             }
             else {
                 errorString = "// ERROR: Expected hex constant after =.";
@@ -648,9 +648,9 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_EXPECT_STATUS_EQUALS:
-            if (token == Asm::LT_EQUALS) {
-                state = Asm::PS_EXPECT_STATUS_VALUE;
+        case MicroAsm::PS_EXPECT_STATUS_EQUALS:
+            if (token == MicroAsm::LT_EQUALS) {
+                state = MicroAsm::PS_EXPECT_STATUS_VALUE;
             }
             else {
                 errorString = "// ERROR: Expected = after " + Pep::statusSpecToMnemonMap.value((Enu::EKeywords)localEnumMnemonic);
@@ -659,8 +659,8 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_EXPECT_STATUS_VALUE:
-            if (token == Asm::LT_DIGIT) {
+        case MicroAsm::PS_EXPECT_STATUS_VALUE:
+            if (token == MicroAsm::LT_DIGIT) {
                 bool ok;
                 localValue = tokenString.toInt(&ok);
                 if (localValue > 1) {
@@ -674,7 +674,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 else {
                     postconditionCode->appendSpecification(new StatusBitSpecification((Enu::EKeywords)localEnumMnemonic, localValue == 1));
                 }
-                state = Asm::PS_EXPECT_SPEC_COMMA;
+                state = MicroAsm::PS_EXPECT_SPEC_COMMA;
             }
             else {
                 errorString = "// ERROR: Expected '1' or '0' after =.";
@@ -683,21 +683,21 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_EXPECT_SPEC_COMMA:
-            if (token == Asm::LT_COMMA) {
-                state = Asm::PS_START_SPECIFICATION;
+        case MicroAsm::PS_EXPECT_SPEC_COMMA:
+            if (token == MicroAsm::LT_COMMA) {
+                state = MicroAsm::PS_START_SPECIFICATION;
             }
-            else if (token == Asm::LT_COMMENT) {
+            else if (token == MicroAsm::LT_COMMENT) {
                 if (processingPrecondition) {
                     preconditionCode->setComment(tokenString);
                 }
                 else {
                     postconditionCode->setComment(tokenString);
                 }
-                state = Asm::PS_COMMENT;
+                state = MicroAsm::PS_COMMENT;
             }
-            else if (token == Asm::LT_EMPTY) {
-                state = Asm::PS_FINISH;
+            else if (token == MicroAsm::LT_EMPTY) {
+                state = MicroAsm::PS_FINISH;
             }
             else {
                 errorString = "// ERROR: Expected ',' comment, or end of line.";
@@ -706,9 +706,9 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
             }
             break;
 
-        case Asm::PS_COMMENT:
-            if (token == Asm::LT_EMPTY) {
-                state = Asm::PS_FINISH;
+        case MicroAsm::PS_COMMENT:
+            if (token == MicroAsm::LT_EMPTY) {
+                state = MicroAsm::PS_FINISH;
             }
             else {
                 // This error should not occur, as all characters are allowed in comments.
@@ -717,27 +717,27 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 return false;
             }
             break;
-        case Asm::PSE_AFTER_SEMI:
-            if(token == Asm::LTE_GOTO)
+        case MicroAsm::PSE_AFTER_SEMI:
+            if(token == MicroAsm::LTE_GOTO)
             {
-                state = Asm::PSE_LONE_GOTO;
+                state = MicroAsm::PSE_LONE_GOTO;
             }
-            else if(token == Asm::LTE_IF)
+            else if(token == MicroAsm::LTE_IF)
             {
-                state = Asm::PSE_IF;
+                state = MicroAsm::PSE_IF;
             }
-            else if (token == Asm::LTE_STOP){
-                state = Asm::PSE_OPTIONAL_COMMENT;
+            else if (token == MicroAsm::LTE_STOP){
+                state = MicroAsm::PSE_OPTIONAL_COMMENT;
                 microCode->setBranchFunction(Enu::Stop);
             }
-            else if(token == Asm::LTE_AMD)
+            else if(token == MicroAsm::LTE_AMD)
             {
-                state = Asm::PSE_OPTIONAL_COMMENT;
+                state = MicroAsm::PSE_OPTIONAL_COMMENT;
                 microCode->setBranchFunction(Enu::AddressingModeDecoder);
             }
-            else if(token == Asm::LTE_ISD)
+            else if(token == MicroAsm::LTE_ISD)
             {
-                state = Asm::PSE_OPTIONAL_COMMENT;
+                state = MicroAsm::PSE_OPTIONAL_COMMENT;
                 microCode->setBranchFunction(Enu::InstructionSpecifierDecoder);
             }
             else
@@ -746,8 +746,8 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 return false;
             }
             break;
-        case Asm::PSE_LONE_GOTO:
-            if (token == Asm::LT_IDENTIFIER)
+        case MicroAsm::PSE_LONE_GOTO:
+            if (token == MicroAsm::LT_IDENTIFIER)
             {
                 if(!symTable->exists(tokenString))
                 {
@@ -755,7 +755,7 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 }
                 microCode->setTrueTarget(symTable->getValue(tokenString).get());
                 microCode->setBranchFunction(Enu::Unconditional);
-                state = Asm::PSE_OPTIONAL_COMMENT;
+                state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
             else
             {
@@ -763,13 +763,13 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 return false;
             }
             break;
-        case Asm::PSE_IF:
+        case MicroAsm::PSE_IF:
             if(microCode==nullptr)
             {
                 microCode = new MicroCode();
                 code=microCode;
             }
-            if(token == Asm::LT_IDENTIFIER&&Pep::mnemonToBranchFuncMap.contains(tokenString.toUpper()))
+            if(token == MicroAsm::LT_IDENTIFIER&&Pep::mnemonToBranchFuncMap.contains(tokenString.toUpper()))
             {
                 //Switch to conditional branch logic
                 microCode->setBranchFunction(Pep::mnemonToBranchFuncMap[tokenString.toUpper()]);
@@ -782,15 +782,15 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 return false;
             }
             break;
-        case Asm::PSE_TRUE_TARGET:
-            if(token == Asm::LT_IDENTIFIER)
+        case MicroAsm::PSE_TRUE_TARGET:
+            if(token == MicroAsm::LT_IDENTIFIER)
             {
                 if(!symTable->exists(tokenString))
                 {
                     symTable->insertSymbol(tokenString);
                 }
                 microCode->setTrueTarget(symTable->getValue(tokenString).get());
-                state = Asm::PSE_ELSE;
+                state = MicroAsm::PSE_ELSE;
             }
             else
             {
@@ -799,10 +799,10 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 return false;
             }
             break;
-        case Asm::PSE_ELSE:
-            if(token == Asm::LTE_ELSE)
+        case MicroAsm::PSE_ELSE:
+            if(token == MicroAsm::LTE_ELSE)
             {
-                state = Asm::PSE_FALSE_TARGET;
+                state = MicroAsm::PSE_FALSE_TARGET;
             }
             else
             {
@@ -811,15 +811,15 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 return false;
             }
             break;
-        case Asm::PSE_FALSE_TARGET:
-            if(token == Asm::LT_IDENTIFIER)
+        case MicroAsm::PSE_FALSE_TARGET:
+            if(token == MicroAsm::LT_IDENTIFIER)
             {
                 if(!symTable->exists(tokenString))
                 {
                     symTable->insertSymbol(tokenString);
                 }
                 microCode->setFalseTarget(symTable->getValue(tokenString).get());
-                state = Asm::PSE_OPTIONAL_COMMENT;
+                state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
             else
             {
@@ -828,14 +828,14 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 return false;
             }
             break;
-        case Asm::PSE_OPTIONAL_COMMENT:
-            if (token ==Asm::LT_COMMENT)
+        case MicroAsm::PSE_OPTIONAL_COMMENT:
+            if (token ==MicroAsm::LT_COMMENT)
             {
                 microCode->cComment = tokenString;
-                state = Asm::PSE_EXPECT_EMPTY;
+                state = MicroAsm::PSE_EXPECT_EMPTY;
             }
-            else if (token == Asm::LT_EMPTY) {
-                state = Asm::PS_FINISH;
+            else if (token == MicroAsm::LT_EMPTY) {
+                state = MicroAsm::PS_FINISH;
             }
             else
             {
@@ -844,20 +844,20 @@ bool Asm::processSourceLine(SymbolTable* symTable, QString sourceLine, Code *&co
                 return false;
             }
             break;
-        case Asm::PSE_EXPECT_EMPTY:
-            if (token == Asm::LT_EMPTY) {
-                state = Asm::PS_FINISH;
+        case MicroAsm::PSE_EXPECT_EMPTY:
+            if (token == MicroAsm::LT_EMPTY) {
+                state = MicroAsm::PS_FINISH;
             }
             break;
         default:
             break;
         }
     }
-    while (state != Asm::PS_FINISH);
+    while (state != MicroAsm::PS_FINISH);
     return true;
 }
 
-bool Asm::startsWithHexPrefix(QString str)
+bool MicroAsm::startsWithHexPrefix(QString str)
 {
     if (str.length() < 2) return false;
     if (str[0] != '0') return false;

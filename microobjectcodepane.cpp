@@ -19,8 +19,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "objectcodepane.h"
-#include "ui_objectcodepane.h"
+#include "microobjectcodepane.h"
+#include "ui_microobjectcodepane.h"
 #include "microcodeprogram.h"
 #include "pep.h"
 #include <QPainter>
@@ -32,13 +32,13 @@
 #include <QKeyEvent>
 #include <rotatedheaderview.h>
 #include "cpucontrolsection.h"
-#include "code.h"
+#include "microcode.h"
 #include "symboltable.h"
 #include "symbolentry.h"
 #include "symbolvalue.h"
-ObjectCodePane::ObjectCodePane(QWidget *parent) :
+MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
     QWidget(parent), rowCount(0),model(new QStandardItemModel()),inSimulation(false),
-    ui(new Ui::ObjectCodePane)
+    ui(new Ui::MicroObjectCodePane)
 {
     ui->setupUi(this);
     QFont font(Pep::codeFont);
@@ -58,13 +58,13 @@ ObjectCodePane::ObjectCodePane(QWidget *parent) :
     model->setRowCount(0);
     initCPUModelState();
     //Connect to disabler
-    connect(this, &ObjectCodePane::beginSimulation, selectionModel, &DisableSelectionModel::onBeginSimulation);
-    connect(this, &ObjectCodePane::endSimulation, selectionModel, &DisableSelectionModel::onEndSimulation);
+    connect(this, &MicroObjectCodePane::beginSimulation, selectionModel, &DisableSelectionModel::onBeginSimulation);
+    connect(this, &MicroObjectCodePane::endSimulation, selectionModel, &DisableSelectionModel::onEndSimulation);
 
     //ui->codeTabl
 }
 
-ObjectCodePane::~ObjectCodePane()
+MicroObjectCodePane::~MicroObjectCodePane()
 {
     delete ui;
     delete program;
@@ -72,7 +72,7 @@ ObjectCodePane::~ObjectCodePane()
     delete rotatedHeaderView;
 }
 
-void ObjectCodePane::initCPUModelState()
+void MicroObjectCodePane::initCPUModelState()
 {
 
     setObjectCode();
@@ -80,13 +80,13 @@ void ObjectCodePane::initCPUModelState()
     assignHeaders();
 }
 
-void ObjectCodePane::setObjectCode()
+void MicroObjectCodePane::setObjectCode()
 {
 
     setObjectCode(new MicrocodeProgram(),nullptr);
 }
 
-void ObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* symbolTable)
+void MicroObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* symbolTable)
 {
     assignHeaders();
     if(this->program==nullptr)
@@ -100,7 +100,7 @@ void ObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* symbol
     controls.append(Pep::decControlToMnemonMap.keys());
     QList<Enu::EClockSignals> clocks = Pep::clockControlToMnemonMap.keys();
     model->setRowCount(0);
-    for(Code* row : program->getObjectCode())
+    for(MicroCodeBase* row : program->getObjectCode())
     {
         if(!row->isMicrocode())
         {
@@ -148,7 +148,7 @@ void ObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* symbol
     ui->codeTable->resizeColumnsToContents();
 }
 
-void ObjectCodePane::highlightCurrentInstruction()
+void MicroObjectCodePane::highlightCurrentInstruction()
 {
     rowCount=CPUControlSection::getInstance()->getLineNumber();
     selectionModel->forceSelectRow(rowCount);
@@ -156,19 +156,19 @@ void ObjectCodePane::highlightCurrentInstruction()
     inSimulation=true;
 }
 
-void ObjectCodePane::clearSimulationView()
+void MicroObjectCodePane::clearSimulationView()
 {
     ui->codeTable->clearSelection();
     rowCount=0;
     inSimulation=false;
 }
 
-void ObjectCodePane::copy()
+void MicroObjectCodePane::copy()
 {
     //ui->plainTextEdit->copy();
 }
 
-void ObjectCodePane::assignHeaders()
+void MicroObjectCodePane::assignHeaders()
 {
     QList<Enu::EControlSignals> controls = Pep::memControlToMnemonMap.keys();
     controls.append(Pep::decControlToMnemonMap.keys());
@@ -199,23 +199,23 @@ void ObjectCodePane::assignHeaders()
     ui->codeTable->resizeColumnsToContents();
 }
 
-void ObjectCodePane::onBeginSimulation()
+void MicroObjectCodePane::onSimulationStarted()
 {
     emit beginSimulation();
 }
 
-void ObjectCodePane::onEndSimulation()
+void MicroObjectCodePane::onSimulationFinished()
 {
     emit endSimulation();
 }
 
-void ObjectCodePane::onDarkModeChanged(bool)
+void MicroObjectCodePane::onDarkModeChanged(bool)
 {
     ui->codeTable->verticalHeader()->setFont(QFont(Pep::codeFont,Pep::codeFontSize));
     //ui->codeTable->resizeRowsToContents();
 }
 
-void ObjectCodePane::changeEvent(QEvent *e)
+void MicroObjectCodePane::changeEvent(QEvent *e)
 {
     QWidget::changeEvent(e);
     switch (e->type()) {
@@ -227,7 +227,7 @@ void ObjectCodePane::changeEvent(QEvent *e)
     }
 }
 
-void ObjectCodePane::highlightOnFocus()
+void MicroObjectCodePane::highlightOnFocus()
 {
     if (ui->codeTable->hasFocus()) {
         ui->label->setAutoFillBackground(true);

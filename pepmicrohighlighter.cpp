@@ -19,22 +19,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "pephighlighter.h"
+#include "pepmicrohighlighter.h"
 #include "pep.h"
 #include "cpudatasection.h"
-PepHighlighter::PepHighlighter(PepColors::Colors color,QTextDocument *parent)
+PepMicroHighlighter::PepMicroHighlighter(PepColors::Colors color,QTextDocument *parent)
     : QSyntaxHighlighter(parent),forcedFeatures(false)
 {
     rebuildHighlightingRules(color);
 }
 
-void PepHighlighter::forceAllFeatures(bool features)
+void PepMicroHighlighter::forceAllFeatures(bool features)
 {
     forcedFeatures=features;
 }
 
-void PepHighlighter::rebuildHighlightingRules(PepColors::Colors color)
+void PepMicroHighlighter::rebuildHighlightingRules(PepColors::Colors color)
 {
+    colors = color;
     HighlightingRule rule;
 
     highlightingRulesOne.clear();
@@ -126,14 +127,14 @@ void PepHighlighter::rebuildHighlightingRules(PepColors::Colors color)
 
     highlightingRulesAll.append(highlightingRulesOne);
     highlightingRulesAll.append(highlightingRulesTwo);
-    multiLineCommentFormat.setForeground(Qt::white);
-    multiLineCommentFormat.setBackground(Qt::red);
+    errorCommentFormat.setForeground(color.altTextHighlight);
+    errorCommentFormat.setBackground(color.errorHighlight);
 
     commentStartExpression = QRegExp("//\\sERROR:[\\s]");
     commentEndExpression = QRegExp("$");
 }
 
-void PepHighlighter::highlightBlock(const QString &text)
+void PepMicroHighlighter::highlightBlock(const QString &text)
 {
     QVector<HighlightingRule> highlightingRules;
     if(forcedFeatures){
@@ -170,7 +171,7 @@ void PepHighlighter::highlightBlock(const QString &text)
             commentLength = endIndex - startIndex
                             + commentEndExpression.matchedLength();
         }
-        setFormat(startIndex, commentLength, multiLineCommentFormat);
+        setFormat(startIndex, commentLength, errorCommentFormat);
         startIndex = commentStartExpression.indexIn(text, startIndex + commentLength);
     }
 }

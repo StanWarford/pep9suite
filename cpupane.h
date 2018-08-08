@@ -65,7 +65,6 @@ public:
 
     // These are used by the main window in order to allow it to use the
     //  <enter> key to step.
-    void singleStep();
     void clock();
 
 protected:
@@ -91,22 +90,19 @@ protected slots:
     void labelClicked();
 
     void clockButtonPushed();
-    void singleStepButtonPushed();
-    void resumeButtonPushed();
 
     void on_copyToMicrocodePushButton_clicked();
 
     void ALUTextEdited(QString str);
 
 public slots:
-    void run();
     void onClockChanged();
     void onBusChanged();
     void onRegisterChanged(quint8 which,quint8 oldVal,quint8 newVal);
     void onMemoryRegisterChanged(Enu::EMemoryRegisters,quint8 oldVal,quint8 newVal);
     void onStatusBitChanged(Enu::EStatusBit,bool value);
     void repaintOnScroll(int distance);
-    void recalculateFromModel();
+    void onSimulationUpdate();
     void onDarkModeChanged(bool);
 
 signals:

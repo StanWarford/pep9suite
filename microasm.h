@@ -18,14 +18,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ASM_H
-#define ASM_H
+#ifndef MICROASM_H
+#define MICROASM_H
 
 #include <QRegExp>
 
-class Code; // Forward declaration for argument of processSourceLine.
+class MicroCodeBase; // Forward declaration for argument of processSourceLine.
 class SymbolTable;
-class Asm
+class MicroAsm
 {
 public:
     // Lexical tokens
@@ -60,7 +60,7 @@ public:
     // beginning of sourceLine and returned in tokenString, true is returned, and token is set to the token type.
     // Post: If false is returned, then tokenString is set to the lexical error message.
 
-    static bool processSourceLine(SymbolTable* symTable,QString sourceLine, Code *&code, QString &errorString);
+    static bool processSourceLine(SymbolTable* symTable,QString sourceLine, MicroCodeBase *&code, QString &errorString);
     // Pre: sourceLine has one line of source code.
     // Pre: lineNum is the line number of the source code.
     // Post: If the source line is valid, true is returned and code is set to the source code for the line.

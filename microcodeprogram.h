@@ -1,21 +1,21 @@
 #ifndef MICROCODEPROGRAM_H
 #define MICROCODEPROGRAM_H
 #include "enu.h"
-class Code;
+class MicroCodeBase;
 class MicroCode;
 class SymbolTable;
 class MicrocodeProgram
 {
 private:
     SymbolTable* symTable;
-    QVector<Code*> programVec;
+    QVector<MicroCodeBase*> programVec;
     QVector<int> preconditionsVec,postconditionsVec,microcodeVec;
 public:
     MicrocodeProgram();
     ~MicrocodeProgram();
-    MicrocodeProgram(QVector<Code*>objectCode,SymbolTable* symbolTable);
+    MicrocodeProgram(QVector<MicroCodeBase*>objectCode,SymbolTable* symbolTable);
     const SymbolTable* getSymTable() const;
-    const QVector<Code*> getObjectCode() const;
+    const QVector<MicroCodeBase*> getObjectCode() const;
     const QString format() const;
     int codeLineToProgramLine(int codeLine) const;
     bool hasMicrocode() const;

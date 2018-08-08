@@ -18,8 +18,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef CODE_H
-#define CODE_H
+#ifndef MICROCODE_H
+#define MICROCODE_H
 
 #include <QString>
 #include <QMap>
@@ -30,10 +30,10 @@ class SymbolEntry;
 class Specification;
 
 // Abstract code class
-class Code
+class MicroCodeBase
 {
 public:
-    virtual ~Code() { }
+    virtual ~MicroCodeBase() { }
     virtual bool isMicrocode() const { return false; }
     virtual void setCpuLabels(CpuGraphicsItems *)const { }
     virtual QString getObjectCode() const { return ""; }
@@ -44,9 +44,9 @@ public:
 
 // Concrete code classes
 // Code is the union of the elements of the one-byte bus model and two-byte bus model
-class MicroCode: public Code
+class MicroCode: public MicroCodeBase
 {
-    friend class Asm;
+    friend class MicroAsm;
 public:
     MicroCode();
     bool isMicrocode() const override;
@@ -82,7 +82,7 @@ private:
     const SymbolEntry* falseTargetAddr;
 };
 
-class CommentOnlyCode: public Code
+class CommentOnlyCode: public MicroCodeBase
 {
 public:
     CommentOnlyCode(QString comment);
@@ -91,7 +91,7 @@ private:
     QString cComment;
 };
 
-class UnitPreCode: public Code
+class UnitPreCode: public MicroCodeBase
 {
 public:
     ~UnitPreCode();
@@ -105,7 +105,7 @@ private:
     QString cComment;
 };
 
-class UnitPostCode: public Code
+class UnitPostCode: public MicroCodeBase
 {
 public:
     ~UnitPostCode();
@@ -119,7 +119,7 @@ private:
     QString cComment;
 };
 
-class BlankLineCode: public Code
+class BlankLineCode: public MicroCodeBase
 {
 };
 

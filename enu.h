@@ -98,14 +98,13 @@ namespace Enu
         ROLA_func=12,ASRA_func=13,RORA_func=14,NZVCA_func=15,
         UNDEFINED_func=255,
     };
-#pragma message("What was the point of these numbers?")
     enum EKeywords {
-        Pre=255-1, Post=255-2,
-        Mem=255-3, Acc=255-24, X=255-4, SP=255-5, PC=255-6, IR=255-7,
-        T1=255-8, T2=255-9, T3=255-10, T4=255-11, T5=255-12, T6=255-13,
-        N=255-15, Z=255-16, V=255-17,Cbit=255-25, S=255-18,
-        MARAREG=255-19,MARBREG=255-20,
-        MDRREG=255-21,MDREREG=255-22,MDROREG=255-23
+        Pre, Post,
+        Mem, Acc, X, SP, PC, IR,
+        T1, T2, T3, T4, T5, T6,
+        N, Z, V,Cbit, S,
+        MARAREG, MARBREG,
+        MDRREG, MDREREG, MDROREG
     };
 
     enum CPUType {
@@ -153,7 +152,7 @@ namespace Enu
         SFX = 128,
         ALL = 255
     };
-    Q_ENUM_NS(EAddrMode);;
+    Q_ENUM_NS(EAddrMode);
     // Format for symbols
     enum class ESymbolFormat
     {
@@ -183,6 +182,9 @@ namespace Enu
         EMemoryTrace,
         EBatchIO,
         ETerminal,
+        EMicrocode,
+        EDataSection,
     };
+    Q_ENUM_NS(EPane);
 }
 #endif // ENU_H
