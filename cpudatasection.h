@@ -48,12 +48,8 @@ public:
     bool getClockSignals(Enu::EClockSignals) const;
     bool getStatusBit(Enu::EStatusBit) const;
 
-    /*
-     *  Preset CPU state. These are not meant to be called once the simulation has started.
-     */
-    //Internally, all set...() methods will call set...Pre() code, but will emit events afterwards
     bool setSignalsFromMicrocode(const MicroCode* line);
-
+    void setEmitEvents(bool b);
     //Return information about errors on the last step
     bool hadErrorOnStep() const;
     QString getErrorMessage() const;
@@ -78,6 +74,7 @@ private:
     static CPUDataSection* _instance;
     Enu::CPUType cpuFeatures;
     Enu::MainBusState mainBusState;
+    bool emitEvents;
 
     //Data registers
     QVector<quint8> registerBank;
@@ -93,6 +90,13 @@ private:
     QString errorMessage="";
 
     MemorySection* memory;
+
+    // After thorough profiling, the ALU calculation is the second most computationally expensive part of the data section.
+    // The ALU calculation is called multiple times per cycle, yet the result can't change within a cycle.
+    // So, to cut back on wasteful calculations, the output of the alu is cached within a cycle.
+    // At start of a step, isALUCacheValid must be set to false
+    mutable bool isALUCacheValid, ALUHasOutputCache;
+    mutable quint8 ALUOutputCache, ALUStatusBitCache;
 
     //Set the values values of the sequential data registers (numbers 22-31)
     void presetStaticRegisters() noexcept;
@@ -119,10 +123,9 @@ public slots:
     void onClearCPU()noexcept;
 signals:
     void CPUFeaturesChanged(Enu::CPUType newFeatures); //Thrown whenever onCPUFeaturesChanged(...) is called
-    void registerChanged(quint8 register,quint8 oldVal,quint8 newVal); //Thrown whenever a register in the register bank is changed.
+    void registerChanged(quint8 reg,quint8 oldVal,quint8 newVal); //Thrown whenever a register in the register bank is changed.
     void memoryRegisterChanged(Enu::EMemoryRegisters,quint8 oldVal,quint8 newVal); //Thrown whenever a memory register is changed.
     void statusBitChanged(Enu::EStatusBit status,bool value);
-    void controlClockChanged(); //Thrown whenever a control line or clock line is changed
 
 };
 

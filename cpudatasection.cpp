@@ -5,7 +5,8 @@
 CPUDataSection* CPUDataSection::_instance = nullptr;
 CPUDataSection::CPUDataSection(QObject *parent): QObject(parent), memory(MemorySection::getInstance()),
     cpuFeatures(Enu::TwoByteDataBus), mainBusState(Enu::None),
-    registerBank(32), memoryRegisters(6), controlSignals(20), clockSignals(10), hadDataError(false), errorMessage("")
+    registerBank(32), memoryRegisters(6), controlSignals(20), clockSignals(10), hadDataError(false), emitEvents(true),  errorMessage(""),
+    isALUCacheValid(false), ALUHasOutputCache(false), ALUOutputCache(0), ALUStatusBitCache(0)
 {
     presetStaticRegisters();
 }
@@ -57,6 +58,11 @@ bool CPUDataSection::calculateCSMuxOutput(bool &result) const
 
 bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
 {
+    if(isALUCacheValid) {
+        res = ALUOutputCache;
+        NZVC = ALUStatusBitCache;
+        return ALUHasOutputCache;
+    }
     //This function should not set any errors.
     //Errors will be handled by step(..)
     quint8 a,b;
@@ -65,7 +71,9 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
     bool hasCIn = calculateCSMuxOutput(carryIn);
     if(!((aluFnIsUnary() && hasA) || (hasA && hasB))) {
         //The ALU output calculation would not be meaningful given its current function and inputs
-        return false;
+        isALUCacheValid = true;
+        ALUHasOutputCache = false;
+        return ALUHasOutputCache;
     }
     //Unless otherwise noted, do not return true (sucessfully) early, or the calculation for the NZ bits will be skipped
     switch(controlSignals[Enu::ALU]) {
@@ -147,7 +155,11 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
     NZVC |= (res > 127) ? Enu::NMask : 0;
     //Get boolean value for Z, then shift to correct place
     NZVC |= (res == 0) ? Enu::ZMask : 0;
-    return true;
+    ALUOutputCache = res;
+    ALUStatusBitCache = NZVC;
+    isALUCacheValid = true;
+    ALUHasOutputCache = true;
+    return ALUHasOutputCache;
 
 }
 
@@ -295,7 +307,9 @@ void CPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
     //Mask out the original value, and then or it with the properly shifted bit
     oldVal = NZVCSbits&mask;
     NZVCSbits = (NZVCSbits&~mask) | ((val?1:0)*mask);
-    if(oldVal != val) emit statusBitChanged(statusBit, val);
+    if(emitEvents) {
+        if(oldVal != val) emit statusBitChanged(statusBit, val);
+    }
 }
 
 void CPUDataSection::onSetRegisterByte(quint8 reg, quint8 val)
@@ -303,7 +317,9 @@ void CPUDataSection::onSetRegisterByte(quint8 reg, quint8 val)
     if(reg > 21) return; //Don't allow static registers to be written to
     quint8 oldVal = registerBank[reg];
     registerBank[reg] = val;
-    if(oldVal != val) emit registerChanged(reg, oldVal, val);
+    if(emitEvents) {
+        if(oldVal != val) emit registerChanged(reg, oldVal, val);
+    }
 }
 
 void CPUDataSection::onSetRegisterWord(quint8 reg, quint16 val)
@@ -313,53 +329,50 @@ void CPUDataSection::onSetRegisterWord(quint8 reg, quint16 val)
    quint8 newHigh = val / 256, newLow = val % 256;
    registerBank[reg] = newHigh;
    registerBank[reg+1] = newLow;
-   if(oldHigh != val) emit registerChanged(reg, oldHigh, newHigh);
-   if(oldLow != val) emit registerChanged(reg, oldLow, newLow);
+   if(emitEvents) {
+       if(oldHigh != val) emit registerChanged(reg, oldHigh, newHigh);
+       if(oldLow != val) emit registerChanged(reg, oldLow, newLow);
+   }
 }
 
 void CPUDataSection::onSetMemoryRegister(Enu::EMemoryRegisters reg, quint8 val)
 {
     quint8 oldVal = memoryRegisters[reg];
     memoryRegisters[reg] = val;
+    if(emitEvents) {
     if(oldVal != val) emit registerChanged(reg, oldVal, val);
+    }
 }
 
 void CPUDataSection::onSetClock(Enu::EClockSignals clock, bool value)
 {
     bool old = clockSignals[clock];
-    if(old == value) return;
     clockSignals[clock] = value;
-    emit controlClockChanged();
 }
 
 void CPUDataSection::onSetControlSignal(Enu::EControlSignals control, quint8 value)
 {
     quint8 old = controlSignals[control];
-    if(old == value) return;
     controlSignals[control] = value;
-    emit controlClockChanged();
 }
 
 bool CPUDataSection::setSignalsFromMicrocode(const MicroCode *line)
-{
-    if(line == nullptr) throw std::invalid_argument("CPUDataSection can't be passed a nullptr as a MicroCode line");
+{ 
     //To start with, there are no
-    bool clockVal, changed=false;
-    quint8 sig;
     //For each control signal in the input line, set the appropriate control
     for(int it = 0; it < controlSignals.length(); it++) {
-        sig = line->getControlSignal((Enu::EControlSignals)it);
-        changed |= controlSignals[it] != sig; //If signal aren't equal, then there was a change
-        controlSignals[it] = sig;
+        controlSignals[it] = line->getControlSignal((Enu::EControlSignals)it);
     }
     //For each clock signal in the input microcode, set the appropriate clock
     for(int it = 0;it < clockSignals.length(); it++) {
-        clockVal = line->getClockSignal((Enu::EClockSignals)it);
-        changed |= clockSignals[it] != clockVal; //If clocks aren't equal, then there was a change
-        clockSignals[it] = clockVal;
+        clockSignals[it] = line->getClockSignal((Enu::EClockSignals)it);
     }
-    if(changed) emit controlClockChanged(); //If any lines where changed, notify other components that there was a change
-    return changed;
+    return true;
+}
+
+void CPUDataSection::setEmitEvents(bool b)
+{
+    emitEvents = b;
 }
 
 bool CPUDataSection::hadErrorOnStep() const
@@ -401,8 +414,7 @@ void CPUDataSection::handleMainBusState() noexcept
         else mainBusState = Enu::None; //If neither are check, bus goes back to doing nothing
         break;
     case Enu::MemReadReady:
-        if(!marChanged && controlSignals[Enu::MemRead] == 1) mainBusState = Enu::MemReadFirstWait; //Another MemRead will bring us back to first MemRead
-        else if(marChanged && controlSignals[Enu::MemRead]==1) mainBusState = Enu::MemReadFirstWait;
+        if(controlSignals[Enu::MemRead] == 1) mainBusState = Enu::MemReadFirstWait; //Another MemRead will bring us back to first MemRead, regardless of it MarChanged
         else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Enu::MemWriteFirstWait;
         else mainBusState = Enu::None; //If neither are check, bus goes back to doing nothing
         break;
@@ -419,15 +431,13 @@ void CPUDataSection::handleMainBusState() noexcept
         else mainBusState = Enu::None; //If neither are check, bus goes back to doing nothing
         break;
     case Enu::MemWriteReady:
-        if(!marChanged&&controlSignals[Enu::MemWrite]==1)mainBusState=Enu::MemWriteFirstWait; //Another MemWrite will reset the bus state back to first MemWrite
-        else if(marChanged&&controlSignals[Enu::MemWrite]==1)mainBusState = Enu::MemWriteFirstWait; //Initiating a new write brings us back to first wait
+        if(controlSignals[Enu::MemWrite]==1)mainBusState = Enu::MemWriteFirstWait; //Another MemWrite will reset the bus state back to first MemWrite
         else if(controlSignals[Enu::MemRead]==1) mainBusState = Enu::MemReadFirstWait; //Switch from write to read.
         else mainBusState = Enu::None; //If neither are check, bus goes back to doing nothing
         break;
     default:
         mainBusState = Enu::None;
         break;
-
     }
 }
 
@@ -437,12 +447,13 @@ void CPUDataSection::stepTwoByte() noexcept
     handleMainBusState();
     if(hadErrorOnStep()) return; //If the bus had an error, give up now
 
+    isALUCacheValid = false;
     //Set up all variables needed by stepping calculation
     Enu::EALUFunc aluFunc = (Enu::EALUFunc) controlSignals[Enu::ALU];
     quint8 a = 0, b = 0, c = 0, alu = 0, NZVC = 0;
     quint16 address;
     bool hasA = valueOnABus(a), hasB = valueOnBBus(b), hasC = valueOnCBus(c);
-    bool statusBitError = false, hasALUOutput = calculateALUOutput(alu,NZVC);
+    bool statusBitError = false, hasALUOutput = calculateALUOutput(alu, NZVC);
 
     //Handle write to memory
     if(mainBusState == Enu::MemWriteReady) {
@@ -506,7 +517,7 @@ void CPUDataSection::stepTwoByte() noexcept
             else onSetMemoryRegister(Enu::MEM_MDRE,c);
             break;
         default:
-            hadDataError=true;
+            hadDataError = true;
             errorMessage = "No value to clock into MDRE";
             break;
         }
@@ -547,14 +558,13 @@ void CPUDataSection::stepTwoByte() noexcept
 
     //NCk
     if(clockSignals[Enu::NCk]) {
-        //And against a instead of ALU output, since ALU output is technically 0
         if(aluFunc != Enu::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N, Enu::NMask & NZVC);
         else statusBitError = true;
     }
 
     //If no ALU output, don't set flags.
     //ZCk
-    if(clockSignals[Enu::ZCk]){
+    if(clockSignals[Enu::ZCk]) {
         if(aluFunc != Enu::UNDEFINED_func && hasALUOutput) {
             if(controlSignals[Enu::AndZ] == 0) {
                 onSetStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
@@ -639,7 +649,7 @@ void CPUDataSection::clearRegisters() noexcept
 void CPUDataSection::clearErrors() noexcept
 {
     hadDataError = false;
-    errorMessage = "";
+    errorMessage.clear();
 }
 
 void CPUDataSection::onStep() noexcept
@@ -655,7 +665,6 @@ void CPUDataSection::onClock() noexcept
     onStep();
     clearClockSignals();
     clearControlSignals();
-    emit controlClockChanged();
 }
 
 void CPUDataSection::onClearCPU() noexcept

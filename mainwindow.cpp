@@ -21,6 +21,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QActionGroup>
 #include <QApplication>
 #include <QtConcurrent>
 #include <QDebug>
@@ -62,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), debugState(DebugState::DISABLED), updateChecker(new UpdateChecker()),
     memorySection(MemorySection::getInstance()), dataSection(CPUDataSection::getInstance()),
-    controlSection(CPUControlSection::getInstance())
+    controlSection(CPUControlSection::getInstance()), statisticsLevelsGroup(new QActionGroup(this)), inDarkMode(false)
 {
     // Initialize all global maps.
     Pep::initMicroEnumMnemonMaps();
@@ -78,6 +79,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->memoryWidget->init(memorySection,dataSection);
     ui->cpuWidget->init(this);
+    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_All);
+    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_Minimal);
+    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_None);
+    statisticsLevelsGroup->setExclusive(true);
 
     // Create & connect all dialogs.
     helpDialog = new HelpDialog(this);
@@ -287,6 +292,7 @@ void MainWindow::connectViewUpdate()
     connect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, this, &MainWindow::highlightActiveLines, Qt::UniqueConnection);
+    dataSection->setEmitEvents(true);
 }
 
 void MainWindow::disconnectViewUpdate()
@@ -300,11 +306,12 @@ void MainWindow::disconnectViewUpdate()
     disconnect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate);
     disconnect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons);
     disconnect(this, &MainWindow::simulationUpdate, this, &MainWindow::highlightActiveLines);
+    dataSection->setEmitEvents(false);
 }
 
 void MainWindow::readSettings()
 {
-    QSettings settings("cslab.pepperdine","PEP9CPU");
+    QSettings settings("cslab.pepperdine","PEP9Micro");
 
     settings.beginGroup("MainWindow");
 
@@ -321,6 +328,16 @@ void MainWindow::readSettings()
 
     //Restore last used file path
     curPath = settings.value("filePath", QDir::homePath()).toString();
+    // Restore dark mode state
+    bool tempDarkMode = settings.value("inDarkMode", false).toBool();
+    if(tempDarkMode != inDarkMode) {
+        ui->actionDark_Mode->setChecked(tempDarkMode);
+        on_actionDark_Mode_triggered();
+    }
+    quint16 debuggerLevel = settings.value("debugLevel", 1).toInt();
+    if(debuggerLevel >= static_cast<quint16>(Enu::DebugLevels::END)) debuggerLevel = static_cast<int>(Enu::DebugLevels::DEFAULT);
+    controlSection->setDebugLevel(static_cast<Enu::DebugLevels>(debuggerLevel));
+    setCheckedFromDebugLevel(static_cast<Enu::DebugLevels>(debuggerLevel));
     settings.endGroup();
 
     //Handle reading for all children
@@ -329,11 +346,13 @@ void MainWindow::readSettings()
 
 void MainWindow::writeSettings()
 {
-    QSettings settings("cslab.pepperdine","PEP9CPU");
+    QSettings settings("cslab.pepperdine","PEP9Micro");
     settings.beginGroup("MainWindow");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("font",codeFont);
     settings.setValue("filePath", curPath);
+    settings.setValue("inDarkMode", inDarkMode);
+    settings.setValue("debugLevel", (int)controlSection->getDebugLevel());
     settings.endGroup();
     //Handle writing for all children
     ui->microcodeWidget->writeSettings(settings);
@@ -834,6 +853,11 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionDebug_Step_Into_Assembler->setEnabled(which&DebugButtons::STEP_INTO_ASM);
     ui->actionDebug_Step_Out_Assembler->setEnabled(which&DebugButtons::STEP_OUT_ASM);
     ui->actionDebug_Single_Step_Microcode->setEnabled(which&DebugButtons::SINGLE_STEP_MICRO);
+
+    // Statistics Actions
+    ui->actionStatistics_Level_All->setEnabled(which&DebugButtons::STATS_LEVELS);
+    ui->actionStatistics_Level_Minimal->setEnabled(which&DebugButtons::STATS_LEVELS);
+    ui->actionStatistics_Level_None->setEnabled(which&DebugButtons::STATS_LEVELS);
 }
 
 void MainWindow::highlightActiveLines()
@@ -879,6 +903,22 @@ bool MainWindow::initializeSimulation()
     ui->ioWidget->batchInputToBuffer();
     emit simulationStarted();
     return true;
+}
+
+void MainWindow::setCheckedFromDebugLevel(Enu::DebugLevels level)
+{
+    switch(level)
+    {
+    case Enu::DebugLevels::ALL:
+        ui->actionStatistics_Level_All->setChecked(true);
+        break;
+    case Enu::DebugLevels::MINIMAL:
+        ui->actionStatistics_Level_Minimal->setChecked(true);
+        break;
+    case Enu::DebugLevels::NONE:
+        ui->actionStatistics_Level_None->setChecked(true);
+        break;
+    }
 }
 
 void MainWindow::onUpdateCheck(int val)
@@ -1225,7 +1265,7 @@ void MainWindow::handleDebugButtons()
     {
     case DebugState::DISABLED:
         enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
-        enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO;
+        enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO | DebugButtons::STATS_LEVELS;
         break;
     case DebugState::RUN:
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;
@@ -1415,6 +1455,21 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
     ui->memoryWidget->refreshMemory();
 }
 
+void MainWindow::on_actionStatistics_Level_All_triggered()
+{
+    if(ui->actionStatistics_Level_All->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::ALL);
+}
+
+void MainWindow::on_actionStatistics_Level_Minimal_triggered()
+{
+    if(ui->actionStatistics_Level_Minimal->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::MINIMAL);
+}
+
+void MainWindow::on_actionStatistics_Level_None_triggered()
+{
+    if(ui->actionStatistics_Level_None->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::NONE);
+}
+
 void MainWindow::onSimulationFinished()
 {
     QString errorString;
@@ -1434,16 +1489,14 @@ void MainWindow::onSimulationFinished()
 
 void MainWindow::on_actionDark_Mode_triggered()
 {
-
-    if(ui->actionDark_Mode->isChecked())
-    {
+    inDarkMode = ui->actionDark_Mode->isChecked();
+    if(inDarkMode) {
         this->setStyleSheet(darkStyle);
     }
-    else
-    {
+    else {
         this->setStyleSheet(lightStyle);
     }
-    emit darkModeChanged(ui->actionDark_Mode->isChecked());
+    emit darkModeChanged(inDarkMode);
 }
 
 // help:

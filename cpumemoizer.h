@@ -29,15 +29,19 @@ class CPUMemoizer
 {
 public:
     explicit CPUMemoizer(CPUControlSection& item);
+    Enu::DebugLevels getDebugLevel() const;
 
     void clear();
-    void storeState();
-    void storePC();
+    void storeStateInstrEnd();
+    void storeStateInstrStart();
     QString memoize();
     QString finalStatistics();
+    void setDebugLevel(Enu::DebugLevels level);
+
 private:
     CPUControlSection& item;
     CPUState registers;
+    Enu::DebugLevels level;
     QMultiMap<quint16,QString> OSSymTable;
     QString formatNum(quint16 number);
     QString formatNum(quint8 number);

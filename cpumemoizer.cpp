@@ -13,9 +13,14 @@ static quint8 max_symLen=0;
 static quint8 inst_size=6;
 static quint8 oper_addr_size=12;
 
-CPUMemoizer::CPUMemoizer(CPUControlSection& item):item(item),registers(CPUState()),OSSymTable()
+CPUMemoizer::CPUMemoizer(CPUControlSection& item):item(item), registers(CPUState()), OSSymTable(), level(Enu::DebugLevels::MINIMAL)
 {
     loadSymbols();
+}
+
+Enu::DebugLevels CPUMemoizer::getDebugLevel() const
+{
+    return level;
 }
 
 void CPUMemoizer::clear()
@@ -23,30 +28,52 @@ void CPUMemoizer::clear()
     registers = CPUState();
 }
 
-void CPUMemoizer::storeState()
+void CPUMemoizer::storeStateInstrEnd()
 {
-    registers.regState.reg_A = item.data->getRegisterBankWord(0);
-    registers.regState.reg_X = item.data->getRegisterBankWord(2);
-    registers.regState.reg_SP = item.data->getRegisterBankWord(4);
-    //registers.regState.reg_PC_end = item.data->getRegisterBankWord(6);
-    registers.regState.reg_IR = item.memory->getMemoryByte(registers.regState.reg_PC_start,false);
-    if(!Pep::isUnaryMap[Pep::decodeMnemonic[registers.regState.reg_IR]])
+    switch(level)
     {
-        registers.regState.reg_OS = item.memory->getMemoryWord(registers.regState.reg_PC_start +1,false);
-    }
+    case Enu::DebugLevels::ALL:
+        //Intentional fallthrough
+        [[fallthrough]];
+    case Enu::DebugLevels::MINIMAL:
+        registers.regState.reg_A = item.data->getRegisterBankWord(0);
+        registers.regState.reg_X = item.data->getRegisterBankWord(2);
+        registers.regState.reg_SP = item.data->getRegisterBankWord(4);
+        //registers.regState.reg_PC_end = item.data->getRegisterBankWord(6);
+        registers.regState.reg_IR = item.memory->getMemoryByte(registers.regState.reg_PC_start,false);
+        if(!Pep::isUnaryMap[Pep::decodeMnemonic[registers.regState.reg_IR]])
+        {
+            registers.regState.reg_OS = item.memory->getMemoryWord(registers.regState.reg_PC_start +1,false);
+        }
 
-    registers.regState.bits_NZVCS =
-            item.data->getStatusBit(Enu::STATUS_N) * Enu::NMask
-          | item.data->getStatusBit(Enu::STATUS_Z) * Enu::ZMask
-          | item.data->getStatusBit(Enu::STATUS_V) * Enu::VMask
-          | item.data->getStatusBit(Enu::STATUS_C) * Enu::CMask
-            | item.data->getStatusBit(Enu::STATUS_S) * Enu::SMask;
+        registers.regState.bits_NZVCS =
+                item.data->getStatusBit(Enu::STATUS_N) * Enu::NMask
+              | item.data->getStatusBit(Enu::STATUS_Z) * Enu::ZMask
+              | item.data->getStatusBit(Enu::STATUS_V) * Enu::VMask
+              | item.data->getStatusBit(Enu::STATUS_C) * Enu::CMask
+              | item.data->getStatusBit(Enu::STATUS_S) * Enu::SMask;
+        //Intentional fallthrough
+        [[fallthrough]];
+    case Enu::DebugLevels::NONE:
+        break;
+    }
 }
 
-void CPUMemoizer::storePC()
+void CPUMemoizer::storeStateInstrStart()
 {
-    registers.regState.reg_PC_start = item.data->getRegisterBankWord(6);
-    registers.instructionsCalled[item.memory->getMemoryByte(registers.regState.reg_PC_start,false)]++;
+    switch(level)
+    {
+    case Enu::DebugLevels::ALL:
+        //Intentional fallthrough
+        [[fallthrough]];
+    case Enu::DebugLevels::MINIMAL:
+        registers.regState.reg_PC_start = item.data->getRegisterBankWord(6);
+        registers.instructionsCalled[item.memory->getMemoryByte(registers.regState.reg_PC_start,false)]++;
+        //Intentional fallthrough
+        [[fallthrough]];
+    case Enu::DebugLevels::NONE:
+        break;
+    }
 }
 
 QString CPUMemoizer::memoize()
@@ -79,6 +106,7 @@ QString CPUMemoizer::memoize()
 
 QString CPUMemoizer::finalStatistics()
 {
+    if(level == Enu::DebugLevels::NONE) return "";
     Enu::EMnemonic mnemon = Enu::EMnemonic::STOP;
     QList<Enu::EMnemonic> mnemonList = QList<Enu::EMnemonic>();
     mnemonList.append(mnemon);
@@ -107,6 +135,11 @@ QString CPUMemoizer::finalStatistics()
         output.append(QString("%1").arg(mnemonDecode(mnemonList[index]),5) % QString(": ") % QString::number(tally[index]) % QString("\n"));
     }
     return output;
+}
+
+void CPUMemoizer::setDebugLevel(Enu::DebugLevels level)
+{
+    this->level = level;
 }
 
 //Properly formats a number as a 4 char hex

@@ -16,10 +16,8 @@
 #include "memorysection.h"
 #include "cpumemoizer.h"
 
-QMutex dontEnter;
 QElapsedTimer timer;
 CPUControlSection *CPUControlSection::_instance = nullptr;
-CPUTester *CPUTester::_instance = nullptr;
 CPUControlSection::CPUControlSection(CPUDataSection * data, MemorySection* memory): QObject(nullptr),memoizer(new CPUMemoizer(*this)), data(data), memory(memory),
     microprogramCounter(0), microCycleCounter(0), instructionCounter(0), callDepth(0),
     inSimulation(false), hadControlError(false), isPrefetchValid(false)
@@ -42,6 +40,8 @@ CPUControlSection::~CPUControlSection()
 
 void CPUControlSection::initCPU()
 {
+    // Initialize CPU with proper stack pointer value in SP register.
+#pragma message ("TODO: Init cpu with proper SP when not burned in at 0xffff")
     data->onSetRegisterByte(4,0xFB);
     data->onSetRegisterByte(5,0xF8);
 }
@@ -50,6 +50,11 @@ void CPUControlSection::setMicrocodeProgram(MicrocodeProgram *program)
 {
     this->program = program;
     microprogramCounter = 0;
+}
+
+void CPUControlSection::setDebugLevel(Enu::DebugLevels level)
+{
+    if(!inSimulation) this->memoizer->setDebugLevel(level);
 }
 
 int CPUControlSection::getLineNumber() const
@@ -78,6 +83,11 @@ QString CPUControlSection::getErrorMessage() const
     else if(data->hadErrorOnStep()) return data->getErrorMessage();
     else if(hadErrorOnStep()) return errorMessage;
     else return "";
+}
+
+Enu::DebugLevels CPUControlSection::getDebugLevel() const
+{
+    return memoizer->getDebugLevel();
 }
 
 bool CPUControlSection::hadErrorOnStep() const
@@ -117,13 +127,12 @@ void CPUControlSection::onDebuggingFinished()
 
 void CPUControlSection::onStep() noexcept
 {
-    QMutexLocker mutty(&dontEnter);
-    //Do step logic
+    // Do step logic
     if(microprogramCounter==0) {
-        //Store PC at the start of the cycle, so that we know where the instruction started from
-        memoizer->storePC();
+        // Store PC at the start of the cycle, so that we know where the instruction started from.
+        // Also store any other values needed for detailed statistics
+        memoizer->storeStateInstrStart();
         memory->onInstructionStarted();
-        //memoizer->storeState();
     }
 
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
@@ -133,17 +142,19 @@ void CPUControlSection::onStep() noexcept
     branchHandler();
     microCycleCounter++;
 
-    if(microprogramCounter==0 || hadErrorOnStep() ||executionFinished) {
-        memoizer->storeState();
+    if(microprogramCounter==0 ||executionFinished) {
+        memoizer->storeStateInstrEnd();
         updateAtInstructionEnd();
         emit simulationInstructionFinished();
         instructionCounter++;
-        //qDebug().noquote() << memoizer->memoize();
     }
+    // Nothing do do on an error
+    //else if(hadErrorOnStep());
 }
 
 void CPUControlSection::onISAStep() noexcept
 {
+    // Execute steps until the microprogram counter comes back to 0 OR there is an error on step.
     do {
         onStep();
         if(hadErrorOnStep()) {
@@ -179,7 +190,8 @@ void CPUControlSection::onRun()noexcept
 {
     timer.start();
     while(!executionFinished) {
-        if(microCycleCounter%500==0) {
+        // Since the sim runs at about 5Mhz, do not process events every single cycle to increase performance.
+        if(microCycleCounter % 5000 == 0) {
             QApplication::processEvents();
         }
         onStep();
@@ -236,7 +248,7 @@ void CPUControlSection::branchHandler()
     int temp = microprogramCounter;
     quint8 byte = 0;
     QString tempString;
-    const SymbolTable* symTable = this->program->getSymTable();;
+    const SymbolTable* symTable = this->program->getSymTable();
     std::shared_ptr<SymbolEntry> val;
     switch(prog->getBranchFunction())
     {
@@ -244,192 +256,149 @@ void CPUControlSection::branchHandler()
         temp = prog->getTrueTarget()->getValue();
         break;
     case Enu::uBRGT:
-        if((!data->getStatusBit(Enu::STATUS_N) && !data->getStatusBit(Enu::STATUS_Z)))
-        {
+        if((!data->getStatusBit(Enu::STATUS_N) && !data->getStatusBit(Enu::STATUS_Z))) {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRGE:
-        if((!data->getStatusBit(Enu::STATUS_N)))
-        {
+        if((!data->getStatusBit(Enu::STATUS_N))) {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBREQ:
-        if(data->getStatusBit(Enu::STATUS_Z))
-        {
+        if(data->getStatusBit(Enu::STATUS_Z)) {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRLE:
-        if(data->getStatusBit(Enu::STATUS_N) || data->getStatusBit(Enu::STATUS_Z))
-        {
+        if(data->getStatusBit(Enu::STATUS_N) || data->getStatusBit(Enu::STATUS_Z)) {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRLT:
-        if(data->getStatusBit(Enu::STATUS_N))
-        {
+        if(data->getStatusBit(Enu::STATUS_N)) {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRNE:
-        if((!data->getStatusBit(Enu::STATUS_Z)))
-        {
+        if((!data->getStatusBit(Enu::STATUS_Z))) {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRV:
-        if(data->getStatusBit(Enu::STATUS_V))
-        {
+        if(data->getStatusBit(Enu::STATUS_V)) {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRC:
-        if(data->getStatusBit(Enu::STATUS_C))
-        {
+        if(data->getStatusBit(Enu::STATUS_C))  {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::uBRS:
-        if(data->getStatusBit(Enu::STATUS_S))
-        {
+        if(data->getStatusBit(Enu::STATUS_S)) {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::IsPrefetchValid:
-        if(isPrefetchValid)
-        {
+        if(isPrefetchValid) {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::IsUnary:
         byte = data->getRegisterBankByte(8);
-        if(Pep::isUnaryMap[Pep::decodeMnemonic[byte]] || Pep::isTrapMap[Pep::decodeMnemonic[byte]])
-        {
+        // At the hardware level, all traps are unary.
+        // If it is a non-unary trap at the ASM level, loading the argument is part of the microcode trap handlers responsibility.
+        if(Pep::isUnaryMap[Pep::decodeMnemonic[byte]] || Pep::isTrapMap[Pep::decodeMnemonic[byte]]) {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::IsPCEven:
-        if(data->getRegisterBankByte(7)%2 == 0)
-        {
+        if(data->getRegisterBankByte(7)%2 == 0) {
             temp = prog->getTrueTarget()->getValue();
         }
-        else
-        {
+        else {
             temp = prog->getFalseTarget()->getValue();
         }
         break;
     case Enu::AddressingModeDecoder:
         temp = data->getRegisterBankByte(8);
         tempString = Pep::intToAddrMode(Pep::decodeAddrMode[temp]).toLower()+"Addr";
-        if(symTable->exists(tempString))
-        {
-            val = symTable->getValue(tempString);
-            if(val->isDefined())
-            {
-                temp = val->getValue();
-            }
-            else
-            {
-                executionFinished = true;
-                hadControlError = true;
-                errorMessage = "ERROR: AMD jumped to multiply defined instr - " + tempString;
-            }
-
-        }
-        else
-        {
+        val = symTable->getValue(tempString);
+        if(val == nullptr || !val->isDefined()) {
             executionFinished = true;
             hadControlError = true;
-            errorMessage = "ERROR: AMD looked for undefined inst - " + tempString;
+            if(val == nullptr) errorMessage = "ERROR: AMD jumped to undefined inst - " + tempString;
+            else errorMessage = "ERROR: AMD jumped to multiply defined instr - " + tempString;
+            break;
         }
+        temp = val->getValue();
+
         break;
     case Enu::InstructionSpecifierDecoder:
         temp = data->getRegisterBankByte(8);
         tempString = Pep::enumToMnemonMap[Pep::decodeMnemonic[temp]].toLower();
-        if(symTable->exists(tempString))
-        {
-            val = symTable->getValue(tempString);
-            if(val->isDefined())
-            {
-                temp = val->getValue();
-            }
-            else
-            {
-                executionFinished = true;
-                hadControlError = true;
-                errorMessage = "ERROR: ISD jumped to multiply defined instr - " + tempString;
-            }
-
-        }
-        else
-        {
+        val = symTable->getValue(tempString);
+        if(val == nullptr || !val->isDefined()) {
             executionFinished = true;
             hadControlError = true;
-            errorMessage = "ERROR: ISD looked for undefined inst - " + tempString;
+            if(val == nullptr) errorMessage = "ERROR: ISD jumped to undefined inst - " + tempString;
+            else errorMessage = "ERROR: ISD jumped to multiply defined instr - " + tempString;
+            break;
         }
+        temp = val->getValue();
         break;
     case Enu::Stop:
         executionFinished = true;
         break;
     default:
-        //This should never occur
+        executionFinished = true;
+        hadControlError = true;
+        errorMessage = "ERROR: µBranch Handler attempted to process invalid µFunction.";
         break;
 
     }
-    if(hadControlError) //If there was an error in the control section, make sure the CPU stops
-    {
+    if(hadControlError) {
+        //If there was an error in the control section, make sure the CPU stops
         executionFinished = true;
     }
-    else if(temp == microprogramCounter&&prog->getBranchFunction()!=Enu::Stop) {
-        hadControlError = true;
-        errorMessage = "Don't branch to yourself";
+    else if(temp == microprogramCounter && prog->getBranchFunction() != Enu::Stop) {
         executionFinished  = true;
+        hadControlError = true;
+        errorMessage = "ERROR: µInstructions cannot branch to themselves";
     }
     else {
         microprogramCounter = temp;
@@ -453,7 +422,7 @@ void CPUControlSection::setSignalsFromMicrocode(const MicroCode *line)
 
 void CPUControlSection::updateAtInstructionEnd()
 {
-#pragma message("Todo: Update CPU state at start of instruction")
+    // Handle changing of call stack depth if the executed instruction affects the call stack.
     if(Pep::decodeMnemonic[data->getRegisterBankByte(CPURegisters::IS)] == Enu::EMnemonic::CALL){
         callDepth++;
     }
@@ -467,22 +436,3 @@ void CPUControlSection::updateAtInstructionEnd()
         callDepth--;
     }
 }
-
-CPUTester *CPUTester::getInstance()
-{
-    if(_instance == nullptr) {
-        _instance = new CPUTester(CPUControlSection::getInstance(),CPUDataSection::getInstance());
-    }
-    return _instance;
-}
-
-CPUTester::CPUTester(CPUControlSection *control, CPUDataSection *data): QObject(nullptr),control(control),data(data)
-{
-
-}
-
-CPUTester::~CPUTester()
-{
-
-}
-

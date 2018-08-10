@@ -25,7 +25,7 @@
 #include <QException>
 namespace Enu
 {
-    Q_NAMESPACE;;
+    Q_NAMESPACE;
 
     static const quint8 maxRegisterNumber = 31;
     static const quint8 signalDisabled= 255;
@@ -34,7 +34,7 @@ namespace Enu
         void raise() const { throw *this; }
         InvalidCPUMode *clone() const { return new InvalidCPUMode(*this); }
     };
-    // Instruction mnemonics
+
     enum EMask // For ALU function 15
     {
         SMask = 0x10,
@@ -43,6 +43,7 @@ namespace Enu
         VMask = 0x02,
         CMask = 0x01,
     };
+
     enum MainBusState {
         None,
         MemReadFirstWait,
@@ -52,7 +53,8 @@ namespace Enu
         MemWriteSecondWait,
         MemWriteReady,
     };
-    Q_ENUM_NS(MainBusState);;
+    Q_ENUM_NS(MainBusState);
+
     enum EBranchFunctions{
         Unconditional = 0,
         uBRGT = 1, uBRGE = 2, uBREQ = 3, uBRLE = 4, uBRLT = 5,
@@ -65,7 +67,9 @@ namespace Enu
         Stop=15,
         Assembler_Assigned=16
     };
-    Q_ENUM_NS(EBranchFunctions);;
+    Q_ENUM_NS(EBranchFunctions);
+
+    // Instruction mnemonics
     enum EControlSignals
     {
         MemRead, MemWrite,
@@ -74,22 +78,25 @@ namespace Enu
         MDRMux, MDROMux, MDREMux,MDR, MDRE, MDRO,
         PValid,
     };
-    Q_ENUM_NS(EControlSignals);;
+    Q_ENUM_NS(EControlSignals);
     enum EClockSignals{
         NCk,ZCk,VCk,CCk,SCk,MARCk,LoadCk,MDRCk, MDROCk, MDRECk,
         PValidCk,
     };
-    Q_ENUM_NS(EClockSignals);;
+    Q_ENUM_NS(EClockSignals);
+
     enum EMemoryRegisters
     {
         MEM_MARA,MEM_MARB,MEM_MDR,MEM_MDRO,MEM_MDRE
     };
     Q_ENUM_NS(EMemoryRegisters);
+
     enum EStatusBit
     {
         STATUS_N,STATUS_Z,STATUS_V,STATUS_C,STATUS_S
     };
     Q_ENUM_NS(EStatusBit);
+
     enum EALUFunc
     {
         A_func=0,ApB_func=1,ApBpCin_func=2,ApnBp1_func=3,
@@ -98,6 +105,7 @@ namespace Enu
         ROLA_func=12,ASRA_func=13,RORA_func=14,NZVCA_func=15,
         UNDEFINED_func=255,
     };
+
     enum EKeywords {
         Pre, Post,
         Mem, Acc, X, SP, PC, IR,
@@ -119,9 +127,13 @@ namespace Enu
         Left,
         Right,
     };
+
+
     /*
-     * Begin Pep9 sources
+     * Enums Specific to Pep9
      */
+
+
     enum class EMnemonic: int
     {
         ADDA, ADDX, ADDSP, ANDA, ANDX, ASLA, ASLX, ASRA, ASRX,
@@ -186,5 +198,11 @@ namespace Enu
         EDataSection,
     };
     Q_ENUM_NS(EPane);
+
+    // Enums specific to Pep9Micro
+    enum class DebugLevels: quint16
+    {  DEFAULT = 1,
+       NONE = 0, MINIMAL = 1, ALL = 2, END
+    };
 }
 #endif // ENU_H
