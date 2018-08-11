@@ -29,20 +29,17 @@
 #include "specification.h"
 #include "cpupane.h"
 
-MicroCode::MicroCode():controlSignals(22),clockSignals(12),branchFunc(Enu::Assembler_Assigned),
-    symbol(nullptr),trueTargetAddr(nullptr),falseTargetAddr(nullptr)
+MicroCode::MicroCode(): controlSignals(22), clockSignals(12), breakpoint(false), branchFunc(Enu::Assembler_Assigned),
+    symbol(nullptr), trueTargetAddr(nullptr), falseTargetAddr(nullptr)
 {
-    for(auto memLines : Pep::memControlToMnemonMap.keys())
-    {
-        controlSignals[memLines]=Enu::signalDisabled;
+    for(auto memLines : Pep::memControlToMnemonMap.keys()) {
+        controlSignals[memLines] = Enu::signalDisabled;
     }
-    for(auto mainCtrlLines : Pep::decControlToMnemonMap.keys())
-    {
-        controlSignals[mainCtrlLines]=Enu::signalDisabled;
+    for(auto mainCtrlLines : Pep::decControlToMnemonMap.keys()) {
+        controlSignals[mainCtrlLines] = Enu::signalDisabled;
     }
-    for(auto clockLines : Pep::clockControlToMnemonMap.keys())
-    {
-        clockSignals[clockLines]=0;
+    for(auto clockLines : Pep::clockControlToMnemonMap.keys()) {
+        clockSignals[clockLines] = 0;
     }
 }
 
@@ -256,12 +253,12 @@ bool MicroCode::hasSymbol() const
 
 bool MicroCode::hasControlSignal(Enu::EControlSignals field) const
 {
-    return controlSignals[field]!=Enu::signalDisabled;
+    return controlSignals[field] != Enu::signalDisabled;
 }
 
 bool MicroCode::hasClockSignal(Enu::EClockSignals field) const
 {
-    return clockSignals[field]==true;
+    return clockSignals[field] == true;
 }
 
 const SymbolEntry* MicroCode::getSymbol() const
@@ -276,12 +273,17 @@ SymbolEntry* MicroCode::getSymbol()
 
 void MicroCode::setControlSignal(Enu::EControlSignals field, quint8 value)
 {
-    controlSignals[field]=value;
+    controlSignals[field] = value;
 }
 
 void MicroCode::setClockSingal(Enu::EClockSignals field, bool value)
 {
-    clockSignals[field]=value;
+    clockSignals[field] = value;
+}
+
+void MicroCode::setBreakpoint(bool breakpoint)
+{
+    this->breakpoint = breakpoint;
 }
 
 void MicroCode::setBranchFunction(Enu::EBranchFunctions branch)
@@ -307,6 +309,11 @@ int MicroCode::getControlSignal(Enu::EControlSignals field) const
 bool MicroCode::getClockSignal(Enu::EClockSignals field) const
 {
     return clockSignals[field];
+}
+
+bool MicroCode::hasBreakpoint() const
+{
+    return breakpoint;
 }
 
 Enu::EBranchFunctions MicroCode::getBranchFunction() const

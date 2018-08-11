@@ -77,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Perform any additional setup needed for UI objects.
     ui->setupUi(this);
-    ui->memoryWidget->init(memorySection,dataSection);
+    ui->memoryWidget->init(memorySection, dataSection, controlSection);
     ui->cpuWidget->init(this);
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_All);
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_Minimal);
@@ -129,6 +129,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationStarted, ui->memoryWidget, &MemoryDumpPane::onSimulationStarted);
+    connect(controlSection, &CPUControlSection::simulationHitMicroBreakpoint, this, &MainWindow::onMicroBreakpointHit);
+    connect(controlSection, &CPUControlSection::simulationHitASMBreakpoint, this, &MainWindow::onASMBreakpointHit);
+
     // Clear IOWidget every time a simulation is started.
     connect(this, &MainWindow::simulationStarted, ui->ioWidget, &IOWidget::onClear);
     connect(this, &MainWindow::simulationStarted, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationStarted);
@@ -142,9 +145,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Connect simulation events that are internal to the class.
     connect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
-    connect(this, &MainWindow::simulationUpdate, this, &MainWindow::highlightActiveLines, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, this, static_cast<void(MainWindow::*)()>(&MainWindow::highlightActiveLines), Qt::UniqueConnection);
     connect(this, &MainWindow::simulationStarted, this, &MainWindow::handleDebugButtons);
-    connect(this, &MainWindow::simulationStarted, this, &MainWindow::highlightActiveLines);
 
     // Connect font change events.
     connect(this, &MainWindow::fontChanged, ui->microcodeWidget, &MicrocodePane::onFontChanged);
@@ -291,7 +293,9 @@ void MainWindow::connectViewUpdate()
     connect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
-    connect(this, &MainWindow::simulationUpdate, this, &MainWindow::highlightActiveLines, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, this, static_cast<void(MainWindow::*)()>(&MainWindow::highlightActiveLines), Qt::UniqueConnection);
+    // If application is running, active lines shouldn't be highlighted at the begin of the instruction, as this would be misleading.
+    connect(this, &MainWindow::simulationStarted, this, static_cast<void(MainWindow::*)()>(&MainWindow::highlightActiveLines), Qt::UniqueConnection);
     dataSection->setEmitEvents(true);
 }
 
@@ -305,7 +309,8 @@ void MainWindow::disconnectViewUpdate()
     disconnect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory);
     disconnect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate);
     disconnect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons);
-    disconnect(this, &MainWindow::simulationUpdate, this, &MainWindow::highlightActiveLines);
+    disconnect(this, &MainWindow::simulationUpdate, this, static_cast<void(MainWindow::*)()>(&MainWindow::highlightActiveLines));
+    disconnect(this, &MainWindow::simulationStarted, this, static_cast<void(MainWindow::*)()>(&MainWindow::highlightActiveLines));
     dataSection->setEmitEvents(false);
 }
 
@@ -860,16 +865,21 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionStatistics_Level_None->setEnabled(which&DebugButtons::STATS_LEVELS);
 }
 
-void MainWindow::highlightActiveLines()
+void MainWindow::highlightActiveLines(bool forceISA)
 {
     //always highlight the current microinstruction
     ui->microcodeWidget->updateSimulationView();
     ui->microObjectCodePane->highlightCurrentInstruction();
-    if(controlSection->getLineNumber() == 0) //If the µPC is 0, hihglight the instruction at the current PC in the listing & memory
-    {
+    //If the µPC is 0, if a breakpoint has been reached, or if the microcode has a breakpoint, rehighlight the ASM views.
+    if(controlSection->getLineNumber() == 0 || forceISA || controlSection->lineHasBreakpoint()) {
         ui->memoryWidget->clearHighlight();
         ui->memoryWidget->highlight();
     }
+}
+
+void MainWindow::highlightActiveLines()
+{
+    return highlightActiveLines(false);
 }
 
 bool MainWindow::initializeSimulation()
@@ -901,7 +911,7 @@ bool MainWindow::initializeSimulation()
 
     // If there is batch input, move input to  input buffer in the MemorySection
     ui->ioWidget->batchInputToBuffer();
-    emit simulationStarted();
+    // No longer emits simulationStarted(), as this could trigger extra screen painting that is unwanted.
     return true;
 }
 
@@ -1226,7 +1236,10 @@ void MainWindow::on_actionBuild_Run_Object_triggered()
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
         disconnectViewUpdate();
+        emit simulationStarted();
+        ui->memoryWidget->clearHighlight();
         ui->memoryWidget->refreshMemory();
+        controlSection->onSimulationStarted();
         controlSection->onRun();
         connectViewUpdate();
     }
@@ -1242,9 +1255,11 @@ void MainWindow::on_actionBuild_Run_triggered()
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
         disconnectViewUpdate();
+        emit simulationStarted();
         loadOperatingSystem();
         loadObjectCodeProgram();
-        ui->memoryWidget->refreshMemory();
+        ui->memoryWidget->updateMemory();
+        controlSection->onSimulationStarted();
         controlSection->onRun();
         connectViewUpdate();
     }
@@ -1290,6 +1305,7 @@ void MainWindow::handleDebugButtons()
 
 bool MainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
+    if(!on_ActionBuild_Assemble_triggered()) return false;
     loadObjectCodeProgram();
     loadOperatingSystem();
     return on_actionDebug_Start_Debugging_Object_triggered();
@@ -1301,6 +1317,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
     connectViewUpdate();
     debugState = DebugState::DEBUG_ISA;
     if(initializeSimulation()) {
+        emit simulationStarted();
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
         controlSection->onDebuggingStarted();
         ui->cpuWidget->startDebugging();
@@ -1327,8 +1344,9 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
 
     ui->cpuWidget->stopDebugging();
     handleDebugButtons();
-    highlightActiveLines();
+    highlightActiveLines(true);
     ui->memoryWidget->updateMemory();
+    controlSection->onDebuggingFinished();
     emit simulationFinished();
 }
 
@@ -1343,13 +1361,18 @@ void MainWindow::on_actionDebug_Continue_triggered()
     handleDebugButtons();
     disconnectViewUpdate();
     controlSection->onRun();
-    if(controlSection->hadErrorOnStep())
-    {
+    if(controlSection->hadErrorOnStep()) {
         QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
         return; // we'll just return here instead of letting it fail and go to the bottom
     }
-    onSimulationFinished();
+    connectViewUpdate();
+    if(controlSection->lineHasBreakpoint()) {
+        emit simulationUpdate();
+        QApplication::processEvents();
+        highlightActiveLines(true);
+    }
+    else onSimulationFinished();
 }
 
 void MainWindow::on_actionDebug_Restart_Debugging_triggered()
@@ -1394,7 +1417,9 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
             onSimulationFinished();
             break;
         }
-    } while(callDepth < controlSection->getCallDepth() && !controlSection->getExecutionFinished());
+    } while(callDepth < controlSection->getCallDepth()
+            && !controlSection->getExecutionFinished()
+            && !controlSection->lineHasBreakpoint());
     connectViewUpdate();
     emit simulationUpdate();
 }
@@ -1408,6 +1433,7 @@ void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
         QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
+    else if(false);
     emit simulationUpdate();
 }
 
@@ -1425,7 +1451,9 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
             onSimulationFinished();
             break;
         }
-    } while(callDepth <= controlSection->getCallDepth() && !controlSection->getExecutionFinished());
+    } while(callDepth <= controlSection->getCallDepth()
+            && !controlSection->getExecutionFinished()
+            && !controlSection->lineHasBreakpoint());
     connectViewUpdate();
     emit simulationUpdate();
 }
@@ -1440,6 +1468,18 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
         onSimulationFinished();
     }
     emit simulationUpdate();
+}
+
+void MainWindow::onMicroBreakpointHit()
+{
+    debugState = DebugState::DEBUG_MICRO;
+    QApplication::processEvents();
+    controlSection->onBreakpointHandled();
+}
+
+void MainWindow::onASMBreakpointHit()
+{
+#pragma message("TODO: Handle ASM breakpoint")
 }
 
 // System MainWindow triggers

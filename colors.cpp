@@ -37,9 +37,10 @@ const PepColors::Colors PepColors::initDark()
     retVal.memoryHighlightSP = QColor("Magenta");
     retVal.memoryHighlightPC = QColor("skyblue");
     retVal.memoryHighlightChanged = QColor("orangered");
-    retVal.lineAreaBackground = retVal.backgroundFill;
-    retVal.lineAreaText = PepColors::invert(retVal.lineAreaBackground).lighter(130);
-    retVal.lineAreaHighlight = QColor(Qt::red).darker(170);
+    // Back & Text colors are those of QT Creator's text editor's line numbers & line number background in QT Creator Dark theme.
+    retVal.lineAreaBackground = QColor(64, 66, 68);
+    retVal.lineAreaText = QColor(190, 192, 194);
+    retVal.lineAreaHighlight = QColor("dodgerblue");
 
     return retVal;
 }
@@ -80,9 +81,10 @@ const PepColors::Colors PepColors::initLight()
     retVal.memoryHighlightSP = Qt::darkMagenta;
     retVal.memoryHighlightPC = Qt::blue;
     retVal.memoryHighlightChanged = Qt::red;
-    retVal.lineAreaBackground = retVal.backgroundFill;
-    retVal.lineAreaText = PepColors::invert(retVal.lineAreaBackground);
-    retVal.lineAreaHighlight = QColor(Qt::red).lighter(170);
+    // Back & Text colors are those of QT Creator's text editor's line numbers & line number background in default theme.
+    retVal.lineAreaBackground = QColor(240,240,240);
+    retVal.lineAreaText = QColor(150,150,150);
+    retVal.lineAreaHighlight = QColor("lightskyblue");
 
     return retVal;
 }

@@ -9,6 +9,7 @@
 #include "enu.h"
 class MemorySection;
 class MicroCode;
+#pragma message ("TODO: move CPURegisters to Enu.h")
 enum class CPURegisters: quint8
 {
     //Two byte registers

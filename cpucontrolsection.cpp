@@ -18,9 +18,10 @@
 
 QElapsedTimer timer;
 CPUControlSection *CPUControlSection::_instance = nullptr;
-CPUControlSection::CPUControlSection(CPUDataSection * data, MemorySection* memory): QObject(nullptr),memoizer(new CPUMemoizer(*this)), data(data), memory(memory),
+CPUControlSection::CPUControlSection(CPUDataSection * data, MemorySection* memory): QObject(nullptr),
+    memoizer(new CPUMemoizer(*this)), data(data), memory(memory),
     microprogramCounter(0), microCycleCounter(0), instructionCounter(0), callDepth(0),
-    inSimulation(false), hadControlError(false), isPrefetchValid(false)
+    inSimulation(false), hadControlError(false), isPrefetchValid(false), inDebug(false), breakpointHit(false), breakpointHandled(false)
 {
 
 }
@@ -57,6 +58,11 @@ void CPUControlSection::setDebugLevel(Enu::DebugLevels level)
     if(!inSimulation) this->memoizer->setDebugLevel(level);
 }
 
+const CPUMemoizer *CPUControlSection::getCPUMemoizer() const
+{
+    return memoizer;
+}
+
 int CPUControlSection::getLineNumber() const
 {
     return microprogramCounter;
@@ -85,6 +91,11 @@ QString CPUControlSection::getErrorMessage() const
     else return "";
 }
 
+bool CPUControlSection::lineHasBreakpoint() const
+{
+    return program->getCodeLine(microprogramCounter)->hasBreakpoint();
+}
+
 Enu::DebugLevels CPUControlSection::getDebugLevel() const
 {
     return memoizer->getDebugLevel();
@@ -102,8 +113,10 @@ bool CPUControlSection::getExecutionFinished() const
 
 void CPUControlSection::onSimulationStarted()
 {
+    inDebug = false;
     inSimulation = true;
     executionFinished = false;
+    memoizer->clear();
 }
 
 void CPUControlSection::onSimulationFinished()
@@ -112,17 +125,19 @@ void CPUControlSection::onSimulationFinished()
     data->clearControlSignals();
     memory->onCancelWaiting();
     executionFinished = true;
+    inDebug = false;
 }
 
 void CPUControlSection::onDebuggingStarted()
 {
     onSimulationStarted();
-    memoizer->clear();
+    inDebug = true;
 }
 
 void CPUControlSection::onDebuggingFinished()
 {
     onSimulationFinished();
+    inDebug = false;
 }
 
 void CPUControlSection::onStep() noexcept
@@ -136,6 +151,24 @@ void CPUControlSection::onStep() noexcept
     }
 
     const MicroCode* prog = program->getCodeLine(microprogramCounter);
+
+    // If running in debug mode, first check if this line has any microcode breakpoints.
+    if(inDebug) {
+        // If the line has a breakpoint, but onBreakPointHandled() has been called
+        if(prog->hasBreakpoint() && breakpointHandled) {
+            // Ignore the line's breakpoint, and reset breakpointHandled in case another breakpoint appears.
+            breakpointHandled = false;
+            breakpointHit = false;
+        }
+        else if(prog->hasBreakpoint()) {
+            breakpointHandled = false;
+            breakpointHit = true;
+            emit simulationHitMicroBreakpoint();
+            // Process Events immediately, and return to prevent step from executing
+            QApplication::processEvents();
+            return;
+        }
+    }
     this->setSignalsFromMicrocode(prog);
     data->setSignalsFromMicrocode(prog);
     data->onStep();
@@ -149,12 +182,12 @@ void CPUControlSection::onStep() noexcept
         instructionCounter++;
     }
     // Nothing do do on an error
-    //else if(hadErrorOnStep());
+    else if(hadErrorOnStep()) return;
 }
 
 void CPUControlSection::onISAStep() noexcept
 {
-    // Execute steps until the microprogram counter comes back to 0 OR there is an error on step.
+    // Execute steps until the microprogram counter comes back to 0 OR there is an error on step OR a breakpoint is hit.
     do {
         onStep();
         if(hadErrorOnStep()) {
@@ -171,11 +204,11 @@ void CPUControlSection::onISAStep() noexcept
                 break;
             }
         }
-    } while(!executionFinished && microprogramCounter != 0);
+    } while(!executionFinished && microprogramCounter != 0 && !breakpointHit);
     if(executionFinished) emit simulationFinished();
 }
 
-void CPUControlSection::onClock()noexcept
+void CPUControlSection::onClock() noexcept
 {
     //Do clock logic
     if(!inSimulation) {
@@ -186,30 +219,65 @@ void CPUControlSection::onClock()noexcept
     }
 }
 
-void CPUControlSection::onRun()noexcept
+void CPUControlSection::onRun() noexcept
 {
     timer.start();
-    while(!executionFinished) {
-        // Since the sim runs at about 5Mhz, do not process events every single cycle to increase performance.
-        if(microCycleCounter % 5000 == 0) {
-            QApplication::processEvents();
+    // If debugging, there is the potential to hit breakpoints, so a different main loop is needed.
+    // Partially, this is to handle breakpoints gracefully, and partially to prevent "run" mode from being slowed down by debug features.
+    if(inDebug) {
+        // Always execute at least once. onStep() will return before executing any code if the line has a breakpoint that hasn't been handled.
+        do{
+            // Since the sim runs at about 5Mhz, do not process events every single cycle to increase performance.
+            if(microCycleCounter % 5000 == 0) {
+                QApplication::processEvents();
+            }
+            onStep();
+            //If there was an error on the control flow
+            if(hadErrorOnStep()) {
+                if(memory->hadErrorOnStep()) {
+                    qDebug() << "Memory section reporting an error";
+                    break;
+                }
+                else if(data->hadErrorOnStep()) {
+                    qDebug() << "Data section reporting an error";
+                    break;
+                }
+                else {
+                    qDebug() << "Control section reporting an error";
+                    break;
+                }
+            }
+        // If a breakpoint has been hit, stop execution now.
+        } while(!executionFinished && !breakpointHit);
+    }
+    else {
+        while(!executionFinished) {
+            // Since the sim runs at about 5Mhz, do not process events every single cycle to increase performance.
+            if(microCycleCounter % 5000 == 0) {
+                QApplication::processEvents();
+            }
+            onStep();
+            //If there was an error on the control flow
+            if(hadErrorOnStep()) {
+                if(memory->hadErrorOnStep()) {
+                    qDebug() << "Memory section reporting an error";
+                    break;
+                }
+                else if(data->hadErrorOnStep()) {
+                    qDebug() << "Data section reporting an error";
+                    break;
+                }
+                else {
+                    qDebug() << "Control section reporting an error";
+                    break;
+                }
+            }
         }
-        onStep();
-        //If there was an error on the control flow
-        if(hadErrorOnStep()) {
-            if(memory->hadErrorOnStep()) {
-                qDebug() << "Memory section reporting an error";
-                break;
-            }
-            else if(data->hadErrorOnStep()) {
-                qDebug() << "Data section reporting an error";
-                break;
-            }
-            else {
-                qDebug() << "Control section reporting an error";
-                break;
-            }
-        }
+    }
+
+    // If a breakpoint was reached, return before final statistics are computed or the simulation is finished.
+    if(breakpointHit) {
+        return;
     }
     auto value = timer.elapsed();
     qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
@@ -221,12 +289,14 @@ void CPUControlSection::onRun()noexcept
     emit simulationFinished();
 }
 
-void CPUControlSection::onClearCPU()noexcept
+void CPUControlSection::onClearCPU() noexcept
 {
+    // Reset all internal state
     data->onClearCPU();
     memory->clearErrors();
     memoizer->clear();
     inSimulation = false;
+    inDebug = false;
     microprogramCounter = 0;
     microCycleCounter = 0;
     instructionCounter = 0;
@@ -235,11 +305,18 @@ void CPUControlSection::onClearCPU()noexcept
     executionFinished = false;
     isPrefetchValid = false;
     errorMessage = "";
+    breakpointHit = false;
+    breakpointHandled = false;
 }
 
 void CPUControlSection::onClearMemory() noexcept
 {
     memory->onClearMemory();
+}
+
+void CPUControlSection::onBreakpointHandled() noexcept
+{
+    breakpointHandled = true;
 }
 
 void CPUControlSection::branchHandler()

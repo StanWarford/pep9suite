@@ -151,6 +151,9 @@ private:
     void debugButtonEnableHelper(const int which);
 
     // Coordinates higlighting of memory, microcode pane, micro object code pane, and assembler listings.
+    // Parameter forces re-highlight at the ISA level
+    void highlightActiveLines(bool forceISA = false);
+    // Overload for signal-slot connections. Calls highlightActiveLines(false).
     void highlightActiveLines();
 
     // Update the views and initialize the models in a way that can be used for debugging or running.
@@ -227,6 +230,9 @@ private slots:
     void on_actionDebug_Step_Out_Assembler_triggered();
     // Executes a single line of microcode, which is the behavior of Pep/9CPU
     void on_actionDebug_Single_Step_Microcode_triggered();
+
+    void onMicroBreakpointHit();
+    void onASMBreakpointHit();
 
     // System
     void on_actionSystem_Clear_CPU_triggered();

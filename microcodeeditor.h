@@ -20,7 +20,7 @@
 */
 #ifndef MICROCODEEDITOR_H
 #define MICROCODEEDITOR_H
-
+#include <QDebug>
 #include <QPlainTextEdit>
 #include <QObject>
 #include "colors.h"
@@ -35,19 +35,20 @@ class LineNumberArea;
 class MicrocodeEditor : public QPlainTextEdit
 {
     Q_OBJECT
-
+    friend class LineNumberArea;
 public:
     MicrocodeEditor(QWidget *parent = 0, bool highlightCurrentLine = true, bool isReadOnly = false);
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
-
+    void lineAreaMousePress(QMouseEvent* event);
     void highlightSimulatedLine();
     void clearSimulationView();
 
     void unCommentSelection();
     void readSettings(QSettings& settings);
     void writeSettings(QSettings& settings);
+    const QSet<quint16> getBreakpoints() const;
 public slots:
     void onDarkModeChanged(bool darkMode);
 protected:
@@ -56,14 +57,18 @@ protected:
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
     void updateLineNumberArea(const QRect &, int);
-
+    void onTextChanged();
 private:
     QWidget *lineNumberArea;
     const PepColors::Colors *colors;
-
+    QMap<quint16, quint16> blockToCycle;
+    QSet<quint16> breakpoints;
     bool highlightCurLine;
 
     int getMicrocodeBlockNumbers();
+signals:
+    void breakpointAdded(quint16 line);
+    void breakpointRemoved(quint16 line);
 };
 
 
@@ -74,14 +79,15 @@ public:
         microcodeEditor = editor;
     }
 
-    QSize sizeHint() const {
+    QSize sizeHint() const override{
         return QSize(microcodeEditor->lineNumberAreaWidth(), 0);
     }
 
 protected:
-    void paintEvent(QPaintEvent *event) {
+    void paintEvent(QPaintEvent *event) override {
         microcodeEditor->lineNumberAreaPaintEvent(event);
     }
+    void mousePressEvent(QMouseEvent *event) override;
 
 private:
     MicrocodeEditor *microcodeEditor;

@@ -13,7 +13,7 @@ private:
 public:
     MicrocodeProgram();
     ~MicrocodeProgram();
-    MicrocodeProgram(QVector<MicroCodeBase*>objectCode,SymbolTable* symbolTable);
+    MicrocodeProgram(QVector<MicroCodeBase*>objectCode, SymbolTable* symbolTable);
     const SymbolTable* getSymTable() const;
     const QVector<MicroCodeBase*> getObjectCode() const;
     const QString format() const;
@@ -21,6 +21,7 @@ public:
     bool hasMicrocode() const;
     bool hasUnitPre() const;
     const MicroCode* getCodeLine(quint16 codeLine) const;
+    MicroCode* getCodeLine(quint16 codeLine);
     int codeLength() const;
 };
 

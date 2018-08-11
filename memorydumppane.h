@@ -31,16 +31,17 @@
 namespace Ui {
     class MemoryDumpPane;
 }
+class CPUControlSection;
+class CPUDataSection;
 class MemorySection;
 class MemoryDumpDelegate;
-class CPUDataSection;
 class MemoryDumpPane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(MemoryDumpPane)
 public:
     explicit MemoryDumpPane(QWidget *parent = 0);
     // Needs to be called after construction but before this class can be used, otherwise the class is in an incomplete state.
-    void init(MemorySection *memorySection, CPUDataSection *dataSection);
+    void init(MemorySection *memorySection, CPUDataSection *dataSection, CPUControlSection* controlSection);
     virtual ~MemoryDumpPane();
 
     void refreshMemory();
@@ -98,6 +99,7 @@ private:
     QStandardItemModel* data;
     MemorySection *memorySection;
     CPUDataSection *dataSection;
+    CPUControlSection *controlSection;
     MemoryDumpDelegate *delegate;
     const PepColors::Colors *colors;
     QList<quint16> highlightedData;

@@ -39,7 +39,7 @@ void CPUMemoizer::storeStateInstrEnd()
         registers.regState.reg_A = item.data->getRegisterBankWord(0);
         registers.regState.reg_X = item.data->getRegisterBankWord(2);
         registers.regState.reg_SP = item.data->getRegisterBankWord(4);
-        //registers.regState.reg_PC_end = item.data->getRegisterBankWord(6);
+        registers.regState.reg_PC_end = item.data->getRegisterBankWord(6);
         registers.regState.reg_IR = item.memory->getMemoryByte(registers.regState.reg_PC_start,false);
         if(!Pep::isUnaryMap[Pep::decodeMnemonic[registers.regState.reg_IR]])
         {
@@ -67,11 +67,11 @@ void CPUMemoizer::storeStateInstrStart()
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::MINIMAL:
-        registers.regState.reg_PC_start = item.data->getRegisterBankWord(6);
         registers.instructionsCalled[item.memory->getMemoryByte(registers.regState.reg_PC_start,false)]++;
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::NONE:
+        registers.regState.reg_PC_start = item.data->getRegisterBankWord(6);
         break;
     }
 }
@@ -140,6 +140,13 @@ QString CPUMemoizer::finalStatistics()
 void CPUMemoizer::setDebugLevel(Enu::DebugLevels level)
 {
     this->level = level;
+}
+#include "assert.h"
+quint16 CPUMemoizer::getRegisterStart(CPURegisters reg) const
+{
+    if(reg != CPURegisters::PC) assert(false); // Attempted to access register that was not cached
+    else return registers.regState.reg_PC_start;
+
 }
 
 //Properly formats a number as a 4 char hex

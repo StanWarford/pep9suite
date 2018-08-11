@@ -37,8 +37,8 @@ MicrocodeEditor::MicrocodeEditor(QWidget *parent, bool highlightCurrentLine, boo
     setReadOnly(isReadOnly);
 
     connect(this, &QPlainTextEdit::blockCountChanged, this, &MicrocodeEditor::updateLineNumberAreaWidth);
-    connect(this, SIGNAL(textChanged()), this, SLOT(repaint()));
     connect(this, &QPlainTextEdit::updateRequest, this, &MicrocodeEditor::updateLineNumberArea);
+    connect(this, &MicrocodeEditor::textChanged, this, &MicrocodeEditor::onTextChanged);
     //    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
 
     connect(this, SIGNAL(cursorPositionChanged()), lineNumberArea, SLOT(update()));
@@ -48,16 +48,43 @@ MicrocodeEditor::MicrocodeEditor(QWidget *parent, bool highlightCurrentLine, boo
 
 int MicrocodeEditor::lineNumberAreaWidth()
 {
-    int digits = 1;
     int max = qMax(1, blockCount());
-    while (max >= 10) {
-        max /= 10;
-        ++digits;
-    }
+    int digits = 1 + log10(max); // Truncate double and then add one
 
     int space = 4 + fontMetrics().width(QLatin1Char('9')) * digits;
 
-    return space;
+    return space + fontMetrics().height();
+}
+
+void MicrocodeEditor::lineAreaMousePress(QMouseEvent *event)
+{
+    QTextBlock block;
+    int blockNumber, top, bottom, lineNumber;
+    block = firstVisibleBlock();
+    blockNumber = block.blockNumber();
+    top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
+    bottom = top + (int) blockBoundingRect(block).height();
+    while (block.isValid() && top <= event->pos().y()) {
+        if (event->pos().y()>=top && event->pos().y()<=bottom) {
+            if(blockToCycle.contains(blockNumber)) {
+                lineNumber = blockToCycle[blockNumber];
+                if(breakpoints.contains(lineNumber)) {
+                    breakpoints.remove(lineNumber);
+                    emit breakpointRemoved(lineNumber);
+                }
+                else {
+                    breakpoints.insert(lineNumber);
+                    emit breakpointAdded(lineNumber);
+                }
+            }
+            break;
+        }
+        block = block.next();
+        top = bottom;
+        bottom = top + (int) blockBoundingRect(block).height();
+        ++blockNumber;
+    }
+    update();
 }
 
 void MicrocodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
@@ -74,6 +101,42 @@ void MicrocodeEditor::updateLineNumberArea(const QRect &rect, int dy)
 
     if (rect.contains(viewport()->rect()))
         updateLineNumberAreaWidth(0);
+}
+
+void MicrocodeEditor::onTextChanged()
+{
+    QMap<quint16, quint16> oldToNew, old = blockToCycle;
+    blockToCycle.clear();
+    int cycleNumber = 1;
+    QStringList sourceCodeList = toPlainText().split('\n');
+
+    for (int i = 0; i < sourceCodeList.size(); i++) {
+        if (QRegExp("^\\s*//|^\\s*$|^\\s*unitpre|^\\s*unitpost", Qt::CaseInsensitive).indexIn(sourceCodeList.at(i)) == 0) {
+        }
+        else {
+            blockToCycle.insert(i, cycleNumber++);
+        }
+    }
+    QSet<quint16> toRemove;
+    for(auto x : breakpoints) {
+        if (blockToCycle.key(x, -1) == -1) toRemove.insert(-1);
+    }
+    breakpoints.subtract(toRemove);
+    update();
+/*
+    for(QMap<quint32, quint32>::const_iterator x = old.cbegin(); x!= old.cend(); x++) {
+        int newPos = (int)blockToCycle.key(x.value(), -1);
+        if(newPos<0) continue;
+        else oldToNew.insert(x.key() , newPos);
+    }
+
+    qDebug().noquote() << "Old BP: "<< breakpoints;
+    QSet<quint32> oldBP = breakpoints;
+    breakpoints.clear();
+    for(auto x : oldBP) {
+        breakpoints.insert(oldToNew[x]);
+    }
+    qDebug().noquote() << "New BP: "<< breakpoints; */
 }
 
 void MicrocodeEditor::highlightSimulatedLine()
@@ -266,6 +329,11 @@ void MicrocodeEditor::writeSettings(QSettings &settings)
     settings.endGroup();
 }
 
+const QSet<quint16> MicrocodeEditor::getBreakpoints() const
+{
+    return breakpoints;
+}
+
 void MicrocodeEditor::onDarkModeChanged(bool darkMode)
 {
     if(darkMode)colors = &PepColors::darkMode;
@@ -283,12 +351,10 @@ void MicrocodeEditor::resizeEvent(QResizeEvent *e)
 void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 {
     QPainter painter(lineNumberArea);
-    painter.fillRect(event->rect(),colors->backgroundFill); // light grey
+    painter.fillRect(event->rect(), colors->lineAreaBackground); // light grey
     QTextBlock block;
-    int blockNumber;
-    int top;
-    int bottom;
-
+    int blockNumber, toHighlight, top, bottom;
+    toHighlight = block.blockNumber();
     // Highlight the current line containing the cursor
     if (highlightCurLine && textCursor().block().isVisible()) {
         block = firstVisibleBlock();
@@ -302,33 +368,31 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
             ++blockNumber;
         }
         if (block.isValid()) {
-            painter.setPen(QColor(232, 232, 232));
+            painter.setPen(PepColors::transparent);
             painter.setBrush(colors->lineAreaHighlight);
             painter.drawRect(-1, top, lineNumberArea->width(), fontMetrics().height());
         }
     }
-
     // Display the cycle numbers
     block = firstVisibleBlock();
     blockNumber = block.blockNumber();
     top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
     bottom = top + (int) blockBoundingRect(block).height();
-    int cycleNumber = 1;
-    QList<int> blockToCycleNumber;
-    QStringList sourceCodeList = toPlainText().split('\n');
-    for (int i = 0; i < sourceCodeList.size(); i++) {
-        if (QRegExp("^\\s*//|^\\s*$|^\\s*unitpre|^\\s*unitpost", Qt::CaseInsensitive).indexIn(sourceCodeList.at(i)) == 0) {
-            blockToCycleNumber << -1;
-        }
-        else {
-            blockToCycleNumber << cycleNumber++;
-        }
-    }
-    while (block.isValid() && top <= event->rect().bottom()) {
+    bool antialias = painter.renderHints() & QPainter::Antialiasing;
+    while (block.isValid() && top < event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
-            QString number = blockToCycleNumber.at(blockNumber) == -1 ? QString("") : QString::number(blockToCycleNumber.at(blockNumber));
+            if(blockToCycle.contains(blockNumber) && breakpoints.contains(blockToCycle[blockNumber])) {
+                painter.setPen(PepColors::transparent);
+                painter.setBrush(colors->combCircuitRed);
+                painter.setRenderHint(QPainter::Antialiasing, true);
+                painter.drawEllipse(QPoint(fontMetrics().height()/2, top+fontMetrics().height()/2),
+                                    fontMetrics().height()/2 -1, fontMetrics().height()/2 -1);
+                painter.setRenderHint(QPainter::Antialiasing, antialias);
+            }
+            qDebug() << blockNumber;
+            QString number = !blockToCycle.contains(blockNumber) ? QString("") : QString::number(blockToCycle[blockNumber]);
             painter.setPen(colors->lineAreaText); // grey
-            painter.setFont(QFont(Pep::codeFont,Pep::codeFontSize));
+            painter.setFont(QFont(Pep::codeFont, Pep::codeFontSize));
             painter.drawText(-1, top, lineNumberArea->width(), fontMetrics().height(), Qt::AlignRight, number);
         }
         block = block.next();
@@ -337,4 +401,9 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         ++blockNumber;
     }
 //    lineNumberArea->update();
+}
+
+void LineNumberArea::mousePressEvent(QMouseEvent *event)
+{
+    microcodeEditor->lineAreaMousePress(event);
 }

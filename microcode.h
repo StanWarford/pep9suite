@@ -57,6 +57,7 @@ public:
     bool hasClockSignal(Enu::EClockSignals field) const;
     int getControlSignal(Enu::EControlSignals field) const;
     bool getClockSignal(Enu::EClockSignals field) const;
+    bool hasBreakpoint() const;
     Enu::EBranchFunctions getBranchFunction() const;
     const SymbolEntry* getSymbol() const;
     const SymbolEntry* getTrueTarget() const;
@@ -66,6 +67,7 @@ public:
     void setCpuLabels(CpuGraphicsItems *cpuPaneItems)const override;
     void setControlSignal(Enu::EControlSignals field,quint8 value);
     void setClockSingal(Enu::EClockSignals field,bool value);
+    void setBreakpoint(bool breakpoint);
     void setBranchFunction(Enu::EBranchFunctions branch);
     void setSymbol(SymbolEntry* symbol);
     SymbolEntry* getSymbol();
@@ -76,6 +78,7 @@ private:
     QVector<quint8> controlSignals;
     QVector<bool> clockSignals;
     QString cComment;
+    bool breakpoint;
     Enu::EBranchFunctions branchFunc = Enu::Unconditional;
     SymbolEntry* symbol;
     const SymbolEntry* trueTargetAddr;

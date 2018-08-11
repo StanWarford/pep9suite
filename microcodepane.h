@@ -111,6 +111,8 @@ private:
     QFile currentFile;
 private slots:
     void setLabelToModified(bool modified);
+    void onBreakpointAdded(quint16 line);
+    void onBreakpointRemoved(quint16 line);
 
 signals:
     void undoAvailable(bool);

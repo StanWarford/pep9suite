@@ -150,7 +150,7 @@ void MicroObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* s
 
 void MicroObjectCodePane::highlightCurrentInstruction()
 {
-    rowCount=CPUControlSection::getInstance()->getLineNumber();
+    rowCount = CPUControlSection::getInstance()->getLineNumber();
     selectionModel->forceSelectRow(rowCount);
     ui->codeTable->setCurrentIndex(model->index(rowCount,0));
     inSimulation=true;

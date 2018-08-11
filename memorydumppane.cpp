@@ -27,7 +27,9 @@
 #include "pep.h"
 #include "enu.h"
 #include <QStyle>
+#include "cpucontrolsection.h"
 #include "cpudatasection.h"
+#include "cpumemoizer.h"
 #include "memorysection.h"
 #include "colors.h"
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
@@ -58,10 +60,11 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     connect(ui->scrollToLineEdit, &QLineEdit::textChanged, this, &MemoryDumpPane::scrollToAddress);
 }
 
-void MemoryDumpPane::init(MemorySection *memory, CPUDataSection *data)
+void MemoryDumpPane::init(MemorySection *memorySection, CPUDataSection *dataSection, CPUControlSection *controlSection)
 {
-    this->memorySection = memory;
-    this->dataSection = data;
+    this->memorySection = memorySection;
+    this->dataSection = dataSection;
+    this->controlSection = controlSection;
     delegate = new MemoryDumpDelegate(memorySection, ui->tableView);
     ui->tableView->setItemDelegate(delegate);
     refreshMemory();
@@ -82,7 +85,6 @@ void MemoryDumpPane::refreshMemory()
     // Disable screen updates while re-writing all data fields to save execution time.
     bool updates = ui->tableView->updatesEnabled();
     ui->tableView->setUpdatesEnabled(false);
-
     for(int row = 0; row < (1<<16)/8; row++) {
         memoryDumpLine.clear();
         for(int col = 0; col < 8; col++) {
@@ -160,17 +162,26 @@ void MemoryDumpPane::highlight()
 {
     highlightByte(dataSection->getRegisterBankWord(CPURegisters::SP), colors->altTextHighlight, colors->memoryHighlightSP);
     highlightedData.append(dataSection->getRegisterBankWord(CPURegisters::SP));
-
-    quint16 programCounter = dataSection->getRegisterBankWord(CPURegisters::PC);
+    quint16 programCounter;
+    if(controlSection->getLineNumber() == 0) {
+        // When µPC == 0, memoizer has not yet cached CPU's state, so it would return the previous instructions starting PC.
+        // However, no µInstructions have yet affected the PC, so use the value of PC from the register bank
+        programCounter = dataSection->getRegisterBankWord(CPURegisters::PC);
+    }
+    else {
+        // If the µPC is not 0, then the memoizer has had a chance to cache the CPU's inital program counter value.
+        const CPUMemoizer* memoizer = controlSection ->getCPUMemoizer();
+        programCounter = memoizer->getRegisterStart(CPURegisters::PC);
+    }
     if(!Pep::isUnaryMap[Pep::decodeMnemonic[memorySection->getMemoryByte(programCounter,false)]]) {
         for(int it = 0; it < 3; it++) {
-            highlightByte(dataSection->getRegisterBankWord(CPURegisters::PC)+it, colors->altTextHighlight, colors->memoryHighlightPC);
-            highlightedData.append(dataSection->getRegisterBankWord(CPURegisters::PC)+it);
+            highlightByte(programCounter+it, colors->altTextHighlight, colors->memoryHighlightPC);
+            highlightedData.append(programCounter+it);
         }
     }
     else {
-        highlightByte(dataSection->getRegisterBankWord(CPURegisters::PC), colors->altTextHighlight, colors->memoryHighlightPC);
-        highlightedData.append(dataSection->getRegisterBankWord(CPURegisters::PC));
+        highlightByte(programCounter, colors->altTextHighlight, colors->memoryHighlightPC);
+        highlightedData.append(programCounter);
     }
 
     for(quint16 byte : lastModifiedBytes) {

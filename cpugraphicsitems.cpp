@@ -193,12 +193,12 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
     // AMux
     addLabelToScene(&aMuxLabel, scene, "AMux", TwoByteShapes::aMuxLabel);
     addDLabelToScene(&aMuxerDataLabel, scene, "AMux", TwoByteShapes::aMuxerDataLabel);
-    addTLabel(&aMuxTristateLabel, scene, OneByteShapes::aMuxTristateLabel);
+    addTLabel(&aMuxTristateLabel, scene, TwoByteShapes::aMuxTristateLabel);
 
     // CMux
     addLabelToScene(&cMuxLabel, scene, "CMux", TwoByteShapes::cMuxLabel);
     addDLabelToScene(&cMuxerLabel, scene, "CMux", TwoByteShapes::cMuxerLabel);
-    addTLabel(&cMuxTristateLabel, scene, OneByteShapes::cMuxTristateLabel);
+    addTLabel(&cMuxTristateLabel, scene, TwoByteShapes::cMuxTristateLabel);
 
     // ALU
     // keep this before the label that goes with it, or the line edit

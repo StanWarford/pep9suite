@@ -5,6 +5,7 @@
 #include <QVector>
 #include <QMultiMap>
 #include "enu.h"
+#include "cpudatasection.h"
 class CPUControlSection;
 struct CPURegisterState
 {
@@ -37,6 +38,7 @@ public:
     QString memoize();
     QString finalStatistics();
     void setDebugLevel(Enu::DebugLevels level);
+    quint16 getRegisterStart(CPURegisters reg) const;
 
 private:
     CPUControlSection& item;

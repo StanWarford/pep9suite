@@ -34,7 +34,7 @@
 #include "symboltable.h"
 MicrocodePane::MicrocodePane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::MicrocodePane),symbolTable(nullptr),program(nullptr),currentFile()
+        ui(new Ui::MicrocodePane), symbolTable(nullptr), program(nullptr), currentFile()
 {
     ui->setupUi(this);
 
@@ -58,7 +58,8 @@ MicrocodePane::MicrocodePane(QWidget *parent) :
 
     connect(editor->document(), &QTextDocument::undoAvailable, this, &MicrocodePane::undoAvailable);
     connect(editor->document(), &QTextDocument::redoAvailable, this, &MicrocodePane::redoAvailable);
-
+    connect(editor, &MicrocodeEditor::breakpointAdded, this, &MicrocodePane::onBreakpointAdded);
+    connect(editor, &MicrocodeEditor::breakpointRemoved, this, &MicrocodePane::onBreakpointRemoved);
     editor->setFocus();
 }
 
@@ -69,7 +70,7 @@ MicrocodePane::~MicrocodePane()
 
 void MicrocodePane::initCPUModelState()
 {
-    if (highlighter != NULL) {
+    if (highlighter != nullptr) {
         delete highlighter;
     }
     highlighter = new PepMicroHighlighter(PepColors::lightMode,editor->document());
@@ -84,18 +85,19 @@ bool MicrocodePane::microAssemble()
     QStringList sourceCodeList;
     MicroCodeBase *code;
     int lineNum = 0;
-    if(isModified() == false && program != nullptr)
-    {
+    if(isModified() == false && program != nullptr) {
         return true;
     }
+
     removeErrorMessages();
     QString sourceCode = editor->toPlainText().trimmed();
     sourceCodeList = sourceCode.split('\n');
-    if(symbolTable)
-    {
+
+    if(symbolTable) {
         symbolTable.clear();
     }
     symbolTable = QSharedPointer<SymbolTable>(new SymbolTable());
+
     while (lineNum < sourceCodeList.size()) {
         sourceLine = sourceCodeList[lineNum];
         if (!MicroAsm::processSourceLine(symbolTable.data(),sourceLine, code, errorString)) {
@@ -105,6 +107,7 @@ bool MicrocodePane::microAssemble()
         codeList.append(code);
         lineNum++;
     }
+
     if(program) delete program;
     program = new MicrocodeProgram(codeList,symbolTable.data());
     for(auto sym : symbolTable->getSymbolEntries()){
@@ -117,9 +120,15 @@ bool MicrocodePane::microAssemble()
                 return false;
             }
     }
-    // we guarantee a \n at the end of our document for single step highlighting
+
+    // We guarantee a \n at the end of our document for single step highlighting
     if (!sourceCode.endsWith("\n")) {
         //editor->appendPlainText("\n");
+    }
+
+    // Use line-1, since internally code lines are 0 indexed, but display as 1 indexed.
+    for(auto line : editor->getBreakpoints()) {
+        program->getCodeLine(line - 1)->setBreakpoint(true);
     }
     return true;
 }
@@ -187,7 +196,7 @@ void MicrocodePane::setMicrocode(QString microcode)
     }
     microcode = sourceCodeList.join("\n");
     editor->setPlainText(microcode);
-    delete this->program;
+    if(this->program) delete this->program;
     program = nullptr;
     setLabelToModified(true);
 }
@@ -333,7 +342,6 @@ void MicrocodePane::onDarkModeChanged(bool darkMode)
 
 }
 
-
 void MicrocodePane::setLabelToModified(bool modified)
 {
     QString temp = ui->label->text();
@@ -344,6 +352,20 @@ void MicrocodePane::setLabelToModified(bool modified)
         temp.chop(1);
         ui->label->setText(temp);
     }
+}
+
+void MicrocodePane::onBreakpointAdded(quint16 line)
+{
+    // Use line-1, since internally code lines are 0 indexed, but display as 1 indexed.
+    if(program == nullptr) return;
+    else program->getCodeLine(line - 1)->setBreakpoint(true);
+}
+
+void MicrocodePane::onBreakpointRemoved(quint16 line)
+{
+    // Use line-1, since internally code lines are 0 indexed, but display as 1 indexed.
+    if(program == nullptr) return;
+    else program->getCodeLine(line - 1)->setBreakpoint(false);
 }
 
 void MicrocodePane::changeEvent(QEvent *e)
