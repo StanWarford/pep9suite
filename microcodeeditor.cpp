@@ -398,7 +398,7 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
             QString number = !blockToCycle.contains(blockNumber) ? QString("") : QString::number(blockToCycle[blockNumber]);
             painter.setPen(colors->lineAreaText); // grey
             painter.setFont(QFont(Pep::codeFont, Pep::codeFontSize));
-            painter.drawText(-1, top, lineNumberArea->width(), fontMetrics().height(), Qt::AlignRight, number);
+            painter.drawText(-1, top, lineNumberArea->width(), fontMetrics().height(), Qt::AlignRight | Qt::AlignVCenter, number);
         }
         block = block.next();
         top = bottom;

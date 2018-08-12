@@ -329,9 +329,7 @@ void MainWindow::readSettings()
 
     // Restore last used font
     QVariant val = settings.value("font", codeFont);
-    if(val.canConvert<QFont>()) {
-        codeFont = qvariant_cast<QFont>(val);
-    }
+    codeFont = qvariant_cast<QFont>(val);
     emit fontChanged(codeFont);
 
     //Restore last used file path
@@ -357,7 +355,7 @@ void MainWindow::writeSettings()
     QSettings settings("cslab.pepperdine","PEP9Micro");
     settings.beginGroup("MainWindow");
     settings.setValue("geometry", saveGeometry());
-    settings.setValue("font",codeFont);
+    settings.setValue("font", codeFont);
     settings.setValue("filePath", curPath);
     settings.setValue("inDarkMode", inDarkMode);
     settings.setValue("debugLevel", (int)controlSection->getDebugLevel());
