@@ -98,6 +98,8 @@ public:
 public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
+    void onRemoveAllBreakpoints();
+
 protected:
     void changeEvent(QEvent *e);
 

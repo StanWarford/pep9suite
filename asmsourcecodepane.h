@@ -26,6 +26,8 @@
 #include <QString>
 #include <QList>
 #include <QSettings>
+#include <QTextEdit>
+#include <QPlainTextEdit>
 #include "isaasm.h" // For Code in QList<Code *> codeList;
 #include "pepasmhighlighter.h" // For syntax highlighting
 #include "enu.h"
@@ -33,6 +35,44 @@
 namespace Ui {
     class SourceCodePane;
 }
+
+class AsmSourceBreakpointArea;
+
+/*
+ * The breakpointable text editor must be a sublass of QPlainTextEdit because it must subclass resizeEvent to function properly.
+ * So, this functionality cannot be implemented in the AsmSourceCodePane.
+ */
+class AsmSourceTextEdit : public QPlainTextEdit {
+    Q_OBJECT
+public:
+    explicit AsmSourceTextEdit(QWidget *parent = 0);
+    virtual ~AsmSourceTextEdit();
+    void breakpointAreaPaintEvent(QPaintEvent *event);
+    int breakpointAreaWidth();
+    void breakpointAreaMousePress(QMouseEvent* event);
+    const QSet<quint16> getBreakpoints() const;
+
+public slots:
+    void onRemoveAllBreakpoints();
+    void onBreakpointAdded(quint16 line);
+    void onBreakpointRemoved(quint16 line);
+    void onDarkModeChanged(bool darkMode);
+private slots:
+
+    void updateBreakpointAreaWidth(int newBlockCount);
+    void updateBreakpointArea(const QRect &, int);
+    void onTextChanged();
+    void resizeEvent(QResizeEvent *evt) override;
+
+signals:
+    void breakpointAdded(quint16 line);
+    void breakpointRemoved(quint16 line);
+private:
+    PepColors::Colors colors;
+    AsmSourceBreakpointArea* breakpointArea;
+    QSet<quint16> breakpoints;
+    QMap<quint16, quint16> blockToInstr;
+};
 
 class AsmSourceCodePane : public QWidget {
     Q_OBJECT
@@ -143,9 +183,17 @@ public:
 
     void writeSettings(QSettings& settings);
     void readSettings(QSettings& settings);
+
 public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
+    // Forwards event to AsmSourceTextEdit
+    void onRemoveAllBreakpoints();
+    // Forwards event to AsmSourceTextEdit
+    void onBreakpointAdded(quint16 line);
+    // Forwards event to AsmSourceTextEdit
+    void onBreakpointRemoved(quint16 line);
+
 private:
     Ui::SourceCodePane *ui;
     QList<AsmCode *> codeList;
@@ -155,7 +203,6 @@ private:
     QList<bool> hasCheckBox;
 
     PepASMHighlighter *pepHighlighter;
-
     QFile currentFile;
     void mouseReleaseEvent(QMouseEvent *);
 
@@ -163,12 +210,39 @@ private:
 
 private slots:
     void setLabelToModified(bool modified);
+    void onBreakpointAddedProp(quint16 line); //Propogate breakpointAdded(quint16) from AsmSourceTextEdit
+    void onBreakpointRemovedProp(quint16 line); //Propogate breakpointRemoved(quint16) from AsmSourceTextEdit
 
 signals:
     void undoAvailable(bool);
     void redoAvailable(bool);
 
+    // Propogates event from AsmSourceTextEdit
+    void breakpointAdded(quint16 line);
+    // Propogates event from AsmSourceTextEdit
+    void breakpointRemoved(quint16 line);
     void labelDoubleClicked(Enu::EPane pane);
+};
+
+class AsmSourceBreakpointArea : public QWidget
+{
+public:
+    AsmSourceBreakpointArea(AsmSourceTextEdit *editor) : QWidget(editor) {
+        this->editor = editor;
+    }
+
+    QSize sizeHint() const override {
+        return QSize(editor->breakpointAreaWidth(), 0);
+    }
+protected:
+    void paintEvent(QPaintEvent *event) override {
+        editor->breakpointAreaPaintEvent(event);
+    }
+    void mousePressEvent(QMouseEvent *event) override{
+        editor->breakpointAreaMousePress(event);
+    }
+private:
+    AsmSourceTextEdit *editor;
 };
 
 #endif // SOURCECODEPANE_H

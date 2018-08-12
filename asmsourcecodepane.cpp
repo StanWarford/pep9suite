@@ -23,9 +23,14 @@
 #include <QStringList>
 #include <QTextCursor>
 #include <QPalette>
+#include <QPainter>
 #include <QSyntaxHighlighter>
 #include <QFontDialog>
 #include <QKeyEvent>
+#include <QPlainTextDocumentLayout>
+#include <QScrollBar>
+#include <QPaintEvent>
+
 #include "asmsourcecodepane.h"
 #include "ui_asmsourcecodepane.h"
 #include "asmcode.h"
@@ -40,16 +45,18 @@ AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
         ui(new Ui::SourceCodePane), currentFile()
 {
     ui->setupUi(this);
-
-    connect(ui->textEdit->document(), SIGNAL(modificationChanged(bool)), this, SLOT(setLabelToModified(bool)));
+    connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this, &AsmSourceCodePane::setLabelToModified);
 
     pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->textEdit->document());
 
-    connect(ui->textEdit, SIGNAL(undoAvailable(bool)), this, SIGNAL(undoAvailable(bool)));
-    connect(ui->textEdit, SIGNAL(redoAvailable(bool)), this, SIGNAL(redoAvailable(bool)));
+    connect(ui->textEdit, &QPlainTextEdit::undoAvailable, this, &AsmSourceCodePane::undoAvailable);
+    connect(ui->textEdit, &QPlainTextEdit::redoAvailable, this, &AsmSourceCodePane::redoAvailable);
 
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
     ui->textEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+
+    connect(((AsmSourceTextEdit*)ui->textEdit),&AsmSourceTextEdit::breakpointAdded, this, &AsmSourceCodePane::onBreakpointAddedProp);
+    connect(((AsmSourceTextEdit*)ui->textEdit),&AsmSourceTextEdit::breakpointRemoved, this, &AsmSourceCodePane::onBreakpointRemovedProp);
 }
 
 AsmSourceCodePane::~AsmSourceCodePane()
@@ -284,7 +291,7 @@ void AsmSourceCodePane::appendMessageInSourceCodePaneAt(int lineNumber, QString 
 
 void AsmSourceCodePane::setSourceCodePaneText(QString string)
 {
-    ui->textEdit->setText(string);
+    ui->textEdit->setPlainText(string);
 }
 
 void AsmSourceCodePane::clearSourceCode()
@@ -432,7 +439,23 @@ void AsmSourceCodePane::onDarkModeChanged(bool darkMode)
 {
     if(darkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
     else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
+    ((AsmSourceTextEdit*)ui->textEdit)->onDarkModeChanged(darkMode);
     pepHighlighter->rehighlight();
+}
+
+void AsmSourceCodePane::onRemoveAllBreakpoints()
+{
+    ((AsmSourceTextEdit*)ui->textEdit)->onRemoveAllBreakpoints();
+}
+
+void AsmSourceCodePane::onBreakpointAdded(quint16 line)
+{
+    ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointAdded(line);
+}
+
+void AsmSourceCodePane::onBreakpointRemoved(quint16 line)
+{
+    ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointRemoved(line);
 }
 
 void AsmSourceCodePane::mouseReleaseEvent(QMouseEvent *)
@@ -457,4 +480,173 @@ void AsmSourceCodePane::setLabelToModified(bool modified)
     }
 }
 
+void AsmSourceCodePane::onBreakpointAddedProp(quint16 line)
+{
+    emit breakpointAdded(line);
+}
 
+void AsmSourceCodePane::onBreakpointRemovedProp(quint16 line)
+{
+    emit breakpointRemoved(line);
+}
+
+AsmSourceTextEdit::AsmSourceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode)
+{
+    breakpointArea = new AsmSourceBreakpointArea(this);
+    connect(this, &QPlainTextEdit::blockCountChanged, this, &AsmSourceTextEdit::updateBreakpointAreaWidth);
+    connect(this, &QPlainTextEdit::updateRequest, this, &AsmSourceTextEdit::updateBreakpointArea);
+    connect(this, &AsmSourceTextEdit::textChanged, this, &AsmSourceTextEdit::onTextChanged);
+}
+
+AsmSourceTextEdit::~AsmSourceTextEdit()
+{
+    delete breakpointArea;
+}
+
+void AsmSourceTextEdit::breakpointAreaPaintEvent(QPaintEvent *event)
+{
+    QPainter painter(breakpointArea);
+    painter.fillRect(event->rect(), colors.lineAreaBackground); // light grey
+    QTextBlock block;
+    int blockNumber, top, bottom;
+    block = firstVisibleBlock();
+    blockNumber = block.blockNumber();
+    top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
+    bottom = top + (int) blockBoundingRect(block).height();
+    // Store painter's previous Antialiasing hint so it can be restored at the end
+    bool antialias = painter.renderHints() & QPainter::Antialiasing;
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    while (block.isValid() && top < event->rect().bottom()) {
+        // If the current block is in the repaint zone
+        if (block.isVisible() && bottom >= event->rect().top()) {
+            // And if it has a breakpoint
+            if(blockToInstr.contains(blockNumber) && breakpoints.contains(blockToInstr[blockNumber])) {
+                painter.setPen(PepColors::transparent);
+                painter.setBrush(colors.combCircuitRed);          
+                painter.drawEllipse(QPoint(fontMetrics().height()/2, top+fontMetrics().height()/2),
+                                    fontMetrics().height()/2 -1, fontMetrics().height()/2 -1);
+            }
+        }
+        block = block.next();
+        top = bottom;
+        bottom = top + (int) blockBoundingRect(block).height();
+        ++blockNumber;
+    }
+    painter.setRenderHint(QPainter::Antialiasing, antialias);
+}
+
+int AsmSourceTextEdit::breakpointAreaWidth()
+{
+    return 5 + fontMetrics().height();
+}
+
+void AsmSourceTextEdit::breakpointAreaMousePress(QMouseEvent *event)
+{
+    QTextBlock block;
+    int blockNumber, top, bottom, lineNumber;
+    block = firstVisibleBlock();
+    blockNumber = block.blockNumber();
+    top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
+    bottom = top + (int) blockBoundingRect(block).height();
+    // For each visible block (usually a line), iterate until the current block contains the location of the mouse event.
+    while (block.isValid() && top <= event->pos().y()) {
+        if (event->pos().y()>=top && event->pos().y()<=bottom) {
+            // Check if the clicked line is a code line
+            if(blockToInstr.contains(blockNumber)) {
+                lineNumber = blockToInstr[blockNumber];
+                // If the clicked code line has a breakpoint, remove it.
+                if(breakpoints.contains(lineNumber)) {
+                    breakpoints.remove(lineNumber);
+                    emit breakpointRemoved(lineNumber);
+                }
+                // Otherwise add a breakpoint.
+                else {
+                    breakpoints.insert(lineNumber);
+                    emit breakpointAdded(lineNumber);
+                }
+            }
+            break;
+        }
+
+        block = block.next();
+        top = bottom;
+        bottom = top + (int) blockBoundingRect(block).height();
+        ++blockNumber;
+    }
+    update();
+}
+
+const QSet<quint16> AsmSourceTextEdit::getBreakpoints() const
+{
+    return breakpoints;
+}
+
+void AsmSourceTextEdit::onRemoveAllBreakpoints()
+{
+    breakpoints.clear();
+    update();
+}
+
+void AsmSourceTextEdit::onBreakpointAdded(quint16 line)
+{
+#pragma message ("TODO: Handle breakpoints being added externally.")
+    breakpoints.insert(blockToInstr[line]);
+}
+
+void AsmSourceTextEdit::onBreakpointRemoved(quint16 line)
+{
+#pragma message ("TODO: Handle breakpoints being removed externally.")
+    breakpoints.remove(blockToInstr[line]);
+}
+
+void AsmSourceTextEdit::onDarkModeChanged(bool darkMode)
+{
+    if(darkMode) colors = PepColors::darkMode;
+    else colors = PepColors::lightMode;
+}
+
+void AsmSourceTextEdit::updateBreakpointAreaWidth(int)
+{
+    setViewportMargins(breakpointAreaWidth(), 0, 0, 0);
+}
+
+void AsmSourceTextEdit::updateBreakpointArea(const QRect &rect, int dy)
+{
+    if (dy)
+        breakpointArea->scroll(0, dy);
+    else
+        breakpointArea->update(0, rect.y(), breakpointArea->width(), rect.height());
+
+    if (rect.contains(viewport()->rect()))
+        updateBreakpointAreaWidth(0);
+}
+
+void AsmSourceTextEdit::onTextChanged()
+{
+    QMap<quint16, quint16> oldToNew, old = blockToInstr;
+    blockToInstr.clear();
+    int cycleNumber = 1;
+    QStringList sourceCodeList = toPlainText().split('\n');
+
+    for (int i = 0; i < sourceCodeList.size(); i++) {
+        if (QRegExp("^;s*|^\\s*$", Qt::CaseInsensitive).indexIn(sourceCodeList.at(i)) == 0) {
+        }
+        else {
+            blockToInstr.insert(i, cycleNumber++);
+        }
+    }
+    QSet<quint16> toRemove;
+    for(auto x : breakpoints) {
+        if (blockToInstr.key(x, -1) == -1) toRemove.insert(-1);
+    }
+    breakpoints.subtract(toRemove);
+    update();
+}
+
+void AsmSourceTextEdit::resizeEvent(QResizeEvent *evt){
+
+    QPlainTextEdit::resizeEvent(evt);
+
+    QRect cr = contentsRect();
+    breakpointArea->setGeometry(QRect(cr.left(), cr.top(), breakpointAreaWidth(), cr.height()));
+}

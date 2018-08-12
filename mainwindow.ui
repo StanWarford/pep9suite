@@ -264,6 +264,9 @@
     <addaction name="actionDebug_Step_Out_Assembler"/>
     <addaction name="separator"/>
     <addaction name="actionDebug_Single_Step_Microcode"/>
+    <addaction name="separator"/>
+    <addaction name="actionDebug_Remove_All_Assembly_Breakpoints"/>
+    <addaction name="actionDebug_Remove_All_Microcode_Breakpoints"/>
    </widget>
    <widget class="QMenu" name="menuStatistics">
     <property name="title">
@@ -901,6 +904,16 @@
    </property>
    <property name="text">
     <string>None</string>
+   </property>
+  </action>
+  <action name="actionDebug_Remove_All_Assembly_Breakpoints">
+   <property name="text">
+    <string>Remove All Assembly Breakpoints</string>
+   </property>
+  </action>
+  <action name="actionDebug_Remove_All_Microcode_Breakpoints">
+   <property name="text">
+    <string>Remove All Microcode Breakpoints</string>
    </property>
   </action>
  </widget>

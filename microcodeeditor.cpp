@@ -340,6 +340,12 @@ void MicrocodeEditor::onDarkModeChanged(bool darkMode)
     else colors = &PepColors::lightMode;
 }
 
+void MicrocodeEditor::onRemoveAllBreakpoints()
+{
+    breakpoints.clear();
+    update();
+}
+
 void MicrocodeEditor::resizeEvent(QResizeEvent *e)
 {
     QPlainTextEdit::resizeEvent(e);
@@ -389,7 +395,6 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
                                     fontMetrics().height()/2 -1, fontMetrics().height()/2 -1);
                 painter.setRenderHint(QPainter::Antialiasing, antialias);
             }
-            qDebug() << blockNumber;
             QString number = !blockToCycle.contains(blockNumber) ? QString("") : QString::number(blockToCycle[blockNumber]);
             painter.setPen(colors->lineAreaText); // grey
             painter.setFont(QFont(Pep::codeFont, Pep::codeFontSize));

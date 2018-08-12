@@ -168,6 +168,9 @@ void CPUControlSection::onStep() noexcept
             QApplication::processEvents();
             return;
         }
+        else {
+            breakpointHit = false;
+        }
     }
     this->setSignalsFromMicrocode(prog);
     data->setSignalsFromMicrocode(prog);

@@ -146,7 +146,7 @@ quint16 CPUMemoizer::getRegisterStart(CPURegisters reg) const
 {
     if(reg != CPURegisters::PC) assert(false); // Attempted to access register that was not cached
     else return registers.regState.reg_PC_start;
-
+    return -1;
 }
 
 //Properly formats a number as a 4 char hex

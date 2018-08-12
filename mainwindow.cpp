@@ -184,6 +184,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(dataSection, &CPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged, Qt::ConnectionType::UniqueConnection);
     connect(dataSection, &CPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged, Qt::ConnectionType::UniqueConnection);
 
+    // Connect events for breakpoints
+    connect(ui->actionDebug_Remove_All_Microcode_Breakpoints, &QAction::triggered, ui->microcodeWidget, &MicrocodePane::onRemoveAllBreakpoints);
+    connect(ui->actionDebug_Remove_All_Assembly_Breakpoints, &QAction::triggered, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onRemoveAllBreakpoints);
     // Load dark mode style sheet.
     QFile f(":qdarkstyle/dark_style.qss");
     f.open(QFile::ReadOnly | QFile::Text);
@@ -1433,7 +1436,7 @@ void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
         QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
-    else if(false);
+    else if(false) 1; //Stub to leave room for breakpoint handler.
     emit simulationUpdate();
 }
 

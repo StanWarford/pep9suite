@@ -263,7 +263,6 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
     auto irRegExp = QRegExp("(0x){0,1}([0-9a-fA-F]){0,6}");
     auto byteRegExp = QRegExp("(0x){0,1}([0-9a-fA-F]){0,2}");
     QString dtext = "0x0000";
-    QLabel *ph;
 
     addRegisterText(labelVec, scene, "0,1", OneByteShapes::getRegNoRect(1, 1), colorScheme);
     addRegisterText(labelVec, scene, "A", OneByteShapes::getRegLabelRect(1, 1), colorScheme);

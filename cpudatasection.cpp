@@ -346,13 +346,11 @@ void CPUDataSection::onSetMemoryRegister(Enu::EMemoryRegisters reg, quint8 val)
 
 void CPUDataSection::onSetClock(Enu::EClockSignals clock, bool value)
 {
-    bool old = clockSignals[clock];
     clockSignals[clock] = value;
 }
 
 void CPUDataSection::onSetControlSignal(Enu::EControlSignals control, quint8 value)
 {
-    quint8 old = controlSignals[control];
     controlSignals[control] = value;
 }
 

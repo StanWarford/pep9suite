@@ -342,6 +342,17 @@ void MicrocodePane::onDarkModeChanged(bool darkMode)
 
 }
 
+void MicrocodePane::onRemoveAllBreakpoints()
+{
+    editor->onRemoveAllBreakpoints();
+    if(program == nullptr) return;
+    else{
+        for(int it = 0; it < program->codeLength(); it++) {
+            program->getCodeLine(it)->setBreakpoint(false);
+        }
+    }
+}
+
 void MicrocodePane::setLabelToModified(bool modified)
 {
     QString temp = ui->label->text();

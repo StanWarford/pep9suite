@@ -400,13 +400,13 @@ void MemoryDumpDelegate::setEditorData(QWidget *editor, const QModelIndex &index
         line->setText(value);
 }
 
-void MemoryDumpDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void MemoryDumpDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &) const
 {
     // Pass geometry information to the editor.
     editor->setGeometry(option.rect);
 }
 
-void MemoryDumpDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+void MemoryDumpDelegate::setModelData(QWidget *editor, QAbstractItemModel *, const QModelIndex &index) const
 {
     // Get text from editor and convert it to a integer
     QLineEdit *line = static_cast<QLineEdit*>(editor);

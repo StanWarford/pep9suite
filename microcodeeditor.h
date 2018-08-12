@@ -51,6 +51,7 @@ public:
     const QSet<quint16> getBreakpoints() const;
 public slots:
     void onDarkModeChanged(bool darkMode);
+    void onRemoveAllBreakpoints();
 protected:
     void resizeEvent(QResizeEvent *event);
 
