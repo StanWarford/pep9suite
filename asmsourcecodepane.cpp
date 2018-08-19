@@ -30,6 +30,7 @@
 #include <QPlainTextDocumentLayout>
 #include <QScrollBar>
 #include <QPaintEvent>
+#include <QSharedPointer>
 
 #include "asmsourcecodepane.h"
 #include "ui_asmsourcecodepane.h"
@@ -37,12 +38,18 @@
 #include "memorysection.h"
 #include "pep.h"
 #include "colors.h"
-
+#include "asmprogram.h"
+#include "asmsourcecodepane.h"
+#include "asmprogrammanager.h"
+#include "memorysection.h"
+#include "symbolentry.h"
+#include "symboltable.h"
+#include "symbolvalue.h"
 // #include <QDebug>
 
 AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::SourceCodePane), currentFile()
+        ui(new Ui::SourceCodePane), currentFile(), currentProgram(nullptr)
 {
     ui->setupUi(this);
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this, &AsmSourceCodePane::setLabelToModified);
@@ -55,8 +62,14 @@ AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
     ui->textEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
 
-    connect(((AsmSourceTextEdit*)ui->textEdit),&AsmSourceTextEdit::breakpointAdded, this, &AsmSourceCodePane::onBreakpointAddedProp);
-    connect(((AsmSourceTextEdit*)ui->textEdit),&AsmSourceTextEdit::breakpointRemoved, this, &AsmSourceCodePane::onBreakpointRemovedProp);
+    connect(((AsmSourceTextEdit*)ui->textEdit), &AsmSourceTextEdit::breakpointAdded, this, &AsmSourceCodePane::onBreakpointAddedProp);
+    connect(((AsmSourceTextEdit*)ui->textEdit), &AsmSourceTextEdit::breakpointRemoved, this, &AsmSourceCodePane::onBreakpointRemovedProp);
+}
+
+void AsmSourceCodePane::init(MemorySection *memorySection, AsmProgramManager *manager)
+{
+    this->memorySection = memorySection;
+    programManager = manager;
 }
 
 AsmSourceCodePane::~AsmSourceCodePane()
@@ -76,33 +89,29 @@ bool AsmSourceCodePane::assemble()
     removeErrorMessages();
     IsaAsm::listOfReferencedSymbols.clear();
     IsaAsm::listOfReferencedSymbolLineNums.clear();
-    Pep::memAddrssToAssemblerListing->clear();
-    Pep::symbolTable.clear();
-    Pep::adjustSymbolValueForBurn.clear();
     Pep::symbolFormat.clear();
-    Pep::symbolFormatMultiplier.clear();;
-    Pep::symbolTraceList.clear(); // Does this clear the lists within the map?
-    Pep::globalStructSymbols.clear();
-    Pep::blockSymbols.clear();
-    Pep::equateSymbols.clear();
-    while (!codeList.isEmpty()) {
-        delete codeList.takeFirst();
-    }
+    Pep::symbolFormatMultiplier.clear();
+    QList<QSharedPointer<AsmCode>> programList;
     //Insert CharIn CharOut
-#pragma message ("handle input and output when not using BURN at FFFF")
-    Pep::symbolTable.insert("CharIn",MemorySection::getInstance()->getMemoryWord(0xFFF8,false));
-    Pep::symbolTable.insert("CharOut",MemorySection::getInstance()->getMemoryWord(0xFFFA,false));
+    QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
+    #pragma message ("handle input and output when not using BURN at FFFF")
+    QSharedPointer<SymbolValueNumeric>::create(MemorySection::getInstance()->getMemoryWord(0xFFF8, false));
+    symTable->insertSymbol("CharIn");
+    symTable->setValue("CharIn", QSharedPointer<SymbolValueNumeric>::create(MemorySection::getInstance()->getMemoryWord(0xFFF8, false)));
+    symTable->insertSymbol("CharOut");
+    symTable->setValue("CharOut", QSharedPointer<SymbolValueNumeric>::create(MemorySection::getInstance()->getMemoryWord(0xFFFA, false)));
     QString sourceCode = ui->textEdit->toPlainText();
     sourceCodeList = sourceCode.split('\n');
-    Pep::byteCount = 0;
-    Pep::burnCount = 0;
+    int byteCount = 0;
+    ROMInfo info;
     while (lineNum < sourceCodeList.size() && !dotEndDetected) {
         sourceLine = sourceCodeList[lineNum];
-        if (!IsaAsm::processSourceLine(sourceLine, lineNum, code, errorString, dotEndDetected)) {
+        bool hasBP = ui->textEdit->lineHasBreakpoint(lineNum);
+        if (!IsaAsm::processSourceLine(symTable.data(), info, byteCount, sourceLine, lineNum, code, errorString, dotEndDetected, hasBP)) {
             appendMessageInSourceCodePaneAt(lineNum, errorString);
             return false;
         }
-        codeList.append(code);
+        programList.append(QSharedPointer<AsmCode>(code));
         lineNum++;
     }
     if (!dotEndDetected) {
@@ -110,43 +119,44 @@ bool AsmSourceCodePane::assemble()
         appendMessageInSourceCodePaneAt(0, errorString);
         return false;
     }
-    if (Pep::byteCount > 65535) {
+    if (byteCount > 65535) {
         errorString = ";ERROR: Object code size too large to fit into memory.";
         appendMessageInSourceCodePaneAt(0, errorString);
         return false;
     }
-    for (int i = 0; i < IsaAsm::listOfReferencedSymbols.length(); i++) {
-        if (!Pep::symbolTable.contains(IsaAsm::listOfReferencedSymbols[i])
-                && !(IsaAsm::listOfReferencedSymbols[i] == "charIn")
-                && !(IsaAsm::listOfReferencedSymbols[i] == "charOut")) {
-            errorString = ";ERROR: Symbol " + IsaAsm::listOfReferencedSymbols[i] + " is used but not defined.";
-            appendMessageInSourceCodePaneAt(IsaAsm::listOfReferencedSymbolLineNums[i], errorString);
-            return false;
-        }
-    }
-    Pep::traceTagWarning = false;
-    for (int i = 0; i < codeList.size(); i++) {
-        if (!codeList[i]->processFormatTraceTags(lineNum, errorString)) {
-            appendMessageInSourceCodePaneAt(lineNum, errorString);
-            Pep::traceTagWarning = true;
-        }
-    }
-    if (!Pep::traceTagWarning && !(Pep::blockSymbols.isEmpty() && Pep::equateSymbols.isEmpty())) {
-        for (int i = 0; i < codeList.size(); i++) {
-            if (!codeList[i]->processSymbolTraceTags(lineNum, errorString)) {
-                appendMessageInSourceCodePaneAt(lineNum, errorString);
-                Pep::traceTagWarning = true;
+    if(symTable->numUndefinedSymbols()>0) {
+        for(int it = 0; it < programList.length(); it++) {
+            if(programList[it]->hasSymbolEntry() && programList[it]->getSymbolEntry()->isUndefined()) {
+                errorString = ";ERROR: Symbol " + programList[it]->getSymbolEntry()->getName() + " is used but not defined.";
+                //Fix not highlighting the line on which the symbol occured
+                appendMessageInSourceCodePaneAt(it, errorString);
+                return false;
             }
         }
     }
+#pragma message("Memory trace needs some work")
+    SymbolListings listings;
+    currentProgram = QSharedPointer<AsmProgram>::create(programList, symTable);
+    for (int i = 0; i < programList.size(); i++) {
+        if (!programList[i]->processFormatTraceTags(lineNum, errorString,listings)) {
+            appendMessageInSourceCodePaneAt(lineNum, errorString);
+        }
+    }
+    /*if (!Pep::traceTagWarning && !(Pep::blockSymbols.isEmpty() && Pep::equateSymbols.isEmpty())) {
+        for (int i = 0; i < programList.size(); i++) {
+            if (!programList[i]->processSymbolTraceTags(lineNum, errorString, listings)) {
+                appendMessageInSourceCodePaneAt(lineNum, errorString);
+            }
+        }
+    }*/
     return true;
 }
 
 QList<int> AsmSourceCodePane::getObjectCode()
 {
     objectCode.clear();
-    for (int i = 0; i < codeList.size(); ++i) {
-        codeList.at(i)->appendObjectCode(objectCode);
+    for (int i = 0; i < currentProgram->numberOfLines(); ++i) {
+        currentProgram->getCodeOnLine(i)->appendObjectCode(objectCode);
     }
     return objectCode;
 }
@@ -154,103 +164,65 @@ QList<int> AsmSourceCodePane::getObjectCode()
 QStringList AsmSourceCodePane::getAssemblerListingList()
 {
     assemblerListingList.clear();
-    listingTraceList.clear();
-    hasCheckBox.clear();
-    for (int i = 0; i < codeList.length(); i++) {
-        codeList[i]->appendSourceLine(assemblerListingList, listingTraceList, hasCheckBox);
+    for (int i = 0; i < currentProgram->numberOfLines(); i++) {
+        currentProgram->getCodeOnLine(i)->appendSourceLine(assemblerListingList);
     }
     return assemblerListingList;
 }
 
-QStringList AsmSourceCodePane::getListingTraceList()
-{
-    return listingTraceList;
-}
-
-QList<bool> AsmSourceCodePane::getHasCheckBox()
-{
-    return hasCheckBox;
-}
-
 void AsmSourceCodePane::adjustCodeList(int addressDelta)
 {
-    for (int i = 0; i < codeList.length(); i++) {
-        codeList[i]->adjustMemAddress(addressDelta);
+    for (int i = 0; i < currentProgram->numberOfLines(); i++) {
+        currentProgram->getCodeOnLine(i)->adjustMemAddress(addressDelta);
     }
 }
 
-void AsmSourceCodePane::installOS()
+bool AsmSourceCodePane::assembleDefaultOs()
 {
-#pragma message ("Install OS")
-    /*
-    for (int i = 0; i < 65536; i++) {
-        Sim::Mem[i] = 0;
-    }
-    int j = Pep::romStartAddress;
-    for (int i = 0; i < objectCode.size(); i++) {
-        Sim::Mem[j++] = objectCode[i];
-    }*/
+    QString sourceCode = Pep::resToString(":/help/figures/pep9os.pep");
+    QStringList sourceCodeList = sourceCode.split('\n');
+    return assembleOS(sourceCodeList);
 }
 
-bool AsmSourceCodePane::installDefaultOs()
+bool AsmSourceCodePane::assembleOS(QStringList fileLines)
 {
     QString sourceLine;
     QString errorString;
-    QStringList sourceCodeList;
     AsmCode *code;
     int lineNum = 0;
     bool dotEndDetected = false;
 
     IsaAsm::listOfReferencedSymbols.clear();
-    Pep::memAddrssToAssemblerListing->clear();
-    Pep::symbolTable.clear();
-    Pep::adjustSymbolValueForBurn.clear();
-    while (!codeList.isEmpty()) {
-        delete codeList.takeFirst();
-    }
-    QString sourceCode = Pep::resToString(":/help/figures/pep9os.pep");
-    sourceCodeList = sourceCode.split('\n');
-    Pep::byteCount = 0;
-    Pep::burnCount = 0;
-    while (lineNum < sourceCodeList.size() && !dotEndDetected) {
-        sourceLine = sourceCodeList[lineNum];
-        if (!IsaAsm::processSourceLine(sourceLine, lineNum, code, errorString, dotEndDetected)) {
+    QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
+    QList<QSharedPointer<AsmCode>> codeList;
+    int byteCount = 0;
+    ROMInfo info;
+    while (lineNum < fileLines.size() && !dotEndDetected) {
+        sourceLine = fileLines[lineNum];
+        if (!IsaAsm::processSourceLine(symTable.data(), info, byteCount, sourceLine, lineNum, code, errorString, dotEndDetected)) {
             return false;
         }
-        codeList.append(code);
+        codeList.append(QSharedPointer<AsmCode>(code));
         lineNum++;
     }
     if (!dotEndDetected) {
         return false;
     }
-    if (Pep::byteCount > 65535) {
+    if (byteCount > 65535) {
         return false;
     }
-    for (int i = 0; i < IsaAsm::listOfReferencedSymbols.length(); i++) {
-        if (!Pep::symbolTable.contains(IsaAsm::listOfReferencedSymbols[i])) {
-            return false;
-        }
-    }
-
-    if (Pep::burnCount != 1) {
+    if(symTable->numUndefinedSymbols()>0) return false;
+    if (info.burnCount != 1) {
         return false;
     }
 
     // Adjust for .BURN
-    int addressDelta = Pep::dotBurnArgument - Pep::byteCount + 1;
-    QMutableMapIterator <QString, int> i(Pep::symbolTable);
-    while (i.hasNext()) {
-        i.next();
-        if (Pep::adjustSymbolValueForBurn.value(i.key())) {
-            i.setValue(i.value() + addressDelta);
-        }
-    }
-
+    int addressDelta = info.burnValue - byteCount + 1;
+    info.startROMAddress = addressDelta;
+    currentProgram = QSharedPointer<AsmProgram>::create(codeList, symTable);
     adjustCodeList(addressDelta);
-    Pep::romStartAddress += addressDelta;
-    getObjectCode();
-    installOS();
-
+    symTable->setOffset(addressDelta);
+    programManager->setOperatingSystem(currentProgram);
     return true;
 }
 
@@ -297,7 +269,8 @@ void AsmSourceCodePane::setSourceCodePaneText(QString string)
 void AsmSourceCodePane::clearSourceCode()
 {
     ui->textEdit->clear();
-    codeList.clear(); // This may cause issues with "format from listing" - but this needs to be cleared regardless.
+#pragma message("TODO: check current program lifecycle")
+    currentProgram = nullptr; // This may cause issues with "format from listing" - but this needs to be cleared regardless.
 }
 
 bool AsmSourceCodePane::isModified()
@@ -416,6 +389,16 @@ void AsmSourceCodePane::tab()
 
         ui->textEdit->insertPlainText(string);
     }
+}
+
+QSharedPointer<AsmProgram> AsmSourceCodePane::getAsmProgram()
+{
+    return currentProgram;
+}
+
+const QSharedPointer<AsmProgram> AsmSourceCodePane::getAsmProgram() const
+{
+    return currentProgram;
 }
 
 void AsmSourceCodePane::writeSettings(QSettings &settings)
@@ -581,6 +564,11 @@ const QSet<quint16> AsmSourceTextEdit::getBreakpoints() const
     return breakpoints;
 }
 
+bool AsmSourceTextEdit::lineHasBreakpoint(int line) const
+{
+    return this->blockToInstr.contains(line) && breakpoints.contains(blockToInstr[line]);
+}
+
 void AsmSourceTextEdit::onRemoveAllBreakpoints()
 {
     breakpoints.clear();
@@ -629,7 +617,9 @@ void AsmSourceTextEdit::onTextChanged()
     QStringList sourceCodeList = toPlainText().split('\n');
 
     for (int i = 0; i < sourceCodeList.size(); i++) {
-        if (QRegExp("^;s*|^\\s*$", Qt::CaseInsensitive).indexIn(sourceCodeList.at(i)) == 0) {
+        // If the line is spaces followed by a comment, is just spaces, or is spaces followed by an optional symbol followed by the start
+        // of a dot command, then the line contains no executable code. Therefore, don't allow it to be selected for a breakpoint.
+        if (QRegExp("\\s*;s*|^\\s*$|\\s*(([a-zAZ0-9]+:\\s*))?\\.", Qt::CaseInsensitive).indexIn(sourceCodeList.at(i)) == 0) {
         }
         else {
             blockToInstr.insert(i, cycleNumber++);
@@ -643,8 +633,8 @@ void AsmSourceTextEdit::onTextChanged()
     update();
 }
 
-void AsmSourceTextEdit::resizeEvent(QResizeEvent *evt){
-
+void AsmSourceTextEdit::resizeEvent(QResizeEvent *evt)
+{
     QPlainTextEdit::resizeEvent(evt);
 
     QRect cr = contentsRect();

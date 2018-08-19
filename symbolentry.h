@@ -20,17 +20,23 @@
 #pragma once
 #include "symboltable.h"
 #include <qstring.h>
+#include "enu.h"
 /*
  * A symbol can either be:
  *  1) Undefined: A symbol is not defined, and referenced 1+ times.
  *  2) Singlely Defined: A symbol is defined once, and referenced 0+ times.
  *  3) Multiply Defined: A symbol is defined 2+ times, and referenced 0+ times.
  */
-enum DefStates
+enum class DefStates
 {
     SINGLE, MULTIPLE, UNDEFINED
 };
 
+struct SymbolFormat
+{
+    Enu::ESymbolFormat spec = Enu::ESymbolFormat::F_NONE;
+    quint8 size = 0;
+};
 /*
  * A symbol entry represents one named symbol from a microprogram.
  * Symbols have multiple definition states that allow the microassembler to error if symbols are defined incorrectly.
@@ -52,13 +58,16 @@ private:
     QString name;
     SymbolTable::AbstractSymbolValuePtr symbolValue;
     DefStates definedState;
+    // Non-owning pointer to parent. DO NOT DELETE.
+    SymbolTable* parent;
+     SymbolFormat _format;
 public:
     //Default constructor, assumes value is SymbolEmpty
-    SymbolEntry(SymbolTable::SymbolID symbolID, QString name);
-    SymbolEntry(SymbolTable::SymbolID symbolID, QString name, SymbolTable::AbstractSymbolValuePtr value);
+    SymbolEntry(SymbolTable* parent, SymbolTable::SymbolID symbolID, QString name);
+    SymbolEntry(SymbolTable* parent, SymbolTable::SymbolID symbolID, QString name, SymbolTable::AbstractSymbolValuePtr value);
     //
     ~SymbolEntry();
-    std::shared_ptr<SymbolTable> getParentTable() const;
+    const SymbolTable* getParentTable() const;
     void setValue(SymbolTable::AbstractSymbolValuePtr value);
     //Get the string name of the symbol
     QString getName() const;
@@ -71,6 +80,8 @@ public:
     qint32 getValue() const;
     //Returns the internal data pointer, in case one wishes to access its other methods
     SymbolTable::AbstractSymbolValuePtr getRawValue();
+    void setSymbolFormat(SymbolFormat format);
+    const SymbolFormat& getSymbolFormat() const;
 
 
 

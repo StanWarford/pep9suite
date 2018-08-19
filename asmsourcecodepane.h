@@ -31,13 +31,14 @@
 #include "isaasm.h" // For Code in QList<Code *> codeList;
 #include "pepasmhighlighter.h" // For syntax highlighting
 #include "enu.h"
+#include <QSharedPointer>
 
 namespace Ui {
     class SourceCodePane;
 }
 
 class AsmSourceBreakpointArea;
-
+class AsmProgram;
 /*
  * The breakpointable text editor must be a sublass of QPlainTextEdit because it must subclass resizeEvent to function properly.
  * So, this functionality cannot be implemented in the AsmSourceCodePane.
@@ -45,20 +46,21 @@ class AsmSourceBreakpointArea;
 class AsmSourceTextEdit : public QPlainTextEdit {
     Q_OBJECT
 public:
-    explicit AsmSourceTextEdit(QWidget *parent = 0);
-    virtual ~AsmSourceTextEdit();
+    explicit AsmSourceTextEdit(QWidget *parent = nullptr);
+    virtual ~AsmSourceTextEdit() override;
     void breakpointAreaPaintEvent(QPaintEvent *event);
     int breakpointAreaWidth();
     void breakpointAreaMousePress(QMouseEvent* event);
     const QSet<quint16> getBreakpoints() const;
+    bool lineHasBreakpoint(int line) const;
 
 public slots:
     void onRemoveAllBreakpoints();
     void onBreakpointAdded(quint16 line);
     void onBreakpointRemoved(quint16 line);
     void onDarkModeChanged(bool darkMode);
-private slots:
 
+private slots:
     void updateBreakpointAreaWidth(int newBlockCount);
     void updateBreakpointArea(const QRect &, int);
     void onTextChanged();
@@ -67,6 +69,7 @@ private slots:
 signals:
     void breakpointAdded(quint16 line);
     void breakpointRemoved(quint16 line);
+
 private:
     PepColors::Colors colors;
     AsmSourceBreakpointArea* breakpointArea;
@@ -74,11 +77,15 @@ private:
     QMap<quint16, quint16> blockToInstr;
 };
 
+class AsmProgram;
+class AsmProgramManager;
+class MemorySection;
 class AsmSourceCodePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmSourceCodePane)
 public:
-    explicit AsmSourceCodePane(QWidget *parent = 0);
+    explicit AsmSourceCodePane(QWidget *parent = nullptr);
+    void init(MemorySection* memorySection, AsmProgramManager* manager);
     virtual ~AsmSourceCodePane();
 
     bool assemble();
@@ -100,26 +107,16 @@ public:
     // Post: hasCheckBox is populated with the checkBox list that specifies whether a trace line can have a break point.
     // Post: assemblerListingList is returned.
 
-    QStringList getListingTraceList();
-    // Pre: listingTraceList is populated.
-    // Post: ListingTraceList is returned.
-
-    QList<bool> getHasCheckBox();
-    // Pre: hasCheckBox is populated.
-    // Post: hasCheckBox is returned.
-
     void adjustCodeList(int addressDelta);
     // Pre: codeList is populated with code from a complete correct Pep/9 source program.
     // Post: The memAddress field of each code object is incremented by addressDelta.
 
-    void installOS();
-    // Pre: objectCode is populated with code from a complete correct Pep/9 OS source program.
-    // Post: objectCode is loaded into OS rom of Pep::Mem.
-
-    bool installDefaultOs();
+    bool assembleDefaultOs();
     // Post: the pep/8 operating system is installed into memory, and true is returned
     // If assembly fails, false is returned
     // This function should only be called on program startup once
+
+    bool assembleOS(QStringList fileName);
 
     void removeErrorMessages();
     // Post: Searces for the string ";ERROR: " on each line and removes the end of the line.
@@ -181,8 +178,12 @@ public:
 
     void tab();
 
+    QSharedPointer<AsmProgram> getAsmProgram();
+    const QSharedPointer<AsmProgram> getAsmProgram() const;
+
     void writeSettings(QSettings& settings);
     void readSettings(QSettings& settings);
+
 
 public slots:
     void onFontChanged(QFont font);
@@ -196,11 +197,11 @@ public slots:
 
 private:
     Ui::SourceCodePane *ui;
-    QList<AsmCode *> codeList;
+    MemorySection* memorySection;
+    AsmProgramManager* programManager;
+    QSharedPointer<AsmProgram> currentProgram;
     QList<int> objectCode;
     QStringList assemblerListingList;
-    QStringList listingTraceList;
-    QList<bool> hasCheckBox;
 
     PepASMHighlighter *pepHighlighter;
     QFile currentFile;
@@ -232,7 +233,7 @@ public:
     }
 
     QSize sizeHint() const override {
-        return QSize(editor->breakpointAreaWidth(), 0);
+        return QSize(/*editor->breakpointAreaWidth()*/0, 0);
     }
 protected:
     void paintEvent(QPaintEvent *event) override {

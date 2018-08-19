@@ -209,7 +209,7 @@ QString CPUMemoizer::formatInstr(quint8 instrSpec,quint16 oprSpec)
     }
 }
 
-QString CPUMemoizer::generateStackFrame(CPUState& state, bool enter)
+QString CPUMemoizer::generateStackFrame(CPUState&, bool enter)
 {
     if(enter)
     {
@@ -221,7 +221,7 @@ QString CPUMemoizer::generateStackFrame(CPUState& state, bool enter)
     }
 }
 
-QString CPUMemoizer::generateTrapFrame(CPUState& state, bool enter)
+QString CPUMemoizer::generateTrapFrame(CPUState&, bool enter)
 {
     if(enter)
     {
@@ -268,7 +268,6 @@ void CPUMemoizer::loadSymbols()
     }
     oper_addr_size=msylen+3;
     max_symLen=msylen;
-    qDebug()<<max_symLen;
 }
 
 QString generateLine()

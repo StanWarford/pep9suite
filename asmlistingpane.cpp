@@ -27,6 +27,9 @@
 #include "pepasmhighlighter.h"
 #include <QMouseEvent>
 #include "colors.h"
+#include "symbolentry.h"
+#include "symboltable.h"
+#include "symbolvalue.h"
 AsmListingPane::AsmListingPane(QWidget *parent) :
         QWidget(parent),
         ui(new Ui::AsmListingPane), currentFile()
@@ -44,7 +47,7 @@ AsmListingPane::~AsmListingPane()
     delete ui;
 }
 
-void AsmListingPane::setAssemblerListing(QStringList assemblerListingList) {
+void AsmListingPane::setAssemblerListing(QStringList assemblerListingList, QSharedPointer<SymbolTable> symTable) {
     clearAssemblerListing();
     ui->textEdit->append("-------------------------------------------------------------------------------");
     ui->textEdit->append("      Object");
@@ -52,24 +55,23 @@ void AsmListingPane::setAssemblerListing(QStringList assemblerListingList) {
     ui->textEdit->append("-------------------------------------------------------------------------------");
     ui->textEdit->append(assemblerListingList.join("\n"));
     ui->textEdit->append("-------------------------------------------------------------------------------");
-    if (Pep::symbolTable.size() > 0) {
+    QList<QSharedPointer<SymbolEntry>> list = symTable->getSymbolEntries();
+    if (list.size() > 0) {
         ui->textEdit->append("");
         ui->textEdit->append("");
         ui->textEdit->append("Symbol table");
         ui->textEdit->append("--------------------------------------");
         ui->textEdit->append("Symbol    Value        Symbol    Value");
         ui->textEdit->append("--------------------------------------");
-        QMapIterator<QString, int> i(Pep::symbolTable);
         QString symbolTableLine = "";
         QString hexString;
-        while (i.hasNext()) {
-            i.next();
-            hexString = QString("%1").arg(i.value(), 4, 16, QLatin1Char('0')).toUpper();
+        for(QSharedPointer<SymbolEntry> item : list) {
+            hexString = QString("%1").arg(item->getValue(), 4, 16, QLatin1Char('0')).toUpper();
             if (symbolTableLine.length() == 0) {
-                symbolTableLine = QString("%1%2").arg(i.key(), -10).arg(hexString, -13);
+                symbolTableLine = QString("%1%2").arg(item->getName(), -10).arg(hexString, -13);
             }
             else {
-                symbolTableLine.append(QString("%1%2").arg(i.key(), -10).arg(hexString, -4));
+                symbolTableLine.append(QString("%1%2").arg(item->getName(), -10).arg(hexString, -4));
                 ui->textEdit->append(symbolTableLine);
                 symbolTableLine = "";
             }

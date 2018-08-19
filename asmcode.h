@@ -24,25 +24,46 @@
 
 #include "pep.h"
 #include "enu.h"
-
+#include <QSharedPointer>
 class AsmArgument; // Forward declaration for attributes of code classes.
+class SymbolEntry;
+struct SymbolListings
+{
+    QSet<QString> blockSymbols = {}, equateSymbols = {}, symbolTraceList = {};
+    QMap<QString,QList<QString>> blockGlobals;
+};
 
-// Abstract Code class
+/*
+ * Abstract Code class that represents a single line of assembly code.
+ * It contains methods for generating object code, & pretty-printing source code.
+ * It assists the memory trace pane's stack frames with trace tag processing.
+ * It also provides default implementations for most functions to reduce code reuse in subclasses.
+ */
 class AsmCode
 {
     friend class IsaAsm;
 public:
+    AsmCode();
     virtual ~AsmCode() { }
-    virtual void appendObjectCode(QList<int> &objectCode) = 0;
-    virtual void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox) = 0;
+    virtual void appendObjectCode(QList<int> &) const{ return; }
+    virtual void appendSourceLine(QStringList &assemblerListingList) const{ assemblerListingList.append(getAssemblerListing()); }
     void adjustMemAddress(int addressDelta) { memAddress += addressDelta; }
-    virtual bool processFormatTraceTags(int &, QString &) { return true; }
-    virtual bool processSymbolTraceTags(int &, QString &) { return true; }
-
+    virtual bool processFormatTraceTags(int &, QString &, SymbolListings &) { return true; }
+    virtual bool processSymbolTraceTags(int &, QString &, SymbolListings &) { return true; }
+    virtual int getMemoryAddress() const {return memAddress; }
+    virtual QString getAssemblerListing() const = 0;
+    virtual QString getAssemblerTrace() const { return getAssemblerListing(); }
+    virtual quint16 objectCodeLength() const {return 0;}
+    virtual bool hasBreakpoint() const { return false;}
+    virtual void setBreakpoint(bool) {}
+    bool hasSymbolEntry() const {return !symbolEntry.isNull();}
+    // Before attempting to use the value return by this function, check if the symbol is null.
+    // Dereferencing an empty shared pointer causes memory access violatations that are hard to debug.
+    QSharedPointer<const SymbolEntry> getSymbolEntry() const {return symbolEntry;}
 protected:
     int memAddress;
     int sourceCodeLine;
-    QString symbolDef;
+    QSharedPointer<SymbolEntry> symbolEntry;
     QString comment;
 };
 
@@ -52,11 +73,18 @@ class UnaryInstruction: public AsmCode
     friend class IsaAsm;
 private:
     Enu::EMnemonic mnemonic;
+    bool breakpoint = false;
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    virtual void appendObjectCode(QList<int> &objectCode) const override;
+    virtual void appendSourceLine(QStringList &assemblerListingList) const override;
 //    NO LONGER WITH PEP/9. FOR RET1, RET2, ..., RET7
 //    bool processSymbolTraceTags(int &sourceLine, QString &errorString);
+
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
+    virtual quint16 objectCodeLength() const override;
+    virtual bool hasBreakpoint() const override;
+    virtual void setBreakpoint(bool b) override;
 };
 
 class NonUnaryInstruction: public AsmCode
@@ -65,44 +93,62 @@ class NonUnaryInstruction: public AsmCode
 private:
     Enu::EMnemonic mnemonic;
     Enu::EAddrMode addressingMode;
-    AsmArgument *argument;
+    AsmArgument *argument = nullptr;
+    bool breakpoint = false;
 public:
     // ~NonUnaryInstruction() { delete argument; }
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
-    bool processFormatTraceTags(int &sourceLine, QString &errorString);
-    bool processSymbolTraceTags(int &sourceLine, QString &errorString);
+    virtual void appendObjectCode(QList<int> &objectCode) const override;
+    virtual void appendSourceLine(QStringList &assemblerListingList) const override;
+    virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
+    virtual bool processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
+
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
+    virtual quint16 objectCodeLength() const override;
+    virtual bool hasBreakpoint() const override;
+    virtual void setBreakpoint(bool b) override;
 };
 
 class DotAddrss: public AsmCode
 {
     friend class IsaAsm;
 private:
-    AsmArgument *argument;
+    AsmArgument *argument = nullptr;
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+     virtual void appendObjectCode(QList<int> &objectCode) const override;
+
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
+    virtual quint16 objectCodeLength() const override;
 };
 
 class DotAlign: public AsmCode
 {
     friend class IsaAsm;
 private:
-    AsmArgument *argument;
-    AsmArgument *numBytesGenerated;
+    AsmArgument *argument = nullptr;
+    AsmArgument *numBytesGenerated = nullptr;
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    virtual void appendObjectCode(QList<int> &objectCode) const override;
+    virtual void appendSourceLine(QStringList &assemblerListingList) const override;
+
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
+    virtual quint16 objectCodeLength() const override;
 };
 
 class DotAscii: public AsmCode
 {
     friend class IsaAsm;
 private:
-    AsmArgument *argument;
+    AsmArgument *argument = nullptr;
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    virtual void appendObjectCode(QList<int> &objectCode) const override;
+    virtual void appendSourceLine(QStringList &assemblerListingList) const override;
+
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
+    virtual quint16 objectCodeLength() const override;
 };
 
 class DotBlock: public AsmCode
@@ -111,75 +157,88 @@ class DotBlock: public AsmCode
 private:
     AsmArgument *argument;
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
-    bool processFormatTraceTags(int &sourceLine, QString &errorString);
-    bool processSymbolTraceTags(int &sourceLine, QString &errorString);
+    virtual void appendObjectCode(QList<int> &objectCode) const override;
+    virtual void appendSourceLine(QStringList &assemblerListingList) const override;
+    virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
+    virtual bool processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
+
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
+    virtual quint16 objectCodeLength() const override;
 };
 
 class DotBurn: public AsmCode
 {
     friend class IsaAsm;
 private:
-    AsmArgument *argument;
+    AsmArgument *argument = nullptr;
+
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
 };
 
 class DotByte: public AsmCode
 {
     friend class IsaAsm;
 private:
-    AsmArgument *argument;
+    AsmArgument *argument = nullptr;
+
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    virtual void appendObjectCode(QList<int> &objectCode) const override;
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
+    virtual quint16 objectCodeLength() const override;
 };
 
 class DotEnd: public AsmCode
 {
     friend class IsaAsm;
+
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
 };
 
 class DotEquate: public AsmCode
 {
     friend class IsaAsm;
 private:
-    AsmArgument *argument;
+    AsmArgument *argument = nullptr;
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
-    bool processFormatTraceTags(int &sourceLine, QString &errorString);
+    virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
 };
 
 class DotWord: public AsmCode
 {
     friend class IsaAsm;
 private:
-    AsmArgument *argument;
+    AsmArgument *argument = nullptr;
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    virtual void appendObjectCode(QList<int> &objectCode) const override;
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
+    virtual quint16 objectCodeLength() const override;
 };
 
 class CommentOnly: public AsmCode
 {
     friend class IsaAsm;
+
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
 };
 
 class BlankLine: public AsmCode
 {
     friend class IsaAsm;
+
 public:
-    void appendObjectCode(QList<int> &objectCode);
-    void appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox);
+    // AsmCode interface
+    virtual QString getAssemblerListing() const override;
 };
 
 #endif // CODE_H

@@ -5,7 +5,11 @@ HEADERS += \
     $$PWD/asmobjectcodepane.h \
     $$PWD/asmsourcecodepane.h \
     $$PWD/asmargument.h \
-    $$PWD/asmlistingpane.h
+    $$PWD/asmlistingpane.h \
+    $$PWD/stackframefsm.h \
+    $$PWD/asmtracepane.h \
+    $$PWD/asmprogram.h \
+    $$PWD/asmprogrammanager.h
 
 SOURCES += \
     $$PWD/pepasmhighlighter.cpp \
@@ -13,9 +17,15 @@ SOURCES += \
     $$PWD/asmcode.cpp \
     $$PWD/asmobjectcodepane.cpp \
     $$PWD/asmsourcecodepane.cpp \
-    $$PWD/asmlistingpane.cpp
+    $$PWD/asmlistingpane.cpp \
+    $$PWD/stackframefsm.cpp \
+    $$PWD/asmtracepane.cpp \
+    $$PWD/asmprogram.cpp \
+    $$PWD/asmprogrammanager.cpp \
+    $$PWD/asmargument.cpp
 
 FORMS += \
     $$PWD/asmobjectcodepane.ui \
     $$PWD/asmsourcecodepane.ui \
-    $$PWD/asmlistingpane.ui
+    $$PWD/asmlistingpane.ui \
+    $$PWD/asmtracepane.ui

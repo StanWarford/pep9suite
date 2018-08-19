@@ -315,6 +315,7 @@ void MicrocodePane::writeSettings(QSettings &settings)
 {
     settings.beginGroup("MicrocodePane");
     editor->writeSettings(settings);
+    settings.setValue("currentFile", QFileInfo(currentFile).filePath());
     settings.endGroup();
 }
 

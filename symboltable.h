@@ -21,6 +21,7 @@
 #include <qmap.h>
 #include <qmutex.h>
 #include <memory>
+#include <QSharedPointer>
 class SymbolEntry;
 class AbstractSymbolValue;
 /*
@@ -35,8 +36,8 @@ public:
     //It is not gaurenteed to be unique across runs or between multiple SymbolTable instances at runtime.
     typedef QAtomicInt SymbolID;
     //Convenience typdefs of commonly used templated types to reduce code verbosity
-	typedef std::shared_ptr<SymbolEntry> SymbolEntryPtr;
-	typedef std::shared_ptr<AbstractSymbolValue> AbstractSymbolValuePtr;
+    typedef QSharedPointer<SymbolEntry> SymbolEntryPtr;
+    typedef QSharedPointer<AbstractSymbolValue> AbstractSymbolValuePtr;
 private:
     static SymbolID nextUserSymbolID;
 	static SymbolID getNextUserSymbolID();
@@ -59,5 +60,7 @@ public:
     //Get the count of symbols that have definition problems
 	quint32 numMultiplyDefinedSymbols() const;
 	quint32 numUndefinedSymbols() const;
+    void setOffset(quint16 value, quint16 threshhold = 0);
+    void clearOffset();
     QList<SymbolEntryPtr> getSymbolEntries() const;
 };

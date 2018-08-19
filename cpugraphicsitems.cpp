@@ -108,7 +108,7 @@ void addEditableRegister(QLineEdit** edit, QVector<QLineEdit*> &editorVector, QG
     editorVector.append(*edit);
 }
 
-void addStaticRegister(QVector<QLabel*> &labelVec, QGraphicsScene* scene, QString text, const QRect& geometry, const PepColors::Colors* colorScheme){
+void addStaticRegister(QVector<QLabel*> &labelVec, QGraphicsScene* scene, QString text, const QRect& geometry, const PepColors::Colors*){
     QLabel* ph = new QLabel(text);
     ph->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     ph->setGeometry(geometry);
@@ -1685,7 +1685,7 @@ void CpuGraphicsItems::repaintCBusTwoByteModel(QPainter *painter)
 
 void CpuGraphicsItems::onDarkModeChanged(bool darkMode)
 {
-    this->darkMode=darkMode;
+    this->darkMode = darkMode;
     if(darkMode)
     {
         colorScheme = &(PepColors::darkMode);

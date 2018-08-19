@@ -26,6 +26,10 @@
 #include "enu.h"
 
 class AsmCode; // Forward declaration for argument of processSourceLine.
+class SymbolTable;
+struct ROMInfo {
+    int startROMAddress, burnValue, burnCount = 0;
+};
 
 class IsaAsm
 {
@@ -65,7 +69,7 @@ public:
     // beginning of sourceLine and returned in tokenString, true is returned, and token is set to the token type.
     // Post: If false is returned, then tokenString is set to the lexical error message.
 
-    static bool processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, QString &errorString, bool &dotEndDetected);
+    static bool processSourceLine(SymbolTable* symTable, ROMInfo& info, int& byteCount, QString sourceLine, int lineNum, AsmCode *&code, QString &errorString, bool &dotEndDetected, bool hasBreakpoint = false);
     // Pre: sourceLine has one line of source code.
     // Pre: lineNum is the line number of the source code.
     // Post: If the source line is valid, true is returned and code is set to the source code for the line.

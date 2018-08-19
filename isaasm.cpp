@@ -21,7 +21,9 @@
 #include "isaasm.h"
 #include "asmargument.h"
 #include "asmcode.h"
-
+#include "symboltable.h"
+#include "symbolentry.h"
+#include "symbolvalue.h"
 // Regular expressions for lexical analysis
 QRegExp IsaAsm::rxAddrMode("^((,)(\\s*)(i|d|x|n|s(?![fx])|sx(?![f])|sf|sfx){1}){1}");
 QRegExp IsaAsm::rxCharConst("^((\')(?![\'])(([^\'\\\\]){1}|((\\\\)([\'|b|f|n|r|t|v|\"|\\\\]))|((\\\\)(([x|X])([0-9|A-F|a-f]{2}))))(\'))");
@@ -283,7 +285,7 @@ int IsaAsm::formatMultiplier(QString formatTag) {
     }
 }
 
-bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, QString &errorString, bool &dotEndDetected)
+bool IsaAsm::processSourceLine(SymbolTable* symTable, ROMInfo& info, int& byteCount, QString sourceLine, int lineNum, AsmCode *&code, QString &errorString, bool &dotEndDetected, bool hasBreakpoint)
 {
     IsaAsm::ELexicalToken token; // Passed to getToken.
     QString tokenString; // Passed to getToken.
@@ -291,20 +293,19 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
     Enu::EMnemonic localEnumMnemonic; // Key to Pep:: table lookups.
 
     // The concrete code objects asssigned to code.
-    UnaryInstruction *unaryInstruction = NULL;
-    NonUnaryInstruction *nonUnaryInstruction = NULL;
-    DotAddrss *dotAddrss = NULL;
-    DotAlign *dotAlign = NULL;
-    DotAscii *dotAscii = NULL;
-    DotBlock *dotBlock = NULL;
-    DotBurn *dotBurn = NULL;
-    DotByte *dotByte = NULL;
-    DotEnd *dotEnd = NULL;
-    DotEquate *dotEquate = NULL;
-    DotWord *dotWord = NULL;
-    CommentOnly *commentOnly = NULL;
-    BlankLine *blankLine = NULL;
-
+    UnaryInstruction *unaryInstruction = nullptr;
+    NonUnaryInstruction *nonUnaryInstruction = nullptr;
+    DotAddrss *dotAddrss = nullptr;
+    DotAlign *dotAlign = nullptr;
+    DotAscii *dotAscii = nullptr;
+    DotBlock *dotBlock = nullptr;
+    DotBurn *dotBurn = nullptr;
+    DotByte *dotByte = nullptr;
+    DotEnd *dotEnd = nullptr;
+    DotEquate *dotEquate = nullptr;
+    DotWord *dotWord = nullptr;
+    CommentOnly *commentOnly = nullptr;
+    BlankLine *blankLine = nullptr;
     dotEndDetected = false;
     IsaAsm::ParseState state = IsaAsm::PS_START;
     do {
@@ -319,20 +320,20 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                     localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
                     if (Pep::isUnaryMap.value(localEnumMnemonic)) {
                         unaryInstruction = new UnaryInstruction;
-                        unaryInstruction->symbolDef = "";
                         unaryInstruction->mnemonic = localEnumMnemonic;
+                        unaryInstruction->breakpoint = hasBreakpoint;
                         code = unaryInstruction;
-                        code->memAddress = Pep::byteCount;
-                        Pep::byteCount += 1; // One byte generated for unary instruction.
+                        code->memAddress = byteCount;                        
+                        byteCount += 1; // One byte generated for unary instruction.
                         state = IsaAsm::PS_CLOSE;
                     }
                     else {
                         nonUnaryInstruction = new NonUnaryInstruction;
-                        nonUnaryInstruction->symbolDef = "";
                         nonUnaryInstruction->mnemonic = localEnumMnemonic;
+                        nonUnaryInstruction->breakpoint = hasBreakpoint;
                         code = nonUnaryInstruction;
-                        code->memAddress = Pep::byteCount;
-                        Pep::byteCount += 3; // Three bytes generated for nonunary instruction.
+                        code->memAddress = byteCount;
+                        byteCount += 3; // Three bytes generated for nonunary instruction.
                         state = IsaAsm::PS_INSTRUCTION;
                     }
                 }
@@ -346,66 +347,58 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                 tokenString = tokenString.toUpper();
                 if (tokenString == "ADDRSS") {
                     dotAddrss = new DotAddrss;
-                    dotAddrss->symbolDef = "";
                     code = dotAddrss;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_ADDRSS;
                 }
                 else if (tokenString == "ALIGN") {
                     dotAlign = new DotAlign;
-                    dotAlign->symbolDef = "";
                     code = dotAlign;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_ALIGN;
                 }
                 else if (tokenString == "ASCII") {
                     dotAscii = new DotAscii;
-                    dotAscii->symbolDef = "";
                     code = dotAscii;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_ASCII;
                 }
                 else if (tokenString == "BLOCK") {
                     dotBlock = new DotBlock;
-                    dotBlock->symbolDef = "";
                     code = dotBlock;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_BLOCK;
                 }
                 else if (tokenString == "BURN") {
                     dotBurn = new DotBurn;
-                    dotBurn->symbolDef = "";
                     code = dotBurn;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_BURN;
                 }
                 else if (tokenString == "BYTE") {
                     dotByte = new DotByte;
-                    dotByte->symbolDef = "";
                     code = dotByte;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_BYTE;
                 }
                 else if (tokenString == "END") {
                     dotEnd = new DotEnd;
-                    dotEnd->symbolDef = "";
                     code = dotEnd;
-                    code->memAddress = Pep::byteCount;
+                    // End symbol does not have a memory address
+                    code->memAddress = byteCount;
                     dotEndDetected = true;
                     state = IsaAsm::PS_DOT_END;
                 }
                 else if (tokenString == "EQUATE") {
                     dotEquate = new DotEquate;
-                    dotEquate->symbolDef = "";
                     code = dotEquate;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_EQUATE;
                 }
                 else if (tokenString == "WORD") {
                     dotWord = new DotWord;
-                    dotWord->symbolDef = "";
                     code = dotWord;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_WORD;
                 }
                 else {
@@ -419,26 +412,30 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                     errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
                     return false;
                 }
-                if (Pep::symbolTable.contains(tokenString)) {
+                // If the symbol is already defined, then there is an compilation error.
+                if (symTable->exists(tokenString) && symTable->getValue(tokenString)->isDefined()) {
+                    symTable->getValue(tokenString)->setMultiplyDefined();
                     errorString = ";ERROR: Symbol " + tokenString + " was previously defined.";
                     return false;
                 }
                 localSymbolDef = tokenString;
-                Pep::symbolTable.insert(localSymbolDef, Pep::byteCount);
-                Pep::adjustSymbolValueForBurn.insert(localSymbolDef, true);
+                if(!symTable->exists(tokenString)) symTable->insertSymbol(tokenString);
+                symTable->setValue(localSymbolDef, QSharedPointer<SymbolValueLocation>::create(byteCount));
                 state = IsaAsm::PS_SYMBOL_DEF;
             }
             else if (token == IsaAsm::LT_COMMENT) {
                 commentOnly = new CommentOnly;
                 commentOnly->comment = tokenString;
                 code = commentOnly;
-                code->memAddress = Pep::byteCount;
+                // Comments don't have a memory address
+                code->memAddress = -1;
                 state = IsaAsm::PS_COMMENT;
             }
             else if (token == IsaAsm::LT_EMPTY) {
                 blankLine = new BlankLine;
                 code = blankLine;
-                code->memAddress = Pep::byteCount;
+                // Neither do empty lines
+                code->memAddress = -1;
                 code->sourceCodeLine = lineNum;
                 state = IsaAsm::PS_FINISH;
             }
@@ -454,20 +451,22 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                     localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
                     if (Pep::isUnaryMap.value(localEnumMnemonic)) {
                         unaryInstruction = new UnaryInstruction;
-                        unaryInstruction->symbolDef = localSymbolDef;
+                        unaryInstruction->symbolEntry = symTable->getValue(localSymbolDef);
                         unaryInstruction->mnemonic = localEnumMnemonic;
+                        unaryInstruction->breakpoint = hasBreakpoint;
                         code = unaryInstruction;
-                        code->memAddress = Pep::byteCount;
-                        Pep::byteCount += 1; // One byte generated for unary instruction.
+                        code->memAddress = byteCount;
+                        byteCount += 1; // One byte generated for unary instruction.
                         state = IsaAsm::PS_CLOSE;
                     }
                     else {
                         nonUnaryInstruction = new NonUnaryInstruction;
-                        nonUnaryInstruction->symbolDef = localSymbolDef;
+                        nonUnaryInstruction->symbolEntry = symTable->getValue(localSymbolDef);
                         nonUnaryInstruction->mnemonic = localEnumMnemonic;
+                        nonUnaryInstruction->breakpoint = hasBreakpoint;
                         code = nonUnaryInstruction;
-                        code->memAddress = Pep::byteCount;
-                        Pep::byteCount += 3; // Three bytes generated for unary instruction.
+                        code->memAddress = byteCount;
+                        byteCount += 3; // Three bytes generated for unary instruction.
                         state = IsaAsm::PS_INSTRUCTION;
                     }
                 }
@@ -481,59 +480,59 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                 tokenString = tokenString.toUpper();
                 if (tokenString == "ADDRSS") {
                     dotAddrss = new DotAddrss;
-                    dotAddrss->symbolDef = localSymbolDef;
+                    dotAddrss->symbolEntry = symTable->getValue(localSymbolDef);
                     code = dotAddrss;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_ADDRSS;
                 }
                 else if (tokenString == "ASCII") {
                     dotAscii = new DotAscii;
-                    dotAscii->symbolDef = localSymbolDef;
+                    dotAscii->symbolEntry = symTable->getValue(localSymbolDef);
                     code = dotAscii;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_ASCII;
                 }
                 else if (tokenString == "BLOCK") {
                     dotBlock = new DotBlock;
-                    dotBlock->symbolDef = localSymbolDef;
+                    dotBlock->symbolEntry = symTable->getValue(localSymbolDef);
                     code = dotBlock;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_BLOCK;
                 }
                 else if (tokenString == "BURN") {
                     dotBurn = new DotBurn;
-                    dotBurn->symbolDef = localSymbolDef;
+                    dotBurn->symbolEntry = symTable->getValue(localSymbolDef);
                     code = dotBurn;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_BURN;
                 }
                 else if (tokenString == "BYTE") {
                     dotByte = new DotByte;
-                    dotByte->symbolDef = localSymbolDef;
+                    dotByte->symbolEntry = symTable->getValue(localSymbolDef);
                     code = dotByte;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_BYTE;
                 }
                 else if (tokenString == "END") {
                     dotEnd = new DotEnd;
-                    dotEnd->symbolDef = localSymbolDef;
+                    dotEnd->symbolEntry = symTable->getValue(localSymbolDef);
                     code = dotEnd;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     dotEndDetected = true;
                     state = IsaAsm::PS_DOT_END;
                 }
                 else if (tokenString == "EQUATE") {
                     dotEquate = new DotEquate;
-                    dotEquate->symbolDef = localSymbolDef;
+                    dotEquate->symbolEntry = symTable->getValue(localSymbolDef);
                     code = dotEquate;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_EQUATE;
                 }
                 else if (tokenString == "WORD") {
                     dotWord = new DotWord;
-                    dotWord->symbolDef = localSymbolDef;
+                    dotWord->symbolEntry = symTable->getValue(localSymbolDef);
                     code = dotWord;
-                    code->memAddress = Pep::byteCount;
+                    code->memAddress = byteCount;
                     state = IsaAsm::PS_DOT_WORD;
                 }
                 else {
@@ -553,7 +552,8 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                     errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
                     return false;
                 }
-                nonUnaryInstruction->argument = new SymbolRefArgument(tokenString);
+                if(!symTable->exists(tokenString)) symTable->insertSymbol(tokenString);
+                nonUnaryInstruction->argument = new SymbolRefArgument(symTable->getValue(tokenString));
                 IsaAsm::listOfReferencedSymbols.append(tokenString);
                 IsaAsm::listOfReferencedSymbolLineNums.append(lineNum);
                 state = IsaAsm::PS_ADDRESSING_MODE;
@@ -644,10 +644,11 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                     errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
                     return false;
                 }
-                dotAddrss->argument = new SymbolRefArgument(tokenString);
+                if(!symTable->exists(tokenString)) symTable->insertSymbol(tokenString);
+                dotAddrss->argument = new SymbolRefArgument(symTable->getValue(tokenString));
                 IsaAsm::listOfReferencedSymbols.append(tokenString);
                 IsaAsm::listOfReferencedSymbolLineNums.append(lineNum);
-                Pep::byteCount += 2;
+                byteCount += 2;
                 state = IsaAsm::PS_CLOSE;
             }
             else {
@@ -661,10 +662,10 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                 bool ok;
                 int value = tokenString.toInt(&ok, 10);
                 if (value == 2 || value == 4 || value == 8) {
-                    int numBytes = (value - Pep::byteCount % value) % value;
+                    int numBytes = (value - byteCount % value) % value;
                     dotAlign->argument = new UnsignedDecArgument(value);
                     dotAlign->numBytesGenerated = new UnsignedDecArgument(numBytes);
-                    Pep::byteCount += numBytes;
+                    byteCount += numBytes;
                     state = IsaAsm::PS_CLOSE;
                 }
                 else {
@@ -681,7 +682,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
         case IsaAsm::PS_DOT_ASCII:
             if (token == IsaAsm::LT_STRING_CONSTANT) {
                 dotAscii->argument = new StringArgument(tokenString);
-                Pep::byteCount += IsaAsm::byteStringLength(tokenString);
+                byteCount += IsaAsm::byteStringLength(tokenString);
                 state = IsaAsm::PS_CLOSE;
             }
             else {
@@ -702,7 +703,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                     else {
                         dotBlock->argument = new UnsignedDecArgument(value);
                     }
-                    Pep::byteCount += value;
+                    byteCount += value;
                     state = IsaAsm::PS_CLOSE;
                 }
                 else {
@@ -716,7 +717,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
                     dotBlock->argument = new HexArgument(value);
-                    Pep::byteCount += value;
+                    byteCount += value;
                     state = IsaAsm::PS_CLOSE;
                 }
                 else {
@@ -737,9 +738,9 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
                     dotBurn->argument = new HexArgument(value);
-                    Pep::burnCount++;
-                    Pep::dotBurnArgument = value;
-                    Pep::romStartAddress = Pep::byteCount;
+                    info.burnCount++;
+                    info.burnValue = value;
+                    info.startROMAddress = byteCount;
                     state = IsaAsm::PS_CLOSE;
                 }
                 else {
@@ -756,7 +757,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
         case IsaAsm::PS_DOT_BYTE:
             if (token == IsaAsm::LT_CHAR_CONSTANT) {
                 dotByte->argument = new CharArgument(tokenString);
-                Pep::byteCount += 1;
+                byteCount += 1;
                 state = IsaAsm::PS_CLOSE;
             }
             else if (token == IsaAsm::LT_DEC_CONSTANT) {
@@ -767,7 +768,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                         value += 256; // value stored as one-byte unsigned.
                     }
                     dotByte->argument = new DecArgument(value);
-                    Pep::byteCount += 1;
+                    byteCount += 1;
                     state = IsaAsm::PS_CLOSE;
                 }
                 else {
@@ -781,7 +782,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 256) {
                     dotByte->argument = new HexArgument(value);
-                    Pep::byteCount += 1;
+                    byteCount += 1;
                     state = IsaAsm::PS_CLOSE;
                 }
                 else {
@@ -795,7 +796,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                     return false;
                 }
                 dotByte->argument = new StringArgument(tokenString);
-                Pep::byteCount += 1;
+                byteCount += 1;
                 state = IsaAsm::PS_CLOSE;
             }
             else {
@@ -822,7 +823,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
             break;
 
         case IsaAsm::PS_DOT_EQUATE:
-            if (dotEquate->symbolDef == "") {
+            if (dotEquate->symbolEntry == nullptr) {
                 errorString = ";ERROR: .EQUATE must have a symbol definition.";
                 return false;
             }
@@ -838,8 +839,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                     else {
                         dotEquate->argument = new UnsignedDecArgument(value);
                     }
-                    Pep::symbolTable.insert(dotEquate->symbolDef, value);
-                    Pep::adjustSymbolValueForBurn.insert(dotEquate->symbolDef, false);
+                    dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(value));
                     state = IsaAsm::PS_CLOSE;
                 }
                 else {
@@ -853,8 +853,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
                     dotEquate->argument = new HexArgument(value);
-                    Pep::symbolTable.insert(dotEquate->symbolDef, value);
-                    Pep::adjustSymbolValueForBurn.insert(dotEquate->symbolDef, false);
+                    dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(value));
                     state = IsaAsm::PS_CLOSE;
                 }
                 else {
@@ -868,14 +867,12 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                     return false;
                 }
                 dotEquate->argument = new StringArgument(tokenString);
-                Pep::symbolTable.insert(dotEquate->symbolDef, IsaAsm::string2ArgumentToInt(tokenString));
-                Pep::adjustSymbolValueForBurn.insert(dotEquate->symbolDef, false);
+                dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(IsaAsm::string2ArgumentToInt(tokenString)));
                 state = IsaAsm::PS_CLOSE;
             }
             else if (token == IsaAsm::LT_CHAR_CONSTANT) {
                 dotEquate->argument = new CharArgument(tokenString);
-                Pep::symbolTable.insert(dotEquate->symbolDef, IsaAsm::charStringToInt(tokenString));
-                Pep::adjustSymbolValueForBurn.insert(dotEquate->symbolDef, false);
+                dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(IsaAsm::charStringToInt(tokenString)));
                 state = IsaAsm::PS_CLOSE;
             }
             else {
@@ -887,7 +884,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
         case IsaAsm::PS_DOT_WORD:
             if (token == IsaAsm::LT_CHAR_CONSTANT) {
                 dotWord->argument = new CharArgument(tokenString);
-                Pep::byteCount += 2;
+                byteCount += 2;
                 state = IsaAsm::PS_CLOSE;
             }
             else if (token == IsaAsm::LT_DEC_CONSTANT) {
@@ -902,7 +899,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                     else {
                         dotWord->argument = new UnsignedDecArgument(value);
                     }
-                    Pep::byteCount += 2;
+                    byteCount += 2;
                     state = IsaAsm::PS_CLOSE;
                 }
                 else {
@@ -916,7 +913,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
                     dotWord->argument = new HexArgument(value);
-                    Pep::byteCount += 2;
+                    byteCount += 2;
                     state = IsaAsm::PS_CLOSE;
                 }
                 else {
@@ -930,7 +927,7 @@ bool IsaAsm::processSourceLine(QString sourceLine, int lineNum, AsmCode *&code, 
                     return false;
                 }
                 dotWord->argument = new StringArgument(tokenString);
-                Pep::byteCount += 2;
+                byteCount += 2;
                 state = IsaAsm::PS_CLOSE;
             }
             else {

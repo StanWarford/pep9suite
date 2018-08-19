@@ -38,7 +38,7 @@ public:
     // Returns the error message had by this class, the data section, or memory section. If there was no error, returns empty string.
     QString getErrorMessage() const;
     // Returns if the the microcode line at the current µPC has a breakpoint in it
-    bool lineHasBreakpoint() const;
+    bool stoppedForBreakpoint() const;
     Enu::DebugLevels getDebugLevel() const;
     void setMicrocodeProgram(MicrocodeProgram* program);
     // Changes the amount of details captured by memoizer. It can not be changed if in a simulation.
@@ -46,6 +46,8 @@ public:
     // Return the memoizer that has been tracking CPU state.
     const CPUMemoizer* getCPUMemoizer() const;
 
+    void setPCBreakpoints(QSet<quint16> breakpoints);
+    const QSet<quint16> getPCBreakpoints() const;
 public slots:
     // Prepare CPU for a normal (non-debugging) simulation.
     void onSimulationStarted();
@@ -56,6 +58,10 @@ public slots:
     // Clean up CPU after debugging
     void onDebuggingFinished();
 
+    void onRemoveAllPCBreakpoints();
+    void onRemovePCBreakpoint(quint16 address);
+    void onAddPCBreakpoint(quint16 address);
+
     void onStep() noexcept;  // Execute a single microinstruction
     void onISAStep() noexcept; // Step until µPc == 0
     void onClock() noexcept; // Clock in the values on control lines, as set by CPUPane
@@ -64,7 +70,8 @@ public slots:
     void onRun() noexcept;
     void onClearCPU() noexcept; // Reset the contents of the control section & propogate event to the DataSection.
     void onClearMemory() noexcept; // This event is propogated to the MemorySection so that it clears itself.
-    void onBreakpointHandled() noexcept; // Inform the control section that the breakpoint has been handled and execution can resume.
+    void onMicroBreakpointHandled() noexcept; // Inform the control section that the breakpoint has been handled and execution can resume.
+    void onASMBreakpointHandled() noexcept;
 signals:
 
     void simulationFinished();
@@ -84,8 +91,9 @@ private:
     bool inSimulation, hadControlError, executionFinished, isPrefetchValid;
     // hitBreakpoint indicates that the current line has a breakpoint.
     // If breakpointHandled, ignore the breakpoint on the current line, and set breakpointHandled to false.
-    bool inDebug, breakpointHit, breakpointHandled;
+    bool inDebug, microBreakpointHit, microBreakpointHandled, asmBreakpointHit, asmBreakpointHandled;
     QString errorMessage;
+    QSet<quint16> pcBreakpoints;
 
     void branchHandler(); // Based on the current instruction, set the µPC correctly
     void setSignalsFromMicrocode(const MicroCode *line); // Set signals for the control section based on the microcode program

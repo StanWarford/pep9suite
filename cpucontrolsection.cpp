@@ -21,7 +21,8 @@ CPUControlSection *CPUControlSection::_instance = nullptr;
 CPUControlSection::CPUControlSection(CPUDataSection * data, MemorySection* memory): QObject(nullptr),
     memoizer(new CPUMemoizer(*this)), data(data), memory(memory),
     microprogramCounter(0), microCycleCounter(0), instructionCounter(0), callDepth(0),
-    inSimulation(false), hadControlError(false), isPrefetchValid(false), inDebug(false), breakpointHit(false), breakpointHandled(false)
+    inSimulation(false), hadControlError(false), isPrefetchValid(false), inDebug(false), microBreakpointHit(false), microBreakpointHandled(false),
+    asmBreakpointHit(false), asmBreakpointHandled(false)
 {
 
 }
@@ -63,6 +64,16 @@ const CPUMemoizer *CPUControlSection::getCPUMemoizer() const
     return memoizer;
 }
 
+void CPUControlSection::setPCBreakpoints(QSet<quint16> breakpoints)
+{
+    pcBreakpoints = breakpoints;
+}
+
+const QSet<quint16> CPUControlSection::getPCBreakpoints() const
+{
+    return pcBreakpoints;
+}
+
 int CPUControlSection::getLineNumber() const
 {
     return microprogramCounter;
@@ -91,9 +102,10 @@ QString CPUControlSection::getErrorMessage() const
     else return "";
 }
 
-bool CPUControlSection::lineHasBreakpoint() const
+bool CPUControlSection::stoppedForBreakpoint() const
 {
-    return program->getCodeLine(microprogramCounter)->hasBreakpoint();
+    return program->getCodeLine(microprogramCounter)->hasBreakpoint() ||
+            (microprogramCounter == 0)? pcBreakpoints.contains(memoizer->getRegisterStart(CPURegisters::PC)) : false;
 }
 
 Enu::DebugLevels CPUControlSection::getDebugLevel() const
@@ -132,6 +144,10 @@ void CPUControlSection::onDebuggingStarted()
 {
     onSimulationStarted();
     inDebug = true;
+    microBreakpointHit = false;
+    microBreakpointHandled = false;
+    asmBreakpointHit = false;
+    asmBreakpointHandled = false;
 }
 
 void CPUControlSection::onDebuggingFinished()
@@ -140,10 +156,25 @@ void CPUControlSection::onDebuggingFinished()
     inDebug = false;
 }
 
+void CPUControlSection::onRemoveAllPCBreakpoints()
+{
+    pcBreakpoints.clear();
+}
+
+void CPUControlSection::onRemovePCBreakpoint(quint16 address)
+{
+    pcBreakpoints.remove(address);
+}
+
+void CPUControlSection::onAddPCBreakpoint(quint16 address)
+{
+    pcBreakpoints.insert(address);
+}
+
 void CPUControlSection::onStep() noexcept
 {
     // Do step logic
-    if(microprogramCounter==0) {
+    if(microprogramCounter == 0) {
         // Store PC at the start of the cycle, so that we know where the instruction started from.
         // Also store any other values needed for detailed statistics
         memoizer->storeStateInstrStart();
@@ -154,22 +185,36 @@ void CPUControlSection::onStep() noexcept
 
     // If running in debug mode, first check if this line has any microcode breakpoints.
     if(inDebug) {
-        // If the line has a breakpoint, but onBreakPointHandled() has been called
-        if(prog->hasBreakpoint() && breakpointHandled) {
+        if(microprogramCounter == 0) {
+            if(asmBreakpointHandled) {
+                asmBreakpointHandled = false;
+                asmBreakpointHit = false;
+            }
+            else if( pcBreakpoints.contains(data->getRegisterBankWord(CPURegisters::PC))) {
+                asmBreakpointHandled = false;
+                asmBreakpointHit = true;
+                emit simulationHitASMBreakpoint();
+                QApplication::processEvents();
+                return;
+            }
+        }
+                // If the line has a breakpoint, but onBreakPointHandled() has been called
+        else if(microBreakpointHandled) {
             // Ignore the line's breakpoint, and reset breakpointHandled in case another breakpoint appears.
-            breakpointHandled = false;
-            breakpointHit = false;
+            microBreakpointHandled = false;
+            microBreakpointHit = false;
         }
         else if(prog->hasBreakpoint()) {
-            breakpointHandled = false;
-            breakpointHit = true;
+            microBreakpointHandled = false;
+            microBreakpointHit = true;
             emit simulationHitMicroBreakpoint();
             // Process Events immediately, and return to prevent step from executing
             QApplication::processEvents();
             return;
         }
         else {
-            breakpointHit = false;
+            microBreakpointHit = false;
+            asmBreakpointHit = false;
         }
     }
     this->setSignalsFromMicrocode(prog);
@@ -207,7 +252,7 @@ void CPUControlSection::onISAStep() noexcept
                 break;
             }
         }
-    } while(!executionFinished && microprogramCounter != 0 && !breakpointHit);
+    } while(!executionFinished && microprogramCounter != 0 && !microBreakpointHit);
     if(executionFinished) emit simulationFinished();
 }
 
@@ -251,7 +296,7 @@ void CPUControlSection::onRun() noexcept
                 }
             }
         // If a breakpoint has been hit, stop execution now.
-        } while(!executionFinished && !breakpointHit);
+        } while(!executionFinished && !microBreakpointHit &&!asmBreakpointHit);
     }
     else {
         while(!executionFinished) {
@@ -279,11 +324,11 @@ void CPUControlSection::onRun() noexcept
     }
 
     // If a breakpoint was reached, return before final statistics are computed or the simulation is finished.
-    if(breakpointHit) {
+    if(microBreakpointHit || asmBreakpointHit) {
         return;
     }
     auto value = timer.elapsed();
-    qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
+    //qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
     qDebug().nospace().noquote() <<"Executed "<<instructionCounter<<" instructions in "<<microCycleCounter<< " cycles.";
     qDebug().nospace().noquote() <<"Averaging "<<microCycleCounter / instructionCounter<<" cycles per instruction.";
     qDebug().nospace().noquote() <<"Execution time (ms): " << value;
@@ -308,8 +353,10 @@ void CPUControlSection::onClearCPU() noexcept
     executionFinished = false;
     isPrefetchValid = false;
     errorMessage = "";
-    breakpointHit = false;
-    breakpointHandled = false;
+    microBreakpointHit = false;
+    microBreakpointHandled = false;
+    asmBreakpointHit = false;
+    asmBreakpointHandled = false;
 }
 
 void CPUControlSection::onClearMemory() noexcept
@@ -317,9 +364,14 @@ void CPUControlSection::onClearMemory() noexcept
     memory->onClearMemory();
 }
 
-void CPUControlSection::onBreakpointHandled() noexcept
+void CPUControlSection::onMicroBreakpointHandled() noexcept
 {
-    breakpointHandled = true;
+    microBreakpointHandled = true;
+}
+
+void CPUControlSection::onASMBreakpointHandled() noexcept
+{
+    asmBreakpointHandled = true;
 }
 
 void CPUControlSection::branchHandler()
@@ -329,7 +381,7 @@ void CPUControlSection::branchHandler()
     quint8 byte = 0;
     QString tempString;
     const SymbolTable* symTable = this->program->getSymTable();
-    std::shared_ptr<SymbolEntry> val;
+    QSharedPointer<SymbolEntry> val;
     switch(prog->getBranchFunction())
     {
     case Enu::Unconditional:

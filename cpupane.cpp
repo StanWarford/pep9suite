@@ -47,7 +47,7 @@ CpuPane::CpuPane( QWidget *parent) :
 {
     ui->setupUi(this);
     connect(ui->spinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CpuPane::zoomFactorChanged);
-    cpuPaneItems = NULL;
+    cpuPaneItems = nullptr;
     scene = new QGraphicsScene(nullptr);
     ui->graphicsView->setScene(scene);
 
@@ -57,7 +57,10 @@ CpuPane::CpuPane( QWidget *parent) :
 
     ui->spinBox->hide();
     ui->graphicsView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-    this->setMinimumWidth(cpuPaneItems->boundingRect().right()+45);
+
+    // Give this class a larger acceptable size range, so that it will behave better in a splitter
+    this->setMinimumWidth(static_cast<int>(cpuPaneItems->boundingRect().left())+100);
+    this->setMaximumWidth(static_cast<int>(cpuPaneItems->boundingRect().right())+45);
 }
 
 void CpuPane::init(MainWindow *mainWindow)
@@ -93,7 +96,6 @@ void CpuPane::giveFocus()
 void CpuPane::initModel()
 {
     cpuPaneItems = new CpuGraphicsItems(Enu::TwoByteDataBus, ui->graphicsView, 0, scene);
-
     ui->graphicsView->scene()->addItem(cpuPaneItems);
 
     ui->graphicsView->setAlignment(Qt::AlignLeft | Qt::AlignTop);

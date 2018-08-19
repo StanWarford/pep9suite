@@ -8,7 +8,7 @@ FORMS += \
     $$PWD/iowidget.ui \
     $$PWD/outputpane.ui \
     $$PWD/terminalpane.ui \
-    $$PWD/listingtracepane.ui
+    $$PWD/memorytracepane.ui
 
 HEADERS += \
     $$PWD/byteconverterbin.h \
@@ -20,7 +20,8 @@ HEADERS += \
     $$PWD/iowidget.h \
     $$PWD/outputpane.h \
     $$PWD/terminalpane.h \
-    $$PWD/listingtracepane.h
+    $$PWD/memorytracepane.h \
+    $$PWD/memorycellgraphicsitem.h
 
 SOURCES += \
     $$PWD/byteconverterbin.cpp \
@@ -32,4 +33,5 @@ SOURCES += \
     $$PWD/iowidget.cpp \
     $$PWD/outputpane.cpp \
     $$PWD/terminalpane.cpp \
-    $$PWD/listingtracepane.cpp
+    $$PWD/memorytracepane.cpp \
+    $$PWD/memorycellgraphicsitem.cpp

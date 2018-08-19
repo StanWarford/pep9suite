@@ -24,53 +24,55 @@
 #include "isaasm.h"
 #include <QRegExp>
 #include <QDebug>
-
+#include "symbolvalue.h"
+#include "symbolentry.h"
+#include <QSharedPointer>
+#include "symboltable.h"
+#pragma message("TODO: The functions requesting object code must manuall check for burn count & memaddress of burn")
 // appendObjectCode
-void UnaryInstruction::appendObjectCode(QList<int> &objectCode)
+
+AsmCode::AsmCode(): memAddress(0), sourceCodeLine(0), symbolEntry(QSharedPointer<SymbolEntry>()), comment()
 {
-    if ((Pep::burnCount == 0) || ((Pep::burnCount == 1) && (memAddress >= Pep::romStartAddress))) {
-        objectCode.append(Pep::opCodeMap.value(mnemonic));
+
+}
+
+void UnaryInstruction::appendObjectCode(QList<int> &objectCode) const
+{
+    objectCode.append(Pep::opCodeMap.value(mnemonic));
+}
+
+void NonUnaryInstruction::appendObjectCode(QList<int> &objectCode) const
+{
+    int instructionSpecifier = Pep::opCodeMap.value(mnemonic);
+    if (Pep::addrModeRequiredMap.value(mnemonic)) {
+        instructionSpecifier += Pep::aaaAddressField(addressingMode);
+    }
+    else {
+        instructionSpecifier += Pep::aAddressField(addressingMode);
+    }
+    objectCode.append(instructionSpecifier);
+    int operandSpecifier = argument->getArgumentValue();
+    objectCode.append(operandSpecifier / 256);
+    objectCode.append(operandSpecifier % 256);
+}
+
+void DotAddrss::appendObjectCode(QList<int> &objectCode) const
+{
+    int symbolValue = this->argument->getArgumentValue();
+    objectCode.append(symbolValue / 256);
+    objectCode.append(symbolValue % 256);
+
+}
+
+void DotAlign::appendObjectCode(QList<int> &objectCode) const
+{
+    for (int i = 0; i < numBytesGenerated->getArgumentValue(); i++) {
+        objectCode.append(0);
     }
 }
 
-void NonUnaryInstruction::appendObjectCode(QList<int> &objectCode)
+void DotAscii::appendObjectCode(QList<int> &objectCode) const
 {
-    if ((Pep::burnCount == 0) || ((Pep::burnCount == 1) && (memAddress >= Pep::romStartAddress))) {
-        int instructionSpecifier = Pep::opCodeMap.value(mnemonic);
-        if (Pep::addrModeRequiredMap.value(mnemonic)) {
-            instructionSpecifier += Pep::aaaAddressField(addressingMode);
-        }
-        else {
-            instructionSpecifier += Pep::aAddressField(addressingMode);
-        }
-        objectCode.append(instructionSpecifier);
-        int operandSpecifier = argument->getArgumentValue();
-        objectCode.append(operandSpecifier / 256);
-        objectCode.append(operandSpecifier % 256);
-    }
-}
-
-void DotAddrss::appendObjectCode(QList<int> &objectCode)
-{
-    if ((Pep::burnCount == 0) || ((Pep::burnCount == 1) && (memAddress >= Pep::romStartAddress))) {
-        int symbolValue = Pep::symbolTable.value(argument->getArgumentString());
-        objectCode.append(symbolValue / 256);
-        objectCode.append(symbolValue % 256);
-    }
-}
-
-void DotAlign::appendObjectCode(QList<int> &objectCode)
-{
-    if ((Pep::burnCount == 0) || ((Pep::burnCount == 1) && (memAddress >= Pep::romStartAddress))) {
-        for (int i = 0; i < numBytesGenerated->getArgumentValue(); i++) {
-            objectCode.append(0);
-        }
-    }
-}
-
-void DotAscii::appendObjectCode(QList<int> &objectCode)
-{
-    if ((Pep::burnCount == 0) || ((Pep::burnCount == 1) && (memAddress >= Pep::romStartAddress))) {
         int value;
         QString str = argument->getArgumentString();
         str.remove(0, 1); // Remove the leftmost double quote.
@@ -79,69 +81,236 @@ void DotAscii::appendObjectCode(QList<int> &objectCode)
             IsaAsm::unquotedStringToInt(str, value);
             objectCode.append(value);
         }
-    }
 }
 
-void DotBlock::appendObjectCode(QList<int> &objectCode)
+void DotBlock::appendObjectCode(QList<int> &objectCode) const
 {
-    if ((Pep::burnCount == 0) || ((Pep::burnCount == 1) && (memAddress >= Pep::romStartAddress))) {
         for (int i = 0; i < argument->getArgumentValue(); i++) {
             objectCode.append(0);
         }
-    }
 }
 
-void DotBurn::appendObjectCode(QList<int> &)
+void DotByte::appendObjectCode(QList<int> &objectCode) const
 {
-    // Does not generate code.
-}
-
-void DotByte::appendObjectCode(QList<int> &objectCode)
-{
-    if ((Pep::burnCount == 0) || ((Pep::burnCount == 1) && (memAddress >= Pep::romStartAddress))) {
         objectCode.append(argument->getArgumentValue());
-    }
 }
 
-void DotEnd::appendObjectCode(QList<int> &)
+void DotWord::appendObjectCode(QList<int> &objectCode) const
 {
-    // Does not generate code.
-}
-
-void DotEquate::appendObjectCode(QList<int> &)
-{
-    // Does not generate code.
-}
-
-void DotWord::appendObjectCode(QList<int> &objectCode)
-{
-    if ((Pep::burnCount == 0) || ((Pep::burnCount == 1) && (memAddress >= Pep::romStartAddress))) {
         int value = argument->getArgumentValue();
         objectCode.append(value / 256);
         objectCode.append(value % 256);
+}
+
+void UnaryInstruction::appendSourceLine(QStringList &assemblerListingList) const
+{
+    assemblerListingList.append(getAssemblerListing());
+}
+
+void NonUnaryInstruction::appendSourceLine(QStringList &assemblerListingList) const
+{
+    assemblerListingList.append(getAssemblerListing());
+}
+
+void DotAlign::appendSourceLine(QStringList &assemblerListingList) const
+{
+    assemblerListingList.append(getAssemblerListing().split("\n"));
+}
+
+void DotAscii::appendSourceLine(QStringList &assemblerListingList) const
+{
+    assemblerListingList.append(getAssemblerListing().split("\n"));
+}
+
+void DotBlock::appendSourceLine(QStringList &assemblerListingList) const
+{
+    assemblerListingList.append(getAssemblerListing().split("\n"));
+}
+
+bool DotBlock::processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing)  {
+    if (symbolEntry.isNull()) {
+        return true;
+    }
+    int pos = IsaAsm::rxFormatTag.indexIn(comment);
+    if (pos > -1) {
+        QString formatTag = IsaAsm::rxFormatTag.cap(0);
+        Enu::ESymbolFormat tagType = IsaAsm::formatTagType(formatTag);
+        int multiplier = IsaAsm::formatMultiplier(formatTag);
+        if (argument->getArgumentValue() != IsaAsm::tagNumBytes(tagType) * multiplier) {
+            errorString = ";WARNING: Format tag does not match number of bytes allocated by .BLOCK.";
+            sourceLine = sourceCodeLine;
+            return false;
+        }
+        SymbolFormat format;
+        format.size = multiplier;
+        format.spec = tagType;
+        symbolEntry->setSymbolFormat(format);
+        symbolListing.blockSymbols.insert(symbolEntry->getName());
+    }
+    return true;
+}
+
+bool DotEquate::processFormatTraceTags(int &, QString &, SymbolListings & symbolListing) {
+    if (symbolEntry.isNull()) {
+        return true;
+    }
+    int pos = IsaAsm::rxFormatTag.indexIn(comment);
+    if (pos > -1) {
+        QString formatTag = IsaAsm::rxFormatTag.cap(0);
+        SymbolFormat format;
+        format.size = IsaAsm::formatMultiplier(formatTag);
+        format.spec = IsaAsm::formatTagType(formatTag);
+        symbolEntry->setSymbolFormat(format);
+        symbolListing.equateSymbols.insert(symbolEntry->getName());
+    }
+    return true;
+}
+
+bool DotBlock::processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) {
+    // For global structs.
+    if (symbolEntry.isNull()) {
+        return true;
+    }
+    if (symbolListing.blockSymbols.contains(symbolEntry->getName())) {
+        return true; // Pre-existing format tag takes precedence over symbol tag.
+    }
+
+    int numBytesAllocated = argument->getArgumentValue();
+    QString symbol;
+    QStringList list;
+    int numBytesListed = 0;
+    int pos = 0;
+    while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
+        symbol = IsaAsm::rxSymbolTag.cap(1);
+        if (symbolListing.equateSymbols.contains(symbolEntry->getName())) {
+            errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
+            sourceLine = sourceCodeLine;
+            return false;
+        }
+        numBytesListed += IsaAsm::tagNumBytes(Pep::symbolFormat.value(symbol)) * Pep::symbolFormatMultiplier.value(symbol);
+        list.append(symbol);
+        pos += IsaAsm::rxSymbolTag.matchedLength();
+    }
+    if (numBytesAllocated != numBytesListed && numBytesListed > 0) {
+        errorString = ";WARNING: Number of bytes allocated (" + QString("%1").arg(numBytesAllocated) +
+                      ") not equal to number of bytes listed in trace tag (" + QString("%1").arg(numBytesListed) + ").";
+        sourceLine = sourceCodeLine;
+        return false;
+    }
+    symbolListing.blockSymbols.insert(symbolEntry->getName());
+    symbolListing.blockGlobals.insert(symbolEntry->getName(), list);
+    return true;
+}
+
+bool NonUnaryInstruction::processFormatTraceTags(int &, QString &, SymbolListings & symbolListing) {
+    if (mnemonic == Enu::EMnemonic::CALL && argument->getArgumentString() == "malloc") {
+        int pos = IsaAsm::rxFormatTag.indexIn(comment);
+        if (pos > -1) {
+            QStringList list;
+            QString formatTag = IsaAsm::rxFormatTag.cap(0);
+            Enu::ESymbolFormat tagType = IsaAsm::formatTagType(formatTag);
+            int multiplier = IsaAsm::formatMultiplier(formatTag);
+            QString symbolDef = QString("%1").arg(memAddress); // Dummy symbol for format tag in malloc
+            if (symbolListing.equateSymbols.contains(symbolDef)){
+                // Limitation: only one dummy format per program
+                symbolListing.equateSymbols.insert(symbolDef);
+            }
+            Pep::symbolFormat.insert(symbolDef, tagType); // Any duplicates have value replaced
+            Pep::symbolFormatMultiplier.insert(symbolDef, multiplier);
+            list.append(symbolDef);
+            //Pep::symbolTraceList.insert(memAddress, list);
+        }
+    }
+    return true;
+}
+
+bool NonUnaryInstruction::processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings& symbolListing) {
+    if (mnemonic == Enu::EMnemonic::ADDSP || mnemonic == Enu::EMnemonic::SUBSP) {
+        int numBytesAllocated;
+        if (addressingMode != Enu::EAddrMode::I) {
+            errorString = ";WARNING: Stack trace not possible unless immediate addressing is specified.";
+            sourceLine = sourceCodeLine;
+            return false;
+        }
+        numBytesAllocated = argument->getArgumentValue();
+        QString symbol;
+        QStringList list;
+        int numBytesListed = 0;
+        int pos = 0;
+        while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
+            symbol = IsaAsm::rxSymbolTag.cap(1);
+            if (!symbolListing.equateSymbols.contains(symbol)) {
+                errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
+                sourceLine = sourceCodeLine;
+                return false;
+            }
+            numBytesListed += IsaAsm::tagNumBytes(Pep::symbolFormat.value(symbol)) * Pep::symbolFormatMultiplier.value(symbol);
+            list.append(symbol);
+            pos += IsaAsm::rxSymbolTag.matchedLength();
+        }
+        if (numBytesAllocated != numBytesListed) {
+            QString message = (mnemonic == Enu::EMnemonic::ADDSP) ? "deallocated" : "allocated";
+            errorString = ";WARNING: Number of bytes " + message + " (" + QString("%1").arg(numBytesAllocated) +
+                          ") not equal to number of bytes listed in trace tag (" + QString("%1").arg(numBytesListed) + ").";
+            sourceLine = sourceCodeLine;
+            return false;
+        }
+#pragma message ("Unsure as of use of symbol trace list")
+        //symbolListing.symbolTraceList.insert(memAddress, list);
+        return true;
+    }
+    else if (mnemonic == Enu::EMnemonic::CALL && argument->getArgumentString() == "malloc") {
+        int pos = 0;
+        QString symbol;
+        QStringList list;
+        while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
+            symbol = IsaAsm::rxSymbolTag.cap(1);
+            if (!symbolListing.equateSymbols.contains(symbol) && !symbolListing.blockSymbols.contains(symbol)) {
+                errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
+                sourceLine = sourceCodeLine;
+                return false;
+            }
+            list.append(symbol);
+            pos += IsaAsm::rxSymbolTag.matchedLength();
+        }
+
+        if (!list.isEmpty()) {
+            //Pep::symbolTraceList.insert(memAddress, list);
+        }
+        return true;
+    }
+    else {
+        return true;
     }
 }
 
-void CommentOnly::appendObjectCode(QList<int> &)
+bool UnaryInstruction::hasBreakpoint() const
 {
-    // Does not generate code.
+    return breakpoint;
 }
 
-void BlankLine::appendObjectCode(QList<int> &)
+void UnaryInstruction::setBreakpoint(bool b)
 {
-    // Does not generate code.
+    breakpoint = b;
 }
 
-void UnaryInstruction::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+bool NonUnaryInstruction::hasBreakpoint() const
+{
+    return breakpoint;
+}
+
+void NonUnaryInstruction::setBreakpoint(bool b)
+{
+    breakpoint = b;
+}
+
+QString UnaryInstruction::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
     QString codeStr = QString("%1").arg(Pep::opCodeMap.value(mnemonic), 2, 16, QLatin1Char('0')).toUpper();
-    if ((Pep::burnCount == 1) && (memAddress < Pep::romStartAddress)) {
-        codeStr = "  ";
-    }
-    QString symbolStr = symbolDef;
-    if (symbolStr.length() > 0) {
-        symbolStr.append(":");
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
     }
     QString mnemonStr = Pep::enumToMnemonMap.value(mnemonic);
     QString lineStr = QString("%1%2%3%4%5")
@@ -150,27 +319,19 @@ void UnaryInstruction::appendSourceLine(QStringList &assemblerListingList, QStri
                       .arg(symbolStr, -9, QLatin1Char(' '))
                       .arg(mnemonStr, -8, QLatin1Char(' '))
                       .arg("            " + comment);
-    Pep::memAddrssToAssemblerListing->insert(memAddress, assemblerListingList.size());
-    Pep::listingRowChecked->insert(assemblerListingList.size(), Qt::Unchecked);
-    assemblerListingList.append(lineStr);
-    listingTraceList.append(lineStr);
-    hasCheckBox.append(true);
+    return lineStr;
 }
 
-void NonUnaryInstruction::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString NonUnaryInstruction::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
     int temp = Pep::opCodeMap.value(mnemonic);
     temp += Pep::addrModeRequiredMap.value(mnemonic) ? Pep::aaaAddressField(addressingMode) : Pep::aAddressField(addressingMode);
     QString codeStr = QString("%1").arg(temp, 2, 16, QLatin1Char('0')).toUpper();
     QString oprndNumStr = QString("%1").arg(argument->getArgumentValue(), 4, 16, QLatin1Char('0')).toUpper();
-    if ((Pep::burnCount == 1) && (memAddress < Pep::romStartAddress)) {
-        codeStr = "  ";
-        oprndNumStr = "    ";
-    }
-    QString symbolStr = symbolDef;
-    if (symbolStr.length() > 0) {
-        symbolStr.append(":");
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
     }
     QString mnemonStr = Pep::enumToMnemonMap.value(mnemonic);
     QString oprndStr = argument->getArgumentString();
@@ -188,24 +349,17 @@ void NonUnaryInstruction::appendSourceLine(QStringList &assemblerListingList, QS
                       .arg(mnemonStr, -8, QLatin1Char(' '))
                       .arg(oprndStr, -12)
                       .arg(comment);
-    Pep::memAddrssToAssemblerListing->insert(memAddress, assemblerListingList.size());
-    Pep::listingRowChecked->insert(assemblerListingList.size(), Qt::Unchecked);
-    assemblerListingList.append(lineStr);
-    listingTraceList.append(lineStr);
-    hasCheckBox.append(true);
+    return lineStr;
 }
 
-void DotAddrss::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString DotAddrss::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
-    int symbolValue = Pep::symbolTable.value(argument->getArgumentString());
+    int symbolValue = symbolEntry->getValue();
     QString codeStr = QString("%1").arg(symbolValue, 4, 16, QLatin1Char('0')).toUpper();
-    if ((Pep::burnCount == 1) && (memAddress < Pep::romStartAddress)) {
-        codeStr = "    ";
-    }
-    QString symbolStr = symbolDef;
-    if (symbolStr.length() > 0) {
-        symbolStr.append(":");
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".ADDRSS";
     QString oprndStr = argument->getArgumentString();
@@ -216,12 +370,10 @@ void DotAddrss::appendSourceLine(QStringList &assemblerListingList, QStringList 
                       .arg(dotStr, -8, QLatin1Char(' '))
                       .arg(oprndStr, -12)
                       .arg(comment);
-    assemblerListingList.append(lineStr);
-    listingTraceList.append(lineStr);
-    hasCheckBox.append(false);
+    return lineStr;
 }
 
-void DotAlign::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString DotAlign::getAssemblerListing() const
 {
     int numBytes = numBytesGenerated->getArgumentValue();
     QString memStr = numBytes == 0 ? "      " : QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
@@ -230,41 +382,31 @@ void DotAlign::appendSourceLine(QStringList &assemblerListingList, QStringList &
         codeStr.append("00");
         numBytes--;
     }
-    if ((Pep::burnCount == 1) && (memAddress < Pep::romStartAddress)) {
-        codeStr = "      ";
-    }
-    QString symbolStr = symbolDef;
-    if (symbolStr.length() > 0) {
-        symbolStr.append(":");
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".ALIGN";
     QString oprndStr = argument->getArgumentString();
     QString lineStr = QString("%1%2%3%4%5%6")
-                      .arg(memStr, -6, QLatin1Char(' '))
-                      .arg(codeStr, -7, QLatin1Char(' '))
-                      .arg(symbolStr, -9, QLatin1Char(' '))
-                      .arg(dotStr, -8, QLatin1Char(' '))
-                      .arg(oprndStr, -12)
-                      .arg(comment);
-    assemblerListingList.append(lineStr);
-    listingTraceList.append(lineStr);
-    hasCheckBox.append(false);
-    if ((Pep::burnCount == 0) || ((Pep::burnCount == 1) && (memAddress >= Pep::romStartAddress))) {
-        while (numBytes > 0) {
-            codeStr = "";
-            while ((numBytes > 0) && (codeStr.length() < 6)) {
-                codeStr.append("00");
-                numBytes--;
-            }
-            lineStr = QString("      %1").arg(codeStr, -7, QLatin1Char(' '));
-            assemblerListingList.append(lineStr);
-            listingTraceList.append(lineStr);
-            hasCheckBox.append(false);
+            .arg(memStr, -6, QLatin1Char(' '))
+            .arg(codeStr, -7, QLatin1Char(' '))
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(oprndStr, -12)
+            .arg(comment);
+    while (numBytes > 0) {
+        codeStr = "";
+        while ((numBytes > 0) && (codeStr.length() < 6)) {
+            codeStr.append("00");
+            numBytes--;
         }
+        lineStr.append(QString("\n      %1").arg(codeStr, -7, QLatin1Char(' ')));
     }
+    return lineStr;
 }
 
-void DotAscii::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString DotAscii::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
     QString str = argument->getArgumentString();
@@ -276,41 +418,32 @@ void DotAscii::appendSourceLine(QStringList &assemblerListingList, QStringList &
         IsaAsm::unquotedStringToInt(str, value);
         codeStr.append(QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
     }
-    if ((Pep::burnCount == 1) && (memAddress < Pep::romStartAddress)) {
-        codeStr = "      ";
-    }
-    QString symbolStr = symbolDef;
-    if (symbolStr.length() > 0) {
-        symbolStr.append(":");
+
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".ASCII";
     QString oprndStr = argument->getArgumentString();
-    QString lineStr = QString("%1%2%3%4%5%6")
-                      .arg(memStr, -6, QLatin1Char(' '))
-                      .arg(codeStr, -7, QLatin1Char(' '))
-                      .arg(symbolStr, -9, QLatin1Char(' '))
-                      .arg(dotStr, -8, QLatin1Char(' '))
-                      .arg(oprndStr, -12)
-                      .arg(comment);
-    assemblerListingList.append(lineStr);
-    listingTraceList.append(lineStr);
-    hasCheckBox.append(false);
-    if ((Pep::burnCount == 0) || ((Pep::burnCount == 1) && (memAddress >= Pep::romStartAddress))) {
-        while (str.length() > 0) {
-            codeStr = "";
-            while ((str.length() > 0) && (codeStr.length() < 6)) {
-                IsaAsm::unquotedStringToInt(str, value);
-                codeStr.append(QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
-            }
-            lineStr = QString("      %1").arg(codeStr, -7, QLatin1Char(' '));
-            assemblerListingList.append(lineStr);
-            listingTraceList.append(lineStr);
-            hasCheckBox.append(false);
+    QString lineStr = QString("%1%2%3%4%5%6\n")
+            .arg(memStr, -6, QLatin1Char(' '))
+            .arg(codeStr, -7, QLatin1Char(' '))
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(oprndStr, -12)
+            .arg(comment);
+    while (str.length() > 0) {
+        codeStr = "";
+        while ((str.length() > 0) && (codeStr.length() < 6)) {
+            IsaAsm::unquotedStringToInt(str, value);
+            codeStr.append(QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
         }
+        lineStr.append(QString("      %1").arg(codeStr, -7, QLatin1Char(' '))%"\n");
     }
+    return lineStr;
 }
 
-void DotBlock::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString DotBlock::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
     int numBytes = argument->getArgumentValue();
@@ -319,70 +452,55 @@ void DotBlock::appendSourceLine(QStringList &assemblerListingList, QStringList &
         codeStr.append("00");
         numBytes--;
     }
-    if ((Pep::burnCount == 1) && (memAddress < Pep::romStartAddress)) {
-        codeStr = "      ";
-    }
-    QString symbolStr = symbolDef;
-    if (symbolStr.length() > 0) {
-        symbolStr.append(":");
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".BLOCK";
     QString oprndStr = argument->getArgumentString();
     QString lineStr = QString("%1%2%3%4%5%6")
-                      .arg(memStr, -6, QLatin1Char(' '))
-                      .arg(codeStr, -7, QLatin1Char(' '))
-                      .arg(symbolStr, -9, QLatin1Char(' '))
-                      .arg(dotStr, -8, QLatin1Char(' '))
-                      .arg(oprndStr, -12)
-                      .arg(comment);
-    assemblerListingList.append(lineStr);
-    listingTraceList.append(lineStr);
-    hasCheckBox.append(false);
-    if ((Pep::burnCount == 0) || ((Pep::burnCount == 1) && (memAddress >= Pep::romStartAddress))) {
-        while (numBytes > 0) {
-            codeStr = "";
-            while ((numBytes > 0) && (codeStr.length() < 6)) {
-                codeStr.append("00");
-                numBytes--;
-            }
-            lineStr = QString("      %1").arg(codeStr, -7, QLatin1Char(' '));
-            assemblerListingList.append(lineStr);
-            listingTraceList.append(lineStr);
-            hasCheckBox.append(false);
+            .arg(memStr, -6, QLatin1Char(' '))
+            .arg(codeStr, -7, QLatin1Char(' '))
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(oprndStr, -12)
+            .arg(comment);
+    while (numBytes > 0) {
+        codeStr = "";
+        while ((numBytes > 0) && (codeStr.length() < 6)) {
+            codeStr.append("00");
+            numBytes--;
         }
+        lineStr.append(QString("\n      %1").arg(codeStr, -7, QLatin1Char(' ')));
     }
+    return lineStr;
 }
 
-void DotBurn::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString DotBurn::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
-    QString symbolStr = symbolDef;
-    if (symbolStr.length() > 0) {
-        symbolStr.append(":");
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".BURN";
     QString oprndStr = argument->getArgumentString();
     QString lineStr = QString("%1       %2%3%4%5")
-                      .arg(memStr, -6, QLatin1Char(' '))
-                      .arg(symbolStr, -9, QLatin1Char(' '))
-                      .arg(dotStr, -8, QLatin1Char(' '))
-                      .arg(oprndStr, -12)
-                      .arg(comment);
-    assemblerListingList.append(lineStr);
-    listingTraceList.append(lineStr);
-    hasCheckBox.append(false);
+            .arg(memStr, -6, QLatin1Char(' '))
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(oprndStr, -12)
+            .arg(comment);
+    return lineStr;
 }
 
-void DotByte::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString DotByte::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
     QString codeStr = QString("%1").arg(argument->getArgumentValue(), 2, 16, QLatin1Char('0')).toUpper();
-    if ((Pep::burnCount == 1) && (memAddress < Pep::romStartAddress)) {
-        codeStr = "  ";
-    }
-    QString symbolStr = symbolDef;
-    if (symbolStr.length() > 0) {
-        symbolStr.append(":");
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".BYTE";
     QString oprndStr = argument->getArgumentString();
@@ -390,240 +508,114 @@ void DotByte::appendSourceLine(QStringList &assemblerListingList, QStringList &l
         oprndStr.remove(2, 2); // Display only the last two hex characters
     }
     QString lineStr = QString("%1%2%3%4%5%6")
-                      .arg(memStr, -6, QLatin1Char(' '))
-                      .arg(codeStr, -7, QLatin1Char(' '))
-                      .arg(symbolStr, -9, QLatin1Char(' '))
-                      .arg(dotStr, -8, QLatin1Char(' '))
-                      .arg(oprndStr, -12)
-                      .arg(comment);
-    assemblerListingList.append(lineStr);
-    listingTraceList.append(lineStr);
-    hasCheckBox.append(false);
+            .arg(memStr, -6, QLatin1Char(' '))
+            .arg(codeStr, -7, QLatin1Char(' '))
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(oprndStr, -12)
+            .arg(comment);
+    return lineStr;
 }
 
-void DotEnd::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString DotEnd::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
-    QString symbolStr = symbolDef;
-    if (symbolStr.length() > 0) {
-        symbolStr.append(":");
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".END";
     QString lineStr = QString("%1       %2%3              %4")
-                      .arg(memStr, -6, QLatin1Char(' '))
-                      .arg(symbolStr, -9, QLatin1Char(' '))
-                      .arg(dotStr, -8, QLatin1Char(' '))
-                      .arg(comment);
-    assemblerListingList.append(lineStr);
-    listingTraceList.append(lineStr);
-    hasCheckBox.append(false);
+            .arg(memStr, -6, QLatin1Char(' '))
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(comment);
+    return lineStr;
 }
 
-void DotEquate::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString DotEquate::getAssemblerListing() const
 {
-    QString symbolStr = symbolDef;
-    if (symbolStr.length() > 0) {
-        symbolStr.append(":");
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".EQUATE";
     QString oprndStr = argument->getArgumentString();
     QString lineStr = QString("             %1%2%3%4")
-                      .arg(symbolStr, -9, QLatin1Char(' '))
-                      .arg(dotStr, -8, QLatin1Char(' '))
-                      .arg(oprndStr, -12)
-                      .arg(comment);
-    assemblerListingList.append(lineStr);
-    listingTraceList.append(lineStr);
-    hasCheckBox.append(false);
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(oprndStr, -12)
+            .arg(comment);
+    return lineStr;
 }
 
-void DotWord::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString DotWord::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
     QString codeStr = QString("%1").arg(argument->getArgumentValue(), 4, 16, QLatin1Char('0')).toUpper();
-    if ((Pep::burnCount == 1) && (memAddress < Pep::romStartAddress)) {
-        codeStr = "    ";
-    }
-    QString symbolStr = symbolDef;
-    if (symbolStr.length() > 0) {
-        symbolStr.append(":");
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".WORD";
     QString oprndStr = argument->getArgumentString();
     QString lineStr = QString("%1%2%3%4%5%6")
-                      .arg(memStr, -6, QLatin1Char(' '))
-                      .arg(codeStr, -7, QLatin1Char(' '))
-                      .arg(symbolStr, -9, QLatin1Char(' '))
-                      .arg(dotStr, -8, QLatin1Char(' '))
-                      .arg(oprndStr, -12)
-                      .arg(comment);
-    assemblerListingList.append(lineStr);
-    listingTraceList.append(lineStr);
-    hasCheckBox.append(false);
+            .arg(memStr, -6, QLatin1Char(' '))
+            .arg(codeStr, -7, QLatin1Char(' '))
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(oprndStr, -12)
+            .arg(comment);
+    return lineStr;
 }
 
-void CommentOnly::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString CommentOnly::getAssemblerListing() const
 {
-    assemblerListingList.append("             " + comment);
-    listingTraceList.append("             " + comment);
-    hasCheckBox.append(false);
+    return "             " + comment;
 }
 
-void BlankLine::appendSourceLine(QStringList &assemblerListingList, QStringList &listingTraceList, QList<bool> &hasCheckBox)
+QString BlankLine::getAssemblerListing() const
 {
-    assemblerListingList.append("");
-    listingTraceList.append("");
-    hasCheckBox.append(false);
+    return "";
 }
 
-bool DotBlock::processFormatTraceTags(int &sourceLine, QString &errorString) {
-    if (symbolDef.isEmpty()) {
-        return true;
-    }
-    int pos = IsaAsm::rxFormatTag.indexIn(comment);
-    if (pos > -1) {
-        QString formatTag = IsaAsm::rxFormatTag.cap(0);
-        Enu::ESymbolFormat tagType = IsaAsm::formatTagType(formatTag);
-        int multiplier = IsaAsm::formatMultiplier(formatTag);
-        if (argument->getArgumentValue() != IsaAsm::tagNumBytes(tagType) * multiplier) {
-            errorString = ";WARNING: Format tag does not match number of bytes allocated by .BLOCK.";
-            sourceLine = sourceCodeLine;
-            return false;
-        }
-        Pep::symbolFormat.insert(symbolDef, tagType);
-        Pep::symbolFormatMultiplier.insert(symbolDef, multiplier);
-        Pep::blockSymbols.append(symbolDef);
-    }
-    return true;
+quint16 UnaryInstruction::objectCodeLength() const
+{
+    return 1;
 }
 
-bool DotEquate::processFormatTraceTags(int &, QString &) {
-    if (symbolDef.isEmpty()) {
-        return true;
-    }
-    int pos = IsaAsm::rxFormatTag.indexIn(comment);
-    if (pos > -1) {
-        QString formatTag = IsaAsm::rxFormatTag.cap(0);
-        Pep::symbolFormat.insert(symbolDef, IsaAsm::formatTagType(formatTag));
-        Pep::symbolFormatMultiplier.insert(symbolDef, IsaAsm::formatMultiplier(formatTag));
-        Pep::equateSymbols.append(symbolDef);
-    }
-    return true;
+quint16 NonUnaryInstruction::objectCodeLength() const
+{
+    return 3;
 }
 
-bool DotBlock::processSymbolTraceTags(int &sourceLine, QString &errorString) {
-    // For global structs.
-    if (symbolDef.isEmpty()) {
-        return true;
-    }
-    if (Pep::blockSymbols.contains(symbolDef)) {
-        return true; // Pre-existing format tag takes precedence over symbol tag.
-    }
-
-    int numBytesAllocated = argument->getArgumentValue();
-    QString symbol;
-    QStringList list;
-    int numBytesListed = 0;
-    int pos = 0;
-    while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
-        symbol = IsaAsm::rxSymbolTag.cap(1);
-        if (!Pep::equateSymbols.contains(symbol)) {
-            errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
-            sourceLine = sourceCodeLine;
-            return false;
-        }
-        numBytesListed += IsaAsm::tagNumBytes(Pep::symbolFormat.value(symbol)) * Pep::symbolFormatMultiplier.value(symbol);
-        list.append(symbol);
-        pos += IsaAsm::rxSymbolTag.matchedLength();
-    }
-    if (numBytesAllocated != numBytesListed && numBytesListed > 0) {
-        errorString = ";WARNING: Number of bytes allocated (" + QString("%1").arg(numBytesAllocated) +
-                      ") not equal to number of bytes listed in trace tag (" + QString("%1").arg(numBytesListed) + ").";
-        sourceLine = sourceCodeLine;
-        return false;
-    }
-    Pep::blockSymbols.append(symbolDef);
-    Pep::globalStructSymbols.insert(symbolDef, list);
-    return true;
+quint16 DotAddrss::objectCodeLength() const
+{
+    return 2;
 }
 
-bool NonUnaryInstruction::processFormatTraceTags(int &, QString &) {
-    if (mnemonic == Enu::EMnemonic::CALL && argument->getArgumentString() == "malloc") {
-        int pos = IsaAsm::rxFormatTag.indexIn(comment);
-        if (pos > -1) {
-            QStringList list;
-            QString formatTag = IsaAsm::rxFormatTag.cap(0);
-            Enu::ESymbolFormat tagType = IsaAsm::formatTagType(formatTag);
-            int multiplier = IsaAsm::formatMultiplier(formatTag);
-            QString symbolDef = QString("%1").arg(memAddress); // Dummy symbol for format tag in malloc
-            if (!Pep::equateSymbols.contains(symbolDef)){
-                // Limitation: only one dummy format per program
-                Pep::equateSymbols.append(symbolDef);
-            }
-            Pep::symbolFormat.insert(symbolDef, tagType); // Any duplicates have value replaced
-            Pep::symbolFormatMultiplier.insert(symbolDef, multiplier);
-            list.append(symbolDef);
-            Pep::symbolTraceList.insert(memAddress, list);
-        }
-    }
-    return true;
+quint16 DotAlign::objectCodeLength() const
+{
+    return numBytesGenerated->getArgumentValue();
 }
 
-bool NonUnaryInstruction::processSymbolTraceTags(int &sourceLine, QString &errorString) {
-    if (mnemonic == Enu::EMnemonic::ADDSP || mnemonic == Enu::EMnemonic::SUBSP) {
-        int numBytesAllocated;
-        if (addressingMode != Enu::EAddrMode::I) {
-            errorString = ";WARNING: Stack trace not possible unless immediate addressing is specified.";
-            sourceLine = sourceCodeLine;
-            return false;
-        }
-        numBytesAllocated = argument->getArgumentValue();
-        QString symbol;
-        QStringList list;
-        int numBytesListed = 0;
-        int pos = 0;
-        while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
-            symbol = IsaAsm::rxSymbolTag.cap(1);
-            if (!Pep::equateSymbols.contains(symbol)) {
-                errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
-                sourceLine = sourceCodeLine;
-                return false;
-            }
-            numBytesListed += IsaAsm::tagNumBytes(Pep::symbolFormat.value(symbol)) * Pep::symbolFormatMultiplier.value(symbol);
-            list.append(symbol);
-            pos += IsaAsm::rxSymbolTag.matchedLength();
-        }
-        if (numBytesAllocated != numBytesListed) {
-            QString message = (mnemonic == Enu::EMnemonic::ADDSP) ? "deallocated" : "allocated";
-            errorString = ";WARNING: Number of bytes " + message + " (" + QString("%1").arg(numBytesAllocated) +
-                          ") not equal to number of bytes listed in trace tag (" + QString("%1").arg(numBytesListed) + ").";
-            sourceLine = sourceCodeLine;
-            return false;
-        }
-        Pep::symbolTraceList.insert(memAddress, list);
-        return true;
-    }
-    else if (mnemonic == Enu::EMnemonic::CALL && argument->getArgumentString() == "malloc") {
-        int pos = 0;
-        QString symbol;
-        QStringList list;
-        while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
-            symbol = IsaAsm::rxSymbolTag.cap(1);
-            if (!Pep::equateSymbols.contains(symbol) && !Pep::blockSymbols.contains(symbol)) {
-                errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
-                sourceLine = sourceCodeLine;
-                return false;
-            }
-            list.append(symbol);
-            pos += IsaAsm::rxSymbolTag.matchedLength();
-        }
+quint16 DotAscii::objectCodeLength() const
+{
+    // Subtract 2 to account for left and right quotation marks
+    return argument->getArgumentString().length() - 2;
+}
 
-        if (!list.isEmpty()) {
-            Pep::symbolTraceList.insert(memAddress, list);
-        }
-        return true;
-    }
-    else {
-        return true;
-    }
+quint16 DotBlock::objectCodeLength() const
+{
+    return argument->getArgumentValue();
+}
+
+quint16 DotByte::objectCodeLength() const
+{
+    return 1;
+}
+
+quint16 DotWord::objectCodeLength() const
+{
+    return 2;
 }

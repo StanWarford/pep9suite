@@ -128,6 +128,7 @@ private slots:
     void scrollToPC();
     void scrollToSP();
     void scrollToAddress(QString string);
+    void scrollToInt(int address);
 };
 
 /*

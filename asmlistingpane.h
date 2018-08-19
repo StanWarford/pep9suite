@@ -3,7 +3,7 @@
     Pep9 is a virtual machine for writing machine language and assembly
     language programs.
     
-    Copyright (C) 2009  J. Stanley Warford, Pepperdine University
+    Copyright (C) 20018 J. Stanley Warford, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,16 +26,18 @@
 #include "pepmicrohighlighter.h"
 #include "enu.h"
 #include "pepasmhighlighter.h"
+#include <QSharedPointer>
 namespace Ui {
     class AsmListingPane;
 }
+class SymbolTable;
 class AsmListingPane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmListingPane)
 public:
-    explicit AsmListingPane(QWidget *parent = 0);
+    explicit AsmListingPane(QWidget *parent = nullptr);
     virtual ~AsmListingPane();
-    void setAssemblerListing(QStringList assemblerListingList);
+    void setAssemblerListing(QStringList assemblerListingList, QSharedPointer<SymbolTable> symTable);
     void clearAssemblerListing();
 
     bool isModified();

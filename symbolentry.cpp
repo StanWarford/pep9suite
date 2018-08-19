@@ -2,20 +2,25 @@
 #include "symbolvalue.h"
 
 
-SymbolEntry::SymbolEntry(SymbolTable::SymbolID symbolID, QString name) :symbolID(symbolID), name(name),
-symbolValue(std::make_shared<SymbolValueEmpty>()), definedState(DefStates::UNDEFINED)
+SymbolEntry::SymbolEntry(SymbolTable* parent, SymbolTable::SymbolID symbolID, QString name):symbolID(symbolID), name(name),
+symbolValue(QSharedPointer<SymbolValueEmpty>::create()), definedState(DefStates::UNDEFINED), parent(parent), _format()
 {
 }
 
-SymbolEntry::SymbolEntry(SymbolTable::SymbolID symbolID, QString name,
-                         SymbolTable::AbstractSymbolValuePtr value) : symbolID(symbolID), name(name),
-symbolValue(nullptr)
+SymbolEntry::SymbolEntry(SymbolTable* parent, SymbolTable::SymbolID symbolID, QString name,
+                         SymbolTable::AbstractSymbolValuePtr value): symbolID(symbolID), name(name), parent(parent),
+    symbolValue(nullptr), _format()
 {
     setValue(value);
 }
 
 SymbolEntry::~SymbolEntry()
 {
+}
+
+const SymbolTable* SymbolEntry::getParentTable() const
+{
+    return parent;
 }
 
 
@@ -78,5 +83,15 @@ qint32 SymbolEntry::getValue() const
 
 SymbolTable::AbstractSymbolValuePtr SymbolEntry::getRawValue()
 {
-	return symbolValue;
+    return symbolValue;
+}
+
+void SymbolEntry::setSymbolFormat(SymbolFormat format)
+{
+    _format = std::move(format);
+}
+
+const SymbolFormat &SymbolEntry::getSymbolFormat() const
+{
+    return _format;
 }

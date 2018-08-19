@@ -41,6 +41,10 @@
 #include "aboutpep.h"
 #include "asmargument.h"
 #include "asmcode.h"
+#include "asmprogram.h"
+#include "asmprogrammanager.h"
+#include "asmsourcecodepane.h"
+#include "asmlistingpane.h"
 #include "byteconverterbin.h"
 #include "byteconverterchar.h"
 #include "byteconverterdec.h"
@@ -58,12 +62,12 @@
 #include "microcodeprogram.h"
 #include "microobjectcodepane.h"
 #include "updatechecker.h"
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), updateChecker(new UpdateChecker()),
+    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
     memorySection(MemorySection::getInstance()), dataSection(CPUDataSection::getInstance()),
-    controlSection(CPUControlSection::getInstance()), statisticsLevelsGroup(new QActionGroup(this)), inDarkMode(false)
+    controlSection(CPUControlSection::getInstance()), programManager(AsmProgramManager::getInstance()),
+    statisticsLevelsGroup(new QActionGroup(this)), inDarkMode(false)
 {
     // Initialize all global maps.
     Pep::initMicroEnumMnemonMaps();
@@ -72,13 +76,15 @@ MainWindow::MainWindow(QWidget *parent) :
     Pep::initAddrModesMap();
     Pep::initDecoderTables();
 
-    // Install this class as the global event filter.
-    qApp->installEventFilter(this);
-
     // Perform any additional setup needed for UI objects.
     ui->setupUi(this);
+    // Install this class as the global event filter.
+    qApp->installEventFilter(this);
     ui->memoryWidget->init(memorySection, dataSection, controlSection);
     ui->cpuWidget->init(this);
+    ui->memoryTracePane->init(memorySection);
+    ui->AsmSourceCodeWidgetPane->init(memorySection, programManager);
+
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_All);
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_Minimal);
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_None);
@@ -166,6 +172,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::darkModeChanged, ui->memoryWidget, &MemoryDumpPane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->AsmListingWidgetPane, &AsmListingPane::onDarkModeChanged);
+    connect(this, &MainWindow::darkModeChanged, ui->asmListingTracePane, &AsmTracePane::onDarkModeChanged);
 
     connect(ui->cpuWidget, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
 
@@ -187,6 +194,10 @@ MainWindow::MainWindow(QWidget *parent) :
     // Connect events for breakpoints
     connect(ui->actionDebug_Remove_All_Microcode_Breakpoints, &QAction::triggered, ui->microcodeWidget, &MicrocodePane::onRemoveAllBreakpoints);
     connect(ui->actionDebug_Remove_All_Assembly_Breakpoints, &QAction::triggered, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onRemoveAllBreakpoints);
+    connect(ui->actionDebug_Remove_All_Assembly_Breakpoints, &QAction::triggered, ui->asmListingTracePane, &AsmTracePane::onRemoveAllBreakpoints);
+    connect(ui->actionDebug_Remove_All_Assembly_Breakpoints, &QAction::triggered, controlSection, &CPUControlSection::onRemoveAllPCBreakpoints);
+    connect(ui->asmListingTracePane, &AsmTracePane::breakpointAdded, controlSection, &CPUControlSection::onAddPCBreakpoint);
+    connect(ui->asmListingTracePane, &AsmTracePane::breakpointRemoved, controlSection, &CPUControlSection::onRemovePCBreakpoint);
     // Load dark mode style sheet.
     QFile f(":qdarkstyle/dark_style.qss");
     f.open(QFile::ReadOnly | QFile::Text);
@@ -197,14 +208,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     //Pre-render memory & fix maximum widget size.
-    quint32 maxSize = ui->memoryWidget->memoryDumpWidth();
+    int maxSize = ui->memoryWidget->memoryDumpWidth();
     ui->memoryWidget->setMinimumWidth(maxSize);
     ui->memoryWidget->setMaximumWidth(maxSize);
-    ui->ioWidget->setMaximumWidth(maxSize);
+    //ui->ioWidget->setMaximumWidth(maxSize);
 
     //Initialize state for ISA level simulation
-    Pep::memAddrssToAssemblerListing = &Pep::memAddrssToAssemblerListingProg;
-    Pep::listingRowChecked = &Pep::listingRowCheckedProg;
+    //Pep::memAddrssToAssemblerListing = &Pep::memAddrssToAssemblerListingProg;
+    //Pep::listingRowChecked = &Pep::listingRowCheckedProg;
 
     //Initialize Microcode panes
     QFile file("://help/pep9micro.pepcpu");
@@ -212,6 +223,7 @@ MainWindow::MainWindow(QWidget *parent) :
         QTextStream in(&file);
         ui->microcodeWidget->setMicrocode(in.readAll());
         ui->microcodeWidget->setModifiedFalse();
+        ui->microcodeWidget->setCurrentFile(QFileInfo(file).filePath());
     }
 
     //Initialize debug menu
@@ -219,6 +231,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Lastly, read in settings
     readSettings();
+
+    // Resize docking widgets because QT does a poor job of it
+    tabifyDockWidget(ui->memoryDockWdget, ui->memoryTraceDockWidget);
+    ui->memoryDockWdget->raise();
+    int scaleTotal = ui->memoryDockWdget->sizePolicy().verticalStretch()+ ui->ioDockWidget->sizePolicy().verticalStretch();
+    double memory = geometry().height() * ui->memoryDockWdget->sizePolicy().verticalStretch() / static_cast<double>(scaleTotal);
+    double io = geometry().height() * ui->ioDockWidget->sizePolicy().verticalStretch() / static_cast<double>(scaleTotal);
+    resizeDocks({ui->memoryDockWdget, ui->ioDockWidget}, {static_cast<int>(memory),
+                                                          static_cast<int>(io)}, Qt::Vertical);
 }
 
 MainWindow::~MainWindow()
@@ -344,6 +365,18 @@ void MainWindow::readSettings()
     if(debuggerLevel >= static_cast<quint16>(Enu::DebugLevels::END)) debuggerLevel = static_cast<int>(Enu::DebugLevels::DEFAULT);
     controlSection->setDebugLevel(static_cast<Enu::DebugLevels>(debuggerLevel));
     setCheckedFromDebugLevel(static_cast<Enu::DebugLevels>(debuggerLevel));
+
+    // Restore last used split in assembly code pane
+    val = settings.beginReadArray("codePaneSplit");
+    QList<int> sizes;
+    for(int it = 0; it < ui->codeSplitter->sizes().length(); it++) {
+        settings.setArrayIndex(it);
+        sizes.append(settings.value("size", 1).toInt());
+    }
+    ui->codeSplitter->setSizes(sizes);
+    settings.endArray();
+
+
     settings.endGroup();
 
     //Handle reading for all children
@@ -359,6 +392,13 @@ void MainWindow::writeSettings()
     settings.setValue("filePath", curPath);
     settings.setValue("inDarkMode", inDarkMode);
     settings.setValue("debugLevel", (int)controlSection->getDebugLevel());
+    settings.beginWriteArray("codePaneSplit", 3);
+    QList<int> temp = ui->codeSplitter->sizes();
+    for(int it = 0; it < 3; it++) {
+        settings.setArrayIndex(it);
+        settings.setValue("size", temp[it]);
+    }
+    settings.endArray();
     settings.endGroup();
     //Handle writing for all children
     ui->microcodeWidget->writeSettings(settings);
@@ -503,6 +543,7 @@ void MainWindow::loadFile(const QString &fileName, Enu::EPane which)
         break;
     case Enu::EPane::EMicrocode:
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
+        ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
         ui->microcodeWidget->setFocus();
         ui->microcodeWidget->setCurrentFile(fileName);
         ui->microcodeWidget->setMicrocode(in.readAll());
@@ -746,31 +787,32 @@ QVector<quint8> convertObjectCodeToIntArray(QString line)
 void MainWindow::loadOperatingSystem()
 {
     QVector<quint8> values;
-    quint16 startAddress = 0xfc17;
+    quint16 startAddress;
     QString  osFileString;
 #pragma message ("TODO: Add ability to switch between operating systems")
     //In the future, have a switch between loading the aligned and unaligned code
-    if(true) osFileString = (":/help/pep9os.txt");
+    if(true) osFileString = (":/help/pep9os/alignedIO-OS.pep");
     else osFileString = ("failure_to_load");
     QFile osFile(osFileString);
-    if(osFile.open(QFile::ReadOnly))
-    {
-        QTextStream file(&osFile);
-        while(!file.atEnd())
+    if(programManager->getOperatingSystem() == nullptr) {
+        if(osFile.open(QFile::ReadOnly))
         {
-            QString text = file.readLine();
-            values.append(convertObjectCodeToIntArray(text));
+            QStringList ls = QString(osFile.readAll()).split("\n");
+            osFile.close();
+            ui->AsmSourceCodeWidgetPane->assembleOS(ls);
         }
-        osFile.close();
-        startAddress = 0xffff - values.length() + 1;
-        memorySection->loadObjectCode(startAddress,values);
-        memorySection->onIPortChanged(memorySection->getMemoryWord(0xFFF8, false));
-        memorySection->onOPortChanged(memorySection->getMemoryWord(0xFFFA, false));
+        else
+        {
+            qDebug() << "I shouldn't be here";
+            qDebug() << osFile.errorString();
+            return;
+        }
     }
-    else
-    {
-        qDebug()<<osFile.errorString();
-    }
+    values = programManager->getOperatingSystem()->getObjectCode();
+    startAddress = 0xffff - values.length() + 1;
+    memorySection->loadObjectCode(startAddress, values);
+    memorySection->onIPortChanged(memorySection->getMemoryWord(0xFFF8, false));
+    memorySection->onOPortChanged(memorySection->getMemoryWord(0xFFFA, false));
 }
 
 void MainWindow::loadObjectCodeProgram()
@@ -807,26 +849,45 @@ void MainWindow::set_Obj_Listing_filenames_from_Source()
 
 void MainWindow::doubleClickedCodeLabel(Enu::EPane which)
 {
-    QList<int> list;
+    QList<int> list, defaultList = {1,1,1};
+    QList<int> old = ui->codeSplitter->sizes();
+    auto max = std::minmax_element(old.begin(), old.end());
+    static const int largeSize = 3000, smallSize = 1;
+    bool sameSize = *max.second - *max.first <5;
     switch(which)
     {
     // Give the selected pane the majority of the screen space.
     case Enu::EPane::ESource:
-        list.append(3000);
-        list.append(1);
-        list.append(1);
+        if(old[0] == *max.second && !sameSize) {
+            list = defaultList;
+        }
+        else {
+            list.append(largeSize);
+            list.append(smallSize);
+            list.append(smallSize);
+        }
         ui->codeSplitter->setSizes(list);
         break;
     case Enu::EPane::EObject:
-        list.append(1);
-        list.append(3000);
-        list.append(1);
+        if(old[1] == *max.second && !sameSize) {
+            list = defaultList;
+        }
+        else {
+            list.append(smallSize);
+            list.append(largeSize);
+            list.append(smallSize);
+        }
         ui->codeSplitter->setSizes(list);
         break;
     case Enu::EPane::EListing:
-        list.append(1);
-        list.append(1);
-        list.append(3000);
+        if(old[2] == *max.second && !sameSize) {
+            list = defaultList;
+        }
+        else {
+            list.append(smallSize);
+            list.append(smallSize);
+            list.append(largeSize);
+        }
         ui->codeSplitter->setSizes(list);
         break;
     }
@@ -864,6 +925,11 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionStatistics_Level_All->setEnabled(which&DebugButtons::STATS_LEVELS);
     ui->actionStatistics_Level_Minimal->setEnabled(which&DebugButtons::STATS_LEVELS);
     ui->actionStatistics_Level_None->setEnabled(which&DebugButtons::STATS_LEVELS);
+
+    //File open & new actions
+    ui->actionFile_New_Asm->setEnabled(which&DebugButtons::OPEN_NEW);
+    ui->actionFile_New_Microcode->setEnabled(which&DebugButtons::OPEN_NEW);
+    ui->actionFile_Open->setEnabled(which&DebugButtons::OPEN_NEW);
 }
 
 void MainWindow::highlightActiveLines(bool forceISA)
@@ -872,7 +938,7 @@ void MainWindow::highlightActiveLines(bool forceISA)
     ui->microcodeWidget->updateSimulationView();
     ui->microObjectCodePane->highlightCurrentInstruction();
     //If the µPC is 0, if a breakpoint has been reached, or if the microcode has a breakpoint, rehighlight the ASM views.
-    if(controlSection->getLineNumber() == 0 || forceISA || controlSection->lineHasBreakpoint()) {
+    if(controlSection->getLineNumber() == 0 || forceISA || controlSection->stoppedForBreakpoint()) {
         ui->memoryWidget->clearHighlight();
         ui->memoryWidget->highlight();
     }
@@ -1168,10 +1234,9 @@ void MainWindow::on_actionEdit_Remove_Error_Microcode_triggered()
 
 void MainWindow::on_actionEdit_Font_triggered()
 {
-    bool ok = false ;
-    QFont font  = QFontDialog::getFont(&ok,codeFont, this, "Set Source Code Font");
-    if(ok)
-    {
+    bool ok = false;
+    QFont font  = QFontDialog::getFont(&ok, codeFont, this, "Set Source Code Font");
+    if(ok) {
         codeFont = font;
         emit fontChanged(codeFont);
     }
@@ -1198,15 +1263,15 @@ void MainWindow::on_actionBuild_Microcode_triggered()
 bool MainWindow::on_ActionBuild_Assemble_triggered()
 {
     loadOperatingSystem();
-    Pep::burnCount = 0;
     if(ui->AsmSourceCodeWidgetPane->assemble()){
 #pragma message ("TODO: cancel run on burn and reset prog state")
-        if(Pep::burnCount > 0) (void)0;
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
-        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList());
-        //listingTracePane->setListingTrace(sourceCodePane->getAssemblerListingList(), sourceCodePane->getHasCheckBox());
-        //memoryTracePane->setMemoryTrace();
-        //listingTracePane->showAssemblerListing();
+        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
+                                                      ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
+        ui->asmListingTracePane->onRemoveAllBreakpoints();
+        controlSection->onRemoveAllPCBreakpoints();
+        ui->asmListingTracePane->setProgram(ui->AsmSourceCodeWidgetPane->getAsmProgram());
+        //ui->memoryTracePane->setMemoryTrace();
         set_Obj_Listing_filenames_from_Source();
         loadObjectCodeProgram();
         ui->statusBar->showMessage("Assembly succeeded", 4000);
@@ -1216,7 +1281,8 @@ bool MainWindow::on_ActionBuild_Assemble_triggered()
 #pragma message ("TODO: fix current file title if problematic")
         ui->AsmObjectCodeWidgetPane->clearObjectCode();
         ui->AsmListingWidgetPane->clearAssemblerListing();
-        // listingTracePane->clearListingTrace();
+        ui->asmListingTracePane->clearSourceCode();
+        ui->asmListingTracePane->onRemoveAllBreakpoints();
         // ui->pepCodeTraceTab->setCurrentIndex(0); // Make source code pane visible
         loadObjectCodeProgram();
         ui->statusBar->showMessage("Assembly failed", 4000);
@@ -1257,17 +1323,16 @@ void MainWindow::on_actionBuild_Run_triggered()
     if (initializeSimulation()) {
         disconnectViewUpdate();
         emit simulationStarted();
-        loadOperatingSystem();
-        loadObjectCodeProgram();
         ui->memoryWidget->updateMemory();
         controlSection->onSimulationStarted();
         controlSection->onRun();
         connectViewUpdate();
+
     }
     else {
         debugState = DebugState::DISABLED;
     }
-    emit simulationFinished();
+    onSimulationFinished();
 }
 
 // Debug slots
@@ -1282,6 +1347,7 @@ void MainWindow::handleDebugButtons()
     case DebugState::DISABLED:
         enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
         enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO | DebugButtons::STATS_LEVELS;
+        enabledButtons |= DebugButtons::OPEN_NEW;
         break;
     case DebugState::RUN:
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;
@@ -1320,6 +1386,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
     if(initializeSimulation()) {
         emit simulationStarted();
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
+        ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
         controlSection->onDebuggingStarted();
         ui->cpuWidget->startDebugging();
         ui->memoryWidget->updateMemory();
@@ -1368,7 +1435,7 @@ void MainWindow::on_actionDebug_Continue_triggered()
         return; // we'll just return here instead of letting it fail and go to the bottom
     }
     connectViewUpdate();
-    if(controlSection->lineHasBreakpoint()) {
+    if(controlSection->stoppedForBreakpoint()) {
         emit simulationUpdate();
         QApplication::processEvents();
         highlightActiveLines(true);
@@ -1387,6 +1454,7 @@ void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
     debugState = DebugState::DEBUG_ISA;
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[memorySection->getMemoryByte(dataSection->getRegisterBankWord(CPURegisters::PC), false)];
     bool isTrap = Pep::isTrapMap[mnemon];
+    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
     if(isTrap && ui->actionSystem_Trace_Traps->isChecked()){ //If it is a trap instruction & we are tracing traps, step into the trap.
         on_actionDebug_Step_Into_Assembler_triggered();
     }
@@ -1408,6 +1476,7 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
 {
     debugState = DebugState::DEBUG_ISA;
     int callDepth = controlSection->getCallDepth();
+    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
     //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
     disconnectViewUpdate();
     do{
@@ -1420,7 +1489,7 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
         }
     } while(callDepth < controlSection->getCallDepth()
             && !controlSection->getExecutionFinished()
-            && !controlSection->lineHasBreakpoint());
+            && !controlSection->stoppedForBreakpoint());
     connectViewUpdate();
     emit simulationUpdate();
 }
@@ -1428,6 +1497,7 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
 void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
 {
     debugState = DebugState::DEBUG_ISA;
+    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
     controlSection->onISAStep();
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
@@ -1441,6 +1511,7 @@ void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
 void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
 {
     debugState = DebugState::DEBUG_ISA;
+    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
     int callDepth = controlSection->getCallDepth();
     //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
     disconnectViewUpdate();
@@ -1454,7 +1525,7 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
         }
     } while(callDepth <= controlSection->getCallDepth()
             && !controlSection->getExecutionFinished()
-            && !controlSection->lineHasBreakpoint());
+            && !controlSection->stoppedForBreakpoint());
     connectViewUpdate();
     emit simulationUpdate();
 }
@@ -1462,12 +1533,20 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
 void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
 {
     debugState = DebugState::DEBUG_MICRO;
+        ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
     controlSection->onStep();
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
         QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
+    // If the simulation hit a microcode breakpoint, step again so that the next line wil be selected.
+    else if (controlSection->stoppedForBreakpoint()) {
+        // Process events until onMicroBreakpointHit() is called, and then step so the next line is selected.
+        QApplication::processEvents();
+        controlSection->onStep();
+    }
+
     emit simulationUpdate();
 }
 
@@ -1475,12 +1554,15 @@ void MainWindow::onMicroBreakpointHit()
 {
     debugState = DebugState::DEBUG_MICRO;
     QApplication::processEvents();
-    controlSection->onBreakpointHandled();
+    controlSection->onMicroBreakpointHandled();
 }
 
 void MainWindow::onASMBreakpointHit()
 {
-#pragma message("TODO: Handle ASM breakpoint")
+    qDebug() << "trapped on PC = " << dataSection->getRegisterBankWord(CPURegisters::PC);
+    debugState = DebugState::DEBUG_ISA;
+    QApplication::processEvents();
+    controlSection->onASMBreakpointHandled();
 }
 
 // System MainWindow triggers
@@ -1671,6 +1753,7 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget * newFocus)
 {
     if(oldFocus == ui->microcodeWidget || newFocus == ui->microcodeWidget)
         ui->microcodeWidget->highlightOnFocus();
+
     if(oldFocus == ui->microObjectCodePane || newFocus == ui->microObjectCodePane)
         ui->microObjectCodePane->highlightOnFocus();
 
@@ -1679,10 +1762,13 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget * newFocus)
 
     if(oldFocus == ui->cpuWidget || newFocus == ui->cpuWidget)
         ui->cpuWidget->highlightOnFocus();
+
     if(oldFocus == ui->AsmSourceCodeWidgetPane || newFocus == ui->AsmSourceCodeWidgetPane)
         ui->AsmSourceCodeWidgetPane->highlightOnFocus();
+
     if(oldFocus == ui->AsmObjectCodeWidgetPane || newFocus == ui->AsmObjectCodeWidgetPane)
         ui->AsmObjectCodeWidgetPane->highlightOnFocus();
+
     if(oldFocus == ui->AsmListingWidgetPane || newFocus == ui->AsmListingWidgetPane)
         ui->AsmListingWidgetPane->highlightOnFocus();
 

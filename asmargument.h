@@ -24,28 +24,32 @@
 
 #include "isaasm.h"
 #include "pep.h"
-
+#include <QSharedPointer>
+#include "symbolentry.h"
+#include "symboltable.h"
+#include "symbolvalue.h"
+class SymbolEntry;
 // Abstract Argument class
 class AsmArgument
 {
     friend class IsaAsm;
 public:
     virtual ~AsmArgument() { }
-    virtual int getArgumentValue() = 0;
-    virtual QString getArgumentString() = 0;
+    virtual int getArgumentValue() const = 0;
+    virtual QString getArgumentString() const = 0;
 };
 
 // Concrete argument classes
-// All methods are defined in this argument.h file.
 class CharArgument: public AsmArgument
 {
     friend class IsaAsm;
 private:
     QString charValue;
 public:
-    CharArgument(QString cValue) { charValue = cValue; }
-    int getArgumentValue() { return IsaAsm::charStringToInt(charValue); }
-    QString getArgumentString() { return charValue; }
+    explicit CharArgument(QString cValue);
+    virtual ~CharArgument() override = default;
+    virtual int getArgumentValue() const override;
+    virtual QString getArgumentString() const override;
 };
 
 class DecArgument: public AsmArgument
@@ -53,12 +57,10 @@ class DecArgument: public AsmArgument
 private:
     int decValue;
 public:
-    DecArgument(int dValue) { decValue = dValue; }
-    int getArgumentValue() { return decValue; }
-    QString getArgumentString() {
-        int temp = decValue >= 32768 ? decValue - 65536 : decValue;
-        return QString("%1").arg(temp);
-    }
+    explicit DecArgument(int dValue);
+    virtual ~DecArgument() override = default;
+    virtual int getArgumentValue() const override;
+    virtual QString getArgumentString() const override;
 };
 
 class UnsignedDecArgument: public AsmArgument
@@ -66,11 +68,10 @@ class UnsignedDecArgument: public AsmArgument
 private:
     int decValue;
 public:
-    UnsignedDecArgument(int dValue) { decValue = dValue; }
-    int getArgumentValue() { return decValue; }
-    QString getArgumentString() {
-        return QString("%1").arg(decValue);
-    }
+    explicit UnsignedDecArgument(int dValue);
+    virtual ~UnsignedDecArgument() override = default;
+    virtual int getArgumentValue() const override;
+    virtual QString getArgumentString() const override;
 };
 
 class HexArgument: public AsmArgument
@@ -78,9 +79,10 @@ class HexArgument: public AsmArgument
 private:
     int hexValue;
 public:
-    HexArgument(int hValue) { hexValue = hValue; }
-    int getArgumentValue() { return hexValue; }
-    QString getArgumentString() { return "0x" + QString("%1").arg(hexValue, 4, 16, QLatin1Char('0')).toUpper(); }
+    explicit HexArgument(int hValue);
+    virtual ~HexArgument() override = default;
+    virtual int getArgumentValue() const override;
+    virtual QString getArgumentString() const override;
 };
 
 class StringArgument: public AsmArgument
@@ -88,21 +90,21 @@ class StringArgument: public AsmArgument
 private:
     QString stringValue;
 public:
-    StringArgument(QString sValue) { stringValue = sValue; }
-    int getArgumentValue() { return IsaAsm::string2ArgumentToInt(stringValue); }
-    QString getArgumentString() { return stringValue; }
+    explicit StringArgument(QString sValue);
+    virtual ~StringArgument() override = default;
+    virtual int getArgumentValue() const override;
+    virtual QString getArgumentString() const override;
 };
 
 class SymbolRefArgument: public AsmArgument
 {
 private:
-    QString symbolRefValue;
+    QSharedPointer<SymbolEntry> symbolRefValue;
 public:
-    SymbolRefArgument(QString sRefValue) { symbolRefValue = sRefValue; }
-    int getArgumentValue() {
-        return Pep::symbolTable.value(symbolRefValue);
-    }
-    QString getArgumentString() { return symbolRefValue; }
+    explicit SymbolRefArgument(QSharedPointer<SymbolEntry> sRefValue);
+    virtual ~SymbolRefArgument() override = default;
+    virtual int getArgumentValue() const override;
+    virtual QString getArgumentString() const override;
 };
 
 #endif // ARGUMENT_H

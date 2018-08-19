@@ -428,28 +428,9 @@ void Pep::initAddrModesMap()
     addrModesMap.insert(EMnemonic::STRO, defaultMnemon4AddrModes);
 }
 
-// The symbol table
-QMap<QString, int> Pep::symbolTable;
-QMap<QString, bool> Pep::adjustSymbolValueForBurn;
-
 // The trace tag tables
 QMap<QString, Enu::ESymbolFormat> Pep::symbolFormat;
 QMap<QString, int> Pep::symbolFormatMultiplier;
-QMap<QString, QStringList> Pep::globalStructSymbols;
-
-QMap<int, QStringList> Pep::symbolTraceList; // Key is memory address
-QStringList Pep::blockSymbols;
-QStringList Pep::equateSymbols;
-
-// Map from instruction memory address to assembler listing line
-QMap<int, int> *Pep::memAddrssToAssemblerListing;
-QMap<int, Qt::CheckState> *Pep::listingRowChecked;
-
-QMap<int, int> Pep::memAddrssToAssemblerListingProg;
-QMap<int, Qt::CheckState> Pep::listingRowCheckedProg;
-
-QMap<int, int> Pep::memAddrssToAssemblerListingOS;
-QMap<int, Qt::CheckState> Pep::listingRowCheckedOS;
 
 // Decoder tables
 QVector<Enu::EMnemonic> Pep::decodeMnemonic(256);
@@ -544,13 +525,3 @@ void Pep::initDecoderTables()
     initDecoderTableAAAHelper(EMnemonic::STBA, 240);
     initDecoderTableAAAHelper(EMnemonic::STBX, 248);
 }
-
-// .BURN and the ROM state
-int Pep::byteCount;
-int Pep::burnCount;
-int Pep::dotBurnArgument;
-int Pep::romStartAddress;
-
-// Memory trace state
-bool Pep::traceTagWarning;
-

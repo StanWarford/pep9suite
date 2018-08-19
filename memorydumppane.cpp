@@ -58,6 +58,7 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     connect(ui->pcPushButton, &QAbstractButton::clicked, this, &MemoryDumpPane::scrollToPC);
     connect(ui->spPushButton, &QAbstractButton::clicked, this, &MemoryDumpPane::scrollToSP);
     connect(ui->scrollToLineEdit, &QLineEdit::textChanged, this, &MemoryDumpPane::scrollToAddress);
+    connect(ui->tableView->verticalScrollBar(), &QScrollBar::valueChanged, this, &MemoryDumpPane::scrollToInt);
 }
 
 void MemoryDumpPane::init(MemorySection *memorySection, CPUDataSection *dataSection, CPUControlSection *controlSection)
@@ -336,6 +337,7 @@ void MemoryDumpPane::scrollToByte(quint16 byte)
     // Rows contain 8 bytes of memory.
     // The first column is an address, so the first byte in a row is in column one.
     ui->tableView->scrollTo(data->index(byte/8, byte%8 + 1));
+    scrollToInt(byte);
 }
 
 void MemoryDumpPane::scrollToPC()
@@ -368,6 +370,11 @@ void MemoryDumpPane::scrollToAddress(QString string)
     else {
         ui->scrollToLineEdit->setText("0x");
     }
+}
+
+void MemoryDumpPane::scrollToInt(int address)
+{
+    ui->scrollToLineEdit->setText("0x"+QString("%1").arg(address*8, 4, 16, QChar('0')));
 }
 
 MemoryDumpDelegate::MemoryDumpDelegate(MemorySection* memorySection, QObject *parent): QStyledItemDelegate(parent),

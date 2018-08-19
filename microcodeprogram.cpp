@@ -34,7 +34,7 @@ MicrocodeProgram::MicrocodeProgram(QVector<MicroCodeBase*>objectCode, SymbolTabl
         if((line->getSymbol()) == nullptr) {
             line->setSymbol(symTable->insertSymbol("_as" + QString::number(it)).get());
         }
-        symbolTable->setValue(line->getSymbol()->getSymbolID(), std::make_shared<SymbolValueLocation>(it));
+        symbolTable->setValue(line->getSymbol()->getSymbolID(), QSharedPointer<SymbolValueNumeric>::create(it));
     }
     // For each microcode line with an Assembler_Assigned branch function,
     // replace it with the appropriate Uncoditional branch to the next line of microcode.
