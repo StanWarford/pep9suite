@@ -123,20 +123,6 @@ void MicrocodeEditor::onTextChanged()
     }
     breakpoints.subtract(toRemove);
     update();
-/*
-    for(QMap<quint32, quint32>::const_iterator x = old.cbegin(); x!= old.cend(); x++) {
-        int newPos = (int)blockToCycle.key(x.value(), -1);
-        if(newPos<0) continue;
-        else oldToNew.insert(x.key() , newPos);
-    }
-
-    qDebug().noquote() << "Old BP: "<< breakpoints;
-    QSet<quint32> oldBP = breakpoints;
-    breakpoints.clear();
-    for(auto x : oldBP) {
-        breakpoints.insert(oldToNew[x]);
-    }
-    qDebug().noquote() << "New BP: "<< breakpoints; */
 }
 
 void MicrocodeEditor::highlightSimulatedLine()
@@ -152,19 +138,9 @@ void MicrocodeEditor::highlightSimulatedLine()
         QTextCursor cursor = QTextCursor(document());
         cursor.setPosition(0);
         CPUControlSection* inst = CPUControlSection::getInstance();
-        for (int i = 0; i < inst->getProgram()->codeLineToProgramLine(inst->getLineNumber()); i++) {
-            cursor.movePosition(QTextCursor::NextBlock);
-        }
-
-        // this chunk moves the cursor down and scrolls the text edit to it:
-        cursor.clearSelection();
+        cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, inst->getProgram()->codeLineToProgramLine(inst->getLineNumber()));
         this->setTextCursor(cursor);
-        ensureCursorVisible();
-
-        // move the cursor to the end of the line and select it so we can add it to the extra selections
-        cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
-        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor); // select to end of line
-
+        ensureCursorVisible(); 
         selection.cursor = cursor;
         extraSelections.append(selection);
 

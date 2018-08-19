@@ -89,10 +89,6 @@ void MicroObjectCodePane::setObjectCode()
 void MicroObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* symbolTable)
 {
     assignHeaders();
-    if(this->program==nullptr)
-    {
-        delete this->program;
-    }
     this->program = program;
     this->symTable=symbolTable;
     int rowNum=0,colNum=0;
@@ -144,7 +140,6 @@ void MicroObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* s
         model->setItem(rowNum,colNum++,y);
         rowNum++;
     }
-    ui->codeTable->resizeRowsToContents();
     ui->codeTable->resizeColumnsToContents();
 }
 

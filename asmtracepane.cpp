@@ -4,6 +4,8 @@
 #include "pepasmhighlighter.h"
 #include "asmprogram.h"
 #include <QPainter>
+#include "cpucontrolsection.h"
+#include "cpumemoizer.h"
 AsmTracePane::AsmTracePane(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::AsmTracePane)
@@ -13,6 +15,11 @@ AsmTracePane::AsmTracePane(QWidget *parent) :
     ui->tracePaneTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
     connect(((AsmTraceTextEdit*)ui->tracePaneTextEdit), &AsmTraceTextEdit::breakpointAdded, this, &AsmTracePane::onBreakpointAddedProp);
     connect(((AsmTraceTextEdit*)ui->tracePaneTextEdit), &AsmTraceTextEdit::breakpointRemoved, this, &AsmTracePane::onBreakpointRemovedProp);
+}
+
+void AsmTracePane::init(const CPUControlSection *controlSection)
+{
+    this->controlSection = controlSection;
 }
 
 AsmTracePane::~AsmTracePane()
@@ -61,6 +68,22 @@ void AsmTracePane::readSettings(QSettings &)
 
 }
 
+void AsmTracePane::startSimulationView()
+{
+    ui->tracePaneTextEdit->startSimulationView();
+}
+
+void AsmTracePane::updateSimulationView()
+{
+    ui->tracePaneTextEdit->setActiveAddress(controlSection->getCPUMemoizer()->getRegisterStart(CPURegisters::PC));
+    ui->tracePaneTextEdit->highlightActiveLine();
+}
+
+void AsmTracePane::clearSimulationView()
+{
+    ui->tracePaneTextEdit->clearSimulationView();
+}
+
 void AsmTracePane::onFontChanged(QFont font)
 {
     ui->tracePaneTextEdit->setFont(font);
@@ -89,7 +112,6 @@ void AsmTracePane::onBreakpointRemoved(quint16 line)
     ((AsmTraceTextEdit*)ui->tracePaneTextEdit)->onBreakpointRemoved(line);
 }
 
-
 void AsmTracePane::mouseReleaseEvent(QMouseEvent *)
 {
 
@@ -110,7 +132,7 @@ void AsmTracePane::onBreakpointRemovedProp(quint16 line)
     emit breakpointRemoved(line);
 }
 
-AsmTraceTextEdit::AsmTraceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode)
+AsmTraceTextEdit::AsmTraceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode), updateHighlight(false)
 {
     breakpointArea = new AsmTraceBreakpointArea(this);
     connect(this, &QPlainTextEdit::blockCountChanged, this, &AsmTraceTextEdit::updateBreakpointAreaWidth);
@@ -234,15 +256,38 @@ void AsmTraceTextEdit::setBreakpoints(QSet<quint16> memAddresses)
 
 void AsmTraceTextEdit::highlightActiveLine()
 {
-    if(activeLine<0) return;
-    else {
-        qDebug() << "highlighted line" << addrToLine[activeLine];
+    QList<QTextEdit::ExtraSelection> extraSelections;
+    if(updateHighlight && addrToLine.contains(activeAddress)) {
+        QTextEdit::ExtraSelection selection;
+        selection.format.setBackground(QColor(56, 117, 215)); // dark blue
+        selection.format.setForeground(Qt::white);
+        selection.format.setProperty(QTextFormat::FullWidthSelection, true);
+        QTextCursor cursor = QTextCursor(document());
+        cursor.setPosition(0);
+        cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, addrToLine[activeAddress]);
+        this->setTextCursor(cursor);
+        ensureCursorVisible();
+        selection.cursor = cursor;
+        extraSelections.append(selection);
     }
+    setExtraSelections(extraSelections);
 }
 
-void AsmTraceTextEdit::setActiveLine(int line)
+void AsmTraceTextEdit::startSimulationView()
 {
-    activeLine = line;
+    updateHighlight = true;
+}
+
+void AsmTraceTextEdit::setActiveAddress(quint16 address)
+{
+    activeAddress = address;
+}
+
+void AsmTraceTextEdit::clearSimulationView()
+{
+    updateHighlight = false;
+    QList<QTextEdit::ExtraSelection> extraSelections;
+    setExtraSelections(extraSelections);
 }
 
 void AsmTraceTextEdit::onRemoveAllBreakpoints()

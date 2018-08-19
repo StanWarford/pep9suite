@@ -84,6 +84,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->cpuWidget->init(this);
     ui->memoryTracePane->init(memorySection);
     ui->AsmSourceCodeWidgetPane->init(memorySection, programManager);
+    ui->asmListingTracePane->init(controlSection);
 
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_All);
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_Minimal);
@@ -287,6 +288,13 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
                 else {
                     // clock
                     ui->cpuWidget->clock();
+                }
+                return true;
+            }
+            else if(ui->asmListingTracePane->hasFocus() || ui->assemblerDebuggerTab->hasFocus()) {
+                if (debugState == DebugState::DEBUG_ISA || debugState == DebugState::DEBUG_MICRO) {
+                    // single step
+                    on_actionDebug_Single_Step_Assembler_triggered();
                 }
                 return true;
             }
@@ -941,6 +949,7 @@ void MainWindow::highlightActiveLines(bool forceISA)
     if(controlSection->getLineNumber() == 0 || forceISA || controlSection->stoppedForBreakpoint()) {
         ui->memoryWidget->clearHighlight();
         ui->memoryWidget->highlight();
+        ui->asmListingTracePane->updateSimulationView();
     }
 }
 
@@ -971,7 +980,6 @@ bool MainWindow::initializeSimulation()
     controlSection->onClearCPU();
     controlSection->initCPU();
     ui->cpuWidget->clearCpu();
-
 
     // Don't allow the microcode pane to be edited while the program is running
     ui->microcodeWidget->setReadOnly(true);
@@ -1332,7 +1340,7 @@ void MainWindow::on_actionBuild_Run_triggered()
     else {
         debugState = DebugState::DISABLED;
     }
-    onSimulationFinished();
+   if(debugState != DebugState::DISABLED) onSimulationFinished();
 }
 
 // Debug slots
@@ -1383,6 +1391,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
 {
     connectViewUpdate();
     debugState = DebugState::DEBUG_ISA;
+    ui->asmListingTracePane->startSimulationView();
     if(initializeSimulation()) {
         emit simulationStarted();
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
@@ -1390,6 +1399,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         controlSection->onDebuggingStarted();
         ui->cpuWidget->startDebugging();
         ui->memoryWidget->updateMemory();
+        ui->asmListingTracePane->setFocus();
         return true;
     }
     return false;
@@ -1406,11 +1416,10 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     connectViewUpdate();
     debugState = DebugState::DISABLED;
     ui->microcodeWidget->clearSimulationView();
-
     ui->microObjectCodePane->clearSimulationView();
     ui->microcodeWidget->setReadOnly(false);
-
     ui->cpuWidget->stopDebugging();
+    ui->asmListingTracePane->clearSimulationView();
     handleDebugButtons();
     highlightActiveLines(true);
     ui->memoryWidget->updateMemory();

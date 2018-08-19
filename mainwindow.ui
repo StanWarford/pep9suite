@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>960</width>
-    <height>540</height>
+    <height>541</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -190,7 +190,7 @@
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>17</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -934,6 +934,9 @@
    </property>
    <property name="text">
     <string>Single Step - Microcode</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+Return</string>
    </property>
   </action>
   <action name="actionDebug_Restart_Debugging">

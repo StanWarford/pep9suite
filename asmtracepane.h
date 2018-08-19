@@ -51,8 +51,11 @@ public:
     const QSet<quint16> getBreakpoints() const;
     void setTextFromCode(QSharedPointer<const AsmProgram> program);
     void setBreakpoints(QSet<quint16> memAddresses);
+
     void highlightActiveLine();
-    void setActiveLine(int);
+    void startSimulationView();
+    void setActiveAddress(quint16 address);
+    void clearSimulationView();
 public slots:
     void onRemoveAllBreakpoints();
     void onBreakpointAdded(quint16 line);
@@ -74,14 +77,16 @@ private:
     // Breakpoints are stored as line numbers, not memory addresses.
     QSet<quint16> breakpoints;
     QMap<quint16, quint16> lineToAddr, addrToLine;
-    int activeLine;
+    int activeAddress;
+    bool updateHighlight;
 };
-
+class CPUControlSection;
 class AsmTracePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmTracePane)
 public:
     explicit AsmTracePane(QWidget *parent = nullptr);
+    void init(const CPUControlSection* controlSection);
     virtual ~AsmTracePane();
 
     void clearSourceCode();
@@ -100,6 +105,9 @@ public:
     void writeSettings(QSettings& settings);
     void readSettings(QSettings& settings);
 
+    void startSimulationView();
+    void updateSimulationView();
+    void clearSimulationView();
 
 public slots:
     void onFontChanged(QFont font);
@@ -114,7 +122,7 @@ public slots:
 private:
     Ui::AsmTracePane *ui;
     QSharedPointer<AsmProgram> activeProgram;
-
+    const CPUControlSection* controlSection;
     PepASMHighlighter *pepHighlighter;
     void mouseReleaseEvent(QMouseEvent *);
 
