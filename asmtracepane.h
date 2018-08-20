@@ -58,7 +58,7 @@ public:
     void clearSimulationView();
 public slots:
     void onRemoveAllBreakpoints();
-    void onBreakpointAdded(quint16 line);
+    void onBreakpointAdded(quint16 address);
     void onBreakpointRemoved(quint16 line);
     void onDarkModeChanged(bool darkMode);
 
@@ -129,8 +129,8 @@ private:
     void mouseDoubleClickEvent(QMouseEvent *);
 
 private slots:
-    void onBreakpointAddedProp(quint16 line); //Propogate breakpointAdded(quint16) from AsmSourceTextEdit
-    void onBreakpointRemovedProp(quint16 line); //Propogate breakpointRemoved(quint16) from AsmSourceTextEdit
+    void onBreakpointAddedProp(quint16 address); //Propogate breakpointAdded(quint16) from AsmSourceTextEdit
+    void onBreakpointRemovedProp(quint16 address); //Propogate breakpointRemoved(quint16) from AsmSourceTextEdit
 
 signals:
     // Propogates event from AsmSourceTextEdit

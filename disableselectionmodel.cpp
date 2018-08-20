@@ -1,5 +1,4 @@
 #include "disableselectionmodel.h"
-#include <qdebug.h>
 #include <QObject>
 #include <QItemSelectionModel>
 

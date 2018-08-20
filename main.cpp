@@ -24,7 +24,32 @@
 #ifdef WIN32
 #include <string.h>
 #include <qvector.h>
+#include <iostream>
 #endif
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    QByteArray localMsg = msg.toLocal8Bit();
+    switch (type) {
+    case QtDebugMsg:
+        std::cerr << "QtDebugMsg " << msg.toStdString();
+        break;
+    case QtInfoMsg:
+        std::cerr << "QtInfoMsg " << msg.toStdString();
+        break;
+    case QtWarningMsg:
+        std::cerr << "QtWarningMsg " << msg.toStdString();
+        break;
+    case QtCriticalMsg:
+        std::cerr << "QtCriticalMsg " << msg.toStdString();
+        break;
+    case QtFatalMsg:
+        std::cerr << "QtFatalMsg " << msg.toStdString();
+        break;
+    default:
+        std::cerr <<"Idk wtf this is " << msg.toStdString();
+    }
+}
+
 int main(int argc, char *argv[])
 {
 #ifdef WIN32 //Always inject -platform windows:dpiawareness=0 flag to disable hi-dpi support.
@@ -41,6 +66,8 @@ int main(int argc, char *argv[])
     argv = &new_argv.data()[0];
     argc+=2;
 #endif
+    //qInstallMessageHandler(myMessageOutput);
+    qInstallMessageHandler(0);
     QApplication a(argc, argv);
 
     MainWindow w;

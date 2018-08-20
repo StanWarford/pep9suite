@@ -26,7 +26,6 @@
 #include "microcodeprogram.h"
 #include "symboltable.h"
 #include <QGridLayout>
-#include <QDebug>
 #include <QFontDialog>
 #include "colors.h"
 #include "symbolentry.h"

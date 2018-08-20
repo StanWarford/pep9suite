@@ -22,7 +22,7 @@ CPUControlSection::CPUControlSection(CPUDataSection * data, MemorySection* memor
     memoizer(new CPUMemoizer(*this)), data(data), memory(memory),
     microprogramCounter(0), microCycleCounter(0), instructionCounter(0), callDepth(0),
     inSimulation(false), hadControlError(false), isPrefetchValid(false), inDebug(false), microBreakpointHit(false), microBreakpointHandled(false),
-    asmBreakpointHit(false), asmBreakpointHandled(false)
+    asmBreakpointHit(false), asmBreakpointHandled(false), breakpointsISA()
 {
 
 }
@@ -66,12 +66,12 @@ const CPUMemoizer *CPUControlSection::getCPUMemoizer() const
 
 void CPUControlSection::setPCBreakpoints(QSet<quint16> breakpoints)
 {
-    pcBreakpoints = breakpoints;
+    breakpointsISA = breakpoints;
 }
 
 const QSet<quint16> CPUControlSection::getPCBreakpoints() const
 {
-    return pcBreakpoints;
+    return breakpointsISA;
 }
 
 int CPUControlSection::getLineNumber() const
@@ -105,7 +105,7 @@ QString CPUControlSection::getErrorMessage() const
 bool CPUControlSection::stoppedForBreakpoint() const
 {
     return program->getCodeLine(microprogramCounter)->hasBreakpoint() ||
-            (microprogramCounter == 0)? pcBreakpoints.contains(memoizer->getRegisterStart(CPURegisters::PC)) : false;
+            (microprogramCounter == 0)? breakpointsISA.contains(memoizer->getRegisterStart(CPURegisters::PC)) : false;
 }
 
 Enu::DebugLevels CPUControlSection::getDebugLevel() const
@@ -156,19 +156,28 @@ void CPUControlSection::onDebuggingFinished()
     inDebug = false;
 }
 
-void CPUControlSection::onRemoveAllPCBreakpoints()
+void CPUControlSection::onBreakpointsSet(QSet<quint16> addresses)
 {
-    pcBreakpoints.clear();
+    breakpointsISA = addresses;
+    qDebug() << "BP set " << breakpointsISA;
 }
 
-void CPUControlSection::onRemovePCBreakpoint(quint16 address)
+void CPUControlSection::onRemoveAllBreakpoints()
 {
-    pcBreakpoints.remove(address);
+    breakpointsISA.clear();
+    qDebug() << "BP cleared";
 }
 
-void CPUControlSection::onAddPCBreakpoint(quint16 address)
+void CPUControlSection::onBreakpointRemoved(quint16 address)
 {
-    pcBreakpoints.insert(address);
+    breakpointsISA.remove(address);
+    //qDebug() << breakpointsISA;
+}
+
+void CPUControlSection::onBreakpointAdded(quint16 address)
+{
+    breakpointsISA.insert(address);
+   // qDebug() << breakpointsISA;
 }
 
 void CPUControlSection::onStep() noexcept
@@ -190,7 +199,7 @@ void CPUControlSection::onStep() noexcept
                 asmBreakpointHandled = false;
                 asmBreakpointHit = false;
             }
-            else if( pcBreakpoints.contains(data->getRegisterBankWord(CPURegisters::PC))) {
+            else if( breakpointsISA.contains(data->getRegisterBankWord(CPURegisters::PC))) {
                 asmBreakpointHandled = false;
                 asmBreakpointHit = true;
                 emit simulationHitASMBreakpoint();

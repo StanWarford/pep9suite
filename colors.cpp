@@ -1,6 +1,5 @@
 #include "colors.h"
 #include <QColor>
-#include <QDebug>
 const PepColors::Colors PepColors::initDark()
 {
     auto retVal =  PepColors::Colors();

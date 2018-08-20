@@ -21,9 +21,6 @@
 
 #include "stackframefsm.h"
 #include "pep.h"
-
-// #include <QDebug>
-
 StackFrameFSM::StackFrameFSM()
 {
 

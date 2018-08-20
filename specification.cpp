@@ -21,7 +21,6 @@
 
 #include "specification.h"
 #include "cpucontrolsection.h"
-#include <QDebug>
 #include "cpudatasection.h"
 #include "memorysection.h"
 Specification::Specification()

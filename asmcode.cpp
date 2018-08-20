@@ -23,7 +23,6 @@
 #include "pep.h"
 #include "isaasm.h"
 #include <QRegExp>
-#include <QDebug>
 #include "symbolvalue.h"
 #include "symbolentry.h"
 #include <QSharedPointer>

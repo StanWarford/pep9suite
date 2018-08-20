@@ -20,7 +20,6 @@
 */
 #ifndef MICROCODEEDITOR_H
 #define MICROCODEEDITOR_H
-#include <QDebug>
 #include <QPlainTextEdit>
 #include <QObject>
 #include "colors.h"

@@ -1,7 +1,6 @@
 #include "rotatedheaderview.h"
 #include <QPainter>
 #include <math.h>
-#include <QDebug>
 #include "pep.h"
 RotatedHeaderView::RotatedHeaderView(Qt::Orientation orientation, QWidget *parent):QHeaderView(orientation,parent)
 {

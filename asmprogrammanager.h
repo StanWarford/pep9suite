@@ -45,12 +45,13 @@ public:
     void setUserProgram(QSharedPointer<AsmProgram> prog);
     const AsmProgram* getProgramAtPC() const;
     AsmProgram* getProgramAtPC();
-
+    const AsmProgram* getProgramAt(quint16 address) const;
+    AsmProgram* getProgramAt(quint16 address);
+    QSet<quint16> getBreakpoints() const;
 public slots:
     void onBreakpointAdded(quint16 address);
     void onBreakpointRemoved(quint16 address);
     void onRemoveAllBreakpoints();
-    void onSetBreakpoints(QSet<quint16> addresses);
 
 signals:
     void breakpointAdded(quint16 address);

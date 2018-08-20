@@ -194,11 +194,22 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Connect events for breakpoints
     connect(ui->actionDebug_Remove_All_Microcode_Breakpoints, &QAction::triggered, ui->microcodeWidget, &MicrocodePane::onRemoveAllBreakpoints);
-    connect(ui->actionDebug_Remove_All_Assembly_Breakpoints, &QAction::triggered, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onRemoveAllBreakpoints);
-    connect(ui->actionDebug_Remove_All_Assembly_Breakpoints, &QAction::triggered, ui->asmListingTracePane, &AsmTracePane::onRemoveAllBreakpoints);
-    connect(ui->actionDebug_Remove_All_Assembly_Breakpoints, &QAction::triggered, controlSection, &CPUControlSection::onRemoveAllPCBreakpoints);
-    connect(ui->asmListingTracePane, &AsmTracePane::breakpointAdded, controlSection, &CPUControlSection::onAddPCBreakpoint);
-    connect(ui->asmListingTracePane, &AsmTracePane::breakpointRemoved, controlSection, &CPUControlSection::onRemovePCBreakpoint);
+
+    connect(ui->actionDebug_Remove_All_Assembly_Breakpoints, &QAction::triggered, programManager, &AsmProgramManager::onRemoveAllBreakpoints);
+    connect(ui->asmListingTracePane, &AsmTracePane::breakpointAdded, programManager, &AsmProgramManager::onBreakpointAdded);
+    connect(ui->asmListingTracePane, &AsmTracePane::breakpointRemoved, programManager, &AsmProgramManager::onBreakpointRemoved);
+
+    connect(programManager, &AsmProgramManager::removeAllBreakpoints, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onRemoveAllBreakpoints);
+    connect(programManager, &AsmProgramManager::removeAllBreakpoints, ui->asmListingTracePane, &AsmTracePane::onRemoveAllBreakpoints);
+    connect(programManager, &AsmProgramManager::removeAllBreakpoints, controlSection, &CPUControlSection::onRemoveAllBreakpoints);
+
+    connect(programManager, &AsmProgramManager::breakpointAdded, ui->asmListingTracePane, &AsmTracePane::onBreakpointAdded);
+    connect(programManager, &AsmProgramManager::breakpointRemoved, ui->asmListingTracePane, &AsmTracePane::onBreakpointRemoved);
+    connect(programManager, &AsmProgramManager::breakpointAdded, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onBreakpointAdded);
+    connect(programManager, &AsmProgramManager::breakpointRemoved, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onBreakpointRemoved);
+    connect(programManager, &AsmProgramManager::breakpointAdded, controlSection, &CPUControlSection::onBreakpointAdded);
+    connect(programManager, &AsmProgramManager::breakpointRemoved, controlSection, &CPUControlSection::onBreakpointRemoved);
+    connect(programManager, &AsmProgramManager::setBreakpoints, controlSection, &CPUControlSection::onBreakpointsSet);
     // Load dark mode style sheet.
     QFile f(":qdarkstyle/dark_style.qss");
     f.open(QFile::ReadOnly | QFile::Text);
@@ -811,8 +822,6 @@ void MainWindow::loadOperatingSystem()
         }
         else
         {
-            qDebug() << "I shouldn't be here";
-            qDebug() << osFile.errorString();
             return;
         }
     }
@@ -1017,6 +1026,7 @@ void MainWindow::on_actionFile_New_Asm_triggered()
 {
     //Try to save source code before clearing it, the object code pane, and the listing pane.
     if (maybeSave(Enu::EPane::ESource)) {
+        ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
         ui->AsmSourceCodeWidgetPane->setFocus();
         ui->AsmSourceCodeWidgetPane->clearSourceCode();
@@ -1025,6 +1035,7 @@ void MainWindow::on_actionFile_New_Asm_triggered()
         ui->AsmObjectCodeWidgetPane->setCurrentFile("");
         ui->AsmListingWidgetPane->clearAssemblerListing();
         ui->AsmListingWidgetPane->setCurrentFile("");
+        ui->asmListingTracePane->clearSourceCode();
     }
 }
 
@@ -1032,6 +1043,7 @@ void MainWindow::on_actionFile_New_Microcode_triggered()
 {
     //Try to save the microcode pane before clearing it & the micro-object-code pane.
     if (maybeSave(Enu::EPane::EMicrocode)) {
+        ui->actionDebug_Remove_All_Microcode_Breakpoints->trigger();
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
         ui->microcodeWidget->setFocus();
         ui->microcodeWidget->setMicrocode("");
@@ -1277,7 +1289,7 @@ bool MainWindow::on_ActionBuild_Assemble_triggered()
         ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
                                                       ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
         ui->asmListingTracePane->onRemoveAllBreakpoints();
-        controlSection->onRemoveAllPCBreakpoints();
+        controlSection->onRemoveAllBreakpoints();
         ui->asmListingTracePane->setProgram(ui->AsmSourceCodeWidgetPane->getAsmProgram());
         //ui->memoryTracePane->setMemoryTrace();
         set_Obj_Listing_filenames_from_Source();
@@ -1394,6 +1406,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
     ui->asmListingTracePane->startSimulationView();
     if(initializeSimulation()) {
         emit simulationStarted();
+        controlSection->onBreakpointsSet(programManager->getBreakpoints());
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
         ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
         controlSection->onDebuggingStarted();
@@ -1439,7 +1452,7 @@ void MainWindow::on_actionDebug_Continue_triggered()
     disconnectViewUpdate();
     controlSection->onRun();
     if(controlSection->hadErrorOnStep()) {
-        QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
+        QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
         return; // we'll just return here instead of letting it fail and go to the bottom
     }
@@ -1474,7 +1487,7 @@ void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
         controlSection->onISAStep();
         if (controlSection->hadErrorOnStep()) {
             // simulation had issues.
-            QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
+            QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
             onSimulationFinished();
         }
     }
@@ -1492,7 +1505,7 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
         controlSection->onISAStep();
         if (controlSection->hadErrorOnStep()) {
             // simulation had issues.
-            QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
+            QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
             onSimulationFinished();
             break;
         }
@@ -1510,10 +1523,10 @@ void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
     controlSection->onISAStep();
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
-        QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
+        QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
-    else if(false) 1; //Stub to leave room for breakpoint handler.
+    else if(/* DISABLES CODE */ (false)) 1; //Stub to leave room for breakpoint handler.
     emit simulationUpdate();
 }
 
@@ -1528,7 +1541,7 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
         controlSection->onISAStep();
         if (controlSection->hadErrorOnStep()) {
             // simulation had issues.
-            QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
+            QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
             onSimulationFinished();
             break;
         }
@@ -1546,7 +1559,7 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
     controlSection->onStep();
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
-        QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
+        QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
     // If the simulation hit a microcode breakpoint, step again so that the next line wil be selected.
@@ -1562,6 +1575,7 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
 void MainWindow::onMicroBreakpointHit()
 {
     debugState = DebugState::DEBUG_MICRO;
+        ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
     QApplication::processEvents();
     controlSection->onMicroBreakpointHandled();
 }
@@ -1570,6 +1584,7 @@ void MainWindow::onASMBreakpointHit()
 {
     qDebug() << "trapped on PC = " << dataSection->getRegisterBankWord(CPURegisters::PC);
     debugState = DebugState::DEBUG_ISA;
+    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
     QApplication::processEvents();
     controlSection->onASMBreakpointHandled();
 }

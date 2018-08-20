@@ -45,11 +45,10 @@
 #include "symbolentry.h"
 #include "symboltable.h"
 #include "symbolvalue.h"
-// #include <QDebug>
 
 AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::SourceCodePane), currentFile(), currentProgram(nullptr)
+        ui(new Ui::SourceCodePane), currentFile(), currentProgram(nullptr), addressToIndex()
 {
     ui->setupUi(this);
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this, &AsmSourceCodePane::setLabelToModified);
@@ -91,6 +90,7 @@ bool AsmSourceCodePane::assemble()
     IsaAsm::listOfReferencedSymbolLineNums.clear();
     Pep::symbolFormat.clear();
     Pep::symbolFormatMultiplier.clear();
+    addressToIndex.clear();
     QList<QSharedPointer<AsmCode>> programList;
     //Insert CharIn CharOut
     QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
@@ -137,10 +137,12 @@ bool AsmSourceCodePane::assemble()
 #pragma message("Memory trace needs some work")
     SymbolListings listings;
     currentProgram = QSharedPointer<AsmProgram>::create(programList, symTable);
+    programManager->setUserProgram(currentProgram);
     for (int i = 0; i < programList.size(); i++) {
         if (!programList[i]->processFormatTraceTags(lineNum, errorString,listings)) {
             appendMessageInSourceCodePaneAt(lineNum, errorString);
         }
+        if(programList[i]->getMemoryAddress() >=0) addressToIndex[programList[i]->getMemoryAddress()] = i;
     }
     /*if (!Pep::traceTagWarning && !(Pep::blockSymbols.isEmpty() && Pep::equateSymbols.isEmpty())) {
         for (int i = 0; i < programList.size(); i++) {
@@ -431,14 +433,18 @@ void AsmSourceCodePane::onRemoveAllBreakpoints()
     ((AsmSourceTextEdit*)ui->textEdit)->onRemoveAllBreakpoints();
 }
 
-void AsmSourceCodePane::onBreakpointAdded(quint16 line)
+void AsmSourceCodePane::onBreakpointAdded(quint16 address)
 {
-    ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointAdded(line);
+    if(addressToIndex.contains(address)) {
+        ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointAdded(addressToIndex[address]);
+    }
 }
 
-void AsmSourceCodePane::onBreakpointRemoved(quint16 line)
+void AsmSourceCodePane::onBreakpointRemoved(quint16 address)
 {
-    ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointRemoved(line);
+    if(addressToIndex.contains(address)) {
+        ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointRemoved(addressToIndex[address]);
+    }
 }
 
 void AsmSourceCodePane::mouseReleaseEvent(QMouseEvent *)
@@ -465,12 +471,16 @@ void AsmSourceCodePane::setLabelToModified(bool modified)
 
 void AsmSourceCodePane::onBreakpointAddedProp(quint16 line)
 {
-    emit breakpointAdded(line);
+    if(currentProgram.isNull()) return;
+    else if(currentProgram->getProgram().length()<line) return;
+    else emit breakpointAdded(currentProgram->getProgram().at(line)->getMemoryAddress());
 }
 
 void AsmSourceCodePane::onBreakpointRemovedProp(quint16 line)
 {
-    emit breakpointRemoved(line);
+    if(currentProgram.isNull()) return;
+    else if(currentProgram->getProgram().length()<line) return;
+    else emit breakpointRemoved(currentProgram->getProgram().at(line)->getMemoryAddress());
 }
 
 AsmSourceTextEdit::AsmSourceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode)
@@ -503,7 +513,7 @@ void AsmSourceTextEdit::breakpointAreaPaintEvent(QPaintEvent *event)
         // If the current block is in the repaint zone
         if (block.isVisible() && bottom >= event->rect().top()) {
             // And if it has a breakpoint
-            if(blockToInstr.contains(blockNumber) && breakpoints.contains(blockToInstr[blockNumber])) {
+            if(blockToIndex.contains(blockNumber) && breakpoints.contains(blockToIndex[blockNumber])) {
                 painter.setPen(PepColors::transparent);
                 painter.setBrush(colors.combCircuitRed);          
                 painter.drawEllipse(QPoint(fontMetrics().height()/2, top+fontMetrics().height()/2),
@@ -535,8 +545,8 @@ void AsmSourceTextEdit::breakpointAreaMousePress(QMouseEvent *event)
     while (block.isValid() && top <= event->pos().y()) {
         if (event->pos().y()>=top && event->pos().y()<=bottom) {
             // Check if the clicked line is a code line
-            if(blockToInstr.contains(blockNumber)) {
-                lineNumber = blockToInstr[blockNumber];
+            if(blockToIndex.contains(blockNumber)) {
+                lineNumber = blockToIndex[blockNumber];
                 // If the clicked code line has a breakpoint, remove it.
                 if(breakpoints.contains(lineNumber)) {
                     breakpoints.remove(lineNumber);
@@ -566,7 +576,7 @@ const QSet<quint16> AsmSourceTextEdit::getBreakpoints() const
 
 bool AsmSourceTextEdit::lineHasBreakpoint(int line) const
 {
-    return this->blockToInstr.contains(line) && breakpoints.contains(blockToInstr[line]);
+    return this->blockToIndex.contains(line) && breakpoints.contains(blockToIndex[line]);
 }
 
 void AsmSourceTextEdit::onRemoveAllBreakpoints()
@@ -578,13 +588,13 @@ void AsmSourceTextEdit::onRemoveAllBreakpoints()
 void AsmSourceTextEdit::onBreakpointAdded(quint16 line)
 {
 #pragma message ("TODO: Handle breakpoints being added externally.")
-    breakpoints.insert(blockToInstr[line]);
+    breakpoints.insert(blockToIndex[line]);
 }
 
 void AsmSourceTextEdit::onBreakpointRemoved(quint16 line)
 {
 #pragma message ("TODO: Handle breakpoints being removed externally.")
-    breakpoints.remove(blockToInstr[line]);
+    breakpoints.remove(blockToIndex[line]);
 }
 
 void AsmSourceTextEdit::onDarkModeChanged(bool darkMode)
@@ -611,8 +621,8 @@ void AsmSourceTextEdit::updateBreakpointArea(const QRect &rect, int dy)
 
 void AsmSourceTextEdit::onTextChanged()
 {
-    QMap<quint16, quint16> oldToNew, old = blockToInstr;
-    blockToInstr.clear();
+    QMap<quint16, quint16> oldToNew, old = blockToIndex;
+    blockToIndex.clear();
     int cycleNumber = 1;
     QStringList sourceCodeList = toPlainText().split('\n');
 
@@ -622,12 +632,12 @@ void AsmSourceTextEdit::onTextChanged()
         if (QRegExp("\\s*;s*|^\\s*$|\\s*(([a-zAZ0-9]+:\\s*))?\\.", Qt::CaseInsensitive).indexIn(sourceCodeList.at(i)) == 0) {
         }
         else {
-            blockToInstr.insert(i, cycleNumber++);
+            blockToIndex.insert(i, cycleNumber++);
         }
     }
     QSet<quint16> toRemove;
     for(auto x : breakpoints) {
-        if (blockToInstr.key(x, -1) == -1) toRemove.insert(-1);
+        if (blockToIndex.key(x, -1) == -1) toRemove.insert(-1);
     }
     breakpoints.subtract(toRemove);
     update();

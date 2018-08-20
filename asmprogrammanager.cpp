@@ -1,5 +1,7 @@
 #include "asmprogrammanager.h"
 #include "asmprogram.h"
+#include <QSharedPointer>
+#include "asmcode.h"
 AsmProgramManager* AsmProgramManager::instance = nullptr;
 AsmProgramManager::AsmProgramManager(QObject *parent): QObject(parent), operatingSystem(nullptr), userProgram(nullptr)
 {
@@ -34,34 +36,59 @@ void AsmProgramManager::setUserProgram(QSharedPointer<AsmProgram>prog)
 
 const AsmProgram *AsmProgramManager::getProgramAtPC() const
 {
-    quint16 pc = 0;
+#pragma message ("calculate PC")
+    return getProgramAt(0);
+}
+
+AsmProgram *AsmProgramManager::getProgramAtPC()
+{
+#pragma message ("calculate PC")
+    return getProgramAt(0);
+}
+
+AsmProgram *AsmProgramManager::getProgramAt(quint16 address)
+{
     if(!userProgram.isNull()) {
 
-        if(userProgram->getProgramBounds().first <= pc && userProgram->getProgramBounds().second >= pc){
+        if(userProgram->getProgramBounds().first <= address && userProgram->getProgramBounds().second >= address){
             return userProgram.data();
         }
     }
     else if(!operatingSystem.isNull()) {
 
-        if(operatingSystem->getProgramBounds().first <= pc && operatingSystem->getProgramBounds().second >= pc){
+        if(operatingSystem->getProgramBounds().first <= address && operatingSystem->getProgramBounds().second >= address){
             return operatingSystem.data();
         }
     }
     return nullptr;
 }
 
-AsmProgram *AsmProgramManager::getProgramAtPC()
+QSet<quint16> AsmProgramManager::getBreakpoints() const
 {
-    quint16 pc = 0;
+    QSet<quint16> breakpoints;
+    QList<QSharedPointer<AsmProgram>> progsList;
+    if(!userProgram.isNull()) progsList.append(userProgram);
+    if(!operatingSystem.isNull()) progsList.append(operatingSystem);
+    for(QSharedPointer<AsmProgram> prog : progsList) {
+        for(QSharedPointer<AsmCode> code : prog->getProgram())
+        {
+            if(code->hasBreakpoint()) breakpoints.insert(code->getMemoryAddress());
+        }
+    }
+    return breakpoints;
+}
+
+const AsmProgram *AsmProgramManager::getProgramAt(quint16 address) const
+{
     if(!userProgram.isNull()) {
 
-        if(userProgram->getProgramBounds().first <= pc && userProgram->getProgramBounds().second >= pc){
+        if(userProgram->getProgramBounds().first <= address && userProgram->getProgramBounds().second >= address){
             return userProgram.data();
         }
     }
     else if(!operatingSystem.isNull()) {
 
-        if(operatingSystem->getProgramBounds().first <= pc && operatingSystem->getProgramBounds().second >= pc){
+        if(operatingSystem->getProgramBounds().first <= address && operatingSystem->getProgramBounds().second >= address){
             return operatingSystem.data();
         }
     }
@@ -70,20 +97,18 @@ AsmProgram *AsmProgramManager::getProgramAtPC()
 
 void AsmProgramManager::onBreakpointAdded(quint16 address)
 {
-#pragma message("TODO: Respond to breakpoints being added")
+    #pragma message("TODO: Respond to breakpoints being added")
+    emit breakpointAdded(address);
 }
 
 void AsmProgramManager::onBreakpointRemoved(quint16 address)
 {
 #pragma message("TODO: Respond to breakpoints being removed")
+    emit breakpointRemoved(address);
 }
 
 void AsmProgramManager::onRemoveAllBreakpoints()
 {
 #pragma message("TODO: Respond to all breakpoints being removed")
-}
-
-void AsmProgramManager::onSetBreakpoints(QSet<quint16> addresses)
-{
-#pragma message("TODO: Respond to breakpoints being set")
+    emit removeAllBreakpoints();
 }

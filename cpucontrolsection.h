@@ -58,9 +58,10 @@ public slots:
     // Clean up CPU after debugging
     void onDebuggingFinished();
 
-    void onRemoveAllPCBreakpoints();
-    void onRemovePCBreakpoint(quint16 address);
-    void onAddPCBreakpoint(quint16 address);
+    void onBreakpointsSet(QSet<quint16> addresses);
+    void onRemoveAllBreakpoints();
+    void onBreakpointRemoved(quint16 address);
+    void onBreakpointAdded(quint16 address);
 
     void onStep() noexcept;  // Execute a single microinstruction
     void onISAStep() noexcept; // Step until µPc == 0
@@ -93,7 +94,7 @@ private:
     // If breakpointHandled, ignore the breakpoint on the current line, and set breakpointHandled to false.
     bool inDebug, microBreakpointHit, microBreakpointHandled, asmBreakpointHit, asmBreakpointHandled;
     QString errorMessage;
-    QSet<quint16> pcBreakpoints;
+    QSet<quint16> breakpointsISA;
 
     void branchHandler(); // Based on the current instruction, set the µPC correctly
     void setSignalsFromMicrocode(const MicroCode *line); // Set signals for the control section based on the microcode program

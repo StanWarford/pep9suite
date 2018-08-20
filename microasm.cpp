@@ -20,7 +20,6 @@
 */
 
 #include<QStringList>
-#include <QDebug>
 #include "microasm.h"
 #include "pep.h"
 #include "microcode.h"

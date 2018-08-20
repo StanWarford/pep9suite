@@ -74,7 +74,7 @@ private:
     PepColors::Colors colors;
     AsmSourceBreakpointArea* breakpointArea;
     QSet<quint16> breakpoints;
-    QMap<quint16, quint16> blockToInstr;
+    QMap<quint16, quint16> blockToIndex;
 };
 
 class AsmProgram;
@@ -191,9 +191,9 @@ public slots:
     // Forwards event to AsmSourceTextEdit
     void onRemoveAllBreakpoints();
     // Forwards event to AsmSourceTextEdit
-    void onBreakpointAdded(quint16 line);
+    void onBreakpointAdded(quint16 address);
     // Forwards event to AsmSourceTextEdit
-    void onBreakpointRemoved(quint16 line);
+    void onBreakpointRemoved(quint16 address);
 
 private:
     Ui::SourceCodePane *ui;
@@ -202,7 +202,7 @@ private:
     QSharedPointer<AsmProgram> currentProgram;
     QList<int> objectCode;
     QStringList assemblerListingList;
-
+    QMap<quint16, quint16> addressToIndex;
     PepASMHighlighter *pepHighlighter;
     QFile currentFile;
     void mouseReleaseEvent(QMouseEvent *);
@@ -219,9 +219,9 @@ signals:
     void redoAvailable(bool);
 
     // Propogates event from AsmSourceTextEdit
-    void breakpointAdded(quint16 line);
+    void breakpointAdded(quint16 address);
     // Propogates event from AsmSourceTextEdit
-    void breakpointRemoved(quint16 line);
+    void breakpointRemoved(quint16 address);
     void labelDoubleClicked(Enu::EPane pane);
 };
 

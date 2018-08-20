@@ -122,14 +122,14 @@ void AsmTracePane::mouseDoubleClickEvent(QMouseEvent *)
 
 }
 
-void AsmTracePane::onBreakpointAddedProp(quint16 line)
+void AsmTracePane::onBreakpointAddedProp(quint16 address)
 {
-    emit breakpointAdded(line);
+    emit breakpointAdded(address);
 }
 
-void AsmTracePane::onBreakpointRemovedProp(quint16 line)
+void AsmTracePane::onBreakpointRemovedProp(quint16 address)
 {
-    emit breakpointRemoved(line);
+    emit breakpointRemoved(address);
 }
 
 AsmTraceTextEdit::AsmTraceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode), updateHighlight(false)
@@ -184,7 +184,7 @@ int AsmTraceTextEdit::breakpointAreaWidth()
 void AsmTraceTextEdit::breakpointAreaMousePress(QMouseEvent *event)
 {
     QTextBlock block;
-    int blockNumber, top, bottom, lineNumber;
+    int blockNumber, top, bottom, breakpointAddress;
     block = firstVisibleBlock();
     blockNumber = block.blockNumber();
     top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
@@ -194,16 +194,17 @@ void AsmTraceTextEdit::breakpointAreaMousePress(QMouseEvent *event)
         if (event->pos().y()>=top && event->pos().y()<=bottom) {
             // Check if the clicked line is a code line
             if(lineToAddr.contains(blockNumber)) {
-                lineNumber = lineToAddr[blockNumber];
+                breakpointAddress = lineToAddr[blockNumber];
                 // If the clicked code line has a breakpoint, remove it.
-                if(breakpoints.contains(lineNumber)) {
-                    breakpoints.remove(lineNumber);
-                    emit breakpointRemoved(lineNumber);
+                if(breakpoints.contains(blockNumber)) {
+                    // Breakpoint remove will be propogated back via events
+                    emit breakpointRemoved(breakpointAddress);
                 }
                 // Otherwise add a breakpoint.
                 else {
-                    breakpoints.insert(lineNumber);
-                    emit breakpointAdded(lineNumber);
+                    // Breakpoint addition will be propogated back via events
+                    breakpoints.insert(blockNumber);
+                    emit breakpointAdded(breakpointAddress);
                 }
             }
             break;
@@ -298,7 +299,6 @@ void AsmTraceTextEdit::onRemoveAllBreakpoints()
 
 void AsmTraceTextEdit::onBreakpointAdded(quint16 line)
 {
-#pragma message("TOOD: check if line is in addrToLine")
     breakpoints.insert(addrToLine[line]);
 }
 

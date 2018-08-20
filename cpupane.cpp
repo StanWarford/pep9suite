@@ -37,8 +37,6 @@
 #include "microcode.h"
 #include "mainwindow.h"
 
-#include <QDebug>
-
 using namespace Enu;
 CpuPane::CpuPane( QWidget *parent) :
         QWidget(parent),

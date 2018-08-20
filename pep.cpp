@@ -20,7 +20,6 @@
 */
 
 #include <QFile>
-#include <QDebug>
 #include <QString>
 #include <QStringList>
 #include "cpudatasection.h"

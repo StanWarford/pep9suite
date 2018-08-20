@@ -24,7 +24,6 @@
 #include "microcodeprogram.h"
 #include "pep.h"
 #include <QPainter>
-#include <QDebug>
 #include <QTextEdit>
 #include <QTextItem>
 #include <QTableWidget>
