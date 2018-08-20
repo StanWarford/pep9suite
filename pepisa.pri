@@ -9,7 +9,8 @@ HEADERS += \
     $$PWD/stackframefsm.h \
     $$PWD/asmtracepane.h \
     $$PWD/asmprogram.h \
-    $$PWD/asmprogrammanager.h
+    $$PWD/asmprogrammanager.h \
+    $$PWD/cpphighlighter.h
 
 SOURCES += \
     $$PWD/pepasmhighlighter.cpp \
@@ -22,7 +23,8 @@ SOURCES += \
     $$PWD/asmtracepane.cpp \
     $$PWD/asmprogram.cpp \
     $$PWD/asmprogrammanager.cpp \
-    $$PWD/asmargument.cpp
+    $$PWD/asmargument.cpp \
+    $$PWD/cpphighlighter.cpp
 
 FORMS += \
     $$PWD/asmobjectcodepane.ui \

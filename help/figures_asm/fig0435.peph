@@ -1,0 +1,11 @@
+;File: fig0435.peph
+;Computer Systems, Fifth edition
+;Figure 4.35
+             
+0000  D1FC15  ;Input first character
+0003  F10013  ;Store first character
+0006  D1FC15  ;Input second character
+0009  F1FC16  ;Output second character
+000C  D10013  ;Load first character
+000F  F1FC16  ;Output first character
+0012  00      ;Stop             

@@ -23,7 +23,6 @@
 
 #include <QDialog>
 #include <QTreeWidgetItem>
-#include "pepmicrohighlighter.h"
 #include "microcodeeditor.h"
 
 #include "pep.h"
@@ -31,69 +30,99 @@
 namespace Ui {
     class HelpDialog;
 }
-
+class CppHighlighter;
+class PepASMHighlighter;
+class PepMicroHighlighter;
 class HelpDialog : public QDialog {
     Q_OBJECT
 public:
     HelpDialog(QWidget *parent = 0);
     ~HelpDialog();
 
-    QString getExampleText();
-    Enu::CPUType getExamplesModel();
+    QString getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString &input);
+
+    bool hasFocus();
+    // Post: returns true if either of the text edits have focus
 
     void copy();
     // Post: the text edit that has focus has the copy() operation performed
 
-    bool hasFocus();
-    // Returns if the webview or the textedit has focus
+    void setCopyButtonDisabled(bool b);
+    // Post: the enabled state of the copy to source/object code button is set to b
 
     void selectItem(QString string);
-
 protected:
     void changeEvent(QEvent *e);
 
 private:
     Ui::HelpDialog *ui;
 
-    MicrocodeEditor *microcodeEditor;
-    PepMicroHighlighter *leftHighlighter;
+    PepMicroHighlighter *leftMicroHighlighter;
+    PepASMHighlighter *leftPepHighlighter;
+    CppHighlighter *rightCppHighlighter;
+    PepASMHighlighter *rightPepHighlighter;
 
     enum Row {
-        eUSINGPEP9CPU = 0,
-        ePEP9REFERENCE = 1,
-        eTWOBYTEBUSEXAMPLES = 2,
-        eTWOBYTEBUSPROBLEMS = 3,
+        // Top level menu
+        eWRITINGASM = 0,
+        eDEBUGGINGASM,
+        eUSINGPEP9CPU,
+        ePEP9REFERENCE,
+        eASMEXAMPLES,
 
+        //Writing Assembler options
+        eMACHINELANG = 0,
+        EASMLANG,
+
+        //Using Pep/9 CPU options
         eCPU = 0,
-        eMICROCODE = 1,
-        eDEBUGGING = 2,
+        eMICROCODE,
+        eDEBUGGINGMICRO,
 
-        eFIG1220 = 0,
-        eFIG1221 = 1,
-        eFIG1223 = 2,
-
-        ePR1234A = 0,
-        ePR1234B = 1,
-        ePR1235A = 2,
-        ePR1235B = 3,
-        ePR1235C = 4,
-        ePR1235D = 5,
-        ePR1235E = 6,
-        ePR1235F = 7,
-        ePR1235G = 8,
-        ePR1235H = 9,
-        ePR1235I = 10,
-        ePR1235J = 11,
-        ePR1235K = 12,
-        ePR1235L = 13,
-        ePR1236A = 14,
-        ePR1236B = 15,
-        ePR1236C = 16,
-        ePR1236D = 17,
-        ePR1236E = 18,
-        ePR1236F = 19,
+        // Assembler Examples
+        eFIG433 = 0,
+        eFIG435,
+        eFIG436,
+        eFIG437,
+        eFIG503,
+        eFIG506,
+        eFIG507,
+        eFIG510,
+        eFIG511,
+        eFIG512,
+        eFIG513,
+        eFIG514a,
+        eFIG514b,
+        eFIG515,
+        eFIG516,
+        eFIG519,
+        eFIG522,
+        eFIG527,
+        eFIG601,
+        eFIG604,
+        eFIG606,
+        eFIG608,
+        eFIG610,
+        eFIG612,
+        eFIG614,
+        eFIG616,
+        eFIG618,
+        eFIG621,
+        eFIG623,
+        eFIG625,
+        eFIG627, // Interactive input
+        eFIG629, // Interactive input
+        eFIG632,
+        eFIG634,
+        eFIG636,
+        eFIG638,
+        eFIG640, // Interactive input
+        eFIG642,
+        eFIG644,
+        eFIG646,
+        eFIG648,
     };
-
+	
 public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool);
@@ -101,7 +130,7 @@ private slots:
     void onCurrentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*);
 
 signals:
-    void copyToMicrocodeClicked();
+    void copyToSourceClicked();
 
 };
 

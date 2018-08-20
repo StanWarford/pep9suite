@@ -1,0 +1,15 @@
+;File: fig0437.peph
+;Computer Systems, Fifth edition
+;Figure 4.37
+
+0000  D10019  ;Load byte accumulator
+0003  F10009  ;Store byte accumulator
+0006  C10013  ;A <- first number
+0009  610015  ;Add the two numbers
+000C  910017  ;Convert sum to character
+000F  F1FC16  ;Output the character
+0012  00      ;Stop
+0013  0005    ;Decimal 5
+0015  0003    ;Decimal 3
+0017  0030    ;Mask for ASCII char
+0019  71      ;Byte to modify instruction

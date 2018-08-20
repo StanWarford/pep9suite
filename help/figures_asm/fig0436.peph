@@ -1,0 +1,12 @@
+;File: fig0436.peph
+;Computer Systems, Fifth edition
+;Figure 4.36
+             
+0000  C1000D  ;A <- first number
+0003  61000F  ;Add the two numbers
+0006  910011  ;Convert sum to character
+0009  F1FC16  ;Output the character
+000C  00      ;Stop
+000D  0005    ;Decimal 5
+000F  0003    ;Decimal 3
+0011  0030    ;Mask for ASCII char

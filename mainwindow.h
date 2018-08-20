@@ -275,7 +275,7 @@ private slots:
 
     void appendMicrocodeLine(QString string);
 
-    void helpCopyToMicrocodeButtonClicked();
+    void helpCopyToSourceClicked();
 
     //Disable UI elements for IO
     void onInputRequested();

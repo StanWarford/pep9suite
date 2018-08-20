@@ -93,7 +93,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Create & connect all dialogs.
     helpDialog = new HelpDialog(this);
-    connect(helpDialog, &HelpDialog::copyToMicrocodeClicked, this, &MainWindow::helpCopyToMicrocodeButtonClicked);
+    connect(helpDialog, &HelpDialog::copyToSourceClicked, this, &MainWindow::helpCopyToSourceClicked);
     aboutPepDialog = new AboutPep(this);
 
     // Byte converter setup.
@@ -1888,15 +1888,48 @@ void MainWindow::appendMicrocodeLine(QString line)
     ui->microcodeWidget->appendMessageInSourceCodePaneAt(-2, line);
 }
 
-void MainWindow::helpCopyToMicrocodeButtonClicked()
+void MainWindow::helpCopyToSourceClicked()
 {
-    if (maybeSave()) {
-        ui->microcodeWidget->setMicrocode(helpDialog->getExampleText());
-        ui->microcodeWidget->microAssemble();
-        ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(),nullptr);
-        helpDialog->hide();
-        statusBar()->showMessage("Copied to microcode", 4000);
-    }
+    qDebug() << "das was gestalt";
+    helpDialog->hide();
+        Enu::EPane destPane, inputPane;
+        QString input;
+        QString code = helpDialog->getCode(destPane, inputPane, input);
+        if(code.isEmpty()) return;
+        else {
+            switch(destPane)
+            {
+            case Enu::EPane::ESource:
+                if(maybeSave(Enu::EPane::ESource)) {
+                    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
+                    ui->AsmSourceCodeWidgetPane->setFocus();
+                    ui->AsmSourceCodeWidgetPane->setCurrentFile("");
+                    ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
+                    ui->AsmSourceCodeWidgetPane->setModifiedFalse();
+                    statusBar()->showMessage("Copied to assembler source code", 4000);
+                }
+                break;
+            case Enu::EPane::EObject:
+            if(maybeSave(Enu::EPane::EObject)) {
+                ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
+                ui->AsmObjectCodeWidgetPane->setFocus();
+                ui->AsmObjectCodeWidgetPane->setCurrentFile("");
+                ui->AsmObjectCodeWidgetPane->setObjectCodePaneText(code);
+                ui->AsmObjectCodeWidgetPane->setModifiedFalse();
+                statusBar()->showMessage("Copied to assembler object code", 4000);
+                }
+                break;
+            }
+            switch(inputPane)
+            {
+            case Enu::EPane::ETerminal:
+                qDebug() << input;
+                break;
+            }
+        }
+        //statusBar()->showMessage("Copied to microcode", 4000);
+        //ui->microcodeWidget->microAssemble();
+        //ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
 }
 
 void MainWindow::onInputRequested()

@@ -96,10 +96,10 @@ bool AsmSourceCodePane::assemble()
     QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
     #pragma message ("handle input and output when not using BURN at FFFF")
     QSharedPointer<SymbolValueNumeric>::create(MemorySection::getInstance()->getMemoryWord(0xFFF8, false));
-    symTable->insertSymbol("CharIn");
-    symTable->setValue("CharIn", QSharedPointer<SymbolValueNumeric>::create(MemorySection::getInstance()->getMemoryWord(0xFFF8, false)));
-    symTable->insertSymbol("CharOut");
-    symTable->setValue("CharOut", QSharedPointer<SymbolValueNumeric>::create(MemorySection::getInstance()->getMemoryWord(0xFFFA, false)));
+    symTable->insertSymbol("charIn");
+    symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(MemorySection::getInstance()->getMemoryWord(0xFFF8, false)));
+    symTable->insertSymbol("charOut");
+    symTable->setValue("charOut", QSharedPointer<SymbolValueNumeric>::create(MemorySection::getInstance()->getMemoryWord(0xFFFA, false)));
     QString sourceCode = ui->textEdit->toPlainText();
     sourceCodeList = sourceCode.split('\n');
     int byteCount = 0;
@@ -126,6 +126,7 @@ bool AsmSourceCodePane::assemble()
     }
     if(symTable->numUndefinedSymbols()>0) {
         for(int it = 0; it < programList.length(); it++) {
+#pragma message("TODO: prevent successful build when argument is symbolic and undefined")
             if(programList[it]->hasSymbolEntry() && programList[it]->getSymbolEntry()->isUndefined()) {
                 errorString = ";ERROR: Symbol " + programList[it]->getSymbolEntry()->getName() + " is used but not defined.";
                 //Fix not highlighting the line on which the symbol occured

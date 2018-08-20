@@ -113,6 +113,26 @@
       </column>
       <item>
        <property name="text">
+        <string>Writing Assembly Programs</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>Writing Machine Language</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Writing Assembly Language</string>
+        </property>
+       </item>
+      </item>
+      <item>
+       <property name="text">
+        <string>Debugging Assembly Language</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>Using Pep/9 CPU</string>
        </property>
        <item>
@@ -138,126 +158,211 @@
       </item>
       <item>
        <property name="text">
-        <string>Two-byte Bus Examples</string>
+        <string>Examples</string>
        </property>
        <item>
         <property name="text">
-         <string>Figure 12.20</string>
+         <string>Figure 4.33</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Figure 12.21</string>
+         <string>Figure 4.35</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Figure 12.23</string>
-        </property>
-       </item>
-      </item>
-      <item>
-       <property name="text">
-        <string>Two-byte Bus Problems</string>
-       </property>
-       <item>
-        <property name="text">
-         <string>Problem 12.34 (a)</string>
+         <string>Figure 4.36</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.34 (b)</string>
+         <string>Figure 4.37</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (a)</string>
+         <string>Figure 5.3</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (b)</string>
+         <string>Figure 5.6</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (c)</string>
+         <string>Figure 5.7</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (d)</string>
+         <string>Figure 5.10</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (e)</string>
+         <string>Figure 5.11</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (f)</string>
+         <string>Figure 5.12</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (g)</string>
+         <string>Figure 5.13</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (h)</string>
+         <string>Figure 5.14a</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (i)</string>
+         <string>Figure 5.14b</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (j)</string>
+         <string>Figure 5.15</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (k)</string>
+         <string>Figure 5.16</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.35 (l)</string>
+         <string>Figure 5.19</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.36 (a)</string>
+         <string>Figure 5.22</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.36 (b)</string>
+         <string>Figure 5.27</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.36 (c)</string>
+         <string>Figure 6.1</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.36 (d)</string>
+         <string>Figure 6.4</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.36 (e)</string>
+         <string>Figure 6.6</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Problem 12.36 (f)</string>
+         <string>Figure 6.8</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.10</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.12</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.14</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.18</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.21</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.23</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.25</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.27</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.29</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.32</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.34</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.36</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.38</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.40</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.42</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.44</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.46</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 6.48</string>
         </property>
        </item>
       </item>
@@ -293,7 +398,7 @@
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
-          <widget class="QTextEdit" name="helpTextEdit">
+          <widget class="QTextEdit" name="microTextEdit">
            <property name="font">
             <font>
              <family>Courier</family>
@@ -307,6 +412,9 @@
             <set>Qt::TextSelectableByMouse</set>
            </property>
           </widget>
+          <widget class="QTextEdit" name="leftPepTextEdit"/>
+          <widget class="QTextEdit" name="rightPepTextEdit"/>
+          <widget class="QTextEdit" name="rightCppTextEdit"/>
          </widget>
         </item>
         <item>
@@ -315,7 +423,7 @@
            <number>5</number>
           </property>
           <item>
-           <widget class="QPushButton" name="helpCopyToMicrocodeButton">
+           <widget class="QPushButton" name="copyToSourceButton">
             <property name="text">
              <string>Copy to Microcode</string>
             </property>
@@ -353,7 +461,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>0</width>
+              <width>400</width>
               <height>35</height>
              </size>
             </property>
