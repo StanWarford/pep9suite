@@ -35,7 +35,7 @@ class AsmTraceBreakpointArea;
 class AsmCode;
 class PepASMHighlighter;
 class AsmProgram;
-
+class AsmProgramManager;
 /*
  * The breakpointable text editor must be a sublass of QPlainTextEdit because it must subclass resizeEvent to function properly.
  * So, this functionality cannot be implemented in the AsmSourceCodePane.
@@ -86,7 +86,7 @@ class AsmTracePane : public QWidget {
     Q_DISABLE_COPY(AsmTracePane)
 public:
     explicit AsmTracePane(QWidget *parent = nullptr);
-    void init(const CPUControlSection* controlSection);
+    void init(const CPUControlSection* controlSection, AsmProgramManager* programManager);
     virtual ~AsmTracePane();
 
     void clearSourceCode();
@@ -122,10 +122,10 @@ public slots:
 private:
     Ui::AsmTracePane *ui;
     QSharedPointer<AsmProgram> activeProgram;
+    AsmProgramManager* programManager;
     const CPUControlSection* controlSection;
     PepASMHighlighter *pepHighlighter;
     void mouseReleaseEvent(QMouseEvent *);
-
     void mouseDoubleClickEvent(QMouseEvent *);
 
 private slots:

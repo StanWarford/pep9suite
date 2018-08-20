@@ -39,6 +39,8 @@ class AsmProgramManager: public QObject
 public:
 
     static AsmProgramManager* getInstance();
+    QSharedPointer<AsmProgram> getOperatingSystem();
+    QSharedPointer<AsmProgram> getUserProgram();
     QSharedPointer<const AsmProgram> getOperatingSystem() const;
     QSharedPointer<const AsmProgram> getUserProgram() const;
     void setOperatingSystem(QSharedPointer<AsmProgram> prog);

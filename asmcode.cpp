@@ -35,6 +35,11 @@ AsmCode::AsmCode(): memAddress(0), sourceCodeLine(0), symbolEntry(QSharedPointer
 
 }
 
+void AsmCode::adjustMemAddress(int addressDelta)
+{
+    if(memAddress >=0) memAddress += addressDelta;
+}
+
 void UnaryInstruction::appendObjectCode(QList<int> &objectCode) const
 {
     objectCode.append(Pep::opCodeMap.value(mnemonic));
@@ -354,7 +359,7 @@ QString NonUnaryInstruction::getAssemblerListing() const
 QString DotAddrss::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
-    int symbolValue = symbolEntry->getValue();
+    int symbolValue = this->argument->getArgumentValue();
     QString codeStr = QString("%1").arg(symbolValue, 4, 16, QLatin1Char('0')).toUpper();
     QString symbolStr;
     if (!symbolEntry.isNull()) {
@@ -601,7 +606,9 @@ quint16 DotAlign::objectCodeLength() const
 quint16 DotAscii::objectCodeLength() const
 {
     // Subtract 2 to account for left and right quotation marks
-    return argument->getArgumentString().length() - 2;
+    QList<int> num;
+    appendObjectCode(num);
+    return num.length();
 }
 
 quint16 DotBlock::objectCodeLength() const

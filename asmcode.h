@@ -47,7 +47,7 @@ public:
     virtual ~AsmCode() { }
     virtual void appendObjectCode(QList<int> &) const{ return; }
     virtual void appendSourceLine(QStringList &assemblerListingList) const{ assemblerListingList.append(getAssemblerListing()); }
-    void adjustMemAddress(int addressDelta) { memAddress += addressDelta; }
+    void adjustMemAddress(int addressDelta);
     virtual bool processFormatTraceTags(int &, QString &, SymbolListings &) { return true; }
     virtual bool processSymbolTraceTags(int &, QString &, SymbolListings &) { return true; }
     virtual int getMemoryAddress() const {return memAddress; }
@@ -61,7 +61,7 @@ public:
     // Dereferencing an empty shared pointer causes memory access violatations that are hard to debug.
     QSharedPointer<const SymbolEntry> getSymbolEntry() const {return symbolEntry;}
 protected:
-    int memAddress;
+    int memAddress =-1;
     int sourceCodeLine;
     QSharedPointer<SymbolEntry> symbolEntry;
     QString comment;

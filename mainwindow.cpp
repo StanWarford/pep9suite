@@ -84,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->cpuWidget->init(this);
     ui->memoryTracePane->init(memorySection);
     ui->AsmSourceCodeWidgetPane->init(memorySection, programManager);
-    ui->asmListingTracePane->init(controlSection);
+    ui->asmListingTracePane->init(controlSection, programManager);
 
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_All);
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_Minimal);

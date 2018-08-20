@@ -172,10 +172,10 @@ QStringList AsmSourceCodePane::getAssemblerListingList()
     return assemblerListingList;
 }
 
-void AsmSourceCodePane::adjustCodeList(int addressDelta)
+void AsmSourceCodePane::adjustCodeList(QList<QSharedPointer<AsmCode>>& codeList, int addressDelta)
 {
-    for (int i = 0; i < currentProgram->numberOfLines(); i++) {
-        currentProgram->getCodeOnLine(i)->adjustMemAddress(addressDelta);
+    for (int i = 0; i < codeList.length(); i++) {
+        codeList[i]->adjustMemAddress(addressDelta);
     }
 }
 
@@ -221,8 +221,8 @@ bool AsmSourceCodePane::assembleOS(QStringList fileLines)
     // Adjust for .BURN
     int addressDelta = info.burnValue - byteCount + 1;
     info.startROMAddress = addressDelta;
+    adjustCodeList(codeList, addressDelta);
     currentProgram = QSharedPointer<AsmProgram>::create(codeList, symTable);
-    adjustCodeList(addressDelta);
     symTable->setOffset(addressDelta);
     programManager->setOperatingSystem(currentProgram);
     return true;
@@ -437,6 +437,7 @@ void AsmSourceCodePane::onBreakpointAdded(quint16 address)
 {
     if(addressToIndex.contains(address)) {
         ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointAdded(addressToIndex[address]);
+        currentProgram->getProgram()[addressToIndex[address]]->setBreakpoint(true);
     }
 }
 
@@ -444,6 +445,7 @@ void AsmSourceCodePane::onBreakpointRemoved(quint16 address)
 {
     if(addressToIndex.contains(address)) {
         ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointRemoved(addressToIndex[address]);
+        currentProgram->getProgram()[addressToIndex[address]]->setBreakpoint(false);
     }
 }
 

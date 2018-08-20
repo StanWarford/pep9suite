@@ -14,6 +14,16 @@ AsmProgramManager *AsmProgramManager::getInstance()
     return instance;
 }
 
+QSharedPointer<AsmProgram> AsmProgramManager::getOperatingSystem()
+{
+    return operatingSystem;
+}
+
+QSharedPointer<AsmProgram> AsmProgramManager::getUserProgram()
+{
+    return userProgram;
+}
+
 QSharedPointer<const AsmProgram> AsmProgramManager::getOperatingSystem() const
 {
     return operatingSystem;

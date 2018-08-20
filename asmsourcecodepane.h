@@ -107,7 +107,7 @@ public:
     // Post: hasCheckBox is populated with the checkBox list that specifies whether a trace line can have a break point.
     // Post: assemblerListingList is returned.
 
-    void adjustCodeList(int addressDelta);
+    void adjustCodeList(QList<QSharedPointer<AsmCode>>& codeList, int addressDelta);
     // Pre: codeList is populated with code from a complete correct Pep/9 source program.
     // Post: The memAddress field of each code object is incremented by addressDelta.
 
