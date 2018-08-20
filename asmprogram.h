@@ -41,8 +41,8 @@ public:
     QSharedPointer<SymbolTable> getSymbolTable();
     const QSharedPointer<SymbolTable> getSymbolTable() const;
 
-    AsmCode* getCodeOnLine(quint32 line);
-    const AsmCode* getCodeOnLine(quint32 line) const;
+    AsmCode* getCodeAtIndex(quint32 line);
+    const AsmCode* getCodeAtIndex(quint32 line) const;
     const AsmCode* memAddressToCode(quint16 memAddress) const;
     int numberOfLines() const;
     QPair<quint16, quint16> getProgramBounds() const;

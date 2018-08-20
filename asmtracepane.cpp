@@ -33,12 +33,17 @@ AsmTracePane::~AsmTracePane()
 void AsmTracePane::clearSourceCode()
 {
     ui->tracePaneTextEdit->clear();
-#pragma message("TODO: Check on activeProgram lifecycle")
-    activeProgram = nullptr;
+    activeProgram.clear();
 }
 
 void AsmTracePane::highlightOnFocus()
 {
+    if (ui->tracePaneTextEdit->hasFocus()) {
+        ui->tracePaneTextEdit->setAutoFillBackground(true);
+    }
+    else {
+        ui->tracePaneTextEdit->setAutoFillBackground(false);
+    }
 }
 
 bool AsmTracePane::hasFocus()
@@ -81,10 +86,6 @@ void AsmTracePane::updateSimulationView()
     quint16 pc = controlSection->getCPUMemoizer()->getRegisterStart(CPURegisters::PC);
     if(activeProgram.data() != programManager->getProgramAt(pc)) {
 
-        /*if(programManager->getUserProgram()->getProgramBounds().first <= pc &&
-                programManager->getUserProgram()->getProgramBounds().second >= pc) {
-
-        }*/
         if(programManager->getOperatingSystem()->getProgramBounds().first <= pc &&
                 programManager->getOperatingSystem()->getProgramBounds().second >= pc) {
             setProgram(programManager->getOperatingSystem());
@@ -120,14 +121,14 @@ void AsmTracePane::onRemoveAllBreakpoints()
     ((AsmTraceTextEdit*)ui->tracePaneTextEdit)->onRemoveAllBreakpoints();
 }
 
-void AsmTracePane::onBreakpointAdded(quint16 line)
+void AsmTracePane::onBreakpointAdded(quint16 address)
 {
-    ((AsmTraceTextEdit*)ui->tracePaneTextEdit)->onBreakpointAdded(line);
+    ((AsmTraceTextEdit*)ui->tracePaneTextEdit)->onBreakpointAdded(address);
 }
 
-void AsmTracePane::onBreakpointRemoved(quint16 line)
+void AsmTracePane::onBreakpointRemoved(quint16 address)
 {
-    ((AsmTraceTextEdit*)ui->tracePaneTextEdit)->onBreakpointRemoved(line);
+    ((AsmTraceTextEdit*)ui->tracePaneTextEdit)->onBreakpointRemoved(address);
 }
 
 void AsmTracePane::mouseReleaseEvent(QMouseEvent *)
@@ -150,7 +151,7 @@ void AsmTracePane::onBreakpointRemovedProp(quint16 address)
     emit breakpointRemoved(address);
 }
 
-AsmTraceTextEdit::AsmTraceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode), updateHighlight(false)
+AsmTraceTextEdit::AsmTraceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode), updateHighlight(false), activeProgram()
 {
     breakpointArea = new AsmTraceBreakpointArea(this);
     connect(this, &QPlainTextEdit::blockCountChanged, this, &AsmTraceTextEdit::updateBreakpointAreaWidth);
@@ -241,21 +242,23 @@ const QSet<quint16> AsmTraceTextEdit::getBreakpoints() const
     return breakpoints;
 }
 
-void AsmTraceTextEdit::setTextFromCode(QSharedPointer<const AsmProgram> code)
+void AsmTraceTextEdit::setTextFromCode(QSharedPointer<AsmProgram> code)
 {
+    activeProgram = code;
     QStringList finList, traceList;
     int visualIt = 0;
     const AsmCode* codePtr;
     breakpoints.clear();
     for(int it = 0; it < code->numberOfLines(); it++)
     {
-        codePtr = code->getCodeOnLine(it);
+        codePtr = code->getCodeAtIndex(it);
         traceList = codePtr->getAssemblerTrace().split("\n");
         if(dynamic_cast<const UnaryInstruction*>(codePtr) != nullptr ||
                 dynamic_cast<const NonUnaryInstruction*>(codePtr) != nullptr)
         {
             lineToAddr[visualIt] = codePtr->getMemoryAddress();
             addrToLine[codePtr->getMemoryAddress()] = visualIt;
+            lineToIndex[visualIt] = it;
             if(codePtr->hasBreakpoint()) {
                 onBreakpointAdded(codePtr->getMemoryAddress());
 
@@ -315,14 +318,20 @@ void AsmTraceTextEdit::onRemoveAllBreakpoints()
     update();
 }
 
-void AsmTraceTextEdit::onBreakpointAdded(quint16 line)
+void AsmTraceTextEdit::onBreakpointAdded(quint16 address)
 {
-    breakpoints.insert(addrToLine[line]);
+    if(addrToLine.contains(address)) {
+        breakpoints.insert(addrToLine[address]);
+        activeProgram->getCodeAtIndex(lineToIndex[addrToLine[address]])->setBreakpoint(true);
+    }
 }
 
-void AsmTraceTextEdit::onBreakpointRemoved(quint16 line)
+void AsmTraceTextEdit::onBreakpointRemoved(quint16 address)
 {
-    breakpoints.remove(addrToLine[line]);
+    if(addrToLine.contains(address)) {
+        breakpoints.remove(addrToLine[address]);
+        activeProgram->getCodeAtIndex(lineToIndex[addrToLine[address]])->setBreakpoint(false);
+    }
 }
 
 void AsmTraceTextEdit::onDarkModeChanged(bool darkMode)

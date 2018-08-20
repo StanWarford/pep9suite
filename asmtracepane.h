@@ -49,7 +49,7 @@ public:
     int breakpointAreaWidth();
     void breakpointAreaMousePress(QMouseEvent* event);
     const QSet<quint16> getBreakpoints() const;
-    void setTextFromCode(QSharedPointer<const AsmProgram> program);
+    void setTextFromCode(QSharedPointer<AsmProgram> program);
     void setBreakpoints(QSet<quint16> memAddresses);
 
     void highlightActiveLine();
@@ -77,6 +77,8 @@ private:
     // Breakpoints are stored as line numbers, not memory addresses.
     QSet<quint16> breakpoints;
     QMap<quint16, quint16> lineToAddr, addrToLine;
+    QMap<quint16, quint16> lineToIndex;
+    QSharedPointer<AsmProgram> activeProgram;
     int activeAddress;
     bool updateHighlight;
 };

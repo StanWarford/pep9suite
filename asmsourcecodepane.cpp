@@ -158,7 +158,7 @@ QList<int> AsmSourceCodePane::getObjectCode()
 {
     objectCode.clear();
     for (int i = 0; i < currentProgram->numberOfLines(); ++i) {
-        currentProgram->getCodeOnLine(i)->appendObjectCode(objectCode);
+        currentProgram->getCodeAtIndex(i)->appendObjectCode(objectCode);
     }
     return objectCode;
 }
@@ -167,7 +167,7 @@ QStringList AsmSourceCodePane::getAssemblerListingList()
 {
     assemblerListingList.clear();
     for (int i = 0; i < currentProgram->numberOfLines(); i++) {
-        currentProgram->getCodeOnLine(i)->appendSourceLine(assemblerListingList);
+        currentProgram->getCodeAtIndex(i)->appendSourceLine(assemblerListingList);
     }
     return assemblerListingList;
 }
@@ -437,7 +437,6 @@ void AsmSourceCodePane::onBreakpointAdded(quint16 address)
 {
     if(addressToIndex.contains(address)) {
         ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointAdded(addressToIndex[address]);
-        currentProgram->getProgram()[addressToIndex[address]]->setBreakpoint(true);
     }
 }
 
@@ -445,7 +444,6 @@ void AsmSourceCodePane::onBreakpointRemoved(quint16 address)
 {
     if(addressToIndex.contains(address)) {
         ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointRemoved(addressToIndex[address]);
-        currentProgram->getProgram()[addressToIndex[address]]->setBreakpoint(false);
     }
 }
 

@@ -1,7 +1,6 @@
 #include "asmprogram.h"
 #include "asmcode.h"
 #include "symboltable.h"
-#include <qDebug>
 AsmProgram::AsmProgram(): program(), indexToMemAddress(), memAddressToIndex(), symTable(QSharedPointer<SymbolTable>(new SymbolTable()))
 {
 
@@ -14,19 +13,12 @@ AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPoint
     int start = -1;
     for(int it = 0; it < programList.length(); it++)
     {
-        qDebug().noquote() << programList[it]->getMemoryAddress() << programList[it]->objectCodeLength()  << programList[it]->getAssemblerListing();
         if(start == -1 && programList[it]->getMemoryAddress() >= 0) start = static_cast<quint16>(programList[it]->getMemoryAddress());
         indexToMemAddress.insert(it, static_cast<quint16>(programList[it]->getMemoryAddress()));
         memAddressToIndex.insert(static_cast<quint16>(programList[it]->getMemoryAddress()), it);
         programByteLength += programList[it]->objectCodeLength();
     }
-    if(false) {
-
-    }
-    else {
-        programBounds = {static_cast<quint16>(start), static_cast<quint16>(start-1+programByteLength)};
-        qDebug() << programBounds;
-    }
+    programBounds = {static_cast<quint16>(start), static_cast<quint16>(start-1+programByteLength)};
 }
 
 AsmProgram::~AsmProgram()
@@ -68,13 +60,13 @@ const QSharedPointer<SymbolTable> AsmProgram::getSymbolTable() const
     return symTable;
 }
 
-AsmCode *AsmProgram::getCodeOnLine(quint32 line)
+AsmCode *AsmProgram::getCodeAtIndex(quint32 line)
 {
     if(line >= static_cast<quint32>(program.length())) return nullptr;
     else return program[static_cast<int>(line)].data();
 }
 
-const AsmCode *AsmProgram::getCodeOnLine(quint32 line) const
+const AsmCode *AsmProgram::getCodeAtIndex(quint32 line) const
 {
     if(line >= static_cast<quint32>(program.length())) return nullptr;
     else return program[static_cast<int>(line)].data();

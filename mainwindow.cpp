@@ -163,6 +163,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::fontChanged, ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::onFontChanged);
     connect(this, &MainWindow::fontChanged, ui->AsmListingWidgetPane, &AsmListingPane::onFontChanged);
     connect(this, &MainWindow::fontChanged, ui->memoryWidget, &MemoryDumpPane::onFontChanged);
+    connect(this, &MainWindow::fontChanged, ui->asmListingTracePane, &AsmTracePane::onFontChanged);
 
     // Connect dark mode events.
     connect(this, &MainWindow::darkModeChanged, ui->microcodeWidget, &MicrocodePane::onDarkModeChanged);
