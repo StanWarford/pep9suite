@@ -32,7 +32,7 @@ MicrocodeProgram::MicrocodeProgram(QVector<MicroCodeBase*>objectCode, SymbolTabl
         MicroCode* line = ((MicroCode*) programVec[microcodeVec[it]]);
         // If the line doesn't already have a symbol, create an assembler assigned one.
         if((line->getSymbol()) == nullptr) {
-            line->setSymbol(symTable->insertSymbol("_as" + QString::number(it)).get());
+            line->setSymbol(symTable->insertSymbol("_as" + QString::number(it)).data());
         }
         symbolTable->setValue(line->getSymbol()->getSymbolID(), QSharedPointer<SymbolValueNumeric>::create(it));
     }

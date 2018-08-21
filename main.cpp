@@ -24,8 +24,8 @@
 #ifdef WIN32
 #include <string.h>
 #include <qvector.h>
-#include <iostream>
 #endif
+#include <iostream>
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     QByteArray localMsg = msg.toLocal8Bit();

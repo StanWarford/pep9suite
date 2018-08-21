@@ -198,7 +198,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 {
                    symTable->insertSymbol(tokenString.left(tokenString.length()-1));
                 }
-                microCode->setSymbol(symTable->getValue(tokenString.left(tokenString.length()-1)).get());
+                microCode->setSymbol(symTable->getValue(tokenString.left(tokenString.length()-1)).data());
                 state = MicroAsm::PS_CONTINUE_PRE_SEMICOLON_POST_COMMA;
             }
             else if (token == MicroAsm::LT_IDENTIFIER) {
@@ -752,7 +752,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 {
                     symTable->insertSymbol(tokenString);
                 }
-                microCode->setTrueTarget(symTable->getValue(tokenString).get());
+                microCode->setTrueTarget(symTable->getValue(tokenString).data());
                 microCode->setBranchFunction(Enu::Unconditional);
                 state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
@@ -788,7 +788,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 {
                     symTable->insertSymbol(tokenString);
                 }
-                microCode->setTrueTarget(symTable->getValue(tokenString).get());
+                microCode->setTrueTarget(symTable->getValue(tokenString).data());
                 state = MicroAsm::PSE_ELSE;
             }
             else
@@ -817,7 +817,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 {
                     symTable->insertSymbol(tokenString);
                 }
-                microCode->setFalseTarget(symTable->getValue(tokenString).get());
+                microCode->setFalseTarget(symTable->getValue(tokenString).data());
                 state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
             else

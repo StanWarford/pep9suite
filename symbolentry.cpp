@@ -31,7 +31,7 @@ void SymbolEntry::setValue(SymbolTable::AbstractSymbolValuePtr value)
     //and so it doesn't make sense for the decision for this symbol to be multiply defined or not to be made here.
 	symbolValue = value;
     //If given an empty value, then the symbol is undefined
-    if (dynamic_cast<SymbolValueEmpty*>(value.get()))
+    if (dynamic_cast<SymbolValueEmpty*>(value.data()))
 	{
         definedState = DefStates::UNDEFINED;
 	}
