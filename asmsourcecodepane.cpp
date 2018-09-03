@@ -272,8 +272,7 @@ void AsmSourceCodePane::setSourceCodePaneText(QString string)
 void AsmSourceCodePane::clearSourceCode()
 {
     ui->textEdit->clear();
-#pragma message("TODO: check current program lifecycle")
-    currentProgram = nullptr; // This may cause issues with "format from listing" - but this needs to be cleared regardless.
+    currentProgram.clear(); //Should be safe, since we are using shared pointers
 }
 
 bool AsmSourceCodePane::isModified()
@@ -588,13 +587,11 @@ void AsmSourceTextEdit::onRemoveAllBreakpoints()
 
 void AsmSourceTextEdit::onBreakpointAdded(quint16 line)
 {
-#pragma message ("TODO: Handle breakpoints being added externally.")
     breakpoints.insert(blockToIndex[line]);
 }
 
 void AsmSourceTextEdit::onBreakpointRemoved(quint16 line)
 {
-#pragma message ("TODO: Handle breakpoints being removed externally.")
     breakpoints.remove(blockToIndex[line]);
 }
 

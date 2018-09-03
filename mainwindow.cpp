@@ -1360,7 +1360,7 @@ void MainWindow::on_actionBuild_Run_triggered()
 
 void MainWindow::handleDebugButtons()
 {
-    Enu::EMnemonic mnemon = Pep::decodeMnemonic[memorySection->getMemoryByte(dataSection->getRegisterBankWord(CPURegisters::PC), false)];
+    Enu::EMnemonic mnemon = Pep::decodeMnemonic[memorySection->getMemoryByte(dataSection->getRegisterBankWord(Enu::CPURegisters::PC), false)];
     bool enable_into = (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
     int enabledButtons=0;
     switch(debugState)
@@ -1475,7 +1475,7 @@ void MainWindow::on_actionDebug_Restart_Debugging_triggered()
 void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
 {
     debugState = DebugState::DEBUG_ISA;
-    Enu::EMnemonic mnemon = Pep::decodeMnemonic[memorySection->getMemoryByte(dataSection->getRegisterBankWord(CPURegisters::PC), false)];
+    Enu::EMnemonic mnemon = Pep::decodeMnemonic[memorySection->getMemoryByte(dataSection->getRegisterBankWord(Enu::CPURegisters::PC), false)];
     bool isTrap = Pep::isTrapMap[mnemon];
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
     if(isTrap && ui->actionSystem_Trace_Traps->isChecked()){ //If it is a trap instruction & we are tracing traps, step into the trap.
@@ -1583,7 +1583,7 @@ void MainWindow::onMicroBreakpointHit()
 
 void MainWindow::onASMBreakpointHit()
 {
-    qDebug() << "trapped on PC = " << dataSection->getRegisterBankWord(CPURegisters::PC);
+    qDebug() << "trapped on PC = " << dataSection->getRegisterBankWord(Enu::CPURegisters::PC);
     debugState = DebugState::DEBUG_ISA;
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
     QApplication::processEvents();

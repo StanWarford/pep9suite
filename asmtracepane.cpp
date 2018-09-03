@@ -83,7 +83,7 @@ void AsmTracePane::startSimulationView()
 
 void AsmTracePane::updateSimulationView()
 {
-    quint16 pc = controlSection->getCPUMemoizer()->getRegisterStart(CPURegisters::PC);
+    quint16 pc = controlSection->getCPUMemoizer()->getRegisterStart(Enu::CPURegisters::PC);
     if(activeProgram.data() != programManager->getProgramAt(pc)) {
 
         if(programManager->getOperatingSystem()->getProgramBounds().first <= pc &&

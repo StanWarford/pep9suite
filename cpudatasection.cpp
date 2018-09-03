@@ -214,12 +214,12 @@ quint16 CPUDataSection::getRegisterBankWord(quint8 registerNumber) const
 
 }
 
-quint8 CPUDataSection::getRegisterBankByte(CPURegisters registerNumber) const
+quint8 CPUDataSection::getRegisterBankByte(Enu::CPURegisters registerNumber) const
 {
     return getRegisterBankByte((quint8)registerNumber);
 }
 
-quint16 CPUDataSection::getRegisterBankWord(CPURegisters registerNumber) const
+quint16 CPUDataSection::getRegisterBankWord(Enu::CPURegisters registerNumber) const
 {
     return getRegisterBankWord((quint8)registerNumber);
 }

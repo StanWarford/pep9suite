@@ -142,13 +142,13 @@ void CPUMemoizer::setDebugLevel(Enu::DebugLevels level)
     this->level = level;
 }
 #include "assert.h"
-quint16 CPUMemoizer::getRegisterStart(CPURegisters reg) const
+quint16 CPUMemoizer::getRegisterStart(Enu::CPURegisters reg) const
 {
     if (item.microprogramCounter == 0){
-        if(reg != CPURegisters::PC) assert(false); // Attempted to access register that was not cached
-        else return item.data->getRegisterBankWord(CPURegisters::PC);
+        if(reg != Enu::CPURegisters::PC) assert(false); // Attempted to access register that was not cached
+        else return item.data->getRegisterBankWord(Enu::CPURegisters::PC);
     }
-    if(reg != CPURegisters::PC) assert(false); // Attempted to access register that was not cached
+    if(reg != Enu::CPURegisters::PC) assert(false); // Attempted to access register that was not cached
     else return registers.regState.reg_PC_start;
     return -1;
 }

@@ -38,7 +38,7 @@ public:
     QString memoize();
     QString finalStatistics();
     void setDebugLevel(Enu::DebugLevels level);
-    quint16 getRegisterStart(CPURegisters reg) const;
+    quint16 getRegisterStart(Enu::CPURegisters reg) const;
 
 private:
     CPUControlSection& item;

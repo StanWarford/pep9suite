@@ -149,7 +149,7 @@ public:
     // Provides editor widget with starting data for editing.
     virtual void setEditorData(QWidget * editor, const QModelIndex & index) const override;
     // Ensure that editor is displayed correctly on the item view
-    virtual void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+    virtual void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
     // Handle updating data in the model via calling the memorySection
     virtual void setModelData(QWidget *editor,
                                     QAbstractItemModel *model,

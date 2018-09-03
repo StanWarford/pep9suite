@@ -61,7 +61,7 @@ bool IOWidget::isRedoable() const
     return false;
 }
 
-const int IOWidget::editActions() const
+int IOWidget::editActions() const
 {
     int ret = EditButtons::COPY;
     if(ui->batchInput->hasFocus()) {

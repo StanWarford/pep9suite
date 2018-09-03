@@ -160,18 +160,18 @@ void MemoryDumpPane::clearHighlight()
 
 void MemoryDumpPane::highlight()
 {
-    highlightByte(dataSection->getRegisterBankWord(CPURegisters::SP), colors->altTextHighlight, colors->memoryHighlightSP);
-    highlightedData.append(dataSection->getRegisterBankWord(CPURegisters::SP));
+    highlightByte(dataSection->getRegisterBankWord(Enu::CPURegisters::SP), colors->altTextHighlight, colors->memoryHighlightSP);
+    highlightedData.append(dataSection->getRegisterBankWord(Enu::CPURegisters::SP));
     quint16 programCounter;
     if(controlSection->getLineNumber() == 0) {
         // When µPC == 0, memoizer has not yet cached CPU's state, so it would return the previous instructions starting PC.
         // However, no µInstructions have yet affected the PC, so use the value of PC from the register bank
-        programCounter = dataSection->getRegisterBankWord(CPURegisters::PC);
+        programCounter = dataSection->getRegisterBankWord(Enu::CPURegisters::PC);
     }
     else {
         // If the µPC is not 0, then the memoizer has had a chance to cache the CPU's inital program counter value.
-        const CPUMemoizer* memoizer = controlSection ->getCPUMemoizer();
-        programCounter = memoizer->getRegisterStart(CPURegisters::PC);
+        const CPUMemoizer* memoizer = controlSection->getCPUMemoizer();
+        programCounter = memoizer->getRegisterStart(Enu::CPURegisters::PC);
     }
     if(!Pep::isUnaryMap[Pep::decodeMnemonic[memorySection->getMemoryByte(programCounter,false)]]) {
         for(int it = 0; it < 3; it++) {
@@ -339,12 +339,12 @@ void MemoryDumpPane::scrollToByte(quint16 byte)
 
 void MemoryDumpPane::scrollToPC()
 {
-    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(dataSection->getRegisterBankWord(CPURegisters::PC), 4, 16, QLatin1Char('0')).toUpper());
+    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(dataSection->getRegisterBankWord(Enu::CPURegisters::PC), 4, 16, QLatin1Char('0')).toUpper());
 }
 
 void MemoryDumpPane::scrollToSP()
 {
-    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(dataSection->getRegisterBankWord(CPURegisters::SP), 4, 16, QLatin1Char('0')).toUpper());
+    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(dataSection->getRegisterBankWord(Enu::CPURegisters::SP), 4, 16, QLatin1Char('0')).toUpper());
 }
 
 void MemoryDumpPane::scrollToAddress(QString string)

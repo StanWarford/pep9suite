@@ -105,7 +105,7 @@ QString CPUControlSection::getErrorMessage() const
 bool CPUControlSection::stoppedForBreakpoint() const
 {
     return program->getCodeLine(microprogramCounter)->hasBreakpoint() ||
-            (microprogramCounter == 0)? breakpointsISA.contains(memoizer->getRegisterStart(CPURegisters::PC)) : false;
+            (microprogramCounter == 0)? breakpointsISA.contains(memoizer->getRegisterStart(Enu::CPURegisters::PC)) : false;
 }
 
 Enu::DebugLevels CPUControlSection::getDebugLevel() const
@@ -199,7 +199,7 @@ void CPUControlSection::onStep() noexcept
                 asmBreakpointHandled = false;
                 asmBreakpointHit = false;
             }
-            else if( breakpointsISA.contains(data->getRegisterBankWord(CPURegisters::PC))) {
+            else if( breakpointsISA.contains(data->getRegisterBankWord(Enu::CPURegisters::PC))) {
                 asmBreakpointHandled = false;
                 asmBreakpointHit = true;
                 emit simulationHitASMBreakpoint();
@@ -564,16 +564,16 @@ void CPUControlSection::setSignalsFromMicrocode(const MicroCode *line)
 void CPUControlSection::updateAtInstructionEnd()
 {
     // Handle changing of call stack depth if the executed instruction affects the call stack.
-    if(Pep::decodeMnemonic[data->getRegisterBankByte(CPURegisters::IS)] == Enu::EMnemonic::CALL){
+    if(Pep::decodeMnemonic[data->getRegisterBankByte(Enu::CPURegisters::IS)] == Enu::EMnemonic::CALL){
         callDepth++;
     }
-    else if(Pep::isTrapMap[Pep::decodeMnemonic[data->getRegisterBankByte(CPURegisters::IS)]]){
+    else if(Pep::isTrapMap[Pep::decodeMnemonic[data->getRegisterBankByte(Enu::CPURegisters::IS)]]){
         callDepth++;
     }
-    else if(Pep::decodeMnemonic[data->getRegisterBankByte(CPURegisters::IS)] == Enu::EMnemonic::RET){
+    else if(Pep::decodeMnemonic[data->getRegisterBankByte(Enu::CPURegisters::IS)] == Enu::EMnemonic::RET){
         callDepth--;
     }
-    else if(Pep::decodeMnemonic[data->getRegisterBankByte(CPURegisters::IS)] == Enu::EMnemonic::RETTR){
+    else if(Pep::decodeMnemonic[data->getRegisterBankByte(Enu::CPURegisters::IS)] == Enu::EMnemonic::RETTR){
         callDepth--;
     }
 }

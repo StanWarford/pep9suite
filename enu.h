@@ -28,11 +28,16 @@ namespace Enu
     Q_NAMESPACE;
 
     static const quint8 maxRegisterNumber = 31;
-    static const quint8 signalDisabled= 255;
-    class InvalidCPUMode : public QException
+    static const quint8 signalDisabled = 255;
+    enum class CPURegisters: quint8
     {
-        void raise() const { throw *this; }
-        InvalidCPUMode *clone() const { return new InvalidCPUMode(*this); }
+        //Two byte registers
+        A = 0, X = 2, SP = 4, PC = 6, OS = 9, T2 = 12, T3 = 14,
+        T4 = 14, T5 = 18, T6 = 20, M1 = 22, M2 = 24, M3 = 26,
+        M4 = 28, M5 = 30,
+
+        //One byte registers
+        IS=8, T1=11
     };
 
     enum EMask // For ALU function 15

@@ -19,7 +19,7 @@ public:
     void batchInputToBuffer(); //Move batch input to MemorySection if needed;
     bool isUndoable() const;
     bool isRedoable() const;
-    const int editActions() const;
+    int editActions() const;
 
 signals:
     void dataEntered(const QString &data);

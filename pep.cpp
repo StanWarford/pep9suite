@@ -341,7 +341,6 @@ void Pep::initMnemonicMaps()
     initMnemMapHelper(EMnemonic::LDWA, 192, false, true, false);
     initMnemMapHelper(EMnemonic::LDWX, 200, false, true, false);
 
-#pragma message("I'm not sure these instructions should have a required addressing mode - Matthew McRaven 6/26/2018")
     initMnemMapHelper(EMnemonic::MOVAFLG, 5, true, false, false);
     initMnemMapHelper(EMnemonic::MOVFLGA, 4, true, false, false);
     initMnemMapHelper(EMnemonic::MOVSPA, 3, true, false, false);
