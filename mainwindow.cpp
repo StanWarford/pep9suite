@@ -112,7 +112,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(byteConverterDec, &ByteConverterDec::textEdited, this, &MainWindow::slotByteConverterDecEdited);
     connect(byteConverterHex, &ByteConverterHex::textEdited, this, &MainWindow::slotByteConverterHexEdited);
 
-    connect(qApp->instance(), SIGNAL(focusChanged(QWidget*, QWidget*)), this, SLOT(focusChanged(QWidget*, QWidget*)));
+    connect((QApplication*)QApplication::instance(), &QApplication::focusChanged, this, &MainWindow::focusChanged);
 
     // Connect IOWidget to memory
     ui->ioWidget->bindToMemorySection(memorySection);
@@ -1776,54 +1776,60 @@ void MainWindow::slotByteConverterHexEdited(const QString &str)
 // Focus Coloring. Activates and deactivates undo/redo/cut/copy/paste actions contextually
 void MainWindow::focusChanged(QWidget *oldFocus, QWidget * newFocus)
 {
-    if(oldFocus == ui->microcodeWidget || newFocus == ui->microcodeWidget)
+    if(ui->microcodeWidget->isAncestorOf(oldFocus))
         ui->microcodeWidget->highlightOnFocus();
-
-    if(oldFocus == ui->microObjectCodePane || newFocus == ui->microObjectCodePane)
+    else if(ui->microObjectCodePane->isAncestorOf(oldFocus))
         ui->microObjectCodePane->highlightOnFocus();
-
-    if(oldFocus == ui->memoryWidget || newFocus == ui->memoryWidget)
+    else if(ui->memoryWidget->isAncestorOf(oldFocus))
         ui->memoryWidget->highlightOnFocus();
-
-    if(oldFocus == ui->cpuWidget || newFocus == ui->cpuWidget)
+    else if(ui->cpuWidget->isAncestorOf(oldFocus))
         ui->cpuWidget->highlightOnFocus();
-
-    if(oldFocus == ui->AsmSourceCodeWidgetPane || newFocus == ui->AsmSourceCodeWidgetPane)
+    else if(ui->AsmSourceCodeWidgetPane->isAncestorOf(oldFocus))
         ui->AsmSourceCodeWidgetPane->highlightOnFocus();
-
-    if(oldFocus == ui->AsmObjectCodeWidgetPane || newFocus == ui->AsmObjectCodeWidgetPane)
+    else if(ui->AsmObjectCodeWidgetPane->isAncestorOf(oldFocus))
         ui->AsmObjectCodeWidgetPane->highlightOnFocus();
-
-    if(oldFocus == ui->AsmListingWidgetPane || newFocus == ui->AsmListingWidgetPane)
+    else if(ui->AsmListingWidgetPane->isAncestorOf(oldFocus))
         ui->AsmListingWidgetPane->highlightOnFocus();
+    else if(ui->asmListingTracePane->isAncestorOf(oldFocus))
+        ui->asmListingTracePane->highlightOnFocus();
 
     int which = 0;
     if (ui->microcodeWidget->hasFocus()) {
         which = EditButtons::COPY | EditButtons::CUT | EditButtons::PASTE;
         which |= EditButtons::UNDO*ui->microcodeWidget->isUndoable() | EditButtons::REDO*ui->microcodeWidget->isRedoable();
+        ui->microcodeWidget->highlightOnFocus();
     }
     else if (ui->memoryWidget->hasFocus()) {
         which = 0;
+        ui->memoryWidget->highlightOnFocus();
     }
     else if (ui->cpuWidget->hasFocus()) {
         which = 0;
+        ui->cpuWidget->highlightOnFocus();
     }
     else if (ui->microObjectCodePane->hasFocus()) {
         which = EditButtons::COPY;
+        ui->microObjectCodePane->highlightOnFocus();
     }
     else if (ui->AsmSourceCodeWidgetPane->hasFocus()) {
         which = EditButtons::COPY | EditButtons::CUT | EditButtons::PASTE;
         which |= EditButtons::UNDO * ui->AsmSourceCodeWidgetPane->isUndoable() | EditButtons::REDO * ui->AsmSourceCodeWidgetPane->isRedoable();
+        ui->AsmSourceCodeWidgetPane->highlightOnFocus();
     }
     else if (ui->AsmObjectCodeWidgetPane->hasFocus()) {
         which = EditButtons::COPY | EditButtons::CUT | EditButtons::PASTE;
         which |= EditButtons::UNDO * ui->AsmObjectCodeWidgetPane->isUndoable() | EditButtons::REDO * ui->AsmObjectCodeWidgetPane->isRedoable();
+        ui->AsmObjectCodeWidgetPane->highlightOnFocus();
     }
     else if (ui->AsmListingWidgetPane->hasFocus()) {
         which = EditButtons::COPY;
+        ui->AsmListingWidgetPane->highlightOnFocus();
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         which = ui->ioWidget->editActions();
+    }
+    else if (ui->asmListingTracePane->hasFocus()) {
+        which = 0;
     }
 
     ui->actionEdit_Undo->setEnabled(which & EditButtons::UNDO);

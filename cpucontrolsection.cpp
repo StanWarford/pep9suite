@@ -237,6 +237,7 @@ void CPUControlSection::onStep() noexcept
         updateAtInstructionEnd();
         emit simulationInstructionFinished();
         instructionCounter++;
+        qDebug().noquote() << memoizer->memoize();
     }
     // Nothing do do on an error
     else if(hadErrorOnStep()) return;
@@ -337,7 +338,7 @@ void CPUControlSection::onRun() noexcept
         return;
     }
     auto value = timer.elapsed();
-    //qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
+    qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
     qDebug().nospace().noquote() <<"Executed "<<instructionCounter<<" instructions in "<<microCycleCounter<< " cycles.";
     qDebug().nospace().noquote() <<"Averaging "<<microCycleCounter / instructionCounter<<" cycles per instruction.";
     qDebug().nospace().noquote() <<"Execution time (ms): " << value;
