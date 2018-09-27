@@ -25,6 +25,7 @@
 #include "pep.h"
 #include "cpucontrolsection.h"
 #include "microcodeprogram.h"
+#include <limits.h>
 
 MicrocodeEditor::MicrocodeEditor(QWidget *parent, bool highlightCurrentLine, bool isReadOnly) : QPlainTextEdit(parent), colors(&PepColors::lightMode)
 {
@@ -48,7 +49,9 @@ MicrocodeEditor::MicrocodeEditor(QWidget *parent, bool highlightCurrentLine, boo
 int MicrocodeEditor::lineNumberAreaWidth()
 {
     int max = qMax(1, blockCount());
-    int digits = 1 + log10(max); // Truncate double and then add one
+    // Calculate the number of digits in the row number.
+    // Floor(Log10) returns the number of digits in number (minus one)
+    int digits = 1 + log10(max);
 
     int space = 4 + fontMetrics().width(QLatin1Char('9')) * digits;
 
@@ -110,15 +113,19 @@ void MicrocodeEditor::onTextChanged()
     QStringList sourceCodeList = toPlainText().split('\n');
 
     for (int i = 0; i < sourceCodeList.size(); i++) {
+        // The following regular expression will find a match in any non-microcode line
         if (QRegExp("^\\s*//|^\\s*$|^\\s*unitpre|^\\s*unitpost", Qt::CaseInsensitive).indexIn(sourceCodeList.at(i)) == 0) {
         }
         else {
             blockToCycle.insert(i, cycleNumber++);
         }
     }
+    // A deletion of text could may make high line number disappear,
+    // so any line numbers that have a breakpoint but no longer exist have their
+    // breakpoint removed.
     QSet<quint16> toRemove;
     for(auto x : breakpoints) {
-        if (blockToCycle.key(x, -1) == -1) toRemove.insert(-1);
+        if (blockToCycle.key(x, std::numeric_limits<quint16>::max()) == std::numeric_limits<quint16>::max()) toRemove.insert(x);
     }
     breakpoints.subtract(toRemove);
     update();
@@ -137,7 +144,15 @@ void MicrocodeEditor::highlightSimulatedLine()
         QTextCursor cursor = QTextCursor(document());
         cursor.setPosition(0);
         CPUControlSection* inst = CPUControlSection::getInstance();
-        cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, inst->getProgram()->codeLineToProgramLine(inst->getLineNumber()));
+        // Fetches the micro-address of the currently executing instruction.
+        // Address are 0-indexed, but block numbers are 1 indexed.
+        int activeLineNum = inst->getLineNumber() + 1;
+        // Convert a micro-address to a logical text block
+        int activeBlockNum = blockToCycle.key(activeLineNum, std::numeric_limits<quint16>::max());
+        // Iterate over blocks, because lines do not work correctly with line wrap
+        cursor.movePosition(QTextCursor::NextBlock,
+                            QTextCursor::MoveAnchor,
+                            activeBlockNum);
         this->setTextCursor(cursor);
         ensureCursorVisible(); 
         selection.cursor = cursor;
@@ -175,7 +190,6 @@ void MicrocodeEditor::unCommentSelection()
     }
 
     bool doCStyleUncomment = false;
-    //bool doCStyleComment = false;
     bool doCppStyleUncomment = false;
 
     bool hasSelection = cursor.hasSelection();
@@ -183,7 +197,6 @@ void MicrocodeEditor::unCommentSelection()
     if (hasSelection) {
         QString startText = startBlock.text();
         int startPos = start - startBlock.position();
-        //bool hasLeadingCharacters = !startText.left(startPos).trimmed().isEmpty();
         if ((startPos >= 2
             && startText.at(startPos-2) == QLatin1Char('/')
              && startText.at(startPos-1) == QLatin1Char('*'))) {
@@ -311,7 +324,7 @@ const QSet<quint16> MicrocodeEditor::getBreakpoints() const
 
 void MicrocodeEditor::onDarkModeChanged(bool darkMode)
 {
-    if(darkMode)colors = &PepColors::darkMode;
+    if(darkMode) colors = &PepColors::darkMode;
     else colors = &PepColors::lightMode;
 }
 
@@ -354,6 +367,7 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
             painter.drawRect(-1, top, lineNumberArea->width(), fontMetrics().height());
         }
     }
+
     // Display the cycle numbers
     block = firstVisibleBlock();
     blockNumber = block.blockNumber();
@@ -380,7 +394,6 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         bottom = top + (int) blockBoundingRect(block).height();
         ++blockNumber;
     }
-//    lineNumberArea->update();
 }
 
 void LineNumberArea::mousePressEvent(QMouseEvent *event)

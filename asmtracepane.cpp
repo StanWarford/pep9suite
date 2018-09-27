@@ -286,7 +286,8 @@ void AsmTraceTextEdit::highlightActiveLine()
         selection.format.setProperty(QTextFormat::FullWidthSelection, true);
         QTextCursor cursor = QTextCursor(document());
         cursor.setPosition(0);
-        cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, addrToLine[activeAddress]);
+        // Iterate over blocks, because lines do not work correctly with line wrap
+        cursor.movePosition(QTextCursor::NextBlock, QTextCursor::MoveAnchor, addrToLine[activeAddress]);
         this->setTextCursor(cursor);
         ensureCursorVisible();
         selection.cursor = cursor;
