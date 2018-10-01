@@ -281,7 +281,7 @@ stop: stop
 
 // A <- SP
 movspa: A=5, AMux=1, ALU=0, CMux=1, C=1; LoadCk
-A=1, AMux=1, ALU=0, CMux=1, C=0; LoadCk; goto start
+A=4, AMux=1, ALU=0, CMux=1, C=0; LoadCk; goto start
 
 // A<8-11> <- 0, A<12-15> <- NZVC
 movflga: CMux=0, C=1; LoadCk; goto start
@@ -312,7 +312,7 @@ A=22, B=0, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=0; NCk, ZCk, VCk, LoadCk; g
 
 //X <- -X; N <- X<0, Z <- X=0, V <- {Overflow}
 negx: A=22, B=3, AMux=1, ALU=3, AndZ=0, CMux=1, C=3; ZCk, SCk, LoadCk
-A=22, B=2, AMux=1, CSMux=1, ALU=4, AndZ=0, CMux=1, C=2; NCk, ZCk, VCk, LoadCk; goto start
+A=22, B=2, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=2; NCk, ZCk, VCk, LoadCk; goto start
 
 //*
 //* Unary Shift & Rotate Instructions
@@ -423,10 +423,14 @@ A=2, B=20, AMux=1, ALU=7, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
 //* Non-Unary Comparison Instructions
 //*
 cpwa: A=1, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; ZCk, SCk, LoadCk
-A=0, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=14; NCk, ZCk, VCk, CCk, LoadCk; goto start
+A=0, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=14; NCk, ZCk, VCk, CCk, LoadCk; if BRV cpw_n_fix else start
 
 cpwx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; ZCk, SCk, LoadCk
-A=2, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=14; NCk, ZCk, VCk, CCk, LoadCk; goto start
+A=2, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=14; NCk, ZCk, VCk, CCk, LoadCk; if BRV cpw_n_fix else start
+
+cpw_n_fix: cmux=0, c=17; loadck
+a=17, b=27, amux=1, alu=9, cmux=1, c=17; loadck
+a=17, amux=1, alu=15, andz=0; Nck, Zck, Vck, Cck; goto start
 
 cpba: A=1, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; NCk, ZCk, VCk, CCk, LoadCk; goto start
 cpbx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; NCk, ZCk, VCk, CCk, LoadCk; goto start
