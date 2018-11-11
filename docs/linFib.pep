@@ -1,5 +1,5 @@
          BR      main        
-         .ALIGN  2
+         .ALIGN  2           
 ;#####################
 gDepth:  .WORD   23          ;#2d Change the value of this word to change which fib number is calculated
 ;######################
@@ -28,22 +28,21 @@ loop:    CPWX    depth,s
 ;is add to the accumulator mem[it-2]
          SUBX    4,i         ;2 places back is 4 bytes
          ADDA    arr,sfx     
-;Prefer to undo math rather than load.
-;The load will take more than 6 micro-cycles,
-;whereas the math will only take exaclty 6)
+;Store to computer address mem[it] and store next value to mem[it]
          ADDX    4,i         
          STWA    arr,sfx     
-         ASRX                
+;Must load iterator again, can't use right shift, otherwise sign extension on shift causes problems.
+         LDWX    it,s        
          ADDX    1,i         
          STWX    it,s        
-         BR      loop
-         nop0        
+         BR      loop        
+         NOP0                
 eLoop:   STWA    retVal,s    
          LDWX    arr,s       
          CALL    del         
          ADDSP   4,i         ;pop #it #arr
-         RET
-.align   2                 
+         RET                 
+         .ALIGN  2           
 main:    LDWA    gDepth,d    
          STWA    -4,s        
          SUBSP   4,i         ;push #retVal #depth
