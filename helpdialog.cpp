@@ -29,6 +29,9 @@
 #include "pepmicrohighlighter.h"
 #include "pepasmhighlighter.h"
 #include "cpphighlighter.h"
+
+const int HelpDialog::defaultHelpTreeWidth = 200;
+
 HelpDialog::HelpDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::HelpDialog)
@@ -54,6 +57,12 @@ HelpDialog::HelpDialog(QWidget *parent) :
     rightCppHighlighter = new CppHighlighter(PepColors::lightMode, ui->rightCppTextEdit->document());
 
     ui->helpTreeWidget->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
+
+    // Manual size allocation to prevent help web view from being hidden.
+    QList<int> helpBalance;
+    static const int desiredSize = size().width()-HelpDialog::defaultHelpTreeWidth;
+    helpBalance.append({defaultHelpTreeWidth, desiredSize});
+    ui->splitter_3->setSizes(helpBalance);
 }
 
 HelpDialog::~HelpDialog()
