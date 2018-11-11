@@ -69,10 +69,14 @@ public:
     bool isEmpty();
     // Post: returns if the assembler listing is empty
 
+    void asHTML(QString& html) const;
+    // Post: returns the stylized assembler listing as string containing html
+
 public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
 private:
+    bool inDarkMode;
     Ui::AsmListingPane *ui;
 
     PepASMHighlighter *pepHighlighter;

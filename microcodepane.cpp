@@ -33,7 +33,7 @@
 #include "symboltable.h"
 MicrocodePane::MicrocodePane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::MicrocodePane), symbolTable(nullptr), program(nullptr), currentFile()
+        ui(new Ui::MicrocodePane),inDarkMode(false), symbolTable(nullptr), program(nullptr), currentFile()
 {
     ui->setupUi(this);
 
@@ -323,6 +323,18 @@ MicrocodeEditor *MicrocodePane::getEditor()
     return editor;
 }
 
+void MicrocodePane::asHTML(QString &html) const
+{
+    if(inDarkMode) {
+        // Only print in light mode color scheme, as paper is usually white.
+        QTextDocument doc = QTextDocument(editor->document()->toPlainText());
+        PepMicroHighlighter high = PepMicroHighlighter(PepColors::lightMode, &doc);
+        high.rehighlight();
+        high.asHtml(html, editor->font());
+    }
+    else highlighter->asHtml(html, editor->font());
+}
+
 void MicrocodePane::onFontChanged(QFont font)
 {
     editor->setFont(font);
@@ -330,14 +342,9 @@ void MicrocodePane::onFontChanged(QFont font)
 
 void MicrocodePane::onDarkModeChanged(bool darkMode)
 {
-    if(darkMode)
-    {
-        highlighter->rebuildHighlightingRules(PepColors::darkMode);
-    }
-    else
-    {
-        highlighter->rebuildHighlightingRules(PepColors::lightMode);
-    }
+    inDarkMode = darkMode;
+    if(darkMode) highlighter->rebuildHighlightingRules(PepColors::darkMode);
+    else highlighter->rebuildHighlightingRules(PepColors::lightMode);
     highlighter->rehighlight();
 
 }

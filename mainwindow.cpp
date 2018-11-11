@@ -761,7 +761,7 @@ void MainWindow::print(Enu::EPane which)
      */
     case Enu::EPane::ESource:
         title = &source;
-        text = ui->AsmSourceCodeWidgetPane->toPlainText();
+        ui->AsmSourceCodeWidgetPane->asHTML(text);
         break;
     case Enu::EPane::EObject:
         title = &object;
@@ -769,14 +769,15 @@ void MainWindow::print(Enu::EPane which)
         break;
     case Enu::EPane::EListing:
         title = &listing;
-        text = ui->AsmListingWidgetPane->toPlainText();
+        ui->AsmListingWidgetPane->asHTML(text);
         break;
     case Enu::EPane::EMicrocode:
         title = &micro;
-        text = ui->microcodeWidget->getMicrocode();
+        ui->microcodeWidget->asHTML(text);
         break;
     }
-    QTextDocument document(text, this);
+    QTextDocument document(this);
+    document.setHtml(text);
     document.setDefaultFont(QFont("Courier", 10, -1));
 
     QPrinter printer(QPrinter::HighResolution);

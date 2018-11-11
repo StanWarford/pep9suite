@@ -32,7 +32,7 @@
 #include "symbolvalue.h"
 AsmListingPane::AsmListingPane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::AsmListingPane), currentFile()
+        ui(new Ui::AsmListingPane), inDarkMode(false), currentFile()
 {
     ui->setupUi(this);
 
@@ -146,6 +146,19 @@ bool AsmListingPane::isEmpty()
     return ui->textEdit->toPlainText() == "";
 }
 
+void AsmListingPane::asHTML(QString &html) const
+{
+    // If the application is dark mode, don't attempt to use dark mode colors for printing.
+    // Make a copy, and print in light mode, so that the text will be readable.
+    if(inDarkMode) {
+        QTextDocument doc = QTextDocument(ui->textEdit->document()->toPlainText());
+        PepASMHighlighter high = PepASMHighlighter(PepColors::lightMode, &doc);
+        high.rehighlight();
+        high.asHtml(html, ui->textEdit->font());
+    }
+    else pepHighlighter->asHtml(html, ui->textEdit->font());
+}
+
 void AsmListingPane::onFontChanged(QFont font)
 {
     ui->textEdit->setFont(font);
@@ -153,6 +166,7 @@ void AsmListingPane::onFontChanged(QFont font)
 
 void AsmListingPane::onDarkModeChanged(bool darkMode)
 {
+    inDarkMode = darkMode;
     if(darkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
     else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
     pepHighlighter->rehighlight();

@@ -3,6 +3,7 @@
 # -------------------------------------------------
 TEMPLATE = app
 TARGET = Pep9Micro
+QT += macextras
 #Prevent Windows from trying to parse the project three times per build.
 CONFIG -= debug_and_release \
     debug_and_release_target
@@ -13,7 +14,7 @@ win32{
     #MSVC doesn't recognize c++1z flag, so use the MSVC specific flag here
     win32-msvc*: QMAKE_CXXFLAGS += /std:c++17
     #Flags needed to generate PDB information in release. Necessary information to profile program.
-    #Flags also pciked to provide a ~15% speed increase in release mode (at the cost of increased compile times).
+    #Flags also picked to provide a ~15% speed increase in release mode (at the cost of increased compile times).
     QMAKE_LFLAGS_RELEASE +=/MAP
     QMAKE_CFLAGS_RELEASE -= O2
     QMAKE_CFLAGS_RELEASE += /O3 /MD /zi
@@ -27,7 +28,7 @@ QT += concurrent
 # Mac icon/plist
 ICON = images/icon.icns
 QMAKE_INFO_PLIST = app.plist
-QMAKE_MAC_SDK = macosx10.13
+QMAKE_MAC_SDK = macosx10.14
 
 #Windows RC file for icon:
 RC_FILE = pep9resources.rc
@@ -75,7 +76,8 @@ HEADERS += \
     symbolvalue.h \
     tristatelabel.h \
     updatechecker.h \
-    microobjectcodepane.h
+    microobjectcodepane.h \
+    htmlhighlightermixin.h
 
 SOURCES += \
     aboutpep.cpp \
@@ -107,7 +109,8 @@ SOURCES += \
     symbolvalue.cpp \
     tristatelabel.cpp \
     updatechecker.cpp \
-    microobjectcodepane.cpp
+    microobjectcodepane.cpp \
+    htmlhighlightermixin.cpp
 
 OTHER_FILES += help/images/registeraddresssignals.png \
     help/figures/exer1204.pepcpu \

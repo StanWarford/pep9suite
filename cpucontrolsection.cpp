@@ -45,7 +45,7 @@ void CPUControlSection::initCPU()
     // Initialize CPU with proper stack pointer value in SP register.
 #pragma message ("TODO: Init cpu with proper SP when not burned in at 0xffff")
     data->onSetRegisterByte(4,0xFB);
-    data->onSetRegisterByte(5,0xF8);
+    data->onSetRegisterByte(5,0x82);
 }
 
 void CPUControlSection::setMicrocodeProgram(MicrocodeProgram *program)

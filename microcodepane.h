@@ -95,6 +95,7 @@ public:
     void readSettings(QSettings &settings);
     void writeSettings(QSettings &settings);
     MicrocodeEditor* getEditor();
+    void asHTML(QString& html) const;
 public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
@@ -105,7 +106,7 @@ protected:
 
 private:
     Ui::MicrocodePane *ui;
-
+    bool inDarkMode;
     QSharedPointer<SymbolTable> symbolTable;
     PepMicroHighlighter *highlighter;
     MicrocodeEditor *editor;

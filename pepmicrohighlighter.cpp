@@ -22,19 +22,23 @@
 #include "pepmicrohighlighter.h"
 #include "pep.h"
 #include "cpudatasection.h"
-PepMicroHighlighter::PepMicroHighlighter(PepColors::Colors color,QTextDocument *parent)
-    : QSyntaxHighlighter(parent),forcedFeatures(false)
+#include <QTextDocument>
+PepMicroHighlighter::PepMicroHighlighter(const PepColors::Colors color, QTextDocument *parent)
+    : HTMLHighlighterMixin(parent), /*RestyleableItem(color, parent),*/ forcedFeatures(false)
 {
+    // Trigger an update whenever a style is changed.
+    // connect(this, &RestyleableItem::styleChanged, this, &PepMicroHighlighter::onStyleChange);
     rebuildHighlightingRules(color);
 }
 
 void PepMicroHighlighter::forceAllFeatures(bool features)
 {
-    forcedFeatures=features;
+    forcedFeatures = features;
 }
 
-void PepMicroHighlighter::rebuildHighlightingRules(PepColors::Colors color)
+void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color)
 {
+    //setStyle(color);
     colors = color;
     HighlightingRule rule;
 
@@ -175,3 +179,9 @@ void PepMicroHighlighter::highlightBlock(const QString &text)
         startIndex = commentStartExpression.indexIn(text, startIndex + commentLength);
     }
 }
+
+/*void PepMicroHighlighter::onStyleChange()
+{
+    rebuildHighlightingRules(*getStyle());
+}*/
+

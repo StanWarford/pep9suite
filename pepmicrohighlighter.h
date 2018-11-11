@@ -23,7 +23,7 @@
 #define PEPHIGHLIGHTER_H
 
 #include <QSyntaxHighlighter>
-
+#include "htmlhighlightermixin.h"
 #include <QHash>
 #include <QTextCharFormat>
 #include "enu.h"
@@ -32,15 +32,17 @@ QT_BEGIN_NAMESPACE
 class QTextDocument;
 QT_END_NAMESPACE
 
-class PepMicroHighlighter : public QSyntaxHighlighter
+class PepMicroHighlighter : public HTMLHighlighterMixin/*, RestyleableItem*/
 {
 public:
-    PepMicroHighlighter(PepColors::Colors colors, QTextDocument *parent = 0);
+    PepMicroHighlighter(const PepColors::Colors colors, QTextDocument *parent = 0);
     void forceAllFeatures(bool features);
-    void rebuildHighlightingRules(PepColors::Colors color);
+    void rebuildHighlightingRules(const PepColors::Colors color);
+
 protected:
     void highlightBlock(const QString &text);
-
+/*protected slots:
+    void onStyleChange();*/
 private:
     bool forcedFeatures;
     struct HighlightingRule

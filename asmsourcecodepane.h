@@ -184,6 +184,8 @@ public:
     void writeSettings(QSettings& settings);
     void readSettings(QSettings& settings);
 
+    void asHTML(QString &html) const;
+    // Post: returns the stylized assembler source as string containing html
 
 public slots:
     void onFontChanged(QFont font);
@@ -197,6 +199,7 @@ public slots:
 
 private:
     Ui::SourceCodePane *ui;
+    bool inDarkMode;
     MemorySection* memorySection;
     AsmProgramManager* programManager;
     QSharedPointer<AsmProgram> currentProgram;

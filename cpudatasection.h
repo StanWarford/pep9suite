@@ -58,6 +58,7 @@ public:
 
     MemorySection* getMemorySection();
     const MemorySection* getMemorySection() const;
+
 private:
     CPUDataSection(QObject* parent=0);
     static CPUDataSection* _instance;
@@ -100,6 +101,7 @@ private:
     void clearClockSignals() noexcept;
     void clearRegisters() noexcept;
     void clearErrors() noexcept;
+
 public slots:
     void onSetStatusBit(Enu::EStatusBit,bool val);
     void onSetRegisterByte(quint8 reg,quint8 val);
@@ -109,7 +111,8 @@ public slots:
     void onSetControlSignal(Enu::EControlSignals, quint8 value);
     void onStep() noexcept;
     void onClock() noexcept;
-    void onClearCPU()noexcept;
+    void onClearCPU() noexcept;
+
 signals:
     void CPUFeaturesChanged(Enu::CPUType newFeatures); //Thrown whenever onCPUFeaturesChanged(...) is called
     void registerChanged(quint8 reg,quint8 oldVal,quint8 newVal); //Thrown whenever a register in the register bank is changed.
