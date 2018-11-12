@@ -20,13 +20,13 @@
         <file>images/arrowhead_gray.png</file>
         <file>images/arrowhead_dark.png</file>
         <file>images/Pep9micro-icon.png</file>
-        <file>images/debugger_restart.png</file>
-        <file>images/debugger_step_into.png</file>
-        <file>images/debugger_step_out.png</file>
-        <file>images/debugger_step_over.png</file>
         <file>images/flash.svg</file>
-        <file>images/load-source.png</file>
         <file>images/debug_single_step_asm.png</file>
         <file>images/debug_single_step_micro.png</file>
+        <file>images/debugger_restart.png</file>
+        <file>images/debugger_step_into.png</file>
+        <file>images/debugger_step_over.png</file>
+        <file>images/debugger_step_out.png</file>
+        <file>images/load-source.png</file>
     </qresource>
 </RCC>

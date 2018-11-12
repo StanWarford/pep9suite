@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>960</width>
-    <height>541</height>
+    <height>553</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -190,7 +190,7 @@
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -921,7 +921,7 @@
   <action name="actionDebug_Step_Out_Assembler">
    <property name="icon">
     <iconset resource="pep9microresources.qrc">
-     <normaloff>:/images/debugger_step_over.png</normaloff>:/images/debugger_step_over.png</iconset>
+     <normaloff>:/images/debugger_step_out.png</normaloff>:/images/debugger_step_out.png</iconset>
    </property>
    <property name="text">
     <string>Step Out - Assembler</string>

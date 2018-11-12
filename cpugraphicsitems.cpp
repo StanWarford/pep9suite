@@ -483,8 +483,8 @@ void CpuGraphicsItems::paint(QPainter *painter,
         repaintMDREToEOMuxBus(painter);
         repaintMDROToEOMuxBus(painter);
         repaintEOMuxOutpusBus(painter);
-        repaintABusTwoByteModel(painter);
         repaintBBusTwoByteModel(painter);
+        repaintABusTwoByteModel(painter);
         repaintCBusTwoByteModel(painter);
 
     repaintCSMuxSelect(painter);
@@ -1448,7 +1448,7 @@ void CpuGraphicsItems::repaintMARMUXToMARBuses(QPainter *painter)
         colorTop = colorScheme->combCircuitYellow;
         colorBottom = colorScheme->combCircuitGreen;
     }
-    else if(marckIsHigh && MARMuxTristateLabel->text() == "1")
+    else if(marckIsHigh && MARMuxTristateLabel->text() == "1" && !aLineEdit->text().isEmpty() && !bLineEdit->text().isEmpty())
     {
         colorTop = colorBottom = colorScheme->combCircuitRed;
     }
