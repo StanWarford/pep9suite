@@ -50,7 +50,7 @@ MicrocodePane::MicrocodePane(QWidget *parent) :
     layout->setVerticalSpacing(0);
     this->setLayout(layout);
 
-    highlighter = NULL;
+    highlighter = nullptr;
     initCPUModelState();
 
     connect(editor->document(), &QTextDocument::modificationChanged, this, &MicrocodePane::setLabelToModified);
@@ -327,10 +327,11 @@ void MicrocodePane::asHTML(QString &html) const
 {
     if(inDarkMode) {
         // Only print in light mode color scheme, as paper is usually white.
-        QTextDocument doc = QTextDocument(editor->document()->toPlainText());
-        PepMicroHighlighter high = PepMicroHighlighter(PepColors::lightMode, &doc);
+        QTextDocument *doc = editor->document()->clone();
+        PepMicroHighlighter high(PepColors::lightMode, doc);
         high.rehighlight();
         high.asHtml(html, editor->font());
+        delete doc;
     }
     else highlighter->asHtml(html, editor->font());
 }
@@ -354,7 +355,7 @@ void MicrocodePane::onRemoveAllBreakpoints()
     editor->onRemoveAllBreakpoints();
     if(program == nullptr) return;
     else{
-        for(int it = 0; it < program->codeLength(); it++) {
+        for(quint16 it = 0; it < program->codeLength(); it++) {
             program->getCodeLine(it)->setBreakpoint(false);
         }
     }

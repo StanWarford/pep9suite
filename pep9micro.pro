@@ -3,7 +3,6 @@
 # -------------------------------------------------
 TEMPLATE = app
 TARGET = Pep9Micro
-QT += macextras
 #Prevent Windows from trying to parse the project three times per build.
 CONFIG -= debug_and_release \
     debug_and_release_target

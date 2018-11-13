@@ -151,10 +151,11 @@ void AsmListingPane::asHTML(QString &html) const
     // If the application is dark mode, don't attempt to use dark mode colors for printing.
     // Make a copy, and print in light mode, so that the text will be readable.
     if(inDarkMode) {
-        QTextDocument doc = QTextDocument(ui->textEdit->document()->toPlainText());
-        PepASMHighlighter high = PepASMHighlighter(PepColors::lightMode, &doc);
+        QTextDocument *doc = ui->textEdit->document()->clone();
+        PepASMHighlighter high(PepColors::lightMode, doc);
         high.rehighlight();
         high.asHtml(html, ui->textEdit->font());
+        delete doc;
     }
     else pepHighlighter->asHtml(html, ui->textEdit->font());
 }
