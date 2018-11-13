@@ -56,7 +56,7 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     // Connect scrolling events
     connect(ui->pcPushButton, &QAbstractButton::clicked, this, &MemoryDumpPane::scrollToPC);
     connect(ui->spPushButton, &QAbstractButton::clicked, this, &MemoryDumpPane::scrollToSP);
-    connect(ui->scrollToLineEdit, &QLineEdit::textChanged, this, &MemoryDumpPane::scrollToAddress);
+    connect(ui->scrollToLineEdit, &QLineEdit::textEdited, this, &MemoryDumpPane::scrollToAddress);
     connect(ui->tableView->verticalScrollBar(), &QScrollBar::valueChanged, this, &MemoryDumpPane::scrollToLine);
 }
 
