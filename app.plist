@@ -14,7 +14,7 @@
 				<string>text/plain</string>
 			</array>
 			<key>CFBundleTypeName</key>
-			<string>Pep/9 Source File</string>
+			<string>Pep/8 Source File</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSTypeIsPackage</key>
@@ -24,17 +24,17 @@
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
-        <string>Pep9CPU</string>
+	<string>pep9micro</string>
 	<key>CFBundleGetInfoString</key>
 	<string>47</string>
 	<key>CFBundleIconFile</key>
 	<string>icon.icns</string>
 	<key>CFBundleIdentifier</key>
-        <string>com.pepcsdept.pep9cpu</string>
+	<string>com.pepcsdept.pep8cpu</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
-	<string>PEP9C</string>
+	<string>PEP8C</string>
 	<key>CFBundleVersion</key>
 	<string>47</string>
 	<key>UTExportedTypeDeclarations</key>
@@ -46,9 +46,9 @@
 				<string>public.text</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Pep9CPU Document</string>
+			<string>Pep8Cpu Document</string>
 			<key>UTTypeIdentifier</key>
-			<string>org.pepcsdept.pep9cpu</string>
+			<string>org.pepcsdept.pep8cpu</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>com.apple.ostype</key>
