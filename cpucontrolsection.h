@@ -71,8 +71,6 @@ public slots:
     void onRun() noexcept;
     void onClearCPU() noexcept; // Reset the contents of the control section & propogate event to the DataSection.
     void onClearMemory() noexcept; // This event is propogated to the MemorySection so that it clears itself.
-    void onMicroBreakpointHandled() noexcept; // Inform the control section that the breakpoint has been handled and execution can resume.
-    void onASMBreakpointHandled() noexcept;
 signals:
 
     void simulationFinished();
@@ -91,11 +89,13 @@ private:
     int microprogramCounter, microCycleCounter, instructionCounter, callDepth;
     bool inSimulation, hadControlError, executionFinished, isPrefetchValid;
     // hitBreakpoint indicates that the current line has a breakpoint.
-    // If breakpointHandled, ignore the breakpoint on the current line, and set breakpointHandled to false.
-    bool inDebug, microBreakpointHit, microBreakpointHandled, asmBreakpointHit, asmBreakpointHandled;
+    bool inDebug, microBreakpointHit, asmBreakpointHit;
     QString errorMessage;
-    QSet<quint16> breakpointsISA;
+    QSet<quint16> breakpointsISA; // Set of memory addresses that should trap if executed
 
+    // Determine if there is a µbreakpoint or asmbreakpoint, and notify appropriate handler
+    // Only call if the CPU is in debug mode
+    void breakpointHandler();
     void branchHandler(); // Based on the current instruction, set the µPC correctly
     void setSignalsFromMicrocode(const MicroCode *line); // Set signals for the control section based on the microcode program
     void updateAtInstructionEnd(); // Update simulation state at the start of a assembly level instruction

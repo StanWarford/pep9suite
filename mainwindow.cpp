@@ -1528,7 +1528,6 @@ void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
         QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
-    else if(/* DISABLES CODE */ (false)) 1; //Stub to leave room for breakpoint handler.
     emit simulationUpdate();
 }
 
@@ -1557,18 +1556,12 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
 void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
 {
     debugState = DebugState::DEBUG_MICRO;
-        ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
+    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
     controlSection->onStep();
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
         QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
-    }
-    // If the simulation hit a microcode breakpoint, step again so that the next line wil be selected.
-    else if (controlSection->stoppedForBreakpoint()) {
-        // Process events until onMicroBreakpointHit() is called, and then step so the next line is selected.
-        QApplication::processEvents();
-        controlSection->onStep();
     }
 
     emit simulationUpdate();
@@ -1577,9 +1570,7 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
 void MainWindow::onMicroBreakpointHit()
 {
     debugState = DebugState::DEBUG_MICRO;
-        ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
-    QApplication::processEvents();
-    controlSection->onMicroBreakpointHandled();
+    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
 }
 
 void MainWindow::onASMBreakpointHit()
@@ -1587,8 +1578,6 @@ void MainWindow::onASMBreakpointHit()
     qDebug() << "trapped on PC = " << dataSection->getRegisterBankWord(Enu::CPURegisters::PC);
     debugState = DebugState::DEBUG_ISA;
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
-    QApplication::processEvents();
-    controlSection->onASMBreakpointHandled();
 }
 
 // System MainWindow triggers
@@ -1897,7 +1886,6 @@ void MainWindow::appendMicrocodeLine(QString line)
 
 void MainWindow::helpCopyToSourceClicked()
 {
-    qDebug() << "das was gestalt";
     helpDialog->hide();
         Enu::EPane destPane, inputPane;
         QString input;
