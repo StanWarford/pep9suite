@@ -1,9 +1,9 @@
 #include "iowidget.h"
 #include "ui_iowidget.h"
 #include "memorysection.h"
-#include "mainwindow.h"
 #include <QString>
 #include <QDebug>
+#include "enu.h"
 IOWidget::IOWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::IOWidget)
@@ -63,14 +63,14 @@ bool IOWidget::isRedoable() const
 
 int IOWidget::editActions() const
 {
-    int ret = EditButtons::COPY;
+    int ret = Enu::EditButtons::COPY;
     if(ui->batchInput->hasFocus()) {
-        ret |= EditButtons::CUT | EditButtons::PASTE;
-        ret |= EditButtons::REDO * ui->batchInput->isRedoable() | EditButtons::UNDO * ui->batchInput->isUndoable();
+        ret |= Enu::EditButtons::CUT | Enu::EditButtons::PASTE;
+        ret |= Enu::EditButtons::REDO * ui->batchInput->isRedoable() | Enu::EditButtons::UNDO * ui->batchInput->isUndoable();
     }
     else if(ui->terminalIO->hasFocus()) {
-        ret |= EditButtons::CUT | EditButtons::PASTE;
-        ret |= EditButtons::REDO * ui->terminalIO->isRedoable() | EditButtons::UNDO * ui->terminalIO->isUndoable();
+        ret |= Enu::EditButtons::CUT | Enu::EditButtons::PASTE;
+        ret |= Enu::EditButtons::REDO * ui->terminalIO->isRedoable() | Enu::EditButtons::UNDO * ui->terminalIO->isUndoable();
     }
     return ret;
 }
@@ -197,6 +197,7 @@ void IOWidget::onDataRequested()
         break;
     case 1:
         ui->terminalIO->waitingForInput();
+        break;
     default:
         break;
     }

@@ -20,7 +20,6 @@
 */
 
 #include "specification.h"
-#include "cpucontrolsection.h"
 #include "cpudatasection.h"
 #include "memorysection.h"
 Specification::Specification()

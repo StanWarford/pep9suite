@@ -59,13 +59,6 @@ enum class DebugState
     RUN, // The simulation is being run, not debugged.
 };
 
-/*
- * Bit masks that signal which editing actions should be available through context menus
- */
-struct EditButtons
-{
-    static const int COPY = 1<<0, CUT = 1<<1, PASTE = 1<<2, UNDO = 1<<3, REDO = 1<<4;
-};
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
@@ -281,6 +274,11 @@ private slots:
     void onInputRequested();
     void onInputReceived();
 
+private:
+    // Helper function for onInputReceived(...) that
+    // reenables any disabled window components after IO completion,
+    // with no other side effects.
+    void reenableUIAfterInput();
 signals:
     void beginUpdateCheck();
     // Emitted once when a simulation is begun

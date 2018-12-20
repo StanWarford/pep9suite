@@ -24,6 +24,7 @@ public:
     //Returns a set containing the bytes modifed since clearModifiedBytes or clearMemory was called.
     const QSet<quint16> modifiedBytes() const;
     void clearModifiedBytes();
+    bool waitingOnIO() const;
 
     void setMemoryByte(quint16 address, quint8 value);
     void setMemoryWord(quint16 address, quint16 value);
@@ -43,7 +44,6 @@ public slots:
     void onClearMemory() noexcept;
 #pragma message("TODO: Make memory section report on bytes changed")
     void onInstructionStarted() noexcept;
-
     void onMemorySizeChanged(quint16 maxBytes);
     void onIPortChanged(quint16 newIPort);
     void onOPortChanged(quint16 newIPort);

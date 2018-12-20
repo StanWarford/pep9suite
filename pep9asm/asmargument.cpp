@@ -1,3 +1,6 @@
+#include <QWidget>
+#include <QString>
+#include <QSharedPointer>
 #include "asmargument.h"
 #include "symboltable.h"
 #include "symbolentry.h"

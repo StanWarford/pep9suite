@@ -1,7 +1,7 @@
          BR      main        
          .ALIGN  2           
 ;#####################
-gDepth:  .WORD   23          ;#2d Change the value of this word to change which fib number is calculated
+gDepth:  .WORD   0x7fff          ;#2d Change the value of this word to change which fib number is calculated
 ;######################
 gRes:    .BLOCK  2           ;#2d
 retVal:  .EQUATE 8           ;#2d
@@ -22,7 +22,7 @@ fib:     SUBSP   4,i         ;push #it #arr
 ;Prepare for main loop
          LDWX    it,s        
 loop:    CPWX    depth,s     
-         BRGT    eLoop       ;End iter if it >= depth
+         BREQ    eLoop       ;End iter if it >= depth
          ASLX                ;Convert idx number to address of word
 ;The current value of the accumulator is mem[it-1], so all we need to do
 ;is add to the accumulator mem[it-2]

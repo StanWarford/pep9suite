@@ -170,6 +170,16 @@ namespace Enu
         ALL = 255
     };
     Q_ENUM_NS(EAddrMode);
+
+    // Enums
+    /*
+     * Bit masks that signal which editing actions should be available through context menus
+     */
+    enum EditButtons
+    {
+        COPY = 1<<0, CUT = 1<<1, PASTE = 1<<2, UNDO = 1<<3, REDO = 1<<4
+    };
+
     // Format for symbols
     enum class ESymbolFormat
     {

@@ -22,7 +22,6 @@
 #include <QFile>
 #include <QString>
 #include <QStringList>
-#include "cpudatasection.h"
 #include "pep.h"
 
 using namespace Enu;
@@ -127,7 +126,7 @@ void Pep::initMicroEnumMnemonMaps()
     mnemonToBranchFuncMap.insert("AMD",AddressingModeDecoder); branchFuncToMnemonMap.insert(AddressingModeDecoder,"AMD");
     mnemonToBranchFuncMap.insert("ISD",InstructionSpecifierDecoder); branchFuncToMnemonMap.insert(InstructionSpecifierDecoder,"ISD");
 
-    CPUDataSection* tempRef = CPUDataSection::getInstance();
+    //CPUDataSection* tempRef = CPUDataSection::getInstance();
     mnemonToDecControlMap.clear();  decControlToMnemonMap.clear();
     mnemonToDecControlMap.insert("C", C); decControlToMnemonMap.insert(C,"C");
     mnemonToDecControlMap.insert("B", B); decControlToMnemonMap.insert(B,"B");
@@ -138,15 +137,15 @@ void Pep::initMicroEnumMnemonMaps()
     mnemonToDecControlMap.insert("CMUX", CMux); decControlToMnemonMap.insert(CMux,"CMUX");
     mnemonToDecControlMap.insert("ALU", ALU); decControlToMnemonMap.insert(ALU,"ALU");
     mnemonToDecControlMap.insert("CSMUX", CSMux); decControlToMnemonMap.insert(CSMux,"CSMUX");
-    if (tempRef->getCPUFeatures() == OneByteDataBus) {
+    //if (tempRef->getCPUFeatures() == OneByteDataBus) {
         mnemonToDecControlMap.insert("MDRMUX", MDRMux); decControlToMnemonMap.insert(MDRMux,"MDRMUX");
-    }
-    else if (tempRef->getCPUFeatures() == TwoByteDataBus){
+    //}
+    //else if (tempRef->getCPUFeatures() == TwoByteDataBus){
         mnemonToDecControlMap.insert("MARMUX", MARMux); decControlToMnemonMap.insert(MARMux,"MARMUX");
         mnemonToDecControlMap.insert("MDROMUX", MDROMux); decControlToMnemonMap.insert(MDROMux,"MDROMUX");
         mnemonToDecControlMap.insert("MDREMUX", MDREMux); decControlToMnemonMap.insert(MDREMux,"MDREMUX");
         mnemonToDecControlMap.insert("EOMUX", EOMux); decControlToMnemonMap.insert(EOMux,"EOMUX");
-    }
+    //}*/
 
     memControlToMnemonMap.clear();                      mnemonToMemControlMap.clear();
     memControlToMnemonMap.insert(MemWrite, "MemWrite"); mnemonToMemControlMap.insert("MEMWRITE", MemWrite);
@@ -161,13 +160,13 @@ void Pep::initMicroEnumMnemonMaps()
     clockControlToMnemonMap.insert(ZCk, "ZCk");         mnemonToClockControlMap.insert("ZCK", ZCk);
     clockControlToMnemonMap.insert(NCk, "NCk");         mnemonToClockControlMap.insert("NCK", NCk);
     clockControlToMnemonMap.insert(PValidCk, "PValidCk"); mnemonToClockControlMap.insert("PVALIDCK", PValidCk);
-    if (tempRef->getCPUFeatures() == OneByteDataBus) {
+    //if (tempRef->getCPUFeatures() == OneByteDataBus) {
         clockControlToMnemonMap.insert(MDRCk, "MDRCk");     mnemonToClockControlMap.insert("MDRCK", MDRCk);
-    }
-    else if (tempRef->getCPUFeatures() == TwoByteDataBus){
+    //}
+    //else if (tempRef->getCPUFeatures() == TwoByteDataBus){
         clockControlToMnemonMap.insert(MDROCk, "MDROCk");     mnemonToClockControlMap.insert("MDROCK", MDROCk);
         clockControlToMnemonMap.insert(MDRECk, "MDRECk");     mnemonToClockControlMap.insert("MDRECK", MDRECk);
-    }
+    //}
 
     specificationToMnemonMap.clear();                   mnemonToSpecificationMap.clear();
     specificationToMnemonMap.insert(Pre, "UnitPre:");   mnemonToSpecificationMap.insert("UNITPRE:", Pre);

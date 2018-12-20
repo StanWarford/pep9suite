@@ -21,7 +21,11 @@
 #ifndef SPECIFICATION_H
 #define SPECIFICATION_H
 
+#include <QString>
+#include "enu.h"
 #include "cpupane.h"
+
+
 class CPUDataSection; //Forward declare CPUDataSection to avoid inclusion loops
 class Specification
 {

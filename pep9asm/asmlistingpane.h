@@ -23,7 +23,6 @@
 #define ASSEMBLERLISTINGPANE_H
 
 #include <QWidget>
-#include "pepmicrohighlighter.h"
 #include "enu.h"
 #include "pepasmhighlighter.h"
 #include <QSharedPointer>

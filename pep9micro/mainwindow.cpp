@@ -291,8 +291,8 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
         if ((keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter)) {
-            if (ui->cpuWidget->hasFocus()) {
-                // single step or clock, depending
+            if (ui->cpuWidget->hasFocus() && ui->actionDebug_Single_Step_Microcode->isEnabled()) {
+                // single step or clock, depending of if currently debugging
                 if (debugState == DebugState::DEBUG_ISA || debugState == DebugState::DEBUG_MICRO) {
                     // single step
                     on_actionDebug_Single_Step_Microcode_triggered();
@@ -304,11 +304,11 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
                 return true;
             }
             else if(ui->asmListingTracePane->hasFocus() || ui->assemblerDebuggerTab->hasFocus()) {
-                if (debugState == DebugState::DEBUG_ISA || debugState == DebugState::DEBUG_MICRO) {
+                if (ui->actionDebug_Single_Step_Assembler->isEnabled()) {
                     // single step
                     on_actionDebug_Single_Step_Assembler_triggered();
+                    return true;
                 }
-                return true;
             }
             else if (ui->actionDebug_Stop_Debugging->isEnabled() &&
                      (ui->microcodeWidget->hasFocus() || ui->microObjectCodePane->hasFocus())) {
@@ -1363,7 +1363,9 @@ void MainWindow::handleDebugButtons()
 {
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[memorySection->getMemoryByte(dataSection->getRegisterBankWord(Enu::CPURegisters::PC), false)];
     bool enable_into = (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
-    int enabledButtons=0;
+    // Disable button stepping if waiting on IO
+    bool waiting_io =  !memorySection->waitingOnIO();
+    int enabledButtons = 0;
     switch(debugState)
     {
     case DebugState::DISABLED:
@@ -1375,13 +1377,14 @@ void MainWindow::handleDebugButtons()
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;
         break;
     case DebugState::DEBUG_ISA:
-        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE;
-        enabledButtons |= DebugButtons::SINGLE_STEP_ASM | DebugButtons::STEP_OUT_ASM | DebugButtons::STEP_OVER_ASM | DebugButtons::SINGLE_STEP_MICRO;
-        enabledButtons |= DebugButtons::STEP_INTO_ASM*(enable_into);
+        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE*(waiting_io);
+        enabledButtons |= DebugButtons::SINGLE_STEP_ASM*(waiting_io) | DebugButtons::STEP_OUT_ASM*(waiting_io);
+        enabledButtons |= DebugButtons::STEP_OVER_ASM*(waiting_io) | DebugButtons::SINGLE_STEP_MICRO*(waiting_io);
+        enabledButtons |= DebugButtons::STEP_INTO_ASM*(enable_into * waiting_io);
         break;
     case DebugState::DEBUG_MICRO:
-        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE;
-        enabledButtons |= DebugButtons::SINGLE_STEP_ASM | DebugButtons::SINGLE_STEP_MICRO;
+        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE*(waiting_io);
+        enabledButtons |= DebugButtons::SINGLE_STEP_ASM*(waiting_io) | DebugButtons::SINGLE_STEP_MICRO*(waiting_io);
         break;
     case DebugState::DEBUG_RESUMED:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART;
@@ -1430,6 +1433,9 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
 {
     connectViewUpdate();
     debugState = DebugState::DISABLED;
+    // Handle case of execution being canceled during IO
+    memorySection->onCancelWaiting();
+    reenableUIAfterInput();
     ui->microcodeWidget->clearSimulationView();
     ui->microObjectCodePane->clearSimulationView();
     ui->microcodeWidget->setReadOnly(false);
@@ -1785,8 +1791,8 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget * newFocus)
 
     int which = 0;
     if (ui->microcodeWidget->hasFocus()) {
-        which = EditButtons::COPY | EditButtons::CUT | EditButtons::PASTE;
-        which |= EditButtons::UNDO*ui->microcodeWidget->isUndoable() | EditButtons::REDO*ui->microcodeWidget->isRedoable();
+        which = Enu::EditButtons::COPY | Enu::EditButtons::CUT | Enu::EditButtons::PASTE;
+        which |= Enu::EditButtons::UNDO*ui->microcodeWidget->isUndoable() | Enu::EditButtons::REDO*ui->microcodeWidget->isRedoable();
         ui->microcodeWidget->highlightOnFocus();
     }
     else if (ui->memoryWidget->hasFocus()) {
@@ -1798,21 +1804,21 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget * newFocus)
         ui->cpuWidget->highlightOnFocus();
     }
     else if (ui->microObjectCodePane->hasFocus()) {
-        which = EditButtons::COPY;
+        which = Enu::EditButtons::COPY;
         ui->microObjectCodePane->highlightOnFocus();
     }
     else if (ui->AsmSourceCodeWidgetPane->hasFocus()) {
-        which = EditButtons::COPY | EditButtons::CUT | EditButtons::PASTE;
-        which |= EditButtons::UNDO * ui->AsmSourceCodeWidgetPane->isUndoable() | EditButtons::REDO * ui->AsmSourceCodeWidgetPane->isRedoable();
+        which = Enu::EditButtons::COPY | Enu::EditButtons::CUT | Enu::EditButtons::PASTE;
+        which |= Enu::EditButtons::UNDO * ui->AsmSourceCodeWidgetPane->isUndoable() | Enu::EditButtons::REDO * ui->AsmSourceCodeWidgetPane->isRedoable();
         ui->AsmSourceCodeWidgetPane->highlightOnFocus();
     }
     else if (ui->AsmObjectCodeWidgetPane->hasFocus()) {
-        which = EditButtons::COPY | EditButtons::CUT | EditButtons::PASTE;
-        which |= EditButtons::UNDO * ui->AsmObjectCodeWidgetPane->isUndoable() | EditButtons::REDO * ui->AsmObjectCodeWidgetPane->isRedoable();
+        which = Enu::EditButtons::COPY | Enu::EditButtons::CUT | Enu::EditButtons::PASTE;
+        which |= Enu::EditButtons::UNDO * ui->AsmObjectCodeWidgetPane->isUndoable() | Enu::EditButtons::REDO * ui->AsmObjectCodeWidgetPane->isRedoable();
         ui->AsmObjectCodeWidgetPane->highlightOnFocus();
     }
     else if (ui->AsmListingWidgetPane->hasFocus()) {
-        which = EditButtons::COPY;
+        which = Enu::EditButtons::COPY;
         ui->AsmListingWidgetPane->highlightOnFocus();
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
@@ -1822,11 +1828,11 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget * newFocus)
         which = 0;
     }
 
-    ui->actionEdit_Undo->setEnabled(which & EditButtons::UNDO);
-    ui->actionEdit_Redo->setEnabled(which & EditButtons::REDO);
-    ui->actionEdit_Cut->setEnabled(which & EditButtons::CUT);
-    ui->actionEdit_Copy->setEnabled(which & EditButtons::COPY);
-    ui->actionEdit_Paste->setEnabled(which & EditButtons::PASTE);
+    ui->actionEdit_Undo->setEnabled(which & Enu::EditButtons::UNDO);
+    ui->actionEdit_Redo->setEnabled(which & Enu::EditButtons::REDO);
+    ui->actionEdit_Cut->setEnabled(which & Enu::EditButtons::CUT);
+    ui->actionEdit_Copy->setEnabled(which & Enu::EditButtons::COPY);
+    ui->actionEdit_Paste->setEnabled(which & Enu::EditButtons::PASTE);
 }
 
 void MainWindow::setUndoability(bool b)
@@ -1929,15 +1935,19 @@ void MainWindow::helpCopyToSourceClicked()
 
 void MainWindow::onInputRequested()
 {
+    handleDebugButtons();
     ui->microcodeWidget->setEnabled(false);
     ui->cpuWidget->setEnabled(false);
 }
 
 void MainWindow::onInputReceived()
 {
-    if(controlSection->getExecutionFinished()==false)
-    {
-    }
+    handleDebugButtons();
+    reenableUIAfterInput();
+}
+
+void MainWindow::reenableUIAfterInput()
+{
     ui->microcodeWidget->setEnabled(true);
     ui->cpuWidget->setEnabled(true);
 }

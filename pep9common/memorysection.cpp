@@ -11,7 +11,7 @@ MemorySection *MemorySection::getInstance()
     return MemorySection::instance;
 }
 
-MemorySection::MemorySection(QObject *parent) : QObject(parent), waiting(true), inBuffer(), maxBytes(0xffff), iPort(1560), oPort(1562),
+MemorySection::MemorySection(QObject *parent) : QObject(parent), waiting(false), inBuffer(), maxBytes(0xffff), iPort(1560), oPort(1562),
     hadMemoryError(false), errorMessage(), bufferIdx(0)
 {
     initializeMemory();
@@ -94,6 +94,11 @@ void MemorySection::clearModifiedBytes()
     modifiedBytesSet.clear();
 }
 
+bool MemorySection::waitingOnIO() const
+{
+    return waiting;
+}
+
 void MemorySection::setMemoryByte(quint16 address, quint8 value)
 {
     //quint8 old = memory[address];
@@ -121,6 +126,8 @@ void MemorySection::clearMemory() noexcept
     }
     bufferIdx = 0;
     inBuffer = "";
+    waiting = false;
+
 }
 
 void MemorySection::clearErrors() noexcept
