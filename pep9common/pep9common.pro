@@ -33,6 +33,12 @@ HEADERS += \
     $$PWD\symbolvalue.h \
     $$PWD\terminalpane.h \
     $$PWD\updatechecker.h \
+    acpumodel.h \
+    amccpumodel.h \
+    aisacpumodel.h \
+    amemorydevice.h \
+    amemorychip.h \
+    memorychips.h
 
 
 SOURCES += \
@@ -53,5 +59,11 @@ SOURCES += \
     $$PWD\symbolvalue.cpp \
     $$PWD\terminalpane.cpp \
     $$PWD\updatechecker.cpp \
+    acpumodel.cpp \
+    amccpumodel.cpp \
+    aisacpumodel.cpp \
+    amemorydevice.cpp \
+    amemorychip.cpp \
+    memorychips.cpp
 
 
