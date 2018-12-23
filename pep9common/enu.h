@@ -21,25 +21,115 @@
 #ifndef ENU_H
 #define ENU_H
 #include <QtCore>
-#include <QtGlobal>
-#include <QException>
-namespace Enu
-{
-    Q_NAMESPACE;
 
+namespace Enu {
+    Q_NAMESPACE
+
+    /*
+     * Enumerations for all applications
+     */
     static const quint8 maxRegisterNumber = 31;
     static const quint8 signalDisabled = 255;
     enum class CPURegisters: quint8
     {
-        //Two byte registers
-        A = 0, X = 2, SP = 4, PC = 6, OS = 9, T2 = 12, T3 = 14,
+        // Two byte registers
+        // Present in any version of Pep/9
+        A = 0, X = 2, SP = 4, PC = 6, OS = 9,
+        // Present in any derivative of Pep9CPU
+        T2 = 12, T3 = 14,
         T4 = 16, T5 = 18, T6 = 20, M1 = 22, M2 = 24, M3 = 26,
         M4 = 28, M5 = 30,
+        // "Fictitious" registers for Pep9micro
+        MicroProgramCounter = 128,
 
-        //One byte registers
-        IS=8, T1=11
+        // One byte registers
+        // Present in any version of Pep/9
+        IS=8,
+        // Present in any derivative of Pep9CPU
+        T1=11
     };
 
+    enum class BreakpointTypes: int
+    {
+        MICROCODE = 1<<0, ASSEMBLER = 1<<1,
+    };
+
+    // Bit masks that signal which editing actions should be available through context menus
+    enum EditButtons: int
+    {
+        COPY = 1<<0, CUT = 1<<1, PASTE = 1<<2, UNDO = 1<<3, REDO = 1<<4
+    };
+
+    enum class EPane
+    {
+        ESource,
+        EObject,
+        EListing,
+        EListingTrace,
+        EMemoryTrace,
+        EBatchIO,
+        ETerminal,
+        EMicrocode,
+        EDataSection,
+    };
+    Q_ENUM_NS(EPane);
+
+    enum class DebugLevels: quint16
+    {  DEFAULT = 1,
+       NONE = 0, MINIMAL = 1, ALL = 2, END
+    };
+    /*
+     * Enumerations for Pep9
+     */
+    enum class EMnemonic: int
+    {
+        ADDA, ADDX, ADDSP, ANDA, ANDX, ASLA, ASLX, ASRA, ASRX,
+        BR, BRC, BREQ, BRGE, BRGT, BRLE, BRLT, BRNE, BRV,
+        CALL, CPBA, CPBX, CPWA, CPWX,
+        DECI, DECO,
+        HEXO,
+        LDBA, LDBX, LDWA, LDWX,
+        MOVAFLG, MOVFLGA, MOVSPA,
+        NEGA, NEGX, NOP, NOP0, NOP1, NOTA, NOTX,
+        ORA, ORX,
+        RET, RETTR, ROLA, ROLX, RORA, RORX,
+        STBA, STBX, STWA, STWX, STOP, STRO, SUBA, SUBX, SUBSP
+
+    };
+    Q_ENUM_NS(EMnemonic);
+
+    // Addressing modes for instructions
+    enum class EAddrMode: int
+    {
+        NONE = 0,
+        I = 1,
+        D = 2,
+        N = 4,
+        S = 8,
+        SF = 16,
+        X = 32,
+        SX = 64,
+        SFX = 128,
+        ALL = 255
+    };
+    Q_ENUM_NS(EAddrMode);
+
+    // Format for symbols
+    enum class ESymbolFormat
+    {
+        F_NONE, F_1C, F_1D, F_2D, F_1H, F_2H
+    };
+
+    enum class EExecState
+    {
+        EStart,
+        ERun, ERunAwaitIO,
+        EDebugAwaitIO, EDebugAwaitClick, EDebugRunToBP, EDebugSingleStep
+    };
+
+    /*
+     * Enumerations for Pep9CPU
+     */
     enum EMask // For ALU function 15
     {
         SMask = 0x10,
@@ -111,7 +201,7 @@ namespace Enu
         UNDEFINED_func=255,
     };
 
-    enum EKeywords {
+    enum ECPUKeywords {
         Pre, Post,
         Mem, Acc, X, SP, PC, IR,
         T1, T2, T3, T4, T5, T6,
@@ -132,92 +222,8 @@ namespace Enu
         Left,
         Right,
     };
-
-
     /*
-     * Enums Specific to Pep9
+     * Enumerations for Pep9Micro
      */
-
-
-    enum class EMnemonic: int
-    {
-        ADDA, ADDX, ADDSP, ANDA, ANDX, ASLA, ASLX, ASRA, ASRX,
-        BR, BRC, BREQ, BRGE, BRGT, BRLE, BRLT, BRNE, BRV,
-        CALL, CPBA, CPBX, CPWA, CPWX,
-        DECI, DECO,
-        HEXO,
-        LDBA, LDBX, LDWA, LDWX,
-        MOVAFLG, MOVFLGA, MOVSPA,
-        NEGA, NEGX, NOP, NOP0, NOP1, NOTA, NOTX,
-        ORA, ORX,
-        RET, RETTR, ROLA, ROLX, RORA, RORX,
-        STBA, STBX, STWA, STWX, STOP, STRO, SUBA, SUBX, SUBSP
-
-    };
-    Q_ENUM_NS(EMnemonic);
-    // Addressing modes for instructions
-    enum class EAddrMode: int
-    {
-        NONE = 0,
-        I = 1,
-        D = 2,
-        N = 4,
-        S = 8,
-        SF = 16,
-        X = 32,
-        SX = 64,
-        SFX = 128,
-        ALL = 255
-    };
-    Q_ENUM_NS(EAddrMode);
-
-    // Enums
-    /*
-     * Bit masks that signal which editing actions should be available through context menus
-     */
-    enum EditButtons
-    {
-        COPY = 1<<0, CUT = 1<<1, PASTE = 1<<2, UNDO = 1<<3, REDO = 1<<4
-    };
-
-    // Format for symbols
-    enum class ESymbolFormat
-    {
-        F_NONE, F_1C, F_1D, F_2D, F_1H, F_2H
-    };
-
-    enum class EExecState
-    {
-        EStart,
-        ERun, ERunAwaitIO,
-        EDebugAwaitIO, EDebugAwaitClick, EDebugRunToBP, EDebugSingleStep
-    };
-
-    enum class EWaiting
-    {
-        ERunWaiting,
-        EDebugSSWaiting,
-        EDebugResumeWaiting,
-    };
-
-    enum class EPane
-    {
-        ESource,
-        EObject,
-        EListing,
-        EListingTrace,
-        EMemoryTrace,
-        EBatchIO,
-        ETerminal,
-        EMicrocode,
-        EDataSection,
-    };
-    Q_ENUM_NS(EPane);
-
-    // Enums specific to Pep9Micro
-    enum class DebugLevels: quint16
-    {  DEFAULT = 1,
-       NONE = 0, MINIMAL = 1, ALL = 2, END
-    };
 }
-#endif // ENU_H
+#endif

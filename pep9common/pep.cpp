@@ -23,7 +23,7 @@
 #include <QString>
 #include <QStringList>
 #include "pep.h"
-
+#include <QtCore>
 using namespace Enu;
 
 // Fonts
@@ -94,19 +94,19 @@ QString Pep::addCycleNumbers(QString codeString) {
 QMap<Enu::EControlSignals, QString> Pep::decControlToMnemonMap;
 QMap<Enu::EControlSignals, QString> Pep::memControlToMnemonMap;
 QMap<Enu::EClockSignals, QString> Pep::clockControlToMnemonMap;
-QMap<Enu::EKeywords, QString> Pep::specificationToMnemonMap;
-QMap<Enu::EKeywords, QString> Pep::memSpecToMnemonMap;
-QMap<Enu::EKeywords, QString> Pep::regSpecToMnemonMap;
-QMap<Enu::EKeywords, QString> Pep::statusSpecToMnemonMap;
+QMap<Enu::ECPUKeywords, QString> Pep::specificationToMnemonMap;
+QMap<Enu::ECPUKeywords, QString> Pep::memSpecToMnemonMap;
+QMap<Enu::ECPUKeywords, QString> Pep::regSpecToMnemonMap;
+QMap<Enu::ECPUKeywords, QString> Pep::statusSpecToMnemonMap;
 QMap<Enu::EBranchFunctions,QString> Pep::branchFuncToMnemonMap;
 QMap<QString,Enu::EBranchFunctions> Pep::mnemonToBranchFuncMap;
 QMap<QString, Enu::EControlSignals> Pep::mnemonToDecControlMap;
 QMap<QString, Enu::EControlSignals> Pep::mnemonToMemControlMap;
 QMap<QString, Enu::EClockSignals> Pep::mnemonToClockControlMap;
-QMap<QString, Enu::EKeywords> Pep::mnemonToSpecificationMap;
-QMap<QString, Enu::EKeywords> Pep::mnemonToMemSpecMap;
-QMap<QString, Enu::EKeywords> Pep::mnemonToRegSpecMap;
-QMap<QString, Enu::EKeywords> Pep::mnemonToStatusSpecMap;
+QMap<QString, Enu::ECPUKeywords> Pep::mnemonToSpecificationMap;
+QMap<QString, Enu::ECPUKeywords> Pep::mnemonToMemSpecMap;
+QMap<QString, Enu::ECPUKeywords> Pep::mnemonToRegSpecMap;
+QMap<QString, Enu::ECPUKeywords> Pep::mnemonToStatusSpecMap;
 
 void Pep::initMicroEnumMnemonMaps()
 {

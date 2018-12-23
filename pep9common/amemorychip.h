@@ -76,15 +76,22 @@ public:
     explicit AMemoryChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~AMemoryChip();
 
+    // Change the baseAddress of the chip to newAddress
+    void setBaseAddress(quint16 newAddress);
     // Number of bytes contained by this chip
     quint16 getSize() const;
     // Location in main memory where this chip is inserted
-    quint16 getBaseAddres() const;
-
+    quint16 getBaseAddress() const;
     // Returns the abilities of the chip |'ed together.
     // e.g. check if a chip is writable, (chip->getIOFunctions() & IOFunctions::WRITE) == true
     virtual IOFunctions getIOFunctions() const = 0;
     virtual ChipTypes getChipType() const = 0;
+    // Set the value of every address in the chip to 0.
+    virtual void clear() = 0;
+    // Can the contents of this chip be cached, or are they volatile?
+    // To reduce unecessary code, assume a chip is cachable unless overriden.
+    virtual bool isCachable() const { return true;}
+
     // Read / Write functions that may generate signals or trap for IO.
     virtual bool readByte(quint8& output, quint16 offsetFromBase) const = 0;
     virtual bool writeByte(quint16 offsetFromBase, quint8 value) = 0;

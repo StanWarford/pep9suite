@@ -1,3 +1,4 @@
+
 #include "cpucontrolsection.h"
 #include <QApplication>
 #include <QDebug>

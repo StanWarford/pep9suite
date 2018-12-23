@@ -23,8 +23,8 @@
 #define ASMCODE_H
 
 #include "pep.h"
-#include "enu.h"
 #include <QSharedPointer>
+#include <QSet>
 class AsmArgument; // Forward declaration for attributes of code classes.
 class SymbolEntry;
 struct SymbolListings

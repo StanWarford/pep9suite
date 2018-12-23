@@ -21,6 +21,7 @@
 #ifndef MICROCODE_H
 #define MICROCODE_H
 
+#include <QVector>
 #include <QString>
 #include <QMap>
 #include "enu.h"
@@ -97,7 +98,7 @@ private:
 class UnitPreCode: public MicroCodeBase
 {
 public:
-    ~UnitPreCode();
+    ~UnitPreCode() override;
     QString getSourceCode() const override;
     bool hasUnitPre() const override;
     void setUnitPre(CPUDataSection* data);
@@ -111,7 +112,7 @@ private:
 class UnitPostCode: public MicroCodeBase
 {
 public:
-    ~UnitPostCode();
+    ~UnitPostCode() override;
     QString getSourceCode() const override;
     bool testPostcondition(CPUDataSection *data,QString &err);
     void appendSpecification(Specification *specification);

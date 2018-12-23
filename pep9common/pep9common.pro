@@ -2,6 +2,10 @@
 #TARGET = Pep9Common
 #CONFIG += staticlib
 QT += webenginewidgets widgets printsupport concurrent
+
+# Always prefix files with their fully qualified paths.
+# Otherwise, including projects can't find the files.
+
 FORMS += \
     $$PWD\byteconverterbin.ui \
     $$PWD\byteconverterchar.ui \
@@ -33,12 +37,13 @@ HEADERS += \
     $$PWD\symbolvalue.h \
     $$PWD\terminalpane.h \
     $$PWD\updatechecker.h \
-    acpumodel.h \
-    amccpumodel.h \
-    aisacpumodel.h \
-    amemorydevice.h \
-    amemorychip.h \
-    memorychips.h
+    $$PWD\acpumodel.h \
+    $$PWD\amccpumodel.h \
+    $$PWD\aisacpumodel.h \
+    $$PWD\amemorydevice.h \
+    $$PWD\amemorychip.h \
+    $$PWD\memorychips.h \
+    $$PWD\mainmemory.h \
 
 
 SOURCES += \
@@ -59,11 +64,12 @@ SOURCES += \
     $$PWD\symbolvalue.cpp \
     $$PWD\terminalpane.cpp \
     $$PWD\updatechecker.cpp \
-    acpumodel.cpp \
-    amccpumodel.cpp \
-    aisacpumodel.cpp \
-    amemorydevice.cpp \
-    amemorychip.cpp \
-    memorychips.cpp
+    $$PWD\acpumodel.cpp \
+    $$PWD\amccpumodel.cpp \
+    $$PWD\aisacpumodel.cpp \
+    $$PWD\amemorydevice.cpp \
+    $$PWD\amemorychip.cpp \
+    $$PWD\memorychips.cpp \
+    $$PWD\mainmemory.cpp
 
 

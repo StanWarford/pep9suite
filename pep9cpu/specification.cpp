@@ -68,7 +68,7 @@ QString MemSpecification::getSourceCode() {
                QString("%1").arg(memValue, 4, 16, QLatin1Char('0')).toUpper()) ;
 }
 
-RegSpecification::RegSpecification(Enu::EKeywords registerAddress, int registerValue) {
+RegSpecification::RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue) {
     regAddress = registerAddress;
     regValue = registerValue;
 }
@@ -213,7 +213,7 @@ QString RegSpecification::getSourceCode() {
     }
 }
 
-StatusBitSpecification::StatusBitSpecification(Enu::EKeywords statusBitAddress, bool statusBitValue) {
+StatusBitSpecification::StatusBitSpecification(Enu::ECPUKeywords statusBitAddress, bool statusBitValue) {
     nzvcsAddress = statusBitAddress;
     nzvcsValue = statusBitValue;
 }

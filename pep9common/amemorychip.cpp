@@ -5,12 +5,22 @@ AMemoryChip::AMemoryChip(quint16 size, quint16 baseAddress, QObject *parent): QO
 
 }
 
+AMemoryChip::~AMemoryChip()
+{
+
+}
+
+void AMemoryChip::setBaseAddress(quint16 newAddress)
+{
+    baseAddress = newAddress;
+}
+
 quint16 AMemoryChip::getSize() const
 {
     return size;
 }
 
-quint16 AMemoryChip::getBaseAddres() const
+quint16 AMemoryChip::getBaseAddress() const
 {
     return baseAddress;
 }
@@ -31,8 +41,7 @@ bool AMemoryChip::readWord(quint16& output, quint16 offsetFromBase) const
 bool AMemoryChip::writeWord(quint16 offsetFromBase, quint16 value)
 {
     if(offsetFromBase+1 >= size) outOfBoundsWriteHelper(offsetFromBase, value);
-    bool retVal = true;
-    retVal &= writeByte(offsetFromBase, value >> 8);
+    bool retVal = writeByte(offsetFromBase, value >> 8);
     retVal &= writeByte(offsetFromBase+1, value & 0xff);
     return retVal;
 }
@@ -52,8 +61,7 @@ bool AMemoryChip::getWord(quint16& output, quint16 offsetFromBase) const
 bool AMemoryChip::setWord(quint16 offsetFromBase, quint16 value)
 {
     if(offsetFromBase+1 >= size) outOfBoundsWriteHelper(offsetFromBase, value);
-    bool retVal = true;
-    retVal &= writeByte(offsetFromBase, value >> 8);
+    bool retVal = writeByte(offsetFromBase, value >> 8);
     retVal &= writeByte(offsetFromBase+1, value & 0xff);
     return retVal;
 }

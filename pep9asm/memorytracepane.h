@@ -38,7 +38,7 @@ class MemoryTracePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(MemoryTracePane)
 public:
-    explicit MemoryTracePane(QWidget *parent = 0);
+    explicit MemoryTracePane(QWidget *parent = nullptr);
     void init(const MemorySection* memorySection);
     virtual ~MemoryTracePane();
 

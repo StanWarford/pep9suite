@@ -3,6 +3,10 @@
 #CONFIG += staticlib
 QT += webenginewidgets widgets printsupport concurrent
 INCLUDEPATH += $$PWD\..\pep9common
+
+# Always prefix files with their fully qualified paths.
+# Otherwise, including projects can't find the files.
+
 FORMS += \
     $$PWD\memorydumppane.ui \
     $$PWD\microcodepane.ui \
@@ -19,7 +23,7 @@ HEADERS += \
     $$PWD\microcodepane.h \
     $$PWD\microcodeprogram.h \
     $$PWD\microobjectcodepane.h \
-    $$PWD\pepmicrohighlighter.cpp \
+    $$PWD\pepmicrohighlighter.h \
     $$PWD\rotatedheaderview.h \
     $$PWD\shapes_one_byte_data_bus.h \
     $$PWD\shapes_two_byte_data_bus.h \

@@ -1,7 +1,8 @@
 #include "cpumemoizer.h"
 #include <cpucontrolsection.h>
-#include "enu.h"
 #include "pep.h"
+#include <QString>
+#include <QtCore>
 #include "cpudatasection.h"
 #include "memorysection.h"
 #include <QDebug>

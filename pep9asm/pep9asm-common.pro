@@ -3,6 +3,11 @@
 #CONFIG += staticlib
 QT += webenginewidgets widgets printsupport concurrent
 INCLUDEPATH += $$PWD\..\pep9common
+
+# Always prefix files with their fully qualified paths.
+# Otherwise, including projects can't find the files.
+
+
 FORMS += \
     $$PWD\asmlistingpane.ui \
     $$PWD\asmobjectcodepane.ui \

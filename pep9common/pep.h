@@ -26,7 +26,6 @@
 #include <QColor>
 
 #include "enu.h"
-
 class Pep
 {
 public:
@@ -51,19 +50,19 @@ public:
     static QMap<Enu::EControlSignals, QString> decControlToMnemonMap;
     static QMap<Enu::EControlSignals, QString> memControlToMnemonMap;
     static QMap<Enu::EClockSignals, QString> clockControlToMnemonMap;
-    static QMap<Enu::EKeywords, QString> specificationToMnemonMap;
-    static QMap<Enu::EKeywords, QString> memSpecToMnemonMap;
-    static QMap<Enu::EKeywords, QString> regSpecToMnemonMap;
-    static QMap<Enu::EKeywords, QString> statusSpecToMnemonMap;
+    static QMap<Enu::ECPUKeywords, QString> specificationToMnemonMap;
+    static QMap<Enu::ECPUKeywords, QString> memSpecToMnemonMap;
+    static QMap<Enu::ECPUKeywords, QString> regSpecToMnemonMap;
+    static QMap<Enu::ECPUKeywords, QString> statusSpecToMnemonMap;
     static QMap<Enu::EBranchFunctions,QString> branchFuncToMnemonMap;
     static QMap<QString, Enu::EBranchFunctions> mnemonToBranchFuncMap;
     static QMap<QString, Enu::EControlSignals> mnemonToDecControlMap;
     static QMap<QString, Enu::EControlSignals> mnemonToMemControlMap;
     static QMap<QString, Enu::EClockSignals> mnemonToClockControlMap;
-    static QMap<QString, Enu::EKeywords> mnemonToSpecificationMap;
-    static QMap<QString, Enu::EKeywords> mnemonToMemSpecMap;
-    static QMap<QString, Enu::EKeywords> mnemonToRegSpecMap;
-    static QMap<QString, Enu::EKeywords> mnemonToStatusSpecMap;
+    static QMap<QString, Enu::ECPUKeywords> mnemonToSpecificationMap;
+    static QMap<QString, Enu::ECPUKeywords> mnemonToMemSpecMap;
+    static QMap<QString, Enu::ECPUKeywords> mnemonToRegSpecMap;
+    static QMap<QString, Enu::ECPUKeywords> mnemonToStatusSpecMap;
     static void initMicroEnumMnemonMaps();
 
     /*

@@ -606,7 +606,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 state = MicroAsm::PS_EXPECT_REG_VALUE;
             }
             else {
-                errorString = "// ERROR: Expected = after " + Pep::regSpecToMnemonMap.value((Enu::EKeywords)localEnumMnemonic);
+                errorString = "// ERROR: Expected = after " + Pep::regSpecToMnemonMap.value((Enu::ECPUKeywords)localEnumMnemonic);
                 delete code;
                 return false;
             }
@@ -633,10 +633,10 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                     return false;
                 }
                 if (processingPrecondition) {
-                    preconditionCode->appendSpecification(new RegSpecification((Enu::EKeywords)localEnumMnemonic, localValue));
+                    preconditionCode->appendSpecification(new RegSpecification((Enu::ECPUKeywords)localEnumMnemonic, localValue));
                 }
                 else {
-                    postconditionCode->appendSpecification(new RegSpecification((Enu::EKeywords)localEnumMnemonic, localValue));
+                    postconditionCode->appendSpecification(new RegSpecification((Enu::ECPUKeywords)localEnumMnemonic, localValue));
                 }
                 state = MicroAsm::PS_EXPECT_SPEC_COMMA;
             }
@@ -652,7 +652,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 state = MicroAsm::PS_EXPECT_STATUS_VALUE;
             }
             else {
-                errorString = "// ERROR: Expected = after " + Pep::statusSpecToMnemonMap.value((Enu::EKeywords)localEnumMnemonic);
+                errorString = "// ERROR: Expected = after " + Pep::statusSpecToMnemonMap.value((Enu::ECPUKeywords)localEnumMnemonic);
                 delete code;
                 return false;
             }
@@ -668,10 +668,10 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                     return false;
                 }
                 if (processingPrecondition) {
-                    preconditionCode->appendSpecification(new StatusBitSpecification((Enu::EKeywords)localEnumMnemonic, localValue == 1));
+                    preconditionCode->appendSpecification(new StatusBitSpecification((Enu::ECPUKeywords)localEnumMnemonic, localValue == 1));
                 }
                 else {
-                    postconditionCode->appendSpecification(new StatusBitSpecification((Enu::EKeywords)localEnumMnemonic, localValue == 1));
+                    postconditionCode->appendSpecification(new StatusBitSpecification((Enu::ECPUKeywords)localEnumMnemonic, localValue == 1));
                 }
                 state = MicroAsm::PS_EXPECT_SPEC_COMMA;
             }

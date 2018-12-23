@@ -53,12 +53,12 @@ public:
     void startDebugging();
     void stopDebugging();
 
-    void setRegister(Enu::EKeywords reg, int value);
+    void setRegister(Enu::ECPUKeywords reg, int value);
     void setRegisterByte(quint8 reg, quint8 value);
-    void setStatusBit(Enu::EKeywords bit, bool value);
+    void setStatusBit(Enu::ECPUKeywords bit, bool value);
 
-    void setRegPrecondition(Enu::EKeywords reg, int value);
-    void setStatusPrecondition(Enu::EKeywords bit, bool value);
+    void setRegPrecondition(Enu::ECPUKeywords reg, int value);
+    void setStatusPrecondition(Enu::ECPUKeywords bit, bool value);
 
     void clearCpu();
     void clearCpuControlSignals();

@@ -24,9 +24,9 @@
 #include <QPlainTextEdit>
 #include <QWidget>
 #include <QSet>
+#include <QSettings>
 
 #include "colors.h"
-#include "enu.h"
 namespace Ui {
 class AsmTracePane;
 }

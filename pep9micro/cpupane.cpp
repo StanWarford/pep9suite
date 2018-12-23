@@ -216,7 +216,7 @@ void CpuPane::stopDebugging()
     ui->copyToMicrocodePushButton->setEnabled(true);
 }
 
-void CpuPane::setRegister(Enu::EKeywords reg, int value)
+void CpuPane::setRegister(Enu::ECPUKeywords reg, int value)
 {
     switch (reg) {
     case Enu::Acc:
@@ -361,7 +361,7 @@ void CpuPane::initRegisters()
     setStatusBit(Enu::S,dataSection->getStatusBit(Enu::STATUS_S));
 }
 
-void CpuPane::setStatusBit(Enu::EKeywords bit, bool value)
+void CpuPane::setStatusBit(Enu::ECPUKeywords bit, bool value)
 {
     switch (bit) {
     case Enu::N:
@@ -384,12 +384,12 @@ void CpuPane::setStatusBit(Enu::EKeywords bit, bool value)
     }
 }
 
-void CpuPane::setRegPrecondition(Enu::EKeywords reg, int value)
+void CpuPane::setRegPrecondition(Enu::ECPUKeywords reg, int value)
 {
     setRegister(reg, value);
 }
 
-void CpuPane::setStatusPrecondition(Enu::EKeywords bit, bool value)
+void CpuPane::setStatusPrecondition(Enu::ECPUKeywords bit, bool value)
 {
     setStatusBit(bit, value);
 }

@@ -33,8 +33,8 @@ class CPUDataSection;
 class CpuGraphicsItems : public QGraphicsItem
 {
 public:
-    CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent, QGraphicsItem *itemParent = 0,
-                             QGraphicsScene *scene = 0);
+    CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent, QGraphicsItem *itemParent = nullptr,
+                             QGraphicsScene *scene = nullptr);
     ~CpuGraphicsItems();
 
     QRectF boundingRect() const;

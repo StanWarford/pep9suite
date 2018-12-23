@@ -29,13 +29,16 @@
  * Memory Chip that is hardwired to 0. Useful as a filler.
  */
 class ConstChip : public AMemoryChip {
-
+    Q_OBJECT
 public:
     explicit ConstChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~ConstChip() override;
+
     // AMemoryChip interface
     IOFunctions getIOFunctions() const override;
     ChipTypes getChipType() const override;
+    void clear() override;
+
     bool readByte(quint8& output, quint16 offsetFromBase) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
     bool getByte(quint8& output, quint16 offsetFromBase) const override;
@@ -46,13 +49,17 @@ public:
  * Memory chip that errors when read / written. Useful for implementing deadzone in main meory
  */
 class NilChip: public AMemoryChip {
-
+    Q_OBJECT
 public:
     explicit NilChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~NilChip() override;
+
     // AMemoryChip interface
     IOFunctions getIOFunctions() const override;
     ChipTypes getChipType() const override;
+    void clear() override;
+    bool isCachable() const override;
+
     bool readByte(quint8 &output, quint16 offsetFromBase) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
     bool getByte(quint8 &output, quint16 offsetFromBase) const override;
@@ -63,20 +70,25 @@ public:
  * Memory Chip that handles memory mapped input.
  */
 class InputChip : public AMemoryChip {
-private:
+    Q_OBJECT
     mutable QVector<quint8> memory;
-    mutable bool inputRequestCanceled;
+    mutable bool inputRequestCanceled, waiting;
 public:
     explicit InputChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~InputChip() override;
+
     // AMemoryChip interface
     IOFunctions getIOFunctions() const override;
     ChipTypes getChipType() const override;
+    void clear() override;
+    bool isCachable() const override;
+
     bool readByte(quint8& output, quint16 offsetFromBase) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
     bool getByte(quint8& output, quint16 offsetFromBase) const override;
     bool setByte(quint16 offsetFromBase, quint8 value) override;
 
+    bool waitingForInput() const;
 signals:
     void inputRequested(quint16 address) const;
 
@@ -90,34 +102,43 @@ public slots:
 /*
  * Memory Chip that handles memory mapped output.
  */
-class OutputDevice : public AMemoryChip {
+class OutputChip : public AMemoryChip {
+    Q_OBJECT
     QVector<quint8> memory;
 public:
-    explicit OutputDevice(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
-    virtual ~OutputDevice() override;
+    explicit OutputChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
+    virtual ~OutputChip() override;
+
     // AMemoryChip interface
     IOFunctions getIOFunctions() const override;
     ChipTypes getChipType() const override;
+    void clear() override;
+    bool isCachable() const override;
+
     bool readByte(quint8 &output, quint16 offsetFromBase) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
     bool getByte(quint8 &output, quint16 offsetFromBase) const override;
     bool setByte(quint16 offsetFromBase, quint8 value) override;
 
 signals:
-    void inputReceived(quint16 address, quint8 value);
+    void outputGenerated(quint16 address, quint8 value);
 };
 
 /*
  * Memory Chip that is readable & writable. Used to implement the majority of main memory.
  */
 class RAMDevice : public AMemoryChip {
+    Q_OBJECT
     QVector<quint8> memory;
 public:
     explicit RAMDevice(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~RAMDevice() override;
+
     // AMemoryChip interface
     IOFunctions getIOFunctions() const override;
     ChipTypes getChipType() const override;
+    void clear() override;
+
     bool readByte(quint8 &output, quint16 offsetFromBase) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
     bool getByte(quint8 &output, quint16 offsetFromBase) const override;
@@ -128,13 +149,17 @@ public:
  * Memory Chip that is only readable. Used to store the operating system.
  */
 class ROMDevice : public AMemoryChip {
+    Q_OBJECT
     QVector<quint8> memory;
 public:
     explicit ROMDevice(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~ROMDevice() override;
+
     // AMemoryChip interface
     IOFunctions getIOFunctions() const override;
     ChipTypes getChipType() const override;
+    void clear() override;
+
     bool readByte(quint8 &output, quint16 offsetFromBase) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
     bool getByte(quint8 &output, quint16 offsetFromBase) const override;

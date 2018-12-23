@@ -6,7 +6,7 @@
 #include <QException>
 #include <QString>
 #include "enu.h"
-
+#include <QSet>
 /*
  * Class that feeds microcode lines to the CPUDataSection
  * To trigger execution, a onSumulationStarted/onDebuggingStarted is called.

@@ -23,6 +23,7 @@
 #define ASMOBJECTCODEPANE_H
 
 #include <QWidget>
+#include <QFile>
 #include "enu.h"
 
 namespace Ui {
@@ -33,7 +34,7 @@ class AsmObjectCodePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmObjectCodePane)
 public:
-    explicit AsmObjectCodePane(QWidget *parent = 0);
+    explicit AsmObjectCodePane(QWidget *parent = nullptr);
     virtual ~AsmObjectCodePane();
 
     void setObjectCode(QList<int> objectCode);

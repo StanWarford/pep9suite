@@ -60,7 +60,7 @@ public:
     const MemorySection* getMemorySection() const;
 
 private:
-    CPUDataSection(QObject* parent=0);
+    CPUDataSection(QObject* parent = nullptr);
     static CPUDataSection* _instance;
     Enu::CPUType cpuFeatures;
     Enu::MainBusState mainBusState;

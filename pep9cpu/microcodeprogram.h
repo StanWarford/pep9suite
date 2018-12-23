@@ -1,6 +1,7 @@
 #ifndef MICROCODEPROGRAM_H
 #define MICROCODEPROGRAM_H
 #include "enu.h"
+#include <QVector>
 class MicroCodeBase;
 class MicroCode;
 class SymbolTable;

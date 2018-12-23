@@ -51,23 +51,23 @@ private:
 
 class RegSpecification: public Specification {
 public:
-    RegSpecification(Enu::EKeywords registerAddress, int registerValue);
+    RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue);
     void setUnitPre(CPUDataSection*) override;
     bool testUnitPost(CPUDataSection *data,QString &errString) override;
     QString getSourceCode() override;
 private:
-    Enu::EKeywords regAddress;
+    Enu::ECPUKeywords regAddress;
     int regValue;
 };
 
 class StatusBitSpecification: public Specification {
 public:
-    StatusBitSpecification(Enu::EKeywords statusBitAddress, bool statusBitValue);
+    StatusBitSpecification(Enu::ECPUKeywords statusBitAddress, bool statusBitValue);
     void setUnitPre(CPUDataSection*) override;
     bool testUnitPost(CPUDataSection *data,QString &errString) override;
     QString getSourceCode() override;
 private:
-    Enu::EKeywords nzvcsAddress;
+    Enu::ECPUKeywords nzvcsAddress;
     bool nzvcsValue;
 };
 

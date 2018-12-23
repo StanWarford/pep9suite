@@ -19,6 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <QFontDialog>
+#include <QFileInfo>
 #include "asmobjectcodepane.h"
 #include "ui_asmobjectcodepane.h"
 #include "pep.h"

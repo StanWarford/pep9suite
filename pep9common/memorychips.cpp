@@ -21,6 +21,11 @@ AMemoryChip::ChipTypes ConstChip::getChipType() const
     return AMemoryChip::ChipTypes::CONST;
 }
 
+void ConstChip::clear()
+{
+    // A chip that can't change has nothing to clear
+}
+
 bool ConstChip::readByte(quint8& output, quint16 offsetFromBase) const
 {
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
@@ -49,6 +54,8 @@ bool ConstChip::setByte(quint16 offsetFromBase, quint8 value)
     return true;
 }
 
+
+
 NilChip::NilChip(quint16 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent)
 {
 
@@ -69,6 +76,16 @@ AMemoryChip::ChipTypes NilChip::getChipType() const
     return ChipTypes::NIL;
 }
 
+void NilChip::clear()
+{
+    // A "dsiabled" chip can't be cleared
+}
+
+bool NilChip::isCachable() const
+{
+    return false;
+}
+
 bool NilChip::readByte(quint8 &output, quint16 offsetFromBase) const
 {
     return getByte(output, offsetFromBase);
@@ -79,22 +96,24 @@ bool NilChip::writeByte(quint16 offsetFromBase, quint8 value)
     return setByte(offsetFromBase, value);
 }
 
-bool NilChip::getByte(quint8 &output, quint16 offsetFromBase) const
+bool NilChip::getByte(quint8 &, quint16 offsetFromBase) const
 {
     std::string message = "Attempted to access nil chip at: " +
             QString("0x%1").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
     throw bad_chip_operation(message);
 }
 
-bool NilChip::setByte(quint16 offsetFromBase, quint8 value)
+bool NilChip::setByte(quint16 offsetFromBase, quint8)
 {
     std::string message = "Attempted to access nil chip at: " +
             QString("0x%1").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
     throw bad_chip_operation(message);
 }
+
+
 
 InputChip::InputChip(quint16 size, quint16 baseAddress, QObject *parent):
-    AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size)), inputRequestCanceled(false)
+    AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size)), inputRequestCanceled(false), waiting(false)
 {
 
 }
@@ -115,11 +134,26 @@ AMemoryChip::ChipTypes InputChip::getChipType() const
     return AMemoryChip::ChipTypes::IDEV;
 }
 
+void InputChip::clear()
+{
+    for (int it = 0; it < size; it++) {
+        memory[it] = 0;
+    }
+    waiting = false;
+    inputRequestCanceled = false;
+}
+
+bool InputChip::isCachable() const
+{
+    return false;
+}
+
 bool InputChip::readByte(quint8& output, quint16 offsetFromBase) const
 {
 
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     inputRequestCanceled = false;
+    waiting = true;
     emit inputRequested(baseAddress + offsetFromBase);
     // Let the UI handle I/O before returning to this device
     QApplication::processEvents();
@@ -147,6 +181,11 @@ bool InputChip::setByte(quint16 offsetFromBase, quint8 value)
     return true;
 }
 
+bool InputChip::waitingForInput() const
+{
+    return waiting;
+}
+
 void InputChip::onInputReceived(quint16 offsetFromBase, quint8 value)
 {
     if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
@@ -156,56 +195,73 @@ void InputChip::onInputReceived(quint16 offsetFromBase, quint8 value)
 void InputChip::onInputCanceled()
 {
     inputRequestCanceled = true;
+    waiting = false;
 }
 
-OutputDevice::OutputDevice(quint16 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size))
+
+
+OutputChip::OutputChip(quint16 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size))
 {
 
 }
 
-OutputDevice::~OutputDevice()
+OutputChip::~OutputChip()
 {
 
 }
 
-AMemoryChip::IOFunctions OutputDevice::getIOFunctions() const
+AMemoryChip::IOFunctions OutputChip::getIOFunctions() const
 {
         return static_cast<AMemoryChip::IOFunctions>(  static_cast<int>(AMemoryChip::READ)
                                                      | static_cast<int>(AMemoryChip::WRITE)
                                                      | static_cast<int>(AMemoryChip::MEMORY_MAPPED));
 }
 
-AMemoryChip::ChipTypes OutputDevice::getChipType() const
+AMemoryChip::ChipTypes OutputChip::getChipType() const
 {
     return ChipTypes::ODEV;
 }
 
-bool OutputDevice::readByte(quint8 &output, quint16 offsetFromBase) const
+void OutputChip::clear()
+{
+    for (int it = 0; it < size; it++) {
+        memory[it] = 0;
+    }
+}
+
+bool OutputChip::isCachable() const
+{
+    return false;
+}
+
+bool OutputChip::readByte(quint8 &output, quint16 offsetFromBase) const
 {
     return getByte(output, offsetFromBase);
 }
 
-bool OutputDevice::writeByte(quint16 offsetFromBase, quint8 value)
+bool OutputChip::writeByte(quint16 offsetFromBase, quint8 value)
 {
     if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     memory[offsetFromBase] = value;
-    emit this->inputReceived(offsetFromBase+baseAddress, value);
+    emit this->outputGenerated(offsetFromBase+baseAddress, value);
     return true;
 }
 
-bool OutputDevice::getByte(quint8 &output, quint16 offsetFromBase) const
+bool OutputChip::getByte(quint8 &output, quint16 offsetFromBase) const
 {
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = memory[offsetFromBase];
     return true;
 }
 
-bool OutputDevice::setByte(quint16 offsetFromBase, quint8 value)
+bool OutputChip::setByte(quint16 offsetFromBase, quint8 value)
 {
     if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     memory[offsetFromBase] = value;
     return true;
 }
+
+
 
 RAMDevice::RAMDevice(quint16 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size))
 {
@@ -226,6 +282,13 @@ AMemoryChip::IOFunctions RAMDevice::getIOFunctions() const
 AMemoryChip::ChipTypes RAMDevice::getChipType() const
 {
     return AMemoryChip::ChipTypes::RAM;
+}
+
+void RAMDevice::clear()
+{
+    for (int it = 0; it < size; it++) {
+        memory[it] = 0;
+    }
 }
 
 bool RAMDevice::readByte(quint8 &output, quint16 offsetFromBase) const
@@ -272,6 +335,13 @@ AMemoryChip::IOFunctions ROMDevice::getIOFunctions() const
 AMemoryChip::ChipTypes ROMDevice::getChipType() const
 {
     return AMemoryChip::ChipTypes::RAM;
+}
+
+void ROMDevice::clear()
+{
+    for (int it = 0; it < size; it++) {
+        memory[it] = 0;
+    }
 }
 
 bool ROMDevice::readByte(quint8 &output, quint16 offsetFromBase) const
