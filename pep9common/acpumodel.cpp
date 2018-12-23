@@ -1,6 +1,7 @@
 #include "acpumodel.h"
 #include "amemorydevice.h"
-ACPUModel::ACPUModel(AMemoryDevice* memoryDev, QObject* parent): QObject(parent), memory(memoryDev)
+ACPUModel::ACPUModel(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent): QObject(parent), memory(memoryDev), callDepth(0), inDebug(false), inSimulation(false),
+    executionFinished(false), controlError(false), errorMessage("")
 {
 
 }
@@ -12,22 +13,17 @@ ACPUModel::~ACPUModel()
 
 AMemoryDevice *ACPUModel::getMemoryDevice()
 {
-    return memory;
+    return memory.get();
 }
 
 const AMemoryDevice *ACPUModel::getMemoryDevice() const
 {
-    return memory;
+    return memory.get();
 }
 
-void ACPUModel::setMemoryDevice(AMemoryDevice *newDevice)
+void ACPUModel::setMemoryDevice(QSharedPointer<AMemoryDevice> newDevice)
 {
     memory = newDevice;
-}
-
-void ACPUModel::setDebugLevel(Enu::DebugLevels level)
-{
-#pragma message("TODO: add debugging levels to base class")
 }
 
 bool ACPUModel::getExecutionFinished() const

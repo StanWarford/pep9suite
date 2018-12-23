@@ -1,6 +1,6 @@
 #include "aisacpumodel.h"
-
-InterfaceISACPU::InterfaceISACPU()
+#include <QDebug>
+InterfaceISACPU::InterfaceISACPU(): breakpointsISA(), asmInstructionCounter(0), asmBreakpointHit(false), doDebug(false)
 {
 
 }
@@ -18,24 +18,42 @@ const QSet<quint16> InterfaceISACPU::getPCBreakpoints() const
 void InterfaceISACPU::breakpointsSet(QSet<quint16> addresses)
 {
     breakpointsISA = addresses;
-    //qDebug() << "BP set " << breakpointsISA;
+    if(doDebug) qDebug() << "BP set " << breakpointsISA;
 }
 
 void InterfaceISACPU::breakpointsRemoveAll()
 {
     breakpointsISA.clear();
-    //qDebug() << "BP cleared";
+    if(doDebug) qDebug() << "BP cleared";
 }
 
 void InterfaceISACPU::breakpointRemoved(quint16 address)
 {
     breakpointsISA.remove(address);
-    //qDebug() << "Removed breakpoint at: " << address;
+    if(doDebug) qDebug() << "Removed breakpoint at: " << address;
 }
 
 
 void InterfaceISACPU::breakpointAdded(quint16 address)
 {
     breakpointsISA.insert(address);
-   //qDebug() << "Added breakpoint at: " << address;
+    if(doDebug)qDebug() << "Added breakpoint at: " << address;
 }
+
+void InterfaceISACPU::setDebugBreakpoints(bool doDebug)
+{
+    this->doDebug = doDebug;
+}
+
+void InterfaceISACPU::reset()
+{
+    asmInstructionCounter = 0;
+    asmBreakpointHit = false;
+}
+
+void InterfaceISACPU::clear()
+{
+    reset();
+    breakpointsRemoveAll();
+}
+

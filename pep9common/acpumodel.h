@@ -8,27 +8,30 @@ class ACPUModel: public QObject
 {
     Q_OBJECT
 public:
-    ACPUModel(AMemoryDevice* memoryDev, QObject* parent=nullptr);
+    ACPUModel(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent=nullptr);
     virtual ~ACPUModel();
 
+    // Returns non-owning pointer
     AMemoryDevice* getMemoryDevice();
     const AMemoryDevice* getMemoryDevice() const;
     // The control section is not responsible for cleaning up the old memory section.
-    void setMemoryDevice(AMemoryDevice* newDevice);
-    void setDebugLevel(Enu::DebugLevels level);
+    void setMemoryDevice(QSharedPointer<AMemoryDevice> newDevice);
     bool getExecutionFinished() const;
     int getCallDepth() const;
 
+    virtual bool getStatusBitCurrent(Enu::EStatusBit) const = 0;
+    virtual bool getStatusBitStart(Enu::EStatusBit) const = 0;
     /*
      * Return the current value of the named register. On implementations with non-atomic instructions
      * (e.g. micrcoded CPU's) the value of a register might vary over the course of executing an instruction.
      */
-    virtual quint8 getByteCPURegCurrent(Enu::CPURegisters reg) const = 0;
-    virtual quint16 getWordCPURegCurrent(Enu::CPURegisters reg) const = 0;
+    virtual quint8 getCPURegByteCurrent(Enu::CPURegisters reg) const = 0;
+    virtual quint16 getCPURegWordCurrent(Enu::CPURegisters reg) const = 0;
     // Return the value of a register at the start of an instruction
-    virtual quint8 getByteCPURegStart(Enu::CPURegisters reg) const = 0;
-    virtual quint16 getWordCPURegStart(Enu::CPURegisters reg) const = 0;
-    virtual Enu::DebugLevels setDebugLevel(Enu::DebugLevels level) const = 0;
+    virtual quint8 getCPURegByteStart(Enu::CPURegisters reg) const = 0;
+    virtual quint16 getCPURegWordStart(Enu::CPURegisters reg) const = 0;
+    virtual Enu::DebugLevels getDebugLevel() const = 0;
+    virtual void setDebugLevel(Enu::DebugLevels level) = 0;
     virtual QString getErrorMessage() const = 0;
     virtual bool hadErrorOnStep() const = 0;
     virtual void initCPU() = 0;
@@ -47,7 +50,8 @@ public slots:
     virtual void onCancelExecution() = 0;
 
     virtual bool onRun() = 0;
-    virtual void onClearCPU() = 0;
+    // Wipe all registers & memory, KEEP loaded programs & breakpoints
+    virtual void onResetCPU() = 0;
     virtual void onClearMemory();
 
 signals:
@@ -60,7 +64,7 @@ signals:
     void asmInstructionFinished();
 
 protected:
-    AMemoryDevice* memory;
+    QSharedPointer<AMemoryDevice> memory;
     int callDepth;
     bool inDebug, inSimulation, executionFinished;
     mutable bool controlError;

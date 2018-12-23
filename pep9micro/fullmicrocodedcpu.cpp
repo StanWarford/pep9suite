@@ -9,8 +9,9 @@
 #include "pep.h"
 #include "cpudatasection.h"
 #include "symbolentry.h"
-
-FullMicrocodedCPU::FullMicrocodedCPU(AMemoryDevice* memoryDev, QObject* parent):ACPUModel (memoryDev, parent), InterfaceMCCPU(Enu::CPUType::TwoByteDataBus),
+#include "fullmicrocodedmemoizer.h"
+FullMicrocodedCPU::FullMicrocodedCPU(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent):ACPUModel (memoryDev, parent),
+    InterfaceMCCPU(Enu::CPUType::TwoByteDataBus),
     InterfaceISACPU()
 {
 
@@ -21,24 +22,47 @@ FullMicrocodedCPU::~FullMicrocodedCPU()
     //This object should last the lifetime of the  program, it does not need to be cleaned up
 }
 
-quint8 FullMicrocodedCPU::getByteCPURegCurrent(Enu::CPURegisters reg) const
+bool FullMicrocodedCPU::getStatusBitCurrent(Enu::EStatusBit bit) const
 {
-    throw -1;
+#pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
+    return data->getStatusBit(bit);
 }
 
-quint16 FullMicrocodedCPU::getWordCPURegCurrent(Enu::CPURegisters reg) const
+bool FullMicrocodedCPU::getStatusBitStart(Enu::EStatusBit bit) const
 {
-    throw -1;
+#pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
+    if (microprogramCounter == 0) {
+        return getStatusBitCurrent(bit);
+    }
+    else return memoizer->getStatusBitStart(bit);
 }
 
-quint8 FullMicrocodedCPU::getByteCPURegStart(Enu::CPURegisters reg) const
+quint8 FullMicrocodedCPU::getCPURegByteCurrent(Enu::CPURegisters reg) const
 {
-    throw -1;
+    return data->getRegisterBankByte(reg);
 }
 
-quint16 FullMicrocodedCPU::getWordCPURegStart(Enu::CPURegisters reg) const
+quint16 FullMicrocodedCPU::getCPURegWordCurrent(Enu::CPURegisters reg) const
 {
-    throw -1;
+    return data->getRegisterBankWord(reg);
+}
+
+quint8 FullMicrocodedCPU::getCPURegByteStart(Enu::CPURegisters reg) const
+{
+#pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
+    if (microprogramCounter == 0) {
+        return getCPURegByteCurrent(reg);
+    }
+    else return memoizer->getRegisterByteStart(reg);
+}
+
+quint16 FullMicrocodedCPU::getCPURegWordStart(Enu::CPURegisters reg) const
+{
+#pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
+    if (microprogramCounter == 0) {
+        return getCPURegWordCurrent(reg);
+    }
+    else return memoizer->getRegisterWordStart(reg);
 }
 
 void FullMicrocodedCPU::initCPU()
@@ -67,9 +91,14 @@ bool FullMicrocodedCPU::hadErrorOnStep() const
     return controlError || data->hadErrorOnStep() || memory->hadError();
 }
 
-Enu::DebugLevels FullMicrocodedCPU::setDebugLevel(Enu::DebugLevels level) const
+Enu::DebugLevels FullMicrocodedCPU::getDebugLevel() const
 {
-    throw -1;
+    return memoizer->getDebugLevel();
+}
+
+void FullMicrocodedCPU::setDebugLevel(Enu::DebugLevels level)
+{
+    memoizer->setDebugLevel(level);
 }
 
 void FullMicrocodedCPU::onSimulationStarted()
@@ -77,7 +106,7 @@ void FullMicrocodedCPU::onSimulationStarted()
     inDebug = false;
     inSimulation = false;
     executionFinished = false;
-    throw -1;
+    memoizer->clear();
 }
 
 void FullMicrocodedCPU::onSimulationFinished()
@@ -103,11 +132,11 @@ void FullMicrocodedCPU::onDebuggingFinished()
 {
     onSimulationFinished();
     inDebug = false;
-    throw -1;
 }
 
 void FullMicrocodedCPU::onCancelExecution()
 {
+    #pragma message("TODO: Cancel execution")
     throw -1;
 }
 
@@ -155,8 +184,7 @@ bool FullMicrocodedCPU::onRun()
     }
 
     auto value = timer.elapsed();
-#pragma message("TODO: fix memoizer")
-    //qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
+    qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
     qDebug().nospace().noquote() << "Executed "<< asmInstructionCounter << " instructions in "<<microCycleCounter<< " cycles.";
     qDebug().nospace().noquote() << "Averaging " << microCycleCounter / asmInstructionCounter << " cycles per instruction.";
     qDebug().nospace().noquote() << "Execution time (ms): " << value;
@@ -166,18 +194,16 @@ bool FullMicrocodedCPU::onRun()
     return true;
 }
 
-void FullMicrocodedCPU::onClearCPU()
+void FullMicrocodedCPU::onResetCPU()
 {
-    // Reset all internal state
+    // Reset all internal state, but keep loaded micropgoram & breakpoints
     data->onClearCPU();
     memory->clearErrors();
-#pragma message("TODO: Fix memozier")
-    //memoizer->clear();
+    memoizer->clear();
+    InterfaceMCCPU::reset();
+    InterfaceISACPU::reset();
     inSimulation = false;
     inDebug = false;
-    microprogramCounter = 0;
-    microCycleCounter = 0;
-    asmInstructionCounter = 0;
     callDepth = 0;
     controlError = false;
     executionFinished = false;
@@ -194,8 +220,7 @@ void FullMicrocodedCPU::onMCStep()
     if(microprogramCounter == 0) {
         // Store PC at the start of the cycle, so that we know where the instruction started from.
         // Also store any other values needed for detailed statistics
-        #pragma message("TODO: fix memoizer")
-        //memoizer->storeStateInstrStart();
+        memoizer->storeStateInstrStart();
         memory->onCycleStarted();
     }
 
@@ -209,15 +234,14 @@ void FullMicrocodedCPU::onMCStep()
     microCycleCounter++;
 
     if(microprogramCounter == 0 || executionFinished) {
-        #pragma message("TODO: fix memoizer")
-        //memoizer->storeStateInstrEnd();
+        memoizer->storeStateInstrEnd();
         updateAtInstructionEnd();
         emit asmInstructionFinished();
         asmInstructionCounter++;
         #pragma message("TODO: fix memoizer")
-        /*if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
+        if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
             qDebug().noquote().nospace() << memoizer->memoize();
-        }*/
+        }
     }
     // Upon entering an instruction that is going to trap
     // If running in debug mode, first check if this line has any microcode breakpoints.
@@ -451,13 +475,13 @@ void FullMicrocodedCPU::breakpointHandler()
     if((microprogramCounter == 0) && breakpointsISA.contains(data->getRegisterBankWord(Enu::CPURegisters::PC))) {
         #pragma message("TODO: make micro program counter loop point variable")
         asmBreakpointHit = true;
-        //emit hitAsmBreakpoint();
+        emit hitBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
         return;
     }
     // Trap on micrcode breakpoints
     else if(program->getCodeLine(microprogramCounter)->hasBreakpoint()) {
         microBreakpointHit = true;
-        //emit hitMicroBreakpoint();
+        emit hitBreakpoint(Enu::BreakpointTypes::MICROCODE);
         return;
     }
     else {

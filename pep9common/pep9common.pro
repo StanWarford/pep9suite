@@ -13,7 +13,7 @@ FORMS += \
     $$PWD\byteconverterhex.ui \
     $$PWD\byteconverterinstr.ui \
     $$PWD\inputpane.ui \
- #   $$PWD\iodialog.ui \ This widget has yet to be implemented
+#   $$PWD\iodialog.ui \ #This widget has yet to be implemented
     $$PWD\iowidget.ui \
     $$PWD\outputpane.ui \
     $$PWD\terminalpane.ui \

@@ -5,23 +5,28 @@
 #include "aisacpumodel.h"
 #include <QElapsedTimer>
 class CPUDataSection;
+class FullMicrocodeMemoizer;
 class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public InterfaceISACPU
 {
     Q_OBJECT
+    friend class CPUMemoizer;
 public:
-    FullMicrocodedCPU(AMemoryDevice* memoryDev, QObject* parent = nullptr);
+    FullMicrocodedCPU(QSharedPointer<AMemoryDevice>, QObject* parent = nullptr);
     virtual ~FullMicrocodedCPU() override;
 
     // ACPUModel interface
-    quint8 getByteCPURegCurrent(Enu::CPURegisters reg) const override;
-    quint16 getWordCPURegCurrent(Enu::CPURegisters reg) const override;
-    quint8 getByteCPURegStart(Enu::CPURegisters reg) const override;
-    quint16 getWordCPURegStart(Enu::CPURegisters reg) const override;
+    bool getStatusBitCurrent(Enu::EStatusBit) const override;
+    bool getStatusBitStart(Enu::EStatusBit) const override;
+    quint8 getCPURegByteCurrent(Enu::CPURegisters reg) const override;
+    quint16 getCPURegWordCurrent(Enu::CPURegisters reg) const override;
+    quint8 getCPURegByteStart(Enu::CPURegisters reg) const override;
+    quint16 getCPURegWordStart(Enu::CPURegisters reg) const override;
     void initCPU() override;
     bool stoppedForBreakpoint() const override;
     QString getErrorMessage() const override;
     bool hadErrorOnStep() const override;
-    Enu::DebugLevels setDebugLevel(Enu::DebugLevels level) const override;
+    Enu::DebugLevels getDebugLevel() const override;
+    void setDebugLevel(Enu::DebugLevels level) override;
 
     // InterfaceMCCPU interface
     void onMCStep() override;
@@ -39,7 +44,7 @@ public slots:
     void onDebuggingFinished() override;
     void onCancelExecution() override;
     bool onRun() override;
-    void onClearCPU() override;
+    void onResetCPU() override;
 
 private:
     void breakpointHandler();
@@ -48,7 +53,8 @@ private:
     void updateAtInstructionEnd() override;
     bool isPrefetchValid;
     QElapsedTimer timer;
-    CPUDataSection* data;
+    CPUDataSection *data;
+    FullMicrocodeMemoizer *memoizer;
 };
 
 #endif // FULLMICROCODEDCPU_H

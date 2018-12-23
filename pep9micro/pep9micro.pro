@@ -53,7 +53,8 @@ HEADERS += \
     cpupane.h \
     helpdialog.h \
     mainwindow.h \
-    fullmicrocodedcpu.h
+    fullmicrocodedcpu.h \
+    fullmicrocodedmemoizer.h
 
 SOURCES += \
     aboutpep.cpp \
@@ -66,7 +67,8 @@ SOURCES += \
     helpdialog.cpp \
     main.cpp \
     mainwindow.cpp \
-    fullmicrocodedcpu.cpp
+    fullmicrocodedcpu.cpp \
+    fullmicrocodedmemoizer.cpp
 
 OTHER_FILES += help/images/registeraddresssignals.png \
     help/figures/exer1204.pepcpu \

@@ -11,13 +11,16 @@ public:
     explicit InterfaceMCCPU(Enu::CPUType type);
     virtual ~InterfaceMCCPU();
 
+    unsigned int getCycleCounter() const;
     unsigned int getMicrocodeLineNumber() const;
     const MicrocodeProgram* getProgram() const;
     const MicroCode* getCurrentMicrocodeLine() const;
     void setMicrocodeProgram(MicrocodeProgram* program);
-    virtual void setCPUType() = 0;
     Enu::CPUType getCPUType() const;
+    void reset();
+    void clear();
 
+    virtual void setCPUType() = 0;
     virtual void onMCStep() = 0;
     virtual void onClock() = 0;
 
