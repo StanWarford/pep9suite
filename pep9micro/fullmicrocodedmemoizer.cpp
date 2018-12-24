@@ -14,23 +14,23 @@ static quint8 max_symLen=0;
 static quint8 inst_size=6;
 static quint8 oper_addr_size=12;
 
-FullMicrocodeMemoizer::FullMicrocodeMemoizer(FullMicrocodedCPU& item): cpu(item),
+FullMicrocodedMemoizer::FullMicrocodedMemoizer(FullMicrocodedCPU& item): cpu(item),
     registers(CPUState()), level(Enu::DebugLevels::MINIMAL), OSSymTable()
 {
     loadSymbols();
 }
 
-Enu::DebugLevels FullMicrocodeMemoizer::getDebugLevel() const
+Enu::DebugLevels FullMicrocodedMemoizer::getDebugLevel() const
 {
     return level;
 }
 
-void FullMicrocodeMemoizer::clear()
+void FullMicrocodedMemoizer::clear()
 {
     registers = CPUState();
 }
 
-void FullMicrocodeMemoizer::storeStateInstrEnd()
+void FullMicrocodedMemoizer::storeStateInstrEnd()
 {
     switch(level)
     {
@@ -61,7 +61,7 @@ void FullMicrocodeMemoizer::storeStateInstrEnd()
     }
 }
 
-void FullMicrocodeMemoizer::storeStateInstrStart()
+void FullMicrocodedMemoizer::storeStateInstrStart()
 {
     quint8 instr;
     switch(level)
@@ -80,7 +80,7 @@ void FullMicrocodeMemoizer::storeStateInstrStart()
     }
 }
 
-QString FullMicrocodeMemoizer::memoize()
+QString FullMicrocodedMemoizer::memoize()
 {   QString build, AX, NZVC;
     switch(level){
     case Enu::DebugLevels::ALL:
@@ -115,7 +115,7 @@ QString FullMicrocodeMemoizer::memoize()
     return build;
 }
 
-QString FullMicrocodeMemoizer::finalStatistics()
+QString FullMicrocodedMemoizer::finalStatistics()
 {
     if(level == Enu::DebugLevels::NONE) return "";
     Enu::EMnemonic mnemon = Enu::EMnemonic::STOP;
@@ -148,17 +148,17 @@ QString FullMicrocodeMemoizer::finalStatistics()
     return output;
 }
 
-void FullMicrocodeMemoizer::setDebugLevel(Enu::DebugLevels level)
+void FullMicrocodedMemoizer::setDebugLevel(Enu::DebugLevels level)
 {
     this->level = level;
 }
 
-quint8 FullMicrocodeMemoizer::getRegisterByteStart(Enu::CPURegisters reg) const
+quint8 FullMicrocodedMemoizer::getRegisterByteStart(Enu::CPURegisters reg) const
 {
     throw std::runtime_error("Method not implemented");
 }
 
-quint16 FullMicrocodeMemoizer::getRegisterWordStart(Enu::CPURegisters reg) const
+quint16 FullMicrocodedMemoizer::getRegisterWordStart(Enu::CPURegisters reg) const
 {
     if (cpu.getMicrocodeLineNumber() == 0){
         if(reg != Enu::CPURegisters::PC) throw std::runtime_error("Register not cached"); // Attempted to access register that was not cached
@@ -169,60 +169,60 @@ quint16 FullMicrocodeMemoizer::getRegisterWordStart(Enu::CPURegisters reg) const
     return -1;
 }
 
-bool FullMicrocodeMemoizer::getStatusBitStart(Enu::EStatusBit bit) const
+bool FullMicrocodedMemoizer::getStatusBitStart(Enu::EStatusBit bit) const
 {
     throw std::runtime_error("Method not implemented");
 }
 
 //Properly formats a number as a 4 char hex
-QString FullMicrocodeMemoizer::formatNum(quint16 number)
+QString FullMicrocodedMemoizer::formatNum(quint16 number)
 {
     return QString("%1").arg(QString::number(number,16),4,'0').toUpper();
 }
 
 //Properly format a number as 2 char hex
-QString FullMicrocodeMemoizer::formatNum(quint8 number)
+QString FullMicrocodedMemoizer::formatNum(quint8 number)
 {
     return QString("%1").arg(QString::number(number,16),2,'0').toUpper();
 }
 
 //Properly format a 16 bit address
-QString FullMicrocodeMemoizer::formatAddress(quint16 address)
+QString FullMicrocodedMemoizer::formatAddress(quint16 address)
 {
     return "0x"+formatNum(address);
 }
 
 //Convert a mnemonic into it's string
-QString FullMicrocodeMemoizer::mnemonDecode(quint8 instrSpec)
+QString FullMicrocodedMemoizer::mnemonDecode(quint8 instrSpec)
 {
     static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
     return QString(metaenum.valueToKey((int)Pep::decodeMnemonic[instrSpec])).toLower();
 }
 //Convert a mnemonic into it's string
-QString FullMicrocodeMemoizer::mnemonDecode(Enu::EMnemonic instrSpec)
+QString FullMicrocodedMemoizer::mnemonDecode(Enu::EMnemonic instrSpec)
 {
     static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
     return QString(metaenum.valueToKey((int)instrSpec)).toLower();
 }
 
-QString FullMicrocodeMemoizer::formatIS(quint8 instrSpec)
+QString FullMicrocodedMemoizer::formatIS(quint8 instrSpec)
 {
     return QString(mnemonDecode(instrSpec)).leftJustified(inst_size,' ');
 }
 
-QString FullMicrocodeMemoizer::formatUnary(quint8 instrSpec)
+QString FullMicrocodedMemoizer::formatUnary(quint8 instrSpec)
 {
     return formatIS(instrSpec).leftJustified(inst_size+max_symLen+2+4);
 }
 
-QString FullMicrocodeMemoizer::formatNonUnary(quint8 instrSpec,quint16 oprSpec)
+QString FullMicrocodedMemoizer::formatNonUnary(quint8 instrSpec,quint16 oprSpec)
 {
     return formatIS(instrSpec).leftJustified(inst_size) %
             QString(attempSymOprReplace(oprSpec)).rightJustified(max_symLen) %
             ", " % Pep::intToAddrMode(Pep::decodeAddrMode[instrSpec]).leftJustified(4,' ');
 }
 
-QString FullMicrocodeMemoizer::formatInstr(quint8 instrSpec,quint16 oprSpec)
+QString FullMicrocodedMemoizer::formatInstr(quint8 instrSpec,quint16 oprSpec)
 {
     if(Pep::isUnaryMap[Pep::decodeMnemonic[instrSpec]])
     {
@@ -234,7 +234,7 @@ QString FullMicrocodeMemoizer::formatInstr(quint8 instrSpec,quint16 oprSpec)
     }
 }
 
-QString FullMicrocodeMemoizer::generateStackFrame(CPUState&, bool enter)
+QString FullMicrocodedMemoizer::generateStackFrame(CPUState&, bool enter)
 {
     if(enter)
     {
@@ -246,7 +246,7 @@ QString FullMicrocodeMemoizer::generateStackFrame(CPUState&, bool enter)
     }
 }
 
-QString FullMicrocodeMemoizer::generateTrapFrame(CPUState&, bool enter)
+QString FullMicrocodedMemoizer::generateTrapFrame(CPUState&, bool enter)
 {
     if(enter)
     {
@@ -258,19 +258,19 @@ QString FullMicrocodeMemoizer::generateTrapFrame(CPUState&, bool enter)
     }
 }
 
-QString FullMicrocodeMemoizer::attempSymOprReplace(quint16 number)
+QString FullMicrocodedMemoizer::attempSymOprReplace(quint16 number)
 {
     if(OSSymTable.count(number)==1) return OSSymTable.find(number).value();
     else return formatNum(number);
 }
 
-QString FullMicrocodeMemoizer::attempSymAddrReplace(quint16 number)
+QString FullMicrocodedMemoizer::attempSymAddrReplace(quint16 number)
 {
     if(OSSymTable.count(number)==1) return OSSymTable.find(number).value();
     else return formatAddress(number);
 }
 
-void FullMicrocodeMemoizer::loadSymbols()
+void FullMicrocodedMemoizer::loadSymbols()
 {
     QString  osFileString;
     //In the future, have a switch between loading the aligned and unaligned code

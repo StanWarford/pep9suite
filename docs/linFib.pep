@@ -1,7 +1,7 @@
          BR      main        
          .ALIGN  2           
 ;#####################
-gDepth:  .WORD   0x7fff          ;#2d Change the value of this word to change which fib number is calculated
+gDepth:  .WORD   0x9          ;#2d Change the value of this word to change which fib number is calculated
 ;######################
 gRes:    .BLOCK  2           ;#2d
 retVal:  .EQUATE 8           ;#2d

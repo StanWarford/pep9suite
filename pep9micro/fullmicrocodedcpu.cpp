@@ -14,12 +14,15 @@ FullMicrocodedCPU::FullMicrocodedCPU(QSharedPointer<AMemoryDevice> memoryDev, QO
     InterfaceMCCPU(Enu::CPUType::TwoByteDataBus),
     InterfaceISACPU()
 {
-
+    memoizer= new FullMicrocodedMemoizer(*this);
+    data = CPUDataSection::getInstance();
 }
 
 FullMicrocodedCPU::~FullMicrocodedCPU()
 {
     //This object should last the lifetime of the  program, it does not need to be cleaned up
+    delete memoizer;
+    delete data;
 }
 
 bool FullMicrocodedCPU::getStatusBitCurrent(Enu::EStatusBit bit) const
@@ -101,6 +104,11 @@ void FullMicrocodedCPU::setDebugLevel(Enu::DebugLevels level)
     memoizer->setDebugLevel(level);
 }
 
+void FullMicrocodedCPU::setCPUType(Enu::CPUType type)
+{
+    throw std::logic_error("Can't change CPU type on fullmicrococdedcpu, it must always be two byte bus");
+}
+
 void FullMicrocodedCPU::onSimulationStarted()
 {
     inDebug = false;
@@ -112,8 +120,8 @@ void FullMicrocodedCPU::onSimulationStarted()
 void FullMicrocodedCPU::onSimulationFinished()
 {
     #pragma message("TODO: Clear data secion at end")
-    //data->clearClockSignals();
-    //data->clearControlSignals();
+    data->clearClockSignals();
+    data->clearControlSignals();
     executionFinished = true;
     inDebug = false;
 #pragma message("TODO: Inform memory that execution is finished")
@@ -185,6 +193,7 @@ bool FullMicrocodedCPU::onRun()
 
     auto value = timer.elapsed();
     qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
+    qDebug().nospace().noquote() << "New Model";
     qDebug().nospace().noquote() << "Executed "<< asmInstructionCounter << " instructions in "<<microCycleCounter<< " cycles.";
     qDebug().nospace().noquote() << "Averaging " << microCycleCounter / asmInstructionCounter << " cycles per instruction.";
     qDebug().nospace().noquote() << "Execution time (ms): " << value;
@@ -243,6 +252,7 @@ void FullMicrocodedCPU::onMCStep()
             qDebug().noquote().nospace() << memoizer->memoize();
         }
     }
+    qDebug() << prog->getSourceCode();
     // Upon entering an instruction that is going to trap
     // If running in debug mode, first check if this line has any microcode breakpoints.
     if(inDebug) {
@@ -259,11 +269,6 @@ void FullMicrocodedCPU::onClock()
     else {
         //One should not get here, otherwise that would mean that we clocked in a simulation
     }
-}
-
-void FullMicrocodedCPU::setCPUType()
-{
-    throw -1;
 }
 
 void FullMicrocodedCPU::onISAStep()

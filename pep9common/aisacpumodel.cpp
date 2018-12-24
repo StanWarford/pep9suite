@@ -50,10 +50,3 @@ void InterfaceISACPU::reset()
     asmInstructionCounter = 0;
     asmBreakpointHit = false;
 }
-
-void InterfaceISACPU::clear()
-{
-    reset();
-    breakpointsRemoveAll();
-}
-

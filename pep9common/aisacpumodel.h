@@ -1,25 +1,55 @@
+/*
+    Pep9CPU is a CPU simulator for executing microcode sequences to
+    implement instructions in the instruction set of the Pep/9 computer.
+
+    Copyright (C) 2018  Matthew McRaven, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef AISACPUMODEL_H
 #define AISACPUMODEL_H
 
-#include "ACPUModel.h"
+#include "acpumodel.h"
 #include <QSet>
 #include <QtCore>
 #include <ostream>
 class AMemoryDevice;
+/*
+ * InterfaceISACPU describes the operations that may be done on a ISA level CPU.
+ * When inherited in combination with the data desciption of a CPU (ACPUModel), a
+ * CPU at the ISA level is described.
+ *
+ * It also contains convenience methods for handling assembler breakpoints.
+ */
 class InterfaceISACPU
 {
 public:
     explicit InterfaceISACPU();
     virtual ~InterfaceISACPU();
+    // Add, remove, & get breakpoints for the program counter.
     const QSet<quint16> getPCBreakpoints() const;
     void breakpointsSet(QSet<quint16> addresses);
     void breakpointsRemoveAll();
     void breakpointRemoved(quint16 address);
     void breakpointAdded(quint16 address);
-    void setDebugBreakpoints(bool doDebug);
-    void reset();
-    void clear();
 
+    void reset();
+
+    // Output breakpoint changes to the console.
+    void setDebugBreakpoints(bool doDebug);
+
+    // Execute the next ISA instruction.
     virtual void onISAStep() = 0;
 protected:
     QSet<quint16> breakpointsISA;

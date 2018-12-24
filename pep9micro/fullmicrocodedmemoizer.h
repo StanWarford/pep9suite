@@ -23,10 +23,10 @@ struct CPUState
   //QVector<callStack> call_tracer;
 };
 class FullMicrocodedCPU;
-class FullMicrocodeMemoizer
+class FullMicrocodedMemoizer
 {
 public:
-    explicit FullMicrocodeMemoizer(FullMicrocodedCPU& item);
+    explicit FullMicrocodedMemoizer(FullMicrocodedCPU& item);
     Enu::DebugLevels getDebugLevel() const;
 
     void clear();

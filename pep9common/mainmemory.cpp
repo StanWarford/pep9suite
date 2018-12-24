@@ -9,7 +9,11 @@ MainMemory::MainMemory(QObject* parent): AMemoryDevice (parent),
 
 quint16 MainMemory::size() const
 {
-    return -1;
+    int size = 0;
+    for(auto it : memoryChipMap) {
+        size += it->getSize();
+    }
+    return size;
 }
 
 void MainMemory::insertChip(QSharedPointer<AMemoryChip> chip, quint16 address)
@@ -76,18 +80,21 @@ void MainMemory::clearMemory()
     for(auto chip : memoryChipMap) {
         chip->clear();
     }
+    bytesSet.clear();
+    bytesWritten.clear();
+    clearErrors();
 }
 
 void MainMemory::onCycleStarted()
 {
-#pragma message("TODO: handle cycle start / end")
-    throw -1;
+    bytesWritten.clear();
+    bytesSet.clear();
+
 }
 
 void MainMemory::onCycleFinished()
 {
-#pragma message("TODO: handle cycle start / end")
-    throw -1;
+    // No clean up on cycle end, yet.
 }
 bool MainMemory::readByte(quint8 &output, quint16 address) const
 {
@@ -108,6 +115,8 @@ bool MainMemory::writeByte(quint16 address, quint8 value)
     QSharedPointer<AMemoryChip> chip = chipAt(address);
     try {
         bool retVal = chip->writeByte(address - chip->getBaseAddress(), value);
+        bytesWritten.insert(address);
+        emit changed(address, value);
         return retVal;
     } catch (std::range_error& e) {
         throw e;
@@ -134,6 +143,7 @@ bool MainMemory::setByte(quint16 address, quint8 value)
     QSharedPointer<AMemoryChip> chip = chipAt(address);
     try {
         bool retVal = chip->setByte(address - chip->getBaseAddress(), value);
+        bytesSet.insert(address);
         return retVal;
     } catch (std::range_error& e) {
         throw e;

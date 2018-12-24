@@ -5,7 +5,7 @@
 #include "aisacpumodel.h"
 #include <QElapsedTimer>
 class CPUDataSection;
-class FullMicrocodeMemoizer;
+class FullMicrocodedMemoizer;
 class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public InterfaceISACPU
 {
     Q_OBJECT
@@ -29,11 +29,12 @@ public:
     void setDebugLevel(Enu::DebugLevels level) override;
 
     // InterfaceMCCPU interface
+    // Will
+    void setCPUType(Enu::CPUType type) override;
     void onMCStep() override;
     void onClock() override;
 
     // InterfaceISACPU interface
-    void setCPUType() override;
     void onISAStep() override;
 
     // ACPUModel interface
@@ -54,7 +55,7 @@ private:
     bool isPrefetchValid;
     QElapsedTimer timer;
     CPUDataSection *data;
-    FullMicrocodeMemoizer *memoizer;
+    FullMicrocodedMemoizer *memoizer;
 };
 
 #endif // FULLMICROCODEDCPU_H

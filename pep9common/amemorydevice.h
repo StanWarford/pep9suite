@@ -44,7 +44,8 @@ public slots:
     virtual bool setWord(quint16 address, quint16 value);
 
 signals:
-    void changed(quint16 address, quint8 newValue, quint8 oldValue);
+    void changed(quint16 address, quint8 newValue);
+
 
 };
 

@@ -37,6 +37,10 @@
 #include <QTextCodec>
 #include <QUrl>
 
+// For switching to new model
+#include "fullmicrocodedcpu.h"
+#include "memorychips.h"
+#include "mainmemory.h"
 
 #include "aboutpep.h"
 #include "asmargument.h"
@@ -1345,6 +1349,13 @@ void MainWindow::on_actionBuild_Run_triggered()
     if (initializeSimulation()) {
         disconnectViewUpdate();
         emit simulationStarted();
+        QSharedPointer<MainMemory> mem(new MainMemory(0));
+        QSharedPointer<RAMChip> chippy(new RAMChip(65535, 0, mem.get()));
+        mem->insertChip(chippy,0);
+        FullMicrocodedCPU c(mem, 0);
+        c.setMicrocodeProgram(ui->microcodeWidget->getMicrocodeProgram());
+        c.onDebuggingStarted();
+        c.onRun();
         ui->memoryWidget->updateMemory();
         controlSection->onSimulationStarted();
         controlSection->onRun();

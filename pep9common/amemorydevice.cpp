@@ -1,6 +1,7 @@
 #include "amemorydevice.h"
 
-AMemoryDevice::AMemoryDevice(QObject *parent) : QObject(parent)
+AMemoryDevice::AMemoryDevice(QObject *parent) : QObject(parent), bytesWritten(), bytesSet(), error(false),
+    errorMessage()
 {
 
 }

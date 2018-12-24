@@ -59,6 +59,10 @@ public:
     MemorySection* getMemorySection();
     const MemorySection* getMemorySection() const;
 
+    //Helper functions to clear different aspects of the data section
+    void clearControlSignals() noexcept;
+    void clearClockSignals() noexcept;
+
 private:
     CPUDataSection(QObject* parent = nullptr);
     static CPUDataSection* _instance;
@@ -91,16 +95,13 @@ private:
     //Set the values values of the sequential data registers (numbers 22-31)
     void presetStaticRegisters() noexcept;
 
+    void clearRegisters() noexcept;
+    void clearErrors() noexcept;
+
     //Simulation stepping logic
     void handleMainBusState() noexcept;
     void stepOneByte() noexcept;
     void stepTwoByte() noexcept;
-
-    //Helper functions to clear different aspects of the data section
-    void clearControlSignals() noexcept;
-    void clearClockSignals() noexcept;
-    void clearRegisters() noexcept;
-    void clearErrors() noexcept;
 
 public slots:
     void onSetStatusBit(Enu::EStatusBit,bool val);
@@ -115,9 +116,9 @@ public slots:
 
 signals:
     void CPUFeaturesChanged(Enu::CPUType newFeatures); //Thrown whenever onCPUFeaturesChanged(...) is called
-    void registerChanged(quint8 reg,quint8 oldVal,quint8 newVal); //Thrown whenever a register in the register bank is changed.
-    void memoryRegisterChanged(Enu::EMemoryRegisters,quint8 oldVal,quint8 newVal); //Thrown whenever a memory register is changed.
-    void statusBitChanged(Enu::EStatusBit status,bool value);
+    void registerChanged(quint8 reg, quint8 oldVal, quint8 newVal); //Thrown whenever a register in the register bank is changed.
+    void memoryRegisterChanged(Enu::EMemoryRegisters, quint8 oldVal, quint8 newVal); //Thrown whenever a memory register is changed.
+    void statusBitChanged(Enu::EStatusBit status, bool value);
 
 };
 

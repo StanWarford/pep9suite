@@ -48,9 +48,3 @@ void InterfaceMCCPU::reset()
     microCycleCounter = 0;
     microBreakpointHit = false;
 }
-
-void InterfaceMCCPU::clear()
-{
-    reset();
-    program = nullptr;
-}

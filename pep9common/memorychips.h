@@ -127,12 +127,12 @@ signals:
 /*
  * Memory Chip that is readable & writable. Used to implement the majority of main memory.
  */
-class RAMDevice : public AMemoryChip {
+class RAMChip : public AMemoryChip {
     Q_OBJECT
     QVector<quint8> memory;
 public:
-    explicit RAMDevice(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
-    virtual ~RAMDevice() override;
+    explicit RAMChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
+    virtual ~RAMChip() override;
 
     // AMemoryChip interface
     IOFunctions getIOFunctions() const override;
@@ -148,12 +148,12 @@ public:
 /*
  * Memory Chip that is only readable. Used to store the operating system.
  */
-class ROMDevice : public AMemoryChip {
+class ROMChip : public AMemoryChip {
     Q_OBJECT
     QVector<quint8> memory;
 public:
-    explicit ROMDevice(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
-    virtual ~ROMDevice() override;
+    explicit ROMChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
+    virtual ~ROMChip() override;
 
     // AMemoryChip interface
     IOFunctions getIOFunctions() const override;
