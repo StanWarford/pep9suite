@@ -1351,8 +1351,16 @@ void MainWindow::on_actionBuild_Run_triggered()
         emit simulationStarted();
         QSharedPointer<MainMemory> mem(new MainMemory(0));
         QSharedPointer<RAMChip> chippy(new RAMChip(65535, 0, mem.get()));
-        mem->insertChip(chippy,0);
+        mem->insertChip(chippy, 0);
+        // Get the object code, and convert it to an integer array.
+        QString lines = ui->AsmObjectCodeWidgetPane->toPlainText();
+        QVector<quint8> data;
+        for(auto line : lines.split("\n", QString::SkipEmptyParts)) {
+            data.append(convertObjectCodeToIntArray(line));
+        }
+        mem->loadValues(0, data);
         FullMicrocodedCPU c(mem, 0);
+        c.initCPU();
         c.setMicrocodeProgram(ui->microcodeWidget->getMicrocodeProgram());
         c.onDebuggingStarted();
         c.onRun();

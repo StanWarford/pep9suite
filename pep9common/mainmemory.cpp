@@ -1,6 +1,7 @@
 #include "mainmemory.h"
 #include "amemorychip.h"
 #include "memorychips.h"
+#include <QDebug>
 MainMemory::MainMemory(QObject* parent): AMemoryDevice (parent),
     endChip(new NilChip(0xfff, 0, this)), addressToChip(1<<16)
 {
@@ -75,6 +76,16 @@ QVector<QSharedPointer<AMemoryChip> > MainMemory::removeAllChips()
     return retVal;
 }
 
+void MainMemory::loadValues(quint16 address, QVector<quint8> values)
+{
+    int idx = 0;
+    for(int idx = 0; idx < values.length() && idx + address <= size(); idx++)
+    {
+        bytesSet.insert(idx+address);
+        setByte(idx + address, values[idx]);
+    }
+}
+
 void MainMemory::clearMemory()
 {
     for(auto chip : memoryChipMap) {
@@ -96,6 +107,7 @@ void MainMemory::onCycleFinished()
 {
     // No clean up on cycle end, yet.
 }
+
 bool MainMemory::readByte(quint8 &output, quint16 address) const
 {
     QSharedPointer<const AMemoryChip> chip = chipAt(address);
@@ -143,6 +155,7 @@ bool MainMemory::setByte(quint16 address, quint8 value)
     QSharedPointer<AMemoryChip> chip = chipAt(address);
     try {
         bool retVal = chip->setByte(address - chip->getBaseAddress(), value);
+        //qDebug().noquote().nospace() << QString("0x%1: %2").arg(address, 4, 16, QLatin1Char('0')).arg(value, 2, 16, QLatin1Char('0'));
         bytesSet.insert(address);
         return retVal;
     } catch (std::range_error& e) {

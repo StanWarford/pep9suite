@@ -39,9 +39,9 @@ void FullMicrocodedMemoizer::storeStateInstrEnd()
         [[fallthrough]];
     case Enu::DebugLevels::MINIMAL:
         registers.regState.reg_A = cpu.getCPURegWordCurrent(Enu::CPURegisters::A);
-        registers.regState.reg_X = cpu.getCPURegWordCurrent(Enu::CPURegisters::A);
-        registers.regState.reg_SP = cpu.getCPURegWordCurrent(Enu::CPURegisters::A);
-        registers.regState.reg_PC_end = cpu.getCPURegWordCurrent(Enu::CPURegisters::A);
+        registers.regState.reg_X = cpu.getCPURegWordCurrent(Enu::CPURegisters::X);
+        registers.regState.reg_SP = cpu.getCPURegWordCurrent(Enu::CPURegisters::SP);
+        registers.regState.reg_PC_end = cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
         cpu.getMemoryDevice()->getByte(registers.regState.reg_IR, registers.regState.reg_PC_start);
         if(!Pep::isUnaryMap[Pep::decodeMnemonic[registers.regState.reg_IR]])
         {

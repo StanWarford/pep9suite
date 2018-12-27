@@ -29,6 +29,7 @@ HEADERS += \
     $$PWD\shapes_two_byte_data_bus.h \
     $$PWD\specification.h \
     $$PWD\tristatelabel.h \
+    $$PWD\newcpudata.h
 
 SOURCES += \
     $$PWD\cpudatasection.cpp \
@@ -45,3 +46,4 @@ SOURCES += \
     $$PWD\rotatedheaderview.cpp \
     $$PWD\specification.cpp \
     $$PWD\tristatelabel.cpp \
+    $$PWD\newcpudata.cpp

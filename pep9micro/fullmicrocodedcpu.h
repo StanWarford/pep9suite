@@ -4,7 +4,7 @@
 #include "amccpumodel.h"
 #include "aisacpumodel.h"
 #include <QElapsedTimer>
-class CPUDataSection;
+class NewCPUDataSection;
 class FullMicrocodedMemoizer;
 class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public InterfaceISACPU
 {
@@ -54,7 +54,7 @@ private:
     void updateAtInstructionEnd() override;
     bool isPrefetchValid;
     QElapsedTimer timer;
-    CPUDataSection *data;
+    NewCPUDataSection *data;
     FullMicrocodedMemoizer *memoizer;
 };
 

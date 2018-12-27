@@ -20,7 +20,6 @@ public:
     MainMemory(QObject* parent = nullptr);
 
     // AMemoryDevice interface
-public:
     quint16 size() const override;
     void insertChip(QSharedPointer<AMemoryChip> chip, quint16 address);
     QSharedPointer<AMemoryChip> chipAt(quint16 address);
@@ -28,6 +27,7 @@ public:
     // Remove the chip containing address and return it
     QSharedPointer<AMemoryChip> removeChip(quint16 address);
     QVector<QSharedPointer<AMemoryChip>> removeAllChips();
+    void loadValues(quint16 address, QVector<quint8> values);
 
 public slots:
     void clearMemory() override;

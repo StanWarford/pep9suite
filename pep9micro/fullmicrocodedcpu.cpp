@@ -7,7 +7,7 @@
 #include "microcode.h"
 #include "microcodeprogram.h"
 #include "pep.h"
-#include "cpudatasection.h"
+#include "newcpudata.h"
 #include "symbolentry.h"
 #include "fullmicrocodedmemoizer.h"
 FullMicrocodedCPU::FullMicrocodedCPU(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent):ACPUModel (memoryDev, parent),
@@ -15,7 +15,8 @@ FullMicrocodedCPU::FullMicrocodedCPU(QSharedPointer<AMemoryDevice> memoryDev, QO
     InterfaceISACPU()
 {
     memoizer= new FullMicrocodedMemoizer(*this);
-    data = CPUDataSection::getInstance();
+    data = new NewCPUDataSection(memoryDev, parent);
+    setDebugLevel(Enu::DebugLevels::NONE);
 }
 
 FullMicrocodedCPU::~FullMicrocodedCPU()
@@ -241,6 +242,7 @@ void FullMicrocodedCPU::onMCStep()
     data->onStep();
     branchHandler();
     microCycleCounter++;
+    //qDebug().nospace().noquote() << prog->getSourceCode();
 
     if(microprogramCounter == 0 || executionFinished) {
         memoizer->storeStateInstrEnd();
@@ -248,11 +250,11 @@ void FullMicrocodedCPU::onMCStep()
         emit asmInstructionFinished();
         asmInstructionCounter++;
         #pragma message("TODO: fix memoizer")
-        if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
+        /*if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
             qDebug().noquote().nospace() << memoizer->memoize();
-        }
+        }*/
+
     }
-    qDebug() << prog->getSourceCode();
     // Upon entering an instruction that is going to trap
     // If running in debug mode, first check if this line has any microcode breakpoints.
     if(inDebug) {
@@ -290,7 +292,6 @@ void FullMicrocodedCPU::onISAStep()
     }
     if(executionFinished) emit simulationFinished();
 }
-
 
 void FullMicrocodedCPU::branchHandler()
 {
