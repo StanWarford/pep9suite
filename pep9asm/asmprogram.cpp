@@ -33,7 +33,7 @@ quint16 AsmProgram::getProgramLength() const
 
 const QVector<quint8> AsmProgram::getObjectCode() const
 {
-    QVector<quint8> vect = QVector<quint8>(programByteLength);
+    QVector<quint8> vect;
     QList<int> objCode;
     for(QSharedPointer<AsmCode> line : program) {
         line->appendObjectCode(objCode);

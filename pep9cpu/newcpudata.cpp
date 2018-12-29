@@ -1,10 +1,10 @@
 #include "newcpudata.h"
 #include "microcode.h"
-#include "memorysection.h"
 #include "microcodeprogram.h"
 #include "amemorydevice.h"
-NewCPUDataSection::NewCPUDataSection(QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
-    cpuFeatures(Enu::TwoByteDataBus), mainBusState(Enu::None),
+
+NewCPUDataSection::NewCPUDataSection(Enu::CPUType type, QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
+    cpuFeatures(type), mainBusState(Enu::None),
     registerBank(32), memoryRegisters(6), controlSignals(20), clockSignals(10), emitEvents(true), hadDataError(false), errorMessage(""),
     isALUCacheValid(false), ALUHasOutputCache(false), ALUOutputCache(0), ALUStatusBitCache(0)
 {
@@ -168,7 +168,7 @@ bool NewCPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
 
 }
 
-Enu::CPUType NewCPUDataSection::getCPUFeatures() const
+Enu::CPUType NewCPUDataSection::getCPUType() const
 {
     return cpuFeatures;
 }
@@ -666,6 +666,15 @@ void NewCPUDataSection::onClearCPU() noexcept
     clearRegisters();
     clearClockSignals();
     clearControlSignals();
+}
+
+void NewCPUDataSection::onSetCPUType(Enu::CPUType type)
+{
+    if(cpuFeatures != type) {
+       cpuFeatures = type;
+       emit CPUTypeChanged(type);
+    }
+
 }
 
 void NewCPUDataSection::setMemoryDevice(QSharedPointer<AMemoryDevice> newDevice)

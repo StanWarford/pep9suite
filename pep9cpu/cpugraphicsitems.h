@@ -29,11 +29,11 @@
 #include "enu.h"
 #include "tristatelabel.h"
 #include "colors.h"
-class CPUDataSection;
+class NewCPUDataSection;
 class CpuGraphicsItems : public QGraphicsItem
 {
 public:
-    CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent, QGraphicsItem *itemParent = nullptr,
+    CpuGraphicsItems(NewCPUDataSection* dataSection, QWidget *widgetParent, QGraphicsItem *itemParent = nullptr,
                              QGraphicsScene *scene = nullptr);
     ~CpuGraphicsItems();
 
@@ -137,11 +137,10 @@ public:
 private:
     QWidget *parent;
     QGraphicsScene *parentScene;
-    CPUDataSection* dataSection;
-    bool darkMode=false;
+    NewCPUDataSection* dataSection;
+    bool darkMode = false;
 
     const PepColors::Colors *colorScheme;
-    Enu::CPUType model;
 
     QImage arrowLeft;
     QImage arrowRight;

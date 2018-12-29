@@ -22,12 +22,13 @@
 #define MICROASM_H
 
 #include <QRegExp>
-
+#include "enu.h"
+#include <QSharedPointer>
+class AMemoryDevice;
 class MicroCodeBase; // Forward declaration for argument of processSourceLine.
 class SymbolTable;
 class MicroAsm
 {
-public:
     // Lexical tokens
     enum ELexicalToken
     {
@@ -36,6 +37,7 @@ public:
         LTE_SYMBOL,LTE_GOTO,LTE_IF,LTE_ELSE,LTE_STOP, LTE_AMD, LTE_ISD,
     };
 
+    //Parser states
     enum ParseState
     {
         PS_COMMENT, PS_CONTINUE_POST_SEMICOLON, PS_CONTINUE_PRE_SEMICOLON, PS_CONTINUE_PRE_SEMICOLON_POST_COMMA,
@@ -48,19 +50,32 @@ public:
         PSE_JT_JUMP
     };
 
+    Enu::CPUType cpuType;
+    bool useExt;
+    QSharedPointer<AMemoryDevice> memDevice;
+    static const QSet<ELexicalToken> extendedTokens;
+    static const QSet<ParseState> extendedParseStates;
+public:
+
     // Regular expressions for lexical analysis
     static QRegExp rxComment;
     static QRegExp rxDigit;
     static QRegExp rxIdentifier;
     static QRegExp rxHexConst;
 
-    static bool getToken(QString &sourceLine, ELexicalToken &token, QString &tokenString);
+    static bool startsWithHexPrefix(QString str);
+    // Post: Returns true if str starts with the characters 0x or 0X. Otherwise returns false.
+
+    explicit MicroAsm(QSharedPointer<AMemoryDevice>, Enu::CPUType type, bool useExtendedFeatures = true);
+
+    bool getToken(QString &sourceLine, ELexicalToken &token, QString &tokenString);
     // Pre: sourceLine has one line of source code.
     // Post: If the next token is valid, the string of characters representing the next token are deleted from the
     // beginning of sourceLine and returned in tokenString, true is returned, and token is set to the token type.
     // Post: If false is returned, then tokenString is set to the lexical error message.
 
-    static bool processSourceLine(SymbolTable* symTable,QString sourceLine, MicroCodeBase *&code, QString &errorString);
+    bool processSourceLine(SymbolTable* symTable, QString sourceLine, MicroCodeBase *&code, QString &errorString);
+    // Pre: CPU type is set
     // Pre: sourceLine has one line of source code.
     // Pre: lineNum is the line number of the source code.
     // Post: If the source line is valid, true is returned and code is set to the source code for the line.
@@ -68,9 +83,11 @@ public:
     // Checks for out of range integer values.
     // The only detected resource conflict checked is for duplicated fields.
 
-    static bool startsWithHexPrefix(QString str);
-    // Post: Returns true if str starts with the characters 0x or 0X. Otherwise returns false.
+    void setCPUType(Enu::CPUType type);
 
+    // If true, symbols, gotos, if-elses will be allowed.
+    // Otherwise, the default Pep9CPU is used.
+    void useExtendedAssembler(bool useExt);
 };
 
 #endif // ASM_H

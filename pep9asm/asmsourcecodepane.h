@@ -79,13 +79,13 @@ private:
 
 class AsmProgram;
 class AsmProgramManager;
-class MemorySection;
+class MainMemory;
 class AsmSourceCodePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmSourceCodePane)
 public:
     explicit AsmSourceCodePane(QWidget *parent = nullptr);
-    void init(MemorySection* memorySection, AsmProgramManager* manager);
+    void init(QSharedPointer<MainMemory> memory, AsmProgramManager* manager);
     virtual ~AsmSourceCodePane();
 
     bool assemble();
@@ -200,7 +200,7 @@ public slots:
 private:
     Ui::SourceCodePane *ui;
     bool inDarkMode;
-    MemorySection* memorySection;
+    QSharedPointer<MainMemory> memDevice;
     AsmProgramManager* programManager;
     QSharedPointer<AsmProgram> currentProgram;
     QList<int> objectCode;

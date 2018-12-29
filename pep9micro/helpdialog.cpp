@@ -47,7 +47,8 @@ HelpDialog::HelpDialog(QWidget *parent) :
     ui->helpTreeWidget->expandAll();
     ui->helpTreeWidget->itemAt(0,0)->setSelected(true);
 
-    leftMicroHighlighter = new PepMicroHighlighter(PepColors::lightMode, ui->microTextEdit->document());
+    // All features are forced, but a CPUType is required for construction.
+    leftMicroHighlighter = new PepMicroHighlighter(Enu::CPUType::OneByteDataBus, PepColors::lightMode, ui->microTextEdit->document());
     leftMicroHighlighter->forceAllFeatures(true);
 
     leftPepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->leftPepTextEdit->document());

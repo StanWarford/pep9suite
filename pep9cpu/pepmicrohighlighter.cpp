@@ -21,10 +21,10 @@
 
 #include "pepmicrohighlighter.h"
 #include "pep.h"
-#include "cpudatasection.h"
 #include <QTextDocument>
-PepMicroHighlighter::PepMicroHighlighter(const PepColors::Colors color, QTextDocument *parent)
-    : HTMLHighlighterMixin(parent), /*RestyleableItem(color, parent),*/ forcedFeatures(false)
+PepMicroHighlighter::PepMicroHighlighter(Enu::CPUType type, const PepColors::Colors color, QTextDocument *parent)
+    : HTMLHighlighterMixin(parent), cpuType(type),
+      /*RestyleableItem(color, parent),*/ forcedFeatures(false)
 {
     // Trigger an update whenever a style is changed.
     // connect(this, &RestyleableItem::styleChanged, this, &PepMicroHighlighter::onStyleChange);
@@ -38,7 +38,6 @@ void PepMicroHighlighter::forceAllFeatures(bool features)
 
 void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color)
 {
-    //setStyle(color);
     colors = color;
     HighlightingRule rule;
 
@@ -138,6 +137,11 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
     commentEndExpression = QRegExp("$");
 }
 
+void PepMicroHighlighter::setCPUType(Enu::CPUType type)
+{
+    cpuType = type;
+}
+
 void PepMicroHighlighter::highlightBlock(const QString &text)
 {
     QVector<HighlightingRule> highlightingRules;
@@ -145,8 +149,8 @@ void PepMicroHighlighter::highlightBlock(const QString &text)
         highlightingRules=highlightingRulesAll;
     }
     else{
-        highlightingRules=CPUDataSection::getInstance()->getCPUFeatures()==Enu::CPUType::OneByteDataBus
-                ? highlightingRulesOne : highlightingRulesTwo;
+        highlightingRules = (cpuType == Enu::CPUType::OneByteDataBus
+                ? highlightingRulesOne : highlightingRulesTwo);
     }
 
     foreach (const HighlightingRule &rule, highlightingRules) {

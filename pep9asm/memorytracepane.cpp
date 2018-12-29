@@ -42,7 +42,7 @@ MemoryTracePane::MemoryTracePane(QWidget *parent) :
     scene = new QGraphicsScene(this);
 }
 
-void MemoryTracePane::init(const MemorySection *memorySection)
+void MemoryTracePane::init(QSharedPointer<const MainMemory> memorySection)
 {
     this->memorySection = memorySection;
 }

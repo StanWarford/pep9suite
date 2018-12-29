@@ -24,14 +24,14 @@
 
 #include <QGraphicsItem>
 #include "enu.h"
-class MemorySection;
+class AMemoryDevice;
 
 int cellSize(Enu::ESymbolFormat symbolFormat);
 // This is used exclusively in the memoryTracePane/memoryCellGraphicsItem
 class MemoryCellGraphicsItem : public QGraphicsItem
 {
 public:
-    MemoryCellGraphicsItem(const MemorySection *memorySection, int addr, QString sym, Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc);
+    MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int addr, QString sym, Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc);
     ~MemoryCellGraphicsItem() { }
 
     QRectF boundingRect() const;
@@ -54,7 +54,7 @@ public:
     int getNumBytes();
 
 private:
-    const MemorySection *memorySection;
+    const AMemoryDevice *memDevice;
     int x;
     int y;
     int address;

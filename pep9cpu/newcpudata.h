@@ -17,11 +17,11 @@ class NewCPUDataSection: public QObject
     friend class CPUControlSection;
     friend class InterfaceMCCPU;
 public:
-    NewCPUDataSection(QSharedPointer<AMemoryDevice> memDevice, QObject *parent = nullptr );
+    NewCPUDataSection(Enu::CPUType type, QSharedPointer<AMemoryDevice> memDevice, QObject *parent = nullptr );
     virtual ~NewCPUDataSection();
 
 
-    Enu::CPUType getCPUFeatures() const;
+    Enu::CPUType getCPUType() const;
     //Access CPU registers
     quint8 getRegisterBankByte(quint8 registerNumber) const;
     quint16 getRegisterBankWord(quint8 registerNumber) const; //Follows even/odd conventions of pep/9
@@ -112,11 +112,13 @@ public slots:
     void onStep() noexcept;
     void onClock() noexcept;
     void onClearCPU() noexcept;
+    void onSetCPUType(Enu::CPUType type);
 
 signals:
     void registerChanged(quint8 reg, quint8 oldVal, quint8 newVal); //Thrown whenever a register in the register bank is changed.
     void memoryRegisterChanged(Enu::EMemoryRegisters, quint8 oldVal, quint8 newVal); //Thrown whenever a memory register is changed.
     void statusBitChanged(Enu::EStatusBit status, bool value);
+    void CPUTypeChanged(Enu::CPUType type);
 
 };
 

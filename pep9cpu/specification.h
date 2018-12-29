@@ -26,24 +26,26 @@
 #include "cpupane.h"
 
 
-class CPUDataSection; //Forward declare CPUDataSection to avoid inclusion loops
+class NewCPUDataSection; //Forward declare CPUDataSection to avoid inclusion loops
+class AMemoryDevice;
 class Specification
 {
 public:
     virtual ~Specification() { }
     Specification();
-    virtual void setUnitPre(CPUDataSection*) { }
-    virtual bool testUnitPost(CPUDataSection*,QString&){return true;}
+    virtual void setUnitPre(NewCPUDataSection*) { }
+    virtual bool testUnitPost(NewCPUDataSection*, QString&){return true;}
     virtual QString getSourceCode() = 0;
 };
 
 class MemSpecification: public Specification {    
 public:
-    MemSpecification(int memoryAddress, int memoryValue, int numberBytes);
-    void setUnitPre(CPUDataSection*) override;
-    bool testUnitPost(CPUDataSection *data,QString &errString) override;
+    MemSpecification(AMemoryDevice* mem, int memoryAddress, int memoryValue, int numberBytes);
+    void setUnitPre(NewCPUDataSection*) override;
+    bool testUnitPost(NewCPUDataSection *data, QString &errString) override;
     QString getSourceCode() override;
 private:
+    AMemoryDevice* memDevice;
     int memAddress;
     int memValue;
     int numBytes;
@@ -52,8 +54,8 @@ private:
 class RegSpecification: public Specification {
 public:
     RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue);
-    void setUnitPre(CPUDataSection*) override;
-    bool testUnitPost(CPUDataSection *data,QString &errString) override;
+    void setUnitPre(NewCPUDataSection*) override;
+    bool testUnitPost(NewCPUDataSection *data, QString &errString) override;
     QString getSourceCode() override;
 private:
     Enu::ECPUKeywords regAddress;
@@ -63,8 +65,8 @@ private:
 class StatusBitSpecification: public Specification {
 public:
     StatusBitSpecification(Enu::ECPUKeywords statusBitAddress, bool statusBitValue);
-    void setUnitPre(CPUDataSection*) override;
-    bool testUnitPost(CPUDataSection *data,QString &errString) override;
+    void setUnitPre(NewCPUDataSection*) override;
+    bool testUnitPost(NewCPUDataSection *data, QString &errString) override;
     QString getSourceCode() override;
 private:
     Enu::ECPUKeywords nzvcsAddress;

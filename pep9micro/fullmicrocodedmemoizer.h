@@ -8,7 +8,7 @@ struct CPURegisterState
 {
     quint16 reg_PC_start = 0, reg_PC_end = 0;
     quint16 reg_A = 0, reg_X = 0, reg_SP = 0, reg_OS = 0;
-    quint8 reg_IR = 0, bits_NZVCS = 0;
+    quint8 reg_IR = 0, bits_NZVCS = 0, reg_IS_start = 0;
 };
 
 struct callStack

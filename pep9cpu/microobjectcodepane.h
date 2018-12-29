@@ -24,6 +24,7 @@
 #include <QWidget>
 #include <QStandardItemModel>
 #include "disableselectionmodel.h"
+class InterfaceMCCPU;
 class MicrocodeProgram;
 class SymbolTable;
 class RotatedHeaderView;
@@ -33,6 +34,7 @@ namespace Ui {
 
 class MicroObjectCodePane : public QWidget {
     Q_OBJECT
+    QSharedPointer<InterfaceMCCPU> cpu;
     MicrocodeProgram* program;
     SymbolTable* symTable;
     quint32 rowCount;
@@ -41,8 +43,11 @@ class MicroObjectCodePane : public QWidget {
     QStandardItemModel* model;
     bool inSimulation;
 public:
-    MicroObjectCodePane(QWidget *parent = 0);
-    ~MicroObjectCodePane();
+    explicit MicroObjectCodePane(QWidget *parent = nullptr);
+    virtual ~MicroObjectCodePane() override;
+
+    // Must be called after the class is constructed but before it is used, else the program will crash
+    void init(QSharedPointer<InterfaceMCCPU> cpu);
 
     void initCPUModelState();
 

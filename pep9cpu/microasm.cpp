@@ -1,4 +1,4 @@
-// File: asm.cpp
+// File: microasm.cpp
 /*
     Pep9CPU is a CPU simulator for executing microcode sequences to
     implement instructions in the instruction set of the Pep/9 computer.
@@ -29,10 +29,20 @@
 #include "symbolentry.h"
 
 // Regular expressions for lexical analysis
+const QSet<MicroAsm::ELexicalToken> MicroAsm::extendedTokens = {LTE_SYMBOL,LTE_GOTO,LTE_IF,LTE_ELSE,LTE_STOP, LTE_AMD, LTE_ISD};
+const QSet<MicroAsm::ParseState> MicroAsm::extendedParseStates = {        PSE_SYMBOL,
+                                                                          PSE_LONE_GOTO,PSE_OPTIONAL_COMMENT,PSE_EXPECT_EMPTY,
+                                                                          PSE_AFTER_SEMI,PSE_IF,PSE_CONDITIONAL_BRANCH,PSE_TRUE_TARGET,PSE_ELSE,PSE_FALSE_TARGET,
+                                                                          PSE_JT_JUMP};
 QRegExp MicroAsm::rxComment("^//.*");
 QRegExp MicroAsm::rxDigit("^[0-9]+");
 QRegExp MicroAsm::rxIdentifier("^((([A-Z|a-z]{1})(\\w*))(:){0,1})");
 QRegExp MicroAsm::rxHexConst("^((0(?![x|X]))|((0)([x|X])([0-9|A-F|a-f])+)|((0)([0-9]+)))");
+MicroAsm::MicroAsm(QSharedPointer<AMemoryDevice> memory, Enu::CPUType type, bool useExtendedFeatures): memDevice(memory), cpuType(type),
+    useExt(useExtendedFeatures)
+{
+
+}
 
 bool MicroAsm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenString)
 {
@@ -103,44 +113,35 @@ bool MicroAsm::getToken(QString &sourceLine, ELexicalToken &token, QString &toke
             return false;
         }
         tokenString = rxIdentifier.capturedTexts()[0];
-        if(tokenString.endsWith(':'))
-        {
-                if(tokenString.compare("UnitPre:",Qt::CaseInsensitive)==0||tokenString.compare("UnitPost:",Qt::CaseInsensitive)==0)
-                {
+        if(tokenString.endsWith(':')) {
+                if(tokenString.compare("UnitPre:",Qt::CaseInsensitive) == 0
+                        || tokenString.compare("UnitPost:",Qt::CaseInsensitive) == 0) {
                     token = LT_PRE_POST;
                 }
-                else
-                {
+                else {
                     token = LTE_SYMBOL;
                 }
         }
 
-        else if(tokenString.compare("if", Qt::CaseInsensitive) == 0)
-        {
+        else if(tokenString.compare("if", Qt::CaseInsensitive) == 0) {
             token = LTE_IF;
         }
-        else if(tokenString.compare("else", Qt::CaseInsensitive) == 0)
-        {
+        else if(tokenString.compare("else", Qt::CaseInsensitive) == 0) {
             token = LTE_ELSE;
         }
-        else if(tokenString.compare("goto", Qt::CaseInsensitive) == 0)
-        {
+        else if(tokenString.compare("goto", Qt::CaseInsensitive) == 0) {
             token = LTE_GOTO;
         }
-        else if(tokenString.compare("stop", Qt::CaseInsensitive) == 0)
-        {
+        else if(tokenString.compare("stop", Qt::CaseInsensitive) == 0) {
             token = LTE_STOP;
         }
-        else if(tokenString.compare(Pep::branchFuncToMnemonMap[Enu::AddressingModeDecoder], Qt::CaseInsensitive) == 0)
-        {
+        else if(tokenString.compare(Pep::branchFuncToMnemonMap[Enu::AddressingModeDecoder], Qt::CaseInsensitive) == 0) {
             token = LTE_AMD;
         }
-        else if(tokenString.compare(Pep::branchFuncToMnemonMap[Enu::InstructionSpecifierDecoder], Qt::CaseInsensitive) == 0)
-        {
+        else if(tokenString.compare(Pep::branchFuncToMnemonMap[Enu::InstructionSpecifierDecoder], Qt::CaseInsensitive) == 0) {
             token = LTE_ISD;
         }
-        else
-        {
+        else {
            token = LT_IDENTIFIER;
         }
         //        qDebug() << "tokenString: " << tokenString << "token: " << token;
@@ -164,38 +165,45 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
     QString localIdentifier = ""; // Saves identifier for processing in the following state.
     int localValue;
     int localAddressValue = 0; // = 0 to suppress compiler warning
-    int localEnumMnemonic = Enu::LoadCk; // Key to Pep:: table lookups. = Enu::LoadCk to suppress compiler warning
+    int localEnumMnemonic = 0; // Key to Pep:: table lookups. = 0 to suppress compiler warning
     bool processingPrecondition = false; // To distinguish between a precondition and a postcondition. = false to suppress compiler warning
 
     // The concrete code objects asssigned to code.
-    MicroCode *microCode = NULL;
-    CommentOnlyCode *commentOnlyCode = NULL;
-    UnitPreCode *preconditionCode = NULL;
-    UnitPostCode *postconditionCode = NULL;
-    BlankLineCode *blankLineCode = NULL;
+    MicroCode *microCode = nullptr;
+    CommentOnlyCode *commentOnlyCode = nullptr;
+    UnitPreCode *preconditionCode = nullptr;
+    UnitPostCode *postconditionCode = nullptr;
+    BlankLineCode *blankLineCode = nullptr;
     MicroAsm::ParseState state = MicroAsm::PS_START;
     do {
         if (!getToken(sourceLine, token, tokenString)) {
             errorString = tokenString;
             return false;
         }
+#pragma message("TODO: make error messages more informative.")
+        if(!useExt) {
+            if(extendedTokens.contains(token)) {
+                errorString = "// ERROR: A control flow / symbol token was hit. These have been disabled.";
+                return false;
+            }
+            else if(extendedParseStates.contains(state)) {
+                errorString = "// ERROR: The default microassembler was used, but an unexpected parser state was encountered";
+                return false;
+            }
+        }
         //        qDebug() << "tokenString: " << tokenString;
         switch (state) {
         case MicroAsm::PS_START:
-            if (token == MicroAsm::LTE_SYMBOL)
-            {
-                microCode = new MicroCode();
+            if (token == MicroAsm::LTE_SYMBOL) {
+                microCode = new MicroCode(cpuType);
                 code = microCode;
-                if(symTable->exists(tokenString.left(tokenString.length()-1)))
-                {
-                    if(symTable->getValue(tokenString.left(tokenString.length()-1))->isDefined())
-                    {
+                if(symTable->exists(tokenString.left(tokenString.length()-1))) {
+                    if(symTable->getValue(tokenString.left(tokenString.length()-1))->isDefined()) {
                         errorString = "// ERROR: Multiply defined symbol: " + tokenString.left(tokenString.length()-1);
                         return false;
                     }
                 }
-                else
-                {
+                else {
                    symTable->insertSymbol(tokenString.left(tokenString.length()-1));
                 }
                 microCode->setSymbol(symTable->getValue(tokenString.left(tokenString.length()-1)).data());
@@ -203,17 +211,17 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
             }
             else if (token == MicroAsm::LT_IDENTIFIER) {
                 if (Pep::mnemonToDecControlMap.contains(tokenString.toUpper())) {
-                    microCode = new MicroCode();
+                    microCode = new MicroCode(cpuType);
                     code = microCode;
                     localEnumMnemonic = Pep::mnemonToDecControlMap.value(tokenString.toUpper());
                     localIdentifier = tokenString;
                     state = MicroAsm::PS_EQUAL_DEC;
                 }
                 else if (Pep::mnemonToMemControlMap.contains(tokenString.toUpper())) {
-                    microCode = new MicroCode;
+                    microCode = new MicroCode(cpuType);
                     code = microCode;
                     localEnumMnemonic = Pep::mnemonToMemControlMap.value(tokenString.toUpper());
-                    microCode->setControlSignal((Enu::EControlSignals)localEnumMnemonic, 1);
+                    microCode->setControlSignal(static_cast<Enu::EControlSignals>(localEnumMnemonic), 1);
                     state = MicroAsm::PS_CONTINUE_PRE_SEMICOLON;
                 }
                 else if (Pep::mnemonToClockControlMap.contains(tokenString.toUpper())) {
@@ -259,9 +267,34 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 code = blankLineCode;
                 state = MicroAsm::PS_FINISH;
             }
-            else if (token == MicroAsm::LTE_IF)
-            {
+            else if (token == MicroAsm::LTE_IF)  {
+                microCode = new MicroCode(cpuType);
+                code = microCode;
                 state = MicroAsm::PSE_IF;
+            }
+            else if(token == LTE_STOP) {
+                microCode = new MicroCode(cpuType);
+                microCode->setBranchFunction(Enu::EBranchFunctions::Stop);
+                code = microCode;
+                state = PSE_OPTIONAL_COMMENT;
+            }
+            else if(token == LTE_GOTO) {
+                microCode = new MicroCode(cpuType);
+                microCode->setBranchFunction(Enu::EBranchFunctions::Stop);
+                code = microCode;
+                state = PSE_OPTIONAL_COMMENT;
+            }
+            else if (token == LTE_AMD) {
+                microCode = new MicroCode(cpuType);
+                microCode->setBranchFunction(Enu::EBranchFunctions::Stop);
+                code = microCode;
+                state = PSE_OPTIONAL_COMMENT;
+            }
+            else if (token == LTE_ISD) {
+                microCode = new MicroCode(cpuType);
+                microCode->setBranchFunction(Enu::EBranchFunctions::Stop);
+                code = microCode;
+                state = PSE_OPTIONAL_COMMENT;
             }
             else {
                 errorString = "// ERROR: Syntax error where control signal or comment expected";
@@ -434,26 +467,21 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
             else if (token == MicroAsm::LT_EMPTY) {
                 state = MicroAsm::PS_FINISH;
             }
-            else if (token == MicroAsm::LTE_GOTO)
-            {
+            else if (token == MicroAsm::LTE_GOTO) {
                 state = MicroAsm::PSE_LONE_GOTO;
             }
-            else if (token == MicroAsm::LTE_IF)
-            {
+            else if (token == MicroAsm::LTE_IF) {
                 state = MicroAsm::PSE_IF;
             }
-            else if (token == MicroAsm::LTE_STOP)
-            {
+            else if (token == MicroAsm::LTE_STOP) {
                 microCode->setBranchFunction(Enu::Stop);
                 state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
-            else if (token == MicroAsm::LTE_AMD)
-            {
+            else if (token == MicroAsm::LTE_AMD) {
                 microCode->setBranchFunction(Enu::AddressingModeDecoder);
                 state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
-            else if (token == MicroAsm::LTE_ISD)
-            {
+            else if (token == MicroAsm::LTE_ISD) {
                 microCode->setBranchFunction(Enu::InstructionSpecifierDecoder);
                 state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
@@ -469,6 +497,12 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 state = MicroAsm::PS_START_POST_SEMICOLON;
             }
             else if (token == MicroAsm::LT_SEMICOLON) {
+                // When using the unextended assembler, multiple semicolons cannot occur
+                if(!useExt) {
+                    errorString = "// ERROR: Multiple semicolons.";
+                    delete code;
+                    return false;
+                }
                 state = MicroAsm::PSE_AFTER_SEMI;
             }
             else if (token == MicroAsm::LT_COMMENT) {
@@ -587,10 +621,10 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                     return false;
                 }
                 if (processingPrecondition) {
-                    preconditionCode->appendSpecification(new MemSpecification(localAddressValue, localValue, tokenString.length() > 2 ? 2 : 1));
+                    preconditionCode->appendSpecification(new MemSpecification(memDevice.get(), localAddressValue, localValue, tokenString.length() > 2 ? 2 : 1));
                 }
                 else {
-                    postconditionCode->appendSpecification(new MemSpecification(localAddressValue, localValue, tokenString.length() > 2 ? 2 : 1));
+                    postconditionCode->appendSpecification(new MemSpecification(memDevice.get(), localAddressValue, localValue, tokenString.length() > 2 ? 2 : 1));
                 }
                 state = MicroAsm::PS_EXPECT_SPEC_COMMA;
             }
@@ -716,38 +750,34 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 return false;
             }
             break;
+
         case MicroAsm::PSE_AFTER_SEMI:
-            if(token == MicroAsm::LTE_GOTO)
-            {
+            if(token == MicroAsm::LTE_GOTO) {
                 state = MicroAsm::PSE_LONE_GOTO;
             }
-            else if(token == MicroAsm::LTE_IF)
-            {
+            else if(token == MicroAsm::LTE_IF) {
                 state = MicroAsm::PSE_IF;
             }
             else if (token == MicroAsm::LTE_STOP){
                 state = MicroAsm::PSE_OPTIONAL_COMMENT;
                 microCode->setBranchFunction(Enu::Stop);
             }
-            else if(token == MicroAsm::LTE_AMD)
-            {
+            else if(token == MicroAsm::LTE_AMD) {
                 state = MicroAsm::PSE_OPTIONAL_COMMENT;
                 microCode->setBranchFunction(Enu::AddressingModeDecoder);
             }
-            else if(token == MicroAsm::LTE_ISD)
-            {
+            else if(token == MicroAsm::LTE_ISD) {
                 state = MicroAsm::PSE_OPTIONAL_COMMENT;
                 microCode->setBranchFunction(Enu::InstructionSpecifierDecoder);
             }
-            else
-            {
-                errorString = "// ERROR: Expected branch after semicolon";
+            else {
+                errorString = "// ERROR: Expected branch after semicolon.";
                 return false;
             }
             break;
+
         case MicroAsm::PSE_LONE_GOTO:
-            if (token == MicroAsm::LT_IDENTIFIER)
-            {
+            if (token == MicroAsm::LT_IDENTIFIER) {
                 if(!symTable->exists(tokenString))
                 {
                     symTable->insertSymbol(tokenString);
@@ -756,93 +786,86 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 microCode->setBranchFunction(Enu::Unconditional);
                 state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
-            else
-            {
-                errorString="// ERROR: Didn't get symbol for goto";
+            else {
+                errorString = "// ERROR: No symbol after goto.";
                 return false;
             }
             break;
+
         case MicroAsm::PSE_IF:
-            if(microCode==nullptr)
-            {
-                microCode = new MicroCode();
-                code=microCode;
+            if(microCode == nullptr) {
+                microCode = new MicroCode(cpuType);
+                code = microCode;
             }
-            if(token == MicroAsm::LT_IDENTIFIER&&Pep::mnemonToBranchFuncMap.contains(tokenString.toUpper()))
-            {
+            if(token == MicroAsm::LT_IDENTIFIER && Pep::mnemonToBranchFuncMap.contains(tokenString.toUpper())) {
                 //Switch to conditional branch logic
                 microCode->setBranchFunction(Pep::mnemonToBranchFuncMap[tokenString.toUpper()]);
                 state = PSE_TRUE_TARGET;
             }
-            else
-            {
-                errorString = "// Error: Expected conditional instruction after 'if'";
+            else {
+                errorString = "// Error: Expected conditional instruction after \"if\".";
                 delete code;
                 return false;
             }
             break;
+
         case MicroAsm::PSE_TRUE_TARGET:
-            if(token == MicroAsm::LT_IDENTIFIER)
-            {
-                if(!symTable->exists(tokenString))
-                {
+            if(token == MicroAsm::LT_IDENTIFIER) {
+                if(!symTable->exists(tokenString)) {
                     symTable->insertSymbol(tokenString);
                 }
                 microCode->setTrueTarget(symTable->getValue(tokenString).data());
                 state = MicroAsm::PSE_ELSE;
             }
-            else
-            {
-                errorString ="// Error: Expected a symbol for true target of if";
+            else {
+                errorString ="// Error: Expected a symbol for true target of \"if\".";
                 delete code;
                 return false;
             }
             break;
+
         case MicroAsm::PSE_ELSE:
-            if(token == MicroAsm::LTE_ELSE)
-            {
+            if(token == MicroAsm::LTE_ELSE) {
                 state = MicroAsm::PSE_FALSE_TARGET;
             }
-            else
-            {
-                errorString = "// Error: Failure";
+            else {
+                errorString = "// Error: expected \"else\" after \"if\".";
                 delete code;
                 return false;
             }
             break;
+
         case MicroAsm::PSE_FALSE_TARGET:
-            if(token == MicroAsm::LT_IDENTIFIER)
-            {
-                if(!symTable->exists(tokenString))
-                {
+            if(token == MicroAsm::LT_IDENTIFIER) {
+                if(!symTable->exists(tokenString)) {
                     symTable->insertSymbol(tokenString);
                 }
                 microCode->setFalseTarget(symTable->getValue(tokenString).data());
                 state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
-            else
-            {
-                errorString ="Expected a symbol for false target of if";
+            else {
+                errorString = "// Error: Expected a symbol for false target of \"if\".";
                 delete code;
                 return false;
             }
             break;
+
         case MicroAsm::PSE_OPTIONAL_COMMENT:
-            if (token ==MicroAsm::LT_COMMENT)
-            {
+            if (token ==MicroAsm::LT_COMMENT) {
                 microCode->cComment = tokenString;
                 state = MicroAsm::PSE_EXPECT_EMPTY;
             }
             else if (token == MicroAsm::LT_EMPTY) {
                 state = MicroAsm::PS_FINISH;
             }
-            else
-            {
-                errorString ="Expected a symbol for false target of if";
+            else {
+                // This error should not occur, as all characters are allowed in comments.
+                errorString = "// Error: Expected a symbol for false target of \"if\".";
                 delete code;
                 return false;
             }
             break;
+
         case MicroAsm::PSE_EXPECT_EMPTY:
             if (token == MicroAsm::LT_EMPTY) {
                 state = MicroAsm::PS_FINISH;
@@ -862,4 +885,15 @@ bool MicroAsm::startsWithHexPrefix(QString str)
     if (str[0] != '0') return false;
     if (str[1] == 'x' || str[1] == 'X') return true;
     return false;
+}
+
+
+void MicroAsm::setCPUType(Enu::CPUType type)
+{
+    cpuType = type;
+}
+
+void MicroAsm::useExtendedAssembler(bool useExt)
+{
+    this->useExt = useExt;
 }

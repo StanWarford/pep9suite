@@ -29,7 +29,6 @@ HEADERS += \
     $$PWD\htmlhighlightermixin.h \
     $$PWD\inputpane.h \
     $$PWD\iowidget.h \
-    $$PWD\memorysection.h \
     $$PWD\outputpane.h \
     $$PWD\pep.h \
     $$PWD\symbolentry.h \
@@ -45,7 +44,6 @@ HEADERS += \
     $$PWD\memorychips.h \
     $$PWD\mainmemory.h \
 
-
 SOURCES += \
     $$PWD\byteconverterbin.cpp \
     $$PWD\byteconverterchar.cpp \
@@ -56,7 +54,6 @@ SOURCES += \
     $$PWD\htmlhighlightermixin.cpp \
     $$PWD\inputpane.cpp \
     $$PWD\iowidget.cpp \
-    $$PWD\memorysection.cpp \
     $$PWD\outputpane.cpp \
     $$PWD\pep.cpp \
     $$PWD\symbolentry.cpp \
@@ -70,6 +67,6 @@ SOURCES += \
     $$PWD\amemorydevice.cpp \
     $$PWD\amemorychip.cpp \
     $$PWD\memorychips.cpp \
-    $$PWD\mainmemory.cpp
+    $$PWD\mainmemory.cpp \
 
 

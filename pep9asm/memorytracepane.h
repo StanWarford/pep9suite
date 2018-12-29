@@ -33,13 +33,13 @@
 namespace Ui {
     class MemoryTracePane;
 }
-class MemorySection;
+class MainMemory;
 class MemoryTracePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(MemoryTracePane)
 public:
     explicit MemoryTracePane(QWidget *parent = nullptr);
-    void init(const MemorySection* memorySection);
+    void init(QSharedPointer<const MainMemory> memorySection);
     virtual ~MemoryTracePane();
 
     void setMemoryTrace();
@@ -71,7 +71,7 @@ public slots:
     
 private:
     Ui::MemoryTracePane *ui;
-    const MemorySection* memorySection;
+    QSharedPointer<const MainMemory> memorySection;
     QGraphicsScene *scene;
     QStack<MemoryCellGraphicsItem *> globalVars;
     // Stack of the global variables

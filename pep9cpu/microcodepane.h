@@ -34,12 +34,14 @@ namespace Ui {
 }
 class SymbolTable;
 class MicrocodeProgram;
+class NewCPUDataSection;
 class MicrocodePane : public QWidget {
     Q_OBJECT
 public:
     MicrocodePane(QWidget *parent = 0);
     ~MicrocodePane();
 
+    void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> dataSection,  QSharedPointer<AMemoryDevice> memDevice, bool useExtendedFeatures);
     void initCPUModelState();
 
     bool microAssemble();
@@ -58,7 +60,7 @@ public:
     void setMicrocode(QString microcode);
     // Post: Set
 
-    QString getMicrocode();
+    QString getMicrocodeText();
     // Post: returns the text of the editor
 
     void highlightOnFocus();
@@ -96,16 +98,22 @@ public:
     void writeSettings(QSettings &settings);
     MicrocodeEditor* getEditor();
     void asHTML(QString& html) const;
+
+    void useExtendedFeatures(bool useExtendedFeatures);
+
 public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
     void onRemoveAllBreakpoints();
+    void onCPUTypeChanged(Enu::CPUType type);
 
 protected:
     void changeEvent(QEvent *e);
 
 private:
     Ui::MicrocodePane *ui;
+    QSharedPointer<NewCPUDataSection> dataSection;
+    MicroAsm *microASM;
     bool inDarkMode;
     QSharedPointer<SymbolTable> symbolTable;
     PepMicroHighlighter *highlighter;

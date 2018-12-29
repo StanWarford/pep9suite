@@ -20,39 +20,41 @@
 */
 
 #include "specification.h"
-#include "cpudatasection.h"
-#include "memorysection.h"
+#include "newcpudata.h"
+#include "amemorydevice.h"
 Specification::Specification()
 {
 }
 
-MemSpecification::MemSpecification(int memoryAddress, int memoryValue, int numberBytes) {
-    memAddress = memoryAddress;
-    memValue = memoryValue;
-    numBytes = numberBytes;
+MemSpecification::MemSpecification(AMemoryDevice* mem, int memoryAddress, int memoryValue, int numberBytes): memDevice(mem), memAddress(memoryAddress),
+    memValue(memoryValue), numBytes(numberBytes) {
 }
 
-void MemSpecification::setUnitPre(CPUDataSection *data)
+void MemSpecification::setUnitPre(NewCPUDataSection *data)
 {
-    MemorySection* memory = data->getMemorySection();
-    if(numBytes==1) memory->onSetMemoryByte(memAddress,(quint8)memValue);
-    else memory->onSetMemoryWord(memAddress,(quint16)memValue);
+    if(numBytes == 1) {
+        memDevice->setByte(static_cast<quint16>(memAddress), static_cast<quint8>(memValue));
+    }
+    else {
+        memDevice->setByte(static_cast<quint16>(memAddress), static_cast<quint16>(memValue));
+    }
 }
 
-bool MemSpecification::testUnitPost(CPUDataSection *data, QString &errorString)
+bool MemSpecification::testUnitPost(NewCPUDataSection *data, QString &errorString)
 {
-    MemorySection* memory = data->getMemorySection();
     bool retVal;
-    if(numBytes==1)
-    {
-        retVal=memory->getMemoryByte(memAddress, false)==(quint8)memValue;
+    quint8 byte;
+    quint16 word;
+    if(numBytes==1) {
+        memDevice->getByte(byte, static_cast<quint16>(memAddress));
+        retVal = (byte == static_cast<quint8>(memValue));
         if(!retVal)errorString= "// ERROR: Unit test failed for byte Mem[0x"+
                 QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper() + "].";
     }
-    else
-    {
+    else {
         //Test each individual byte, to avoid memory alignment issues
-        retVal=memory->getMemoryByte(memAddress, false)==memValue/256&&memory->getMemoryByte(memAddress+1, false)==memValue%256;
+        memDevice->getWord(word, static_cast<quint16>(memAddress));
+        retVal = (word == static_cast<quint16>(memValue));
         if(!retVal)errorString= "// ERROR: Unit test failed for byte Mem[0x"+
                 QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper() + "].";
     }
@@ -73,7 +75,7 @@ RegSpecification::RegSpecification(Enu::ECPUKeywords registerAddress, int regist
     regValue = registerValue;
 }
 
-void RegSpecification::setUnitPre(CPUDataSection *data)
+void RegSpecification::setUnitPre(NewCPUDataSection *data)
 {
 
     switch(regAddress)
@@ -132,7 +134,7 @@ void RegSpecification::setUnitPre(CPUDataSection *data)
     }
 }
 
-bool RegSpecification::testUnitPost(CPUDataSection *data, QString &errorString)
+bool RegSpecification::testUnitPost(NewCPUDataSection *data, QString &errorString)
 {
     int reg=0;
     switch(regAddress)
@@ -218,7 +220,7 @@ StatusBitSpecification::StatusBitSpecification(Enu::ECPUKeywords statusBitAddres
     nzvcsValue = statusBitValue;
 }
 
-void StatusBitSpecification::setUnitPre(CPUDataSection *data)
+void StatusBitSpecification::setUnitPre(NewCPUDataSection *data)
 {
     Enu::EStatusBit status;
     switch(nzvcsAddress)
@@ -244,7 +246,7 @@ void StatusBitSpecification::setUnitPre(CPUDataSection *data)
     data->onSetStatusBit(status,nzvcsValue);
 }
 
-bool StatusBitSpecification::testUnitPost(CPUDataSection *data, QString &errorString)
+bool StatusBitSpecification::testUnitPost(NewCPUDataSection *data, QString &errorString)
 {
     Enu::EStatusBit status;
     switch(nzvcsAddress)

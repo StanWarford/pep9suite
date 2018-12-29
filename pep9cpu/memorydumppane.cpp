@@ -26,13 +26,11 @@
 #include "pep.h"
 #include "enu.h"
 #include <QStyle>
-#include "cpucontrolsection.h"
-#include "cpudatasection.h"
-#include "cpumemoizer.h"
-#include "memorysection.h"
+#include "mainmemory.h"
+#include "acpumodel.h"
 #include "colors.h"
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
-    QWidget(parent), data(new QStandardItemModel(this)), lineSize(320), colors(&PepColors::lightMode),
+    QWidget(parent), data(new QStandardItemModel(this)), lineSize(500), colors(&PepColors::lightMode),
     ui(new Ui::MemoryDumpPane), inSimulation(false)
 {
     ui->setupUi(this);
@@ -51,6 +49,7 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
 
     // Hook the table view into the model, and size everything correctly
     ui->tableView->setModel(data);
+
     ui->tableView->resizeRowsToContents();
 
     // Connect scrolling events
@@ -60,13 +59,14 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     connect(ui->tableView->verticalScrollBar(), &QScrollBar::valueChanged, this, &MemoryDumpPane::scrollToLine);
 }
 
-void MemoryDumpPane::init(MemorySection *memorySection, CPUDataSection *dataSection, CPUControlSection *controlSection)
+void MemoryDumpPane::init(QSharedPointer<MainMemory> memory, QSharedPointer<ACPUModel> cpu)
 {
-    this->memorySection = memorySection;
-    this->dataSection = dataSection;
-    this->controlSection = controlSection;
-    delegate = new MemoryDumpDelegate(memorySection, ui->tableView);
+    this->memDevice = memory;
+    this->cpu = cpu;
+    delegate = new MemoryDumpDelegate(memDevice, ui->tableView);
     ui->tableView->setItemDelegate(delegate);
+    refreshMemoryLines(0, 0);
+    ui->tableView->resizeColumnsToContents();
     refreshMemory();
 }
 
@@ -79,35 +79,7 @@ MemoryDumpPane::~MemoryDumpPane()
 
 void MemoryDumpPane::refreshMemory()
 {
-    quint8 tempData;
-    QChar ch;
-    QString memoryDumpLine;
-    // Disable screen updates while re-writing all data fields to save execution time.
-    bool updates = ui->tableView->updatesEnabled();
-    ui->tableView->setUpdatesEnabled(false);
-    for(int row = 0; row < (1<<16)/8; row++) {
-        memoryDumpLine.clear();
-        for(int col = 0; col < 8; col++) {
-            // Use the data in the memory section to set the value in the model.
-            tempData = memorySection->getMemoryByte(row*8 + col, false);
-            data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')));
-            ch = QChar(tempData);
-            if (ch.isPrint()) {
-                memoryDumpLine.append(ch);
-            } else {
-                memoryDumpLine.append(".");
-            }
-        }
-        data->setData(data->index(row, 1+8), memoryDumpLine);
-    }
-
-    ui->tableView->setUpdatesEnabled(updates);
-    clearHighlight();
-    ui->tableView->resizeColumnsToContents();
-    lineSize = 0;
-    for(int it = 0; it<data->columnCount() ; it++) {
-        lineSize += ui->tableView->columnWidth(it);
-    }
+    refreshMemoryLines(0, 65535);
 }
 
 void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
@@ -125,7 +97,7 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
         memoryDumpLine .clear();
         for(int col = 0; col < 8; col++) {
             // Use the data in the memory section to set the value in the model.
-            tempData = memorySection->getMemoryByte(row*8 + col, false);
+            memDevice->getByte(tempData, static_cast<quint16>(row*8 + col));
             data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')));
             ch = QChar(tempData);
             if (ch.isPrint()) {
@@ -138,7 +110,7 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
     }
     lineSize = 0;
     for(int it = 0; it< data->columnCount(); it++) {
-        lineSize += ui->tableView->columnWidth(it);
+        lineSize += static_cast<unsigned int>(ui->tableView->columnWidth(it));
     }
 
     ui->tableView->setUpdatesEnabled(updates);
@@ -160,28 +132,25 @@ void MemoryDumpPane::clearHighlight()
 
 void MemoryDumpPane::highlight()
 {
-    highlightByte(dataSection->getRegisterBankWord(Enu::CPURegisters::SP), colors->altTextHighlight, colors->memoryHighlightSP);
-    highlightedData.append(dataSection->getRegisterBankWord(Enu::CPURegisters::SP));
-    quint16 programCounter;
-    if(controlSection->getLineNumber() == 0) {
-        // When µPC == 0, memoizer has not yet cached CPU's state, so it would return the previous instructions starting PC.
-        // However, no µInstructions have yet affected the PC, so use the value of PC from the register bank
-        programCounter = dataSection->getRegisterBankWord(Enu::CPURegisters::PC);
-    }
-    else {
-        // If the µPC is not 0, then the memoizer has had a chance to cache the CPU's inital program counter value.
-        const CPUMemoizer* memoizer = controlSection->getCPUMemoizer();
-        programCounter = memoizer->getRegisterStart(Enu::CPURegisters::PC);
-    }
-    if(!Pep::isUnaryMap[Pep::decodeMnemonic[memorySection->getMemoryByte(programCounter,false)]]) {
+    // If the SP is moved during an instruction (e.g. in microcode) it is useful
+    // for the student to see where the SP is now, not where it started.
+    quint16 sp = cpu->getCPURegWordCurrent(Enu::CPURegisters::SP);
+    // Since the PC is modified as part of an instruction, make sure
+    // to highlight the instruction being executed, not necessarily the current value
+    quint16 pc = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
+    quint8 is;
+    memDevice->getByte(is, pc);
+    highlightByte(sp, colors->altTextHighlight, colors->memoryHighlightSP);
+    highlightedData.append(sp);
+    if(!Pep::isUnaryMap[Pep::decodeMnemonic[is]]) {
         for(int it = 0; it < 3; it++) {
-            highlightByte(programCounter+it, colors->altTextHighlight, colors->memoryHighlightPC);
-            highlightedData.append(programCounter+it);
+            highlightByte(pc + it, colors->altTextHighlight, colors->memoryHighlightPC);
+            highlightedData.append(pc + it);
         }
     }
     else {
-        highlightByte(programCounter, colors->altTextHighlight, colors->memoryHighlightPC);
-        highlightedData.append(programCounter);
+        highlightByte(pc, colors->altTextHighlight, colors->memoryHighlightPC);
+        highlightedData.append(pc);
     }
 
     for(quint16 byte : lastModifiedBytes) {
@@ -193,17 +162,18 @@ void MemoryDumpPane::highlight()
 
 void MemoryDumpPane::cacheModifiedBytes()
 {
-    QSet<quint16> tempConstruct, tempDestruct = memorySection->modifiedBytes();
-    modifiedBytes = memorySection->modifiedBytes();
-    memorySection->clearModifiedBytes();
-    lastModifiedBytes = memorySection->writtenLastCycle();
-    for(quint16 val : tempDestruct) {
+#pragma message ("TODO: Fix MemoryDumpPane::cacheModifiedBytes")
+    //QSet<quint16> tempConstruct, tempDestruct = memorySection->modifiedBytes();
+    //modifiedBytes = memorySection->modifiedBytes();
+    //memorySection->clearModifiedBytes();
+    //lastModifiedBytes = memorySection->writtenLastCycle();
+    /*for(quint16 val : tempDestruct) {
         if(tempConstruct.contains(val)) continue;
         for(quint16 temp = val - val%8;temp%8<=7;temp++) {
             tempConstruct.insert(temp);
         }
         refreshMemoryLines(val - val%8,val - val%8 + 1);
-    }
+    }*/
     /*modifiedBytes.unite(Sim::modifiedBytes);
     if (Sim::tracingTraps) {
         bytesWrittenLastStep.clear();
@@ -224,21 +194,22 @@ void MemoryDumpPane::cacheModifiedBytes()
 
 void MemoryDumpPane::updateMemory()
 {
+#pragma message("TODO: Handle when bytes are modified without notifying the UI")
     QList<quint16> list;
     QSet<quint16> linesToBeUpdated;
-    modifiedBytes.unite(memorySection->modifiedBytes());
-    memorySection->clearModifiedBytes();
-    lastModifiedBytes = memorySection->writtenLastCycle();
+    // Don't clear the memDevice's written / set bytes, since other UI components might
+    // need access to them.
+    modifiedBytes.unite(memDevice->getBytesSet());
+    modifiedBytes.unite(memDevice->getBytesWritten());
+    bytesWrittenLastStep = memDevice->getBytesWritten().toList();
     list = modifiedBytes.toList();
-
     while(!list.isEmpty()) {
         linesToBeUpdated.insert(list.takeFirst() / 8);
     }
     list = linesToBeUpdated.toList();
     qSort(list.begin(), list.end());
 
-    for(auto x: list)
-    {
+    for(auto x: list) {
         //Multiply by 8 to convert from line # to address of first byte on a line.
         refreshMemoryLines(x*8, x*8);
     }
@@ -297,11 +268,12 @@ void MemoryDumpPane::onDarkModeChanged(bool darkMode)
     }
 }
 
-void MemoryDumpPane::onMemoryChanged(quint16 address, quint8, quint8)
+void MemoryDumpPane::onMemoryChanged(quint16 address, quint8)
 {
     // Do not use address+1 or address-1, as an address at the end of a line
     // would incorrectly trigger a refresh of an adjacent line.
     // Refresh memoryLines(...) will work correctly if both start and end addresses are the same.
+    modifiedBytes.insert(address);
     this->refreshMemoryLines(address, address);
 }
 
@@ -339,12 +311,14 @@ void MemoryDumpPane::scrollToByte(quint16 byte)
 
 void MemoryDumpPane::scrollToPC()
 {
-    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(dataSection->getRegisterBankWord(Enu::CPURegisters::PC), 4, 16, QLatin1Char('0')).toUpper());
+    quint16 value = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
+    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
 }
 
 void MemoryDumpPane::scrollToSP()
 {
-    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(dataSection->getRegisterBankWord(Enu::CPURegisters::SP), 4, 16, QLatin1Char('0')).toUpper());
+    quint16 value = cpu->getCPURegWordCurrent(Enu::CPURegisters::SP);
+    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
 }
 
 void MemoryDumpPane::scrollToAddress(QString string)
@@ -374,8 +348,8 @@ void MemoryDumpPane::scrollToLine(int address)
     ui->scrollToLineEdit->setText("0x"+QString("%1").arg(address*8, 4, 16, QChar('0')));
 }
 
-MemoryDumpDelegate::MemoryDumpDelegate(MemorySection* memorySection, QObject *parent): QStyledItemDelegate(parent),
-    memorySection(memorySection), canEdit(true)
+MemoryDumpDelegate::MemoryDumpDelegate(QSharedPointer<MainMemory> memory, QObject *parent): QStyledItemDelegate(parent),
+    memDevice(memory), canEdit(true)
 {
 
 }
@@ -414,17 +388,17 @@ void MemoryDumpDelegate::setModelData(QWidget *editor, QAbstractItemModel *, con
 {
     // Get text from editor and convert it to a integer
     QLineEdit *line = static_cast<QLineEdit*>(editor);
-    QString value = line->text();
+    QString strValue = line->text();
     bool ok;
-    quint64 hexValue = value.toInt(&ok, 16);
+    quint64 intValue = static_cast<quint64>(strValue.toInt(&ok, 16));
     // Use column-1 since the first column is the address
-    quint16 addr = index.row()*8 + index.column() - 1;
+    quint16 addr = static_cast<quint16>(index.row()*8 + index.column() - 1);
     // Even though there is a regexp validator in place, validate data again.
-    if(ok && hexValue< 1<<16) {
+    if(ok && intValue< 1<<16) {
         // Instead of inserting data directly into the item model, notify the MemorySection of a change.
         // The memory section will signal back to the MemoryDump to update the value that changed.
         // This is done to avoid an infinite loop of signals between the memory section and the item model.
-        memorySection->setMemoryByte(addr, hexValue);
+        memDevice->setByte(addr, static_cast<quint8>(intValue));
     }
 }
 

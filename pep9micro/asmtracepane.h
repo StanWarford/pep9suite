@@ -82,13 +82,13 @@ private:
     int activeAddress;
     bool updateHighlight;
 };
-class CPUControlSection;
+class ACPUModel;
 class AsmTracePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmTracePane)
 public:
     explicit AsmTracePane(QWidget *parent = nullptr);
-    void init(const CPUControlSection* controlSection, AsmProgramManager* programManager);
+    void init(QSharedPointer<const ACPUModel> controlSection, AsmProgramManager* programManager);
     virtual ~AsmTracePane();
 
     void clearSourceCode();
@@ -125,7 +125,7 @@ private:
     Ui::AsmTracePane *ui;
     QSharedPointer<AsmProgram> activeProgram;
     AsmProgramManager* programManager;
-    const CPUControlSection* controlSection;
+    QSharedPointer<const ACPUModel> cpu;
     PepASMHighlighter *pepHighlighter;
     void mouseReleaseEvent(QMouseEvent *);
     void mouseDoubleClickEvent(QMouseEvent *);

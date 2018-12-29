@@ -24,12 +24,12 @@
 
 #include "cpugraphicsitems.h"
 #include "pep.h"
-#include "cpudatasection.h"
 #include "symbolentry.h"
 #include "specification.h"
 #include "cpupane.h"
+#include "newcpudata.h"
 
-MicroCode::MicroCode(): controlSignals(22), clockSignals(12), breakpoint(false), branchFunc(Enu::Assembler_Assigned),
+MicroCode::MicroCode(Enu::CPUType cpuType): cpuType(cpuType), controlSignals(22), clockSignals(12), breakpoint(false), branchFunc(Enu::Assembler_Assigned),
     symbol(nullptr), trueTargetAddr(nullptr), falseTargetAddr(nullptr)
 {
     for(auto memLines : Pep::memControlToMnemonMap.keys()) {
@@ -81,7 +81,7 @@ QString MicroCode::getObjectCode() const
     //  value produces left-aligned text.
 
     QString str = "";
-    if (CPUDataSection::getInstance()->getCPUFeatures() == Enu::OneByteDataBus) {
+    if (cpuType == Enu::OneByteDataBus) {
         str.append(clockSignals[Enu::LoadCk] == 0? "  " : QString("%1").arg(clockSignals[Enu::LoadCk], -2));
         str.append(controlSignals[Enu::C] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[Enu::C], -3));
         str.append(controlSignals[Enu::B] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[Enu::B], -3));
@@ -102,7 +102,7 @@ QString MicroCode::getObjectCode() const
         str.append(controlSignals[Enu::MemWrite] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[Enu::MemWrite], -2));
         str.append(controlSignals[Enu::MemRead] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[Enu::MemRead], -2));
     }
-    else if (CPUDataSection::getInstance()->getCPUFeatures() == Enu::TwoByteDataBus) {
+    else if (cpuType == Enu::TwoByteDataBus) {
         str.append(clockSignals[Enu::LoadCk] == 0 ? "  " : QString("%1").arg(clockSignals[Enu::LoadCk], -2));
         str.append(controlSignals[Enu::C] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[Enu::C], -3));
         str.append(controlSignals[Enu::B] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[Enu::B], -3));
@@ -138,7 +138,7 @@ QString MicroCode::getSourceCode() const
     {
         symbolString.append(symbol->getName()+": ");
     }
-    if (CPUDataSection::getInstance()->getCPUFeatures() == Enu::OneByteDataBus) {
+    if (cpuType == Enu::OneByteDataBus) {
         if (controlSignals[Enu::MemRead] != Enu::signalDisabled) { str.append("MemRead, "); }
         if (controlSignals[Enu::MemWrite] != Enu::signalDisabled) { str.append("MemWrite, "); }
         if (controlSignals[Enu::A] != Enu::signalDisabled) { str.append("A=" + QString("%1").arg(controlSignals[Enu::A]) + ", "); }
@@ -164,7 +164,7 @@ QString MicroCode::getSourceCode() const
 
         if (str.endsWith(", ") || str.endsWith("; ")) { str.chop(2); }
     }
-    else if (CPUDataSection::getInstance()->getCPUFeatures() == Enu::TwoByteDataBus) {
+    else if (cpuType == Enu::TwoByteDataBus) {
         if (controlSignals[Enu::MemRead] != Enu::signalDisabled) { str.append("MemRead, "); }
         if (controlSignals[Enu::MemWrite] != Enu::signalDisabled) { str.append("MemWrite, "); }
         if (controlSignals[Enu::A] != Enu::signalDisabled) { str.append("A=" + QString("%1").arg(controlSignals[Enu::A]) + ", "); }
@@ -398,7 +398,7 @@ bool UnitPreCode::hasUnitPre() const
 }
 
 
-void UnitPreCode::setUnitPre(CPUDataSection *data)
+void UnitPreCode::setUnitPre(NewCPUDataSection *data)
 {
     for(auto x : unitPreList)
     {
@@ -442,12 +442,12 @@ QString UnitPostCode::getSourceCode() const
     return str;
 }
 
-bool UnitPostCode::testPostcondition(CPUDataSection *data, QString &err)
+bool UnitPostCode::testPostcondition(NewCPUDataSection *data, QString &err)
 {
     bool val=true;;
     for(auto x : unitPostList)
     {
-        val&=x->testUnitPost(data,err);
+        val&=x->testUnitPost(data, err);
         if(!val) return false;
     }
     return val;

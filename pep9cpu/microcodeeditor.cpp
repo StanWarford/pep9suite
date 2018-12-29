@@ -23,11 +23,10 @@
 
 #include "microcodeeditor.h"
 #include "pep.h"
-#include "cpucontrolsection.h"
 #include "microcodeprogram.h"
 #include <limits.h>
-
-MicrocodeEditor::MicrocodeEditor(QWidget *parent, bool highlightCurrentLine, bool isReadOnly) : QPlainTextEdit(parent), colors(&PepColors::lightMode)
+#include "amccpumodel.h"
+MicrocodeEditor::MicrocodeEditor(QWidget *parent, bool highlightCurrentLine, bool isReadOnly) : QPlainTextEdit(parent), cpu(nullptr), colors(&PepColors::lightMode)
 {
 
     highlightCurLine = highlightCurrentLine;
@@ -44,6 +43,11 @@ MicrocodeEditor::MicrocodeEditor(QWidget *parent, bool highlightCurrentLine, boo
     connect(this, SIGNAL(cursorPositionChanged()), lineNumberArea, SLOT(update()));
 
     updateLineNumberAreaWidth(0);
+}
+
+void MicrocodeEditor::init(QSharedPointer<InterfaceMCCPU> cpu)
+{
+    this->cpu = cpu;
 }
 
 int MicrocodeEditor::lineNumberAreaWidth()
@@ -143,10 +147,10 @@ void MicrocodeEditor::highlightSimulatedLine()
         selection.format.setProperty(QTextFormat::FullWidthSelection, true);
         QTextCursor cursor = QTextCursor(document());
         cursor.setPosition(0);
-        CPUControlSection* inst = CPUControlSection::getInstance();
+
         // Fetches the micro-address of the currently executing instruction.
         // Address are 0-indexed, but block numbers are 1 indexed.
-        int activeLineNum = inst->getLineNumber() + 1;
+        int activeLineNum = cpu->getMicrocodeLineNumber() + 1;
         // Convert a micro-address to a logical text block
         int activeBlockNum = blockToCycle.key(activeLineNum, std::numeric_limits<quint16>::max());
         // Iterate over blocks, because lines do not work correctly with line wrap

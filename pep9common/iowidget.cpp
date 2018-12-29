@@ -1,12 +1,12 @@
 #include "iowidget.h"
 #include "ui_iowidget.h"
-#include "memorysection.h"
 #include <QString>
 #include <QDebug>
 #include "enu.h"
+#include "mainmemory.h"
 IOWidget::IOWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::IOWidget)
+    ui(new Ui::IOWidget), iChipAddr(0), oChipAddr(0)
 {
     ui->setupUi(this);
     ui->batchInput->setFocusProxy(this);
@@ -23,11 +23,23 @@ IOWidget::~IOWidget()
     delete ui;
 }
 
-void IOWidget::bindToMemorySection(MemorySection *memory)
+void IOWidget::setInputChipAddress(quint16 address)
 {
-    connect(ui->terminalIO, &TerminalPane::inputReady, memory,& MemorySection::onAppendInBuffer);
-    connect(memory, &MemorySection::charRequestedFromInput, this, &IOWidget::onDataRequested);
-    connect(memory, &MemorySection::charWrittenToOutput, this, &IOWidget::onDataReceived);
+    iChipAddr = address;
+}
+
+void IOWidget::setOutputChipAddress(quint16 address)
+{
+    oChipAddr = address;
+}
+
+void IOWidget::bindToMemorySection(MainMemory *memory)
+{
+    connect(ui->terminalIO, &TerminalPane::inputReady, this, &IOWidget::onInputReady);
+    // Multiple versions of this slot exist, so the following function cast must be used to select the correct one
+    connect(this, &IOWidget::inputReady, memory,  static_cast<void (MainMemory::*)(quint16, quint8)>(&MainMemory::onInputReceived));
+    connect(memory, &MainMemory::inputRequested, this, &IOWidget::onDataRequested);
+    connect(memory, &MainMemory::outputWritten, this, &IOWidget::onDataReceived);
     this->memory = memory;
 }
 
@@ -35,7 +47,9 @@ void IOWidget::batchInputToBuffer()
 {
     if(ui->tabWidget->currentIndex() == 0)
     {
-        memory->onAppendInBuffer(ui->batchInput->toPlainText()+'\n');
+        // Make sure no additional IO is waiting before queueing more
+        memory->clearIO();
+        memory->onInputReceived(iChipAddr, ui->batchInput->toPlainText().append('\n'));
     }
 }
 
@@ -169,8 +183,19 @@ void IOWidget::onSetUndoability(bool b)
     else emit undoAvailable(false);
 }
 
-void IOWidget::onDataReceived(QChar data)
+void IOWidget::onInputReady(QString value)
 {
+    for(QChar ch : value) {
+        emit inputReady(iChipAddr, static_cast<quint8>(ch.toLatin1()));
+    }
+}
+
+void IOWidget::onDataReceived(quint16 address, QChar data)
+{
+    // If the memory mapped output is not coming from terminal output chip, ignore the event
+    if(address != oChipAddr) {
+        return;
+    }
     QString oData = QString::number((quint8)data.toLatin1(),16).leftJustified(2,'0')+" ";
     //qDebug()<<called++;
     switch(ui->tabWidget->currentIndex())
@@ -186,14 +211,14 @@ void IOWidget::onDataReceived(QChar data)
     }
 }
 
-void IOWidget::onDataRequested()
+void IOWidget::onDataRequested(quint16 address)
 {
     switch(ui->tabWidget->currentIndex())
     {
     case 0:
         //If there's no input for the memory, there never will be.
         //So, let the simulation begin to error and unwind.
-        memory->onCancelWaiting();
+        memory->onInputCanceled(iChipAddr);
         break;
     case 1:
         ui->terminalIO->waitingForInput();
@@ -203,13 +228,14 @@ void IOWidget::onDataRequested()
     }
 }
 
+
 void IOWidget::onSimulationStart()
 {
     switch(ui->tabWidget->currentIndex())
     {
     case 0:
         //When the simulation starts, pass all needed input to memory's input buffer
-        memory->onAppendInBuffer(ui->batchInput->toPlainText().append('\n'));
+        memory->onInputReceived(iChipAddr, ui->batchInput->toPlainText().append('\n'));
         break;
     default:
         break;

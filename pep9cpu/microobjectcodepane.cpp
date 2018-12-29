@@ -30,13 +30,13 @@
 #include <QStringList>
 #include <QKeyEvent>
 #include <rotatedheaderview.h>
-#include "cpucontrolsection.h"
+#include "amccpumodel.h"
 #include "microcode.h"
 #include "symboltable.h"
 #include "symbolentry.h"
 #include "symbolvalue.h"
 MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
-    QWidget(parent), rowCount(0),model(new QStandardItemModel()),inSimulation(false),
+    QWidget(parent), cpu(nullptr), rowCount(0),model(new QStandardItemModel()),inSimulation(false),
     ui(new Ui::MicroObjectCodePane)
 {
     ui->setupUi(this);
@@ -44,9 +44,9 @@ MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
     font.setPointSize(Pep::codeFontSize);
     font.setStyleHint(QFont::TypeWriter);
     ui->codeTable->setModel(model);
-    rotatedHeaderView= new RotatedHeaderView(Qt::Horizontal,ui->codeTable);
+    rotatedHeaderView = new RotatedHeaderView(Qt::Horizontal,ui->codeTable);
     rotatedHeaderView->setModel(ui->codeTable->model());
-    selectionModel= new DisableSelectionModel(ui->codeTable->model());
+    selectionModel = new DisableSelectionModel(ui->codeTable->model());
     ui->codeTable->setSelectionModel(selectionModel);
     ui->codeTable->setHorizontalHeader(rotatedHeaderView);
     ui->codeTable->setFont(font);
@@ -71,6 +71,11 @@ MicroObjectCodePane::~MicroObjectCodePane()
     delete rotatedHeaderView;
 }
 
+void MicroObjectCodePane::init(QSharedPointer<InterfaceMCCPU> newCPU)
+{
+    cpu = newCPU;
+}
+
 void MicroObjectCodePane::initCPUModelState()
 {
 
@@ -89,39 +94,34 @@ void MicroObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* s
 {
     assignHeaders();
     this->program = program;
-    this->symTable=symbolTable;
+    this->symTable = symbolTable;
     int rowNum=0,colNum=0;
     QList<Enu::EControlSignals> controls = Pep::memControlToMnemonMap.keys();
     controls.append(Pep::decControlToMnemonMap.keys());
     QList<Enu::EClockSignals> clocks = Pep::clockControlToMnemonMap.keys();
     model->setRowCount(0);
-    for(MicroCodeBase* row : program->getObjectCode())
-    {
-        if(!row->isMicrocode())
-        {
+    for(MicroCodeBase* row : program->getObjectCode()) {
+        if(!row->isMicrocode()) {
            continue;
         }
-        colNum=0;
+        colNum = 0;
         model->insertRow(rowNum);
         for(auto col : controls)
         {
             auto x = ((MicroCode*)row)->getControlSignal(col);
-            if(x!=Enu::signalDisabled)
-            {
+            if(x != Enu::signalDisabled) {
                 auto y = new QStandardItem(QString::number(x));
                 y->setTextAlignment(Qt::AlignCenter);
-                model->setItem(rowNum,colNum,y);
+                model->setItem(rowNum, colNum, y);
             }
             colNum++;
         }
-        for(auto col : clocks)
-        {
+        for(auto col : clocks) {
             auto x = ((MicroCode*)row)->getClockSignal(col);
-            if(x!=false)
-            {
+            if( x != false) {
                 auto y = new QStandardItem(QString::number(x));
                 y->setTextAlignment(Qt::AlignCenter);
-                model->setItem(rowNum,colNum,y);
+                model->setItem(rowNum, colNum, y);
             }
             colNum++;
         }
@@ -144,7 +144,7 @@ void MicroObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* s
 
 void MicroObjectCodePane::highlightCurrentInstruction()
 {
-    rowCount = CPUControlSection::getInstance()->getLineNumber();
+    rowCount = cpu->getMicrocodeLineNumber();
     selectionModel->forceSelectRow(rowCount);
     ui->codeTable->setCurrentIndex(model->index(rowCount,0));
     inSimulation=true;

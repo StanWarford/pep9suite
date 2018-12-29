@@ -13,6 +13,7 @@ class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public Interf
 public:
     FullMicrocodedCPU(QSharedPointer<AMemoryDevice>, QObject* parent = nullptr);
     virtual ~FullMicrocodedCPU() override;
+    QSharedPointer<NewCPUDataSection> getDataSection();
 
     // ACPUModel interface
     bool getStatusBitCurrent(Enu::EStatusBit) const override;
@@ -55,6 +56,7 @@ private:
     bool isPrefetchValid;
     QElapsedTimer timer;
     NewCPUDataSection *data;
+    QSharedPointer<NewCPUDataSection> dataShared;
     FullMicrocodedMemoizer *memoizer;
 };
 

@@ -31,9 +31,10 @@
 #include "symbolentry.h"
 #include "symbolvalue.h"
 #include "symboltable.h"
+#include "newcpudata.h"
 MicrocodePane::MicrocodePane(QWidget *parent) :
-        QWidget(parent),
-        ui(new Ui::MicrocodePane),inDarkMode(false), symbolTable(nullptr), program(nullptr), currentFile()
+        QWidget(parent), dataSection(nullptr),
+        ui(new Ui::MicrocodePane), inDarkMode(false), symbolTable(nullptr), program(nullptr), currentFile(), microASM(nullptr)
 {
     ui->setupUi(this);
 
@@ -51,7 +52,6 @@ MicrocodePane::MicrocodePane(QWidget *parent) :
     this->setLayout(layout);
 
     highlighter = nullptr;
-    initCPUModelState();
 
     connect(editor->document(), &QTextDocument::modificationChanged, this, &MicrocodePane::setLabelToModified);
 
@@ -67,12 +67,26 @@ MicrocodePane::~MicrocodePane()
     delete ui;
 }
 
+void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> newData, QSharedPointer<AMemoryDevice> memDevice, bool useExt)
+{
+    if(dataSection.isNull()) {
+        disconnect(dataSection.get(), &NewCPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
+    }
+    if(microASM != nullptr) delete microASM;
+    microASM = new MicroAsm(memDevice, newData->getCPUType(), useExt);
+    useExtendedFeatures(useExt);
+    dataSection = newData;
+    connect(dataSection.get(), &NewCPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
+    editor->init(cpu);
+    initCPUModelState();
+}
+
 void MicrocodePane::initCPUModelState()
 {
     if (highlighter != nullptr) {
         delete highlighter;
     }
-    highlighter = new PepMicroHighlighter(PepColors::lightMode,editor->document());
+    highlighter = new PepMicroHighlighter(dataSection->getCPUType(), PepColors::lightMode,editor->document());
 
 }
 
@@ -99,7 +113,7 @@ bool MicrocodePane::microAssemble()
 
     while (lineNum < sourceCodeList.size()) {
         sourceLine = sourceCodeList[lineNum];
-        if (!MicroAsm::processSourceLine(symbolTable.data(),sourceLine, code, errorString)) {
+        if (!microASM->processSourceLine(symbolTable.data(),sourceLine, code, errorString)) {
             appendMessageInSourceCodePaneAt(lineNum, errorString);
             return false;
         }
@@ -109,12 +123,12 @@ bool MicrocodePane::microAssemble()
 
     if(program) delete program;
     program = new MicrocodeProgram(codeList,symbolTable.data());
-    for(auto sym : symbolTable->getSymbolEntries()){
+    for(auto sym : symbolTable->getSymbolEntries()) {
             if(sym->isUndefined()){
                 appendMessageInSourceCodePaneAt(-1,"// ERROR: Undefined symbol "+sym->getName());
                 return false;
             }
-            else if(sym->isMultiplyDefined()){
+            else if(sym->isMultiplyDefined()) {
                 appendMessageInSourceCodePaneAt(-1,"// ERROR: Multiply defined symbol "+sym->getName());
                 return false;
             }
@@ -200,7 +214,7 @@ void MicrocodePane::setMicrocode(QString microcode)
     setLabelToModified(true);
 }
 
-QString MicrocodePane::getMicrocode()
+QString MicrocodePane::getMicrocodeText()
 {
     return editor->toPlainText();
 }
@@ -219,7 +233,7 @@ void MicrocodePane::setCurrentFile(QString fileName)
 {
     if (fileName.isEmpty()) {
         currentFile.setFileName("");
-        ui->label->setText("Microcode -untitled.pepcpu");
+        ui->label->setText("Microcode - untitled.pepcpu");
     }
     else {
         currentFile.setFileName(fileName);
@@ -328,12 +342,17 @@ void MicrocodePane::asHTML(QString &html) const
     if(inDarkMode) {
         // Only print in light mode color scheme, as paper is usually white.
         QTextDocument *doc = editor->document()->clone();
-        PepMicroHighlighter high(PepColors::lightMode, doc);
+        PepMicroHighlighter high(dataSection->getCPUType(), PepColors::lightMode, doc);
         high.rehighlight();
         high.asHtml(html, editor->font());
         delete doc;
     }
     else highlighter->asHtml(html, editor->font());
+}
+
+void MicrocodePane::useExtendedFeatures(bool useExtendedFeatures)
+{
+    microASM->useExtendedAssembler(useExtendedFeatures);
 }
 
 void MicrocodePane::onFontChanged(QFont font)
@@ -354,11 +373,17 @@ void MicrocodePane::onRemoveAllBreakpoints()
 {
     editor->onRemoveAllBreakpoints();
     if(program == nullptr) return;
-    else{
+    else {
         for(quint16 it = 0; it < program->codeLength(); it++) {
             program->getCodeLine(it)->setBreakpoint(false);
         }
     }
+}
+
+void MicrocodePane::onCPUTypeChanged(Enu::CPUType type)
+{
+    highlighter->setCPUType(type);
+    highlighter->rehighlight();
 }
 
 void MicrocodePane::setLabelToModified(bool modified)

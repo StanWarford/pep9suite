@@ -1,6 +1,6 @@
 #include "memorychips.h"
 #include <QApplication>
-ConstChip::ConstChip(quint16 size, quint16 baseAddress, QObject *parent):
+ConstChip::ConstChip(quint32 size, quint16 baseAddress, QObject *parent):
     AMemoryChip (size, baseAddress, parent)
 {
 
@@ -56,7 +56,7 @@ bool ConstChip::setByte(quint16 offsetFromBase, quint8 value)
 
 
 
-NilChip::NilChip(quint16 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent)
+NilChip::NilChip(quint32 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent)
 {
 
 }
@@ -100,20 +100,21 @@ bool NilChip::getByte(quint8 &, quint16 offsetFromBase) const
 {
     std::string message = "Attempted to access nil chip at: " +
             QString("0x%1").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
-    throw bad_chip_operation(message);
+    throw bad_chip_write(message);
 }
 
 bool NilChip::setByte(quint16 offsetFromBase, quint8)
 {
     std::string message = "Attempted to access nil chip at: " +
             QString("0x%1").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
-    throw bad_chip_operation(message);
+    throw bad_chip_write(message);
 }
 
 
 
-InputChip::InputChip(quint16 size, quint16 baseAddress, QObject *parent):
-    AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0)), inputRequestCanceled(false), waiting(false)
+InputChip::InputChip(quint32 size, quint16 baseAddress, QObject *parent):
+    AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0)), waiting(QVector<bool>(size, false)),
+    requestCanceled(QVector<bool>(size, false)), requestAborted(QVector<bool>(size, false))
 {
 
 }
@@ -136,11 +137,12 @@ AMemoryChip::ChipTypes InputChip::getChipType() const
 
 void InputChip::clear()
 {
-    for (int it = 0; it < size; it++) {
+    for (unsigned int it = 0; it < size; it++) {
         memory[it] = 0;
+        waiting[it] = false;
+        requestCanceled[it] = false;
+        requestAborted[it] = false;
     }
-    waiting = false;
-    inputRequestCanceled = false;
 }
 
 bool InputChip::isCachable() const
@@ -151,20 +153,25 @@ bool InputChip::isCachable() const
 bool InputChip::readByte(quint8& output, quint16 offsetFromBase) const
 {
 
-    if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
-    inputRequestCanceled = false;
-    waiting = true;
+    if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);   
+    waiting[offsetFromBase] = true;
+    requestCanceled[offsetFromBase] = false;
+    requestAborted[offsetFromBase] = false;
     emit inputRequested(baseAddress + offsetFromBase);
     // Let the UI handle I/O before returning to this device
     QApplication::processEvents();
+    if(requestCanceled[offsetFromBase]) return false;
+    else if(requestAborted[offsetFromBase]) {
+        throw io_aborted("Requested input that was not received");
+    }
     output = memory[offsetFromBase];
-    return !inputRequestCanceled;
+    return true;
 }
 
 bool InputChip::writeByte(quint16, quint8)
 {
     std::string const str("Attempted to write to read only memory");
-    throw bad_chip_operation(str);
+    throw bad_chip_write(str);
 }
 
 bool InputChip::getByte(quint8& output, quint16 offsetFromBase) const
@@ -181,26 +188,32 @@ bool InputChip::setByte(quint16 offsetFromBase, quint8 value)
     return true;
 }
 
-bool InputChip::waitingForInput() const
+bool InputChip::waitingForInput(quint16 offsetFromBase) const
 {
-    return waiting;
+    return waiting[offsetFromBase];
 }
 
 void InputChip::onInputReceived(quint16 offsetFromBase, quint8 value)
 {
     if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     memory[offsetFromBase] = value;
+    waiting[offsetFromBase] = false;
 }
 
-void InputChip::onInputCanceled()
+void InputChip::onInputCanceled(quint16 offsetFromBase)
 {
-    inputRequestCanceled = true;
-    waiting = false;
+    waiting[offsetFromBase] = false;
+    requestCanceled[offsetFromBase] = true;
+}
+
+void InputChip::onInputAborted(quint16 offsetFromBase)
+{
+    waiting[offsetFromBase] = false;
+    requestAborted[offsetFromBase] = true;
 }
 
 
-
-OutputChip::OutputChip(quint16 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0))
+OutputChip::OutputChip(quint32 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0))
 {
 
 }
@@ -224,7 +237,7 @@ AMemoryChip::ChipTypes OutputChip::getChipType() const
 
 void OutputChip::clear()
 {
-    for (int it = 0; it < size; it++) {
+    for (unsigned int it = 0; it < size; it++) {
         memory[it] = 0;
     }
 }
@@ -263,7 +276,7 @@ bool OutputChip::setByte(quint16 offsetFromBase, quint8 value)
 
 
 
-RAMChip::RAMChip(quint16 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0))
+RAMChip::RAMChip(quint32 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0))
 {
 
 }
@@ -286,7 +299,7 @@ AMemoryChip::ChipTypes RAMChip::getChipType() const
 
 void RAMChip::clear()
 {
-    for (int it = 0; it < size; it++) {
+    for (unsigned int it = 0; it < size; it++) {
         memory[it] = 0;
     }
 }
@@ -317,7 +330,7 @@ bool RAMChip::setByte(quint16 offsetFromBase, quint8 value)
 
 
 
-ROMChip::ROMChip(quint16 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0))
+ROMChip::ROMChip(quint32 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0))
 {
 
 }
@@ -339,7 +352,7 @@ AMemoryChip::ChipTypes ROMChip::getChipType() const
 
 void ROMChip::clear()
 {
-    for (int it = 0; it < size; it++) {
+    for (unsigned int it = 0; it < size; it++) {
         memory[it] = 0;
     }
 }
@@ -351,11 +364,11 @@ bool ROMChip::readByte(quint8 &output, quint16 offsetFromBase) const
 
 bool ROMChip::writeByte(quint16 offsetFromBase, quint8)
 {
-    QString format("Attempted to write to read only memory at: 0x1%");
+    QString format("Attempted to write to read only memory at: 0x%1");
     std::string message = format.
             arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).
             toStdString();
-    throw bad_chip_operation(message);
+    throw bad_chip_write(message);
 }
 
 bool ROMChip::getByte(quint8 &output, quint16 offsetFromBase) const

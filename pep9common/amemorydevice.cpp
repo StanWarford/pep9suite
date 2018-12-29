@@ -1,7 +1,7 @@
 #include "amemorydevice.h"
 
 AMemoryDevice::AMemoryDevice(QObject *parent) : QObject(parent), bytesWritten(), bytesSet(), error(false),
-    errorMessage()
+    errorMessage("")
 {
 
 }
@@ -19,7 +19,7 @@ QString AMemoryDevice::getErrorMessage() const
 void AMemoryDevice::clearErrors()
 {
     error = false;
-    errorMessage.clear();
+    errorMessage = "";
 }
 
 const QSet<quint16> AMemoryDevice::getBytesWritten() const

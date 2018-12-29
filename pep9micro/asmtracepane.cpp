@@ -4,8 +4,7 @@
 #include "pepasmhighlighter.h"
 #include "asmprogram.h"
 #include <QPainter>
-#include "cpucontrolsection.h"
-#include "cpumemoizer.h"
+#include "acpumodel.h"
 #include "asmprogrammanager.h"
 #include "asmprogram.h"
 AsmTracePane::AsmTracePane(QWidget *parent) :
@@ -19,9 +18,9 @@ AsmTracePane::AsmTracePane(QWidget *parent) :
     connect(((AsmTraceTextEdit*)ui->tracePaneTextEdit), &AsmTraceTextEdit::breakpointRemoved, this, &AsmTracePane::onBreakpointRemovedProp);
 }
 
-void AsmTracePane::init(const CPUControlSection *controlSection, AsmProgramManager* programManager)
+void AsmTracePane::init(QSharedPointer<const ACPUModel> controlSection, AsmProgramManager* programManager)
 {
-    this->controlSection = controlSection;
+    this->cpu = controlSection;
     this->programManager = programManager;
 }
 
@@ -83,7 +82,7 @@ void AsmTracePane::startSimulationView()
 
 void AsmTracePane::updateSimulationView()
 {
-    quint16 pc = controlSection->getCPUMemoizer()->getRegisterStart(Enu::CPURegisters::PC);
+    quint16 pc = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
     if(activeProgram.data() != programManager->getProgramAt(pc)) {
 
         if(programManager->getOperatingSystem()->getProgramBounds().first <= pc &&

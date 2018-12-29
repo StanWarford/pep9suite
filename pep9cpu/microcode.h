@@ -26,10 +26,9 @@
 #include <QMap>
 #include "enu.h"
 class CpuGraphicsItems;
-class CPUDataSection; //Forward declare CPUDataSection to avoid inclusion loops
 class SymbolEntry;
 class Specification;
-
+class NewCPUDataSection;
 // Abstract code class
 class MicroCodeBase
 {
@@ -49,7 +48,7 @@ class MicroCode: public MicroCodeBase
 {
     friend class MicroAsm;
 public:
-    MicroCode();
+    MicroCode(Enu::CPUType cpuType);
     bool isMicrocode() const override;
     QString getObjectCode() const override;
     QString getSourceCode() const override;
@@ -76,6 +75,7 @@ public:
     void setFalseTarget(const SymbolEntry* target);
 
 private:
+    Enu::CPUType cpuType;
     QVector<quint8> controlSignals;
     QVector<bool> clockSignals;
     QString cComment;
@@ -101,7 +101,7 @@ public:
     ~UnitPreCode() override;
     QString getSourceCode() const override;
     bool hasUnitPre() const override;
-    void setUnitPre(CPUDataSection* data);
+    void setUnitPre(NewCPUDataSection* data);
     void appendSpecification(Specification *specification);
     void setComment(QString comment);
 private:
@@ -114,7 +114,7 @@ class UnitPostCode: public MicroCodeBase
 public:
     ~UnitPostCode() override;
     QString getSourceCode() const override;
-    bool testPostcondition(CPUDataSection *data,QString &err);
+    bool testPostcondition(NewCPUDataSection *data,QString &err);
     void appendSpecification(Specification *specification);
     void setComment(QString comment);
     bool hasUnitPost() const override;

@@ -15,12 +15,15 @@ public:
 
     bool hadError() const;
     QString getErrorMessage() const;
-    virtual quint16 size() const = 0;
+    virtual quint32 size() const = 0;
 
     void clearErrors();
 
     const QSet<quint16> getBytesWritten() const;
     const QSet<quint16> getBytesSet() const;
+    // Call after all components have (synchronously) had a chance
+    // to access these fields. The set of written / set bytes will
+    // continue to grow until explicitly reset.
     void clearBytesWritten();
     void clearBytesSet();
 

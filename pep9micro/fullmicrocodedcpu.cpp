@@ -10,12 +10,13 @@
 #include "newcpudata.h"
 #include "symbolentry.h"
 #include "fullmicrocodedmemoizer.h"
-FullMicrocodedCPU::FullMicrocodedCPU(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent):ACPUModel (memoryDev, parent),
+FullMicrocodedCPU::FullMicrocodedCPU(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent): ACPUModel (memoryDev, parent),
     InterfaceMCCPU(Enu::CPUType::TwoByteDataBus),
     InterfaceISACPU()
 {
-    memoizer= new FullMicrocodedMemoizer(*this);
-    data = new NewCPUDataSection(memoryDev, parent);
+    memoizer = new FullMicrocodedMemoizer(*this);
+    data = new NewCPUDataSection(Enu::CPUType::TwoByteDataBus, memoryDev, parent);
+    dataShared = QSharedPointer<NewCPUDataSection>(data);
     setDebugLevel(Enu::DebugLevels::NONE);
 }
 
@@ -23,7 +24,11 @@ FullMicrocodedCPU::~FullMicrocodedCPU()
 {
     //This object should last the lifetime of the  program, it does not need to be cleaned up
     delete memoizer;
-    delete data;
+}
+
+QSharedPointer<NewCPUDataSection> FullMicrocodedCPU::getDataSection()
+{
+    return dataShared;
 }
 
 bool FullMicrocodedCPU::getStatusBitCurrent(Enu::EStatusBit bit) const
@@ -120,13 +125,11 @@ void FullMicrocodedCPU::onSimulationStarted()
 
 void FullMicrocodedCPU::onSimulationFinished()
 {
-    #pragma message("TODO: Clear data secion at end")
     data->clearClockSignals();
     data->clearControlSignals();
     executionFinished = true;
     inDebug = false;
 #pragma message("TODO: Inform memory that execution is finished")
-    throw -1;
 }
 
 void FullMicrocodedCPU::onDebuggingStarted()
@@ -208,7 +211,7 @@ void FullMicrocodedCPU::onResetCPU()
 {
     // Reset all internal state, but keep loaded micropgoram & breakpoints
     data->onClearCPU();
-    memory->clearErrors();
+    ACPUModel::memory->clearErrors();
     memoizer->clear();
     InterfaceMCCPU::reset();
     InterfaceISACPU::reset();
@@ -250,9 +253,9 @@ void FullMicrocodedCPU::onMCStep()
         emit asmInstructionFinished();
         asmInstructionCounter++;
         #pragma message("TODO: fix memoizer")
-        /*if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
+        if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
             qDebug().noquote().nospace() << memoizer->memoize();
-        }*/
+        }
 
     }
     // Upon entering an instruction that is going to trap

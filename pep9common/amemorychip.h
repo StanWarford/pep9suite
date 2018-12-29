@@ -29,11 +29,19 @@
  * Error thrown when a user attempts to write to readonly memory chips or
  * access a Nil chip.
  */
-class bad_chip_operation: public std::runtime_error{
+class bad_chip_write: public std::runtime_error{
 public:
-    explicit bad_chip_operation(const std::string& what_arg) : runtime_error(what_arg){
+    explicit bad_chip_write(const std::string& what_arg) : runtime_error(what_arg){
     }
-    explicit bad_chip_operation (const char* what_arg): runtime_error(what_arg){
+    explicit bad_chip_write (const char* what_arg): runtime_error(what_arg){
+    }
+};
+
+class io_aborted: public std::runtime_error{
+public:
+    explicit io_aborted(const std::string& what_arg) : runtime_error(what_arg){
+    }
+    explicit io_aborted (const char* what_arg): runtime_error(what_arg){
     }
 };
 
@@ -73,13 +81,13 @@ public:
         NONE = 0, READ = 1<<0, WRITE = 1<<1, MEMORY_MAPPED = 1<<2
     };
 
-    explicit AMemoryChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
+    explicit AMemoryChip(quint32 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~AMemoryChip();
 
     // Change the baseAddress of the chip to newAddress
     void setBaseAddress(quint16 newAddress);
     // Number of bytes contained by this chip
-    quint16 getSize() const;
+    quint32 getSize() const;
     // Location in main memory where this chip is inserted
     quint16 getBaseAddress() const;
     // Returns the abilities of the chip |'ed together.
@@ -107,7 +115,7 @@ public:
     virtual bool setWord(quint16 offsetFromBase, quint16 value);
 
 protected:
-    quint16 size, baseAddress;
+    quint32 size, baseAddress;
     //Helpers that throw a stylized error message for an out of bounds error message.
     [[noreturn]] void outOfBoundsReadHelper(quint16 offsetFromBase) const;
     [[noreturn]] void outOfBoundsWriteHelper(quint16 offsetFromBase, quint8 value);

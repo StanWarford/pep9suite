@@ -31,10 +31,10 @@
 #include <QGraphicsItem>
 
 #include <QDebug>
-#include "cpudatasection.h"
 #include "pep.h"
 
 #include "shapes_two_byte_data_bus.h"
+#include "newcpudata.h"
 
 void addLabelToScene(QLabel** labelLoc, QGraphicsScene *scene, QString name, const QRect& geometry)
 {
@@ -126,17 +126,16 @@ void addCheckToScene(QCheckBox** checkLoc, QGraphicsScene *scene,QString name, c
     scene->addWidget(*checkLoc);
 }
 
-CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, QWidget *widgetParent,
+CpuGraphicsItems::CpuGraphicsItems(NewCPUDataSection *dataSection, QWidget *widgetParent,
                                                    QGraphicsItem *itemParent,
                                                    QGraphicsScene *scene)
-    : QGraphicsItem(itemParent), labelVec(), editorVector(),
-      parent(widgetParent), parentScene(scene), dataSection(CPUDataSection::getInstance()),
+    : QGraphicsItem(itemParent), labelVec(), dataSection(dataSection), editorVector(),
+      parent(widgetParent), parentScene(scene),
       colorScheme(&PepColors::lightMode)
 {    
     // http://colrd.com/image-dna/23448/
 
     // save our current model for this set of items;
-    model = type;
     // ************************************
     // two byte exclusive stuff
     // ************************************
@@ -795,7 +794,7 @@ void CpuGraphicsItems::repaintAMuxSelect(QPainter *painter)
     if (ok) {
         switch (aMux) { // Decide to route through left or right value
         case 0:
-            if(dataSection->getCPUFeatures() == Enu::TwoByteDataBus) { // If using 2-byte cpu
+            if(dataSection->getCPUType() == Enu::TwoByteDataBus) { // If using 2-byte cpu
                 if(EOMuxTristateLabel->text() == "0"){ // Then AMux depends on EOMux
                     color = colorScheme->combCircuitGreen;
                     pal.setColor(QPalette::Background,colorScheme->muxCircuitGreen);

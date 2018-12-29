@@ -31,18 +31,17 @@
 namespace Ui {
     class MemoryDumpPane;
 }
-class CPUControlSection;
-class CPUDataSection;
-class MemorySection;
+class MainMemory;
+class ACPUModel;
 class MemoryDumpDelegate;
 class MemoryDumpPane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(MemoryDumpPane)
 public:
-    explicit MemoryDumpPane(QWidget *parent = 0);
+    explicit MemoryDumpPane(QWidget *parent = nullptr);
     // Needs to be called after construction but before this class can be used, otherwise the class is in an incomplete state.
-    void init(MemorySection *memorySection, CPUDataSection *dataSection, CPUControlSection* controlSection);
-    virtual ~MemoryDumpPane();
+    void init(QSharedPointer<MainMemory> memory, QSharedPointer<ACPUModel> cpu);
+    virtual ~MemoryDumpPane() override;
 
     void refreshMemory();
     // Post: the entire memory pane is refreshed
@@ -88,7 +87,7 @@ public slots:
     void onDarkModeChanged(bool darkMode);
 
     // Allow memory lines to be updated whenever an address is changed.
-    void onMemoryChanged(quint16 address, quint8, quint8);
+    void onMemoryChanged(quint16 address, quint8 newValue);
 
     void onSimulationStarted();
     void onSimulationFinished();
@@ -97,9 +96,8 @@ private:
     Ui::MemoryDumpPane *ui;
     quint32 lineSize;
     QStandardItemModel* data;
-    MemorySection *memorySection;
-    CPUDataSection *dataSection;
-    CPUControlSection *controlSection;
+    QSharedPointer<MainMemory> memDevice;
+    QSharedPointer<ACPUModel> cpu;
     MemoryDumpDelegate *delegate;
     const PepColors::Colors *colors;
     QList<quint16> highlightedData;
@@ -120,7 +118,7 @@ private:
         // Used to highlight/unhighlight individual bytes.
     void highlightByte(quint16 memAddr, QColor foreground, QColor background);
 
-    void mouseReleaseEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent *) override;
 
     void scrollToByte(quint16 byte);
 
@@ -137,11 +135,11 @@ private slots:
  */
 class MemoryDumpDelegate: public QStyledItemDelegate {
 private:
-    MemorySection* memorySection;
+    QSharedPointer<MainMemory> memDevice;
     bool canEdit;
 public:
-    MemoryDumpDelegate(MemorySection* memorySection, QObject* parent = 0);
-    virtual ~MemoryDumpDelegate();
+    MemoryDumpDelegate(QSharedPointer<MainMemory> memory, QObject* parent = nullptr);
+    virtual ~MemoryDumpDelegate() override;
     // See http://doc.qt.io/qt-5/qstyleditemdelegate.html#subclassing-qstyleditemdelegate for explanation on the methods being reimplemented.
 
     // If the index is editable, create an editor that validates byte hex constants, otherwise return nullptr

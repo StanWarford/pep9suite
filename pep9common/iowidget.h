@@ -6,17 +6,21 @@
 namespace Ui {
 class IOWidget;
 }
-class MemorySection;
+class MainMemory;
 class IOWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit IOWidget(QWidget *parent = 0);
+    explicit IOWidget(QWidget *parent = nullptr);
     ~IOWidget();
 
-    void bindToMemorySection(MemorySection* memory);
-    void batchInputToBuffer(); //Move batch input to MemorySection if needed;
+    // Address of character input / output devices MUST be set, otherwise IO will not work,
+    // and the program will probably crash.
+    void setInputChipAddress(quint16 address);
+    void setOutputChipAddress(quint16 address);
+    void bindToMemorySection(MainMemory* memory);
+    void batchInputToBuffer(); //Move batch input to AMemoryDevice if needed;
     bool isUndoable() const;
     bool isRedoable() const;
     int editActions() const;
@@ -27,10 +31,11 @@ signals:
 signals:
     void undoAvailable(bool b);
     void redoAvailable(bool b);
+    void inputReady(quint16 addr, quint8 val);
 
 public slots:
-    void onDataReceived(QChar data);
-    void onDataRequested();
+    void onDataReceived(quint16 address, QChar data);
+    void onDataRequested(quint16 address);
     void onSimulationStart();
     void onClear();
     void onFontChanged(QFont font);
@@ -44,10 +49,11 @@ public slots:
 private slots:
     void onSetRedoability(bool b);
     void onSetUndoability(bool b);
-
+    void onInputReady(QString value);
 private:
     Ui::IOWidget *ui;
-    MemorySection* memory;
+    MainMemory* memory;
+    quint16 iChipAddr, oChipAddr;
 
 };
 

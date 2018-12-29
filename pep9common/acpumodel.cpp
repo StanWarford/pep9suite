@@ -31,6 +31,11 @@ bool ACPUModel::getExecutionFinished() const
     return executionFinished;
 }
 
+int ACPUModel::getCallDepth() const
+{
+    return callDepth;
+}
+
 void ACPUModel::onClearMemory()
 {
     memory->clearErrors();

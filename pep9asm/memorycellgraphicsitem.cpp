@@ -22,7 +22,7 @@
 #include "memorycellgraphicsitem.h"
 #include "pep.h"
 #include <QPainter>
-#include "memorysection.h"
+#include "amemorydevice.h"
 // #include <QDebug>
 
 const int MemoryCellGraphicsItem::boxHeight = 22;
@@ -31,8 +31,8 @@ const int MemoryCellGraphicsItem::addressWidth = 48;
 const int MemoryCellGraphicsItem::symbolWidth = 96;
 const int MemoryCellGraphicsItem::bufferWidth = 14;
 
-MemoryCellGraphicsItem::MemoryCellGraphicsItem(const MemorySection *memorySection, int addr, QString sym,
-                                               Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc): memorySection(memorySection), x(xLoc), y(yLoc),
+MemoryCellGraphicsItem::MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int addr, QString sym,
+                                               Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc): memDevice(memDevice), x(xLoc), y(yLoc),
     address(addr), eSymbolFormat(eSymFrmt), boxColor(Qt::black), boxBgColor(Qt::white), textColor(Qt::black), boxTextColor(Qt::black)
 {
     if (sym.length() > 0 && sym.at(0).isDigit()) {
@@ -71,21 +71,28 @@ void MemoryCellGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphics
 
 void MemoryCellGraphicsItem::updateValue()
 {
+    quint8 byte;
+    quint16 word;
     switch (eSymbolFormat) {
     case Enu::ESymbolFormat::F_1C:
-        value = QString(QChar(memorySection->getMemoryByte(address, false)));
+        memDevice->getByte(byte, address);
+        value = QString(QChar(byte));
         break;
     case Enu::ESymbolFormat::F_1D:
-        value = QString("%1").arg(QChar(memorySection->getMemoryByte(address, false)));
+        memDevice->getByte(byte, address);
+        value = QString("%1").arg(QChar(byte));
         break;
     case Enu::ESymbolFormat::F_2D:
-        value = QString("%1").arg((qint16)memorySection->getMemoryWord(address, false));
+        memDevice->getWord(word, address);
+        value = QString("%1").arg(word);
         break;
     case Enu::ESymbolFormat::F_1H:
-        value = QString("%1").arg(memorySection->getMemoryByte(address, false), 2, 16, QLatin1Char('0')).toUpper();
+        memDevice->getByte(byte, address);
+        value = QString("%1").arg(byte, 2, 16, QLatin1Char('0')).toUpper();
         break;
     case Enu::ESymbolFormat::F_2H:
-        value = QString("%1").arg(memorySection->getMemoryWord(address, false), 4, 16, QLatin1Char('0')).toUpper();
+        memDevice->getWord(word, address);
+        value = QString("%1").arg(word, 4, 16, QLatin1Char('0')).toUpper();
         break;
     default:
         value = ""; // Should not occur

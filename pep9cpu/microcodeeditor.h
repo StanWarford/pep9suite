@@ -29,6 +29,7 @@ class QSize;
 class QWidget;
 class QSettings;
 
+class InterfaceMCCPU;
 class LineNumberArea;
 
 class MicrocodeEditor : public QPlainTextEdit
@@ -37,6 +38,8 @@ class MicrocodeEditor : public QPlainTextEdit
     friend class LineNumberArea;
 public:
     MicrocodeEditor(QWidget *parent = 0, bool highlightCurrentLine = true, bool isReadOnly = false);
+    // Must be called after object is constructed but before is is used
+    void init(QSharedPointer<InterfaceMCCPU> cpu);
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
@@ -59,6 +62,7 @@ private slots:
     void updateLineNumberArea(const QRect &, int);
     void onTextChanged();
 private:
+    QSharedPointer<InterfaceMCCPU> cpu;
     QWidget *lineNumberArea;
     const PepColors::Colors *colors;
     QMap<quint16, quint16> blockToCycle;

@@ -35,20 +35,19 @@
 #include "asmsourcecodepane.h"
 #include "ui_asmsourcecodepane.h"
 #include "asmcode.h"
-#include "memorysection.h"
 #include "pep.h"
 #include "colors.h"
 #include "asmprogram.h"
 #include "asmsourcecodepane.h"
 #include "asmprogrammanager.h"
-#include "memorysection.h"
+#include "mainmemory.h"
 #include "symbolentry.h"
 #include "symboltable.h"
 #include "symbolvalue.h"
-
+#include "mainmemory.h"
 AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::SourceCodePane), inDarkMode(false), currentFile(), currentProgram(nullptr), addressToIndex()
+        ui(new Ui::SourceCodePane), inDarkMode(false), currentFile(), currentProgram(nullptr), addressToIndex(), memDevice(nullptr)
 {
     ui->setupUi(this);
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this, &AsmSourceCodePane::setLabelToModified);
@@ -61,13 +60,13 @@ AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
     ui->textEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
 
-    connect(((AsmSourceTextEdit*)ui->textEdit), &AsmSourceTextEdit::breakpointAdded, this, &AsmSourceCodePane::onBreakpointAddedProp);
-    connect(((AsmSourceTextEdit*)ui->textEdit), &AsmSourceTextEdit::breakpointRemoved, this, &AsmSourceCodePane::onBreakpointRemovedProp);
+    connect(static_cast<AsmSourceTextEdit*>(ui->textEdit), &AsmSourceTextEdit::breakpointAdded, this, &AsmSourceCodePane::onBreakpointAddedProp);
+    connect(static_cast<AsmSourceTextEdit*>(ui->textEdit), &AsmSourceTextEdit::breakpointRemoved, this, &AsmSourceCodePane::onBreakpointRemovedProp);
 }
 
-void AsmSourceCodePane::init(MemorySection *memorySection, AsmProgramManager *manager)
+void AsmSourceCodePane::init(QSharedPointer<MainMemory> memDevice, AsmProgramManager *manager)
 {
-    this->memorySection = memorySection;
+    this->memDevice = memDevice;
     programManager = manager;
 }
 
@@ -95,11 +94,13 @@ bool AsmSourceCodePane::assemble()
     //Insert CharIn CharOut
     QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
     #pragma message ("handle input and output when not using BURN at FFFF")
-    QSharedPointer<SymbolValueNumeric>::create(MemorySection::getInstance()->getMemoryWord(0xFFF8, false));
+    quint16 chin, chout;
+    memDevice->getWord(chin, 0xFFF8);
+    memDevice->getWord(chout, 0xFFFA);
     symTable->insertSymbol("charIn");
-    symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(MemorySection::getInstance()->getMemoryWord(0xFFF8, false)));
+    symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(chin));
     symTable->insertSymbol("charOut");
-    symTable->setValue("charOut", QSharedPointer<SymbolValueNumeric>::create(MemorySection::getInstance()->getMemoryWord(0xFFFA, false)));
+    symTable->setValue("charOut", QSharedPointer<SymbolValueNumeric>::create(chout));
     QString sourceCode = ui->textEdit->toPlainText();
     sourceCodeList = sourceCode.split('\n');
     int byteCount = 0;
@@ -439,26 +440,26 @@ void AsmSourceCodePane::onDarkModeChanged(bool darkMode)
     inDarkMode = darkMode;
     if(darkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
     else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
-    ((AsmSourceTextEdit*)ui->textEdit)->onDarkModeChanged(darkMode);
+    static_cast<AsmSourceTextEdit*>(ui->textEdit)->onDarkModeChanged(darkMode);
     pepHighlighter->rehighlight();
 }
 
 void AsmSourceCodePane::onRemoveAllBreakpoints()
 {
-    ((AsmSourceTextEdit*)ui->textEdit)->onRemoveAllBreakpoints();
+    static_cast<AsmSourceTextEdit*>(ui->textEdit)->onRemoveAllBreakpoints();
 }
 
 void AsmSourceCodePane::onBreakpointAdded(quint16 address)
 {
     if(addressToIndex.contains(address)) {
-        ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointAdded(addressToIndex[address]);
+        static_cast<AsmSourceTextEdit*>(ui->textEdit)->onBreakpointAdded(addressToIndex[address]);
     }
 }
 
 void AsmSourceCodePane::onBreakpointRemoved(quint16 address)
 {
     if(addressToIndex.contains(address)) {
-        ((AsmSourceTextEdit*)ui->textEdit)->onBreakpointRemoved(addressToIndex[address]);
+        static_cast<AsmSourceTextEdit*>(ui->textEdit)->onBreakpointRemoved(addressToIndex[address]);
     }
 }
 
@@ -519,8 +520,8 @@ void AsmSourceTextEdit::breakpointAreaPaintEvent(QPaintEvent *event)
     int blockNumber, top, bottom;
     block = firstVisibleBlock();
     blockNumber = block.blockNumber();
-    top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
-    bottom = top + (int) blockBoundingRect(block).height();
+    top = static_cast<int>( blockBoundingGeometry(block).translated(contentOffset()).top());
+    bottom = top + static_cast<int>( blockBoundingRect(block).height());
     // Store painter's previous Antialiasing hint so it can be restored at the end
     bool antialias = painter.renderHints() & QPainter::Antialiasing;
     painter.setRenderHint(QPainter::Antialiasing, true);
@@ -537,7 +538,7 @@ void AsmSourceTextEdit::breakpointAreaPaintEvent(QPaintEvent *event)
         }
         block = block.next();
         top = bottom;
-        bottom = top + (int) blockBoundingRect(block).height();
+        bottom = top + static_cast<int>(blockBoundingRect(block).height());
         ++blockNumber;
     }
     painter.setRenderHint(QPainter::Antialiasing, antialias);
@@ -554,8 +555,8 @@ void AsmSourceTextEdit::breakpointAreaMousePress(QMouseEvent *event)
     int blockNumber, top, bottom, lineNumber;
     block = firstVisibleBlock();
     blockNumber = block.blockNumber();
-    top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
-    bottom = top + (int) blockBoundingRect(block).height();
+    top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
+    bottom = top + static_cast<int>(blockBoundingRect(block).height());
     // For each visible block (usually a line), iterate until the current block contains the location of the mouse event.
     while (block.isValid() && top <= event->pos().y()) {
         if (event->pos().y()>=top && event->pos().y()<=bottom) {
@@ -578,7 +579,7 @@ void AsmSourceTextEdit::breakpointAreaMousePress(QMouseEvent *event)
 
         block = block.next();
         top = bottom;
-        bottom = top + (int) blockBoundingRect(block).height();
+        bottom = top + static_cast<int>(blockBoundingRect(block).height());
         ++blockNumber;
     }
     update();

@@ -75,7 +75,8 @@ void FullMicrocodedMemoizer::storeStateInstrStart()
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::NONE:
-        registers.regState.reg_PC_start = cpu.getCPURegWordStart(Enu::CPURegisters::PC);
+        registers.regState.reg_PC_start = cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
+        registers.regState.reg_IS_start = cpu.getCPURegByteCurrent(Enu::CPURegisters::IS);
         break;
     }
 }
@@ -155,7 +156,8 @@ void FullMicrocodedMemoizer::setDebugLevel(Enu::DebugLevels level)
 
 quint8 FullMicrocodedMemoizer::getRegisterByteStart(Enu::CPURegisters reg) const
 {
-    throw std::runtime_error("Method not implemented");
+    if(reg != Enu::CPURegisters::IS) throw -1; // Attempted to access register that was not cached
+    else return registers.regState.reg_IS_start;
 }
 
 quint16 FullMicrocodedMemoizer::getRegisterWordStart(Enu::CPURegisters reg) const
@@ -166,7 +168,7 @@ quint16 FullMicrocodedMemoizer::getRegisterWordStart(Enu::CPURegisters reg) cons
     }
     if(reg != Enu::CPURegisters::PC) assert(false); // Attempted to access register that was not cached
     else return registers.regState.reg_PC_start;
-    return -1;
+    throw -1;
 }
 
 bool FullMicrocodedMemoizer::getStatusBitStart(Enu::EStatusBit bit) const

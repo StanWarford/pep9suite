@@ -34,14 +34,14 @@
 namespace Ui {
     class CpuPane;
 }
-class CPUControlSection;
-class CPUDataSection;
+class InterfaceMCCPU;
 class MainWindow;
+class NewCPUDataSection;
 class CpuPane : public QWidget {
     Q_OBJECT
 public:
-    explicit CpuPane(QWidget *parent = 0);
-    void init(MainWindow* mainWindow);
+    explicit CpuPane(QWidget *parent = nullptr);
+    void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> dataSection);
     ~CpuPane();
 
     void highlightOnFocus();
@@ -69,15 +69,14 @@ public:
 
 protected:
     void changeEvent(QEvent *e);
-    CPUControlSection* controlSection;
-    CPUDataSection* dataSection;
+    QSharedPointer<InterfaceMCCPU> cpu;
+    QSharedPointer<NewCPUDataSection> dataSection;
     QGraphicsScene *scene;
 
     CpuGraphicsItems *cpuPaneItems;
 
 private:
     Ui::CpuPane *ui;
-    MainWindow* mainWindow;
     void initRegisters();
 
 protected slots:

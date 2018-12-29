@@ -48,8 +48,6 @@ HEADERS += \
     addrmodedialog.h \
     addrmodewidget.h \
     asmtracepane.h \
-    cpucontrolsection.h \
-    cpumemoizer.h \
     cpupane.h \
     helpdialog.h \
     mainwindow.h \
@@ -61,8 +59,6 @@ SOURCES += \
     addrmodedialog.cpp \
     addrmodewidget.cpp \
     asmtracepane.cpp \
-    cpucontrolsection.cpp \
-    cpumemoizer.cpp \
     cpupane.cpp \
     helpdialog.cpp \
     main.cpp \

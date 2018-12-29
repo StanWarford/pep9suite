@@ -36,15 +36,17 @@ class ByteConverterChar;
 class ByteConverterDec;
 class ByteConverterHex;
 class ByteConverterInstr;
-class CPUControlSection;
-class CPUDataSection;
 class CpuPane;
 class HelpDialog;
-class MemorySection;
 class MicrocodePane;
 class MicroObjectCodePane;
 class UpdateChecker;
 class QActionGroup;
+
+//WIP classes
+class FullMicrocodedCPU;
+class NewCPUDataSection;
+class MainMemory;
 #pragma message("TODO: Type up debugger FSM")
 /*
  * The set of possible states for the debugger.
@@ -85,13 +87,13 @@ private:
     ByteConverterHex *byteConverterHex;
     ByteConverterInstr *byteConverterInstr;
     // Main Memory
+    QSharedPointer<MainMemory> memDevice;
+    QSharedPointer<FullMicrocodedCPU> controlSection;
+    QSharedPointer<NewCPUDataSection> dataSection;
 
     HelpDialog *helpDialog;
     AboutPep *aboutPepDialog;
 
-    MemorySection* memorySection;
-    CPUDataSection* dataSection;
-    CPUControlSection* controlSection;
     AsmProgramManager* programManager;
 
     QActionGroup* statisticsLevelsGroup;
@@ -226,9 +228,6 @@ private slots:
     // Executes a single line of microcode, which is the behavior of Pep/9CPU
     void on_actionDebug_Single_Step_Microcode_triggered();
 
-    void onMicroBreakpointHit();
-    void onASMBreakpointHit();
-
     // System
     void on_actionSystem_Clear_CPU_triggered();
     void on_actionSystem_Clear_Memory_triggered();
@@ -274,11 +273,17 @@ private slots:
     void onInputRequested();
     void onInputReceived();
 
+    // Handle a breakpoint in the model, and determine the correct handler based
+    // on breakpoint type.
+    void onBreakpointHit(Enu::BreakpointTypes type);
 private:
     // Helper function for onInputReceived(...) that
     // reenables any disabled window components after IO completion,
     // with no other side effects.
     void reenableUIAfterInput();
+    // Helpers to seperate breakpoint logic
+    void onMicroBreakpointHit();
+    void onASMBreakpointHit();
 signals:
     void beginUpdateCheck();
     // Emitted once when a simulation is begun

@@ -24,14 +24,13 @@
 #include <QVector>
 
 #include "amemorychip.h"
-
 /*
  * Memory Chip that is hardwired to 0. Useful as a filler.
  */
 class ConstChip : public AMemoryChip {
     Q_OBJECT
 public:
-    explicit ConstChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
+    explicit ConstChip(quint32 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~ConstChip() override;
 
     // AMemoryChip interface
@@ -51,7 +50,7 @@ public:
 class NilChip: public AMemoryChip {
     Q_OBJECT
 public:
-    explicit NilChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
+    explicit NilChip(quint32 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~NilChip() override;
 
     // AMemoryChip interface
@@ -72,9 +71,9 @@ public:
 class InputChip : public AMemoryChip {
     Q_OBJECT
     mutable QVector<quint8> memory;
-    mutable bool inputRequestCanceled, waiting;
+    mutable QVector<bool> waiting, requestCanceled, requestAborted;
 public:
-    explicit InputChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
+    explicit InputChip(quint32 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~InputChip() override;
 
     // AMemoryChip interface
@@ -87,16 +86,18 @@ public:
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
     bool getByte(quint8& output, quint16 offsetFromBase) const override;
     bool setByte(quint16 offsetFromBase, quint8 value) override;
+    bool waitingForInput(quint16 offsetFromBase) const;
 
-    bool waitingForInput() const;
 signals:
     void inputRequested(quint16 address) const;
 
 public slots:
     // Called when input is successfully received
     void onInputReceived(quint16 offsetFromBase, quint8 value);
-    // Called when input is not received or otherwise canceled
-    void onInputCanceled();
+    // Called when input is no longer needed
+    void onInputCanceled(quint16 offsetFromBase);
+    // Called when input is requested, but cannot be served
+    void onInputAborted(quint16 offsetFromBase);
 };
 
 /*
@@ -106,7 +107,7 @@ class OutputChip : public AMemoryChip {
     Q_OBJECT
     QVector<quint8> memory;
 public:
-    explicit OutputChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
+    explicit OutputChip(quint32 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~OutputChip() override;
 
     // AMemoryChip interface
@@ -131,7 +132,7 @@ class RAMChip : public AMemoryChip {
     Q_OBJECT
     QVector<quint8> memory;
 public:
-    explicit RAMChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
+    explicit RAMChip(quint32 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~RAMChip() override;
 
     // AMemoryChip interface
@@ -152,7 +153,7 @@ class ROMChip : public AMemoryChip {
     Q_OBJECT
     QVector<quint8> memory;
 public:
-    explicit ROMChip(quint16 size, quint16 baseAddress, QObject *parent = nullptr);
+    explicit ROMChip(quint32 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~ROMChip() override;
 
     // AMemoryChip interface

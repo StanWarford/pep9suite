@@ -21,8 +21,6 @@
 
 #include "cpupane.h"
 #include "ui_cpupane.h"
-#include "cpucontrolsection.h"
-#include "cpudatasection.h"
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QGraphicsItem>
@@ -32,38 +30,41 @@
 #include <QWebEngineView>
 #include <QScrollBar>
 
+#include "amccpumodel.h"
 #include "tristatelabel.h"
 #include "pep.h"
 #include "microcode.h"
 #include "mainwindow.h"
-
+#include "newcpudata.h"
 using namespace Enu;
 CpuPane::CpuPane( QWidget *parent) :
         QWidget(parent),
-        controlSection(CPUControlSection::getInstance()),dataSection(CPUDataSection::getInstance()),
-        ui(new Ui::CpuPane)
+        cpu(nullptr), dataSection(nullptr),
+        ui(new Ui::CpuPane), cpuPaneItems(nullptr)
 {
     ui->setupUi(this);
     connect(ui->spinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CpuPane::zoomFactorChanged);
-    cpuPaneItems = nullptr;
     scene = new QGraphicsScene(nullptr);
     ui->graphicsView->setScene(scene);
 
     ui->graphicsView->setFont(QFont(Pep::cpuFont, Pep::cpuFontSize));
 
-    initModel();
-
     ui->spinBox->hide();
     ui->graphicsView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
 
-    // Give this class a larger acceptable size range, so that it will behave better in a splitter
-    this->setMinimumWidth(static_cast<int>(cpuPaneItems->boundingRect().left())+100);
-    this->setMaximumWidth(static_cast<int>(cpuPaneItems->boundingRect().right())+45);
+
 }
 
-void CpuPane::init(MainWindow *mainWindow)
+void CpuPane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> dataSection)
 {
-    this->mainWindow = mainWindow;
+    this->cpu = cpu;
+    this->dataSection = dataSection;
+    initModel();
+    this->setMinimumWidth(static_cast<int>(cpuPaneItems->boundingRect().left())+100);
+    qDebug() << static_cast<int>(cpuPaneItems->boundingRect().right())+45;
+    this->setMaximumWidth(static_cast<int>(cpuPaneItems->boundingRect().right())+45);
+    // Give this class a larger acceptable size range, so that it will behave better in a splitter
+
 }
 
 CpuPane::~CpuPane()
@@ -93,7 +94,7 @@ void CpuPane::giveFocus()
 
 void CpuPane::initModel()
 {
-    cpuPaneItems = new CpuGraphicsItems(Enu::TwoByteDataBus, ui->graphicsView, 0, scene);
+    cpuPaneItems = new CpuGraphicsItems(dataSection.get(), ui->graphicsView, nullptr, scene);
     ui->graphicsView->scene()->addItem(cpuPaneItems);
 
     ui->graphicsView->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -201,17 +202,15 @@ void CpuPane::initModel()
 void CpuPane::startDebugging()
 {
     initRegisters();
-    controlSection->onDebuggingStarted();
     ui->clockPushButton->setEnabled(false);
     ui->copyToMicrocodePushButton->setEnabled(false);
-    const MicroCode *code = controlSection->getCurrentMicrocodeLine();
+    const MicroCode *code = cpu->getCurrentMicrocodeLine();
     code->setCpuLabels(cpuPaneItems);
     emit updateSimulation();
 }
 
 void CpuPane::stopDebugging()
 {
-    controlSection->onDebuggingFinished();
     ui->clockPushButton->setEnabled(true);
     ui->copyToMicrocodePushButton->setEnabled(true);
 }
@@ -349,8 +348,8 @@ void CpuPane::setRegisterByte(quint8 reg, quint8 value)
 void CpuPane::initRegisters()
 {
     //Set register bank
-    for(int it=0;it<22;it++){
-        setRegisterByte(it,dataSection->getRegisterBankByte(it));
+    for(int it = 0 ;it < 22; it++) {
+        setRegisterByte(it, dataSection->getRegisterBankByte(it));
     }
 
     //Set status bits
@@ -661,10 +660,10 @@ void CpuPane::labelClicked()
 void CpuPane::clockButtonPushed()
 {
     QString errorString;
-    controlSection->onClock();
-    if (controlSection->hadErrorOnStep()) {
+    cpu->onClock();
+    if (dataSection->hadErrorOnStep()) {
         // simulation had issues.
-        QMessageBox::warning(0, "Pep/9", controlSection->getErrorMessage());
+        QMessageBox::warning(0, "Pep/9", dataSection->getErrorMessage());
         emit stopSimulation();
     }
     scene->invalidate();
@@ -673,7 +672,7 @@ void CpuPane::clockButtonPushed()
 
 void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
 {
-    MicroCode code;
+    MicroCode code(dataSection->getCPUType());
     if (cpuPaneItems->loadCk->isChecked()) {
         code.setClockSingal(Enu::LoadCk, 1);
     }
@@ -948,7 +947,7 @@ void CpuPane::onSimulationUpdate()
     setStatusBit(Enu::V, dataSection->getStatusBit(Enu::STATUS_V));
     setStatusBit(Enu::Cbit, dataSection->getStatusBit(Enu::STATUS_C));
     setStatusBit(Enu::S, dataSection->getStatusBit(Enu::STATUS_S));
-    const MicroCodeBase *code = controlSection->getCurrentMicrocodeLine();
+    const MicroCodeBase *code = cpu->getCurrentMicrocodeLine();
     code->setCpuLabels(cpuPaneItems);
     update();
 }
