@@ -38,8 +38,8 @@ QRegExp MicroAsm::rxComment("^//.*");
 QRegExp MicroAsm::rxDigit("^[0-9]+");
 QRegExp MicroAsm::rxIdentifier("^((([A-Z|a-z]{1})(\\w*))(:){0,1})");
 QRegExp MicroAsm::rxHexConst("^((0(?![x|X]))|((0)([x|X])([0-9|A-F|a-f])+)|((0)([0-9]+)))");
-MicroAsm::MicroAsm(QSharedPointer<AMemoryDevice> memory, Enu::CPUType type, bool useExtendedFeatures): memDevice(memory), cpuType(type),
-    useExt(useExtendedFeatures)
+MicroAsm::MicroAsm(QSharedPointer<AMemoryDevice> memory, Enu::CPUType type, bool useExtendedFeatures): cpuType(type),
+    useExt(useExtendedFeatures), memDevice(memory)
 {
 
 }
@@ -181,6 +181,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
             return false;
         }
 #pragma message("TODO: make error messages more informative.")
+#pragma message("TODO: consistent error punctuation.")
         if(!useExt) {
             if(extendedTokens.contains(token)) {
                 errorString = "// ERROR: A control flow / symbol token was hit. These have been disabled.";
@@ -315,19 +316,20 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
 
         case MicroAsm::PS_DEC_CONTROL:
             if (token == MicroAsm::LT_DIGIT) {
-                if (microCode->hasControlSignal((Enu::EControlSignals)localEnumMnemonic)) {
+                if (microCode->hasControlSignal(static_cast<Enu::EControlSignals>(localEnumMnemonic))) {
                     errorString = "// ERROR: Duplicate control signal, " + localIdentifier;
                     delete code;
                     return false;
                 }
                 bool ok;
                 localValue = tokenString.toInt(&ok);
-                if (!microCode->inRange((Enu::EControlSignals)localEnumMnemonic, localValue)) {
+                if (!microCode->inRange(static_cast<Enu::EControlSignals>(localEnumMnemonic), localValue)) {
                     errorString = "// ERROR: Value " + QString("%1").arg(localValue) + " is out of range for " + localIdentifier;
                     delete code;
                     return false;
                 }
-                microCode->setControlSignal((Enu::EControlSignals)localEnumMnemonic, localValue);
+                microCode->setControlSignal(static_cast<Enu::EControlSignals>(localEnumMnemonic),
+                                            static_cast<quint8>(localValue));
                 state = MicroAsm::PS_CONTINUE_PRE_SEMICOLON;
             }
             else {
@@ -362,7 +364,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
             if (token == MicroAsm::LT_IDENTIFIER) {
                 if (Pep::mnemonToDecControlMap.contains(tokenString.toUpper())) {
                     localEnumMnemonic = Pep::mnemonToDecControlMap.value(tokenString.toUpper());
-                    if (microCode->hasControlSignal((Enu::EControlSignals)localEnumMnemonic)) {
+                    if (microCode->hasControlSignal(static_cast<Enu::EControlSignals>(localEnumMnemonic))) {
                         errorString = "// ERROR: Duplicate control signal, " + tokenString;
                         delete code;
                         return false;
@@ -372,22 +374,24 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 }
                 else if (Pep::mnemonToMemControlMap.contains(tokenString.toUpper())) {
                     localEnumMnemonic = Pep::mnemonToMemControlMap.value(tokenString.toUpper());
-                    if (microCode->hasControlSignal((Enu::EControlSignals)localEnumMnemonic)) {
+                    if (microCode->hasControlSignal(static_cast<Enu::EControlSignals>(localEnumMnemonic))) {
                         errorString = "// ERROR: Duplicate control signal, " + tokenString;
                         delete code;
                         return false;
                     }
-                    if (localEnumMnemonic == Enu::MemRead && microCode->hasControlSignal((Enu::EControlSignals)Enu::MemWrite)) {
+                    if (localEnumMnemonic == Enu::MemRead
+                            && microCode->hasControlSignal(static_cast<Enu::EControlSignals>(localEnumMnemonic))) {
                         errorString = "// ERROR: MemRead not allowed with MemWrite";
                         delete code;
                         return false;
                     }
-                    if (localEnumMnemonic == Enu::MemWrite && microCode->hasControlSignal((Enu::EControlSignals)Enu::MemRead)) {
+                    if (localEnumMnemonic == Enu::MemWrite
+                            && microCode->hasControlSignal(static_cast<Enu::EControlSignals>(localEnumMnemonic))) {
                         errorString = "// ERROR: MemWrite not allowed with MemRead";
                         delete code;
                         return false;
                     }
-                    microCode->setControlSignal((Enu::EControlSignals)localEnumMnemonic, 1);
+                    microCode->setControlSignal(static_cast<Enu::EControlSignals>(localEnumMnemonic), 1);
                     state = MicroAsm::PS_CONTINUE_PRE_SEMICOLON;
                 }
                 else if (Pep::mnemonToClockControlMap.contains(tokenString.toUpper())) {
@@ -431,12 +435,12 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
             if (token == MicroAsm::LT_IDENTIFIER) {
                 if (Pep::mnemonToClockControlMap.contains(tokenString.toUpper())) {
                     localEnumMnemonic = Pep::mnemonToClockControlMap.value(tokenString.toUpper());
-                    if (microCode->hasClockSignal((Enu::EClockSignals)localEnumMnemonic)) {
+                    if (microCode->hasClockSignal(static_cast<Enu::EClockSignals>(localEnumMnemonic))) {
                         errorString = "// ERROR: Duplicate clock signal, " + tokenString;
                         delete code;
                         return false;
                     }
-                    microCode->setClockSingal((Enu::EClockSignals)localEnumMnemonic, 1);
+                    microCode->setClockSingal(static_cast<Enu::EClockSignals>(localEnumMnemonic), 1);
                     state = MicroAsm::PS_CONTINUE_POST_SEMICOLON;
                 }
                 else if (Pep::mnemonToDecControlMap.contains(tokenString.toUpper())) {
@@ -640,7 +644,8 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 state = MicroAsm::PS_EXPECT_REG_VALUE;
             }
             else {
-                errorString = "// ERROR: Expected = after " + Pep::regSpecToMnemonMap.value((Enu::ECPUKeywords)localEnumMnemonic);
+                errorString = "// ERROR: Expected = after " +
+                        Pep::regSpecToMnemonMap.value(static_cast<Enu::ECPUKeywords>(localEnumMnemonic));
                 delete code;
                 return false;
             }
@@ -667,10 +672,12 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                     return false;
                 }
                 if (processingPrecondition) {
-                    preconditionCode->appendSpecification(new RegSpecification((Enu::ECPUKeywords)localEnumMnemonic, localValue));
+                    preconditionCode->appendSpecification(
+                                new RegSpecification(static_cast<Enu::ECPUKeywords>(localEnumMnemonic), localValue));
                 }
                 else {
-                    postconditionCode->appendSpecification(new RegSpecification((Enu::ECPUKeywords)localEnumMnemonic, localValue));
+                    postconditionCode->appendSpecification(
+                                new RegSpecification(static_cast<Enu::ECPUKeywords>(localEnumMnemonic), localValue));
                 }
                 state = MicroAsm::PS_EXPECT_SPEC_COMMA;
             }
@@ -686,7 +693,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                 state = MicroAsm::PS_EXPECT_STATUS_VALUE;
             }
             else {
-                errorString = "// ERROR: Expected = after " + Pep::statusSpecToMnemonMap.value((Enu::ECPUKeywords)localEnumMnemonic);
+                errorString = "// ERROR: Expected = after " + Pep::statusSpecToMnemonMap.value(static_cast<Enu::ECPUKeywords>(localEnumMnemonic));
                 delete code;
                 return false;
             }
@@ -702,10 +709,12 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, Micr
                     return false;
                 }
                 if (processingPrecondition) {
-                    preconditionCode->appendSpecification(new StatusBitSpecification((Enu::ECPUKeywords)localEnumMnemonic, localValue == 1));
+                    preconditionCode->appendSpecification(
+                                new StatusBitSpecification(static_cast<Enu::ECPUKeywords>(localEnumMnemonic), localValue == 1));
                 }
                 else {
-                    postconditionCode->appendSpecification(new StatusBitSpecification((Enu::ECPUKeywords)localEnumMnemonic, localValue == 1));
+                    postconditionCode->appendSpecification(
+                                new StatusBitSpecification(static_cast<Enu::ECPUKeywords>(localEnumMnemonic), localValue == 1));
                 }
                 state = MicroAsm::PS_EXPECT_SPEC_COMMA;
             }

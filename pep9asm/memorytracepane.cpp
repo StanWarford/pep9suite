@@ -82,7 +82,7 @@ void MemoryTracePane::setMemoryTrace()
     globalLocation = QPointF(0, 0);
     heapLocation = QPointF(400, 0 - MemoryCellGraphicsItem::boxHeight);
     QString blockSymbol;
-    int multiplier;
+    //int multiplier;
 
     // Globals:
     /*for (int i = 0; i < Pep::blockSymbols.size(); i++) {
@@ -318,12 +318,12 @@ void MemoryTracePane::cacheStackChanges()
         return;
     }*/
 
-    int multiplier = 0;
-    int bytesPerCell = 0;
-    int offset = 0;
-    int numCellsToAdd = 0;
-    int frameSizeToAdd = 0;
-    QString stackSymbol;
+    //int multiplier = 0;
+    //int bytesPerCell = 0;
+    //int offset = 0;
+    //int numCellsToAdd = 0;
+    //int frameSizeToAdd = 0;
+    //QString stackSymbol;
 
     /*switch (Pep::decodeMnemonic[Sim::instructionSpecifier]) {
     case Enu::CALL:

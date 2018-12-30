@@ -211,7 +211,7 @@ void IOWidget::onDataReceived(quint16 address, QChar data)
     }
 }
 
-void IOWidget::onDataRequested(quint16 address)
+void IOWidget::onDataRequested(quint16 /*address*/)
 {
     switch(ui->tabWidget->currentIndex())
     {

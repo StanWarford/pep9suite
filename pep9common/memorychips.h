@@ -34,13 +34,13 @@ public:
     virtual ~ConstChip() override;
 
     // AMemoryChip interface
-    IOFunctions getIOFunctions() const override;
-    ChipTypes getChipType() const override;
-    void clear() override;
+    IOFunctions getIOFunctions() const noexcept override;
+    ChipTypes getChipType() const noexcept override;
+    void clear() noexcept override;
 
-    bool readByte(quint8& output, quint16 offsetFromBase) const override;
+    bool readByte(quint16 offsetFromBase, quint8 &output) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
-    bool getByte(quint8& output, quint16 offsetFromBase) const override;
+    bool getByte(quint16 offsetFromBase, quint8 &output) const override;
     bool setByte(quint16 offsetFromBase, quint8 value) override;
 };
 
@@ -54,14 +54,14 @@ public:
     virtual ~NilChip() override;
 
     // AMemoryChip interface
-    IOFunctions getIOFunctions() const override;
-    ChipTypes getChipType() const override;
-    void clear() override;
-    bool isCachable() const override;
+    IOFunctions getIOFunctions() const noexcept override;
+    ChipTypes getChipType() const noexcept override;
+    void clear() noexcept override;
+    bool isCachable() const noexcept override;
 
-    bool readByte(quint8 &output, quint16 offsetFromBase) const override;
+    bool readByte(quint16 offsetFromBase, quint8 &output) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
-    bool getByte(quint8 &output, quint16 offsetFromBase) const override;
+    bool getByte(quint16 offsetFromBase, quint8 &output) const override;
     bool setByte(quint16 offsetFromBase, quint8 value) override;
 };
 
@@ -77,14 +77,14 @@ public:
     virtual ~InputChip() override;
 
     // AMemoryChip interface
-    IOFunctions getIOFunctions() const override;
-    ChipTypes getChipType() const override;
-    void clear() override;
-    bool isCachable() const override;
+    IOFunctions getIOFunctions() const noexcept override;
+    ChipTypes getChipType() const noexcept override;
+    void clear() noexcept override;
+    bool isCachable() const noexcept override;
 
-    bool readByte(quint8& output, quint16 offsetFromBase) const override;
+    bool readByte(quint16 offsetFromBase, quint8 &output) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
-    bool getByte(quint8& output, quint16 offsetFromBase) const override;
+    bool getByte(quint16 offsetFromBase, quint8 &output) const override;
     bool setByte(quint16 offsetFromBase, quint8 value) override;
     bool waitingForInput(quint16 offsetFromBase) const;
 
@@ -111,14 +111,14 @@ public:
     virtual ~OutputChip() override;
 
     // AMemoryChip interface
-    IOFunctions getIOFunctions() const override;
-    ChipTypes getChipType() const override;
-    void clear() override;
-    bool isCachable() const override;
+    IOFunctions getIOFunctions() const noexcept override;
+    ChipTypes getChipType() const noexcept override;
+    void clear() noexcept override;
+    bool isCachable() const noexcept override;
 
-    bool readByte(quint8 &output, quint16 offsetFromBase) const override;
+    bool readByte(quint16 offsetFromBase, quint8 &output) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
-    bool getByte(quint8 &output, quint16 offsetFromBase) const override;
+    bool getByte(quint16 offsetFromBase, quint8 &output) const override;
     bool setByte(quint16 offsetFromBase, quint8 value) override;
 
 signals:
@@ -136,13 +136,13 @@ public:
     virtual ~RAMChip() override;
 
     // AMemoryChip interface
-    IOFunctions getIOFunctions() const override;
-    ChipTypes getChipType() const override;
-    void clear() override;
+    IOFunctions getIOFunctions() const noexcept override;
+    ChipTypes getChipType() const noexcept override;
+    void clear() noexcept override;
 
-    bool readByte(quint8 &output, quint16 offsetFromBase) const override;
+    bool readByte(quint16 offsetFromBase, quint8 &output) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
-    bool getByte(quint8 &output, quint16 offsetFromBase) const override;
+    bool getByte(quint16 offsetFromBase, quint8 &output) const override;
     bool setByte(quint16 offsetFromBase, quint8 value) override;
 };
 
@@ -157,13 +157,13 @@ public:
     virtual ~ROMChip() override;
 
     // AMemoryChip interface
-    IOFunctions getIOFunctions() const override;
-    ChipTypes getChipType() const override;
-    void clear() override;
+    IOFunctions getIOFunctions() const noexcept override;
+    ChipTypes getChipType() const noexcept override;
+    void clear() noexcept override;
 
-    bool readByte(quint8 &output, quint16 offsetFromBase) const override;
+    bool readByte(quint16 offsetFromBase, quint8 &output) const override;
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
-    bool getByte(quint8 &output, quint16 offsetFromBase) const override;
+    bool getByte(quint16 offsetFromBase, quint8 &output) const override;
     bool setByte(quint16 offsetFromBase, quint8 value) override;
 };
 

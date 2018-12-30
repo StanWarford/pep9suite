@@ -30,17 +30,23 @@ MemSpecification::MemSpecification(AMemoryDevice* mem, int memoryAddress, int me
     memValue(memoryValue), numBytes(numberBytes) {
 }
 
-void MemSpecification::setUnitPre(NewCPUDataSection *data)
+void MemSpecification::setUnitPre(NewCPUDataSection *)
 {
     if(numBytes == 1) {
         memDevice->setByte(static_cast<quint16>(memAddress), static_cast<quint8>(memValue));
     }
     else {
-        memDevice->setByte(static_cast<quint16>(memAddress), static_cast<quint16>(memValue));
+        int temp = memValue;
+        for(int it = 0; it < numBytes; it++) {
+            // Treat the low order byte of temp as the value at it
+            memDevice->setByte(static_cast<quint16>(memAddress + it), static_cast<quint8>(temp & 0xff));
+            // Performa a logical shift left by 8.
+            temp /= 256;
+        }
     }
 }
 
-bool MemSpecification::testUnitPost(NewCPUDataSection *data, QString &errorString)
+bool MemSpecification::testUnitPost(NewCPUDataSection *, QString &errorString)
 {
     bool retVal;
     quint8 byte;
@@ -81,53 +87,53 @@ void RegSpecification::setUnitPre(NewCPUDataSection *data)
     switch(regAddress)
     {
     case Enu::Acc:
-        data->onSetRegisterWord(0,regValue);
+        data->onSetRegisterWord(0, static_cast<quint16>(regValue));
         break;
     case Enu::X:
-        data->onSetRegisterWord(2,regValue);
+        data->onSetRegisterWord(2, static_cast<quint16>(regValue));
         break;
     case Enu::SP:
-        data->onSetRegisterWord(4,regValue);
+        data->onSetRegisterWord(4, static_cast<quint16>(regValue));
         break;
     case Enu::PC:
-        data->onSetRegisterWord(6,regValue);
+        data->onSetRegisterWord(6, static_cast<quint16>(regValue));
         break;
     case Enu::IR:
-        data->onSetRegisterWord(8,regValue/256);
-        data->onSetRegisterByte(10,regValue%256);
+        data->onSetRegisterWord(8, static_cast<quint16>(regValue/256));
+        data->onSetRegisterByte(10, static_cast<quint8>(regValue%256));
         break;
     case Enu::T1:
-        data->onSetRegisterByte(11,regValue);
+        data->onSetRegisterByte(11, static_cast<quint8>(regValue));
         break;
     case Enu::T2:
-        data->onSetRegisterWord(12,regValue);
+        data->onSetRegisterWord(12, static_cast<quint16>(regValue));
         break;
     case Enu::T3:
-        data->onSetRegisterWord(14,regValue);
+        data->onSetRegisterWord(14, static_cast<quint16>(regValue));
         break;
     case Enu::T4:
-        data->onSetRegisterWord(16,regValue);
+        data->onSetRegisterWord(16, static_cast<quint16>(regValue));
         break;
     case Enu::T5:
-        data->onSetRegisterWord(18,regValue);
+        data->onSetRegisterWord(18, static_cast<quint16>(regValue));
         break;
     case Enu::T6:
-        data->onSetRegisterWord(20,regValue);
+        data->onSetRegisterWord(20, static_cast<quint16>(regValue));
         break;
     case Enu::MARAREG:
-        data->onSetMemoryRegister(Enu::MEM_MARA,(quint8)regValue);
+        data->onSetMemoryRegister(Enu::MEM_MARA, static_cast<quint8>(regValue));
         break;
     case Enu::MARBREG:
-        data->onSetMemoryRegister(Enu::MEM_MARB,(quint8)regValue);
+        data->onSetMemoryRegister(Enu::MEM_MARB, static_cast<quint8>(regValue));
         break;
     case Enu::MDRREG:
-        data->onSetMemoryRegister(Enu::MEM_MDR,(quint8)regValue);
+        data->onSetMemoryRegister(Enu::MEM_MDR, static_cast<quint8>(regValue));
         break;
     case Enu::MDREREG:
-        data->onSetMemoryRegister(Enu::MEM_MDRE,(quint8)regValue);
+        data->onSetMemoryRegister(Enu::MEM_MDRE, static_cast<quint8>(regValue));
         break;
     case Enu::MDROREG:
-        data->onSetMemoryRegister(Enu::MEM_MDRO,(quint8)regValue);
+        data->onSetMemoryRegister(Enu::MEM_MDRO, static_cast<quint8>(regValue));
         break;
     default:
         break;
@@ -136,47 +142,48 @@ void RegSpecification::setUnitPre(NewCPUDataSection *data)
 
 bool RegSpecification::testUnitPost(NewCPUDataSection *data, QString &errorString)
 {
-    int reg=0;
+    int reg = 0;
     switch(regAddress)
     {
     case Enu::Acc:
-        reg=0;
+        reg = 0;
         break;
     case Enu::X:
-        reg=2;
+        reg = 2;
         break;
     case Enu::SP:
-        reg=4;
+        reg = 4;
         break;
     case Enu::PC:
-        reg=6;
+        reg = 6;
         break;
     case Enu::IR:
-        if(data->getRegisterBankWord(8)==regValue/256&&data->getRegisterBankByte(10)==regValue%256) return true;
+        if(data->getRegisterBankWord(8) == regValue/256 && data->getRegisterBankByte(10) == regValue%256) return true;
         break;
     case Enu::T1:
-        if(data->getRegisterBankByte(11)==regValue) return true;
+        if(data->getRegisterBankByte(11) == regValue) return true;
         break;
     case Enu::T2:
-        reg=12;
+        reg = 12;
         break;
     case Enu::T3:
-        reg=14;
+        reg = 14;
         break;
     case Enu::T4:
-        reg=16;
+        reg = 16;
         break;
     case Enu::T5:
-        reg=18;
+        reg = 18;
         break;
     case Enu::T6:
-        reg=20;
+        reg = 20;
         break;
-    default: return true; //By default,
+    default: return true; //Should never occur, microassembler should only allow for actual registers to be referenced.
     }
 
-    if(data->getRegisterBankWord(reg)==regValue)return true;
+    if(data->getRegisterBankWord(static_cast<quint8>(reg)) == regValue)return true;
     switch (regAddress) {
+#pragma message("TODO: Standardize error messages punctuation")
     case Enu::Acc: errorString = "// ERROR: Unit test failed for register A."; return false;
     case Enu::X: errorString = "// ERROR: Unit test failed for register X."; return false;
     case Enu::SP: errorString = "// ERROR: Unit test failed for register SP."; return false;

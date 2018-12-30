@@ -1,6 +1,6 @@
 #include "amemorychip.h"
 
-AMemoryChip::AMemoryChip(quint32 size, quint16 baseAddress, QObject *parent): QObject(parent), size(size), baseAddress(baseAddress)
+AMemoryChip::AMemoryChip(quint32 size, quint16 baseAddress, QObject *parent) noexcept: QObject(parent), size(size), baseAddress(baseAddress)
 {
 
 }
@@ -15,24 +15,24 @@ void AMemoryChip::setBaseAddress(quint16 newAddress)
     baseAddress = newAddress;
 }
 
-quint32 AMemoryChip::getSize() const
+quint32 AMemoryChip::getSize() const noexcept
 {
     return size;
 }
 
-quint16 AMemoryChip::getBaseAddress() const
+quint16 AMemoryChip::getBaseAddress() const noexcept
 {
     return baseAddress;
 }
 
-bool AMemoryChip::readWord(quint16& output, quint16 offsetFromBase) const
+bool AMemoryChip::readWord(quint16 offsetFromBase, quint16& output) const
 {
-    if(offsetFromBase+1 >= size) outOfBoundsReadHelper(offsetFromBase);
+    if(static_cast<quint32>(offsetFromBase+1) >= size) outOfBoundsReadHelper(offsetFromBase);
     quint8 temp = 0;
-    bool retVal = readByte(temp, offsetFromBase);
+    bool retVal = readByte(offsetFromBase, temp);
     // No need to upsize temp first, since shift yields int32
     output = static_cast<quint16>(temp<<8);
-    retVal &= readByte(temp, offsetFromBase+1);
+    retVal &= readByte(offsetFromBase+1, temp);
     output |= temp;
     return retVal;
 
@@ -40,27 +40,27 @@ bool AMemoryChip::readWord(quint16& output, quint16 offsetFromBase) const
 
 bool AMemoryChip::writeWord(quint16 offsetFromBase, quint16 value)
 {
-    if(offsetFromBase+1 >= size) outOfBoundsWriteHelper(offsetFromBase, value);
+    if(static_cast<quint32>(offsetFromBase+1) >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     bool retVal = writeByte(offsetFromBase, value >> 8);
     retVal &= writeByte(offsetFromBase+1, value & 0xff);
     return retVal;
 }
 
-bool AMemoryChip::getWord(quint16& output, quint16 offsetFromBase) const
+bool AMemoryChip::getWord(quint16 offsetFromBase, quint16& output) const
 {
-    if(offsetFromBase+1 >= size) outOfBoundsReadHelper(offsetFromBase);
+    if(static_cast<quint32>(offsetFromBase + 1) >= size) outOfBoundsReadHelper(offsetFromBase);
     quint8 temp = 0;
-    bool retVal = getByte(temp, offsetFromBase);
+    bool retVal = getByte(offsetFromBase, temp);
     // No need to upsize temp first, since shift yields int32
     output = static_cast<quint16>(temp<<8);
-    retVal &= getByte(temp, offsetFromBase+1);
+    retVal &= getByte(offsetFromBase + 1, temp);
     output |= temp;
     return retVal;
 }
 
 bool AMemoryChip::setWord(quint16 offsetFromBase, quint16 value)
 {
-    if(offsetFromBase+1 >= size) outOfBoundsWriteHelper(offsetFromBase, value);
+    if(static_cast<quint32>(offsetFromBase+1) >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     bool retVal = writeByte(offsetFromBase, value >> 8);
     retVal &= writeByte(offsetFromBase+1, value & 0xff);
     return retVal;

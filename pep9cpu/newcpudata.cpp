@@ -63,103 +63,114 @@ bool NewCPUDataSection::calculateCSMuxOutput(bool &result) const
 
 bool NewCPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
 {
+    /*
+     * Profiling determined calculateALUOutput(...) to be the most computationally intensive part of the program.
+     * This function is used multiple times per cycle, so we cache the result for increased performance.
+     */
     if(isALUCacheValid) {
         res = ALUOutputCache;
         NZVC = ALUStatusBitCache;
         return ALUHasOutputCache;
     }
-    //This function should not set any errors.
-    //Errors will be handled by step(..)
-    quint8 a,b;
-    bool carryIn = 0;
+    // This function should not set any errors.
+    // Errors will be handled by step(..)
+    quint8 a, b;
+    bool carryIn = false;
     bool hasA = getAMuxOutput(a), hasB = valueOnBBus(b);
     bool hasCIn = calculateCSMuxOutput(carryIn);
     if(!((aluFnIsUnary() && hasA) || (hasA && hasB))) {
-        //The ALU output calculation would not be meaningful given its current function and inputs
+        // The ALU output calculation would not be meaningful given its current function and inputs
         isALUCacheValid = true;
         ALUHasOutputCache = false;
         return ALUHasOutputCache;
     }
-    //Unless otherwise noted, do not return true (sucessfully) early, or the calculation for the NZ bits will be skipped
+    // Unless otherwise noted, do not return true (sucessfully) early, or the calculation for the NZ bits will be skipped.
     switch(controlSignals[Enu::ALU]) {
-    case Enu::A_func: //A
+    case Enu::A_func: // A
         res = a;
         break;
-    case Enu::ApB_func: //A plus B
+    case Enu::ApB_func: // A plus B
         res = a + b;
-        NZVC |= Enu::CMask * ((int)(res<a||res<b)); //Carry out if result is unsigned less than a or b.
-        //There is a signed overflow iff the high order bits of the input are the same,
-        //and the inputs & output differs in sign.
-        NZVC |= Enu::VMask* ((~(a^b)&(a^res))>>7); //Dividing by 128 and >>7 are the same thing for unsigned integers
+        NZVC |= Enu::CMask * quint8{res<a||res<b}; // Carry out if result is unsigned less than a or b.
+        // There is a signed overflow iff the high order bits of the input are the same,
+        // and the inputs & output differs in sign.
+        // Shifts in 0's (unsigned chars), so after shift, only high order bit remain.
+        NZVC |= Enu::VMask * ((~(a ^ b) & (a ^ res)) >> 7) ;
         break;
-    case Enu::ApnBp1_func: //A plus ~B plus 1
+    case Enu::ApnBp1_func: // A plus ~B plus 1
         hasCIn = true;
         carryIn = 1;
-        //Intentional fallthrough
-    case Enu::ApnBpCin_func: //A plus ~B plus Cin
+        [[fallthrough]];
+    case Enu::ApnBpCin_func: // A plus ~B plus Cin
         b = ~b;
-        //Intentional fallthrough
-    case Enu::ApBpCin_func: //A plus B plus Cin
+        [[fallthrough]];
+    case Enu::ApBpCin_func: // A plus B plus Cin
+        // Expected carry in, none was provided, so ALU calculation yeilds a meaningless result
         if (!hasCIn) return false;
-        res = a+ b+ (int)carryIn;
-        NZVC |= Enu::CMask * ((int)(res<a||res<b)); //Carry out if result is unsigned less than a or b.
-        //There is a signed overflow iff the high order bits of the input are the same,
-        //and the inputs & output differs in sign.
-        NZVC |= Enu::VMask * ((~(a^b)&(a^res))>>7);
+        // Might cause overflow, but overflow is well defined for unsigned ints
+        res = a + b + quint8{carryIn};
+        NZVC |= Enu::CMask * quint8{res<a||res<b}; // Carry out if result is unsigned less than a or b.
+        // There is a signed overflow iff the high order bits of the input are the same,
+        // and the inputs & output differs in sign.
+        // Shifts in 0's (unsigned chars), so after shift, only high order bit remain.
+        NZVC |= Enu::VMask * ((~(a ^ b) & (a ^ res)) >> 7) ;
         break;
-    case Enu::AandB_func: //A*B
-        res = a&b;
+    case Enu::AandB_func: // A * B
+        res = a & b;
         break;
-    case Enu::nAandB_func: //~(A*B)
-        res = ~(a&b);
+    case Enu::nAandB_func: // ~(A * B)
+        res = ~(a & b);
         break;
-    case Enu::AorB_func: //A+B
-        res = a|b;
+    case Enu::AorB_func: // A + B
+        res = a | b;
         break;
-    case Enu::nAorB_func: //~(A+B)
-        res = ~(a|b);
+    case Enu::nAorB_func: // ~(A + B)
+        res = ~(a | b);
         break;
-    case Enu::AxorB_func: //A xor B
-        res = a^b;
+    case Enu::AxorB_func: // A xor B
+        res = a ^ b;
         break;
-    case Enu::nA_func: //~A
+    case Enu::nA_func: // ~A
         res = ~a;
         break;
-    case Enu::ASLA_func: //ASL A
-        res = a<<1;
-        NZVC |= Enu::CMask * ((a & 0x80) >> 7);
-        NZVC |= Enu::VMask * (((a<<1)^a)>>7); //Signed overflow if a<hi> doesn't match a<hi-1>
+    case Enu::ASLA_func: // ASL A
+        res = static_cast<quint8>(a<<1);
+        NZVC |= Enu::CMask * ((a & 0x80) >> 7); // Carry out equals the hi order bit
+        NZVC |= Enu::VMask * (((a << 1) ^a) >>7); // Signed overflow if a<hi> doesn't match a<hi-1>
         break;
-    case Enu::ROLA_func: //ROL A
+    case Enu::ROLA_func: // ROL A
         if (!hasCIn) return false;
-        res = a<<1 | ((int) carryIn);
-        NZVC |= Enu::CMask * ((a & 0x80) >> 7);
-        //NZVC|=Enu::VMask*(bool)(((a & 0x40) >> 6) ^ (NZVC&Enu::CMask));
-        NZVC |= Enu::VMask * (((a<<1)^a)>>7); //Signed overflow if a<hi> doesn't match a<hi-1>
+        res = static_cast<quint8>(a<<1 | quint8{carryIn});
+        NZVC |= Enu::CMask * ((a & 0x80) >> 7); // Carry out equals the hi order bit
+        NZVC |= Enu::VMask * (((a << 1) ^a) >>7); // Signed overflow if a<hi> doesn't match a<hi-1>
         break;
-    case Enu::ASRA_func: //ASR A
+    case Enu::ASRA_func: // ASR A
         hasCIn = true;
-        carryIn = a&128; //RORA and ASRA only differ by how the carryIn is calculated
-        //Intentional fallthrough
-    case Enu::RORA_func: //ROR a
+        carryIn = a & 128; // RORA and ASRA only differ by how the carryIn is calculated
+        [[fallthrough]];
+    case Enu::RORA_func: // ROR a
         if (!hasCIn) return false;
-        res = (a>>1) | (((int)carryIn)<<7); //No need to worry about sign extension on shift with unsigned a
-        NZVC |= Enu::CMask * (a&1);
+        // A will not be sign extended since it is unsigned.
+        // Widen carryIn so that << yields a meaningful result.
+        res = static_cast<quint8>(a >> 1 | static_cast<quint8>(carryIn) << 7);
+        // Carry out is lowest order bit of a
+        NZVC |= Enu::CMask * (a & 1);
         break;
-    case Enu::NZVCA_func: //Move A to NZVC
+    case Enu::NZVCA_func: // Move A to NZVC
         res = 0;
-        NZVC |= Enu::NMask&a;
-        NZVC |= Enu::ZMask&a;
-        NZVC |= Enu::VMask&a;
-        NZVC |= Enu::CMask&a;
-        return true; //Must return early to avoid NZ calculation
-    default: //If the default has been hit, then an invalid function was selected
+        NZVC |= Enu::NMask & a;
+        NZVC |= Enu::ZMask & a;
+        NZVC |= Enu::VMask & a;
+        NZVC |= Enu::CMask & a;
+        return true; // Must return early to avoid NZ calculation
+    default: // If the default has been hit, then an invalid function was selected
         return false;
     }
-    //Get boolean value for N, then shift to correct place
-    NZVC |= (res > 127) ? Enu::NMask : 0;
-    //Get boolean value for Z, then shift to correct place
+    // Calculate N, then shift to correct position
+    NZVC |= (res & 0x80) ? Enu::NMask : 0; // Result is negative if high order bit is 1
+    // Calculate Z, then shift to correct position
     NZVC |= (res == 0) ? Enu::ZMask : 0;
+    // Save the result of the ALU calculation
     ALUOutputCache = res;
     ALUStatusBitCache = NZVC;
     isALUCacheValid = true;
@@ -185,10 +196,10 @@ quint8 NewCPUDataSection::getRegisterBankByte(quint8 registerNumber) const
 quint16 NewCPUDataSection::getRegisterBankWord(quint8 registerNumber) const
 {
     quint16 returnValue;
-    if(registerNumber+1 > Enu::maxRegisterNumber) returnValue = 0;
+    if(registerNumber + 1 > Enu::maxRegisterNumber) returnValue = 0;
     else {
-        returnValue = ((quint16)registerBank[registerNumber]) << 8;
-        returnValue += registerBank[registerNumber + 1];
+        returnValue = static_cast<quint16>(quint16{registerBank[registerNumber]} << 8);
+        returnValue |= registerBank[registerNumber + 1];
     }
     return returnValue;
 
@@ -196,12 +207,14 @@ quint16 NewCPUDataSection::getRegisterBankWord(quint8 registerNumber) const
 
 quint8 NewCPUDataSection::getRegisterBankByte(Enu::CPURegisters registerNumber) const
 {
-    return getRegisterBankByte((quint8)registerNumber);
+    // Call the overloaded version taking a quint8
+    return getRegisterBankByte(static_cast<quint8>(registerNumber));
 }
 
 quint16 NewCPUDataSection::getRegisterBankWord(Enu::CPURegisters registerNumber) const
 {
-    return getRegisterBankWord((quint8)registerNumber);
+    // Call the overloaded version taking a quint8
+    return getRegisterBankWord(static_cast<quint8>(registerNumber));
 }
 
 quint8 NewCPUDataSection::getMemoryRegister(Enu::EMemoryRegisters registerNumber) const
@@ -226,13 +239,13 @@ bool NewCPUDataSection::valueOnBBus(quint8 &result) const
 bool NewCPUDataSection::valueOnCBus(quint8 &result) const
 {
     if(controlSignals[Enu::CMux] == 0) {
-        //If CMux is 0, then the NZVC bits (minus S) are directly routed to result
+        // If CMux is 0, then the NZVC bits (minus S) are directly routed to result
         result = (NZVCSbits & (~Enu::SMask));
         return true;
     }
     else if(controlSignals[Enu::CMux] == 1) {
-        quint8 temp = 0; //Discard NZVC bits for this calculation, they are unecessary for calculating C's output
-        //Otherwise the value of C depends solely on the ALU
+        quint8 temp = 0; // Discard NZVC bits for this calculation, they are unecessary for calculating C's output
+        // Otherwise the value of C depends solely on the ALU
         return calculateALUOutput(result, temp);
     }
     else return false;
@@ -247,7 +260,7 @@ bool NewCPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
 {
     switch(statusBit)
     {
-    //Mask out bit of interest, then convert to bool
+    // Mask out bit of interest, then convert to bool
     case Enu::STATUS_N:
         return(NZVCSbits & Enu::NMask);
     case Enu::STATUS_Z:
@@ -258,12 +271,15 @@ bool NewCPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
         return(NZVCSbits & Enu::CMask);
     case Enu::STATUS_S:
         return(NZVCSbits & Enu::SMask);
+    default:
+        // Should never occur, but might happen if a bad status bit is passed
+        return false;
     }
 }
 
 void NewCPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
 {
-    bool oldVal=false;
+    bool oldVal = false;
     int mask = 0;
     switch(statusBit)
     {
@@ -282,9 +298,12 @@ void NewCPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
     case Enu::STATUS_S:
         mask = Enu::SMask;
         break;
+    default:
+        // Should never occur, but might happen if a bad status bit is passed
+        return;
     }
 
-    //Mask out the original value, and then or it with the properly shifted bit
+    // Mask out the original value, then or it with the properly shifted bit
     oldVal = NZVCSbits&mask;
     NZVCSbits = (NZVCSbits&~mask) | ((val?1:0)*mask);
     if(emitEvents) {
@@ -294,7 +313,7 @@ void NewCPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
 
 void NewCPUDataSection::onSetRegisterByte(quint8 reg, quint8 val)
 {
-    if(reg > 21) return; //Don't allow static registers to be written to
+    if(reg > 21) return; // Don't allow static registers to be written to
     quint8 oldVal = registerBank[reg];
     registerBank[reg] = val;
     if(emitEvents) {
@@ -304,11 +323,11 @@ void NewCPUDataSection::onSetRegisterByte(quint8 reg, quint8 val)
 
 void NewCPUDataSection::onSetRegisterWord(quint8 reg, quint16 val)
 {
-   if(reg+1>21) return; //Don't allow static registers to be written to
+   if(reg + 1 >21) return; // Don't allow static registers to be written to
    quint8 oldHigh = registerBank[reg], oldLow = registerBank[reg+1];
-   quint8 newHigh = val / 256, newLow = val % 256;
+   quint8 newHigh = val / 256, newLow = val & quint8{255};
    registerBank[reg] = newHigh;
-   registerBank[reg+1] = newLow;
+   registerBank[reg + 1] = newLow;
    if(emitEvents) {
        if(oldHigh != val) emit registerChanged(reg, oldHigh, newHigh);
        if(oldLow != val) emit registerChanged(reg, oldLow, newLow);
@@ -339,7 +358,7 @@ bool NewCPUDataSection::setSignalsFromMicrocode(const MicroCode *line)
     //To start with, there are no
     //For each control signal in the input line, set the appropriate control
     for(int it = 0; it < controlSignals.length(); it++) {
-        controlSignals[it] = line->getControlSignal((Enu::EControlSignals)it);
+        controlSignals[it] = line->getControlSignal(static_cast<Enu::EControlSignals>(it));
     }
     //For each clock signal in the input microcode, set the appropriate clock
     for(int it = 0;it < clockSignals.length(); it++) {
@@ -593,7 +612,7 @@ void NewCPUDataSection::stepTwoByte() noexcept
 
 void NewCPUDataSection::presetStaticRegisters() noexcept
 {
-    //Pre-assign static registers according to CPU diagram
+    // Pre-assign static registers according to CPU diagram
     registerBank[22] = 0x00;
     registerBank[23] = 0x01;
     registerBank[24] = 0x02;

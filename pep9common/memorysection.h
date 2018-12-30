@@ -1,1 +1,0 @@
-    void charWrittenToOutput(QChar character);

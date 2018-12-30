@@ -30,8 +30,9 @@
 #include "acpumodel.h"
 #include "colors.h"
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
-    QWidget(parent), data(new QStandardItemModel(this)), lineSize(500), colors(&PepColors::lightMode),
-    ui(new Ui::MemoryDumpPane), inSimulation(false)
+    QWidget(parent), ui(new Ui::MemoryDumpPane), data(new QStandardItemModel(this)), lineSize(500), memDevice(nullptr),
+    cpu(nullptr), delegate(nullptr), colors(&PepColors::lightMode), highlightedData(), modifiedBytes(), lastModifiedBytes(),
+    bytesWrittenLastStep(), delayLastStepClear(false), darkModeEnabled(false), inSimulation(false)
 {
     ui->setupUi(this);
     if (Pep::getSystem() != "Mac") {
@@ -144,8 +145,9 @@ void MemoryDumpPane::highlight()
     highlightedData.append(sp);
     if(!Pep::isUnaryMap[Pep::decodeMnemonic[is]]) {
         for(int it = 0; it < 3; it++) {
-            highlightByte(pc + it, colors->altTextHighlight, colors->memoryHighlightPC);
-            highlightedData.append(pc + it);
+            quint16 as16 = static_cast<quint16>(pc + it);
+            highlightByte(as16, colors->altTextHighlight, colors->memoryHighlightPC);
+            highlightedData.append(as16);
         }
     }
     else {
@@ -245,9 +247,9 @@ void MemoryDumpPane::copy()
 
 int MemoryDumpPane::memoryDumpWidth()
 {
-    quint32 tableSize = lineSize;
-    quint32 extraPad = 35;
-    return  tableSize + extraPad;
+    int tableSize = static_cast<int>(lineSize);
+    int extraPad = 35;
+    return tableSize + extraPad;
 }
 
 void MemoryDumpPane::onFontChanged(QFont font)
@@ -324,14 +326,14 @@ void MemoryDumpPane::scrollToSP()
 void MemoryDumpPane::scrollToAddress(QString string)
 {
     bool ok;
-    int byte;
+    int address;
     if (string.startsWith("0x", Qt::CaseInsensitive)) {
-        byte = string.toInt(&ok, 16);
+        address = string.toInt(&ok, 16);
         if (ok) {
-            if (byte > 65535) {
+            if (address > 65535) {
                 ui->scrollToLineEdit->setText("0xFFFF");
             } else {
-                scrollToByte(byte);
+                scrollToByte(static_cast<quint16>(address));
             }
         }
         else {
@@ -362,7 +364,7 @@ MemoryDumpDelegate::~MemoryDumpDelegate()
 QWidget *MemoryDumpDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     // The first and last columns are not user editable, so do not create an editor.
-    if(index.column() == 0 || index.column() == 1+8 || !canEdit) return 0;
+    if(index.column() == 0 || index.column() == 1+8 || !canEdit) return nullptr;
     // Otherwise, defer to QStyledItemDelegate's implementation, which returns a LineEdit
     QLineEdit *line = qobject_cast<QLineEdit*>(QStyledItemDelegate::createEditor(parent, option, index));
     // Apply a validator, so that a user cannot input anything other than a one byte hexadecimal constant

@@ -94,8 +94,8 @@ public slots:
 
 private:
     Ui::MemoryDumpPane *ui;
-    quint32 lineSize;
     QStandardItemModel* data;
+    quint32 lineSize;
     QSharedPointer<MainMemory> memDevice;
     QSharedPointer<ACPUModel> cpu;
     MemoryDumpDelegate *delegate;

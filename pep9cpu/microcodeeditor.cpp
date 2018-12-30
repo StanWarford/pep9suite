@@ -26,9 +26,9 @@
 #include "microcodeprogram.h"
 #include <limits.h>
 #include "amccpumodel.h"
-MicrocodeEditor::MicrocodeEditor(QWidget *parent, bool highlightCurrentLine, bool isReadOnly) : QPlainTextEdit(parent), cpu(nullptr), colors(&PepColors::lightMode)
-{
 
+MicrocodeEditor::MicrocodeEditor(bool highlightCurrentLine, bool isReadOnly, QWidget *parent): QPlainTextEdit(parent), cpu(nullptr), colors(&PepColors::lightMode)
+{
     highlightCurLine = highlightCurrentLine;
 
     lineNumberArea = new LineNumberArea(this);
@@ -55,7 +55,7 @@ int MicrocodeEditor::lineNumberAreaWidth()
     int max = qMax(1, blockCount());
     // Calculate the number of digits in the row number.
     // Floor(Log10) returns the number of digits in number (minus one)
-    int digits = 1 + log10(max);
+    int digits = 1 + static_cast<int>(log10(max));
 
     int space = 4 + fontMetrics().width(QLatin1Char('9')) * digits;
 
@@ -65,11 +65,12 @@ int MicrocodeEditor::lineNumberAreaWidth()
 void MicrocodeEditor::lineAreaMousePress(QMouseEvent *event)
 {
     QTextBlock block;
-    int blockNumber, top, bottom, lineNumber;
+    int blockNumber, top, bottom;
+    quint16 lineNumber;
     block = firstVisibleBlock();
     blockNumber = block.blockNumber();
-    top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
-    bottom = top + (int) blockBoundingRect(block).height();
+    top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
+    bottom = top + static_cast<int>(blockBoundingRect(block).height());
     while (block.isValid() && top <= event->pos().y()) {
         if (event->pos().y()>=top && event->pos().y()<=bottom) {
             if(blockToCycle.contains(blockNumber)) {
@@ -87,7 +88,7 @@ void MicrocodeEditor::lineAreaMousePress(QMouseEvent *event)
         }
         block = block.next();
         top = bottom;
-        bottom = top + (int) blockBoundingRect(block).height();
+        bottom = top + static_cast<int>(blockBoundingRect(block).height());
         ++blockNumber;
     }
     update();
@@ -111,9 +112,9 @@ void MicrocodeEditor::updateLineNumberArea(const QRect &rect, int dy)
 
 void MicrocodeEditor::onTextChanged()
 {
-    QMap<quint16, quint16> oldToNew, old = blockToCycle;
+    QMap<int, quint16> oldToNew, old = blockToCycle;
     blockToCycle.clear();
-    int cycleNumber = 1;
+    quint16 cycleNumber = 1;
     QStringList sourceCodeList = toPlainText().split('\n');
 
     for (int i = 0; i < sourceCodeList.size(); i++) {
@@ -357,12 +358,12 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     if (highlightCurLine && textCursor().block().isVisible()) {
         block = firstVisibleBlock();
         blockNumber = block.blockNumber();
-        top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
-        bottom = top + (int) blockBoundingRect(block).height();
+        top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
+        bottom = top + static_cast<int>(blockBoundingRect(block).height());
         while (blockNumber != textCursor().block().blockNumber() && block.isValid()) {
             block = block.next();
             top = bottom;
-            bottom = top + (int) blockBoundingRect(block).height();
+            bottom = top + static_cast<int>(blockBoundingRect(block).height());
             ++blockNumber;
         }
         if (block.isValid()) {
@@ -375,8 +376,8 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     // Display the cycle numbers
     block = firstVisibleBlock();
     blockNumber = block.blockNumber();
-    top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
-    bottom = top + (int) blockBoundingRect(block).height();
+    top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
+    bottom = top + static_cast<int>(blockBoundingRect(block).height());
     bool antialias = painter.renderHints() & QPainter::Antialiasing;
     while (block.isValid() && top < event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
@@ -395,7 +396,7 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         }
         block = block.next();
         top = bottom;
-        bottom = top + (int) blockBoundingRect(block).height();
+        bottom = top + static_cast<int>(blockBoundingRect(block).height());
         ++blockNumber;
     }
 }

@@ -22,10 +22,10 @@ void MainMemory::insertChip(QSharedPointer<AMemoryChip> chip, quint16 address)
     memoryChipMap.insert(address, chip);
     ptrLookup.insert(chip.get(), chip);
     if(chip->getChipType() == AMemoryChip::ChipTypes::IDEV) {
-        connect((InputChip*)chip.get(), &InputChip::inputRequested, this,  &MainMemory::onChipInputRequested);
+        connect(static_cast<InputChip*>(chip.get()), &InputChip::inputRequested, this,  &MainMemory::onChipInputRequested);
     }
     else if(chip->getChipType() == AMemoryChip::ChipTypes::ODEV) {
-        connect((OutputChip*)chip.get(), &OutputChip::outputGenerated, this,  &MainMemory::onChipOutputWritten);
+        connect(static_cast<OutputChip*>(chip.get()), &OutputChip::outputGenerated, this,  &MainMemory::onChipOutputWritten);
     }
     if(updateMemMap) calculateAddressToChip();
 }
@@ -64,10 +64,10 @@ QVector<QSharedPointer<AMemoryChip> > MainMemory::removeAllChips()
     for(auto it : temp) {
         retVal.append(it);
         if(it->getChipType() == AMemoryChip::ChipTypes::IDEV) {
-            disconnect((InputChip*)it.get(), &InputChip::inputRequested, this,  &MainMemory::onChipInputRequested);
+            disconnect(static_cast<InputChip*>(it.get()), &InputChip::inputRequested, this,  &MainMemory::onChipInputRequested);
         }
         else if(it->getChipType() == AMemoryChip::ChipTypes::ODEV) {
-            disconnect((OutputChip*)it.get(), &OutputChip::outputGenerated, this,  &MainMemory::onChipOutputWritten);
+            disconnect(static_cast<OutputChip*>(it.get()), &OutputChip::outputGenerated, this,  &MainMemory::onChipOutputWritten);
         }
     }
     memoryChipMap.clear();
@@ -84,7 +84,7 @@ void MainMemory::autoUpdateMemoryMap(bool update)
 
 void MainMemory::loadValues(quint16 address, QVector<quint8> values)
 {
-    for(int idx = 0; idx < values.length() && idx + address <= size(); idx++)
+    for(int idx = 0; idx < values.length() && idx + address <= static_cast<int>(size()); idx++)
     {
         bytesSet.insert(idx+address);
         setByte(idx + address, values[idx]);
@@ -116,7 +116,7 @@ bool MainMemory::readByte(quint8 &output, quint16 address) const
 {
     QSharedPointer<const AMemoryChip> chip = chipAt(address);
     try {
-        bool retVal = chip->readByte(output, address - chip->getBaseAddress());
+        bool retVal = chip->readByte(address - chip->getBaseAddress(), output);
         return retVal;
     } catch (std::range_error &e) {
         throw e;
@@ -150,7 +150,7 @@ bool MainMemory::getByte(quint8 &output, quint16 address) const
 {
     QSharedPointer<const AMemoryChip> chip = chipAt(address);
     try {
-        bool retVal = chip->getByte(output, address - chip->getBaseAddress());
+        bool retVal = chip->getByte(address - chip->getBaseAddress(), output);
         return retVal;
     } catch (std::range_error& e) {
         throw e;
@@ -271,8 +271,8 @@ void MainMemory::calculateAddressToChip()
         addressToChip[it] = nullptr;
     }
     for(auto chip : memoryChipMap) {
-        for(int it = chip->getBaseAddress(); it< chip->getBaseAddress() + chip->getSize(); it++) {
-            addressToChip[it] = chip.get();
+        for(quint32 it = chip->getBaseAddress(); it < chip->getBaseAddress() + chip->getSize(); it++) {
+            addressToChip[static_cast<int>(it)] = chip.get();
         }
     }
 }

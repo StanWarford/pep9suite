@@ -37,7 +37,7 @@ class MicrocodeEditor : public QPlainTextEdit
     Q_OBJECT
     friend class LineNumberArea;
 public:
-    MicrocodeEditor(QWidget *parent = 0, bool highlightCurrentLine = true, bool isReadOnly = false);
+    MicrocodeEditor(bool highlightCurrentLine = true, bool isReadOnly = false, QWidget *parent = nullptr);
     // Must be called after object is constructed but before is is used
     void init(QSharedPointer<InterfaceMCCPU> cpu);
 
@@ -65,7 +65,7 @@ private:
     QSharedPointer<InterfaceMCCPU> cpu;
     QWidget *lineNumberArea;
     const PepColors::Colors *colors;
-    QMap<quint16, quint16> blockToCycle;
+    QMap<int, quint16> blockToCycle;
     QSet<quint16> breakpoints;
     bool highlightCurLine;
 

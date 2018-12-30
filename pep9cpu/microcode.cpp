@@ -301,7 +301,7 @@ void MicroCode::setFalseTarget(const SymbolEntry* target)
     falseTargetAddr = target;
 }
 
-int MicroCode::getControlSignal(Enu::EControlSignals field) const
+quint8 MicroCode::getControlSignal(Enu::EControlSignals field) const
 {
     return controlSignals[field];
 }

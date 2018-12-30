@@ -31,7 +31,7 @@ public:
 
     // InterfaceMCCPU interface
     // Will
-    void setCPUType(Enu::CPUType type) override;
+    void setCPUType(Enu::CPUType type)  override;
     void onMCStep() override;
     void onClock() override;
 

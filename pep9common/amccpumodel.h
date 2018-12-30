@@ -33,20 +33,20 @@ class MicrocodeProgram;
 class InterfaceMCCPU
 {
 public:
-    explicit InterfaceMCCPU(Enu::CPUType type);
+    explicit InterfaceMCCPU(Enu::CPUType type) noexcept;
     virtual ~InterfaceMCCPU();
 
-    unsigned int getCycleCounter() const;
-    unsigned int getMicrocodeLineNumber() const;
-    const MicrocodeProgram* getProgram() const;
-    const MicroCode* getCurrentMicrocodeLine() const;
+    quint64 getCycleCounter() const noexcept;
+    quint16 getMicrocodeLineNumber() const noexcept;
+    const MicrocodeProgram* getProgram() const noexcept;
+    const MicroCode* getCurrentMicrocodeLine() const noexcept;
 
     // Change the CPU between one and two byte data buses
     void setMicrocodeProgram(MicrocodeProgram* program);
-    Enu::CPUType getCPUType() const;
+    Enu::CPUType getCPUType() const noexcept;
 
     // Clear program counters and breakpoints
-    void reset();
+    void reset() noexcept;
 
     virtual void setCPUType(Enu::CPUType type) = 0;
     virtual void onMCStep() = 0;
@@ -54,7 +54,8 @@ public:
 
 protected:
     virtual void branchHandler() = 0; // Based on the current instruction, set the µPC correctly
-    unsigned int microprogramCounter, microCycleCounter;
+    quint16 microprogramCounter;
+    quint64 microCycleCounter;
     bool microBreakpointHit;
     MicrocodeProgram* program;
     Enu::CPUType type;

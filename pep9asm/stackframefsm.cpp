@@ -37,6 +37,7 @@ void StackFrameFSM::reset()
 
 int StackFrameFSM::makeTransition(int numCellsToAdd)
 {
+    (void)numCellsToAdd;
 #pragma message ("TODO: Switch stack frame to CPUControlSection.")
     /*Enu::EMnemonic mnemon = Pep::decodeMnemonic[Sim::instructionSpecifier];
 

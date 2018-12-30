@@ -38,7 +38,7 @@ MicrocodePane::MicrocodePane(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    editor = new MicrocodeEditor(this);
+    editor = new MicrocodeEditor(true,false, this);
 
     editor->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
     editor->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);

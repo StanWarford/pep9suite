@@ -55,7 +55,7 @@ public:
     bool hasSymbol() const;
     bool hasControlSignal(Enu::EControlSignals field) const;
     bool hasClockSignal(Enu::EClockSignals field) const;
-    int getControlSignal(Enu::EControlSignals field) const;
+    quint8 getControlSignal(Enu::EControlSignals field) const;
     bool getClockSignal(Enu::EClockSignals field) const;
     bool hasBreakpoint() const;
     Enu::EBranchFunctions getBranchFunction() const;
@@ -65,7 +65,7 @@ public:
 
     bool inRange(Enu::EControlSignals field, int value) const;
     void setCpuLabels(CpuGraphicsItems *cpuPaneItems)const override;
-    void setControlSignal(Enu::EControlSignals field,quint8 value);
+    void setControlSignal(Enu::EControlSignals field, quint8 value);
     void setClockSingal(Enu::EClockSignals field,bool value);
     void setBreakpoint(bool breakpoint);
     void setBranchFunction(Enu::EBranchFunctions branch);

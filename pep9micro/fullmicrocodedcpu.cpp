@@ -110,7 +110,7 @@ void FullMicrocodedCPU::setDebugLevel(Enu::DebugLevels level)
     memoizer->setDebugLevel(level);
 }
 
-void FullMicrocodedCPU::setCPUType(Enu::CPUType type)
+void FullMicrocodedCPU::setCPUType(Enu::CPUType)
 {
     throw std::logic_error("Can't change CPU type on fullmicrococdedcpu, it must always be two byte bus");
 }

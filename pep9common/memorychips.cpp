@@ -11,22 +11,22 @@ ConstChip::~ConstChip()
 
 }
 
-AMemoryChip::IOFunctions ConstChip::getIOFunctions() const
+AMemoryChip::IOFunctions ConstChip::getIOFunctions() const noexcept
 {
     return AMemoryChip::NONE;
 }
 
-AMemoryChip::ChipTypes ConstChip::getChipType() const
+AMemoryChip::ChipTypes ConstChip::getChipType() const noexcept
 {
     return AMemoryChip::ChipTypes::CONST;
 }
 
-void ConstChip::clear()
+void ConstChip::clear() noexcept
 {
     // A chip that can't change has nothing to clear
 }
 
-bool ConstChip::readByte(quint8& output, quint16 offsetFromBase) const
+bool ConstChip::readByte(quint16 offsetFromBase, quint8& output) const
 {
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = 0;
@@ -40,7 +40,7 @@ bool ConstChip::writeByte(quint16 offsetFromBase, quint8 value)
     return true;
 }
 
-bool ConstChip::getByte(quint8& output, quint16 offsetFromBase) const
+bool ConstChip::getByte(quint16 offsetFromBase, quint8 &output) const
 {
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = 0;
@@ -66,29 +66,29 @@ NilChip::~NilChip()
 
 }
 
-AMemoryChip::IOFunctions NilChip::getIOFunctions() const
+AMemoryChip::IOFunctions NilChip::getIOFunctions() const noexcept
 {
     return IOFunctions::NONE;
 }
 
-AMemoryChip::ChipTypes NilChip::getChipType() const
+AMemoryChip::ChipTypes NilChip::getChipType() const noexcept
 {
     return ChipTypes::NIL;
 }
 
-void NilChip::clear()
+void NilChip::clear() noexcept
 {
     // A "dsiabled" chip can't be cleared
 }
 
-bool NilChip::isCachable() const
+bool NilChip::isCachable() const noexcept
 {
     return false;
 }
 
-bool NilChip::readByte(quint8 &output, quint16 offsetFromBase) const
+bool NilChip::readByte(quint16 offsetFromBase, quint8 &output) const
 {
-    return getByte(output, offsetFromBase);
+    return getByte(offsetFromBase, output);
 }
 
 bool NilChip::writeByte(quint16 offsetFromBase, quint8 value)
@@ -96,7 +96,7 @@ bool NilChip::writeByte(quint16 offsetFromBase, quint8 value)
     return setByte(offsetFromBase, value);
 }
 
-bool NilChip::getByte(quint8 &, quint16 offsetFromBase) const
+bool NilChip::getByte(quint16 offsetFromBase, quint8 &output) const
 {
     std::string message = "Attempted to access nil chip at: " +
             QString("0x%1").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
@@ -124,18 +124,18 @@ InputChip::~InputChip()
 
 }
 
-AMemoryChip::IOFunctions InputChip::getIOFunctions() const
+AMemoryChip::IOFunctions InputChip::getIOFunctions() const noexcept
 {
     return static_cast<AMemoryChip::IOFunctions>(  static_cast<int>(AMemoryChip::READ)
                                                  | static_cast<int>(AMemoryChip::MEMORY_MAPPED));
 }
 
-AMemoryChip::ChipTypes InputChip::getChipType() const
+AMemoryChip::ChipTypes InputChip::getChipType() const noexcept
 {
     return AMemoryChip::ChipTypes::IDEV;
 }
 
-void InputChip::clear()
+void InputChip::clear() noexcept
 {
     for (unsigned int it = 0; it < size; it++) {
         memory[it] = 0;
@@ -145,12 +145,12 @@ void InputChip::clear()
     }
 }
 
-bool InputChip::isCachable() const
+bool InputChip::isCachable() const noexcept
 {
     return false;
 }
 
-bool InputChip::readByte(quint8& output, quint16 offsetFromBase) const
+bool InputChip::readByte(quint16 offsetFromBase, quint8 &output) const
 {
 
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);   
@@ -174,7 +174,7 @@ bool InputChip::writeByte(quint16, quint8)
     throw bad_chip_write(str);
 }
 
-bool InputChip::getByte(quint8& output, quint16 offsetFromBase) const
+bool InputChip::getByte(quint16 offsetFromBase, quint8 &output) const
 {
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = memory[offsetFromBase];
@@ -223,33 +223,33 @@ OutputChip::~OutputChip()
 
 }
 
-AMemoryChip::IOFunctions OutputChip::getIOFunctions() const
+AMemoryChip::IOFunctions OutputChip::getIOFunctions() const noexcept
 {
         return static_cast<AMemoryChip::IOFunctions>(  static_cast<int>(AMemoryChip::READ)
                                                      | static_cast<int>(AMemoryChip::WRITE)
                                                      | static_cast<int>(AMemoryChip::MEMORY_MAPPED));
 }
 
-AMemoryChip::ChipTypes OutputChip::getChipType() const
+AMemoryChip::ChipTypes OutputChip::getChipType() const noexcept
 {
     return ChipTypes::ODEV;
 }
 
-void OutputChip::clear()
+void OutputChip::clear() noexcept
 {
     for (unsigned int it = 0; it < size; it++) {
         memory[it] = 0;
     }
 }
 
-bool OutputChip::isCachable() const
+bool OutputChip::isCachable() const noexcept
 {
     return false;
 }
 
-bool OutputChip::readByte(quint8 &output, quint16 offsetFromBase) const
+bool OutputChip::readByte(quint16 offsetFromBase, quint8 &output) const
 {
-    return getByte(output, offsetFromBase);
+    return getByte(offsetFromBase, output);
 }
 
 bool OutputChip::writeByte(quint16 offsetFromBase, quint8 value)
@@ -260,7 +260,7 @@ bool OutputChip::writeByte(quint16 offsetFromBase, quint8 value)
     return true;
 }
 
-bool OutputChip::getByte(quint8 &output, quint16 offsetFromBase) const
+bool OutputChip::getByte(quint16 offsetFromBase, quint8 &output) const
 {
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = memory[offsetFromBase];
@@ -286,27 +286,27 @@ RAMChip::~RAMChip()
 
 }
 
-AMemoryChip::IOFunctions RAMChip::getIOFunctions() const
+AMemoryChip::IOFunctions RAMChip::getIOFunctions() const noexcept
 {
     return static_cast<AMemoryChip::IOFunctions>(  static_cast<int>(AMemoryChip::READ)
                                                    | static_cast<int>(AMemoryChip::WRITE));
 }
 
-AMemoryChip::ChipTypes RAMChip::getChipType() const
+AMemoryChip::ChipTypes RAMChip::getChipType() const noexcept
 {
     return AMemoryChip::ChipTypes::RAM;
 }
 
-void RAMChip::clear()
+void RAMChip::clear() noexcept
 {
     for (unsigned int it = 0; it < size; it++) {
         memory[it] = 0;
     }
 }
 
-bool RAMChip::readByte(quint8 &output, quint16 offsetFromBase) const
+bool RAMChip::readByte(quint16 offsetFromBase, quint8 &output) const
 {
-    return getByte(output, offsetFromBase);
+    return getByte(offsetFromBase, output);
 }
 
 bool RAMChip::writeByte(quint16 offsetFromBase, quint8 value)
@@ -314,7 +314,7 @@ bool RAMChip::writeByte(quint16 offsetFromBase, quint8 value)
     return setByte(offsetFromBase, value);
 }
 
-bool RAMChip::getByte(quint8 &output, quint16 offsetFromBase) const
+bool RAMChip::getByte(quint16 offsetFromBase, quint8 &output) const
 {
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = memory[offsetFromBase];
@@ -340,26 +340,26 @@ ROMChip::~ROMChip()
 
 }
 
-AMemoryChip::IOFunctions ROMChip::getIOFunctions() const
+AMemoryChip::IOFunctions ROMChip::getIOFunctions() const noexcept
 {
     return static_cast<AMemoryChip::IOFunctions>(static_cast<int>(AMemoryChip::READ));
 }
 
-AMemoryChip::ChipTypes ROMChip::getChipType() const
+AMemoryChip::ChipTypes ROMChip::getChipType() const noexcept
 {
     return AMemoryChip::ChipTypes::RAM;
 }
 
-void ROMChip::clear()
+void ROMChip::clear() noexcept
 {
     for (unsigned int it = 0; it < size; it++) {
         memory[it] = 0;
     }
 }
 
-bool ROMChip::readByte(quint8 &output, quint16 offsetFromBase) const
+bool ROMChip::readByte(quint16 offsetFromBase, quint8 &output) const
 {
-    return getByte(output, offsetFromBase);
+    return getByte(offsetFromBase, output);
 }
 
 bool ROMChip::writeByte(quint16 offsetFromBase, quint8)
@@ -371,7 +371,7 @@ bool ROMChip::writeByte(quint16 offsetFromBase, quint8)
     throw bad_chip_write(message);
 }
 
-bool ROMChip::getByte(quint8 &output, quint16 offsetFromBase) const
+bool ROMChip::getByte(quint16 offsetFromBase, quint8 &output) const
 {
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = memory[offsetFromBase];

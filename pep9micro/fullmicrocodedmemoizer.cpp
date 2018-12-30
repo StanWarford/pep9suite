@@ -171,7 +171,7 @@ quint16 FullMicrocodedMemoizer::getRegisterWordStart(Enu::CPURegisters reg) cons
     throw -1;
 }
 
-bool FullMicrocodedMemoizer::getStatusBitStart(Enu::EStatusBit bit) const
+bool FullMicrocodedMemoizer::getStatusBitStart(Enu::EStatusBit) const
 {
     throw std::runtime_error("Method not implemented");
 }

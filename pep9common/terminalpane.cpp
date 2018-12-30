@@ -59,6 +59,9 @@ void TerminalPane::waitingForInput()
     waiting = true;
     displayTerminal();
     ui->plainTextEdit->setFocus();
+    while(waiting) {
+        QApplication::processEvents();
+    }
 }
 
 void TerminalPane::clearTerminal()

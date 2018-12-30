@@ -81,41 +81,42 @@ public:
         NONE = 0, READ = 1<<0, WRITE = 1<<1, MEMORY_MAPPED = 1<<2
     };
 
-    explicit AMemoryChip(quint32 size, quint16 baseAddress, QObject *parent = nullptr);
+    explicit AMemoryChip(quint32 size, quint16 baseAddress, QObject *parent = nullptr) noexcept;
     virtual ~AMemoryChip();
 
     // Change the baseAddress of the chip to newAddress
     void setBaseAddress(quint16 newAddress);
     // Number of bytes contained by this chip
-    quint32 getSize() const;
+    quint32 getSize() const noexcept;
     // Location in main memory where this chip is inserted
-    quint16 getBaseAddress() const;
+    quint16 getBaseAddress() const noexcept;
     // Returns the abilities of the chip |'ed together.
     // e.g. check if a chip is writable, (chip->getIOFunctions() & IOFunctions::WRITE) == true
-    virtual IOFunctions getIOFunctions() const = 0;
-    virtual ChipTypes getChipType() const = 0;
+    virtual IOFunctions getIOFunctions() const noexcept= 0;
+    virtual ChipTypes getChipType() const noexcept= 0;
     // Set the value of every address in the chip to 0.
-    virtual void clear() = 0;
+    virtual void clear() noexcept = 0;
     // Can the contents of this chip be cached, or are they volatile?
     // To reduce unecessary code, assume a chip is cachable unless overriden.
-    virtual bool isCachable() const { return true;}
+    virtual bool isCachable() const noexcept { return true;}
 
     // Read / Write functions that may generate signals or trap for IO.
-    virtual bool readByte(quint8& output, quint16 offsetFromBase) const = 0;
+    virtual bool readByte(quint16 offsetFromBase, quint8& output) const = 0;
     virtual bool writeByte(quint16 offsetFromBase, quint8 value) = 0;
     // Read / Write of words as two read / write byte operations and bitmath
-    virtual bool readWord(quint16& output, quint16 offsetFromBase) const;
+    virtual bool readWord(quint16 offsetFromBase, quint16& output) const;
     virtual bool writeWord(quint16 offsetFromBase, quint16 value);
 
     // Get / Set functions that are guarenteed to not generate signals or trap for IO.
-    virtual bool getByte(quint8& output, quint16 offsetFromBase) const = 0;
+    virtual bool getByte(quint16 offsetFromBase, quint8& output) const = 0;
     virtual bool setByte(quint16 offsetFromBase, quint8 value) = 0;
     // Get / Set of words as two get / set byte operations and bitmath
-    virtual bool getWord(quint16& output, quint16 offsetFromBase) const;
+    virtual bool getWord(quint16 offsetFromBase, quint16& output) const;
     virtual bool setWord(quint16 offsetFromBase, quint16 value);
 
 protected:
-    quint32 size, baseAddress;
+    quint32 size;
+    quint16 baseAddress;
     //Helpers that throw a stylized error message for an out of bounds error message.
     [[noreturn]] void outOfBoundsReadHelper(quint16 offsetFromBase) const;
     [[noreturn]] void outOfBoundsWriteHelper(quint16 offsetFromBase, quint8 value);
