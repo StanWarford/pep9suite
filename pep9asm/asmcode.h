@@ -60,6 +60,8 @@ public:
     // Before attempting to use the value return by this function, check if the symbol is null.
     // Dereferencing an empty shared pointer causes memory access violatations that are hard to debug.
     QSharedPointer<const SymbolEntry> getSymbolEntry() const {return symbolEntry;}
+    virtual bool hasSymbolicOperand() const {return false;}
+    virtual QSharedPointer<const SymbolEntry> getSymbolicOperand() const { return nullptr;}
 protected:
     int memAddress =-1;
     int sourceCodeLine;
@@ -107,6 +109,8 @@ public:
     virtual quint16 objectCodeLength() const override;
     virtual bool hasBreakpoint() const override;
     virtual void setBreakpoint(bool b) override;
+    bool hasSymbolicOperand() const override;
+    QSharedPointer<const SymbolEntry> getSymbolicOperand() const override;
 };
 
 class DotAddrss: public AsmCode
@@ -120,6 +124,8 @@ public:
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
     virtual quint16 objectCodeLength() const override;
+    bool hasSymbolicOperand() const override;
+    QSharedPointer<const SymbolEntry> getSymbolicOperand() const override;
 };
 
 class DotAlign: public AsmCode
@@ -135,6 +141,7 @@ public:
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
     virtual quint16 objectCodeLength() const override;
+
 };
 
 class DotAscii: public AsmCode

@@ -20,6 +20,11 @@ QString SymbolRefArgument::getArgumentString() const
     return symbolRefValue->getName();
 }
 
+QSharedPointer<SymbolEntry> SymbolRefArgument::getSymbolValue()
+{
+    return symbolRefValue;
+}
+
 HexArgument::HexArgument(int hValue) :hexValue(hValue)
 {
 

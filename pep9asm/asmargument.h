@@ -105,6 +105,8 @@ public:
     virtual ~SymbolRefArgument() override = default;
     virtual int getArgumentValue() const override;
     virtual QString getArgumentString() const override;
+    QSharedPointer<SymbolEntry> getSymbolValue();
+
 };
 
 #endif // ARGUMENT_H

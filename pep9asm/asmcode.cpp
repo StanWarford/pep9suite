@@ -308,6 +308,16 @@ void NonUnaryInstruction::setBreakpoint(bool b)
     breakpoint = b;
 }
 
+bool NonUnaryInstruction::hasSymbolicOperand() const
+{
+    return dynamic_cast<SymbolRefArgument*>(argument) != nullptr;
+}
+
+QSharedPointer<const SymbolEntry> NonUnaryInstruction::getSymbolicOperand() const
+{
+    return dynamic_cast<SymbolRefArgument*>(argument)->getSymbolValue();
+}
+
 QString UnaryInstruction::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
@@ -596,6 +606,17 @@ quint16 NonUnaryInstruction::objectCodeLength() const
 quint16 DotAddrss::objectCodeLength() const
 {
     return 2;
+}
+
+bool DotAddrss::hasSymbolicOperand() const
+{
+    return true;
+}
+
+QSharedPointer<const SymbolEntry> DotAddrss::getSymbolicOperand() const
+{
+    // The value of a .addrss instruction is always the value of anotehr symbol
+    return static_cast<SymbolRefArgument*>(argument)->getSymbolValue();
 }
 
 quint16 DotAlign::objectCodeLength() const

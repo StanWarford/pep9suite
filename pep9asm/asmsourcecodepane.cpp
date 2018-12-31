@@ -142,7 +142,15 @@ bool AsmSourceCodePane::assemble()
     programManager->setUserProgram(currentProgram);
     for (int i = 0; i < programList.size(); i++) {
         if (!programList[i]->processFormatTraceTags(lineNum, errorString,listings)) {
-            appendMessageInSourceCodePaneAt(lineNum, errorString);
+            appendMessageInSourceCodePaneAt(i, errorString);
+        }
+        // Handle symbol issues
+        // Handle case where an instruction uses an undefined symbol operand.
+        if(programList[i]->hasSymbolicOperand()) {
+            if(programList[i]->getSymbolicOperand()->isUndefined()) {
+                appendMessageInSourceCodePaneAt(i, QString(";ERROR: Symbol \"%1\" is undefined").arg(programList[i]->getSymbolicOperand()->getName()));
+                return false;
+            }
         }
         if(programList[i]->getMemoryAddress() >=0) addressToIndex[programList[i]->getMemoryAddress()] = i;
     }
