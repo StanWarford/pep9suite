@@ -850,8 +850,7 @@ void MainWindow::loadOperatingSystem()
         }
     }
     values = programManager->getOperatingSystem()->getObjectCode();
-#pragma message( "This is not the correct stating address, but it is an improvement")
-    startAddress = (0xffff - values.length()) + 1 + 139  ;
+    startAddress = programManager->getOperatingSystem()->getBurnAddress();
     qDebug() << startAddress;
     memDevice->autoUpdateMemoryMap(false);
     auto memChips = memDevice->removeAllChips();
@@ -862,7 +861,7 @@ void MainWindow::loadOperatingSystem()
 
 #pragma message ("TODO: Don't create a new ROM module each time")
     // Insert a ROM chip
-    memDevice->insertChip(QSharedPointer<ROMChip>::create(0xffff-startAddress, startAddress, memDevice.get()), startAddress);
+    memDevice->insertChip(QSharedPointer<ROMChip>::create(values.length(), startAddress, memDevice.get()), startAddress);
     // Get addresses for I/O chips
     quint16 charIn, charOut;
     charIn = programManager->getOperatingSystem()->getSymbolTable()->getValue("charIn")->getValue();
@@ -873,7 +872,7 @@ void MainWindow::loadOperatingSystem()
     ui->ioWidget->setInputChipAddress(charIn);
     ui->ioWidget->setOutputChipAddress(charOut);
     memDevice->autoUpdateMemoryMap(true);
-    memDevice->loadValues(startAddress - 139, values);
+    memDevice->loadValues(programManager->getOperatingSystem()->getBurnAddress(), values);
 }
 
 void MainWindow::loadObjectCodeProgram()
@@ -1704,7 +1703,14 @@ void MainWindow::onSimulationFinished()
              return;
          }
     }
-    ui->statusBar->showMessage("Execution Finished", 4000);
+    if(controlSection->hadErrorOnStep()) {
+        QMessageBox::critical(
+          this,
+          tr("Pep9Micro"),
+          controlSection->getErrorMessage());
+        ui->statusBar->showMessage("Execution Failed", 4000);
+    }
+    else ui->statusBar->showMessage("Execution Finished", 4000);
 }
 
 void MainWindow::on_actionDark_Mode_triggered()

@@ -285,7 +285,7 @@ int IsaAsm::formatMultiplier(QString formatTag) {
     }
 }
 
-bool IsaAsm::processSourceLine(SymbolTable* symTable, ROMInfo& info, int& byteCount, QString sourceLine, int lineNum, AsmCode *&code, QString &errorString, bool &dotEndDetected, bool hasBreakpoint)
+bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, int& byteCount, QString sourceLine, int lineNum, AsmCode *&code, QString &errorString, bool &dotEndDetected, bool hasBreakpoint)
 {
     IsaAsm::ELexicalToken token; // Passed to getToken.
     QString tokenString; // Passed to getToken.
@@ -740,7 +740,9 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, ROMInfo& info, int& byteCo
                     dotBurn->argument = new HexArgument(value);
                     info.burnCount++;
                     info.burnValue = value;
-                    info.startROMAddress = byteCount;
+                    info.burnAddress = byteCount;
+                    // The strating rom address cannot be calculated until the length of the program is known
+                    // info.startROMAddress = ???;
                     state = IsaAsm::PS_CLOSE;
                 }
                 else {

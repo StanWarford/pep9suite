@@ -145,9 +145,13 @@ bool MainMemory::writeByte(quint16 address, quint8 value)
         emit changed(address, value);
         return retVal;
     } catch (std::range_error& e) {
-        throw e;
+        error = true;
+        errorMessage = e.what();
+        return false;
     } catch (bad_chip_write& e){
-        throw e;
+        error = true;
+        errorMessage = e.what();
+        return false;
     }
 }
 
@@ -174,9 +178,13 @@ bool MainMemory::setByte(quint16 address, quint8 value)
         emit changed(address, value);
         return retVal;
     } catch (std::range_error& e) {
-        throw e;
+        error = true;
+        errorMessage = e.what();
+        return false;
     } catch (bad_chip_write& e){
-        throw e;
+        error = true;
+        errorMessage = e.what();
+        return false;
     }
 }
 

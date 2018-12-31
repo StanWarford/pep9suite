@@ -181,12 +181,18 @@ bool FullMicrocodedCPU::onRun()
     if(hadErrorOnStep()) {
         if(memory->hadError()) {
             qDebug() << "Memory section reporting an error";
+            return false;
+            emit simulationFinished();
         }
         else if(data->hadErrorOnStep()) {
             qDebug() << "Data section reporting an error";
+            return false;
+            emit simulationFinished();
         }
         else {
             qDebug() << "Control section reporting an error";
+            return false;
+            emit simulationFinished();
         }
     }
 
@@ -285,12 +291,15 @@ void FullMicrocodedCPU::onISAStep()
     if(hadErrorOnStep()) {
         if(memory->hadError()) {
             qDebug() << "Memory section reporting an error";
+            emit simulationFinished();
         }
         else if(data->hadErrorOnStep()) {
             qDebug() << "Data section reporting an error";
+            emit simulationFinished();
         }
         else {
             qDebug() << "Control section reporting an error";
+            emit simulationFinished();
         }
     }
     if(executionFinished) emit simulationFinished();

@@ -77,20 +77,21 @@ AsmSourceCodePane::~AsmSourceCodePane()
 
 bool AsmSourceCodePane::assemble()
 {
-    QString sourceLine;
-    QString errorString;
-    QStringList sourceCodeList;
-    AsmCode *code;
-    int lineNum = 0;
-    bool dotEndDetected = false;
-
+    // Clean up any global state from previous compilation attempts
     removeErrorMessages();
     IsaAsm::listOfReferencedSymbols.clear();
     IsaAsm::listOfReferencedSymbolLineNums.clear();
     Pep::symbolFormat.clear();
     Pep::symbolFormatMultiplier.clear();
     addressToIndex.clear();
+
+    bool dotEndDetected = false, success = true;
+    QString sourceLine, errorString;
+    QStringList sourceCodeList;
+    AsmCode *code;
+    int lineNum = 0;
     QList<QSharedPointer<AsmCode>> programList;
+
     //Insert CharIn CharOut
     QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
     #pragma message ("handle input and output when not using BURN at FFFF")
@@ -104,7 +105,8 @@ bool AsmSourceCodePane::assemble()
     QString sourceCode = ui->textEdit->toPlainText();
     sourceCodeList = sourceCode.split('\n');
     int byteCount = 0;
-    ROMInfo info;
+    // Contains information about the address of a .BURN, and the size of memory burned
+    BURNInfo info;
     while (lineNum < sourceCodeList.size() && !dotEndDetected) {
         sourceLine = sourceCodeList[lineNum];
         bool hasBP = ui->textEdit->lineHasBreakpoint(lineNum);
@@ -115,42 +117,40 @@ bool AsmSourceCodePane::assemble()
         programList.append(QSharedPointer<AsmCode>(code));
         lineNum++;
     }
+    // Perfom whole program error checking
+    // Prefer to return after performing all error checks, to save
+    // the user from having to compile many times
+    // Error where no .END occured
     if (!dotEndDetected) {
         errorString = ";ERROR: Missing .END sentinel.";
         appendMessageInSourceCodePaneAt(0, errorString);
-        return false;
+        success = false;
     }
-    if (byteCount > 65535) {
+    // Error where there the program is larger than memory
+    else if (byteCount > 65535) {
         errorString = ";ERROR: Object code size too large to fit into memory.";
         appendMessageInSourceCodePaneAt(0, errorString);
-        return false;
+        success = false;
     }
-    if(symTable->numUndefinedSymbols()>0) {
+    // Error where an insturction use an undefined symbolic operand
+    else if(symTable->numUndefinedSymbols() > 0) {
+        // Search through the program to find which instructions' operand references an undefined symbol
         for(int it = 0; it < programList.length(); it++) {
-#pragma message("TODO: prevent successful build when argument is symbolic and undefined")
-            if(programList[it]->hasSymbolEntry() && programList[it]->getSymbolEntry()->isUndefined()) {
-                errorString = ";ERROR: Symbol " + programList[it]->getSymbolEntry()->getName() + " is used but not defined.";
-                //Fix not highlighting the line on which the symbol occured
+            if(programList[it]->hasSymbolicOperand() && programList[it]->getSymbolicOperand()->isUndefined()) {
+                QString errorString =  QString(";ERROR: Symbol \"%1\" is undefined.").arg(programList[it]->getSymbolicOperand()->getName());
                 appendMessageInSourceCodePaneAt(it, errorString);
-                return false;
             }
         }
+        success = false;
     }
+
+
 #pragma message("Memory trace needs some work")
     SymbolListings listings;
-    currentProgram = QSharedPointer<AsmProgram>::create(programList, symTable);
-    programManager->setUserProgram(currentProgram);
+    // Detect all trace tags
     for (int i = 0; i < programList.size(); i++) {
-        if (!programList[i]->processFormatTraceTags(lineNum, errorString,listings)) {
+        if (!programList[i]->processFormatTraceTags(lineNum, errorString, listings)) {
             appendMessageInSourceCodePaneAt(i, errorString);
-        }
-        // Handle symbol issues
-        // Handle case where an instruction uses an undefined symbol operand.
-        if(programList[i]->hasSymbolicOperand()) {
-            if(programList[i]->getSymbolicOperand()->isUndefined()) {
-                appendMessageInSourceCodePaneAt(i, QString(";ERROR: Symbol \"%1\" is undefined").arg(programList[i]->getSymbolicOperand()->getName()));
-                return false;
-            }
         }
         if(programList[i]->getMemoryAddress() >=0) addressToIndex[programList[i]->getMemoryAddress()] = i;
     }
@@ -161,7 +161,12 @@ bool AsmSourceCodePane::assemble()
             }
         }
     }*/
-    return true;
+    // If compilation occured successfully, then wrap the program list and symbol table into a program
+    if(success) {
+        currentProgram = QSharedPointer<AsmProgram>::create(programList, symTable);
+        programManager->setUserProgram(currentProgram);
+    }
+    return success;
 }
 
 QList<int> AsmSourceCodePane::getObjectCode()
@@ -202,13 +207,13 @@ bool AsmSourceCodePane::assembleOS(QStringList fileLines)
     QString errorString;
     AsmCode *code;
     int lineNum = 0;
-    bool dotEndDetected = false;
+    bool dotEndDetected = false, success = true;
 
     IsaAsm::listOfReferencedSymbols.clear();
     QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
     QList<QSharedPointer<AsmCode>> codeList;
     int byteCount = 0;
-    ROMInfo info;
+    BURNInfo info;
     while (lineNum < fileLines.size() && !dotEndDetected) {
         sourceLine = fileLines[lineNum];
         if (!IsaAsm::processSourceLine(symTable.data(), info, byteCount, sourceLine, lineNum, code, errorString, dotEndDetected)) {
@@ -217,22 +222,37 @@ bool AsmSourceCodePane::assembleOS(QStringList fileLines)
         codeList.append(QSharedPointer<AsmCode>(code));
         lineNum++;
     }
+
+    // Perfom whole program error checking
+    // Prefer to return after performing all error checks, to save
+    // the user from having to compile many times
+    // Error where no .END occured
     if (!dotEndDetected) {
-        return false;
+        success = false;
     }
-    if (byteCount > 65535) {
-        return false;
+    // Error where there the program is larger than memory
+    else if (byteCount > 65535) {
+        success = false;
     }
-    if(symTable->numUndefinedSymbols()>0) return false;
-    if (info.burnCount != 1) {
-        return false;
+    // Error where an insturction use an undefined symbolic operand
+    else if(symTable->numUndefinedSymbols() > 0) {
+        // Search through the program to find which instructions' operand references an undefined symbol
+        for(int it = 0; it < codeList.length(); it++) {
+            if(codeList[it]->hasSymbolicOperand() && codeList[it]->getSymbolicOperand()->isUndefined()) {
+            }
+        }
+        success = false;
     }
+    else if (info.burnCount != 1) {
+        success = false;
+    }
+    if(!success) return false;
 
     // Adjust for .BURN
     int addressDelta = info.burnValue - byteCount + 1;
-    info.startROMAddress = addressDelta;
+    info.startROMAddress = info.burnValue - (byteCount - info.burnAddress) +1;
     adjustCodeList(codeList, addressDelta);
-    currentProgram = QSharedPointer<AsmProgram>::create(codeList, symTable);
+    currentProgram = QSharedPointer<AsmProgram>::create(codeList, symTable, info.startROMAddress, info.burnValue);
     symTable->setOffset(addressDelta);
     programManager->setOperatingSystem(currentProgram);
     return true;

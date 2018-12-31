@@ -32,6 +32,7 @@ class AsmProgram
 public:
     explicit AsmProgram();
     explicit AsmProgram(QList<QSharedPointer<AsmCode>> programList, QSharedPointer<SymbolTable> symbolTable);
+    explicit AsmProgram(QList<QSharedPointer<AsmCode>> programList, QSharedPointer<SymbolTable> symbolTable, quint16 burnAddress, quint16 burnValue);
     ~AsmProgram();
 
     // Getters and setters for program features
@@ -41,6 +42,12 @@ public:
     QSharedPointer<SymbolTable> getSymbolTable();
     const QSharedPointer<SymbolTable> getSymbolTable() const;
 
+    bool hasBurn() const;
+    // Get the address of the line containing the .BURN statement
+    quint16 getBurnAddress() const;
+    // Get the value of the .BURN statement
+    quint16 getBurnValue() const;
+
     AsmCode* getCodeAtIndex(quint32 line);
     const AsmCode* getCodeAtIndex(quint32 line) const;
     const AsmCode* memAddressToCode(quint16 memAddress) const;
@@ -48,13 +55,16 @@ public:
     QPair<quint16, quint16> getProgramBounds() const;
 
 private:
-
     QPair<quint16, quint16> programBounds;
     QList<QSharedPointer<AsmCode>> program;
     QMap<int, quint16> indexToMemAddress;
     QMap<quint16, int> memAddressToIndex;
     quint16 programByteLength;
     QSharedPointer<SymbolTable> symTable;
+
+    bool burn;
+    quint16 burnAddress, burnValue;
+
     // Memory trace state
     bool traceTagWarning;
 
