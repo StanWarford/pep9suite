@@ -46,7 +46,7 @@ MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
     ui->codeTable->setModel(model);
     rotatedHeaderView = new RotatedHeaderView(Qt::Horizontal,ui->codeTable);
     rotatedHeaderView->setModel(ui->codeTable->model());
-    selectionModel = new DisableSelectionModel(ui->codeTable->model());
+    selectionModel = new DisableSelectionModel(ui->codeTable->model(), this);
     ui->codeTable->setSelectionModel(selectionModel);
     ui->codeTable->setHorizontalHeader(rotatedHeaderView);
     ui->codeTable->setFont(font);
@@ -57,10 +57,8 @@ MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
     model->setRowCount(0);
     initCPUModelState();
     //Connect to disabler
-    connect(this, &MicroObjectCodePane::beginSimulation, selectionModel, &DisableSelectionModel::onBeginSimulation);
-    connect(this, &MicroObjectCodePane::endSimulation, selectionModel, &DisableSelectionModel::onEndSimulation);
-
-    //ui->codeTabl
+    connect(this, &MicroObjectCodePane::beginSimulation, selectionModel, &DisableSelectionModel::onDisableSelection);
+    connect(this, &MicroObjectCodePane::endSimulation, selectionModel, &DisableSelectionModel::onEnableSelection);
 }
 
 MicroObjectCodePane::~MicroObjectCodePane()

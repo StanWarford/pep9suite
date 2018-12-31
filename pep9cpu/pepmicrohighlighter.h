@@ -35,7 +35,7 @@ QT_END_NAMESPACE
 class PepMicroHighlighter : public HTMLHighlighterMixin/*, RestyleableItem*/
 {
 public:
-    PepMicroHighlighter(Enu::CPUType type, const PepColors::Colors colors, QTextDocument *parent = 0);
+    PepMicroHighlighter(Enu::CPUType type, const PepColors::Colors colors, QTextDocument *parent = nullptr);
     void forceAllFeatures(bool features);
     void rebuildHighlightingRules(const PepColors::Colors color);
     void setCPUType(Enu::CPUType type);

@@ -69,7 +69,7 @@ MicrocodePane::~MicrocodePane()
 
 void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> newData, QSharedPointer<AMemoryDevice> memDevice, bool useExt)
 {
-    if(dataSection.isNull()) {
+    if(!dataSection.isNull()) {
         disconnect(dataSection.get(), &NewCPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
     }
     if(microASM != nullptr) delete microASM;

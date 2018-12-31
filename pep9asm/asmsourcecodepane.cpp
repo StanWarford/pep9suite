@@ -95,8 +95,8 @@ bool AsmSourceCodePane::assemble()
     QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
     #pragma message ("handle input and output when not using BURN at FFFF")
     quint16 chin, chout;
-    memDevice->getWord(chin, 0xFFF8);
-    memDevice->getWord(chout, 0xFFFA);
+    memDevice->getWord(0xFFF8, chin);
+    memDevice->getWord(0xFFFA, chout);
     symTable->insertSymbol("charIn");
     symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(chin));
     symTable->insertSymbol("charOut");

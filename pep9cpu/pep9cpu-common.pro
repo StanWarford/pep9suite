@@ -8,11 +8,13 @@ INCLUDEPATH += $$PWD\..\pep9common
 # Otherwise, including projects can't find the files.
 
 FORMS += \
+	$$PWD\cpupane.ui \
     $$PWD\memorydumppane.ui \
     $$PWD\microcodepane.ui \
     $$PWD\microobjectcodepane.ui \
 
 HEADERS += \
+	$$PWD\cpupane.h \
     $$PWD\cpugraphicsitems.h \
     $$PWD\disableselectionmodel.h \
     $$PWD\memorydumppane.h \
@@ -31,6 +33,7 @@ HEADERS += \
     $$PWD\newcpudata.h
 
 SOURCES += \
+	$$PWD\cpupane.cpp \
     $$PWD\cpugraphicsitems.cpp \
     $$PWD\disableselectionmodel.cpp \
     $$PWD\memorydumppane.cpp \

@@ -22,15 +22,15 @@
 #include "specification.h"
 #include "newcpudata.h"
 #include "amemorydevice.h"
-Specification::Specification()
+Specification::Specification() noexcept
 {
 }
 
-MemSpecification::MemSpecification(AMemoryDevice* mem, int memoryAddress, int memoryValue, int numberBytes): memDevice(mem), memAddress(memoryAddress),
+MemSpecification::MemSpecification(AMemoryDevice* mem, int memoryAddress, int memoryValue, int numberBytes) noexcept: memDevice(mem), memAddress(memoryAddress),
     memValue(memoryValue), numBytes(numberBytes) {
 }
 
-void MemSpecification::setUnitPre(NewCPUDataSection *)
+void MemSpecification::setUnitPre(NewCPUDataSection *) noexcept
 {
     if(numBytes == 1) {
         memDevice->setByte(static_cast<quint16>(memAddress), static_cast<quint8>(memValue));
@@ -46,20 +46,20 @@ void MemSpecification::setUnitPre(NewCPUDataSection *)
     }
 }
 
-bool MemSpecification::testUnitPost(NewCPUDataSection *, QString &errorString)
+bool MemSpecification::testUnitPost(const NewCPUDataSection *, QString &errorString) const noexcept
 {
     bool retVal;
     quint8 byte;
     quint16 word;
     if(numBytes==1) {
-        memDevice->getByte(byte, static_cast<quint16>(memAddress));
+        memDevice->getByte(static_cast<quint16>(memAddress), byte);
         retVal = (byte == static_cast<quint8>(memValue));
         if(!retVal)errorString= "// ERROR: Unit test failed for byte Mem[0x"+
                 QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper() + "].";
     }
     else {
         //Test each individual byte, to avoid memory alignment issues
-        memDevice->getWord(word, static_cast<quint16>(memAddress));
+        memDevice->getWord(static_cast<quint16>(memAddress), word);
         retVal = (word == static_cast<quint16>(memValue));
         if(!retVal)errorString= "// ERROR: Unit test failed for byte Mem[0x"+
                 QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper() + "].";
@@ -67,7 +67,7 @@ bool MemSpecification::testUnitPost(NewCPUDataSection *, QString &errorString)
     return retVal;
 }
 
-QString MemSpecification::getSourceCode() {
+QString MemSpecification::getSourceCode() const noexcept {
     return "Mem[0x"
             + QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper()
             + "]=0x"
@@ -76,14 +76,13 @@ QString MemSpecification::getSourceCode() {
                QString("%1").arg(memValue, 4, 16, QLatin1Char('0')).toUpper()) ;
 }
 
-RegSpecification::RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue) {
+RegSpecification::RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue) noexcept {
     regAddress = registerAddress;
     regValue = registerValue;
 }
 
-void RegSpecification::setUnitPre(NewCPUDataSection *data)
+void RegSpecification::setUnitPre(NewCPUDataSection *data) noexcept
 {
-
     switch(regAddress)
     {
     case Enu::Acc:
@@ -140,7 +139,7 @@ void RegSpecification::setUnitPre(NewCPUDataSection *data)
     }
 }
 
-bool RegSpecification::testUnitPost(NewCPUDataSection *data, QString &errorString)
+bool RegSpecification::testUnitPost(const NewCPUDataSection *data, QString &errorString) const noexcept
 {
     int reg = 0;
     switch(regAddress)
@@ -202,7 +201,7 @@ bool RegSpecification::testUnitPost(NewCPUDataSection *data, QString &errorStrin
     }
 }
 
-QString RegSpecification::getSourceCode() {
+QString RegSpecification::getSourceCode() const noexcept {
     switch (regAddress) {
     case Enu::Acc: return "A=0x" + QString("%1").arg(regValue, 4, 16, QLatin1Char('0')).toUpper();
     case Enu::X: return "X=0x" + QString("%1").arg(regValue, 4, 16, QLatin1Char('0')).toUpper();
@@ -222,12 +221,12 @@ QString RegSpecification::getSourceCode() {
     }
 }
 
-StatusBitSpecification::StatusBitSpecification(Enu::ECPUKeywords statusBitAddress, bool statusBitValue) {
+StatusBitSpecification::StatusBitSpecification(Enu::ECPUKeywords statusBitAddress, bool statusBitValue) noexcept {
     nzvcsAddress = statusBitAddress;
     nzvcsValue = statusBitValue;
 }
 
-void StatusBitSpecification::setUnitPre(NewCPUDataSection *data)
+void StatusBitSpecification::setUnitPre(NewCPUDataSection *data) noexcept
 {
     Enu::EStatusBit status;
     switch(nzvcsAddress)
@@ -253,7 +252,7 @@ void StatusBitSpecification::setUnitPre(NewCPUDataSection *data)
     data->onSetStatusBit(status,nzvcsValue);
 }
 
-bool StatusBitSpecification::testUnitPost(NewCPUDataSection *data, QString &errorString)
+bool StatusBitSpecification::testUnitPost(const NewCPUDataSection *data, QString &errorString) const noexcept
 {
     Enu::EStatusBit status;
     switch(nzvcsAddress)
@@ -286,7 +285,7 @@ bool StatusBitSpecification::testUnitPost(NewCPUDataSection *data, QString &erro
     }
 }
 
-QString StatusBitSpecification::getSourceCode() {
+QString StatusBitSpecification::getSourceCode() const noexcept {
     switch (nzvcsAddress) {
     case Enu::N: return "N=" + QString("%1").arg(nzvcsValue);
     case Enu::Z: return "Z=" + QString("%1").arg(nzvcsValue);

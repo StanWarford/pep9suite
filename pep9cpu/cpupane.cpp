@@ -61,7 +61,7 @@ void CpuPane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUData
     this->dataSection = dataSection;
     initModel();
     this->setMinimumWidth(static_cast<int>(cpuPaneItems->boundingRect().left())+100);
-    qDebug() << static_cast<int>(cpuPaneItems->boundingRect().right())+45;
+    // qDebug() << static_cast<int>(cpuPaneItems->boundingRect().right())+45;
     this->setMaximumWidth(static_cast<int>(cpuPaneItems->boundingRect().right())+45);
     // Give this class a larger acceptable size range, so that it will behave better in a splitter
 

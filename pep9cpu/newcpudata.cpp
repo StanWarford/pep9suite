@@ -504,7 +504,7 @@ void NewCPUDataSection::stepTwoByte() noexcept
                 return;
             }
             else {
-                memSigError = memDevice->readByte(temp, address);
+                memSigError = memDevice->readByte(address, temp);
                 if(!memSigError) {
                     #pragma message("TODO: Handle case where memory errors more gracefully")
                 }
@@ -542,7 +542,7 @@ void NewCPUDataSection::stepTwoByte() noexcept
                 return;
             }
             else {
-                memSigError = memDevice->readByte(temp, address);
+                memSigError = memDevice->readByte(address, temp);
                 if(!memSigError) {
                     #pragma message("TODO: Handle case where memory errors more gracefully")
                 }

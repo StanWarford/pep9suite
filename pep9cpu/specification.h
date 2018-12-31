@@ -3,7 +3,7 @@
     Pep9CPU is a CPU simulator for executing microcode sequences to
     implement instructions in the instruction set of the Pep/9 computer.
 
-    Copyright (C) 2010  J. Stanley Warford, Pepperdine University
+    Copyright (C) 2018  J. Stanley Warford, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,25 +25,24 @@
 #include "enu.h"
 #include "cpupane.h"
 
-
-class NewCPUDataSection; //Forward declare CPUDataSection to avoid inclusion loops
 class AMemoryDevice;
+class NewCPUDataSection; //Forward declare CPUDataSection to avoid inclusion loops
 class Specification
 {
 public:
+    explicit Specification() noexcept;
     virtual ~Specification() { }
-    Specification();
-    virtual void setUnitPre(NewCPUDataSection*) { }
-    virtual bool testUnitPost(NewCPUDataSection*, QString&){return true;}
-    virtual QString getSourceCode() = 0;
+    virtual void setUnitPre(NewCPUDataSection*) noexcept { }
+    virtual bool testUnitPost(const NewCPUDataSection*, QString&) const noexcept {return true;}
+    virtual QString getSourceCode() const noexcept = 0;
 };
 
 class MemSpecification: public Specification {    
 public:
-    MemSpecification(AMemoryDevice* mem, int memoryAddress, int memoryValue, int numberBytes);
-    void setUnitPre(NewCPUDataSection*) override;
-    bool testUnitPost(NewCPUDataSection *data, QString &errString) override;
-    QString getSourceCode() override;
+    MemSpecification(AMemoryDevice* mem, int memoryAddress, int memoryValue, int numberBytes) noexcept;
+    void setUnitPre(NewCPUDataSection*) noexcept override;
+    bool testUnitPost(const NewCPUDataSection *data, QString &errString) const noexcept override;
+    QString getSourceCode() const noexcept override;
 private:
     AMemoryDevice* memDevice;
     int memAddress;
@@ -53,10 +52,10 @@ private:
 
 class RegSpecification: public Specification {
 public:
-    RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue);
-    void setUnitPre(NewCPUDataSection*) override;
-    bool testUnitPost(NewCPUDataSection *data, QString &errString) override;
-    QString getSourceCode() override;
+    RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue) noexcept;
+    void setUnitPre(NewCPUDataSection*) noexcept override;
+    bool testUnitPost(const NewCPUDataSection *data, QString &errString) const noexcept override;
+    QString getSourceCode() const noexcept override;
 private:
     Enu::ECPUKeywords regAddress;
     int regValue;
@@ -64,10 +63,10 @@ private:
 
 class StatusBitSpecification: public Specification {
 public:
-    StatusBitSpecification(Enu::ECPUKeywords statusBitAddress, bool statusBitValue);
-    void setUnitPre(NewCPUDataSection*) override;
-    bool testUnitPost(NewCPUDataSection *data, QString &errString) override;
-    QString getSourceCode() override;
+    StatusBitSpecification(Enu::ECPUKeywords statusBitAddress, bool statusBitValue) noexcept;
+    void setUnitPre(NewCPUDataSection*) noexcept override;
+    bool testUnitPost(const NewCPUDataSection *data, QString &errString) const noexcept override;
+    QString getSourceCode() const noexcept override;
 private:
     Enu::ECPUKeywords nzvcsAddress;
     bool nzvcsValue;

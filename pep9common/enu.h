@@ -55,7 +55,7 @@ namespace Enu {
     };
 
     // Bit masks that signal which editing actions should be available through context menus
-    enum EditButtons: int
+    enum EditButton: int
     {
         COPY = 1<<0, CUT = 1<<1, PASTE = 1<<2, UNDO = 1<<3, REDO = 1<<4
     };
@@ -78,6 +78,7 @@ namespace Enu {
     {  DEFAULT = 1,
        NONE = 0, MINIMAL = 1, ALL = 2, END
     };
+
     /*
      * Enumerations for Pep9
      */

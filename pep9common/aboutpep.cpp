@@ -1,8 +1,8 @@
-// File: aboutpep.h
+// File: aboutpep.cpp
 /*
     Pep9CPU is a CPU simulator for executing microcode sequences to
     implement instructions in the instruction set of the Pep/9 computer.
-    
+
     Copyright (C) 2010  J. Stanley Warford, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
@@ -19,23 +19,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ABOUTPEP_H
-#define ABOUTPEP_H
+#include "aboutpep.h"
+#include "ui_aboutpep.h"
+#include "pep.h"
 
-#include <QDialog>
-
-namespace Ui {
-    class AboutPep;
+AboutPep::AboutPep(QString aboutText, QPixmap pixmap, QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::AboutPep), str(aboutText), icon(pixmap)
+{
+    ui->setupUi(this);
+    ui->aboutLabel->setText(str);
+    ui->label->setPixmap(pixmap);
+    setMinimumHeight(460);
+    //setMaximumHeight(450);
+    this->resize(this->contentsRect().x(),450);
 }
 
-class AboutPep : public QDialog {
-    Q_OBJECT
-public:
-    AboutPep(QWidget *parent = 0);
-    ~AboutPep();
-
-private:
-    Ui::AboutPep *ui;
-};
-
-#endif // ABOUTPEP_H
+AboutPep::~AboutPep()
+{
+    delete ui;
+}

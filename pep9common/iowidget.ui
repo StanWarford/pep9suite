@@ -46,7 +46,11 @@
          <item row="0" column="0">
           <layout class="QGridLayout" name="gridLayout_3">
            <item row="0" column="0">
-            <widget class="TerminalPane" name="terminalIO" native="true"/>
+            <widget class="TerminalPane" name="terminalIO" native="true">
+             <property name="cursor">
+              <cursorShape>BlankCursor</cursorShape>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>

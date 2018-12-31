@@ -2,12 +2,13 @@
 #include <QObject>
 #include <QItemSelectionModel>
 
-DisableSelectionModel::DisableSelectionModel(QAbstractItemModel *model):QItemSelectionModel(model),disableSelection(false)
+DisableSelectionModel::DisableSelectionModel(QAbstractItemModel *model) noexcept: QItemSelectionModel(model), disableSelection(false)
 {
 
 }
 
-DisableSelectionModel::DisableSelectionModel(QAbstractItemModel *model, QObject *parent):QItemSelectionModel(model,parent),disableSelection(false)
+DisableSelectionModel::DisableSelectionModel(QAbstractItemModel *model, QObject *parent) noexcept: QItemSelectionModel(model, parent),
+    disableSelection(false)
 {
 
 }
@@ -37,12 +38,12 @@ void DisableSelectionModel::forceSelectRow(int row)
     QItemSelectionModel::select(QItemSelection(start,end),SelectionFlag::SelectCurrent);
 }
 
-void DisableSelectionModel::onBeginSimulation()
+void DisableSelectionModel::onDisableSelection()
 {
-    disableSelection=true;
+    disableSelection = true;
 }
 
-void DisableSelectionModel::onEndSimulation()
+void DisableSelectionModel::onEnableSelection()
 {
-    disableSelection=false;
+    disableSelection = false;
 }

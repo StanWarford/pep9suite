@@ -33,7 +33,7 @@ class ByteConverterBin : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(ByteConverterBin)
         public:
-            explicit ByteConverterBin(QWidget *parent = 0);
+            explicit ByteConverterBin(QWidget *parent = nullptr);
     virtual ~ByteConverterBin();
     void setValue(int);
 

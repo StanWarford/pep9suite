@@ -11,7 +11,7 @@ class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public Interf
     Q_OBJECT
     friend class CPUMemoizer;
 public:
-    FullMicrocodedCPU(QSharedPointer<AMemoryDevice>, QObject* parent = nullptr);
+    FullMicrocodedCPU(QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~FullMicrocodedCPU() override;
     QSharedPointer<NewCPUDataSection> getDataSection();
 
@@ -23,10 +23,10 @@ public:
     quint8 getCPURegByteStart(Enu::CPURegisters reg) const override;
     quint16 getCPURegWordStart(Enu::CPURegisters reg) const override;
     void initCPU() override;
-    bool stoppedForBreakpoint() const override;
-    QString getErrorMessage() const override;
-    bool hadErrorOnStep() const override;
-    Enu::DebugLevels getDebugLevel() const override;
+    bool stoppedForBreakpoint() const noexcept override;
+    QString getErrorMessage() const noexcept override;
+    bool hadErrorOnStep() const noexcept override;
+    Enu::DebugLevels getDebugLevel() const noexcept override;
     void setDebugLevel(Enu::DebugLevels level) override;
 
     // InterfaceMCCPU interface

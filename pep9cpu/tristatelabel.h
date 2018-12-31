@@ -29,7 +29,7 @@ Q_OBJECT
 public:
     enum ToggleMode {Tristate, OneUndefined, ZeroOne};
 
-    explicit TristateLabel(QWidget *parent = 0, ToggleMode mode = Tristate);
+    explicit TristateLabel(QWidget *parent = nullptr, ToggleMode mode = Tristate);
 
     void setState(int state);
 

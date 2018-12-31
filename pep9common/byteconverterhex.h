@@ -33,7 +33,7 @@ class ByteConverterHex : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(ByteConverterHex)
 public:
-    explicit ByteConverterHex(QWidget *parent = 0);
+    explicit ByteConverterHex(QWidget *parent = nullptr);
     virtual ~ByteConverterHex();
     void setValue(int);
 

@@ -30,7 +30,7 @@ namespace Ui {
 class ByteConverterInstr : public QWidget {
     Q_OBJECT
 public:
-    ByteConverterInstr(QWidget *parent = 0);
+    ByteConverterInstr(QWidget *parent = nullptr);
     ~ByteConverterInstr();
 
     void setValue(int data);

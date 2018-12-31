@@ -77,14 +77,14 @@ bool IOWidget::isRedoable() const
 
 int IOWidget::editActions() const
 {
-    int ret = Enu::EditButtons::COPY;
+    int ret = Enu::EditButton::COPY;
     if(ui->batchInput->hasFocus()) {
-        ret |= Enu::EditButtons::CUT | Enu::EditButtons::PASTE;
-        ret |= Enu::EditButtons::REDO * ui->batchInput->isRedoable() | Enu::EditButtons::UNDO * ui->batchInput->isUndoable();
+        ret |= Enu::EditButton::CUT | Enu::EditButton::PASTE;
+        ret |= Enu::EditButton::REDO * ui->batchInput->isRedoable() | Enu::EditButton::UNDO * ui->batchInput->isUndoable();
     }
     else if(ui->terminalIO->hasFocus()) {
-        ret |= Enu::EditButtons::CUT | Enu::EditButtons::PASTE;
-        ret |= Enu::EditButtons::REDO * ui->terminalIO->isRedoable() | Enu::EditButtons::UNDO * ui->terminalIO->isUndoable();
+        ret |= Enu::EditButton::CUT | Enu::EditButton::PASTE;
+        ret |= Enu::EditButton::REDO * ui->terminalIO->isRedoable() | Enu::EditButton::UNDO * ui->terminalIO->isUndoable();
     }
     return ret;
 }
@@ -196,7 +196,7 @@ void IOWidget::onDataReceived(quint16 address, QChar data)
     if(address != oChipAddr) {
         return;
     }
-    QString oData = QString::number((quint8)data.toLatin1(),16).leftJustified(2,'0')+" ";
+    QString oData = QString::number(static_cast<quint8>(data.toLatin1()), 16).leftJustified(2,'0')+" ";
     //qDebug()<<called++;
     switch(ui->tabWidget->currentIndex())
     {

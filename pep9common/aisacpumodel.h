@@ -35,19 +35,21 @@ class AMemoryDevice;
 class InterfaceISACPU
 {
 public:
-    explicit InterfaceISACPU();
+    explicit InterfaceISACPU() noexcept;
     virtual ~InterfaceISACPU();
     // Add, remove, & get breakpoints for the program counter.
-    const QSet<quint16> getPCBreakpoints() const;
-    void breakpointsSet(QSet<quint16> addresses);
-    void breakpointsRemoveAll();
-    void breakpointRemoved(quint16 address);
-    void breakpointAdded(quint16 address);
+    // Simulation will trap if the program counter is an element of the breakpointSet.
+    const QSet<quint16> getPCBreakpoints() const noexcept;
+    void breakpointsSet(QSet<quint16> addresses) noexcept;
+    void breakpointsRemoveAll() noexcept;
+    void breakpointRemoved(quint16 address) noexcept;
+    void breakpointAdded(quint16 address) noexcept;
 
-    void reset();
+    // Clear program counters & breakpoint status
+    void reset() noexcept;
 
     // Output breakpoint changes to the console.
-    void setDebugBreakpoints(bool doDebug);
+    void setDebugBreakpoints(bool doDebug) noexcept;
 
     // Execute the next ISA instruction.
     virtual void onISAStep() = 0;

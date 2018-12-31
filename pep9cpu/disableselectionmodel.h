@@ -24,20 +24,26 @@
 #include <QObject>
 #include <QItemSelectionModel>
 #include <QAbstractItemModel>
+/*
+ * DisableSelectionModel prevents users from changing the selected row in an item model.
+ * To prevent a user from changing the selection, call onDisableSelection().
+ * To allow a user to change the selection, call onEnableSelection().
+ * To programatically change the selected row, call forceSelectRow(row).
+ */
 class DisableSelectionModel : public QItemSelectionModel
 {
     bool disableSelection;
     Q_OBJECT
 public:
-    DisableSelectionModel(QAbstractItemModel *model = Q_NULLPTR);
-    DisableSelectionModel(QAbstractItemModel *model, QObject *parent);
-    virtual ~DisableSelectionModel();
+    DisableSelectionModel(QAbstractItemModel *model = Q_NULLPTR) noexcept;
+    DisableSelectionModel(QAbstractItemModel *model, QObject *parent = Q_NULLPTR) noexcept;
+    virtual ~DisableSelectionModel() override;
     void select(const QItemSelection &selection, QItemSelectionModel::SelectionFlags command) override;
     void select(const QModelIndex &index, SelectionFlags command) override;
     void forceSelectRow(int row);
 public slots:
-    void onBeginSimulation();
-    void onEndSimulation();
+    void onDisableSelection();
+    void onEnableSelection();
 };
 
 #endif // DISABLESELECTIONMODEL_H

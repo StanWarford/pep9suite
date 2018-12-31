@@ -1,5 +1,5 @@
 # -------------------------------------------------
-# Project created by QtCreator 2009-12-01T13:18:25
+# Project created by Matthew McRaven, 12/30/2018
 # -------------------------------------------------
 TEMPLATE = app
 TARGET = Pep9Micro
@@ -35,31 +35,22 @@ RC_FILE = pep9resources.rc
 #Files imported from Pep9ASM
 #Files imported from Pep9CPU
 FORMS += \
-    aboutpep.ui \
     addrmodedialog.ui \
     addrmodewidget.ui \
-    asmtracepane.ui \
-    cpupane.ui \
     helpdialog.ui \
     mainwindow.ui \
 
 HEADERS += \
-    aboutpep.h \
     addrmodedialog.h \
     addrmodewidget.h \
-    asmtracepane.h \
-    cpupane.h \
     helpdialog.h \
     mainwindow.h \
     fullmicrocodedcpu.h \
     fullmicrocodedmemoizer.h
 
 SOURCES += \
-    aboutpep.cpp \
     addrmodedialog.cpp \
     addrmodewidget.cpp \
-    asmtracepane.cpp \
-    cpupane.cpp \
     helpdialog.cpp \
     main.cpp \
     mainwindow.cpp \

@@ -10,7 +10,7 @@
 #include "newcpudata.h"
 #include "symbolentry.h"
 #include "fullmicrocodedmemoizer.h"
-FullMicrocodedCPU::FullMicrocodedCPU(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent): ACPUModel (memoryDev, parent),
+FullMicrocodedCPU::FullMicrocodedCPU(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
     InterfaceMCCPU(Enu::CPUType::TwoByteDataBus),
     InterfaceISACPU()
 {
@@ -82,12 +82,12 @@ void FullMicrocodedCPU::initCPU()
     data->onSetRegisterByte(5,0x82);
 }
 
-bool FullMicrocodedCPU::stoppedForBreakpoint() const
+bool FullMicrocodedCPU::stoppedForBreakpoint() const noexcept
 {
     return microBreakpointHit || asmBreakpointHit;
 }
 
-QString FullMicrocodedCPU::getErrorMessage() const
+QString FullMicrocodedCPU::getErrorMessage() const noexcept
 {
     if(memory->hadError()) return memory->getErrorMessage();
     else if(data->hadErrorOnStep()) return data->getErrorMessage();
@@ -95,12 +95,12 @@ QString FullMicrocodedCPU::getErrorMessage() const
     else return "";
 }
 
-bool FullMicrocodedCPU::hadErrorOnStep() const
+bool FullMicrocodedCPU::hadErrorOnStep() const noexcept
 {
     return controlError || data->hadErrorOnStep() || memory->hadError();
 }
 
-Enu::DebugLevels FullMicrocodedCPU::getDebugLevel() const
+Enu::DebugLevels FullMicrocodedCPU::getDebugLevel() const noexcept
 {
     return memoizer->getDebugLevel();
 }

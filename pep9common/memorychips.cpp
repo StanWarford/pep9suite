@@ -96,7 +96,7 @@ bool NilChip::writeByte(quint16 offsetFromBase, quint8 value)
     return setByte(offsetFromBase, value);
 }
 
-bool NilChip::getByte(quint16 offsetFromBase, quint8 &output) const
+bool NilChip::getByte(quint16 offsetFromBase, quint8 &/*output*/) const
 {
     std::string message = "Attempted to access nil chip at: " +
             QString("0x%1").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();

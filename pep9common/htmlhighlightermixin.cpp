@@ -27,12 +27,12 @@ void RestyleableItem::setStyle(const PepColors::Colors &style)
     }
 }*/
 
-HTMLHighlighterMixin::HTMLHighlighterMixin(QTextDocument *parent): QSyntaxHighlighter(parent)
+HTMLHighlighterMixin::HTMLHighlighterMixin(QTextDocument *parent) noexcept: QSyntaxHighlighter(parent)
 {
 
 }
 
-void HTMLHighlighterMixin::asHtml(QString& html, QFont font) const
+void HTMLHighlighterMixin::asHtml(QString& html, QFont font) const noexcept
 {
     // Create a new document from all the selected text document.
     QTextCursor cursor(document());

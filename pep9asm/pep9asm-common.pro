@@ -12,6 +12,7 @@ FORMS += \
     $$PWD\asmlistingpane.ui \
     $$PWD\asmobjectcodepane.ui \
     $$PWD\asmsourcecodepane.ui \
+	$$PWD\asmtracepane.ui \
     $$PWD\memorytracepane.ui \
 
 HEADERS += \
@@ -22,6 +23,7 @@ HEADERS += \
     $$PWD\asmprogram.h \
     $$PWD\asmprogrammanager.h \
     $$PWD\asmsourcecodepane.h \
+	$$PWD\asmtracepane.h \
     $$PWD\cpphighlighter.h \
     $$PWD\isaasm.h \
     $$PWD\memorycellgraphicsitem.h \
@@ -37,6 +39,7 @@ SOURCES += \
     $$PWD\asmprogram.cpp \
     $$PWD\asmprogrammanager.cpp \
     $$PWD\asmsourcecodepane.cpp \
+	$$PWD\asmtracepane.cpp \
     $$PWD\cpphighlighter.cpp \
     $$PWD\isaasm.cpp \
     $$PWD\memorycellgraphicsitem.cpp \

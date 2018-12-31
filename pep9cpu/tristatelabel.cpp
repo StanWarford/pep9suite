@@ -23,9 +23,8 @@
 #include <QMouseEvent>
 
 TristateLabel::TristateLabel(QWidget *parent, ToggleMode mode) :
-    QLabel(parent)
+    QLabel(parent), toggleMode(mode)
 {
-    toggleMode = mode;
 }
 
 void TristateLabel::setState(int state)

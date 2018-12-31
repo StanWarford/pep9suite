@@ -111,7 +111,14 @@ MainWindow::MainWindow(QWidget *parent) :
     // Create & connect all dialogs.
     helpDialog = new HelpDialog(this);
     connect(helpDialog, &HelpDialog::copyToSourceClicked, this, &MainWindow::helpCopyToSourceClicked);
-    aboutPepDialog = new AboutPep(this);
+    // Load the about text and create the about dialog
+    QFile aboutFile(":/help/about.html");
+    QString text = "";
+    if(aboutFile.open(QFile::ReadOnly)) {
+        text = QString(aboutFile.readAll());
+    }
+    QPixmap pixmap("://images/Pep9micro-icon.png");
+    aboutPepDialog = new AboutPep(text, pixmap, this);
 
     // Byte converter setup.
     byteConverterDec = new ByteConverterDec();
@@ -1413,7 +1420,7 @@ void MainWindow::on_actionBuild_Run_triggered()
 void MainWindow::handleDebugButtons()
 {
     quint8 byte;
-    memDevice->getByte(byte, controlSection->getCPURegWordStart(Enu::CPURegisters::PC));
+    memDevice->getByte(controlSection->getCPURegWordStart(Enu::CPURegisters::PC), byte);
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[byte];
     bool enable_into = (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
     // Disable button stepping if waiting on IO
@@ -1548,7 +1555,7 @@ void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
 {
     debugState = DebugState::DEBUG_ISA;
     quint8 byte;
-    memDevice->getByte(byte, controlSection->getCPURegWordStart(Enu::CPURegisters::PC));
+    memDevice->getByte(controlSection->getCPURegWordStart(Enu::CPURegisters::PC), byte);
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[byte];
     bool isTrap = Pep::isTrapMap[mnemon];
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
@@ -1860,8 +1867,8 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
 
     int which = 0;
     if (ui->microcodeWidget->hasFocus()) {
-        which = Enu::EditButtons::COPY | Enu::EditButtons::CUT | Enu::EditButtons::PASTE;
-        which |= Enu::EditButtons::UNDO*ui->microcodeWidget->isUndoable() | Enu::EditButtons::REDO*ui->microcodeWidget->isRedoable();
+        which = Enu::EditButton::COPY | Enu::EditButton::CUT | Enu::EditButton::PASTE;
+        which |= Enu::EditButton::UNDO*ui->microcodeWidget->isUndoable() | Enu::EditButton::REDO*ui->microcodeWidget->isRedoable();
         ui->microcodeWidget->highlightOnFocus();
     }
     else if (ui->memoryWidget->hasFocus()) {
@@ -1873,21 +1880,21 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
         ui->cpuWidget->highlightOnFocus();
     }
     else if (ui->microObjectCodePane->hasFocus()) {
-        which = Enu::EditButtons::COPY;
+        which = Enu::EditButton::COPY;
         ui->microObjectCodePane->highlightOnFocus();
     }
     else if (ui->AsmSourceCodeWidgetPane->hasFocus()) {
-        which = Enu::EditButtons::COPY | Enu::EditButtons::CUT | Enu::EditButtons::PASTE;
-        which |= Enu::EditButtons::UNDO * ui->AsmSourceCodeWidgetPane->isUndoable() | Enu::EditButtons::REDO * ui->AsmSourceCodeWidgetPane->isRedoable();
+        which = Enu::EditButton::COPY | Enu::EditButton::CUT | Enu::EditButton::PASTE;
+        which |= Enu::EditButton::UNDO * ui->AsmSourceCodeWidgetPane->isUndoable() | Enu::EditButton::REDO * ui->AsmSourceCodeWidgetPane->isRedoable();
         ui->AsmSourceCodeWidgetPane->highlightOnFocus();
     }
     else if (ui->AsmObjectCodeWidgetPane->hasFocus()) {
-        which = Enu::EditButtons::COPY | Enu::EditButtons::CUT | Enu::EditButtons::PASTE;
-        which |= Enu::EditButtons::UNDO * ui->AsmObjectCodeWidgetPane->isUndoable() | Enu::EditButtons::REDO * ui->AsmObjectCodeWidgetPane->isRedoable();
+        which = Enu::EditButton::COPY | Enu::EditButton::CUT | Enu::EditButton::PASTE;
+        which |= Enu::EditButton::UNDO * ui->AsmObjectCodeWidgetPane->isUndoable() | Enu::EditButton::REDO * ui->AsmObjectCodeWidgetPane->isRedoable();
         ui->AsmObjectCodeWidgetPane->highlightOnFocus();
     }
     else if (ui->AsmListingWidgetPane->hasFocus()) {
-        which = Enu::EditButtons::COPY;
+        which = Enu::EditButton::COPY;
         ui->AsmListingWidgetPane->highlightOnFocus();
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
@@ -1897,11 +1904,11 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
         which = 0;
     }
 
-    ui->actionEdit_Undo->setEnabled(which & Enu::EditButtons::UNDO);
-    ui->actionEdit_Redo->setEnabled(which & Enu::EditButtons::REDO);
-    ui->actionEdit_Cut->setEnabled(which & Enu::EditButtons::CUT);
-    ui->actionEdit_Copy->setEnabled(which & Enu::EditButtons::COPY);
-    ui->actionEdit_Paste->setEnabled(which & Enu::EditButtons::PASTE);
+    ui->actionEdit_Undo->setEnabled(which & Enu::EditButton::UNDO);
+    ui->actionEdit_Redo->setEnabled(which & Enu::EditButton::REDO);
+    ui->actionEdit_Cut->setEnabled(which & Enu::EditButton::CUT);
+    ui->actionEdit_Copy->setEnabled(which & Enu::EditButton::COPY);
+    ui->actionEdit_Paste->setEnabled(which & Enu::EditButton::PASTE);
 }
 
 void MainWindow::setUndoability(bool b)

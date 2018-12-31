@@ -24,12 +24,15 @@
 #include <QHeaderView>
 #include <QWidget>
 #include <QObject>
+/*
+ * This class paints a header view with text rotated 90 degrees counter clockwise.
+ */
 class RotatedHeaderView : public QHeaderView
 {
     Q_OBJECT
 public:
     RotatedHeaderView(Qt::Orientation orientation, QWidget *parent = Q_NULLPTR);
-    virtual ~RotatedHeaderView() {};
+    virtual ~RotatedHeaderView() override {}
 protected:
     void paintSection(QPainter* painter,
                   const QRect& rect,

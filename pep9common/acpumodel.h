@@ -39,16 +39,16 @@ class ACPUModel: public QObject
 {
     Q_OBJECT
 public:
-    ACPUModel(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent=nullptr);
+    ACPUModel(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent = nullptr) noexcept;
     virtual ~ACPUModel();
 
     // Returns a #non-owning# pointer to the memory device being used by the CPU
-    AMemoryDevice* getMemoryDevice();
-    const AMemoryDevice* getMemoryDevice() const;
+    AMemoryDevice* getMemoryDevice() noexcept;
+    const AMemoryDevice* getMemoryDevice() const noexcept;
     void setMemoryDevice(QSharedPointer<AMemoryDevice> newDevice);
-    bool getExecutionFinished() const;
+    bool getExecutionFinished() const noexcept;
     // Return the depth of the call stack (#calls+#traps-#ret-#rettr)
-    int getCallDepth() const;
+    int getCallDepth() const noexcept;
 
     // Prepare the CPU for starting simulations / debugging.
     virtual void initCPU() = 0;
@@ -65,13 +65,13 @@ public:
     virtual quint8 getCPURegByteStart(Enu::CPURegisters reg) const = 0;
     virtual quint16 getCPURegWordStart(Enu::CPURegisters reg) const = 0;
     // CPU can be debugged with multiple levels of diagnostic information
-    virtual Enu::DebugLevels getDebugLevel() const = 0;
+    virtual Enu::DebugLevels getDebugLevel() const noexcept = 0;
     virtual void setDebugLevel(Enu::DebugLevels level) = 0;
     // Did any part of the CPU simulation cause an error?
-    virtual QString getErrorMessage() const = 0;
-    virtual bool hadErrorOnStep() const = 0;
+    virtual QString getErrorMessage() const noexcept = 0;
+    virtual bool hadErrorOnStep() const noexcept = 0;
 
-    virtual bool stoppedForBreakpoint() const = 0;
+    virtual bool stoppedForBreakpoint() const noexcept = 0;
 
 public slots:
     // Prepare CPU for a normal (non-debugging) simulation.

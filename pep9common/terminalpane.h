@@ -33,7 +33,7 @@ class TerminalPane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(TerminalPane)
 public:
-    explicit TerminalPane(QWidget *parent = 0);
+    explicit TerminalPane(QWidget *parent = nullptr);
     virtual ~TerminalPane();
 
     void appendOutput(QString str);

@@ -98,7 +98,7 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
         memoryDumpLine .clear();
         for(int col = 0; col < 8; col++) {
             // Use the data in the memory section to set the value in the model.
-            memDevice->getByte(tempData, static_cast<quint16>(row*8 + col));
+            memDevice->getByte(static_cast<quint16>(row*8 + col), tempData);
             data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')));
             ch = QChar(tempData);
             if (ch.isPrint()) {
@@ -140,7 +140,7 @@ void MemoryDumpPane::highlight()
     // to highlight the instruction being executed, not necessarily the current value
     quint16 pc = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
     quint8 is;
-    memDevice->getByte(is, pc);
+    memDevice->getByte(pc, is);
     highlightByte(sp, colors->altTextHighlight, colors->memoryHighlightSP);
     highlightedData.append(sp);
     if(!Pep::isUnaryMap[Pep::decodeMnemonic[is]]) {

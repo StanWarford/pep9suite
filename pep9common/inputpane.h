@@ -32,7 +32,7 @@ class InputPane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(InputPane)
 public:
-    explicit InputPane(QWidget *parent = 0);
+    explicit InputPane(QWidget *parent = nullptr);
     virtual ~InputPane();
 
     QString toPlainText();

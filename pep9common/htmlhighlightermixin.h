@@ -24,8 +24,8 @@ signals:
 class HTMLHighlighterMixin : public QSyntaxHighlighter
 {
 public:
-    explicit HTMLHighlighterMixin(QTextDocument *parent = 0);
-    virtual void asHtml(QString& html, QFont font = Pep::codeFont) const;
+    explicit HTMLHighlighterMixin(QTextDocument *parent = nullptr) noexcept;
+    virtual void asHtml(QString& html, QFont font = Pep::codeFont) const noexcept;
 };
 
 #endif // HTMLHIGHLIGHTERMIXIN_H

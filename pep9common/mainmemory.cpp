@@ -2,13 +2,18 @@
 #include "amemorychip.h"
 #include "memorychips.h"
 #include <QDebug>
-MainMemory::MainMemory(QObject* parent): AMemoryDevice (parent), updateMemMap(true),
+MainMemory::MainMemory(QObject* parent) noexcept: AMemoryDevice (parent), updateMemMap(true),
     endChip(new NilChip(0xfff, 0, this)), addressToChip(1<<16)
 {
 
 }
 
-quint32 MainMemory::size() const
+MainMemory::~MainMemory()
+{
+
+}
+
+quint32 MainMemory::size() const noexcept
 {
     quint32 size = 0;
     for(auto it : memoryChipMap) {
@@ -30,7 +35,7 @@ void MainMemory::insertChip(QSharedPointer<AMemoryChip> chip, quint16 address)
     if(updateMemMap) calculateAddressToChip();
 }
 
-QSharedPointer<AMemoryChip> MainMemory::chipAt(quint16 address)
+QSharedPointer<AMemoryChip> MainMemory::chipAt(quint16 address) noexcept
 {
     if(addressToChip[address] != nullptr) {
         return ptrLookup[addressToChip[address]];
@@ -39,7 +44,7 @@ QSharedPointer<AMemoryChip> MainMemory::chipAt(quint16 address)
 
 }
 
-QSharedPointer<const AMemoryChip> MainMemory::chipAt(quint16 address) const
+QSharedPointer<const AMemoryChip> MainMemory::chipAt(quint16 address) const noexcept
 {
     if(addressToChip[address] != nullptr) {
         return ptrLookup[addressToChip[address]];
@@ -76,13 +81,13 @@ QVector<QSharedPointer<AMemoryChip> > MainMemory::removeAllChips()
     return retVal;
 }
 
-void MainMemory::autoUpdateMemoryMap(bool update)
+void MainMemory::autoUpdateMemoryMap(bool update) noexcept
 {
     updateMemMap = update;
     if(updateMemMap) calculateAddressToChip();
 }
 
-void MainMemory::loadValues(quint16 address, QVector<quint8> values)
+void MainMemory::loadValues(quint16 address, QVector<quint8> values) noexcept
 {
     for(int idx = 0; idx < values.length() && idx + address <= static_cast<int>(size()); idx++)
     {
@@ -112,7 +117,7 @@ void MainMemory::onCycleFinished()
     // No clean up on cycle end, yet.
 }
 
-bool MainMemory::readByte(quint8 &output, quint16 address) const
+bool MainMemory::readByte(quint16 address, quint8 &output) const
 {
     QSharedPointer<const AMemoryChip> chip = chipAt(address);
     try {
@@ -146,7 +151,7 @@ bool MainMemory::writeByte(quint16 address, quint8 value)
     }
 }
 
-bool MainMemory::getByte(quint8 &output, quint16 address) const
+bool MainMemory::getByte(quint16 address, quint8 &output) const
 {
     QSharedPointer<const AMemoryChip> chip = chipAt(address);
     try {
@@ -212,7 +217,7 @@ void MainMemory::onInputReceived(quint16 address, QString input)
     quint16 offsetFromBase = address - chip->getBaseAddress();
     if(chip->waitingForInput(offsetFromBase)) {
         quint8 first = static_cast<quint8>(input.front().toLatin1());
-        QByteArray rest = input.toLatin1();
+        QByteArray rest = input.mid(1,-1).toLatin1();
         inputBuffer.insert(address, rest);
         chip->onInputReceived(offsetFromBase, first);
     } else if(inputBuffer.contains(address)) {
@@ -249,7 +254,7 @@ void MainMemory::onChipInputRequested(quint16 address)
     if(inputBuffer.contains(address)) {
         quint8 first = inputBuffer[address].front();
         quint16 offsetFromBase = address - chipAt(address)->getBaseAddress();
-        inputBuffer[address].remove(0,1);
+        inputBuffer[address].remove(0, 1);
         if(inputBuffer[address].length() == 0) {
             inputBuffer.remove(address);
         }
@@ -265,7 +270,7 @@ void MainMemory::onChipOutputWritten(quint16 address, quint8 value)
     emit outputWritten(address, value);
 }
 
-void MainMemory::calculateAddressToChip()
+void MainMemory::calculateAddressToChip() noexcept
 {
     for (int it=0; it<= 0xfff; it++) {
         addressToChip[it] = nullptr;

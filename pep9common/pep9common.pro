@@ -7,6 +7,7 @@ QT += webenginewidgets widgets printsupport concurrent
 # Otherwise, including projects can't find the files.
 
 FORMS += \
+	$$PWD\aboutpep.ui \
     $$PWD\byteconverterbin.ui \
     $$PWD\byteconverterchar.ui \
     $$PWD\byteconverterdec.ui \
@@ -19,6 +20,7 @@ FORMS += \
     $$PWD\terminalpane.ui \
 
 HEADERS += \
+	$$PWD\aboutpep.h \	
     $$PWD\byteconverterbin.h \
     $$PWD\byteconverterchar.h \
     $$PWD\byteconverterdec.h \
@@ -45,6 +47,7 @@ HEADERS += \
     $$PWD\mainmemory.h \
 
 SOURCES += \
+	$$PWD\aboutpep.cpp \
     $$PWD\byteconverterbin.cpp \
     $$PWD\byteconverterchar.cpp \
     $$PWD\byteconverterdec.cpp \

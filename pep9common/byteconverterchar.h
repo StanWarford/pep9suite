@@ -33,7 +33,7 @@ class ByteConverterChar : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(ByteConverterChar)
 public:
-    explicit ByteConverterChar(QWidget *parent = 0);
+    explicit ByteConverterChar(QWidget *parent = nullptr);
     virtual ~ByteConverterChar();
     void setValue(int);
 

@@ -75,23 +75,23 @@ void MemoryCellGraphicsItem::updateValue()
     quint16 word;
     switch (eSymbolFormat) {
     case Enu::ESymbolFormat::F_1C:
-        memDevice->getByte(byte, address);
+        memDevice->getByte(address, byte);
         value = QString(QChar(byte));
         break;
     case Enu::ESymbolFormat::F_1D:
-        memDevice->getByte(byte, address);
+        memDevice->getByte(address, byte);
         value = QString("%1").arg(QChar(byte));
         break;
     case Enu::ESymbolFormat::F_2D:
-        memDevice->getWord(word, address);
+        memDevice->getWord(address, word);
         value = QString("%1").arg(word);
         break;
     case Enu::ESymbolFormat::F_1H:
-        memDevice->getByte(byte, address);
+        memDevice->getByte(address, byte);
         value = QString("%1").arg(byte, 2, 16, QLatin1Char('0')).toUpper();
         break;
     case Enu::ESymbolFormat::F_2H:
-        memDevice->getWord(word, address);
+        memDevice->getWord(address, word);
         value = QString("%1").arg(word, 4, 16, QLatin1Char('0')).toUpper();
         break;
     default:

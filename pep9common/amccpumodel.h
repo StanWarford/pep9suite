@@ -33,23 +33,33 @@ class MicrocodeProgram;
 class InterfaceMCCPU
 {
 public:
+    // Initialize a Interface for a microcoded CPU with the passed features
     explicit InterfaceMCCPU(Enu::CPUType type) noexcept;
     virtual ~InterfaceMCCPU();
 
+    // Get the number of elapsed cycles since the simulation started
     quint64 getCycleCounter() const noexcept;
+    // Get the index of the currently executing line of microcode
     quint16 getMicrocodeLineNumber() const noexcept;
+
+    // May be nullptr if no program has been loaded
     const MicrocodeProgram* getProgram() const noexcept;
     const MicroCode* getCurrentMicrocodeLine() const noexcept;
 
-    // Change the CPU between one and two byte data buses
+
     void setMicrocodeProgram(MicrocodeProgram* program);
     Enu::CPUType getCPUType() const noexcept;
 
-    // Clear program counters and breakpoints
+    // Clear program counters & breakpoint status
     void reset() noexcept;
 
+    // Change the CPU between one and two byte data buses
+    // This can raise an exception if a cpu implementation doesn't support multiple
+    // modes, so callers
     virtual void setCPUType(Enu::CPUType type) = 0;
+    // Perform a single hardware cycle (instruction).
     virtual void onMCStep() = 0;
+    // Execute the control signals that have been set, clear the signals, and perform no µbranch.
     virtual void onClock() = 0;
 
 protected:
