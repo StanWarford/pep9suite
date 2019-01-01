@@ -16,11 +16,16 @@ FORMS += \
     $$PWD\inputpane.ui \
 #   $$PWD\iodialog.ui \ #This widget has yet to be implemented
     $$PWD\iowidget.ui \
+    $$PWD\memorydumppane.ui \
     $$PWD\outputpane.ui \
     $$PWD\terminalpane.ui \
 
 HEADERS += \
     $$PWD\aboutpep.h \
+    $$PWD\acpumodel.h \
+    $$PWD\aisacpumodel.h \
+    $$PWD\amemorychip.h \
+    $$PWD\amemorydevice.h \
     $$PWD\byteconverterbin.h \
     $$PWD\byteconverterchar.h \
     $$PWD\byteconverterdec.h \
@@ -31,6 +36,9 @@ HEADERS += \
     $$PWD\htmlhighlightermixin.h \
     $$PWD\inputpane.h \
     $$PWD\iowidget.h \
+    $$PWD\mainmemory.h \
+    $$PWD\memorychips.h \
+    $$PWD\memorydumppane.h \
     $$PWD\outputpane.h \
     $$PWD\pep.h \
     $$PWD\symbolentry.h \
@@ -38,15 +46,14 @@ HEADERS += \
     $$PWD\symbolvalue.h \
     $$PWD\terminalpane.h \
     $$PWD\updatechecker.h \
-    $$PWD\acpumodel.h \
-    $$PWD\aisacpumodel.h \
-    $$PWD\amemorydevice.h \
-    $$PWD\amemorychip.h \
-    $$PWD\memorychips.h \
-    $$PWD\mainmemory.h \
+
 
 SOURCES += \
     $$PWD\aboutpep.cpp \
+    $$PWD\acpumodel.cpp \
+    $$PWD\aisacpumodel.cpp \
+    $$PWD\amemorychip.cpp \
+    $$PWD\amemorydevice.cpp \
     $$PWD\byteconverterbin.cpp \
     $$PWD\byteconverterchar.cpp \
     $$PWD\byteconverterdec.cpp \
@@ -56,6 +63,9 @@ SOURCES += \
     $$PWD\htmlhighlightermixin.cpp \
     $$PWD\inputpane.cpp \
     $$PWD\iowidget.cpp \
+    $$PWD\mainmemory.cpp \
+    $$PWD\memorychips.cpp \
+    $$PWD\memorydumppane.cpp \
     $$PWD\outputpane.cpp \
     $$PWD\pep.cpp \
     $$PWD\symbolentry.cpp \
@@ -63,11 +73,8 @@ SOURCES += \
     $$PWD\symbolvalue.cpp \
     $$PWD\terminalpane.cpp \
     $$PWD\updatechecker.cpp \
-    $$PWD\acpumodel.cpp \
-    $$PWD\aisacpumodel.cpp \
-    $$PWD\amemorydevice.cpp \
-    $$PWD\amemorychip.cpp \
-    $$PWD\memorychips.cpp \
-    $$PWD\mainmemory.cpp \
+
+
+
 
 

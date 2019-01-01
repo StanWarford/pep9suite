@@ -32,7 +32,7 @@
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     QWidget(parent), ui(new Ui::MemoryDumpPane), data(new QStandardItemModel(this)), lineSize(500), memDevice(nullptr),
     cpu(nullptr), delegate(nullptr), colors(&PepColors::lightMode), highlightedData(), modifiedBytes(), lastModifiedBytes(),
-    bytesWrittenLastStep(), delayLastStepClear(false), darkModeEnabled(false), inSimulation(false)
+    bytesWrittenLastStep(), delayLastStepClear(false), darkModeEnabled(false), inSimulation(false), highlightPC(true)
 {
     ui->setupUi(this);
     if (Pep::getSystem() != "Mac") {
@@ -69,6 +69,17 @@ void MemoryDumpPane::init(QSharedPointer<MainMemory> memory, QSharedPointer<ACPU
     refreshMemoryLines(0, 0);
     ui->tableView->resizeColumnsToContents();
     refreshMemory();
+}
+
+void MemoryDumpPane::setHighlightPC(bool highlightPC)
+{
+     this->highlightPC = highlightPC;
+}
+
+void MemoryDumpPane::showJumpToPC(bool jumpToPC)
+{
+    ui->pcPushButton->setEnabled(jumpToPC);
+    ui->pcPushButton->setVisible(jumpToPC);
 }
 
 MemoryDumpPane::~MemoryDumpPane()
@@ -141,9 +152,17 @@ void MemoryDumpPane::highlight()
     quint16 pc = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
     quint8 is;
     memDevice->getByte(pc, is);
-    highlightByte(sp, colors->altTextHighlight, colors->memoryHighlightSP);
-    highlightedData.append(sp);
-    if(!Pep::isUnaryMap[Pep::decodeMnemonic[is]]) {
+    if(sp == 0x0000) {
+        // If the stack pointer is unitialized, don't highlight it
+    }
+    else {
+        highlightByte(sp, colors->altTextHighlight, colors->memoryHighlightSP);
+        highlightedData.append(sp);
+    }
+    if(!highlightPC) {
+        // Don't preform any PC highlighting
+    }
+    else if(!Pep::isUnaryMap[Pep::decodeMnemonic[is]]) {
         for(int it = 0; it < 3; it++) {
             quint16 as16 = static_cast<quint16>(pc + it);
             highlightByte(as16, colors->altTextHighlight, colors->memoryHighlightPC);

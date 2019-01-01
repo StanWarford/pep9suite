@@ -50,8 +50,9 @@ MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
     ui->codeTable->setSelectionModel(selectionModel);
     ui->codeTable->setHorizontalHeader(rotatedHeaderView);
     ui->codeTable->setFont(font);
-    ui->codeTable->verticalHeader()->setDefaultSectionSize(12);
-    ui->codeTable->verticalHeader()->setDefaultAlignment(Qt::AlignRight|Qt::AlignJustify);
+    ui->codeTable->verticalHeader()->setDefaultSectionSize(9);
+    ui->codeTable->verticalHeader()->setDefaultAlignment(Qt::AlignRight|Qt::AlignVCenter);
+    ui->codeTable->verticalHeader()->setVisible(true);
     ui->codeTable->horizontalHeader()->setDefaultSectionSize(15);
     ui->codeTable->setShowGrid(false);
     model->setRowCount(0);
@@ -143,10 +144,14 @@ void MicroObjectCodePane::setObjectCode(QSharedPointer<MicrocodeProgram> prog, Q
                 y->setTextAlignment(Qt::AlignCenter);
                 model->setItem(rowNum,colNum++,y);
             }
+            // Header ignores a font when given one at header level, so we have to do it per line
+            ui->codeTable->model()->setHeaderData(rowNum, Qt::Vertical, QString("%1").arg(rowNum), Qt::EditRole);
+            ui->codeTable->model()->setHeaderData(rowNum, Qt::Vertical, QFont(Pep::codeFont, Pep::codeFontSize), Qt::FontRole);
             rowNum++;
         }
     }
     ui->codeTable->resizeColumnsToContents();
+    ui->codeTable->resizeRowsToContents();
 }
 
 void MicroObjectCodePane::highlightCurrentInstruction()
@@ -215,7 +220,6 @@ void MicroObjectCodePane::onSimulationFinished()
 
 void MicroObjectCodePane::onDarkModeChanged(bool)
 {
-    ui->codeTable->verticalHeader()->setFont(QFont(Pep::codeFont,Pep::codeFontSize));
     //ui->codeTable->resizeRowsToContents();
 }
 

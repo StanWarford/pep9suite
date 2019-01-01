@@ -79,6 +79,9 @@ MainWindow::MainWindow(QWidget *parent) :
     qApp->installEventFilter(this);
 
     ui->memoryWidget->init(memDevice, controlSection);
+    // In Pep9CPU, we don't work with assembly instructions, so disable PC based features
+    ui->memoryWidget->setHighlightPC(false);
+    ui->memoryWidget->showJumpToPC(false);
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
     ui->microcodeWidget->init(controlSection, dataSection, memDevice, false);
     ui->microobjectWidget->init(controlSection, false);

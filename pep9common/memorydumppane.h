@@ -41,6 +41,12 @@ public:
     explicit MemoryDumpPane(QWidget *parent = nullptr);
     // Needs to be called after construction but before this class can be used, otherwise the class is in an incomplete state.
     void init(QSharedPointer<MainMemory> memory, QSharedPointer<ACPUModel> cpu);
+    // Optionally disable the highlighting of the PC.
+    // By default, the PC is highlighted
+    void setHighlightPC(bool highlightPC);
+    // Optionally, hide the jump to PC button.
+    // By default, the jump to PC button is visible
+    void showJumpToPC(bool jumpToPC = true);
     virtual ~MemoryDumpPane() override;
 
     void refreshMemory();
@@ -111,7 +117,7 @@ private:
     QList<quint16> bytesWrittenLastStep;
     // This is a list of bytes written last step, which is used to highlight recently modified bytes
 
-    bool delayLastStepClear, darkModeEnabled, inSimulation;
+    bool delayLastStepClear, darkModeEnabled, inSimulation, highlightPC;
     // This is used to delay a clear of the QList bytesWrittenLastStep when leaving a trap that modifies bytes
     // to allow highlighting of modified bytes in trap instructions.
 
