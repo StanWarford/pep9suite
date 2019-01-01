@@ -69,8 +69,12 @@ OTHER_FILES += help/images/registeraddresssignals.png \
 RESOURCES += \
     ..\pep9common\dark_style.qrc \
     ..\pep9common\pep9common-resources.qrc\
-    helpresources.qrc \
     pep9micro-resources.qrc \
+    micro_helpresources.qrc \
+    ../pep9cpu/cpu_helpresources.qrc \
+    ../pep9cpu/pep9cpu-resources.qrc \
+    ../pep9asm/asm_helpresources.qrc \
+    ../pep9asm/pep9asm-resources.qrc
 
 DISTFILES += \
     ..\package/package.xml \

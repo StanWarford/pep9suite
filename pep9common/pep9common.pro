@@ -7,7 +7,7 @@ QT += webenginewidgets widgets printsupport concurrent
 # Otherwise, including projects can't find the files.
 
 FORMS += \
-	$$PWD\aboutpep.ui \
+    $$PWD\aboutpep.ui \
     $$PWD\byteconverterbin.ui \
     $$PWD\byteconverterchar.ui \
     $$PWD\byteconverterdec.ui \
@@ -20,7 +20,7 @@ FORMS += \
     $$PWD\terminalpane.ui \
 
 HEADERS += \
-	$$PWD\aboutpep.h \	
+    $$PWD\aboutpep.h \
     $$PWD\byteconverterbin.h \
     $$PWD\byteconverterchar.h \
     $$PWD\byteconverterdec.h \
@@ -39,7 +39,6 @@ HEADERS += \
     $$PWD\terminalpane.h \
     $$PWD\updatechecker.h \
     $$PWD\acpumodel.h \
-    $$PWD\amccpumodel.h \
     $$PWD\aisacpumodel.h \
     $$PWD\amemorydevice.h \
     $$PWD\amemorychip.h \
@@ -47,7 +46,7 @@ HEADERS += \
     $$PWD\mainmemory.h \
 
 SOURCES += \
-	$$PWD\aboutpep.cpp \
+    $$PWD\aboutpep.cpp \
     $$PWD\byteconverterbin.cpp \
     $$PWD\byteconverterchar.cpp \
     $$PWD\byteconverterdec.cpp \
@@ -65,7 +64,6 @@ SOURCES += \
     $$PWD\terminalpane.cpp \
     $$PWD\updatechecker.cpp \
     $$PWD\acpumodel.cpp \
-    $$PWD\amccpumodel.cpp \
     $$PWD\aisacpumodel.cpp \
     $$PWD\amemorydevice.cpp \
     $$PWD\amemorychip.cpp \

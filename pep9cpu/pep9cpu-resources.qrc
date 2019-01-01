@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/arrowhead.png</file>
+        <file>images/arrowhead_gray.png</file>
+        <file>images/arrowhead_dark.png</file>
+        <file>images/Pep9cpu-icon.png</file>
+        <file>help/about.html</file>
+        <file>images/Pep9cpu-icon-about.png</file>
+    </qresource>
+</RCC>

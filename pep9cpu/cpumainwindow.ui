@@ -20,8 +20,8 @@
    <string>Pep/9 Micro</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>:/images/Pep9micro-icon.png</normaloff>:/images/Pep9micro-icon.png</iconset>
+   <iconset resource="pep9cpu-resources.qrc">
+    <normaloff>:/images/Pep9cpu-icon.png</normaloff>:/images/Pep9cpu-icon.png</iconset>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>true</bool>
@@ -86,16 +86,6 @@
     <property name="title">
      <string>Edit</string>
     </property>
-    <widget class="QMenu" name="menuFormat">
-     <property name="title">
-      <string>Format from Listing...</string>
-     </property>
-    </widget>
-    <widget class="QMenu" name="menuRemove_Error_Messages">
-     <property name="title">
-      <string>Remove Error Messages</string>
-     </property>
-    </widget>
     <addaction name="actionEdit_Undo"/>
     <addaction name="actionEdit_Redo"/>
     <addaction name="separator"/>
@@ -103,9 +93,9 @@
     <addaction name="actionEdit_Copy"/>
     <addaction name="actionEdit_Paste"/>
     <addaction name="separator"/>
+    <addaction name="actionEdit_Format_Microcode"/>
+    <addaction name="actionEdit_Remove_Error_Microcode"/>
     <addaction name="actionEdit_UnComment_Line"/>
-    <addaction name="menuFormat"/>
-    <addaction name="menuRemove_Error_Messages"/>
     <addaction name="separator"/>
     <addaction name="actionEdit_Font"/>
     <addaction name="actionEdit_Reset_font_to_Default"/>
@@ -116,6 +106,7 @@
     </property>
     <addaction name="actionSystem_Clear_CPU"/>
     <addaction name="actionSystem_Clear_Memory"/>
+    <addaction name="separator"/>
     <addaction name="actionOne_Byte_Model"/>
     <addaction name="actionTwo_Byte_Model"/>
    </widget>
@@ -212,13 +203,13 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionFile_New_Asm"/>
+   <addaction name="actionFile_New_Microcode"/>
    <addaction name="actionFile_Open"/>
-   <addaction name="actionFile_Save_Asm"/>
+   <addaction name="actionFile_Save_Microcode"/>
    <addaction name="actionEdit_Undo"/>
    <addaction name="actionEdit_Redo"/>
    <addaction name="actionHelp"/>
-   <addaction name="ActionBuild_Assemble"/>
+   <addaction name="actionBuild_Microcode"/>
    <addaction name="actionBuild_Run"/>
    <addaction name="actionDebug_Start_Debugging"/>
    <addaction name="actionDebug_Stop_Debugging"/>
@@ -241,32 +232,6 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QToolBar" name="debugToolBar">
-   <property name="windowTitle">
-    <string>Debug Tools</string>
-   </property>
-   <property name="movable">
-    <bool>false</bool>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>32</width>
-     <height>32</height>
-    </size>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionDebug_Single_Step_Assembler"/>
-   <addaction name="actionDebug_Step_Over_Assembler"/>
-   <addaction name="actionDebug_Step_Into_Assembler"/>
-   <addaction name="actionDebug_Step_Out_Assembler"/>
-   <addaction name="separator"/>
-   <addaction name="actionDebug_Single_Step_Microcode"/>
-  </widget>
   <widget class="QDockWidget" name="memoryDockWdget">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -307,24 +272,30 @@
     </layout>
    </widget>
   </widget>
-  <action name="actionFile_New_Asm">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
+  <widget class="QToolBar" name="debugToolBar">
+   <property name="windowTitle">
+    <string>Debug Tools</string>
    </property>
-   <property name="text">
-    <string>New Assembly Program</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N</string>
-   </property>
-   <property name="iconVisibleInMenu">
+   <property name="movable">
     <bool>false</bool>
    </property>
-  </action>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionDebug_Single_Step_Microcode"/>
+  </widget>
   <action name="actionFile_Open">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
    </property>
    <property name="text">
@@ -337,38 +308,12 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="actionFile_Save_Asm">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
-   </property>
-   <property name="text">
-    <string>Save Assembler Source</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
-   </property>
-   <property name="iconVisibleInMenu">
-    <bool>false</bool>
-   </property>
-  </action>
-  <action name="actionFile_Save_Asm_Source_As">
-   <property name="text">
-    <string>Save Assembler Source As...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+S</string>
-   </property>
-   <property name="iconVisibleInMenu">
-    <bool>false</bool>
-   </property>
-  </action>
   <action name="actionEdit_Undo">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/undo.png</normaloff>:/images/undo.png</iconset>
    </property>
    <property name="text">
@@ -386,7 +331,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/redo.png</normaloff>:/images/redo.png</iconset>
    </property>
    <property name="text">
@@ -401,7 +346,7 @@
   </action>
   <action name="actionEdit_Cut">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/cut.png</normaloff>:/images/cut.png</iconset>
    </property>
    <property name="text">
@@ -416,7 +361,7 @@
   </action>
   <action name="actionEdit_Copy">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/copy.png</normaloff>:/images/copy.png</iconset>
    </property>
    <property name="text">
@@ -431,7 +376,7 @@
   </action>
   <action name="actionEdit_Paste">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/paste.png</normaloff>:/images/paste.png</iconset>
    </property>
    <property name="text">
@@ -470,7 +415,7 @@
   </action>
   <action name="actionHelp_UsingPep9CPU">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/help.png</normaloff>:/images/help.png</iconset>
    </property>
    <property name="text">
@@ -490,7 +435,7 @@
   </action>
   <action name="actionBuild_Run">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/run.png</normaloff>:/images/run.png</iconset>
    </property>
    <property name="text">
@@ -505,7 +450,7 @@
   </action>
   <action name="actionDebug_Start_Debugging">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/debugger_start.png</normaloff>:/images/debugger_start.png</iconset>
    </property>
    <property name="text">
@@ -515,7 +460,7 @@
     <string>Ctrl+D</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionDebug_Stop_Debugging">
@@ -523,7 +468,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/stop.png</normaloff>:/images/stop.png</iconset>
    </property>
    <property name="text">
@@ -533,12 +478,12 @@
     <string>Ctrl+.</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionHelp">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/help.png</normaloff>:/images/help.png</iconset>
    </property>
    <property name="text">
@@ -551,11 +496,6 @@
   <action name="actionFile_Print_Microcode">
    <property name="text">
     <string>Print Microcode...</string>
-   </property>
-  </action>
-  <action name="actionFile_Print_Object_Code">
-   <property name="text">
-    <string>Print Object Code...</string>
    </property>
   </action>
   <action name="actionHelp_About_Pep9CPU">
@@ -615,69 +555,9 @@
     <string>Dark Mode</string>
    </property>
   </action>
-  <action name="actionUse_Unaligned_OS">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Use Unaligned OS</string>
-   </property>
-  </action>
-  <action name="actionUse_Aligned_OS">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Use Aligned OS</string>
-   </property>
-  </action>
-  <action name="actionEdit_Format_Assembler">
-   <property name="text">
-    <string>Assembler Source</string>
-   </property>
-  </action>
-  <action name="actionEdit_Format_Microcode">
-   <property name="text">
-    <string>Microcode Source</string>
-   </property>
-  </action>
-  <action name="actionEdit_Remove_Error_Assembler">
-   <property name="text">
-    <string>Assembler Source</string>
-   </property>
-  </action>
-  <action name="actionEdit_Remove_Error_Microcode">
-   <property name="text">
-    <string>Microcode Source</string>
-   </property>
-  </action>
-  <action name="ActionBuild_Assemble">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/images/assemble.png</normaloff>:/images/assemble.png</iconset>
-   </property>
-   <property name="text">
-    <string>Assemble</string>
-   </property>
-  </action>
-  <action name="actionBuild_Load_Object">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/images/load-source.png</normaloff>:/images/load-source.png</iconset>
-   </property>
-   <property name="text">
-    <string>Load Object Code</string>
-   </property>
-  </action>
   <action name="actionBuild_Microcode">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/flash.svg</normaloff>:/images/flash.svg</iconset>
    </property>
    <property name="text">
@@ -695,36 +575,9 @@
     <string>Interupt Execution</string>
    </property>
   </action>
-  <action name="actionDebug_Step_Over_Assembler">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/images/debugger_step_over.png</normaloff>:/images/debugger_step_over.png</iconset>
-   </property>
-   <property name="text">
-    <string>Step Over - Assembler</string>
-   </property>
-  </action>
-  <action name="actionDebug_Step_Into_Assembler">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/images/debugger_step_into.png</normaloff>:/images/debugger_step_into.png</iconset>
-   </property>
-   <property name="text">
-    <string>Step Into - Assembler</string>
-   </property>
-  </action>
-  <action name="actionDebug_Step_Out_Assembler">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/images/debugger_step_out.png</normaloff>:/images/debugger_step_out.png</iconset>
-   </property>
-   <property name="text">
-    <string>Step Out - Assembler</string>
-   </property>
-  </action>
   <action name="actionDebug_Single_Step_Microcode">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/debug_single_step_micro.png</normaloff>:/images/debug_single_step_micro.png</iconset>
    </property>
    <property name="text">
@@ -735,48 +588,21 @@
    </property>
   </action>
   <action name="actionDebug_Restart_Debugging">
+   <property name="icon">
+    <iconset resource="../pep9common/pep9common-resources.qrc">
+     <normaloff>:/images/debugger_restart.png</normaloff>:/images/debugger_restart.png</iconset>
+   </property>
    <property name="text">
     <string>Restart Debugging</string>
    </property>
   </action>
   <action name="actionDebug_Continue">
+   <property name="icon">
+    <iconset resource="../pep9common/pep9common-resources.qrc">
+     <normaloff>:/images/run.png</normaloff>:/images/run.png</iconset>
+   </property>
    <property name="text">
     <string>Continue</string>
-   </property>
-  </action>
-  <action name="actionBuild_Run_Object">
-   <property name="text">
-    <string>Run Object</string>
-   </property>
-  </action>
-  <action name="actionDebug_Start_Debugging_Object">
-   <property name="text">
-    <string>Start Debugging Object</string>
-   </property>
-  </action>
-  <action name="actionDebug_Start_Debugging_Loader">
-   <property name="text">
-    <string>Start Debugging Loader</string>
-   </property>
-  </action>
-  <action name="actionFile_Print_Assembler_Source">
-   <property name="text">
-    <string>Print Assembler Source...</string>
-   </property>
-  </action>
-  <action name="actionFile_Print_Assembler_Listing">
-   <property name="text">
-    <string>Print Assembler Listing...</string>
-   </property>
-  </action>
-  <action name="actionFile_Save_Object_Code_As">
-   <property name="text">
-    <string>Save Object Code As...</string>
-   </property>
-  </action>
-  <action name="actionFile_Save_Assembler_Listing_As">
-   <property name="text">
-    <string>Save Assembler Listing As..</string>
    </property>
   </action>
   <action name="actionFile_Save_Microcode_As">
@@ -785,11 +611,19 @@
    </property>
   </action>
   <action name="actionFile_New_Microcode">
+   <property name="icon">
+    <iconset resource="../pep9common/pep9common-resources.qrc">
+     <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
+   </property>
    <property name="text">
     <string>New Microcode Program</string>
    </property>
   </action>
   <action name="actionFile_Save_Microcode">
+   <property name="icon">
+    <iconset resource="../pep9common/pep9common-resources.qrc">
+     <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+   </property>
    <property name="text">
     <string>Save Microcode</string>
    </property>
@@ -797,26 +631,6 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
-   </property>
-  </action>
-  <action name="actionDebug_Single_Step_Assembler">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/images/debug_single_step_asm.png</normaloff>:/images/debug_single_step_asm.png</iconset>
-   </property>
-   <property name="text">
-    <string>Single Step - Assembler</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Return</string>
-   </property>
-  </action>
-  <action name="actionSystem_Trace_Traps">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Trace Traps</string>
    </property>
   </action>
   <action name="actionStatistics_Level_All">
@@ -843,11 +657,6 @@
     <string>None</string>
    </property>
   </action>
-  <action name="actionDebug_Remove_All_Assembly_Breakpoints">
-   <property name="text">
-    <string>Remove All Assembly Breakpoints</string>
-   </property>
-  </action>
   <action name="actionDebug_Remove_All_Microcode_Breakpoints">
    <property name="text">
     <string>Remove All Microcode Breakpoints</string>
@@ -870,6 +679,16 @@
    </property>
    <property name="text">
     <string>Two Byte Model</string>
+   </property>
+  </action>
+  <action name="actionEdit_Remove_Error_Microcode">
+   <property name="text">
+    <string>Remove Error Messages</string>
+   </property>
+  </action>
+  <action name="actionEdit_Format_Microcode">
+   <property name="text">
+    <string>Format Microcode</string>
    </property>
   </action>
  </widget>
@@ -900,7 +719,10 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../pep9common/pep9common-resources.qrc"/>
+  <include location="pep9cpu-resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionExit</sender>

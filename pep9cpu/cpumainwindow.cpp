@@ -101,7 +101,7 @@ MainWindow::MainWindow(QWidget *parent) :
     if(aboutFile.open(QFile::ReadOnly)) {
         text = QString(aboutFile.readAll());
     }
-    QPixmap pixmap("://images/Pep9micro-icon.png");
+    QPixmap pixmap("://images/Pep9cpu-icon-about.png");
     aboutPepDialog = new AboutPep(text, pixmap, this);
 
     // Byte converter setup.
@@ -520,28 +520,17 @@ void MainWindow::debugButtonEnableHelper(const int which)
 {
     // Crack the parameter using DebugButtons to properly enable and disable all buttons related to debugging and running.
     // Build Actions
-    ui->ActionBuild_Assemble->setEnabled(which&DebugButtons::BUILD_ASM);
-    ui->actionEdit_Remove_Error_Assembler->setEnabled(which&DebugButtons::BUILD_ASM);
-    ui->actionEdit_Format_Assembler->setEnabled(which&DebugButtons::BUILD_ASM);
-    ui->actionBuild_Load_Object->setEnabled(which&DebugButtons::BUILD_ASM);
     ui->actionBuild_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
     ui->actionEdit_Remove_Error_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
     ui->actionEdit_Format_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
 
     // Debug & Run Actions
     ui->actionBuild_Run->setEnabled(which&DebugButtons::RUN);
-    ui->actionBuild_Run_Object->setEnabled(which&DebugButtons::RUN_OBJECT);
     ui->actionDebug_Start_Debugging->setEnabled(which&DebugButtons::DEBUG);
-    ui->actionDebug_Start_Debugging_Object->setEnabled(which&DebugButtons::DEBUG_OBJECT);
-    ui->actionDebug_Start_Debugging_Loader->setEnabled(which&DebugButtons::DEBUG_LOADER);
     ui->actionDebug_Interupt_Execution->setEnabled(which&DebugButtons::INTERRUPT);
     ui->actionDebug_Continue->setEnabled(which&DebugButtons::CONTINUE);
     ui->actionDebug_Restart_Debugging->setEnabled(which&DebugButtons::RESTART);
     ui->actionDebug_Stop_Debugging->setEnabled(which&DebugButtons::STOP);
-    ui->actionDebug_Single_Step_Assembler->setEnabled(which&DebugButtons::SINGLE_STEP_ASM);
-    ui->actionDebug_Step_Over_Assembler->setEnabled(which&DebugButtons::STEP_OVER_ASM);
-    ui->actionDebug_Step_Into_Assembler->setEnabled(which&DebugButtons::STEP_INTO_ASM);
-    ui->actionDebug_Step_Out_Assembler->setEnabled(which&DebugButtons::STEP_OUT_ASM);
     ui->actionDebug_Single_Step_Microcode->setEnabled(which&DebugButtons::SINGLE_STEP_MICRO);
 
     // Statistics Actions
@@ -550,7 +539,6 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionStatistics_Level_None->setEnabled(which&DebugButtons::STATS_LEVELS);
 
     //File open & new actions
-    ui->actionFile_New_Asm->setEnabled(which&DebugButtons::OPEN_NEW);
     ui->actionFile_New_Microcode->setEnabled(which&DebugButtons::OPEN_NEW);
     ui->actionFile_Open->setEnabled(which&DebugButtons::OPEN_NEW);
 }
@@ -587,10 +575,22 @@ bool MainWindow::initializeSimulation()
         return false;
     }
 
-    // Clear data models & application views
-    controlSection->onResetCPU();
-    controlSection->initCPU();
-    ui->cpuWidget->clearCpu();
+    // If there are preconditions, then clear memory & CPU
+    if(ui->microcodeWidget->getMicrocodeProgram()->hasUnitPre()) {
+        // Clear data models & application views
+        controlSection->onResetCPU();
+        controlSection->initCPU();
+        ui->cpuWidget->clearCpu();
+        on_actionSystem_Clear_Memory_triggered();
+        for(auto line : ui->microcodeWidget->getMicrocodeProgram()->getObjectCode()) {
+            if(line->hasUnitPre()) {
+                static_cast<UnitPreCode*>(line)->setUnitPre(dataSection.get());
+            }
+        }
+    }
+    else {
+        // If there are no preconditions, the do not clear anything
+    }
 
     // Don't allow the microcode pane to be edited while the program is running
     ui->microcodeWidget->setReadOnly(true);
@@ -756,7 +756,6 @@ bool MainWindow::on_actionBuild_Microcode_triggered()
 
 void MainWindow::on_actionBuild_Run_triggered()
 {
-#pragma message("TODO: PRE/POSTS in RUN")
     if(!initializeSimulation()) return;
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
@@ -789,7 +788,7 @@ void MainWindow::handleDebugButtons()
     switch(debugState)
     {
     case DebugState::DISABLED:
-        enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG;
+        enabledButtons = DebugButtons::RUN| DebugButtons::DEBUG;
         enabledButtons |= DebugButtons::BUILD_MICRO | DebugButtons::STATS_LEVELS;
         enabledButtons |= DebugButtons::OPEN_NEW;
         break;

@@ -24,6 +24,16 @@ QT += widgets webenginewidgets printsupport concurrent
 VPATH += $$PWD/../pep9common
 INCLUDEPATH += $$PWD/../pep9common
 
+# Mac icon/plist
+warning("must fix mac icon")
+ICON = .images/icon.icns
+QMAKE_INFO_PLIST = app.plist
+QMAKE_MAC_SDK = macosx10.14
+
+#Windows RC file for icon:
+warning("Must fix win icon in resource file")
+RC_FILE = pep9resources.rc
+
 FORMS += \
     cpumainwindow.ui \
 #    helpdialog.ui \
@@ -40,6 +50,15 @@ SOURCES += \
     main.cpp \
     partialmicrocodedcpu.cpp \
     partialmicrocodedmemoizer.cpp
+
+RESOURCES += \
+    ..\pep9common\dark_style.qrc \
+    ..\pep9common\pep9common-resources.qrc\
+    cpu_helpresources.qrc \
+    pep9cpu-resources.qrc
+
+DISTFILES += \
+    pep9resources.rc
 
 include(../pep9common/pep9common.pro)
 include(pep9cpu-common.pro)

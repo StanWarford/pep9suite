@@ -14,7 +14,8 @@ FORMS += \
     $$PWD\microobjectcodepane.ui \
 
 HEADERS += \
-	$$PWD\cpupane.h \
+    $$PWD\amccpumodel.h \
+    $$PWD\cpupane.h \
     $$PWD\cpugraphicsitems.h \
     $$PWD\disableselectionmodel.h \
     $$PWD\memorydumppane.h \
@@ -33,7 +34,8 @@ HEADERS += \
     $$PWD\newcpudata.h
 
 SOURCES += \
-	$$PWD\cpupane.cpp \
+    $$PWD\amccpumodel.cpp \
+    $$PWD\cpupane.cpp \
     $$PWD\cpugraphicsitems.cpp \
     $$PWD\disableselectionmodel.cpp \
     $$PWD\memorydumppane.cpp \

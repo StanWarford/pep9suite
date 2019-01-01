@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>help/pep9os.txt</file>
+        <file>help/osunalignedsymbols.txt</file>
+        <file>help/pep9micro.pepcpu</file>
+        <file>help/pep9os/alignedIO-OS.pep</file>
+    </qresource>
+</RCC>
