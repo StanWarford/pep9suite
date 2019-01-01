@@ -34,7 +34,6 @@
 #include "tristatelabel.h"
 #include "pep.h"
 #include "microcode.h"
-#include "mainwindow.h"
 #include "newcpudata.h"
 using namespace Enu;
 CpuPane::CpuPane( QWidget *parent) :

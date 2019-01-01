@@ -32,8 +32,6 @@ QMAKE_MAC_SDK = macosx10.14
 #Windows RC file for icon:
 RC_FILE = pep9resources.rc
 
-#Files imported from Pep9ASM
-#Files imported from Pep9CPU
 FORMS += \
     addrmodedialog.ui \
     addrmodewidget.ui \
