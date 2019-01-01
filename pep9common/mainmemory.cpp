@@ -2,6 +2,7 @@
 #include "amemorychip.h"
 #include "memorychips.h"
 #include <QDebug>
+#include <QApplication>
 MainMemory::MainMemory(QObject* parent) noexcept: AMemoryDevice (parent), updateMemMap(true),
     endChip(new NilChip(0xfff, 0, this)), addressToChip(1<<16)
 {
@@ -270,6 +271,8 @@ void MainMemory::onChipInputRequested(quint16 address)
     }
     else {
         emit inputRequested(address);
+        // Make sure the signal is handled by the UI immediately
+        QApplication::processEvents();
     }
 }
 

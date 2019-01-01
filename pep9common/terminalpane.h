@@ -36,6 +36,9 @@ public:
     explicit TerminalPane(QWidget *parent = nullptr);
     virtual ~TerminalPane();
 
+    void cancelWaiting();
+    // Post: if the terminal was waiting for input, cancel the wait
+
     void appendOutput(QString str);
     // Post: str is appended to the text edit
 

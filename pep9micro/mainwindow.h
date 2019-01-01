@@ -270,8 +270,8 @@ private slots:
     void helpCopyToSourceClicked();
 
     //Disable UI elements for IO
-    void onInputRequested();
-    void onInputReceived();
+    void onInputRequested(quint16 address);
+    void onOutputReceived(quint16 address, quint8 value);
 
     // Handle a breakpoint in the model, and determine the correct handler based
     // on breakpoint type.

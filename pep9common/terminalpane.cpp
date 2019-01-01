@@ -47,6 +47,12 @@ TerminalPane::~TerminalPane()
     delete ui;
 }
 
+void TerminalPane::cancelWaiting()
+{
+    waiting = false;
+    displayTerminal();
+}
+
 void TerminalPane::appendOutput(QString str)
 {
     ui->plainTextEdit->setPlainText(ui->plainTextEdit->toPlainText().append(str));

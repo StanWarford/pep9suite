@@ -15,6 +15,7 @@ public:
     explicit IOWidget(QWidget *parent = nullptr);
     ~IOWidget();
 
+    void cancelWaiting();
     // Address of character input / output devices MUST be set, otherwise IO will not work,
     // and the program will probably crash.
     void setInputChipAddress(quint16 address);

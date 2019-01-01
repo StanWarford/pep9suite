@@ -141,8 +141,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // Connect IOWidget to memory
     ui->ioWidget->bindToMemorySection(memDevice.get());
     // Connect IO events
-    connect(memDevice.get(), &MainMemory::inputRequested, this, &MainWindow::onInputRequested);
-    connect(memDevice.get(), &MainMemory::outputWritten, this, &MainWindow::onInputReceived);
+    connect(memDevice.get(), &MainMemory::inputRequested, this, &MainWindow::onInputRequested, Qt::QueuedConnection);
+    connect(memDevice.get(), &MainMemory::outputWritten, this, &MainWindow::onOutputReceived, Qt::QueuedConnection);
 
     // Connect Undo / Redo events
     connect(ui->microcodeWidget, &MicrocodePane::undoAvailable, this, &MainWindow::setUndoability);
@@ -1507,6 +1507,7 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     // Handle case of execution being canceled during IO
     memDevice->clearIO();
     reenableUIAfterInput();
+    ui->ioWidget->cancelWaiting();
     ui->microcodeWidget->clearSimulationView();
     ui->microObjectCodePane->clearSimulationView();
     ui->microcodeWidget->setReadOnly(false);
@@ -2015,15 +2016,17 @@ void MainWindow::helpCopyToSourceClicked()
         //ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
 }
 
-void MainWindow::onInputRequested()
+void MainWindow::onOutputReceived(quint16 address, quint8 value)
+{
+    ui->ioWidget->onDataReceived(address, value);
+}
+
+void MainWindow::onInputRequested(quint16 address)
 {
     handleDebugButtons();
     ui->microcodeWidget->setEnabled(false);
     ui->cpuWidget->setEnabled(false);
-}
-
-void MainWindow::onInputReceived()
-{
+    ui->ioWidget->onDataRequested(address);
     handleDebugButtons();
     reenableUIAfterInput();
 }

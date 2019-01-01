@@ -23,6 +23,18 @@ IOWidget::~IOWidget()
     delete ui;
 }
 
+void IOWidget::cancelWaiting()
+{
+    switch(ui->tabWidget->currentIndex())
+    {
+    case 1:
+        ui->terminalIO->cancelWaiting();
+        break;
+    default:
+        break;
+    }
+}
+
 void IOWidget::setInputChipAddress(quint16 address)
 {
     iChipAddr = address;
@@ -38,8 +50,8 @@ void IOWidget::bindToMemorySection(MainMemory *memory)
     connect(ui->terminalIO, &TerminalPane::inputReady, this, &IOWidget::onInputReady);
     // Multiple versions of this slot exist, so the following function cast must be used to select the correct one
     connect(this, &IOWidget::inputReady, memory,  static_cast<void (MainMemory::*)(quint16, quint8)>(&MainMemory::onInputReceived));
-    connect(memory, &MainMemory::inputRequested, this, &IOWidget::onDataRequested);
-    connect(memory, &MainMemory::outputWritten, this, &IOWidget::onDataReceived);
+    //connect(memory, &MainMemory::inputRequested, this, &IOWidget::onDataRequested);
+    //connect(memory, &MainMemory::outputWritten, this, &IOWidget::onDataReceived);
     this->memory = memory;
 }
 
