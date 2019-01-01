@@ -251,7 +251,6 @@ void AsmTraceTextEdit::setTextFromCode(QSharedPointer<AsmProgram> code)
     for(int it = 0; it < code->numberOfLines(); it++)
     {
         codePtr = code->getCodeAtIndex(it);
-        if(activeProgram->hasBurn() && codePtr->getMemoryAddress() < activeProgram->getBurnAddress()) continue;
         traceList = codePtr->getAssemblerTrace().split("\n");
         if(dynamic_cast<const UnaryInstruction*>(codePtr) != nullptr ||
                 dynamic_cast<const NonUnaryInstruction*>(codePtr) != nullptr)

@@ -45,7 +45,14 @@ class AsmCode
 public:
     AsmCode();
     virtual ~AsmCode() { }
-    virtual void appendObjectCode(QList<int> &) const{ return; }
+    bool hasSymbolEntry() const {return !symbolEntry.isNull();}
+    // Before attempting to use the value return by this function, check if the symbol is null.
+    // Dereferencing an empty shared pointer causes memory access violatations that are hard to debug.
+    QSharedPointer<const SymbolEntry> getSymbolEntry() const {return symbolEntry;}
+    void setEmitObjectCode(bool emitObject);
+    bool getEmitObjectCode() const;
+
+    virtual void appendObjectCode(QList<int> &) const { return; }
     virtual void appendSourceLine(QStringList &assemblerListingList) const{ assemblerListingList.append(getAssemblerListing()); }
     void adjustMemAddress(int addressDelta);
     virtual bool processFormatTraceTags(int &, QString &, SymbolListings &) { return true; }
@@ -56,17 +63,13 @@ public:
     virtual quint16 objectCodeLength() const {return 0;}
     virtual bool hasBreakpoint() const { return false;}
     virtual void setBreakpoint(bool) {}
-    bool hasSymbolEntry() const {return !symbolEntry.isNull();}
-    // Before attempting to use the value return by this function, check if the symbol is null.
-    // Dereferencing an empty shared pointer causes memory access violatations that are hard to debug.
-    QSharedPointer<const SymbolEntry> getSymbolEntry() const {return symbolEntry;}
     virtual bool hasSymbolicOperand() const {return false;}
     virtual QSharedPointer<const SymbolEntry> getSymbolicOperand() const { return nullptr;}
 protected:
-    int memAddress =-1;
-    int sourceCodeLine;
+    int sourceCodeLine, memAddress =-1;
     QSharedPointer<SymbolEntry> symbolEntry;
     QString comment;
+    bool emitObjectCode;
 };
 
 // Concrete code classes

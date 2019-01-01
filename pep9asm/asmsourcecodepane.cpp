@@ -247,6 +247,11 @@ bool AsmSourceCodePane::assembleOS(QStringList fileLines)
         success = false;
     }
     if(!success) return false;
+    for(int it = 0; it < codeList.size(); it++) {
+        if(codeList[it]->getMemoryAddress() < info.burnAddress) {
+            codeList[it]->setEmitObjectCode(false);
+        }
+    }
 
     // Adjust for .BURN
     int addressDelta = info.burnValue - byteCount + 1;

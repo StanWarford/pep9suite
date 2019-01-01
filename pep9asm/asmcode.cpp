@@ -30,9 +30,19 @@
 #pragma message("TODO: The functions requesting object code must manuall check for burn count & memaddress of burn")
 // appendObjectCode
 
-AsmCode::AsmCode(): memAddress(0), sourceCodeLine(0), symbolEntry(QSharedPointer<SymbolEntry>()), comment()
+AsmCode::AsmCode(): sourceCodeLine(0), memAddress(0), symbolEntry(QSharedPointer<SymbolEntry>()), comment(), emitObjectCode(true)
 {
 
+}
+
+void AsmCode::setEmitObjectCode(bool emitObject)
+{
+    emitObjectCode = emitObject;
+}
+
+bool AsmCode::getEmitObjectCode() const
+{
+    return emitObjectCode;
 }
 
 void AsmCode::adjustMemAddress(int addressDelta)
@@ -42,11 +52,13 @@ void AsmCode::adjustMemAddress(int addressDelta)
 
 void UnaryInstruction::appendObjectCode(QList<int> &objectCode) const
 {
+    if(!emitObjectCode) return;
     objectCode.append(Pep::opCodeMap.value(mnemonic));
 }
 
 void NonUnaryInstruction::appendObjectCode(QList<int> &objectCode) const
 {
+    if(!emitObjectCode) return;
     int instructionSpecifier = Pep::opCodeMap.value(mnemonic);
     if (Pep::addrModeRequiredMap.value(mnemonic)) {
         instructionSpecifier += Pep::aaaAddressField(addressingMode);
@@ -62,6 +74,7 @@ void NonUnaryInstruction::appendObjectCode(QList<int> &objectCode) const
 
 void DotAddrss::appendObjectCode(QList<int> &objectCode) const
 {
+    if(!emitObjectCode) return;
     int symbolValue = this->argument->getArgumentValue();
     objectCode.append(symbolValue / 256);
     objectCode.append(symbolValue % 256);
@@ -70,6 +83,7 @@ void DotAddrss::appendObjectCode(QList<int> &objectCode) const
 
 void DotAlign::appendObjectCode(QList<int> &objectCode) const
 {
+    if(!emitObjectCode) return;
     for (int i = 0; i < numBytesGenerated->getArgumentValue(); i++) {
         objectCode.append(0);
     }
@@ -77,6 +91,7 @@ void DotAlign::appendObjectCode(QList<int> &objectCode) const
 
 void DotAscii::appendObjectCode(QList<int> &objectCode) const
 {
+    if(!emitObjectCode) return;
         int value;
         QString str = argument->getArgumentString();
         str.remove(0, 1); // Remove the leftmost double quote.
@@ -89,21 +104,24 @@ void DotAscii::appendObjectCode(QList<int> &objectCode) const
 
 void DotBlock::appendObjectCode(QList<int> &objectCode) const
 {
-        for (int i = 0; i < argument->getArgumentValue(); i++) {
-            objectCode.append(0);
-        }
+    if(!emitObjectCode) return;
+    for (int i = 0; i < argument->getArgumentValue(); i++) {
+        objectCode.append(0);
+    }
 }
 
 void DotByte::appendObjectCode(QList<int> &objectCode) const
 {
-        objectCode.append(argument->getArgumentValue());
+    if(!emitObjectCode) return;
+    objectCode.append(argument->getArgumentValue());
 }
 
 void DotWord::appendObjectCode(QList<int> &objectCode) const
 {
-        int value = argument->getArgumentValue();
-        objectCode.append(value / 256);
-        objectCode.append(value % 256);
+    if(!emitObjectCode) return;
+    int value = argument->getArgumentValue();
+    objectCode.append(value / 256);
+    objectCode.append(value % 256);
 }
 
 void UnaryInstruction::appendSourceLine(QStringList &assemblerListingList) const
@@ -321,7 +339,14 @@ QSharedPointer<const SymbolEntry> NonUnaryInstruction::getSymbolicOperand() cons
 QString UnaryInstruction::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
-    QString codeStr = QString("%1").arg(Pep::opCodeMap.value(mnemonic), 2, 16, QLatin1Char('0')).toUpper();
+    // Potentially skip codegen
+    QString codeStr;
+    if(emitObjectCode) {
+        codeStr = QString("%1").arg(Pep::opCodeMap.value(mnemonic), 2, 16, QLatin1Char('0')).toUpper();
+    }
+    else {
+        codeStr = "  ";
+    }
     QString symbolStr;
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
@@ -341,8 +366,18 @@ QString NonUnaryInstruction::getAssemblerListing() const
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
     int temp = Pep::opCodeMap.value(mnemonic);
     temp += Pep::addrModeRequiredMap.value(mnemonic) ? Pep::aaaAddressField(addressingMode) : Pep::aAddressField(addressingMode);
-    QString codeStr = QString("%1").arg(temp, 2, 16, QLatin1Char('0')).toUpper();
-    QString oprndNumStr = QString("%1").arg(argument->getArgumentValue(), 4, 16, QLatin1Char('0')).toUpper();
+    // Potentially skip codegen
+    QString codeStr;
+    QString oprndNumStr;
+    if(emitObjectCode) {
+        codeStr = QString("%1").arg(temp, 2, 16, QLatin1Char('0')).toUpper();
+        oprndNumStr = QString("%1").arg(argument->getArgumentValue(), 4, 16, QLatin1Char('0')).toUpper();
+    }
+    else {
+        codeStr = "  ";
+        oprndNumStr = " ";
+    }
+
     QString symbolStr;
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
@@ -370,7 +405,16 @@ QString DotAddrss::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
     int symbolValue = this->argument->getArgumentValue();
-    QString codeStr = QString("%1").arg(symbolValue, 4, 16, QLatin1Char('0')).toUpper();
+
+    // Potentially skip codegen
+    QString codeStr;
+    if(emitObjectCode) {
+        codeStr = QString("%1").arg(symbolValue, 4, 16, QLatin1Char('0')).toUpper();
+    }
+    else {
+        codeStr = "";
+    }
+
     QString symbolStr;
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
@@ -391,8 +435,9 @@ QString DotAlign::getAssemblerListing() const
 {
     int numBytes = numBytesGenerated->getArgumentValue();
     QString memStr = numBytes == 0 ? "      " : QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
+    // Potentially skip codegen
     QString codeStr = "";
-    while ((numBytes > 0) && (codeStr.length() < 6)) {
+    while (emitObjectCode && (numBytes > 0) && (codeStr.length() < 6)) {
         codeStr.append("00");
         numBytes--;
     }
@@ -427,8 +472,9 @@ QString DotAscii::getAssemblerListing() const
     str.remove(0, 1); // Remove the leftmost double quote.
     str.chop(1); // Remove the rightmost double quote.
     int value;
+    // Potentially skip codegen
     QString codeStr = "";
-    while ((str.length() > 0) && (codeStr.length() < 6)) {
+    while (emitObjectCode && (str.length() > 0) && (codeStr.length() < 6)) {
         IsaAsm::unquotedStringToInt(str, value);
         codeStr.append(QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
     }
@@ -461,8 +507,9 @@ QString DotBlock::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
     int numBytes = argument->getArgumentValue();
+    // Potentially skip codegen
     QString codeStr = "";
-    while ((numBytes > 0) && (codeStr.length() < 6)) {
+    while (emitObjectCode && (numBytes > 0) && (codeStr.length() < 6)) {
         codeStr.append("00");
         numBytes--;
     }
@@ -479,7 +526,7 @@ QString DotBlock::getAssemblerListing() const
             .arg(dotStr, -8, QLatin1Char(' '))
             .arg(oprndStr, -12)
             .arg(comment);
-    while (numBytes > 0) {
+    while (emitObjectCode && numBytes > 0) {
         codeStr = "";
         while ((numBytes > 0) && (codeStr.length() < 6)) {
             codeStr.append("00");
@@ -511,7 +558,14 @@ QString DotBurn::getAssemblerListing() const
 QString DotByte::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
-    QString codeStr = QString("%1").arg(argument->getArgumentValue(), 2, 16, QLatin1Char('0')).toUpper();
+    // Potentially skip codegen
+    QString codeStr;
+    if(emitObjectCode) {
+        codeStr = QString("%1").arg(argument->getArgumentValue(), 2, 16, QLatin1Char('0')).toUpper();
+    }
+    else {
+        codeStr = "";
+    }
     QString symbolStr;
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
@@ -566,7 +620,14 @@ QString DotEquate::getAssemblerListing() const
 QString DotWord::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
-    QString codeStr = QString("%1").arg(argument->getArgumentValue(), 4, 16, QLatin1Char('0')).toUpper();
+    // Potentially skip codegen
+    QString codeStr;
+    if(emitObjectCode) {
+        codeStr = QString("%1").arg(argument->getArgumentValue(), 4, 16, QLatin1Char('0')).toUpper();
+    }
+    else {
+        codeStr = "";
+    }
     QString symbolStr;
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
@@ -621,7 +682,12 @@ QSharedPointer<const SymbolEntry> DotAddrss::getSymbolicOperand() const
 
 quint16 DotAlign::objectCodeLength() const
 {
-    return numBytesGenerated->getArgumentValue();
+    if(emitObjectCode) {
+        return numBytesGenerated->getArgumentValue();
+    }
+    else {
+        return 0;
+    }
 }
 
 quint16 DotAscii::objectCodeLength() const
@@ -634,15 +700,30 @@ quint16 DotAscii::objectCodeLength() const
 
 quint16 DotBlock::objectCodeLength() const
 {
-    return argument->getArgumentValue();
+    if(emitObjectCode) {
+        return argument->getArgumentValue();
+    }
+    else {
+        return 0;
+    }
 }
 
 quint16 DotByte::objectCodeLength() const
 {
-    return 1;
+    if(emitObjectCode) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
 }
 
 quint16 DotWord::objectCodeLength() const
 {
-    return 2;
+    if(emitObjectCode) {
+        return 2;
+    }
+    else {
+        return 0;
+    }
 }
