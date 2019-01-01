@@ -213,7 +213,8 @@ namespace Enu {
 
     enum CPUType {
         OneByteDataBus,
-        TwoByteDataBus
+        TwoByteDataBus,
+        NoMicroCPU
     };
 
     // For our drawing/shapes classes:

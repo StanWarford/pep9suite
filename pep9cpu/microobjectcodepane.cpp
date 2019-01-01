@@ -36,8 +36,8 @@
 #include "symbolentry.h"
 #include "symbolvalue.h"
 MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
-    QWidget(parent), cpu(nullptr), rowCount(0),model(new QStandardItemModel()),inSimulation(false),
-    ui(new Ui::MicroObjectCodePane)
+    QWidget(parent),ui(new Ui::MicroObjectCodePane), cpu(nullptr),
+    rowCount(0),model(new QStandardItemModel()),inSimulation(false), showCtrlSectionSignals(false)
 {
     ui->setupUi(this);
     QFont font(Pep::codeFont);
@@ -55,7 +55,6 @@ MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
     ui->codeTable->horizontalHeader()->setDefaultSectionSize(15);
     ui->codeTable->setShowGrid(false);
     model->setRowCount(0);
-    initCPUModelState();
     //Connect to disabler
     connect(this, &MicroObjectCodePane::beginSimulation, selectionModel, &DisableSelectionModel::onDisableSelection);
     connect(this, &MicroObjectCodePane::endSimulation, selectionModel, &DisableSelectionModel::onEnableSelection);
@@ -64,14 +63,20 @@ MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
 MicroObjectCodePane::~MicroObjectCodePane()
 {
     delete ui;
-    delete program;
     delete model;
     delete rotatedHeaderView;
 }
 
-void MicroObjectCodePane::init(QSharedPointer<InterfaceMCCPU> newCPU)
+void MicroObjectCodePane::init(QSharedPointer<InterfaceMCCPU> newCPU, bool showCtrlSectionSignals)
 {
     cpu = newCPU;
+    this->showCtrlSectionSignals = showCtrlSectionSignals;
+    initCPUModelState();
+}
+
+void MicroObjectCodePane::setShowCtrlSectionSignals(bool showCtrlSectionSignals)
+{
+    this->showCtrlSectionSignals = showCtrlSectionSignals;
 }
 
 void MicroObjectCodePane::initCPUModelState()
@@ -85,57 +90,61 @@ void MicroObjectCodePane::initCPUModelState()
 void MicroObjectCodePane::setObjectCode()
 {
 
-    setObjectCode(new MicrocodeProgram(),nullptr);
+    setObjectCode(nullptr, nullptr);
 }
 
-void MicroObjectCodePane::setObjectCode(MicrocodeProgram* program,SymbolTable* symbolTable)
+void MicroObjectCodePane::setObjectCode(QSharedPointer<MicrocodeProgram> prog, QSharedPointer<SymbolTable> symbolTable)
 {
     assignHeaders();
-    this->program = program;
+    this->program = prog;
     this->symTable = symbolTable;
-    int rowNum=0,colNum=0;
+    int rowNum = 0, colNum = 0;
     QList<Enu::EControlSignals> controls = Pep::memControlToMnemonMap.keys();
     controls.append(Pep::decControlToMnemonMap.keys());
     QList<Enu::EClockSignals> clocks = Pep::clockControlToMnemonMap.keys();
     model->setRowCount(0);
-    for(MicroCodeBase* row : program->getObjectCode()) {
-        if(!row->isMicrocode()) {
-           continue;
-        }
-        colNum = 0;
-        model->insertRow(rowNum);
-        for(auto col : controls)
-        {
-            auto x = ((MicroCode*)row)->getControlSignal(col);
-            if(x != Enu::signalDisabled) {
-                auto y = new QStandardItem(QString::number(x));
-                y->setTextAlignment(Qt::AlignCenter);
-                model->setItem(rowNum, colNum, y);
+    if(!prog.isNull()) {
+        for(AMicroCode* row : program->getObjectCode()) {
+            if(!row->isMicrocode()) {
+               continue;
             }
-            colNum++;
-        }
-        for(auto col : clocks) {
-            auto x = ((MicroCode*)row)->getClockSignal(col);
-            if( x != false) {
-                auto y = new QStandardItem(QString::number(x));
-                y->setTextAlignment(Qt::AlignCenter);
-                model->setItem(rowNum, colNum, y);
+            colNum = 0;
+            model->insertRow(rowNum);
+            for(auto col : controls)
+            {
+                auto x = ((MicroCode*)row)->getControlSignal(col);
+                if(x != Enu::signalDisabled) {
+                    auto y = new QStandardItem(QString::number(x));
+                    y->setTextAlignment(Qt::AlignCenter);
+                    model->setItem(rowNum, colNum, y);
+                }
+                colNum++;
             }
-            colNum++;
+            for(auto col : clocks) {
+                auto x = ((MicroCode*)row)->getClockSignal(col);
+                if( x != false) {
+                    auto y = new QStandardItem(QString::number(x));
+                    y->setTextAlignment(Qt::AlignCenter);
+                    model->setItem(rowNum, colNum, y);
+                }
+                colNum++;
+            }
+            if(showCtrlSectionSignals) {
+                auto y = new QStandardItem(QString::number(((MicroCode*)row)->getBranchFunction()));
+                y->setTextAlignment(Qt::AlignCenter);
+                model->setItem(rowNum,colNum++,y);
+                y = new QStandardItem(QString::number(((MicroCode*)row)->getTrueTarget()->getValue()));
+                y->setTextAlignment(Qt::AlignCenter);
+                model->setItem(rowNum,colNum++,y);
+                y = new QStandardItem(QString::number(((MicroCode*)row)->getFalseTarget()->getValue()));
+                y->setTextAlignment(Qt::AlignCenter);
+                model->setItem(rowNum,colNum++,y);
+                y = new QStandardItem(((MicroCode*)row)->getSymbol()->getName());
+                y->setTextAlignment(Qt::AlignCenter);
+                model->setItem(rowNum,colNum++,y);
+            }
+            rowNum++;
         }
-        auto y = new QStandardItem(QString::number(((MicroCode*)row)->getBranchFunction()));
-        y->setTextAlignment(Qt::AlignCenter);
-        model->setItem(rowNum,colNum++,y);
-        y = new QStandardItem(QString::number(((MicroCode*)row)->getTrueTarget()->getValue()));
-        y->setTextAlignment(Qt::AlignCenter);
-        model->setItem(rowNum,colNum++,y);
-        y = new QStandardItem(QString::number(((MicroCode*)row)->getFalseTarget()->getValue()));
-        y->setTextAlignment(Qt::AlignCenter);
-        model->setItem(rowNum,colNum++,y);
-        y = new QStandardItem(((MicroCode*)row)->getSymbol()->getName());
-        y->setTextAlignment(Qt::AlignCenter);
-        model->setItem(rowNum,colNum++,y);
-        rowNum++;
     }
     ui->codeTable->resizeColumnsToContents();
 }
@@ -177,11 +186,14 @@ void MicroObjectCodePane::assignHeaders()
     {
         headers.append(QString(nClocks.valueToKey(x)));
     }
-    headers.append("BRF");
-    headers.append("T Trgt");
-    headers.append("F Trgt");
-    headers.append("Symbol");
-    model->setColumnCount(size+4);
+    if(showCtrlSectionSignals) {
+        headers.append("BRF");
+        headers.append("T Trgt");
+        headers.append("F Trgt");
+        headers.append("Symbol");
+        size += 4;
+    }
+    model->setColumnCount(size);
     model->setHorizontalHeaderLabels(headers);
     for(int x=0;x<size;x++)
     {

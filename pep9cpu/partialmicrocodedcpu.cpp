@@ -223,7 +223,7 @@ void PartialMicrocodedCPU::onMCStep()
     }
 
     // Do step logic
-    const MicroCode* prog = program->getCodeLine(microprogramCounter);
+    const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
 
     data->setSignalsFromMicrocode(prog);
     data->onStep();
@@ -259,7 +259,12 @@ void PartialMicrocodedCPU::onClock()
 
 void PartialMicrocodedCPU::branchHandler()
 {
-   #pragma message("TODO: Fix branch handler")
+    if(sharedProgram->getCodeLine(microprogramCounter)->getBranchFunction() == Enu::EBranchFunctions::Stop) {
+        executionFinished = true;
+    }
+    else {
+        microprogramCounter++;
+    }
 }
 
 void PartialMicrocodedCPU::breakpointHandler()
@@ -267,7 +272,7 @@ void PartialMicrocodedCPU::breakpointHandler()
     // If the CPU is not being debugged, breakpoints make no sense. Abort.
     if(!inDebug) return;
     // Trap on micrcode breakpoints
-    else if(program->getCodeLine(microprogramCounter)->hasBreakpoint()) {
+    else if(sharedProgram->getCodeLine(microprogramCounter)->hasBreakpoint()) {
         microBreakpointHit = true;
         emit hitBreakpoint(Enu::BreakpointTypes::MICROCODE);
         return;

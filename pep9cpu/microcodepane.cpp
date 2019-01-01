@@ -92,11 +92,11 @@ void MicrocodePane::initCPUModelState()
 
 bool MicrocodePane::microAssemble()
 {
-    QVector<MicroCodeBase*> codeList;
+    QVector<AMicroCode*> codeList;
     QString sourceLine;
     QString errorString;
     QStringList sourceCodeList;
-    MicroCodeBase *code;
+    AMicroCode *code;
     int lineNum = 0;
     if(isModified() == false && program != nullptr) {
         return true;
@@ -121,8 +121,7 @@ bool MicrocodePane::microAssemble()
         lineNum++;
     }
 
-    if(program) delete program;
-    program = new MicrocodeProgram(codeList,symbolTable.data());
+    program =  QSharedPointer<MicrocodeProgram>::create(codeList, symbolTable);
     for(auto sym : symbolTable->getSymbolEntries()) {
             if(sym->isUndefined()){
                 appendMessageInSourceCodePaneAt(-1,"// ERROR: Undefined symbol "+sym->getName());
@@ -146,7 +145,7 @@ bool MicrocodePane::microAssemble()
     return true;
 }
 
-MicrocodeProgram* MicrocodePane::getMicrocodeProgram() {
+QSharedPointer<MicrocodeProgram> MicrocodePane::getMicrocodeProgram() {
     return program;
 }
 
@@ -209,7 +208,6 @@ void MicrocodePane::setMicrocode(QString microcode)
     }
     microcode = sourceCodeList.join("\n");
     editor->setPlainText(microcode);
-    if(this->program) delete this->program;
     program = nullptr;
     setLabelToModified(true);
 }

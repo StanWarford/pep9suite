@@ -108,44 +108,47 @@ QMap<QString, Enu::ECPUKeywords> Pep::mnemonToMemSpecMap;
 QMap<QString, Enu::ECPUKeywords> Pep::mnemonToRegSpecMap;
 QMap<QString, Enu::ECPUKeywords> Pep::mnemonToStatusSpecMap;
 
-void Pep::initMicroEnumMnemonMaps()
+
+void Pep::initMicroEnumMnemonMaps(CPUType cpuType, bool fullCtrlSection)
 {
     branchFuncToMnemonMap.clear(); mnemonToBranchFuncMap.clear();
-    mnemonToBranchFuncMap.insert("BRGT",uBRGT); branchFuncToMnemonMap.insert(uBRGT,"BRGT");
-    mnemonToBranchFuncMap.insert("BRGE",uBRGE); branchFuncToMnemonMap.insert(uBRGE,"BRGE");
-    mnemonToBranchFuncMap.insert("BREQ",uBREQ); branchFuncToMnemonMap.insert(uBREQ,"BREQ");
-    mnemonToBranchFuncMap.insert("BRNE",uBRNE); branchFuncToMnemonMap.insert(uBRNE,"BRNE");
-    mnemonToBranchFuncMap.insert("BRLE",uBRLE); branchFuncToMnemonMap.insert(uBRLE,"BRLE");
-    mnemonToBranchFuncMap.insert("BRLT",uBRLT); branchFuncToMnemonMap.insert(uBRLT,"BRLT");
-    mnemonToBranchFuncMap.insert("BRV",uBRV); branchFuncToMnemonMap.insert(uBRV,"BRV");
-    mnemonToBranchFuncMap.insert("BRC",uBRC); branchFuncToMnemonMap.insert(uBRC,"BRC");
-    mnemonToBranchFuncMap.insert("BRS",uBRS); branchFuncToMnemonMap.insert(uBRS,"BRS");
-    mnemonToBranchFuncMap.insert("ISPREFETCHVALID",IsPrefetchValid); branchFuncToMnemonMap.insert(IsPrefetchValid,"ISPREFETCHVALID");
-    mnemonToBranchFuncMap.insert("ISUNARY",IsUnary); branchFuncToMnemonMap.insert(IsUnary,"ISUNARY");
-    mnemonToBranchFuncMap.insert("ISPCE",IsPCEven); branchFuncToMnemonMap.insert(IsPCEven,"ISPCE");
-    mnemonToBranchFuncMap.insert("AMD",AddressingModeDecoder); branchFuncToMnemonMap.insert(AddressingModeDecoder,"AMD");
-    mnemonToBranchFuncMap.insert("ISD",InstructionSpecifierDecoder); branchFuncToMnemonMap.insert(InstructionSpecifierDecoder,"ISD");
-
-    //CPUDataSection* tempRef = CPUDataSection::getInstance();
+    if(fullCtrlSection) {
+        mnemonToBranchFuncMap.insert("BRGT",uBRGT); branchFuncToMnemonMap.insert(uBRGT,"BRGT");
+        mnemonToBranchFuncMap.insert("BRGE",uBRGE); branchFuncToMnemonMap.insert(uBRGE,"BRGE");
+        mnemonToBranchFuncMap.insert("BREQ",uBREQ); branchFuncToMnemonMap.insert(uBREQ,"BREQ");
+        mnemonToBranchFuncMap.insert("BRNE",uBRNE); branchFuncToMnemonMap.insert(uBRNE,"BRNE");
+        mnemonToBranchFuncMap.insert("BRLE",uBRLE); branchFuncToMnemonMap.insert(uBRLE,"BRLE");
+        mnemonToBranchFuncMap.insert("BRLT",uBRLT); branchFuncToMnemonMap.insert(uBRLT,"BRLT");
+        mnemonToBranchFuncMap.insert("BRV",uBRV); branchFuncToMnemonMap.insert(uBRV,"BRV");
+        mnemonToBranchFuncMap.insert("BRC",uBRC); branchFuncToMnemonMap.insert(uBRC,"BRC");
+        mnemonToBranchFuncMap.insert("BRS",uBRS); branchFuncToMnemonMap.insert(uBRS,"BRS");
+        mnemonToBranchFuncMap.insert("ISPREFETCHVALID",IsPrefetchValid); branchFuncToMnemonMap.insert(IsPrefetchValid,"ISPREFETCHVALID");
+        mnemonToBranchFuncMap.insert("ISUNARY",IsUnary); branchFuncToMnemonMap.insert(IsUnary,"ISUNARY");
+        mnemonToBranchFuncMap.insert("ISPCE",IsPCEven); branchFuncToMnemonMap.insert(IsPCEven,"ISPCE");
+        mnemonToBranchFuncMap.insert("AMD",AddressingModeDecoder); branchFuncToMnemonMap.insert(AddressingModeDecoder,"AMD");
+        mnemonToBranchFuncMap.insert("ISD",InstructionSpecifierDecoder); branchFuncToMnemonMap.insert(InstructionSpecifierDecoder,"ISD");
+    }
     mnemonToDecControlMap.clear();  decControlToMnemonMap.clear();
     mnemonToDecControlMap.insert("C", C); decControlToMnemonMap.insert(C,"C");
     mnemonToDecControlMap.insert("B", B); decControlToMnemonMap.insert(B,"B");
     mnemonToDecControlMap.insert("A", A); decControlToMnemonMap.insert(A,"A");
     mnemonToDecControlMap.insert("ANDZ", AndZ); decControlToMnemonMap.insert(AndZ,"ANDZ");
-    mnemonToDecControlMap.insert("PVALID", PValid); decControlToMnemonMap.insert(PValid,"PValid");
+    if(fullCtrlSection) {
+        mnemonToDecControlMap.insert("PVALID", PValid); decControlToMnemonMap.insert(PValid,"PValid");
+    }
     mnemonToDecControlMap.insert("AMUX", AMux); decControlToMnemonMap.insert(AMux,"AMUX");
     mnemonToDecControlMap.insert("CMUX", CMux); decControlToMnemonMap.insert(CMux,"CMUX");
     mnemonToDecControlMap.insert("ALU", ALU); decControlToMnemonMap.insert(ALU,"ALU");
     mnemonToDecControlMap.insert("CSMUX", CSMux); decControlToMnemonMap.insert(CSMux,"CSMUX");
-    //if (tempRef->getCPUFeatures() == OneByteDataBus) {
+    if (cpuType == OneByteDataBus) {
         mnemonToDecControlMap.insert("MDRMUX", MDRMux); decControlToMnemonMap.insert(MDRMux,"MDRMUX");
-    //}
-    //else if (tempRef->getCPUFeatures() == TwoByteDataBus){
+    }
+    else if (cpuType == TwoByteDataBus){
         mnemonToDecControlMap.insert("MARMUX", MARMux); decControlToMnemonMap.insert(MARMux,"MARMUX");
         mnemonToDecControlMap.insert("MDROMUX", MDROMux); decControlToMnemonMap.insert(MDROMux,"MDROMUX");
         mnemonToDecControlMap.insert("MDREMUX", MDREMux); decControlToMnemonMap.insert(MDREMux,"MDREMUX");
         mnemonToDecControlMap.insert("EOMUX", EOMux); decControlToMnemonMap.insert(EOMux,"EOMUX");
-    //}*/
+    }
 
     memControlToMnemonMap.clear();                      mnemonToMemControlMap.clear();
     memControlToMnemonMap.insert(MemWrite, "MemWrite"); mnemonToMemControlMap.insert("MEMWRITE", MemWrite);
@@ -159,14 +162,16 @@ void Pep::initMicroEnumMnemonMaps()
     clockControlToMnemonMap.insert(VCk, "VCk");         mnemonToClockControlMap.insert("VCK", VCk);
     clockControlToMnemonMap.insert(ZCk, "ZCk");         mnemonToClockControlMap.insert("ZCK", ZCk);
     clockControlToMnemonMap.insert(NCk, "NCk");         mnemonToClockControlMap.insert("NCK", NCk);
-    clockControlToMnemonMap.insert(PValidCk, "PValidCk"); mnemonToClockControlMap.insert("PVALIDCK", PValidCk);
-    //if (tempRef->getCPUFeatures() == OneByteDataBus) {
+    if(fullCtrlSection) {
+        clockControlToMnemonMap.insert(PValidCk, "PValidCk"); mnemonToClockControlMap.insert("PVALIDCK", PValidCk);
+    }
+    if (cpuType == OneByteDataBus) {
         clockControlToMnemonMap.insert(MDRCk, "MDRCk");     mnemonToClockControlMap.insert("MDRCK", MDRCk);
-    //}
-    //else if (tempRef->getCPUFeatures() == TwoByteDataBus){
+    }
+    else if (cpuType == TwoByteDataBus){
         clockControlToMnemonMap.insert(MDROCk, "MDROCk");     mnemonToClockControlMap.insert("MDROCK", MDROCk);
         clockControlToMnemonMap.insert(MDRECk, "MDRECk");     mnemonToClockControlMap.insert("MDRECK", MDRECk);
-    //}
+    }
 
     specificationToMnemonMap.clear();                   mnemonToSpecificationMap.clear();
     specificationToMnemonMap.insert(Pre, "UnitPre:");   mnemonToSpecificationMap.insert("UNITPRE:", Pre);

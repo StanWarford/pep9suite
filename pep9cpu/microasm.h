@@ -25,7 +25,7 @@
 #include "enu.h"
 #include <QSharedPointer>
 class AMemoryDevice;
-class MicroCodeBase; // Forward declaration for argument of processSourceLine.
+class AMicroCode; // Forward declaration for argument of processSourceLine.
 class SymbolTable;
 class MicroAsm
 {
@@ -74,7 +74,7 @@ public:
     // beginning of sourceLine and returned in tokenString, true is returned, and token is set to the token type.
     // Post: If false is returned, then tokenString is set to the lexical error message.
 
-    bool processSourceLine(SymbolTable* symTable, QString sourceLine, MicroCodeBase *&code, QString &errorString);
+    bool processSourceLine(SymbolTable* symTable, QString sourceLine, AMicroCode *&code, QString &errorString);
     // Pre: CPU type is set
     // Pre: sourceLine has one line of source code.
     // Pre: lineNum is the line number of the source code.

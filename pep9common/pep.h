@@ -63,7 +63,7 @@ public:
     static QMap<QString, Enu::ECPUKeywords> mnemonToMemSpecMap;
     static QMap<QString, Enu::ECPUKeywords> mnemonToRegSpecMap;
     static QMap<QString, Enu::ECPUKeywords> mnemonToStatusSpecMap;
-    static void initMicroEnumMnemonMaps();
+    static void initMicroEnumMnemonMaps(Enu::CPUType cpuType, bool fullCtrlSection);
 
     /*
      * Begin Pep9 source code

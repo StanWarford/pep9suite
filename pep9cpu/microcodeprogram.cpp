@@ -15,11 +15,11 @@ MicrocodeProgram::~MicrocodeProgram()
     }
 }
 
-MicrocodeProgram::MicrocodeProgram(QVector<MicroCodeBase*>objectCode, SymbolTable* symbolTable):
+MicrocodeProgram::MicrocodeProgram(QVector<AMicroCode*>objectCode, QSharedPointer<SymbolTable> symbolTable):
     symTable(symbolTable), programVec(objectCode),
     preconditionsVec(), postconditionsVec(), microcodeVec()
 {
-    MicroCodeBase* item;
+    AMicroCode* item;
     for(int it=0; it<objectCode.size();it++) {
         item = objectCode[it];
         // If the item at the iterator is code or a test condition, put the index in the appropriate vector
@@ -63,12 +63,12 @@ MicrocodeProgram::MicrocodeProgram(QVector<MicroCodeBase*>objectCode, SymbolTabl
     }
 }
 
-const SymbolTable *MicrocodeProgram::getSymTable() const
+QSharedPointer<const SymbolTable> MicrocodeProgram::getSymTable() const
 {
     return this->symTable;
 }
 
-const QVector<MicroCodeBase*> MicrocodeProgram::getObjectCode() const
+const QVector<AMicroCode*> MicrocodeProgram::getObjectCode() const
 {
     return this->programVec;
 }
@@ -76,7 +76,7 @@ const QVector<MicroCodeBase*> MicrocodeProgram::getObjectCode() const
 const QString MicrocodeProgram::format() const
 {
     QString output = "";
-    for(MicroCodeBase* line : programVec) {
+    for(AMicroCode* line : programVec) {
         output.append(line->getSourceCode()  +"\n");
     }
     return output;

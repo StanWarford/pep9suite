@@ -244,7 +244,7 @@ void FullMicrocodedCPU::onMCStep()
     }
 
     // Do step logic
-    const MicroCode* prog = program->getCodeLine(microprogramCounter);
+    const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
 
     this->setSignalsFromMicrocode(prog);
     data->setSignalsFromMicrocode(prog);
@@ -258,7 +258,6 @@ void FullMicrocodedCPU::onMCStep()
         updateAtInstructionEnd();
         emit asmInstructionFinished();
         asmInstructionCounter++;
-        #pragma message("TODO: fix memoizer")
         if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
             qDebug().noquote().nospace() << memoizer->memoize();
         }
@@ -307,11 +306,11 @@ void FullMicrocodedCPU::onISAStep()
 
 void FullMicrocodedCPU::branchHandler()
 {
-    const MicroCode* prog = program->getCodeLine(microprogramCounter);
+    const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
     int temp = microprogramCounter;
     quint8 byte = 0;
     QString tempString;
-    const SymbolTable* symTable = this->program->getSymTable();
+    QSharedPointer<const SymbolTable> symTable = this->sharedProgram->getSymTable();
     QSharedPointer<SymbolEntry> val;
     switch(prog->getBranchFunction())
     {
@@ -497,7 +496,7 @@ void FullMicrocodedCPU::breakpointHandler()
         return;
     }
     // Trap on micrcode breakpoints
-    else if(program->getCodeLine(microprogramCounter)->hasBreakpoint()) {
+    else if(sharedProgram->getCodeLine(microprogramCounter)->hasBreakpoint()) {
         microBreakpointHit = true;
         emit hitBreakpoint(Enu::BreakpointTypes::MICROCODE);
         return;

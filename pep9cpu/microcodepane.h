@@ -49,7 +49,7 @@ public:
     // Post: If the program assembles correctly, true is returned, and codeList is populated
     // with the code structs. Otherwise false is returned and codeList is partially populated.
 
-    MicrocodeProgram* getMicrocodeProgram();
+    QSharedPointer<MicrocodeProgram> getMicrocodeProgram();
 
     void removeErrorMessages();
     // Post: Searces for the string "// ERROR: " on each line and removes the end of the line.
@@ -118,7 +118,7 @@ private:
     QSharedPointer<SymbolTable> symbolTable;
     PepMicroHighlighter *highlighter;
     MicrocodeEditor *editor;
-    MicrocodeProgram* program;
+    QSharedPointer<MicrocodeProgram> program;
     QFile currentFile;
 private slots:
     void setLabelToModified(bool modified);

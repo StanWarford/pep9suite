@@ -34,27 +34,20 @@ namespace Ui {
 
 class MicroObjectCodePane : public QWidget {
     Q_OBJECT
-    QSharedPointer<InterfaceMCCPU> cpu;
-    MicrocodeProgram* program;
-    SymbolTable* symTable;
-    quint32 rowCount;
-    RotatedHeaderView* rotatedHeaderView;
-    DisableSelectionModel* selectionModel;
-    QStandardItemModel* model;
-    bool inSimulation;
 public:
     explicit MicroObjectCodePane(QWidget *parent = nullptr);
     virtual ~MicroObjectCodePane() override;
 
     // Must be called after the class is constructed but before it is used, else the program will crash
-    void init(QSharedPointer<InterfaceMCCPU> cpu);
+    void init(QSharedPointer<InterfaceMCCPU> cpu, bool showCtrlSectionSignals);
+    void setShowCtrlSectionSignals(bool showCtrlSectionSignals);
 
     void initCPUModelState();
 
     void highlightOnFocus();
 
     void setObjectCode();
-    void setObjectCode(MicrocodeProgram* prog,SymbolTable* symbolTable);
+    void setObjectCode(QSharedPointer<MicrocodeProgram> prog, QSharedPointer<SymbolTable> symbolTable);
 
     void highlightCurrentInstruction();
     void clearSimulationView();
@@ -74,6 +67,14 @@ protected:
 
 private:
     Ui::MicroObjectCodePane *ui;
+    QSharedPointer<InterfaceMCCPU> cpu;
+    QSharedPointer<MicrocodeProgram> program;
+    QSharedPointer<SymbolTable> symTable;
+    quint32 rowCount;
+    RotatedHeaderView* rotatedHeaderView;
+    DisableSelectionModel* selectionModel;
+    QStandardItemModel* model;
+    bool inSimulation, showCtrlSectionSignals;
 
 };
 

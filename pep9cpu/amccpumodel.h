@@ -43,11 +43,11 @@ public:
     quint16 getMicrocodeLineNumber() const noexcept;
 
     // May be nullptr if no program has been loaded
-    const MicrocodeProgram* getProgram() const noexcept;
+    QSharedPointer<const MicrocodeProgram> getProgram() const noexcept;
     const MicroCode* getCurrentMicrocodeLine() const noexcept;
 
 
-    void setMicrocodeProgram(MicrocodeProgram* program);
+    void setMicrocodeProgram(QSharedPointer<MicrocodeProgram> sharedProgram);
     Enu::CPUType getCPUType() const noexcept;
 
     // Clear program counters & breakpoint status
@@ -67,7 +67,7 @@ protected:
     quint16 microprogramCounter;
     quint64 microCycleCounter;
     bool microBreakpointHit;
-    MicrocodeProgram* program;
+    QSharedPointer<MicrocodeProgram> sharedProgram;
     Enu::CPUType type;
 };
 

@@ -78,7 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
     statisticsLevelsGroup(new QActionGroup(this)), inDarkMode(false)
 {
     // Initialize all global maps.
-    Pep::initMicroEnumMnemonMaps();
+    Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, true);
     Pep::initEnumMnemonMaps();
     Pep::initMnemonicMaps();
     Pep::initAddrModesMap();
@@ -100,7 +100,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->AsmSourceCodeWidgetPane->init(memDevice, programManager);
     ui->asmListingTracePane->init(controlSection, programManager);
     ui->microcodeWidget->init(controlSection, dataSection, memDevice, true);
-    ui->microObjectCodePane->init(controlSection);
+    ui->microObjectCodePane->init(controlSection, true);
 
     // Create button group to hold statistics items
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_All);
@@ -1695,8 +1695,8 @@ void MainWindow::onSimulationFinished()
     QString errorString;
     on_actionDebug_Stop_Debugging_triggered();
 
-    QVector<MicroCodeBase*> prog = ui->microcodeWidget->getMicrocodeProgram()->getObjectCode();
-    for (MicroCodeBase* x : prog) {
+    QVector<AMicroCode*> prog = ui->microcodeWidget->getMicrocodeProgram()->getObjectCode();
+    for (AMicroCode* x : prog) {
          if (x->hasUnitPost()&&!((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString)) {
              ((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString);
              ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);

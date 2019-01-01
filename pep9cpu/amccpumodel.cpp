@@ -1,7 +1,7 @@
 #include "amccpumodel.h"
 #include "microcodeprogram.h"
 InterfaceMCCPU::InterfaceMCCPU(Enu::CPUType type) noexcept: microprogramCounter(0), microCycleCounter(0),
-    microBreakpointHit(false), program(nullptr), type(type)
+    microBreakpointHit(false), sharedProgram(nullptr), type(type)
 {
 
 }
@@ -21,19 +21,19 @@ quint16 InterfaceMCCPU::getMicrocodeLineNumber() const noexcept
     return microprogramCounter;
 }
 
-const MicrocodeProgram *InterfaceMCCPU::getProgram() const noexcept
+QSharedPointer<const MicrocodeProgram> InterfaceMCCPU::getProgram() const noexcept
 {
-    return program;
+    return sharedProgram;
 }
 
-const MicroCode *InterfaceMCCPU::getCurrentMicrocodeLine() const noexcept
+const MicroCode* InterfaceMCCPU::getCurrentMicrocodeLine() const noexcept
 {
-    return program->getCodeLine(microprogramCounter);
+    return sharedProgram->getCodeLine(microprogramCounter);
 }
 
-void InterfaceMCCPU::setMicrocodeProgram(MicrocodeProgram *program)
+void InterfaceMCCPU::setMicrocodeProgram(QSharedPointer<MicrocodeProgram> program)
 {
-    this->program = program;
+    this->sharedProgram = program;
     microprogramCounter = 0;
 }
 
