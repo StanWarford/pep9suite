@@ -41,7 +41,7 @@ public:
     MicrocodePane(QWidget *parent = 0);
     ~MicrocodePane();
 
-    void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> dataSection,  QSharedPointer<AMemoryDevice> memDevice, bool useExtendedFeatures);
+    void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> dataSection,  QSharedPointer<AMemoryDevice> memDevice, bool fullCtrlSection);
     void initCPUModelState();
 
     bool microAssemble();
@@ -99,7 +99,7 @@ public:
     MicrocodeEditor* getEditor();
     void asHTML(QString& html) const;
 
-    void useExtendedFeatures(bool useExtendedFeatures);
+    void useFullCtrlSection(bool fullCtrlSection);
 
 public slots:
     void onFontChanged(QFont font);
@@ -114,7 +114,7 @@ private:
     Ui::MicrocodePane *ui;
     QSharedPointer<NewCPUDataSection> dataSection;
     MicroAsm *microASM;
-    bool inDarkMode;
+    bool inDarkMode, fullCtrlSection;
     QSharedPointer<SymbolTable> symbolTable;
     PepMicroHighlighter *highlighter;
     MicrocodeEditor *editor;

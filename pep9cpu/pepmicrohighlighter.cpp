@@ -22,14 +22,16 @@
 #include "pepmicrohighlighter.h"
 #include "pep.h"
 #include <QTextDocument>
-PepMicroHighlighter::PepMicroHighlighter(Enu::CPUType type, const PepColors::Colors color, QTextDocument *parent)
+PepMicroHighlighter::PepMicroHighlighter(Enu::CPUType type, bool fullCtrlSection, const PepColors::Colors color, QTextDocument *parent)
     : HTMLHighlighterMixin(parent), cpuType(type),
-      /*RestyleableItem(color, parent),*/ forcedFeatures(false)
+      /*RestyleableItem(color, parent),*/ forcedFeatures(false), fullCtrlSection(fullCtrlSection)
 {
     // Trigger an update whenever a style is changed.
     // connect(this, &RestyleableItem::styleChanged, this, &PepMicroHighlighter::onStyleChange);
     rebuildHighlightingRules(color);
 }
+
+
 
 void PepMicroHighlighter::forceAllFeatures(bool features)
 {
@@ -50,38 +52,49 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
     highlightingRulesOne.append(rule);
     highlightingRulesTwo.append(rule);
 
-    symbolFormat.setForeground(color.symbolHighlight);
-    rule.pattern = QRegExp("^(\\S)*(?=:)\\b");
-    rule.format = symbolFormat;
-    highlightingRulesOne.append(rule);
-    highlightingRulesTwo.append(rule);
-    identFormat.setForeground(color.seqCircuitColor);
-    QStringList symLoc;
-    symLoc << ("else \\w+")
-           << ("if \\w+ \\w+")
-           << ("goto \\w+");
-    foreach (const QString &pattern, symLoc) {
-        rule.pattern = QRegExp(pattern);
-        rule.format = identFormat;
+    // Only enable highlighting conditionals if the full control section is used
+    if(fullCtrlSection) {
+        symbolFormat.setForeground(color.symbolHighlight);
+        // A symbol is an text from the start of the line up to, but not including a ':'
+        rule.pattern = QRegExp("^(\\S)*(?=:)\\b");
+        rule.format = symbolFormat;
         highlightingRulesOne.append(rule);
         highlightingRulesTwo.append(rule);
-    }
-    conditionalFormat.setForeground(color.conditionalHighlight);
-    QStringList keywords;
-    keywords << "if"<<"else"<<"goto"<<"stop";
-    foreach (const QString &pattern, keywords) {
-        rule.pattern = QRegExp(pattern);
-        rule.format = conditionalFormat;
-        highlightingRulesOne.append(rule);
-        highlightingRulesTwo.append(rule);
-    }
-    branchFunctionFormat.setForeground(color.branchFunctionHighlight);
-    for(QString function : Pep::branchFuncToMnemonMap.values())
-    {
-        rule.pattern = QRegExp(function,Qt::CaseInsensitive);
-        rule.format = branchFunctionFormat;
-        highlightingRulesOne.append(rule);
-        highlightingRulesTwo.append(rule);
+        identFormat.setForeground(color.seqCircuitColor);
+
+        // Treat anything following an if, else, or a goto as a valid identifier
+        // and highlight it in blue
+        QStringList symLoc;
+        symLoc << ("else \\w+")
+               << ("if \\w+ \\w+")
+               << ("goto \\w+");
+        foreach (const QString &pattern, symLoc) {
+            rule.pattern = QRegExp(pattern);
+            rule.format = identFormat;
+            highlightingRulesOne.append(rule);
+            highlightingRulesTwo.append(rule);
+        }
+
+        // Highlight the special conditional branching keywords
+        conditionalFormat.setForeground(color.conditionalHighlight);
+        QStringList keywords;
+        keywords << "if" << "else" << "goto" << "stop";
+        foreach (const QString &pattern, keywords) {
+            rule.pattern = QRegExp(pattern);
+            rule.format = conditionalFormat;
+            highlightingRulesOne.append(rule);
+            highlightingRulesTwo.append(rule);
+        }
+
+        // Highlight the branch functions
+        branchFunctionFormat.setForeground(color.branchFunctionHighlight);
+        for(QString function : Pep::branchFuncToMnemonMap.values())
+        {
+            rule.pattern = QRegExp(function,Qt::CaseInsensitive);
+            rule.format = branchFunctionFormat;
+            highlightingRulesOne.append(rule);
+            highlightingRulesTwo.append(rule);
+        }
     }
     oprndFormat.setForeground(color.leftOfExpression);
     oprndFormat.setFontWeight(QFont::Bold);

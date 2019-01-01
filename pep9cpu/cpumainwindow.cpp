@@ -80,7 +80,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->memoryWidget->init(memDevice, controlSection);
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
-    ui->microcodeWidget->init(controlSection, dataSection, memDevice, true);
+    ui->microcodeWidget->init(controlSection, dataSection, memDevice, false);
     ui->microobjectWidget->init(controlSection, false);
 
     // Create button group to hold statistics items
@@ -310,7 +310,6 @@ void MainWindow::disconnectViewUpdate()
 void MainWindow::readSettings()
 {
     QSettings settings("cslab.pepperdine","Pep9CPU");
-
     settings.beginGroup("MainWindow");
 
     // Restore screen dimensions
@@ -319,7 +318,6 @@ void MainWindow::readSettings()
 
     // Restore last used font
     QVariant val = settings.value("font", codeFont);
-    codeFont = qvariant_cast<QFont>(val);
     emit fontChanged(codeFont);
 
     //Restore last used file path
@@ -389,8 +387,6 @@ bool MainWindow::maybeSave()
     return retVal;
 
 }
-
-
 
 void MainWindow::loadFile(const QString &fileName)
 {
@@ -617,7 +613,6 @@ void MainWindow::onUpdateCheck(int val)
 }
 
 // File MainWindow triggers
-
 void MainWindow::on_actionFile_New_Microcode_triggered()
 {
     //Try to save the microcode pane before clearing it & the micro-object-code pane.

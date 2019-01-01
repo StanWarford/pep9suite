@@ -67,18 +67,19 @@ MicrocodePane::~MicrocodePane()
     delete ui;
 }
 
-void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> newData, QSharedPointer<AMemoryDevice> memDevice, bool useExt)
+void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> newData, QSharedPointer<AMemoryDevice> memDevice, bool fullCtrlSection)
 {
     if(!dataSection.isNull()) {
         disconnect(dataSection.get(), &NewCPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
     }
     if(microASM != nullptr) delete microASM;
-    microASM = new MicroAsm(memDevice, newData->getCPUType(), useExt);
-    useExtendedFeatures(useExt);
+    microASM = new MicroAsm(memDevice, newData->getCPUType(), fullCtrlSection);
     dataSection = newData;
     connect(dataSection.get(), &NewCPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
     editor->init(cpu);
-    initCPUModelState();
+    // Calls initCPUModelState() to refresh the highlighters
+    useFullCtrlSection(fullCtrlSection);
+    // initCPUModelState();
 }
 
 void MicrocodePane::initCPUModelState()
@@ -86,7 +87,7 @@ void MicrocodePane::initCPUModelState()
     if (highlighter != nullptr) {
         delete highlighter;
     }
-    highlighter = new PepMicroHighlighter(dataSection->getCPUType(), PepColors::lightMode,editor->document());
+    highlighter = new PepMicroHighlighter(dataSection->getCPUType(), fullCtrlSection, PepColors::lightMode,editor->document());
 
 }
 
@@ -340,7 +341,7 @@ void MicrocodePane::asHTML(QString &html) const
     if(inDarkMode) {
         // Only print in light mode color scheme, as paper is usually white.
         QTextDocument *doc = editor->document()->clone();
-        PepMicroHighlighter high(dataSection->getCPUType(), PepColors::lightMode, doc);
+        PepMicroHighlighter high(dataSection->getCPUType(), fullCtrlSection, PepColors::lightMode, doc);
         high.rehighlight();
         high.asHtml(html, editor->font());
         delete doc;
@@ -348,10 +349,13 @@ void MicrocodePane::asHTML(QString &html) const
     else highlighter->asHtml(html, editor->font());
 }
 
-void MicrocodePane::useExtendedFeatures(bool useExtendedFeatures)
+void MicrocodePane::useFullCtrlSection(bool fullCtrlSection)
 {
-    microASM->useExtendedAssembler(useExtendedFeatures);
+    microASM->useExtendedAssembler(fullCtrlSection);
+    this->fullCtrlSection = fullCtrlSection;
+    initCPUModelState();
 }
+
 
 void MicrocodePane::onFontChanged(QFont font)
 {

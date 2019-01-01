@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>960</width>
-    <height>553</height>
+    <width>1179</width>
+    <height>551</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -64,7 +64,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>960</width>
+     <width>1179</width>
      <height>17</height>
     </rect>
    </property>
@@ -244,6 +244,9 @@
      <width>162</width>
      <height>229</height>
     </size>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
     <string>Memory Pane</string>
