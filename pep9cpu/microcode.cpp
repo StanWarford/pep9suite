@@ -29,8 +29,8 @@
 #include "cpupane.h"
 #include "newcpudata.h"
 
-MicroCode::MicroCode(Enu::CPUType cpuType): cpuType(cpuType), controlSignals(22), clockSignals(12), breakpoint(false), branchFunc(Enu::Assembler_Assigned),
-    symbol(nullptr), trueTargetAddr(nullptr), falseTargetAddr(nullptr)
+MicroCode::MicroCode(Enu::CPUType cpuType): cpuType(cpuType), controlSignals(22, Enu::signalDisabled), clockSignals(12, false), breakpoint(false),
+    branchFunc(Enu::Assembler_Assigned), symbol(nullptr), trueTargetAddr(nullptr), falseTargetAddr(nullptr)
 {
     for(auto memLines : Pep::memControlToMnemonMap.keys()) {
         controlSignals[memLines] = Enu::signalDisabled;
