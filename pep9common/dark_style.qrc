@@ -1,45 +1,45 @@
 <RCC>
-    <qresource prefix="/qss_icons">
-        <file>darkmode_resources/branch_closed.png</file>
-        <file>darkmode_resources/branch_closed-on.png</file>
-        <file>darkmode_resources/branch_open.png</file>
-        <file>darkmode_resources/branch_open-on.png</file>
-        <file>darkmode_resources/checkbox_checked.png</file>
-        <file>darkmode_resources/checkbox_checked_disabled.png</file>
-        <file>darkmode_resources/checkbox_checked_focus.png</file>
-        <file>darkmode_resources/checkbox_indeterminate.png</file>
-        <file>darkmode_resources/checkbox_indeterminate_disabled.png</file>
-        <file>darkmode_resources/checkbox_indeterminate_focus.png</file>
-        <file>darkmode_resources/checkbox_unchecked.png</file>
-        <file>darkmode_resources/checkbox_unchecked_disabled.png</file>
-        <file>darkmode_resources/checkbox_unchecked_focus.png</file>
-        <file>darkmode_resources/close.png</file>
-        <file>darkmode_resources/close-hover.png</file>
-        <file>darkmode_resources/close-pressed.png</file>
-        <file>darkmode_resources/down_arrow.png</file>
-        <file>darkmode_resources/down_arrow_disabled.png</file>
-        <file>darkmode_resources/Hmovetoolbar.png</file>
-        <file>darkmode_resources/Hsepartoolbar.png</file>
-        <file>darkmode_resources/left_arrow.png</file>
-        <file>darkmode_resources/left_arrow_disabled.png</file>
-        <file>darkmode_resources/radio_checked.png</file>
-        <file>darkmode_resources/radio_checked_disabled.png</file>
-        <file>darkmode_resources/radio_checked_focus.png</file>
-        <file>darkmode_resources/radio_unchecked.png</file>
-        <file>darkmode_resources/radio_unchecked_disabled.png</file>
-        <file>darkmode_resources/radio_unchecked_focus.png</file>
-        <file>darkmode_resources/right_arrow.png</file>
-        <file>darkmode_resources/right_arrow_disabled.png</file>
-        <file>darkmode_resources/sizegrip.png</file>
-        <file>darkmode_resources/stylesheet-branch-end.png</file>
-        <file>darkmode_resources/stylesheet-branch-more.png</file>
-        <file>darkmode_resources/stylesheet-vline.png</file>
-        <file>darkmode_resources/transparent.png</file>
-        <file>darkmode_resources/undock.png</file>
-        <file>darkmode_resources/up_arrow.png</file>
-        <file>darkmode_resources/up_arrow_disabled.png</file>
-        <file>darkmode_resources/Vmovetoolbar.png</file>
-        <file>darkmode_resources/Vsepartoolbar.png</file>
+    <qresource prefix="/qss_icons/rc">
+        <file alias="branch_closed.png">darkmode_resources/branch_closed.png</file>
+        <file alias="branch_closed.png">darkmode_resources/branch_closed-on.png</file>
+        <file alias="branch_open.png">darkmode_resources/branch_open.png</file>
+        <file alias="branch_open-on.png">darkmode_resources/branch_open-on.png</file>
+        <file alias="checkbox_checked.png">darkmode_resources/checkbox_checked.png</file>
+        <file alias="checkbox_checked_disabled.png">darkmode_resources/checkbox_checked_disabled.png</file>
+        <file alias="checkbox_checked_focus.png">darkmode_resources/checkbox_checked_focus.png</file>
+        <file alias="checkbox_indeterminate.png">darkmode_resources/checkbox_indeterminate.png</file>
+        <file alias="checkbox_indeterminate_disabled.png">darkmode_resources/checkbox_indeterminate_disabled.png</file>
+        <file alias="checkbox_indeterminate_focus.png">darkmode_resources/checkbox_indeterminate_focus.png</file>
+        <file alias="checkbox_unchecked.png">darkmode_resources/checkbox_unchecked.png</file>
+        <file alias="checkbox_unchecked_disabled.png">darkmode_resources/checkbox_unchecked_disabled.png</file>
+        <file alias="checkbox_unchecked_focus.png">darkmode_resources/checkbox_unchecked_focus.png</file>
+        <file alias="close.png">darkmode_resources/close.png</file>
+        <file alias="close-hover.png">darkmode_resources/close-hover.png</file>
+        <file alias="close-pressed.png">darkmode_resources/close-pressed.png</file>
+        <file alias="down_arrow.png">darkmode_resources/down_arrow.png</file>
+        <file alias="down_arrow_disabled.png">darkmode_resources/down_arrow_disabled.png</file>
+        <file alias="Hmovetoolbar.png">darkmode_resources/Hmovetoolbar.png</file>
+        <file alias="Hsepartoolbar.png">darkmode_resources/Hsepartoolbar.png</file>
+        <file alias="left_arrow.png">darkmode_resources/left_arrow.png</file>
+        <file alias="left_arrow_disabled.png">darkmode_resources/left_arrow_disabled.png</file>
+        <file alias="radio_checked.png">darkmode_resources/radio_checked.png</file>
+        <file alias="radio_checked_disabled.png">darkmode_resources/radio_checked_disabled.png</file>
+        <file alias="radio_checked_focus.png">darkmode_resources/radio_checked_focus.png</file>
+        <file alias="radio_unchecked.png">darkmode_resources/radio_unchecked.png</file>
+        <file alias="radio_unchecked_disabled.png">darkmode_resources/radio_unchecked_disabled.png</file>
+        <file alias="radio_unchecked_focus.png">darkmode_resources/radio_unchecked_focus.png</file>
+        <file alias="right_arrow.png">darkmode_resources/right_arrow.png</file>
+        <file alias="right_arrow_disabled.png">darkmode_resources/right_arrow_disabled.png</file>
+        <file alias="sizegrip.png">darkmode_resources/sizegrip.png</file>
+        <file alias="stylesheet-branch-end.png">darkmode_resources/stylesheet-branch-end.png</file>
+        <file alias="stylesheet-branch-more.png">darkmode_resources/stylesheet-branch-more.png</file>
+        <file alias="stylesheet-vline.png">darkmode_resources/stylesheet-vline.png</file>
+        <file alias="transparent.png">darkmode_resources/transparent.png</file>
+        <file alias="undock.png">darkmode_resources/undock.png</file>
+        <file alias="up_arrow.png">darkmode_resources/up_arrow.png</file>
+        <file alias="up_arrow_disabled.png">darkmode_resources/up_arrow_disabled.png</file>
+        <file alias="Vmovetoolbar.png">darkmode_resources/Vmovetoolbar.png</file>
+        <file alias="Vsepartoolbar.png">darkmode_resources/Vsepartoolbar.png</file>
     </qresource>
     <qresource prefix="/qdarkstyle">
         <file>dark_style.qss</file>

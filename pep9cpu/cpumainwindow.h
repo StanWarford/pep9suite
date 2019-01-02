@@ -82,7 +82,6 @@ private:
     ByteConverterChar *byteConverterChar;
     ByteConverterDec *byteConverterDec;
     ByteConverterHex *byteConverterHex;
-#pragma message ("TODO: Remove instr converter")
 
     // Main Memory
     QSharedPointer<MainMemory> memDevice;
