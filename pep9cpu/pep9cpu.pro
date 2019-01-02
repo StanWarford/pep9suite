@@ -26,7 +26,7 @@ INCLUDEPATH += $$PWD/../pep9common
 
 # Mac icon/plist
 warning("must fix mac icon")
-ICON = .images/icon.icns
+ICON = images/icon.icns
 QMAKE_INFO_PLIST = app.plist
 QMAKE_MAC_SDK = macosx10.14
 

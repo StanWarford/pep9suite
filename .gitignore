@@ -2,3 +2,4 @@
 *.pro.user.*
 *.autosave
 .DS_Store
+build-*/

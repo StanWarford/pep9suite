@@ -25,7 +25,7 @@ INCLUDEPATH += $$PWD/../pep9common
 INCLUDEPATH += $$PWD/../pep9asm
 INCLUDEPATH += $$PWD/../pep9cpu
 # Mac icon/plist
-ICON = .images/icon.icns
+ICON = images/icon.icns
 QMAKE_INFO_PLIST = app.plist
 QMAKE_MAC_SDK = macosx10.14
 

@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/qss_icons/rc">
         <file alias="branch_closed.png">darkmode_resources/branch_closed.png</file>
-        <file alias="branch_closed.png">darkmode_resources/branch_closed-on.png</file>
         <file alias="branch_open.png">darkmode_resources/branch_open.png</file>
         <file alias="branch_open-on.png">darkmode_resources/branch_open-on.png</file>
         <file alias="checkbox_checked.png">darkmode_resources/checkbox_checked.png</file>
