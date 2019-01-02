@@ -108,6 +108,28 @@ enum CommonOffsets{
 
   };
 
+// registers
+const QRect RegBank                         = OneByteShapes::RegBank;
+const QRect aRegLineEdit                    = OneByteShapes::aRegLineEdit;
+const QRect xRegLineEdit                    = OneByteShapes::xRegLineEdit;
+const QRect spRegLineEdit                   = OneByteShapes::spRegLineEdit;
+const QRect pcRegLineEdit                   = OneByteShapes::pcRegLineEdit;
+const QRect irRegLineEdit                   = OneByteShapes::irRegLineEdit;
+const QRect t1RegLineEdit                   = OneByteShapes::t1RegLineEdit;
+const QRect t2RegLineEdit                   = OneByteShapes::t2RegLineEdit;
+const QRect t3RegLineEdit                   = OneByteShapes::t3RegLineEdit;
+const QRect t4RegLineEdit                   = OneByteShapes::t4RegLineEdit;
+const QRect t5RegLineEdit                   = OneByteShapes::t5RegLineEdit;
+const QRect t6RegLineEdit                   = OneByteShapes::t6RegLineEdit;
+const QRect m1RegLabel                      = OneByteShapes::m1RegLabel;
+const QRect m2RegLabel                      = OneByteShapes::m2RegLabel;
+const QRect m3RegLabel                      = OneByteShapes::m3RegLabel;
+const QRect m4RegLabel                      = OneByteShapes::m4RegLabel;
+const QRect m5RegLabel                      = OneByteShapes::m5RegLabel;
+
+// ALU
+const QPolygon ALUPoly                = OneByteShapes::ALUPoly.translated(controlOffsetX, aluOffsetY);
+
 // input/label/control section:
 const QRect AddrBus = QRect(QPoint(40, 151),
                             QPoint(40+20, BottomOfAlu+MemReadYOffsetFromALU+15));
@@ -116,40 +138,40 @@ const QRect DataBus = QRect(QPoint(AddrBus.x()+AddrBus.width(), AddrBus.top() + 
 
 // LoadCk and its control
 const QRect loadCkCheckbox          = QRect(ctrlInputX, 18, check2W,   check2H);
-const Arrow loadCkSelect            = Arrow(QVector<QPoint>() << QPoint(499, 24),
+const Arrow loadCkSelect            = Arrow(QVector<QPoint>() << QPoint(RegBank.right() + arrowHOffset, 24),
                                             QVector<QLine>()
                                             << QLine(ctrlInputX - 7, loadCkCheckbox.y() + selectYOffset,
-                                                      499, loadCkCheckbox.y() + selectYOffset));
+                                                      RegBank.right() + arrowHOffset, loadCkCheckbox.y() + selectYOffset));
 
 // C and its control
 const QRect cLineEdit               = QRect(ctrlInputX, 39, lineEditW, lineEditH);
 const QRect cLabel                  = QRect(ctrlLabelX, 41, labelW,    labelH);
-const Arrow CSelect                 = Arrow(QVector<QPoint>() << QPoint(499, 47),
+const Arrow CSelect                 = Arrow(QVector<QPoint>() << QPoint(RegBank.right() + arrowHOffset, 47),
                                             QVector<QLine>()
                                             << QLine(ctrlInputX - 7, cLabel.y() + selectYOffset,
-                                                     499, cLabel.y() + selectYOffset)
-                                            << QLine(523, cLabel.y() + selectYOffset - 5,
-                                                     533, cLabel.y() + selectYOffset + 5));
+                                                     RegBank.right() + arrowHOffset, cLabel.y() + selectYOffset)
+                                            << QLine(RegBank.right() + arrowHDepth + 6, cLabel.y() + selectYOffset - 5,
+                                                     RegBank.right() + arrowHDepth + 16, cLabel.y() + selectYOffset + 5));
 
 // B and its control
 const QRect bLineEdit               = QRect(ctrlInputX, 61, lineEditW, lineEditH);
 const QRect bLabel                  = QRect(ctrlLabelX, 63, labelW,    labelH);
-const Arrow BSelect                 = Arrow(QVector<QPoint>() << QPoint(499, 69),
+const Arrow BSelect                 = Arrow(QVector<QPoint>() << QPoint(RegBank.right() + arrowHOffset, 69),
                                             QVector<QLine>()
                                             << QLine(ctrlInputX - 7, bLabel.y() + selectYOffset,
-                                                     499, bLabel.y() + selectYOffset)
-                                            << QLine(523, bLabel.y() + selectYOffset - selectSlashOffset,
-                                                     533, bLabel.y() + selectYOffset + selectSlashOffset));
+                                                     RegBank.right() + arrowHOffset, bLabel.y() + selectYOffset)
+                                            << QLine(RegBank.right() + arrowHDepth + 6, bLabel.y() + selectYOffset - selectSlashOffset,
+                                                     RegBank.right() + arrowHDepth + 16, bLabel.y() + selectYOffset + selectSlashOffset));
 
 // A and its control
 const QRect aLineEdit               = QRect(ctrlInputX, 83, lineEditW, lineEditH);
 const QRect aLabel                  = QRect(ctrlLabelX, 85, labelW,    labelH);
-const Arrow ASelect                 = Arrow(QVector<QPoint>() << QPoint(499, 91),
+const Arrow ASelect                 = Arrow(QVector<QPoint>() << QPoint(RegBank.right() + arrowHOffset, 91),
                                             QVector<QLine>()
                                             << QLine(ctrlInputX - 7, aLabel.y() + selectYOffset,
-                                                     499, aLabel.y() + selectYOffset)
-                                            << QLine(523, aLabel.y() + selectYOffset - selectSlashOffset,
-                                                     533, aLabel.y() + selectYOffset + selectSlashOffset));
+                                                     RegBank.right() + arrowHOffset, aLabel.y() + selectYOffset)
+                                            << QLine(RegBank.right() + arrowHDepth + 6, aLabel.y() + selectYOffset - selectSlashOffset,
+                                                     RegBank.right() + arrowHDepth + 16, aLabel.y() + selectYOffset + selectSlashOffset));
 
 // MARMux and its control
 const QRect MARMuxerDataLabel       = QRect((combCircX+dataLabelW)+MARMUXOffestFromMARA, combCircY, dataLabelH+MARAOffsetFromMARB, dataLabelH+MARAOffsetFromMARB); // 89 x 89 square from bottom of MARA to top of MARB
@@ -271,16 +293,25 @@ const QRect ALULineEdit             = QRect(ctrlInputX, BottomOfAlu+ALULabelYOff
 const QRect ALULabel                = QRect(ctrlLabelX,  BottomOfAlu+ALULabelYOffsetFromALU, 31,     labelH);
 const QRect ALUFunctionLabel        = OneByteShapes::ALUFunctionLabel.translated(controlOffsetX,
                                                                                  aluOffsetY);
-// CMux and its control
-const QRect cMuxerLabel             = OneByteShapes::cMuxerLabel.translated(controlOffsetX, aluOffsetY);
-const QRect cMuxTristateLabel       = QRect(ctrlInputX, ALULineEdit.y()-labelTriH-4, labelTriW, labelTriH);
-const QRect cMuxLabel               = QRect(ctrlLabelX, cMuxTristateLabel.y(), labelW, labelH);
-const Arrow CMuxSelect              = OneByteShapes::CMuxSelect.translated(controlOffsetX, aluOffsetY);
 
 // CSMux and its control
 const QRect CSMuxLabel              = QRect(ctrlLabelX,  BottomOfAlu+5, labelW, labelH);
 const QRect CSMuxerDataLabel        = QRect(statusBitsX+19-69, BottomOfAlu+5, dataLabelW, dataLabelH);
 const QRect CSMuxTristateLabel      = QRect(ctrlInputX,  BottomOfAlu+5, 25,     21);
+
+// CMux and its control
+const QRect cMuxerLabel             = OneByteShapes::cMuxerLabel.translated(controlOffsetX, aluOffsetY);
+const QRect cMuxTristateLabel       = QRect(ctrlInputX, ALULineEdit.y()-labelTriH-4, labelTriW, labelTriH);
+const QRect cMuxLabel               = QRect(ctrlLabelX, cMuxTristateLabel.y(), labelW, labelH);
+const Arrow CMuxSelect              = Arrow(QVector<QPoint>() << QPoint(cMuxerLabel.left() + 7,cMuxerLabel.top()-12),
+                                            QVector<QLine>() << QLine(CSMuxerDataLabel.left() + 20 , cMuxTristateLabel.y() + cMuxTristateLabel.height()/2,
+                                                                      ctrlInputX - 7, cMuxTristateLabel.y() + cMuxTristateLabel.height()/2)
+                                            << QLine(cMuxerLabel.right() - 5,cMuxTristateLabel.y()+cMuxTristateLabel.height()/2,
+                                                     cMuxerLabel.left() + 10 ,cMuxTristateLabel.y()+cMuxTristateLabel.height()/2)
+                                            << QLine(cMuxerLabel.left() + 10,cMuxTristateLabel.y()+cMuxTristateLabel.height()/2,
+                                                     cMuxerLabel.left() + 10, cMuxerLabel.top()-12));
+
+
 
 // Status bit S, SCk and its control
 const QRect SCkCheckBox             = QRect(ctrlInputX,  BottomOfAlu+SCKYOffsetFromALU, checkW, checkH);
@@ -317,7 +348,6 @@ const QRect MemReadTristateLabel    = QRect(ctrlInputX, BottomOfAlu+MemReadYOffs
 
 //const Arrow MDRCk                   = OneByteShapes::MDRCk;
 const QPolygon CMuxBus                = OneByteShapes::CMuxBus.translated(controlOffsetX, aluOffsetY);
-const QPolygon ALUPoly                = OneByteShapes::ALUPoly.translated(controlOffsetX, aluOffsetY);
 const QRect MDRBusOutRect             = OneByteShapes::MDRBusOutRect;
 const QPolygon MDRBusOutArrow         = OneByteShapes::MDRBusOutArrow;
 const QPolygon MARBus = QPolygon(QVector<QPoint>()
@@ -387,24 +417,6 @@ const QPolygon AMuxBus              = QPolygon(QVector<QPoint>()
                                                <<QPoint(aMuxerDataLabel.x()+aMuxerDataLabel.width()/2-5,ALUPoly.boundingRect().y()-(arrowHDepth-5))     //Arrow Left Inner point
                                                );
 
-// registers
-const QRect RegBank                         = OneByteShapes::RegBank;
-const QRect aRegLineEdit                    = OneByteShapes::aRegLineEdit;
-const QRect xRegLineEdit                    = OneByteShapes::xRegLineEdit;
-const QRect spRegLineEdit                   = OneByteShapes::spRegLineEdit;
-const QRect pcRegLineEdit                   = OneByteShapes::pcRegLineEdit;
-const QRect irRegLineEdit                   = OneByteShapes::irRegLineEdit;
-const QRect t1RegLineEdit                   = OneByteShapes::t1RegLineEdit;
-const QRect t2RegLineEdit                   = OneByteShapes::t2RegLineEdit;
-const QRect t3RegLineEdit                   = OneByteShapes::t3RegLineEdit;
-const QRect t4RegLineEdit                   = OneByteShapes::t4RegLineEdit;
-const QRect t5RegLineEdit                   = OneByteShapes::t5RegLineEdit;
-const QRect t6RegLineEdit                   = OneByteShapes::t6RegLineEdit;
-const QRect m1RegLabel                      = OneByteShapes::m1RegLabel;
-const QRect m2RegLabel                      = OneByteShapes::m2RegLabel;
-const QRect m3RegLabel                      = OneByteShapes::m3RegLabel;
-const QRect m4RegLabel                      = OneByteShapes::m4RegLabel;
-const QRect m5RegLabel                      = OneByteShapes::m5RegLabel;
 const QPolygon ABus = QPolygon(QVector<QPoint>()
                                << QPoint(aMuxerDataLabel.right()-15,RegBank.bottom()+1) // Top left corner of register foot
                                << QPoint(aMuxerDataLabel.right()-5,RegBank.bottom()+1) // Top right corner of register foot;
@@ -588,7 +600,7 @@ const Arrow ALUSelect      = Arrow(QVector<QPoint>() <<
 
 const Arrow ALUSelectOut = OneByteShapes::ALUSelectOut.translated(controlOffsetX, aluOffsetY);
 
-const QLine CSMuxSelect    = QLine(CSMuxLabel.right() + arrowHOffset - 120,
+const QLine CSMuxSelect    = QLine(CSMuxerDataLabel.right()+arrowHOffset,
                                    CSMuxLabel.y() + selectYOffset +1,
                                    ctrlInputX - 7,
                                    CSMuxLabel.y() + selectYOffset + 1);

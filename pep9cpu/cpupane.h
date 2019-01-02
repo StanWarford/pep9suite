@@ -72,8 +72,8 @@ protected:
     QSharedPointer<InterfaceMCCPU> cpu;
     QSharedPointer<NewCPUDataSection> dataSection;
     QGraphicsScene *scene;
-
     CpuGraphicsItems *cpuPaneItems;
+    Enu::CPUType type;
 
 private:
     Ui::CpuPane *ui;
@@ -83,15 +83,10 @@ protected slots:
 
     void regTextEdited(QString str);
     void regTextFinishedEditing();
-
     void zoomFactorChanged(int factor);
-
     void labelClicked();
-
     void clockButtonPushed();
-
     void on_copyToMicrocodePushButton_clicked();
-
     void ALUTextEdited(QString str);
 
 public slots:
@@ -103,6 +98,9 @@ public slots:
     void repaintOnScroll(int distance);
     void onSimulationUpdate();
     void onDarkModeChanged(bool);
+    // Instead of passing the type it changed to
+    // the CPU will querry the cpu it was given for its new type.
+    void onCPUTypeChanged();
 
 signals:
     void updateSimulation();

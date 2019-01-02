@@ -99,8 +99,8 @@ QString MicroCode::getObjectCode() const
         str.append(controlSignals[Enu::AndZ] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[Enu::AndZ], -2));
         str.append(clockSignals[Enu::ZCk] == 0 ? "  " : QString("%1").arg(clockSignals[Enu::ZCk], -2));
         str.append(clockSignals[Enu::NCk] == 0 ? "  " : QString("%1").arg(clockSignals[Enu::NCk], -2));
-        str.append(controlSignals[Enu::MemWrite] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[Enu::MemWrite], -2));
-        str.append(controlSignals[Enu::MemRead] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[Enu::MemRead], -2));
+        str.append(controlSignals[Enu::MemWrite] != 1 ? "  " : QString("%1").arg(controlSignals[Enu::MemWrite], -2));
+        str.append(controlSignals[Enu::MemRead] != 1 ? "  " : QString("%1").arg(controlSignals[Enu::MemRead], -2));
     }
     else if (cpuType == Enu::TwoByteDataBus) {
         str.append(clockSignals[Enu::LoadCk] == 0 ? "  " : QString("%1").arg(clockSignals[Enu::LoadCk], -2));
@@ -124,8 +124,8 @@ QString MicroCode::getObjectCode() const
         str.append(controlSignals[Enu::AndZ] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[Enu::AndZ], -2));
         str.append(clockSignals[Enu::ZCk] == 0 ? "  " : QString("%1").arg(clockSignals[Enu::ZCk], -2));
         str.append(clockSignals[Enu::NCk] == 0 ? "  " : QString("%1").arg(clockSignals[Enu::NCk], -2));
-        str.append(controlSignals[Enu::MemWrite] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[Enu::MemWrite], -2));
-        str.append(controlSignals[Enu::MemRead] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[Enu::MemRead], -2));
+        str.append(controlSignals[Enu::MemWrite] != 1 ? "  " : QString("%1").arg(controlSignals[Enu::MemWrite], -2));
+        str.append(controlSignals[Enu::MemRead] != 1 ? "  " : QString("%1").arg(controlSignals[Enu::MemRead], -2));
     }
     str.append("\n");
     return str;

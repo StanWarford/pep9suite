@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Pep/9 Micro</string>
+   <string>Pep/9 CPU</string>
   </property>
   <property name="windowIcon">
    <iconset resource="pep9cpu-resources.qrc">
@@ -107,8 +107,8 @@
     <addaction name="actionSystem_Clear_CPU"/>
     <addaction name="actionSystem_Clear_Memory"/>
     <addaction name="separator"/>
-    <addaction name="actionOne_Byte_Model"/>
-    <addaction name="actionTwo_Byte_Model"/>
+    <addaction name="actionSystem_One_Byte"/>
+    <addaction name="actionSystem_Two_Byte"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -665,20 +665,23 @@
     <string>Remove All Microcode Breakpoints</string>
    </property>
   </action>
-  <action name="actionOne_Byte_Model">
+  <action name="actionSystem_One_Byte">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">
     <string>One Byte Model</string>
    </property>
   </action>
-  <action name="actionTwo_Byte_Model">
+  <action name="actionSystem_Two_Byte">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>Two Byte Model</string>

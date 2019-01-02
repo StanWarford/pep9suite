@@ -10,7 +10,7 @@ class PartialMicrocodedCPU : public ACPUModel, public InterfaceMCCPU
     Q_OBJECT
     friend class CPUMemoizer;
 public:
-    PartialMicrocodedCPU(QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
+    PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~PartialMicrocodedCPU() override;
     QSharedPointer<NewCPUDataSection> getDataSection();
 

@@ -33,7 +33,7 @@ class NewCPUDataSection;
 class CpuGraphicsItems : public QGraphicsItem
 {
 public:
-    CpuGraphicsItems(NewCPUDataSection* dataSection, QWidget *widgetParent, QGraphicsItem *itemParent = nullptr,
+    CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection* dataSection, QWidget *widgetParent, QGraphicsItem *itemParent = nullptr,
                              QGraphicsScene *scene = nullptr);
     ~CpuGraphicsItems();
 
@@ -43,7 +43,102 @@ public:
 
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                QWidget *widget);
+public slots:
+    void onDarkModeChanged(bool);
+    void onCPUTypeChanged(Enu::CPUType newType);
 
+private:
+    // Try to draw as many free-floating strings in one centralized function as possible. Both 1 & 2 byte models.
+    void drawDiagramFreeText(QPainter *painter);
+    void drawLabels();
+    void drawStaticRects(QPainter* painter);
+    void drawALUPoly();
+    void drawRegisterBank();
+    void repaintLoadCk(QPainter *painter);
+    void repaintCSelect(QPainter *painter);
+    void repaintBSelect(QPainter *painter);
+    void repaintASelect(QPainter *painter);
+    void repaintMARCk(QPainter *painter);
+    void repaintAMuxSelect(QPainter *painter);
+
+    void repaintCMuxSelect(QPainter *painter);
+
+    void repaintSCk(QPainter *painter);
+    void repaintCCk(QPainter *painter);
+    void repaintVCk(QPainter *painter);
+    void repaintZCk(QPainter *painter);
+    void repaintNCk(QPainter *painter);
+    void repaintMemCommon(QPainter *painter);
+    void repaintMemRead(QPainter *painter);
+    void repaintMemWrite(QPainter *painter);
+    void repaintSBitOut(QPainter *painter);
+    void repaintCBitOut(QPainter *painter);
+    void repaintVBitOut(QPainter *painter);
+    void repaintZBitOut(QPainter *painter);
+    void repaintNBitOut(QPainter *painter);
+
+    void repaintCSMuxSelect(QPainter *painter);
+    void repaintAndZSelect(QPainter *painter);
+    void repaintALUSelect(QPainter *painter);
+
+    // One byte specific repainting methods
+    void repaintMDRCk(QPainter *painter);
+    void repaintMDRMuxSelect(QPainter *painter);
+    void repaintMARCkOneByte(QPainter *painter);
+    void repaintALUSelectOneByte(QPainter *painter);
+    void repaintMemCommonOneByte(QPainter *painter);
+    void repaintMemReadOneByte(QPainter *painter);
+    void repaintMemWriteOneByte(QPainter *painter);
+    void repaintABusOneByte(QPainter *painter);
+    void repaintBBusOneByte(QPainter *painter);
+    void repaintCBusOneByte(QPainter *painter);
+
+    // two byte specific repainting methods
+    void repaintMARMuxSelect(QPainter *painter);
+    void repaintMARCkTwoByte(QPainter *painter);
+
+    void repaintMDROCk(QPainter *painter);
+    void repaintMDROSelect(QPainter *painter);
+    void repaintMDRECk(QPainter *painter);
+    void repaintMDRESelect(QPainter *painter);
+    void repaintEOMuxSelect(QPainter *painter);
+    void repaintEOMuxOutpusBus(QPainter *painter);
+
+    void repaintALUSelectTwoByte(QPainter *painter);
+
+    void repaintMemCommonTwoByte(QPainter *painter);
+    void repaintMemReadTwoByte(QPainter *painter);
+    void repaintMemWriteTwoByte(QPainter *painter);
+
+    void repaintMARMUXToMARBuses(QPainter *painter);
+
+    void repaintMDRMuxOutputBuses(QPainter *painter);
+    void repaintMDREToEOMuxBus(QPainter *painter);
+    void repaintMDROToEOMuxBus(QPainter *painter);
+    void repaintABusTwoByte(QPainter *painter);
+    void repaintBBusTwoByte(QPainter *painter);
+    void repaintCBusTwoByte(QPainter *painter);
+
+private:
+    QWidget *parent;
+    QGraphicsScene *parentScene;
+    NewCPUDataSection* dataSection;
+    bool darkMode = false;
+    Enu::CPUType type;
+
+    const PepColors::Colors *colorScheme;
+
+    QImage arrowLeft;
+    QImage arrowRight;
+    QImage arrowUp;
+    QImage arrowDown;
+
+    QImage arrowLeftGray;
+    QImage arrowRightGray;
+    QImage arrowUpGray;
+    QImage arrowDownGray;
+
+public:
     // OUTSIDE REGISTERS
     QCheckBox *loadCk;
     QLabel *cLabel;
@@ -116,103 +211,26 @@ public:
     QLineEdit *t5RegLineEdit;
     QLineEdit *t6RegLineEdit;
 
+    // One byte data bus model features;
+    QCheckBox  *MDRCk;
+    TristateLabel *MDRMuxTristateLabel;
+    QLabel *MDRMuxLabel;
+    QLabel *MDRMuxerDataLabel;
+    QLabel *MDRLabel;
     // Two byte data bus model features:
-    QCheckBox *MDROCk;
-    QCheckBox *MDRECk;
+
+    QCheckBox *MDROCk, *MDRECk;
     TristateLabel *MARMuxTristateLabel;
-    TristateLabel *MDROMuxTristateLabel;
-    TristateLabel *MDREMuxTristateLabel;
+    TristateLabel *MDROMuxTristateLabel, *MDREMuxTristateLabel;
     TristateLabel *EOMuxTristateLabel;
     QLabel *MARMuxLabel;
-    QLabel *MDROMuxLabel;
-    QLabel *MDREMuxLabel;
+    QLabel *MDROMuxLabel, *MDREMuxLabel;
+
     QLabel *MARMuxerDataLabel;
     QLabel *EOMuxLabel;
     QLabel *EOMuxerDataLabel;
-    QLabel *MDROMuxerDataLabel;
-    QLabel *MDREMuxerDataLabel;
-    //data section:
-    QLabel *MDROLabel;
-    QLabel *MDRELabel;
-private:
-    QWidget *parent;
-    QGraphicsScene *parentScene;
-    NewCPUDataSection* dataSection;
-    bool darkMode = false;
-
-    const PepColors::Colors *colorScheme;
-
-    QImage arrowLeft;
-    QImage arrowRight;
-    QImage arrowUp;
-    QImage arrowDown;
-
-    QImage arrowLeftGray;
-    QImage arrowRightGray;
-    QImage arrowUpGray;
-    QImage arrowDownGray;
-
-    // Try to draw as many free-floating strings in one centralized function as possible. Both 1 & 2 byte models.
-    void drawDiagramFreeText(QPainter *painter);
-    void drawLabels();
-    void drawStaticRects(QPainter* painter);
-    void drawALUPoly();
-    void drawRegisterBank();
-    void repaintLoadCk(QPainter *painter);
-    void repaintCSelect(QPainter *painter);
-    void repaintBSelect(QPainter *painter);
-    void repaintASelect(QPainter *painter);
-    void repaintMARCk(QPainter *painter);
-    void repaintAMuxSelect(QPainter *painter);
-    void repaintEOMuxSelect(QPainter *painter);
-
-    void repaintCMuxSelect(QPainter *painter);
-
-    void repaintSCk(QPainter *painter);
-    void repaintCCk(QPainter *painter);
-    void repaintVCk(QPainter *painter);
-    void repaintZCk(QPainter *painter);
-    void repaintNCk(QPainter *painter);
-    void repaintMemCommon(QPainter *painter);
-    void repaintMemRead(QPainter *painter);
-    void repaintMemWrite(QPainter *painter);
-    void repaintSBitOut(QPainter *painter);
-    void repaintCBitOut(QPainter *painter);
-    void repaintVBitOut(QPainter *painter);
-    void repaintZBitOut(QPainter *painter);
-    void repaintNBitOut(QPainter *painter);
-
-    void repaintCSMuxSelect(QPainter *painter);
-    void repaintAndZSelect(QPainter *painter);
-    void repaintALUSelect(QPainter *painter);
-    void repaintMDRMuxSelect(QPainter *painter);
-
-    // two byte specific repainting methods
-    void repaintMARMuxSelect(QPainter *painter);
-    void repaintMARCkTwoByteModel(QPainter *painter);
-
-    void repaintMDROCk(QPainter *painter);
-    void repaintMDROSelect(QPainter *painter);
-    void repaintMDRESelect(QPainter *painter);
-    void repaintMDRECk(QPainter *painter);
-    void repaintEOMuxOutpusBus(QPainter *painter);
-
-    void repaintALUSelectTwoByteModel(QPainter *painter);
-
-    void repaintMemCommonTwoByte(QPainter *painter);
-    void repaintMemReadTwoByteModel(QPainter *painter);
-    void repaintMemWriteTwoByteModel(QPainter *painter);
-
-    void repaintMARMUXToMARBuses(QPainter *painter);
-
-    void repaintMDRMuxOutputBuses(QPainter *painter);
-    void repaintMDREToEOMuxBus(QPainter *painter);
-    void repaintMDROToEOMuxBus(QPainter *painter);
-    void repaintABusTwoByteModel(QPainter *painter);
-    void repaintBBusTwoByteModel(QPainter *painter);
-    void repaintCBusTwoByteModel(QPainter *painter);
-public slots:
-    void onDarkModeChanged(bool);
+    QLabel *MDROMuxerDataLabel, *MDREMuxerDataLabel;
+    QLabel *MDROLabel, *MDRELabel;
 
 };
 

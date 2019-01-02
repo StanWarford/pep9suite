@@ -92,7 +92,7 @@ private:
     //HelpDialog *helpDialog;
     AboutPep *aboutPepDialog;
 
-    QActionGroup* statisticsLevelsGroup;
+    QActionGroup* statisticsLevelsGroup, *cpuModesGroup;
 
     // Disconnect or reconnect events that notify views of changes in model,
     // Disconnecting these events allow for faster execution when running or continuing.
@@ -191,6 +191,8 @@ private slots:
     // System
     void on_actionSystem_Clear_CPU_triggered();
     void on_actionSystem_Clear_Memory_triggered();
+    void on_actionSystem_One_Byte_triggered();
+    void on_actionSystem_Two_Byte_triggered();
 
     // Statistics Events
     void on_actionStatistics_Level_All_triggered();

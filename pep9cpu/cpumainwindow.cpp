@@ -60,12 +60,12 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), debugState(DebugState::DISABLED), updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
-    memDevice(new MainMemory(this)), controlSection(new PartialMicrocodedCPU(memDevice)),
+    memDevice(new MainMemory(this)), controlSection(new PartialMicrocodedCPU(Enu::CPUType::OneByteDataBus, memDevice)),
     dataSection(controlSection->getDataSection()),
-    statisticsLevelsGroup(new QActionGroup(this)), inDarkMode(false)
+    statisticsLevelsGroup(new QActionGroup(this)), cpuModesGroup(new QActionGroup(this)), inDarkMode(false)
 {
     // Initialize all global maps.
-    Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, false);
+    Pep::initMicroEnumMnemonMaps(Enu::CPUType::OneByteDataBus, false);
 
 
     // Initialize the memory subsystem
@@ -91,6 +91,11 @@ MainWindow::MainWindow(QWidget *parent) :
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_Minimal);
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_None);
     statisticsLevelsGroup->setExclusive(true);
+
+    // Create button group to hold CPU types
+    cpuModesGroup->addAction(ui->actionSystem_One_Byte);
+    cpuModesGroup->addAction(ui->actionSystem_Two_Byte);
+    cpuModesGroup->setExclusive(true);
 
     // Create & connect all dialogs.
     // helpDialog = new HelpDialog(this);
@@ -896,6 +901,25 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
 {
     memDevice->clearMemory();
     ui->memoryWidget->refreshMemory();
+}
+
+void MainWindow::on_actionSystem_One_Byte_triggered()
+{
+    Pep::initMicroEnumMnemonMaps(Enu::OneByteDataBus, false);
+    controlSection->setCPUType(Enu::OneByteDataBus);
+    ui->microobjectWidget->initCPUModelState();
+    ui->microcodeWidget->onCPUTypeChanged(Enu::OneByteDataBus);
+    ui->cpuWidget->onCPUTypeChanged();
+
+}
+
+void MainWindow::on_actionSystem_Two_Byte_triggered()
+{
+    Pep::initMicroEnumMnemonMaps(Enu::TwoByteDataBus, false);
+    controlSection->setCPUType(Enu::TwoByteDataBus);
+    ui->microobjectWidget->initCPUModelState();
+    ui->microcodeWidget->onCPUTypeChanged(Enu::TwoByteDataBus);
+    ui->cpuWidget->onCPUTypeChanged();
 }
 
 void MainWindow::on_actionStatistics_Level_All_triggered()

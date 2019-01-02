@@ -58,6 +58,7 @@ void CpuPane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUData
 {
     this->cpu = cpu;
     this->dataSection = dataSection;
+    type = cpu->getCPUType();
     initModel();
     this->setMinimumWidth(static_cast<int>(cpuPaneItems->boundingRect().left())+100);
     // qDebug() << static_cast<int>(cpuPaneItems->boundingRect().right())+45;
@@ -93,7 +94,7 @@ void CpuPane::giveFocus()
 
 void CpuPane::initModel()
 {
-    cpuPaneItems = new CpuGraphicsItems(dataSection.get(), ui->graphicsView, nullptr, scene);
+    cpuPaneItems = new CpuGraphicsItems(type, dataSection.get(), ui->graphicsView, nullptr, scene);
     ui->graphicsView->scene()->addItem(cpuPaneItems);
 
     ui->graphicsView->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -177,6 +178,12 @@ void CpuPane::initModel()
 
     connect(cpuPaneItems->ALULineEdit, &QLineEdit::textChanged, this, &CpuPane::ALUTextEdited);
 
+    // 1 byte signals
+    connect(cpuPaneItems->MDRCk, SIGNAL(clicked()), scene, SLOT(invalidate()));
+    connect(cpuPaneItems->MDRCk, &QCheckBox::clicked, this, &CpuPane::onClockChanged);
+    connect(cpuPaneItems->MDRMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
+    connect(cpuPaneItems->MDRMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
+
     // 2 byte bus signals
     connect(cpuPaneItems->MARMuxTristateLabel, &TristateLabel::clicked, this, &CpuPane::labelClicked);
     connect(cpuPaneItems->MARMuxTristateLabel, SIGNAL(clicked()), scene, SLOT(invalidate()));
@@ -190,12 +197,6 @@ void CpuPane::initModel()
     connect(cpuPaneItems->MDROCk, SIGNAL(clicked()), scene, SLOT(invalidate()));
     connect(cpuPaneItems->MDRECk, &QCheckBox::clicked,this,&CpuPane::onClockChanged);
     connect(cpuPaneItems->MDROCk, &QCheckBox::clicked,this,&CpuPane::onClockChanged);
-
-    // Handle Windows repainting bug
-    // This might have a performance penalty, so only enable it on the platform that needs it.
-    #ifdef WIN32
-        connect(ui->graphicsView->verticalScrollBar(), &QAbstractSlider::actionTriggered, this, &CpuPane::repaintOnScroll);
-    #endif
 }
 
 void CpuPane::startDebugging()
@@ -597,47 +598,64 @@ void CpuPane::labelClicked()
         control= Enu::AMux;
     }
 
-    else if(label == cpuPaneItems->cMuxTristateLabel){
+    else if(label == cpuPaneItems->cMuxTristateLabel) {
         temp = cpuPaneItems->cMuxTristateLabel->text();
         control= Enu::CMux;
     }
-    else if(label == cpuPaneItems->CSMuxTristateLabel){
+    else if(label == cpuPaneItems->CSMuxTristateLabel) {
         temp = cpuPaneItems->CSMuxTristateLabel->text();
         control= Enu::CSMux;
     }
-    else if(label == cpuPaneItems->AndZTristateLabel){
+    else if(label == cpuPaneItems->AndZTristateLabel) {
         temp = cpuPaneItems->AndZTristateLabel->text();
         control= Enu::AndZ;
     }
-    else if(label == cpuPaneItems->MemWriteTristateLabel){
-        temp = cpuPaneItems->MemWriteTristateLabel->text();
-        control= Enu::MemWrite;
+    else if(label == cpuPaneItems->MemWriteTristateLabel) {
+        if(cpuPaneItems->MemReadTristateLabel->text().isEmpty()){
+            temp = cpuPaneItems->MemWriteTristateLabel->text();
+            control= Enu::MemWrite;
+        }
+        else {
+            cpuPaneItems->MemWriteTristateLabel->setState(-1);
+            return;
+        }
+
     }
-    else if(label == cpuPaneItems->MemReadTristateLabel){
-        temp = cpuPaneItems->MemReadTristateLabel->text();
-        control= Enu::MemRead;
+    else if(label == cpuPaneItems->MemReadTristateLabel) {
+        if(cpuPaneItems->MemWriteTristateLabel->text().isEmpty()){
+            temp = cpuPaneItems->MemReadTristateLabel->text();
+            control= Enu::MemRead;
+        }
+        else {
+            cpuPaneItems->MemWriteTristateLabel->setState(-1);
+            return;
+        }
     }
-    else if(label == cpuPaneItems->MDREMuxTristateLabel){
+    else if(label == cpuPaneItems->MDRMuxTristateLabel) {
+        temp = cpuPaneItems->MDRMuxTristateLabel->text();
+        control= Enu::MDRMux;
+    }
+    else if(label == cpuPaneItems->MDREMuxTristateLabel) {
         temp = cpuPaneItems->MDREMuxTristateLabel->text();
         control= Enu::MDREMux;
     }
-    else if(label == cpuPaneItems->MDROMuxTristateLabel){
+    else if(label == cpuPaneItems->MDROMuxTristateLabel) {
         temp = cpuPaneItems->MDROMuxTristateLabel->text();
         control= Enu::MDROMux;
     }
-    else if(label == cpuPaneItems->EOMuxTristateLabel){
+    else if(label == cpuPaneItems->EOMuxTristateLabel) {
         temp = cpuPaneItems->EOMuxTristateLabel->text();
         control= Enu::EOMux;
     }
-    else if(label == cpuPaneItems->nBitLabel){
+    else if(label == cpuPaneItems->nBitLabel) {
         status = Enu::STATUS_N;
         temp = cpuPaneItems->nBitLabel->text();
     }
-    else if(label == cpuPaneItems->zBitLabel){
+    else if(label == cpuPaneItems->zBitLabel) {
         status = Enu::STATUS_Z;
         temp = cpuPaneItems->zBitLabel->text();
     }
-    else if(label == cpuPaneItems->vBitLabel){
+    else if(label == cpuPaneItems->vBitLabel) {
         status = Enu::STATUS_V;
         temp = cpuPaneItems->vBitLabel->text();
     }
@@ -645,7 +663,7 @@ void CpuPane::labelClicked()
         status = Enu::STATUS_C;
         temp = cpuPaneItems->cBitLabel->text();
     }
-    else if(label == cpuPaneItems->sBitLabel){
+    else if(label == cpuPaneItems->sBitLabel) {
         status = Enu::STATUS_S;
         temp = cpuPaneItems->sBitLabel->text();
     }
@@ -812,40 +830,34 @@ void CpuPane::ALUTextEdited(QString str)
 void CpuPane::onClockChanged()
 {
     QCheckBox* send = qobject_cast<QCheckBox*>(sender());
-    if(send==cpuPaneItems->NCkCheckBox)
-    {
+    if(send==cpuPaneItems->NCkCheckBox) {
         dataSection->onSetClock(Enu::NCk,cpuPaneItems->NCkCheckBox->checkState());
     }
-    else if(send==cpuPaneItems->ZCkCheckBox)
-    {
+    else if(send==cpuPaneItems->ZCkCheckBox) {
         dataSection->onSetClock(Enu::ZCk,cpuPaneItems->ZCkCheckBox->checkState());
     }
-    else if(send==cpuPaneItems->VCkCheckBox)
-    {
+    else if(send==cpuPaneItems->VCkCheckBox) {
         dataSection->onSetClock(Enu::VCk,cpuPaneItems->VCkCheckBox->checkState());
     }
-    else if(send==cpuPaneItems->CCkCheckBox)
-    {
+    else if(send==cpuPaneItems->CCkCheckBox) {
         dataSection->onSetClock(Enu::CCk,cpuPaneItems->CCkCheckBox->checkState());
     }
-    else if(send==cpuPaneItems->SCkCheckBox)
-    {
+    else if(send==cpuPaneItems->SCkCheckBox) {
         dataSection->onSetClock(Enu::SCk,cpuPaneItems->SCkCheckBox->checkState());
     }
-    else if(send==cpuPaneItems->MARCk)
-    {
+    else if(send==cpuPaneItems->MARCk) {
         dataSection->onSetClock(Enu::MARCk,cpuPaneItems->MARCk->checkState());
     }
-    else if(send==cpuPaneItems->MDRECk)
-    {
+    else if(send==cpuPaneItems->MDRCk) {
+        dataSection->onSetClock(Enu::MDRCk,cpuPaneItems->MDRECk->checkState());
+    }
+    else if(send==cpuPaneItems->MDRECk) {
         dataSection->onSetClock(Enu::MDRECk,cpuPaneItems->MDRECk->checkState());
     }
-    else if(send==cpuPaneItems->MDROCk)
-    {
+    else if(send==cpuPaneItems->MDROCk) {
         dataSection->onSetClock(Enu::MDROCk,cpuPaneItems->MDROCk->checkState());
     }
-    else if(send==cpuPaneItems->loadCk)
-    {
+    else if(send==cpuPaneItems->loadCk) {
         dataSection->onSetClock(Enu::LoadCk,cpuPaneItems->loadCk->checkState());
     }
 }
@@ -955,6 +967,13 @@ void CpuPane::onDarkModeChanged(bool darkMode)
 {
     cpuPaneItems->onDarkModeChanged(darkMode);
     ui->graphicsView->invalidateScene();
+}
+
+void CpuPane::onCPUTypeChanged()
+{
+    type = cpu->getCPUType();
+    cpuPaneItems->onCPUTypeChanged(type);
+    repaint();
 }
 
 

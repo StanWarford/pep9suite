@@ -116,6 +116,14 @@ bool MicrocodePane::microAssemble()
         sourceLine = sourceCodeList[lineNum];
         if (!microASM->processSourceLine(symbolTable.data(),sourceLine, code, errorString)) {
             appendMessageInSourceCodePaneAt(lineNum, errorString);
+            // Create a dummy program that will delete all asm code entries
+            QSharedPointer<MicrocodeProgram>::create(codeList, symbolTable);
+            return false;
+        }
+        if(code->isMicrocode() && ((MicroCode*)code)->hasControlSignal(Enu::EControlSignals::MemRead) && ((MicroCode*)code)->hasControlSignal(Enu::EControlSignals::MemWrite)) {
+            appendMessageInSourceCodePaneAt(lineNum, "\\ ERROR: Can't have memread and memwrite");
+            // Create a dummy program that will delete all asm code entries
+            QSharedPointer<MicrocodeProgram>::create(codeList, symbolTable);
             return false;
         }
         codeList.append(code);
@@ -132,11 +140,6 @@ bool MicrocodePane::microAssemble()
                 appendMessageInSourceCodePaneAt(-1,"// ERROR: Multiply defined symbol "+sym->getName());
                 return false;
             }
-    }
-
-    // We guarantee a \n at the end of our document for single step highlighting
-    if (!sourceCode.endsWith("\n")) {
-        //editor->appendPlainText("\n");
     }
 
     // Use line-1, since internally code lines are 0 indexed, but display as 1 indexed.

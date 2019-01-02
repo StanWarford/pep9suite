@@ -10,11 +10,11 @@
 #include "newcpudata.h"
 #include "symbolentry.h"
 #include "partialmicrocodedmemoizer.h"
-PartialMicrocodedCPU::PartialMicrocodedCPU(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
-    InterfaceMCCPU(Enu::CPUType::TwoByteDataBus)
+PartialMicrocodedCPU::PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
+    InterfaceMCCPU(type)
 {
     memoizer = new PartialMicrocodedMemoizer(*this);
-    data = new NewCPUDataSection(Enu::CPUType::TwoByteDataBus, memoryDev, parent);
+    data = new NewCPUDataSection(type, memoryDev, parent);
     dataShared = QSharedPointer<NewCPUDataSection>(data);
     setDebugLevel(Enu::DebugLevels::NONE);
 }
@@ -71,9 +71,6 @@ quint16 PartialMicrocodedCPU::getCPURegWordStart(Enu::CPURegisters reg) const
 
 void PartialMicrocodedCPU::initCPU()
 {
-    // Initialize CPU with proper stack pointer value in SP register.
-    data->onSetRegisterByte(4,0xFB);
-    data->onSetRegisterByte(5,0x82);
 }
 
 bool PartialMicrocodedCPU::stoppedForBreakpoint() const noexcept
@@ -104,9 +101,10 @@ void PartialMicrocodedCPU::setDebugLevel(Enu::DebugLevels level)
     memoizer->setDebugLevel(level);
 }
 
-void PartialMicrocodedCPU::setCPUType(Enu::CPUType)
+void PartialMicrocodedCPU::setCPUType(Enu::CPUType type)
 {
-    throw std::logic_error("Can't change CPU type on fullmicrococdedcpu, it must always be two byte bus");
+    this->type = type;
+    this->data->onSetCPUType(type);
 }
 
 void PartialMicrocodedCPU::onSimulationStarted()

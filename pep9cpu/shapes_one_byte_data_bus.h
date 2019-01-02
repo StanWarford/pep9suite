@@ -91,24 +91,26 @@ enum Shapes {
 };
 
 enum RegPos {
+    rowHeight = 28, // Original was 28
+    columnWidth = 123 + 10, // Original was 123
     Row1Y     = 10,
-    Row2Y     = 38,
-    Row3Y     = 66,
-    Row4Y     = 93,
+    Row2Y     = Row1Y+rowHeight,
+    Row3Y     = Row2Y+rowHeight,
+    Row4Y     = Row3Y+rowHeight,
     Col1X     = 56,
-    Col2X     = 179,//184,
-    Col3X     = 316,//311,
-    Col4X     = 440,
+    Col2X     = Col1X+columnWidth,
+    Col3X     = Col2X+columnWidth+9, // Needs additional room, due to the triple width register
+    Col4X     = Col3X+columnWidth,
 };
 
 enum CommonPositions {
-    ctrlLabelX = 579,
-    ctrlInputX = 550,
+    ctrlInputX = 570,
+    ctrlLabelX = ctrlInputX + 29,
     interfaceRegsX = 175,
     statusBitsX = 476,
-
 };
 
+const QRect RegBank = QRect(5, 5, Col4X+ regLineEditW - 10, 113);
 //    const QPolygon checkbox  = QPolygon(QRect(0,0, 60, 20));
 //    const QPolygon checkbox2 = QPolygon(QRect(0,0, 80, 20));
 //    const QPolygon label     = QPolygon(QRect(0,0, 42, 20));
@@ -179,27 +181,27 @@ const QRect MemReadTristateLabel    = QRect(ctrlInputX, 631, labelTriW, labelTri
 const QRect AddrBus = QRect(40, 151, 20, 500);
 const QRect DataBus = QRect(AddrBus.x()+AddrBus.width(), AddrBus.top() + 100, 10, 400);
 
-const Arrow loadCkSelect = Arrow(QVector<QPoint>() << QPoint(499, 24),
+const Arrow loadCkSelect = Arrow(QVector<QPoint>() << QPoint(RegBank.right() + arrowHOffset, 24),
                                  QVector<QLine>() << QLine(ctrlInputX - 7, loadCkCheckbox.y()+9,
-                                                           499, loadCkCheckbox.y()+9));
-const Arrow CSelect = Arrow(QVector<QPoint>() << QPoint(499, 47),
+                                                           RegBank.right() + arrowHOffset, loadCkCheckbox.y()+9));
+const Arrow CSelect = Arrow(QVector<QPoint>() << QPoint(RegBank.right() + arrowHOffset, 47),
                             QVector<QLine>()  <<  QLine(ctrlInputX - 7, cLabel.y() + selectYOffset,
-                                                        499, cLabel.y() + selectYOffset)
-                            <<  QLine(523, cLabel.y() + selectYOffset - 5,
-                                      533, cLabel.y() + selectYOffset + 5));
-const Arrow BSelect = Arrow(QVector<QPoint>() << QPoint(499, 69),
+                                                        RegBank.right() + arrowHOffset, cLabel.y() + selectYOffset)
+                            <<  QLine(RegBank.right() + arrowHDepth + 6, cLabel.y() + selectYOffset - 5,
+                                      RegBank.right() + arrowHDepth + 16, cLabel.y() + selectYOffset + 5));
+const Arrow BSelect = Arrow(QVector<QPoint>() << QPoint(RegBank.right() + arrowHOffset, 69),
                             QVector<QLine>()  <<  QLine(ctrlInputX - 7, bLabel.y() + selectYOffset,
-                                                        499, bLabel.y() + selectYOffset)
-                            <<  QLine(523, bLabel.y() + selectYOffset - selectSlashOffset,
-                                      533, bLabel.y() + selectYOffset + selectSlashOffset));
-const Arrow ASelect = Arrow(QVector<QPoint>() << QPoint(499, 91),
+                                                        RegBank.right() + arrowHOffset, bLabel.y() + selectYOffset)
+                            <<  QLine(RegBank.right() + arrowHDepth + 6, bLabel.y() + selectYOffset - selectSlashOffset,
+                                      RegBank.right() + arrowHDepth + 16, bLabel.y() + selectYOffset + selectSlashOffset));
+const Arrow ASelect = Arrow(QVector<QPoint>() << QPoint(RegBank.right() + arrowHOffset, 91),
                             QVector<QLine>()  <<  QLine(ctrlInputX - 7, aLabel.y() + selectYOffset,
-                                                        499, aLabel.y() + selectYOffset)
-                            <<  QLine(523, aLabel.y() + selectYOffset - selectSlashOffset,
-                                      533, aLabel.y() + selectYOffset + selectSlashOffset));
+                                                        RegBank.right() + arrowHOffset, aLabel.y() + selectYOffset)
+                            <<  QLine(RegBank.right() + arrowHDepth + 6, aLabel.y() + selectYOffset - selectSlashOffset,
+                                      RegBank.right() + arrowHDepth + 16, aLabel.y() + selectYOffset + selectSlashOffset));
 const Arrow MARCk = Arrow(QVector<QPoint>() << QPoint(232,155)
                           << QPoint(232,191),
-                          QVector<QLine > () << QLine(428,177, 543,177)
+                          QVector<QLine > () << QLine(428,177, ctrlInputX - 7,177)
                           << QLine(367,177, 416,177)
                           << QLine(291,177, 355,177)
                           << QLine(235,177, 279,177)
@@ -208,11 +210,11 @@ const Arrow MDRCk = Arrow(QVector<QPoint>() << QPoint(207,241),
                           QVector<QLine>() << QLine(210,233, 279,233)
                           << QLine(291,233, 355,233)
                           << QLine(367,233, 416,233)
-                          << QLine(428,233, 543,233)
+                          << QLine(428,233, ctrlInputX - 7, 233)
                           << QLine(210,233, 210,241));
 const Arrow AMuxSelect = Arrow(QVector<QPoint>() << QPoint(380,300),
                                QVector<QLine>()  << QLine(388, 303, 416, 303)
-                               << QLine(428, 303, 543, 303));
+                               << QLine(428, 303, ctrlInputX - 7, 303));
 const QPolygon AMuxBus = QPolygon(QVector<QPoint>() << QPoint(336,312)
                                   << QPoint(336,331)
                                   << QPoint(331,331)
@@ -221,7 +223,7 @@ const QPolygon AMuxBus = QPolygon(QVector<QPoint>() << QPoint(336,312)
                                   << QPoint(346,331)
                                   << QPoint(346,312));
 const Arrow CMuxSelect = Arrow(QVector<QPoint>() << QPoint(cMuxerLabel.left()+7,cMuxerLabel.top()-12),
-                               QVector<QLine>() << QLine(449,355, 543,355)
+                               QVector<QLine>() << QLine(449,355, ctrlInputX - 7,355)
                                << QLine(315,355, 290,355)
                                << QLine(280,355, 260,355)
                                << QLine(260,355, 260,365));
@@ -239,11 +241,11 @@ const QPolygon CMuxBus = QPolygon(QVector<QPoint>() << QPoint(290,374)
 enum ALUPolyNumbers
 {
     ALUUpperLeftLine_LeftPoint = 314,
-    ALUUpperLeftLine_RightPoint=366,
-    ALUUpperRightLine_LeftPoint=394,
-    ALUUpperRightLine_RightPoint=447,
-    ALUTopBound=342,
-    ALUBottomBound=394,
+    ALUUpperLeftLine_RightPoint = 366,
+    ALUUpperRightLine_LeftPoint = 394,
+    ALUUpperRightLine_RightPoint = 447,
+    ALUTopBound = 342,
+    ALUBottomBound = 394,
 };
 const QPolygon ALUPoly = QPolygon(QVector<QPoint>() << QPoint(ALUUpperLeftLine_LeftPoint,ALUTopBound)
                                   << QPoint(ALUUpperLeftLine_RightPoint,ALUTopBound) << QPoint(370,353)
@@ -283,12 +285,12 @@ const QPolygon NZVCDataPath = QPolygon(QVector<QPoint>() << QPoint(310,513)
                                        << QPoint(254,407) << QPoint(259,407)
                                        << QPoint(259,523) << QPoint(310,523));
 
-const QRect RegBank = QRect(5, 5, 491, 113);
 
-const int regNumberOffset = Pep::getSystem() == "Mac" ? 52 : 48; // 54 in some spots?
+
+const int regNumberOffset = Pep::getSystem() == "Mac" ? 52 : 65; // 54 in some spots?
 const int regLabelOffset  = 24;
 const QSize regLabelSize  = QSize(20,22);
-const QSize regNumberSize = Pep::getSystem() == "Mac" ? QSize(28,22) : QSize(24,22);
+const QSize regNumberSize = Pep::getSystem() == "Mac" ? QSize(28, 22) : QSize(42, 22);
 const QRect aRegLineEdit  = QRect(Col1X, Row1Y, regLineEditW, regLineEditH);
 const QRect xRegLineEdit  = QRect(Col1X, Row2Y, regLineEditW, regLineEditH);
 const QRect spRegLineEdit = QRect(Col1X, Row3Y, regLineEditW, regLineEditH);
@@ -455,7 +457,7 @@ const Arrow ALUSelectOut = Arrow(QVector<QPoint>() <<
                                        sBitLabel.y() + selectYOffset)
                                  );
 
-const QLine CSMuxSelect    = QLine(CSMuxLabel.right() + arrowHOffset - 120,
+const QLine CSMuxSelect    = QLine(CSMuxerDataLabel.right() + arrowHOffset,
                                    CSMuxLabel.y() + selectYOffset +1,
                                    ctrlInputX - 7,
                                    CSMuxLabel.y() + selectYOffset + 1);
