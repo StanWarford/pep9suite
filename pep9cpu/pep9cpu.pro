@@ -35,16 +35,19 @@ warning("Must fix win icon in resource file")
 RC_FILE = pep9resources.rc
 
 FORMS += \
+    cpuhelpdialog.ui \
     cpumainwindow.ui \
 #    helpdialog.ui \
 
 HEADERS += \
+    cpuhelpdialog.h \
     cpumainwindow.h \
 #   helpdialog.h \
     partialmicrocodedcpu.h \
     partialmicrocodedmemoizer.h
 
 SOURCES += \
+    cpuhelpdialog.cpp \
     cpumainwindow.cpp \
 #   helpdialog.cpp \
     main.cpp \

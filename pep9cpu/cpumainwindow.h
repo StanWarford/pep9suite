@@ -35,7 +35,7 @@ class ByteConverterChar;
 class ByteConverterDec;
 class ByteConverterHex;
 class CpuPane;
-//class HelpDialog;
+class HelpDialog;
 class MicrocodePane;
 class MicroObjectCodePane;
 class UpdateChecker;
@@ -88,7 +88,7 @@ private:
     QSharedPointer<PartialMicrocodedCPU> controlSection;
     QSharedPointer<NewCPUDataSection> dataSection;
 
-    //HelpDialog *helpDialog;
+    HelpDialog *helpDialog;
     AboutPep *aboutPepDialog;
 
     QActionGroup* statisticsLevelsGroup, *cpuModesGroup;
@@ -228,7 +228,7 @@ private slots:
 
     void appendMicrocodeLine(QString string);
 
-    void helpCopyToSourceClicked();
+    void onCopyToMicrocodeClicked();
 
     // Handle a breakpoint in the model, and determine the correct handler based
     // on breakpoint type.

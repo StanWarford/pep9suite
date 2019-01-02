@@ -43,7 +43,7 @@
 #include "byteconverterdec.h"
 #include "byteconverterhex.h"
 #include "cpupane.h"
-//#include "helpdialog.h"
+#include "cpuhelpdialog.h"
 #include "memorydumppane.h"
 #include "microcode.h"
 #include "microcodepane.h"
@@ -98,8 +98,8 @@ MainWindow::MainWindow(QWidget *parent) :
     cpuModesGroup->setExclusive(true);
 
     // Create & connect all dialogs.
-    // helpDialog = new HelpDialog(this);
-    // connect(helpDialog, &HelpDialog::copyToSourceClicked, this, &MainWindow::helpCopyToSourceClicked);
+    helpDialog = new HelpDialog(this);
+    connect(helpDialog, &HelpDialog::copyToMicrocodeClicked, this, &MainWindow::onCopyToMicrocodeClicked);
     // Load the about text and create the about dialog
     QFile aboutFile(":/help/about.html");
     QString text = "";
@@ -153,12 +153,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Connect font change events.
     connect(this, &MainWindow::fontChanged, ui->microcodeWidget, &MicrocodePane::onFontChanged);
-    //connect(this, &MainWindow::fontChanged, helpDialog, &HelpDialog::onFontChanged);
+    connect(this, &MainWindow::fontChanged, helpDialog, &HelpDialog::onFontChanged);
     connect(this, &MainWindow::fontChanged, ui->memoryWidget, &MemoryDumpPane::onFontChanged);
 
     // Connect dark mode events.
     connect(this, &MainWindow::darkModeChanged, ui->microcodeWidget, &MicrocodePane::onDarkModeChanged);
-    //connect(this, &MainWindow::darkModeChanged, helpDialog, &HelpDialog::onDarkModeChanged);
+    connect(this, &MainWindow::darkModeChanged, helpDialog, &HelpDialog::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->microobjectWidget, &MicroObjectCodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->cpuWidget, &CpuPane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->microcodeWidget->getEditor(), &MicrocodeEditor::onDarkModeChanged);
@@ -193,11 +193,7 @@ MainWindow::MainWindow(QWidget *parent) :
     int maxSize = ui->memoryWidget->memoryDumpWidth();
     ui->memoryWidget->setMinimumWidth(maxSize);
     ui->memoryWidget->setMaximumWidth(maxSize);
-    //ui->ioWidget->setMaximumWidth(maxSize);
 
-    //Initialize state for ISA level simulation
-    //Pep::memAddrssToAssemblerListing = &Pep::memAddrssToAssemblerListingProg;
-    //Pep::listingRowChecked = &Pep::listingRowCheckedProg;
 
     //Initialize Microcode panes
     QFile file("://help/pep9micro.pepcpu");
@@ -976,8 +972,8 @@ void MainWindow::on_actionDark_Mode_triggered()
 // help:
 void MainWindow::on_actionHelp_UsingPep9CPU_triggered()
 {
-    //helpDialog->show();
-    //helpDialog->selectItem("Using Pep/9 CPU");
+    helpDialog->show();
+    helpDialog->selectItem("Using Pep/9 CPU");
 }
 
 void MainWindow::on_actionHelp_InteractiveUse_triggered()
@@ -988,38 +984,38 @@ void MainWindow::on_actionHelp_InteractiveUse_triggered()
 
 void MainWindow::on_actionHelp_MicrocodeUse_triggered()
 {
-   // helpDialog->show();
-    //helpDialog->selectItem("Microcode Use");
+    helpDialog->show();
+    helpDialog->selectItem("Microcode Use");
 }
 
 void MainWindow::on_actionHelp_DebuggingUse_triggered()
 {
-    //helpDialog->show();
-    //helpDialog->selectItem("Debugging Use");
+    helpDialog->show();
+    helpDialog->selectItem("Debugging Use");
 }
 
 void MainWindow::on_actionHelp_Pep9Reference_triggered()
 {
-    //helpDialog->show();
-    //helpDialog->selectItem("Pep/9 Reference");
+    helpDialog->show();
+    helpDialog->selectItem("Pep/9 Reference");
 }
 
 void MainWindow::on_actionHelp_Examples_triggered()
 {
-    //helpDialog->show();
-    //helpDialog->selectItem("Examples");
+    helpDialog->show();
+    helpDialog->selectItem("Examples");
 }
 
 void MainWindow::on_actionHelp_triggered()
 {
-    /*if (!helpDialog->isHidden()) {
+    if (!helpDialog->isHidden()) {
         // give it focus again:
         helpDialog->hide();
         helpDialog->show();
     }
     else {
         helpDialog->show();
-    }*/
+    }
 }
 
 void MainWindow::on_actionHelp_About_Pep9CPU_triggered()
@@ -1169,49 +1165,28 @@ void MainWindow::appendMicrocodeLine(QString line)
     ui->microcodeWidget->appendMessageInSourceCodePaneAt(-2, line);
 }
 
-void MainWindow::helpCopyToSourceClicked()
+void MainWindow::onCopyToMicrocodeClicked()
 {
-    /*helpDialog->hide();
-        Enu::EPane destPane, inputPane;
-        QString input;
-        QString code = helpDialog->getCode(destPane, inputPane, input);
-        if(code.isEmpty()) return;
-        else {
-            switch(destPane)
-            {
-            case Enu::EPane::ESource:
-                if(maybeSave(Enu::EPane::ESource)) {
-                    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-                    ui->AsmSourceCodeWidgetPane->setFocus();
-                    ui->AsmSourceCodeWidgetPane->setCurrentFile("");
-                    ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
-                    ui->AsmSourceCodeWidgetPane->setModifiedFalse();
-                    statusBar()->showMessage("Copied to assembler source code", 4000);
-                }
-                break;
-            case Enu::EPane::EObject:
-            if(maybeSave(Enu::EPane::EObject)) {
-                ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-                ui->AsmObjectCodeWidgetPane->setFocus();
-                ui->AsmObjectCodeWidgetPane->setCurrentFile("");
-                ui->AsmObjectCodeWidgetPane->setObjectCodePaneText(code);
-                ui->AsmObjectCodeWidgetPane->setModifiedFalse();
-                statusBar()->showMessage("Copied to assembler object code", 4000);
-                }
-                break;
-            }
-            switch(inputPane)
-            {
-            case Enu::EPane::ETerminal:
-                qDebug() << input;
-                break;
-            }
+    if(controlSection->getExecutionFinished() == false) {
+        QMessageBox::warning(this,"Help Warning","Can't copy to microcode when a simulation is running");
+        return;
+    }
+    if(controlSection->getCPUType() != helpDialog->getExamplesModel()) {
+        if(helpDialog->getExamplesModel() == Enu::CPUType::OneByteDataBus) {
+            on_actionSystem_One_Byte_triggered();
         }
-        //statusBar()->showMessage("Copied to microcode", 4000);
-        //ui->microcodeWidget->microAssemble();
-        //ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
-        */
+        else if(helpDialog->getExamplesModel() == Enu::CPUType::TwoByteDataBus) {
+            on_actionSystem_Two_Byte_triggered();
+        }
+    }
+    QString code = helpDialog->getExampleText();
+    if(code.isEmpty()) return;
+    ui->microcodeWidget->setMicrocode(code);
+    statusBar()->showMessage("Copied to microcode", 4000);
+    ui->microcodeWidget->microAssemble();
+    ui->microobjectWidget->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
 }
+
 
 void MainWindow::onBreakpointHit(Enu::BreakpointTypes type)
 {
