@@ -359,7 +359,6 @@ void MicrocodePane::useFullCtrlSection(bool fullCtrlSection)
     initCPUModelState();
 }
 
-
 void MicrocodePane::onFontChanged(QFont font)
 {
     editor->setFont(font);
@@ -387,6 +386,7 @@ void MicrocodePane::onRemoveAllBreakpoints()
 
 void MicrocodePane::onCPUTypeChanged(Enu::CPUType type)
 {
+    program.clear();
     highlighter->setCPUType(type);
     highlighter->rehighlight();
 }

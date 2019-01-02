@@ -69,7 +69,7 @@ void addLineEditToScene(QLineEdit** lineEdit, QGraphicsScene *scene, QRegExp val
 }
 
 void addTLabel(TristateLabel** labelLoc, QGraphicsScene *scene, const QRect& geometry){
-    (*labelLoc) = new TristateLabel(0, TristateLabel::Tristate);
+    (*labelLoc) = new TristateLabel(nullptr, TristateLabel::Tristate);
     (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     (*labelLoc)->setGeometry(geometry);
     (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
@@ -77,7 +77,7 @@ void addTLabel(TristateLabel** labelLoc, QGraphicsScene *scene, const QRect& geo
 }
 
 void addStatusLabel(TristateLabel** labelLoc, QGraphicsScene* scene, const QRect& geometry){
-    (*labelLoc) = new TristateLabel(0, TristateLabel::ZeroOne);
+    (*labelLoc) = new TristateLabel(nullptr, TristateLabel::ZeroOne);
     (*labelLoc)->setText("0");
     (*labelLoc)->setGeometry(geometry);
     (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -813,13 +813,13 @@ void CpuGraphicsItems::drawRegisterBank()
                                 2, Qt::SolidLine, Qt::SquareCap,
                                 Qt::MiterJoin));
     QPalette pal = QPalette();
+    pal.setColor(QPalette::Text, colorScheme->arrowColorOn);
+    pal.setColor(QPalette::WindowText, colorScheme->arrowColorOn);
     pal.setColor(QPalette::Base, colorScheme->backgroundFill);
     pal.setColor(QPalette::Background, PepColors::transparent);
     for(QLineEdit* edit : editorVector) {
         edit->setPalette(pal);
     }
-    pal.setColor(QPalette::Text, colorScheme->arrowColorOn);
-    pal.setColor(QPalette::WindowText, colorScheme->arrowColorOn);
     pal.setColor(QPalette::Base, PepColors::transparent);
     pal.setColor(QPalette::Background, PepColors::transparent);
     for(QLabel* label : labelVec) {
@@ -1505,7 +1505,7 @@ void CpuGraphicsItems::repaintMDRCk(QPainter *painter)
 void CpuGraphicsItems::repaintMDRMuxSelect(QPainter *painter)
 {
     QColor color;
-    QPalette pal; //MDRMuxerDataLabel->palette();
+    QPalette pal = MDRMuxerDataLabel->palette();
     painter->setPen(colorScheme->arrowColorOn);
     if(MDRCk->isChecked()) {
         if(MDRMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
@@ -2453,6 +2453,7 @@ void CpuGraphicsItems::repaintCBusTwoByte(QPainter *painter)
 // ***************************************************************************
 // Public Slosts
 // ***************************************************************************
+
 void CpuGraphicsItems::onDarkModeChanged(bool darkMode)
 {
     this->darkMode = darkMode;

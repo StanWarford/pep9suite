@@ -80,7 +80,6 @@ private:
     void initRegisters();
 
 protected slots:
-
     void regTextEdited(QString str);
     void regTextFinishedEditing();
     void zoomFactorChanged(int factor);

@@ -48,7 +48,7 @@ CpuPane::CpuPane( QWidget *parent) :
 
     ui->graphicsView->setFont(QFont(Pep::cpuFont, Pep::cpuFontSize));
 
-    ui->spinBox->hide();
+    // ui->spinBox->hide();
     ui->graphicsView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
 
 
@@ -898,6 +898,9 @@ void CpuPane::onMemoryRegisterChanged(EMemoryRegisters reg, quint8, quint8 newVa
     case Enu::MEM_MARB:
         cpuPaneItems->MARBLabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());
         break;
+    case Enu::MEM_MDR:
+        cpuPaneItems->MDRLabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());
+        break;
     case Enu::MEM_MDRE:
         cpuPaneItems->MDRELabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());
         break;
@@ -974,6 +977,7 @@ void CpuPane::onCPUTypeChanged()
     type = cpu->getCPUType();
     cpuPaneItems->onCPUTypeChanged(type);
     repaint();
+
 }
 
 

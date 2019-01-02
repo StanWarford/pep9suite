@@ -36,8 +36,8 @@
 #include "symbolentry.h"
 #include "symbolvalue.h"
 MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
-    QWidget(parent),ui(new Ui::MicroObjectCodePane), cpu(nullptr),
-    rowCount(0),model(new QStandardItemModel()),inSimulation(false), showCtrlSectionSignals(false)
+    QWidget(parent), ui(new Ui::MicroObjectCodePane), cpu(nullptr),
+    rowCount(0), model(new QStandardItemModel()), inSimulation(false), showCtrlSectionSignals(false)
 {
     ui->setupUi(this);
     QFont font(Pep::codeFont);
@@ -73,6 +73,7 @@ void MicroObjectCodePane::init(QSharedPointer<InterfaceMCCPU> newCPU, bool showC
     cpu = newCPU;
     this->showCtrlSectionSignals = showCtrlSectionSignals;
     initCPUModelState();
+    ui->codeTable->resizeColumnsToContents();
 }
 
 void MicroObjectCodePane::setShowCtrlSectionSignals(bool showCtrlSectionSignals)
@@ -182,13 +183,11 @@ void MicroObjectCodePane::assignHeaders()
     QMetaEnum nControls = QMetaEnum::fromType<Enu::EControlSignals>();
     QMetaEnum nClocks = QMetaEnum::fromType<Enu::EClockSignals>();
     QList<QString> headers;
-    int size=controls.size()+clocks.size();
-    for(auto x : controls)
-    {
+    int size = controls.size()+clocks.size();
+    for(auto x : controls) {
         headers.append(QString(nControls.valueToKey(x)));
     }
-    for(auto x : clocks)
-    {
+    for(auto x : clocks) {
         headers.append(QString(nClocks.valueToKey(x)));
     }
     if(showCtrlSectionSignals) {
@@ -202,10 +201,9 @@ void MicroObjectCodePane::assignHeaders()
     model->setHorizontalHeaderLabels(headers);
     for(int x=0;x<size;x++)
     {
-        model->horizontalHeaderItem(x)->setTextAlignment(Qt::AlignVCenter);
+        model->horizontalHeaderItem(x)->setTextAlignment(Qt::AlignVCenter|Qt::AlignHCenter);
     }
     ui->codeTable->horizontalHeader()->setVisible(true);
-    ui->codeTable->resizeColumnsToContents();
 }
 
 void MicroObjectCodePane::onSimulationStarted()
@@ -220,7 +218,6 @@ void MicroObjectCodePane::onSimulationFinished()
 
 void MicroObjectCodePane::onDarkModeChanged(bool)
 {
-    //ui->codeTable->resizeRowsToContents();
 }
 
 void MicroObjectCodePane::changeEvent(QEvent *e)
