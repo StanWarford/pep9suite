@@ -50,7 +50,7 @@ main:    LDWA    gDepth,d
          ADDSP   4,i         ;pop ##retVal #depth
          LDWA    -2,s        
          STWA    gRes,d      
-         HEXO    gRes,d      ;implemented as nop in MAL
+         ;HEXO    gRes,d      ;implemented as nop in MAL
          ldwa     gRes, d 
          STOP                
 ;Assuming delete actually did something

@@ -22,6 +22,10 @@ struct CPUState
     QVector<quint32> instructionsCalled = QVector<quint32>(256,0);
   //QVector<callStack> call_tracer;
 };
+enum class stackAction {
+    locals, params, call
+};
+
 class FullMicrocodedCPU;
 class FullMicrocodedMemoizer
 {
@@ -43,7 +47,12 @@ private:
     FullMicrocodedCPU& cpu;
     CPUState registers;
     Enu::DebugLevels level;
-    QMultiMap<quint16,QString> OSSymTable;
+
+    bool firstLineAfterCall, isTrapped;
+    QStack<quint8> userStack, osStack, *activeStack;
+    QStack<stackAction> userActions, osActions, *activeActions;
+    bool userStackIntact, osStackIntact, *activeIntact;
+    QMultiMap<quint16, QString> OSSymTable;
     QString formatNum(quint16 number);
     QString formatNum(quint8 number);
     QString formatAddress(quint16 address);

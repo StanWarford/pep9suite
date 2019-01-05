@@ -15,9 +15,13 @@ static quint8 inst_size=6;
 static quint8 oper_addr_size=12;
 
 FullMicrocodedMemoizer::FullMicrocodedMemoizer(FullMicrocodedCPU& item): cpu(item),
-    registers(CPUState()), level(Enu::DebugLevels::MINIMAL), OSSymTable()
+    registers(CPUState()), level(Enu::DebugLevels::MINIMAL), OSSymTable(), firstLineAfterCall(false), isTrapped(false), userStack(), osStack(),
+    activeStack(&userStack), userActions(), osActions(), activeActions(&userActions), userStackIntact(true), osStackIntact(true),
+    activeIntact(&userStackIntact)
 {
     loadSymbols();
+    userStack.push(0);
+    osStack.push(0);
 }
 
 Enu::DebugLevels FullMicrocodedMemoizer::getDebugLevel() const
@@ -28,6 +32,21 @@ Enu::DebugLevels FullMicrocodedMemoizer::getDebugLevel() const
 void FullMicrocodedMemoizer::clear()
 {
     registers = CPUState();
+
+    userStack.clear();
+    userStack.push(0);
+    osStack.clear();
+    osStack.push(0);
+    activeStack = &userStack;
+
+    userActions.clear();
+    osActions.clear();
+    activeActions = & userActions;
+    userStackIntact = true;
+    osStackIntact = true;
+    activeIntact = &userStackIntact;
+    isTrapped = false;
+    firstLineAfterCall = false;
 }
 
 void FullMicrocodedMemoizer::storeStateInstrEnd()
@@ -43,8 +62,7 @@ void FullMicrocodedMemoizer::storeStateInstrEnd()
         registers.regState.reg_SP = cpu.getCPURegWordCurrent(Enu::CPURegisters::SP);
         registers.regState.reg_PC_end = cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
         cpu.getMemoryDevice()->getByte(registers.regState.reg_PC_start, registers.regState.reg_IR);
-        if(!Pep::isUnaryMap[Pep::decodeMnemonic[registers.regState.reg_IR]])
-        {
+        if(!Pep::isUnaryMap[Pep::decodeMnemonic[registers.regState.reg_IR]]) {
             cpu.getMemoryDevice()->getWord(registers.regState.reg_PC_start + 1, registers.regState.reg_OS);
         }
 
@@ -57,6 +75,82 @@ void FullMicrocodedMemoizer::storeStateInstrEnd()
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::NONE:
+        switch(Pep::decodeMnemonic[registers.regState.reg_IS_start]) {
+        case Enu::EMnemonic::CALL:
+            if(isTrapped) break;
+            firstLineAfterCall = true;
+            activeStack->top() += 2;
+            activeActions->push(stackAction::call);
+            qDebug() << "Called! " << activeStack->.top();
+            break;
+        case Enu::EMnemonic::RET:
+            if(isTrapped) break;
+            if(activeActions->isEmpty()) break;
+            switch(activeActions->pop()) {
+            case stackAction::call:
+                activeStack->top() -= 2;
+                qDebug() << "Returned! " << activeStack->top();
+                firstLineAfterCall = true;
+                break;
+            default:
+                qDebug() <<"Unbalanced stack operation 1";
+                *activeIntact = false;
+            }
+            break;
+        case Enu::EMnemonic::SUBSP:
+            if(isTrapped) break;
+            if(firstLineAfterCall) {
+                activeActions->push(stackAction::locals);
+                activeStack->top() += cpu.getCPURegWordCurrent(Enu::CPURegisters::OS);
+                qDebug() << "Alloc'ed Locals! " << activeStack->top();
+            }
+            else {
+                activeActions->push(stackAction::params);
+                activeStack->push(registers.regState.reg_OS);
+                qDebug() << "Alloc'ed params! " << activeStack->top();
+            }
+            break;
+        case Enu::EMnemonic::ADDSP:
+            if(isTrapped) break;
+            if(activeActions->isEmpty()) break;
+            switch(activeActions->pop()) {
+            case stackAction::locals:
+                activeStack->pop();
+                qDebug() << "Popped locals! SS:" << activeStack->size();
+                break;
+            case stackAction::params:
+                activeStack->top() -= cpu.getCPURegWordCurrent(Enu::CPURegisters::OS);
+                qDebug() << "Popped Params! " << activeStack->top();
+                break;
+            default:
+                qDebug() << "Unbalance stack operation 2";
+                *activeIntact = false;
+            }
+            break;
+        case Enu::EMnemonic::BR:
+            [[fallthrough]];
+        case Enu::EMnemonic::BRC:
+            [[fallthrough]];
+        case Enu::EMnemonic::BREQ:
+            [[fallthrough]];
+        case Enu::EMnemonic::BRGE:
+            [[fallthrough]];
+        case Enu::EMnemonic::BRGT:
+            [[fallthrough]];
+        case Enu::EMnemonic::BRLE:
+            [[fallthrough]];
+        case Enu::EMnemonic::BRLT:
+            [[fallthrough]];
+        case Enu::EMnemonic::BRNE:
+            [[fallthrough]];
+        case Enu::EMnemonic::BRV:
+            firstLineAfterCall = true;
+            break;
+        default:
+            firstLineAfterCall = false;
+            break;
+        }
+        #pragma message("This calculation is not quite right")
         break;
     }
 }
@@ -76,7 +170,20 @@ void FullMicrocodedMemoizer::storeStateInstrStart()
         [[fallthrough]];
     case Enu::DebugLevels::NONE:
         registers.regState.reg_PC_start = cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
-        registers.regState.reg_IS_start = cpu.getCPURegByteCurrent(Enu::CPURegisters::IS);
+        // Fetch the instruction specifier, located at the memory address of PC
+        cpu.getMemoryDevice()->getByte(registers.regState.reg_PC_start, registers.regState.reg_IS_start);
+        if(Pep::isTrapMap[Pep::decodeMnemonic[registers.regState.reg_IS_start]]) {
+            isTrapped = true;
+            activeStack = &osStack;
+            activeActions = &osActions;
+            activeIntact = &osStackIntact;
+        }
+        else if(Pep::decodeMnemonic[registers.regState.reg_IS_start] == Enu::EMnemonic::RETTR) {
+            isTrapped = false;
+            activeStack = &userStack;
+            activeActions = &userActions;
+            activeIntact = &userStackIntact;
+        }
         break;
     }
 }
@@ -93,20 +200,16 @@ QString FullMicrocodedMemoizer::memoize()
                 formatInstr(registers.regState.reg_IR,registers.regState.reg_OS);
         build += "  " + AX;
         build += NZVC;
-        if(Pep::isTrapMap[Pep::decodeMnemonic[registers.regState.reg_IR]])
-        {
+        if(Pep::isTrapMap[Pep::decodeMnemonic[registers.regState.reg_IR]]) {
             build += generateTrapFrame(registers);
         }
-        else if(Pep::decodeMnemonic[registers.regState.reg_IR] == Enu::EMnemonic::RETTR)
-        {
+        else if(Pep::decodeMnemonic[registers.regState.reg_IR] == Enu::EMnemonic::RETTR) {
             build += generateTrapFrame(registers,false);
         }
-        else if(Pep::decodeMnemonic[registers.regState.reg_IR] == Enu::EMnemonic::CALL)
-        {
+        else if(Pep::decodeMnemonic[registers.regState.reg_IR] == Enu::EMnemonic::CALL) {
             build += generateStackFrame(registers);
         }
-        else if(Pep::decodeMnemonic[registers.regState.reg_IR] == Enu::EMnemonic::RET)
-        {
+        else if(Pep::decodeMnemonic[registers.regState.reg_IR] == Enu::EMnemonic::RET) {
             build += generateStackFrame(registers,false);
         }
         break;
@@ -238,25 +341,27 @@ QString FullMicrocodedMemoizer::formatInstr(quint8 instrSpec,quint16 oprSpec)
 
 QString FullMicrocodedMemoizer::generateStackFrame(CPUState&, bool enter)
 {
+    return "";
     if(enter)
     {
-        return stackFrameEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
+        //return stackFrameEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
     else
     {
-        return stackFrameLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
+        //return stackFrameLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
 }
 
 QString FullMicrocodedMemoizer::generateTrapFrame(CPUState&, bool enter)
 {
+    return "";
     if(enter)
     {
-        return trapEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
+        //return trapEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
     else
     {
-        return trapLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
+        //return trapLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
 }
 

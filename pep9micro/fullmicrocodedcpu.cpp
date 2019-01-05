@@ -17,7 +17,7 @@ FullMicrocodedCPU::FullMicrocodedCPU(QSharedPointer<AMemoryDevice> memoryDev, QO
     memoizer = new FullMicrocodedMemoizer(*this);
     data = new NewCPUDataSection(Enu::CPUType::TwoByteDataBus, memoryDev, parent);
     dataShared = QSharedPointer<NewCPUDataSection>(data);
-    setDebugLevel(Enu::DebugLevels::NONE);
+    setDebugLevel(Enu::DebugLevels::ALL);
 }
 
 FullMicrocodedCPU::~FullMicrocodedCPU()
