@@ -458,7 +458,7 @@ void NewCPUDataSection::stepOneByte() noexcept
     //Handle write to memory
     if(mainBusState == Enu::MemWriteReady)
     {
-        quint16 address = (memoryRegisters[Enu::MEM_MARA]<<8)+memoryRegisters[Enu::MEM_MARB];
+        quint16 address = (memoryRegisters[Enu::MEM_MARA]<<8) | memoryRegisters[Enu::MEM_MARB];
         memDevice->writeByte(address, memoryRegisters[Enu::MEM_MDR]);
     }
 

@@ -1386,20 +1386,6 @@ void MainWindow::on_actionBuild_Run_triggered()
     if (initializeSimulation()) {
         disconnectViewUpdate();
         emit simulationStarted();
-//        QSharedPointer<MainMemory> mem(new MainMemory(0));
-//
-//        // Get the object code, and convert it to an integer array.
-//        QString lines = ui->AsmObjectCodeWidgetPane->toPlainText();
-//        QVector<quint8> data;
-//        for(auto line : lines.split("\n", QString::SkipEmptyParts)) {
-//            data.append(convertObjectCodeToIntArray(line));
-//        }
-//        mem->loadValues(0, data);
-//        FullMicrocodedCPU c(mem, 0);
-//        c.initCPU();
-//        c.setMicrocodeProgram(ui->microcodeWidget->getMicrocodeProgram());
-//        c.onDebuggingStarted();
-//        c.onRun();
         ui->memoryWidget->updateMemory();
         memDevice->clearBytesSet();
         memDevice->clearBytesWritten();
@@ -1486,6 +1472,8 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         controlSection->breakpointsSet(programManager->getBreakpoints());
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
         ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
+        memDevice->clearBytesSet();
+        memDevice->clearBytesWritten();
         ui->cpuWidget->startDebugging();
         ui->memoryWidget->updateMemory();
         ui->asmListingTracePane->setFocus();
@@ -1638,6 +1626,10 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
 {
     debugState = DebugState::DEBUG_MICRO;
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
+    if(controlSection->atMicroprogramStart()) {
+            memDevice->clearBytesSet();
+            memDevice->clearBytesWritten();
+    }
     controlSection->onMCStep();
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.

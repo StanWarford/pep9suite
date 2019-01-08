@@ -37,10 +37,10 @@ void MemSpecification::setUnitPre(NewCPUDataSection *) noexcept
     }
     else {
         int temp = memValue;
-        for(int it = 0; it < numBytes; it++) {
+        for(int it = numBytes-1; it >= 0; it--) {
             // Treat the low order byte of temp as the value at it
             memDevice->setByte(static_cast<quint16>(memAddress + it), static_cast<quint8>(temp & 0xff));
-            // Performa a logical shift left by 8.
+            // Perform a logical shift left by 8.
             temp /= 256;
         }
     }

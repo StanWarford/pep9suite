@@ -63,9 +63,6 @@ public:
     // Post: The current program counter & current stack pointer are highlighted.
     // The last written bytes are highlighted.
 
-    void cacheModifiedBytes();
-    // Post: Changed bytes from Sim are added to the QSet modifiedBytes
-
     void updateMemory();
     // Post: Memory displays are updated using the changedMemoryAddrss qlist in sim
 
@@ -114,8 +111,6 @@ private:
     // such as when we hit a breakpoint, the program finishes, or the end of the single step.
     // lastModifiedBytes indicates which bytes were written in the last ISA instruction.
 
-    QList<quint16> bytesWrittenLastStep;
-    // This is a list of bytes written last step, which is used to highlight recently modified bytes
 
     bool delayLastStepClear, darkModeEnabled, inSimulation, highlightPC;
     // This is used to delay a clear of the QList bytesWrittenLastStep when leaving a trap that modifies bytes

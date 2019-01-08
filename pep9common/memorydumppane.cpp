@@ -32,7 +32,7 @@
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     QWidget(parent), ui(new Ui::MemoryDumpPane), data(new QStandardItemModel(this)), lineSize(500), memDevice(nullptr),
     cpu(nullptr), delegate(nullptr), colors(&PepColors::lightMode), highlightedData(), modifiedBytes(), lastModifiedBytes(),
-    bytesWrittenLastStep(), delayLastStepClear(false), darkModeEnabled(false), inSimulation(false), highlightPC(true)
+    delayLastStepClear(false), darkModeEnabled(false), inSimulation(false), highlightPC(true)
 {
     ui->setupUi(this);
     if (Pep::getSystem() != "Mac") {
@@ -152,6 +152,7 @@ void MemoryDumpPane::highlight()
     quint16 pc = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
     quint8 is;
     memDevice->getByte(pc, is);
+    // Stack pointer highlighting
     if(sp == 0x0000) {
         // If the stack pointer is unitialized, don't highlight it
     }
@@ -159,6 +160,7 @@ void MemoryDumpPane::highlight()
         highlightByte(sp, colors->altTextHighlight, colors->memoryHighlightSP);
         highlightedData.append(sp);
     }
+    // Program counter highlighting
     if(!highlightPC) {
         // Don't preform any PC highlighting
     }
@@ -175,42 +177,10 @@ void MemoryDumpPane::highlight()
     }
 
     for(quint16 byte : lastModifiedBytes) {
-        highlightByte(byte, colors->altTextHighlight, colors->memoryHighlightChanged);
+        highlightByte(byte, colors->arrowColorOn, colors->memoryHighlightChanged);
         highlightedData.append(byte);
     }
 
-}
-
-void MemoryDumpPane::cacheModifiedBytes()
-{
-#pragma message ("TODO: Fix MemoryDumpPane::cacheModifiedBytes")
-    //QSet<quint16> tempConstruct, tempDestruct = memorySection->modifiedBytes();
-    //modifiedBytes = memorySection->modifiedBytes();
-    //memorySection->clearModifiedBytes();
-    //lastModifiedBytes = memorySection->writtenLastCycle();
-    /*for(quint16 val : tempDestruct) {
-        if(tempConstruct.contains(val)) continue;
-        for(quint16 temp = val - val%8;temp%8<=7;temp++) {
-            tempConstruct.insert(temp);
-        }
-        refreshMemoryLines(val - val%8,val - val%8 + 1);
-    }*/
-    /*modifiedBytes.unite(Sim::modifiedBytes);
-    if (Sim::tracingTraps) {
-        bytesWrittenLastStep.clear();
-        bytesWrittenLastStep = Sim::modifiedBytes.toList();
-    }
-    else if (Sim::trapped) {
-        delayLastStepClear = true;
-        bytesWrittenLastStep.append(Sim::modifiedBytes.toList());
-    }
-    else if (delayLastStepClear) {
-        delayLastStepClear = false;
-    }
-    else {
-        bytesWrittenLastStep.clear();
-        bytesWrittenLastStep = Sim::modifiedBytes.toList();
-    }*/
 }
 
 void MemoryDumpPane::updateMemory()
@@ -222,7 +192,7 @@ void MemoryDumpPane::updateMemory()
     // need access to them.
     modifiedBytes.unite(memDevice->getBytesSet());
     modifiedBytes.unite(memDevice->getBytesWritten());
-    bytesWrittenLastStep = memDevice->getBytesWritten().toList();
+    lastModifiedBytes = memDevice->getBytesWritten();
     list = modifiedBytes.toList();
     while(!list.isEmpty()) {
         linesToBeUpdated.insert(list.takeFirst() / 8);

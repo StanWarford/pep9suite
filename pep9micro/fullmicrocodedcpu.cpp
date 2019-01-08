@@ -31,6 +31,11 @@ QSharedPointer<NewCPUDataSection> FullMicrocodedCPU::getDataSection()
     return dataShared;
 }
 
+bool FullMicrocodedCPU::atMicroprogramStart() const noexcept
+{
+    return microprogramCounter == 0;
+}
+
 bool FullMicrocodedCPU::getStatusBitCurrent(Enu::EStatusBit bit) const
 {
 #pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")

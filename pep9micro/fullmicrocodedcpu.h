@@ -14,6 +14,9 @@ public:
     FullMicrocodedCPU(QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~FullMicrocodedCPU() override;
     QSharedPointer<NewCPUDataSection> getDataSection();
+    // Returns true if the microprogram counter is at the
+    // start of the von neumann cycle.
+    bool atMicroprogramStart() const noexcept;
 
     // ACPUModel interface
     bool getStatusBitCurrent(Enu::EStatusBit) const override;
@@ -30,7 +33,6 @@ public:
     void setDebugLevel(Enu::DebugLevels level) override;
 
     // InterfaceMCCPU interface
-    // Will
     void setCPUType(Enu::CPUType type)  override;
     void onMCStep() override;
     void onClock() override;
@@ -38,7 +40,6 @@ public:
     // InterfaceISACPU interface
     void onISAStep() override;
 
-    // ACPUModel interface
 public slots:
     void onSimulationStarted() override;
     void onSimulationFinished() override;
