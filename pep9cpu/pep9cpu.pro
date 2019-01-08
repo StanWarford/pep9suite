@@ -21,8 +21,9 @@ win32{
 }
 QT += widgets webenginewidgets printsupport concurrent
 
-VPATH += $$PWD/../pep9common
 INCLUDEPATH += $$PWD/../pep9common
+VPATH += $$PWD
+VPATH += $$PWD/../pep9common
 
 # Mac icon/plist
 warning("must fix mac icon")
@@ -37,19 +38,16 @@ RC_FILE = pep9resources.rc
 FORMS += \
     cpuhelpdialog.ui \
     cpumainwindow.ui \
-#    helpdialog.ui \
 
 HEADERS += \
     cpuhelpdialog.h \
     cpumainwindow.h \
-#   helpdialog.h \
     partialmicrocodedcpu.h \
     partialmicrocodedmemoizer.h
 
 SOURCES += \
     cpuhelpdialog.cpp \
     cpumainwindow.cpp \
-#   helpdialog.cpp \
     main.cpp \
     partialmicrocodedcpu.cpp \
     partialmicrocodedmemoizer.cpp

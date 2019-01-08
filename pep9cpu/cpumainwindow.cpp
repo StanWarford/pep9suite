@@ -1167,8 +1167,8 @@ void MainWindow::appendMicrocodeLine(QString line)
 
 void MainWindow::onCopyToMicrocodeClicked()
 {
-    if(controlSection->getExecutionFinished() == false) {
-        QMessageBox::warning(this,"Help Warning","Can't copy to microcode when a simulation is running");
+    if(controlSection->getInSimulation() || controlSection->getInDebug()) {
+        QMessageBox::warning(this, "Help Warning", "Can't copy to microcode when a simulation is running");
         return;
     }
     if(controlSection->getCPUType() != helpDialog->getExamplesModel()) {
@@ -1180,13 +1180,13 @@ void MainWindow::onCopyToMicrocodeClicked()
         }
     }
     QString code = helpDialog->getExampleText();
+    helpDialog->hide();
     if(code.isEmpty()) return;
     ui->microcodeWidget->setMicrocode(code);
     statusBar()->showMessage("Copied to microcode", 4000);
     ui->microcodeWidget->microAssemble();
     ui->microobjectWidget->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
 }
-
 
 void MainWindow::onBreakpointHit(Enu::BreakpointTypes type)
 {

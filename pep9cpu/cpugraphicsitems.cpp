@@ -1551,7 +1551,7 @@ void CpuGraphicsItems::repaintMDRMuxSelect(QPainter *painter)
     // MDRMux Select
     painter->drawLine(257,303, 265,303); painter->drawLine(265,303, 265,324);
     painter->drawLine(265,324, 279,324); painter->drawLine(291,324, 335,324);
-    painter->drawLine(347,324, 416,324); painter->drawLine(428,324, 543,324);
+    painter->drawLine(347,324, 416,324); painter->drawLine(428,324, OneByteShapes::CommonPositions::ctrlInputX - 7,324);
 
     painter->drawImage(QPoint(249,300),
                        color == Qt::gray ? arrowLeftGray : arrowLeft);

@@ -31,6 +31,16 @@ bool ACPUModel::getExecutionFinished() const noexcept
     return executionFinished;
 }
 
+bool ACPUModel::getInSimulation() const noexcept
+{
+    return inSimulation;
+}
+
+bool ACPUModel::getInDebug() const noexcept
+{
+    return inDebug;
+}
+
 int ACPUModel::getCallDepth() const noexcept
 {
     return callDepth;

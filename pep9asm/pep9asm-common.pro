@@ -3,46 +3,52 @@
 #CONFIG += staticlib
 QT += webenginewidgets widgets printsupport concurrent
 INCLUDEPATH += $$PWD\..\pep9common
+VPATH += $$PWD\..\pep9common
 
-# Always prefix files with their fully qualified paths.
-# Otherwise, including projects can't find the files.
-
-
+# Issues occur when referencing source files from outside the current directory
+# In windows, files must use the fully qualified path in order to be found
+win32: {
+    SRC_PTH = $$PWD
+}
+# On Max OS X or Ubuntu, qmake will not function with fully qualified paths
+else: {
+    SRC_PTH = ""
+}
 FORMS += \
-    $$PWD\asmlistingpane.ui \
-    $$PWD\asmobjectcodepane.ui \
-    $$PWD\asmsourcecodepane.ui \
-	$$PWD\asmtracepane.ui \
-    $$PWD\memorytracepane.ui \
+    $$SRC_PTH asmlistingpane.ui \
+    $$SRC_PTH asmobjectcodepane.ui \
+    $$SRC_PTH asmsourcecodepane.ui \
+    $$SRC_PTH asmtracepane.ui \
+    $$SRC_PTH memorytracepane.ui \
 
 HEADERS += \
-    $$PWD\asmargument.h \
-    $$PWD\asmcode.h \
-    $$PWD\asmlistingpane.h \
-    $$PWD\asmobjectcodepane.h \
-    $$PWD\asmprogram.h \
-    $$PWD\asmprogrammanager.h \
-    $$PWD\asmsourcecodepane.h \
-	$$PWD\asmtracepane.h \
-    $$PWD\cpphighlighter.h \
-    $$PWD\isaasm.h \
-    $$PWD\memorycellgraphicsitem.h \
-    $$PWD\memorytracepane.h \
-    $$PWD\pepasmhighlighter.h \
-    $$PWD\stackframefsm.h \
+    $$SRC_PTH asmargument.h \
+    $$SRC_PTH asmcode.h \
+    $$SRC_PTH asmlistingpane.h \
+    $$SRC_PTH asmobjectcodepane.h \
+    $$SRC_PTH asmprogram.h \
+    $$SRC_PTH asmprogrammanager.h \
+    $$SRC_PTH asmsourcecodepane.h \
+    $$SRC_PTH asmtracepane.h \
+    $$SRC_PTH cpphighlighter.h \
+    $$SRC_PTH isaasm.h \
+    $$SRC_PTH memorycellgraphicsitem.h \
+    $$SRC_PTH memorytracepane.h \
+    $$SRC_PTH pepasmhighlighter.h \
+    $$SRC_PTH stackframefsm.h \
 
 SOURCES += \
-    $$PWD\asmargument.cpp \
-    $$PWD\asmcode.cpp \
-    $$PWD\asmlistingpane.cpp \
-    $$PWD\asmobjectcodepane.cpp \
-    $$PWD\asmprogram.cpp \
-    $$PWD\asmprogrammanager.cpp \
-    $$PWD\asmsourcecodepane.cpp \
-	$$PWD\asmtracepane.cpp \
-    $$PWD\cpphighlighter.cpp \
-    $$PWD\isaasm.cpp \
-    $$PWD\memorycellgraphicsitem.cpp \
-    $$PWD\memorytracepane.cpp \
-    $$PWD\pepasmhighlighter.cpp \
-    $$PWD\stackframefsm.cpp \
+    $$SRC_PTH asmargument.cpp \
+    $$SRC_PTH asmcode.cpp \
+    $$SRC_PTH asmlistingpane.cpp \
+    $$SRC_PTH asmobjectcodepane.cpp \
+    $$SRC_PTH asmprogram.cpp \
+    $$SRC_PTH asmprogrammanager.cpp \
+    $$SRC_PTH asmsourcecodepane.cpp \
+    $$SRC_PTH asmtracepane.cpp \
+    $$SRC_PTH cpphighlighter.cpp \
+    $$SRC_PTH isaasm.cpp \
+    $$SRC_PTH memorycellgraphicsitem.cpp \
+    $$SRC_PTH memorytracepane.cpp \
+    $$SRC_PTH pepasmhighlighter.cpp \
+    $$SRC_PTH stackframefsm.cpp \

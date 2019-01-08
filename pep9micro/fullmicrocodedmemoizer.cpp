@@ -6,6 +6,7 @@
 #include <QString>
 #include <QtCore>
 #include <QDebug>
+#include <QStack>
 const QString stackFrameEnter("%1\n===CALL===\n");
 const QString stackFrameLeave("%1\n===RET====\n");
 const QString trapEnter("%1\n===TRAP===\n");
@@ -81,7 +82,7 @@ void FullMicrocodedMemoizer::storeStateInstrEnd()
             firstLineAfterCall = true;
             activeStack->top() += 2;
             activeActions->push(stackAction::call);
-            qDebug() << "Called! " << activeStack->.top();
+            qDebug() << "Called! " << activeStack->top();
             break;
         case Enu::EMnemonic::RET:
             if(isTrapped) break;

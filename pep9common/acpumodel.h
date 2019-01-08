@@ -47,6 +47,9 @@ public:
     const AMemoryDevice* getMemoryDevice() const noexcept;
     void setMemoryDevice(QSharedPointer<AMemoryDevice> newDevice);
     bool getExecutionFinished() const noexcept;
+    bool getInSimulation() const noexcept;
+    bool getInDebug() const noexcept;
+
     // Return the depth of the call stack (#calls+#traps-#ret-#rettr)
     int getCallDepth() const noexcept;
 

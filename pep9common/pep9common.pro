@@ -3,76 +3,83 @@
 #CONFIG += staticlib
 QT += webenginewidgets widgets printsupport concurrent
 
-# Always prefix files with their fully qualified paths.
-# Otherwise, including projects can't find the files.
+# Issues occur when referencing source files from outside the current directory
+# In windows, files must use the fully qualified path in order to be found
+win32: {
+    SRC_PTH = $$PWD\
+}
+# On Max OS X or Ubuntu, qmake will not function with fully qualified paths
+else: {
+    SRC_PTH = ""
+}
 
 FORMS += \
-    $$PWD\aboutpep.ui \
-    $$PWD\byteconverterbin.ui \
-    $$PWD\byteconverterchar.ui \
-    $$PWD\byteconverterdec.ui \
-    $$PWD\byteconverterhex.ui \
-    $$PWD\byteconverterinstr.ui \
-    $$PWD\inputpane.ui \
-#   $$PWD\iodialog.ui \ #This widget has yet to be implemented
-    $$PWD\iowidget.ui \
-    $$PWD\memorydumppane.ui \
-    $$PWD\outputpane.ui \
-    $$PWD\terminalpane.ui \
+    $$SRC_PTH aboutpep.ui \
+    $$SRC_PTH byteconverterbin.ui \
+    $$SRC_PTH byteconverterchar.ui \
+    $$SRC_PTH byteconverterdec.ui \
+    $$SRC_PTH byteconverterhex.ui \
+    $$SRC_PTH byteconverterinstr.ui \
+    $$SRC_PTH inputpane.ui \
+#   $$SRC_PTH iodialog.ui \ #This widget has yet to be implemented
+    $$SRC_PTH iowidget.ui \
+    $$SRC_PTH memorydumppane.ui \
+    $$SRC_PTH outputpane.ui \
+    $$SRC_PTH terminalpane.ui \
 
 HEADERS += \
-    $$PWD\aboutpep.h \
-    $$PWD\acpumodel.h \
-    $$PWD\aisacpumodel.h \
-    $$PWD\amemorychip.h \
-    $$PWD\amemorydevice.h \
-    $$PWD\byteconverterbin.h \
-    $$PWD\byteconverterchar.h \
-    $$PWD\byteconverterdec.h \
-    $$PWD\byteconverterhex.h \
-    $$PWD\byteconverterinstr.h \
-    $$PWD\colors.h \
-    $$PWD\enu.h \
-    $$PWD\htmlhighlightermixin.h \
-    $$PWD\inputpane.h \
-    $$PWD\iowidget.h \
-    $$PWD\mainmemory.h \
-    $$PWD\memorychips.h \
-    $$PWD\memorydumppane.h \
-    $$PWD\outputpane.h \
-    $$PWD\pep.h \
-    $$PWD\symbolentry.h \
-    $$PWD\symboltable.h \
-    $$PWD\symbolvalue.h \
-    $$PWD\terminalpane.h \
-    $$PWD\updatechecker.h \
+    $$SRC_PTH aboutpep.h \
+    $$SRC_PTH acpumodel.h \
+    $$SRC_PTH aisacpumodel.h \
+    $$SRC_PTH amemorychip.h \
+    $$SRC_PTH amemorydevice.h \
+    $$SRC_PTH byteconverterbin.h \
+    $$SRC_PTH byteconverterchar.h \
+    $$SRC_PTH byteconverterdec.h \
+    $$SRC_PTH byteconverterhex.h \
+    $$SRC_PTH byteconverterinstr.h \
+    $$SRC_PTH colors.h \
+    $$SRC_PTH enu.h \
+    $$SRC_PTH htmlhighlightermixin.h \
+    $$SRC_PTH inputpane.h \
+    $$SRC_PTH iowidget.h \
+    $$SRC_PTH mainmemory.h \
+    $$SRC_PTH memorychips.h \
+    $$SRC_PTH memorydumppane.h \
+    $$SRC_PTH outputpane.h \
+    $$SRC_PTH pep.h \
+    $$SRC_PTH symbolentry.h \
+    $$SRC_PTH symboltable.h \
+    $$SRC_PTH symbolvalue.h \
+    $$SRC_PTH terminalpane.h \
+    $$SRC_PTH updatechecker.h \
 
 
 SOURCES += \
-    $$PWD\aboutpep.cpp \
-    $$PWD\acpumodel.cpp \
-    $$PWD\aisacpumodel.cpp \
-    $$PWD\amemorychip.cpp \
-    $$PWD\amemorydevice.cpp \
-    $$PWD\byteconverterbin.cpp \
-    $$PWD\byteconverterchar.cpp \
-    $$PWD\byteconverterdec.cpp \
-    $$PWD\byteconverterhex.cpp \
-    $$PWD\byteconverterinstr.cpp \
-    $$PWD\colors.cpp \
-    $$PWD\htmlhighlightermixin.cpp \
-    $$PWD\inputpane.cpp \
-    $$PWD\iowidget.cpp \
-    $$PWD\mainmemory.cpp \
-    $$PWD\memorychips.cpp \
-    $$PWD\memorydumppane.cpp \
-    $$PWD\outputpane.cpp \
-    $$PWD\pep.cpp \
-    $$PWD\symbolentry.cpp \
-    $$PWD\symboltable.cpp \
-    $$PWD\symbolvalue.cpp \
-    $$PWD\terminalpane.cpp \
-    $$PWD\updatechecker.cpp \
+    $$SRC_PTH aboutpep.cpp \
+    $$SRC_PTH acpumodel.cpp \
+    $$SRC_PTH aisacpumodel.cpp \
+    $$SRC_PTH amemorychip.cpp \
+    $$SRC_PTH amemorydevice.cpp \
+    $$SRC_PTH byteconverterbin.cpp \
+    $$SRC_PTH byteconverterchar.cpp \
+    $$SRC_PTH byteconverterdec.cpp \
+    $$SRC_PTH byteconverterhex.cpp \
+    $$SRC_PTH byteconverterinstr.cpp \
+    $$SRC_PTH colors.cpp \
+    $$SRC_PTH htmlhighlightermixin.cpp \
+    $$SRC_PTH inputpane.cpp \
+    $$SRC_PTH iowidget.cpp \
+    $$SRC_PTH mainmemory.cpp \
+    $$SRC_PTH memorychips.cpp \
+    $$SRC_PTH memorydumppane.cpp \
+    $$SRC_PTH outputpane.cpp \
+    $$SRC_PTH pep.cpp \
+    $$SRC_PTH symbolentry.cpp \
+    $$SRC_PTH symboltable.cpp \
+    $$SRC_PTH symbolvalue.cpp \
+    $$SRC_PTH terminalpane.cpp \
+    $$SRC_PTH updatechecker.cpp \
 
 
 

@@ -20,10 +20,6 @@ win32{
     QMAKE_LFLAGS_RELEASE +=/debug /opt:ref
 }
 QT += widgets webenginewidgets printsupport concurrent
-VPATH += $$PWD/../pep9common
-INCLUDEPATH += $$PWD/../pep9common
-INCLUDEPATH += $$PWD/../pep9asm
-INCLUDEPATH += $$PWD/../pep9cpu
 # Mac icon/plist
 ICON = images/icon.icns
 QMAKE_INFO_PLIST = app.plist
@@ -53,7 +49,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     fullmicrocodedcpu.cpp \
-    fullmicrocodedmemoizer.cpp
+    fullmicrocodedmemoizer.cpp \
 
 OTHER_FILES += help/images/registeraddresssignals.png \
     help/figures/exer1204.pepcpu \
@@ -92,6 +88,16 @@ DISTFILES += \
     help/osunalignedsymbols.txt \
     help/osunalignedsymbols.txt \
 
+INCLUDEPATH += $$PWD/../pep9common
+INCLUDEPATH += $$PWD/../pep9asm
+INCLUDEPATH += $$PWD/../pep9cpu
+
+#Include own directory in VPATH, otherwise qmake might accidentally import files with
+#the same name from other directories.
+VPATH += $$PWD
+VPATH += $$PWD/../pep9common
+VPATH += $$PWD/../pep9asm
+VPATH += $$PWD/../pep9cpu
 include(../pep9common/pep9common.pro)
 include(../pep9asm/pep9asm-common.pro)
 include(../pep9cpu/pep9cpu-common.pro)
