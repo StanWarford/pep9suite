@@ -126,13 +126,13 @@ private:
 
     void mouseReleaseEvent(QMouseEvent *) override;
 
-    void scrollToByte(quint16 byte);
+    void scrollToByte(quint16 address);
 
 private slots:
     void scrollToPC();
     void scrollToSP();
     void scrollToAddress(QString string);
-    void scrollToLine(int address);
+    void scrollToLine(int scrollBarValue);
 };
 
 /*

@@ -323,23 +323,31 @@ void MemoryDumpPane::mouseReleaseEvent(QMouseEvent *)
     ui->tableView->setFocus();
 }
 
-void MemoryDumpPane::scrollToByte(quint16 byte)
+void MemoryDumpPane::scrollToByte(quint16 address)
 {
     // Rows contain 8 bytes of memory.
     // The first column is an address, so the first byte in a row is in column one.
-    ui->tableView->scrollTo(data->index(byte/8, byte%8 + 1));
+    disconnect(ui->tableView->verticalScrollBar(), &QScrollBar::valueChanged, this, &MemoryDumpPane::scrollToLine);
+    ui->tableView->scrollTo(data->index(address/8, address%8 + 1), QAbstractItemView::ScrollHint::PositionAtTop);
+    connect(ui->tableView->verticalScrollBar(), &QScrollBar::valueChanged, this, &MemoryDumpPane::scrollToLine, Qt::UniqueConnection);
 }
 
 void MemoryDumpPane::scrollToPC()
 {
     quint16 value = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
-    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
+    // Separate 0x from rest of string, so that the x does not get capitalized.
+    QString str = "0x"+QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper();
+    ui->scrollToLineEdit->setText(str);
+    scrollToAddress(str);
 }
 
 void MemoryDumpPane::scrollToSP()
 {
     quint16 value = cpu->getCPURegWordCurrent(Enu::CPURegisters::SP);
-    ui->scrollToLineEdit->setText(QString("0x") + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
+    // Separate 0x from rest of string, so that the x does not get capitalized.
+    QString str = "0x"+QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper();
+    ui->scrollToLineEdit->setText(str);
+    scrollToAddress(str);
 }
 
 void MemoryDumpPane::scrollToAddress(QString string)
@@ -364,9 +372,16 @@ void MemoryDumpPane::scrollToAddress(QString string)
     }
 }
 
-void MemoryDumpPane::scrollToLine(int address)
+void MemoryDumpPane::scrollToLine(int /*scrollBarValue*/)
 {
-    ui->scrollToLineEdit->setText("0x"+QString("%1").arg(address*8, 4, 16, QChar('0')));
+    // The scrollbar value does not have an intuitive relation to
+    // topmost visible row in the table view.
+    // Calling rowAt(0) accounts for the view's movement through
+    // table data, and returns the index of the topmost visible row.
+    // Each row contains 8 bytes, so 8*index gives first byte of row
+    // Also, separate 0x from rest of string, so that the x does not get capitalized.
+   QString str = "0x"+QString("%1").arg(ui->tableView->rowAt(0)*8, 4, 16, QLatin1Char('0')).toUpper();
+    ui->scrollToLineEdit->setText(str);
 }
 
 MemoryDumpDelegate::MemoryDumpDelegate(QSharedPointer<MainMemory> memory, QObject *parent): QStyledItemDelegate(parent),
