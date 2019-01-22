@@ -23,9 +23,23 @@
 #define ASMPROGRAM_H
 #include <QtCore>
 #include <QSharedPointer>
-
+#include "enu.h"
+#include <ostream>
+class AType;
 class AsmCode;
+class SymbolEntry;
 class SymbolTable;
+
+// Contains meta-info about the formats and types of symbols in a program
+struct StaticTraceInfo
+{
+    // Did the static analysis find a trace error?
+    bool staticTraceError;
+#pragma message("TODO: Detect heapPtr and malloc")
+    // Associate a symbol with its rendering type
+    QMap<QSharedPointer<const SymbolEntry>, QSharedPointer<AType>> dynamicAllocSymbolTypes,
+    staticAllocSymbolTypes;
+};
 
 class AsmProgram
 {
@@ -64,20 +78,7 @@ private:
 
     bool burn;
     quint16 burnAddress, burnValue;
-
-    // Memory trace state
-    bool traceTagWarning;
-
-    // This map is used to map the program counter to the stringList of tags on the corresponding line
-    // For example, line corresponds to 0x12, and has the comment ; Allocate #next #data
-    // The stringlist would contain next and data
-    static QMap<quint16, QStringList> symbolTraceList;
-    // List of symbols for blocks and equates
-    QStringList blockSymbols, equateSymbols;
-    // This map is for global structs. The key is the symbol defined on the .BLOCK line
-    // and QStringList contains the list of symbols from the symbol tags in the .BLOCK comment.
-    static QMap<QString, QStringList> globalStructSymbols;
-
+    StaticTraceInfo info;
 };
 
 #endif // ASMPROGRAM_H

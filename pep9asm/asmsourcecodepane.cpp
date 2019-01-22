@@ -79,94 +79,33 @@ bool AsmSourceCodePane::assemble()
 {
     // Clean up any global state from previous compilation attempts
     removeErrorMessages();
-    IsaAsm::listOfReferencedSymbols.clear();
-    IsaAsm::listOfReferencedSymbolLineNums.clear();
     Pep::symbolFormat.clear();
     Pep::symbolFormatMultiplier.clear();
     addressToIndex.clear();
 
-    bool dotEndDetected = false, success = true;
-    QString sourceLine, errorString;
-    QStringList sourceCodeList;
-    AsmCode *code;
-    int lineNum = 0;
-    QList<QSharedPointer<AsmCode>> programList;
-
-    //Insert CharIn CharOut
-    QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
-    #pragma message ("handle input and output when not using BURN at FFFF")
-    quint16 chin, chout;
-    memDevice->getWord(0xFFF8, chin);
-    memDevice->getWord(0xFFFA, chout);
-    symTable->insertSymbol("charIn");
-    symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(chin));
-    symTable->insertSymbol("charOut");
-    symTable->setValue("charOut", QSharedPointer<SymbolValueNumeric>::create(chout));
     QString sourceCode = ui->textEdit->toPlainText();
-    sourceCodeList = sourceCode.split('\n');
-    int byteCount = 0;
-    // Contains information about the address of a .BURN, and the size of memory burned
-    BURNInfo info;
-    while (lineNum < sourceCodeList.size() && !dotEndDetected) {
-        sourceLine = sourceCodeList[lineNum];
-        bool hasBP = ui->textEdit->lineHasBreakpoint(lineNum);
-        if (!IsaAsm::processSourceLine(symTable.data(), info, byteCount, sourceLine, lineNum, code, errorString, dotEndDetected, hasBP)) {
-            appendMessageInSourceCodePaneAt(lineNum, errorString);
-            return false;
+    IsaAsm myAsm(memDevice, *programManager);
+    // List of errors and warnings and the lines on which they occured
+    auto elist = QList<QPair<int, QString>>();
+    bool success = myAsm.assembleUserProgram(sourceCode, currentProgram, elist);
+    // Add all warnings and errors to source files
+    for (QPair<int,QString> pair : elist) {
+        appendMessageInSourceCodePaneAt(pair.first, pair.second);
+    }
+    // If assemble failed, don't perform any more work
+    if(!success) {
+        return false;
+    }
+    AsmProgramManager::getInstance()->setUserProgram(currentProgram);
+    for (int i = 0; i < currentProgram->getProgram().size(); i++) {
+        if(currentProgram->getProgram()[i]->getMemoryAddress() >=0) {
+            addressToIndex[currentProgram->getProgram()[i]->getMemoryAddress()] = i;
         }
-        programList.append(QSharedPointer<AsmCode>(code));
-        lineNum++;
-    }
-    // Perfom whole program error checking
-    // Prefer to return after performing all error checks, to save
-    // the user from having to compile many times
-    // Error where no .END occured
-    if (!dotEndDetected) {
-        errorString = ";ERROR: Missing .END sentinel.";
-        appendMessageInSourceCodePaneAt(0, errorString);
-        success = false;
-    }
-    // Error where there the program is larger than memory
-    else if (byteCount > 65535) {
-        errorString = ";ERROR: Object code size too large to fit into memory.";
-        appendMessageInSourceCodePaneAt(0, errorString);
-        success = false;
-    }
-    // Error where an insturction use an undefined symbolic operand
-    else if(symTable->numUndefinedSymbols() > 0) {
-        // Search through the program to find which instructions' operand references an undefined symbol
-        for(int it = 0; it < programList.length(); it++) {
-            if(programList[it]->hasSymbolicOperand() && programList[it]->getSymbolicOperand()->isUndefined()) {
-                QString errorString =  QString(";ERROR: Symbol \"%1\" is undefined.").arg(programList[it]->getSymbolicOperand()->getName());
-                appendMessageInSourceCodePaneAt(it, errorString);
-            }
+        if(ui->textEdit->lineHasBreakpoint(i)) {
+            currentProgram->getProgram()[i]->setBreakpoint(true);
         }
-        success = false;
     }
-
-
-#pragma message("Memory trace needs some work")
-    SymbolListings listings;
-    // Detect all trace tags
-    for (int i = 0; i < programList.size(); i++) {
-        if (!programList[i]->processFormatTraceTags(lineNum, errorString, listings)) {
-            appendMessageInSourceCodePaneAt(i, errorString);
-        }
-        if(programList[i]->getMemoryAddress() >=0) addressToIndex[programList[i]->getMemoryAddress()] = i;
-    }
-    /*if (!Pep::traceTagWarning && !(Pep::blockSymbols.isEmpty() && Pep::equateSymbols.isEmpty())) {
-        for (int i = 0; i < programList.size(); i++) {
-            if (!programList[i]->processSymbolTraceTags(lineNum, errorString, listings)) {
-                appendMessageInSourceCodePaneAt(lineNum, errorString);
-            }
-        }
-    }*/
-    // If compilation occured successfully, then wrap the program list and symbol table into a program
-    if(success) {
-        currentProgram = QSharedPointer<AsmProgram>::create(programList, symTable);
-        programManager->setUserProgram(currentProgram);
-    }
-    return success;
+    return true;
 }
 
 QList<int> AsmSourceCodePane::getObjectCode()
@@ -187,79 +126,31 @@ QStringList AsmSourceCodePane::getAssemblerListingList()
     return assemblerListingList;
 }
 
-void AsmSourceCodePane::adjustCodeList(QList<QSharedPointer<AsmCode>>& codeList, int addressDelta)
-{
-    for (int i = 0; i < codeList.length(); i++) {
-        codeList[i]->adjustMemAddress(addressDelta);
-    }
-}
-
 bool AsmSourceCodePane::assembleDefaultOs()
 {
     QString sourceCode = Pep::resToString(":/help/figures/pep9os.pep");
-    QStringList sourceCodeList = sourceCode.split('\n');
-    return assembleOS(sourceCodeList);
+    return assembleOS(sourceCode);
 }
 
-bool AsmSourceCodePane::assembleOS(QStringList fileLines)
+bool AsmSourceCodePane::assembleOS(const QString& sourceCode)
 {
-    QString sourceLine;
-    QString errorString;
-    AsmCode *code;
-    int lineNum = 0;
-    bool dotEndDetected = false, success = true;
-
-    IsaAsm::listOfReferencedSymbols.clear();
-    QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
-    QList<QSharedPointer<AsmCode>> codeList;
-    int byteCount = 0;
-    BURNInfo info;
-    while (lineNum < fileLines.size() && !dotEndDetected) {
-        sourceLine = fileLines[lineNum];
-        if (!IsaAsm::processSourceLine(symTable.data(), info, byteCount, sourceLine, lineNum, code, errorString, dotEndDetected)) {
-            return false;
-        }
-        codeList.append(QSharedPointer<AsmCode>(code));
-        lineNum++;
+    QSharedPointer<AsmProgram> prog;
+    IsaAsm myAsm(memDevice, *programManager);
+    // List of errors and warnings and the lines on which they occured
+    auto elist = QList<QPair<int, QString>>();
+    bool success = myAsm.assembleOperatingSystem(sourceCode, prog, elist);
+    // Add all warnings and errors to source files
+    for (QPair<int,QString> pair : elist) {
+        appendMessageInSourceCodePaneAt(pair.first, pair.second);
     }
-
-    // Perfom whole program error checking
-    // Prefer to return after performing all error checks, to save
-    // the user from having to compile many times
-    // Error where no .END occured
-    if (!dotEndDetected) {
-        success = false;
+    // If assemble failed, don't perform any more work
+    if(!success) {
+        return false;
     }
-    // Error where there the program is larger than memory
-    else if (byteCount > 65535) {
-        success = false;
+    for (int i = 0; i < prog->getProgram().size(); i++) {
+        if(prog->getProgram()[i]->getMemoryAddress() >=0) addressToIndex[prog->getProgram()[i]->getMemoryAddress()] = i;
     }
-    // Error where an insturction use an undefined symbolic operand
-    else if(symTable->numUndefinedSymbols() > 0) {
-        // Search through the program to find which instructions' operand references an undefined symbol
-        for(int it = 0; it < codeList.length(); it++) {
-            if(codeList[it]->hasSymbolicOperand() && codeList[it]->getSymbolicOperand()->isUndefined()) {
-            }
-        }
-        success = false;
-    }
-    else if (info.burnCount != 1) {
-        success = false;
-    }
-    if(!success) return false;
-    for(int it = 0; it < codeList.size(); it++) {
-        if(codeList[it]->getMemoryAddress() < info.burnAddress) {
-            codeList[it]->setEmitObjectCode(false);
-        }
-    }
-
-    // Adjust for .BURN
-    int addressDelta = info.burnValue - byteCount + 1;
-    info.startROMAddress = info.burnValue - (byteCount - info.burnAddress) +1;
-    adjustCodeList(codeList, addressDelta);
-    currentProgram = QSharedPointer<AsmProgram>::create(codeList, symTable, info.startROMAddress, info.burnValue);
-    symTable->setOffset(addressDelta);
-    programManager->setOperatingSystem(currentProgram);
+    programManager->setOperatingSystem(prog);
     return true;
 }
 
@@ -267,13 +158,13 @@ void AsmSourceCodePane::removeErrorMessages()
 {
     QTextCursor cursor(ui->textEdit->document()->find(";ERROR:"));
     while (!cursor.isNull()) {
-        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+        cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
         cursor.removeSelectedText();
         cursor = ui->textEdit->document()->find(";ERROR:", cursor);
     }
     cursor = ui->textEdit->document()->find(";WARNING:");
     while (!cursor.isNull()) {
-        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+        cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
         cursor.removeSelectedText();
         cursor = ui->textEdit->document()->find(";WARNING:", cursor);
     }

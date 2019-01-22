@@ -60,7 +60,7 @@ private:
     DefStates definedState;
     // Non-owning pointer to parent. DO NOT DELETE.
     SymbolTable* parent;
-     SymbolFormat _format;
+    SymbolFormat _format;
 public:
     //Default constructor, assumes value is SymbolEmpty
     SymbolEntry(SymbolTable* parent, SymbolTable::SymbolID symbolID, QString name);
@@ -80,10 +80,9 @@ public:
     qint32 getValue() const;
     //Returns the internal data pointer, in case one wishes to access its other methods
     SymbolTable::AbstractSymbolValuePtr getRawValue();
-    void setSymbolFormat(SymbolFormat format);
-    const SymbolFormat& getSymbolFormat() const;
-
-
-
 };
 
+QDebug operator<<(QDebug os, SymbolEntry&);
+QDebug operator<<(QDebug os, const SymbolEntry&);
+QDebug operator<<(QDebug os, const QSharedPointer<SymbolEntry>&);
+QDebug operator<<(QDebug os, const QSharedPointer<const SymbolEntry>&);

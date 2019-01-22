@@ -106,7 +106,7 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
     ui->tableView->setUpdatesEnabled(false);
     // Use <= comparison, so when firstLine == lastLine that the line is stil refreshed
     for(int row = firstLine; row <= lastLine; row++) {
-        memoryDumpLine .clear();
+        memoryDumpLine.clear();
         for(int col = 0; col < 8; col++) {
             // Use the data in the memory section to set the value in the model.
             memDevice->getByte(static_cast<quint16>(row*8 + col), tempData);
@@ -190,6 +190,8 @@ void MemoryDumpPane::updateMemory()
     QSet<quint16> linesToBeUpdated;
     // Don't clear the memDevice's written / set bytes, since other UI components might
     // need access to them.
+    // However, must clear the local cache of modified bytes, or there is the potential to over-highlight.
+    modifiedBytes.clear();
     modifiedBytes.unite(memDevice->getBytesSet());
     modifiedBytes.unite(memDevice->getBytesWritten());
     lastModifiedBytes = memDevice->getBytesWritten();

@@ -39,16 +39,21 @@ class AsmProgramManager: public QObject
 public:
 
     static AsmProgramManager* getInstance();
+    // Get or set operating system code
     QSharedPointer<AsmProgram> getOperatingSystem();
-    QSharedPointer<AsmProgram> getUserProgram();
     QSharedPointer<const AsmProgram> getOperatingSystem() const;
-    QSharedPointer<const AsmProgram> getUserProgram() const;
     void setOperatingSystem(QSharedPointer<AsmProgram> prog);
+
+    // Get or set user program
+    QSharedPointer<AsmProgram> getUserProgram();
+    QSharedPointer<const AsmProgram> getUserProgram() const;
     void setUserProgram(QSharedPointer<AsmProgram> prog);
-    const AsmProgram* getProgramAtPC() const;
-    AsmProgram* getProgramAtPC();
+
+    // Return the program that contains the address
     const AsmProgram* getProgramAt(quint16 address) const;
     AsmProgram* getProgramAt(quint16 address);
+
+    // Return all breakpoints for the program counter
     QSet<quint16> getBreakpoints() const;
 public slots:
     void onBreakpointAdded(quint16 address);

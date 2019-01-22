@@ -841,7 +841,7 @@ void MainWindow::loadOperatingSystem()
     QFile osFile(osFileString);
     if(programManager->getOperatingSystem() == nullptr) {
         if(osFile.open(QFile::ReadOnly)) {
-            QStringList ls = QString(osFile.readAll()).split("\n");
+            QString ls = QString(osFile.readAll());
             osFile.close();
             ui->AsmSourceCodeWidgetPane->assembleOS(ls);
         }

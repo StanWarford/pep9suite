@@ -30,7 +30,8 @@
 #pragma message("TODO: The functions requesting object code must manuall check for burn count & memaddress of burn")
 // appendObjectCode
 
-AsmCode::AsmCode(): sourceCodeLine(0), memAddress(0), symbolEntry(QSharedPointer<SymbolEntry>()), comment(), emitObjectCode(true)
+AsmCode::AsmCode(): sourceCodeLine(0), memAddress(0), symbolEntry(QSharedPointer<SymbolEntry>()), comment(),
+    emitObjectCode(true), hasCom(false)
 {
 
 }
@@ -43,6 +44,16 @@ void AsmCode::setEmitObjectCode(bool emitObject)
 bool AsmCode::getEmitObjectCode() const
 {
     return emitObjectCode;
+}
+
+bool AsmCode::hasComment() const
+{
+    return hasCom;
+}
+
+QString AsmCode::getComment() const
+{
+    return comment;
 }
 
 void AsmCode::adjustMemAddress(int addressDelta)
@@ -97,7 +108,7 @@ void DotAscii::appendObjectCode(QList<int> &objectCode) const
         str.remove(0, 1); // Remove the leftmost double quote.
         str.chop(1); // Remove the rightmost double quote.
         while (str.length() > 0) {
-            IsaAsm::unquotedStringToInt(str, value);
+            IsaParserHelper::unquotedStringToInt(str, value);
             objectCode.append(value);
         }
 }
@@ -149,7 +160,7 @@ void DotBlock::appendSourceLine(QStringList &assemblerListingList) const
     assemblerListingList.append(getAssemblerListing().split("\n"));
 }
 
-bool DotBlock::processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing)  {
+/*bool DotBlock::processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing)  {
     if (symbolEntry.isNull()) {
         return true;
     }
@@ -304,7 +315,8 @@ bool NonUnaryInstruction::processSymbolTraceTags(int &sourceLine, QString &error
     else {
         return true;
     }
-}
+    return true;
+}*/
 
 bool UnaryInstruction::hasBreakpoint() const
 {
@@ -334,6 +346,11 @@ bool NonUnaryInstruction::hasSymbolicOperand() const
 QSharedPointer<const SymbolEntry> NonUnaryInstruction::getSymbolicOperand() const
 {
     return dynamic_cast<SymbolRefArgument*>(argument)->getSymbolValue();
+}
+
+Enu::EMnemonic NonUnaryInstruction::getMnemonic() const
+{
+    return mnemonic;
 }
 
 QString UnaryInstruction::getAssemblerListing() const
@@ -475,7 +492,7 @@ QString DotAscii::getAssemblerListing() const
     // Potentially skip codegen
     QString codeStr = "";
     while (emitObjectCode && (str.length() > 0) && (codeStr.length() < 6)) {
-        IsaAsm::unquotedStringToInt(str, value);
+        IsaParserHelper::unquotedStringToInt(str, value);
         codeStr.append(QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
     }
 
@@ -495,7 +512,7 @@ QString DotAscii::getAssemblerListing() const
     while (str.length() > 0) {
         codeStr = "";
         while ((str.length() > 0) && (codeStr.length() < 6)) {
-            IsaAsm::unquotedStringToInt(str, value);
+            IsaParserHelper::unquotedStringToInt(str, value);
             codeStr.append(QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
         }
         lineStr.append(QString("      %1").arg(codeStr, -7, QLatin1Char(' '))%"\n");

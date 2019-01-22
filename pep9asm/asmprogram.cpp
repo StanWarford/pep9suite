@@ -1,6 +1,7 @@
 #include "asmprogram.h"
 #include "asmcode.h"
 #include "symboltable.h"
+#include "symbolentry.h"
 AsmProgram::AsmProgram(): program(), indexToMemAddress(), memAddressToIndex(), symTable(QSharedPointer<SymbolTable>(new SymbolTable())),
    burn(false), burnAddress(0), burnValue(0)
 {

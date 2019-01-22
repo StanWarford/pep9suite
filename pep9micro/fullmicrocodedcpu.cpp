@@ -246,6 +246,11 @@ void FullMicrocodedCPU::onMCStep()
         // Also store any other values needed for detailed statistics
         memoizer->storeStateInstrStart();
         memory->onCycleStarted();
+        // Must clear the written bytes each cycle
+        // or over the course of a program lifetime extraneous bytes
+        // could be selected.
+        // Clear at start, so as to preserve highlighting AFTER finshing a write.
+        memory->clearBytesWritten();
     }
 
     // Do step logic

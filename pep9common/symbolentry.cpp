@@ -86,12 +86,23 @@ SymbolTable::AbstractSymbolValuePtr SymbolEntry::getRawValue()
     return symbolValue;
 }
 
-void SymbolEntry::setSymbolFormat(SymbolFormat format)
+QDebug operator<<(QDebug os, SymbolEntry& ent)
 {
-    _format = std::move(format);
+    return os.noquote() << QString("symbol: %1")
+          .arg(ent.getName());
 }
-
-const SymbolFormat &SymbolEntry::getSymbolFormat() const
+QDebug operator<<(QDebug os, const SymbolEntry& ent)
 {
-    return _format;
+    return os.noquote() << QString("symbol: %1")
+          .arg(ent.getName());
+}
+QDebug operator<<(QDebug os, const QSharedPointer<SymbolEntry>& ent)
+{
+    return os.noquote() << QString("symbol: %1")
+          .arg(ent->getName());
+}
+QDebug operator<<(QDebug os, const QSharedPointer<const SymbolEntry>& ent)
+{
+    return os.noquote() << QString("symbol: %1")
+          .arg(ent->getName());
 }

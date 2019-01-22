@@ -44,18 +44,6 @@ void AsmProgramManager::setUserProgram(QSharedPointer<AsmProgram>prog)
     userProgram = prog;
 }
 
-const AsmProgram *AsmProgramManager::getProgramAtPC() const
-{
-#pragma message ("calculate PC")
-    return getProgramAt(0);
-}
-
-AsmProgram *AsmProgramManager::getProgramAtPC()
-{
-#pragma message ("calculate PC")
-    return getProgramAt(0);
-}
-
 AsmProgram *AsmProgramManager::getProgramAt(quint16 address)
 {
     if(!userProgram.isNull()) {

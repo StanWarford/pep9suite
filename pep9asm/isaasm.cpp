@@ -21,113 +21,1278 @@
 #include "isaasm.h"
 #include "asmargument.h"
 #include "asmcode.h"
+#include "asmprogram.h"
+#include "asmprogrammanager.h"
+#include "mainmemory.h"
 #include "symboltable.h"
 #include "symbolentry.h"
 #include "symbolvalue.h"
+#include "typetags.h"
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
 // Regular expressions for lexical analysis
-QRegExp IsaAsm::rxAddrMode("^((,)(\\s*)(i|d|x|n|s(?![fx])|sx(?![f])|sf|sfx){1}){1}");
-QRegExp IsaAsm::rxCharConst("^((\')(?![\'])(([^\'\\\\]){1}|((\\\\)([\'|b|f|n|r|t|v|\"|\\\\]))|((\\\\)(([x|X])([0-9|A-F|a-f]{2}))))(\'))");
-QRegExp IsaAsm::rxComment("^((;{1})(.)*)");
-QRegExp IsaAsm::rxDecConst("^((([+|-]{0,1})([0-9]+))|^(([1-9])([0-9]*)))");
-QRegExp IsaAsm::rxDotCommand("^((.)(([A-Z|a-z]{1})(\\w)*))");
-QRegExp IsaAsm::rxHexConst("^((0(?![x|X]))|((0)([x|X])([0-9|A-F|a-f])+)|((0)([0-9]+)))");
-QRegExp IsaAsm::rxIdentifier("^((([A-Z|a-z|_]{1})(\\w*))(:){0,1})");
-QRegExp IsaAsm::rxStringConst("^((\")((([^\"\\\\])|((\\\\)([\'|b|f|n|r|t|v|\"|\\\\]))|((\\\\)(([x|X])([0-9|A-F|a-f]{2}))))*)(\"))");
+QRegExp IsaParserHelper::rxAddrMode("^((,)(\\s*)(i|d|x|n|s(?![fx])|sx(?![f])|sf|sfx){1}){1}");
+QRegExp IsaParserHelper::rxCharConst("^((\')(?![\'])(([^\'\\\\]){1}|((\\\\)([\'|b|f|n|r|t|v|\"|\\\\]))|((\\\\)(([x|X])([0-9|A-F|a-f]{2}))))(\'))");
+QRegExp IsaParserHelper::rxComment("^((;{1})(.)*)");
+QRegExp IsaParserHelper::rxDecConst("^((([+|-]{0,1})([0-9]+))|^(([1-9])([0-9]*)))");
+QRegExp IsaParserHelper::rxDotCommand("^((.)(([A-Z|a-z]{1})(\\w)*))");
+QRegExp IsaParserHelper::rxHexConst("^((0(?![x|X]))|((0)([x|X])([0-9|A-F|a-f])+)|((0)([0-9]+)))");
+QRegExp IsaParserHelper::rxIdentifier("^((([A-Z|a-z|_]{1})(\\w*))(:){0,1})");
+QRegExp IsaParserHelper::rxStringConst("^((\")((([^\"\\\\])|((\\\\)([\'|b|f|n|r|t|v|\"|\\\\]))|((\\\\)(([x|X])([0-9|A-F|a-f]{2}))))*)(\"))");
 
 // Regular expressions for trace tag analysis
-QRegExp IsaAsm::rxFormatTag("(#((1c)|(1d)|(1h)|(2d)|(2h))((\\d)+a)?(\\s|$))");
-QRegExp IsaAsm::rxSymbolTag("#([a-zA-Z][a-zA-Z0-9]{0,7})");
-QRegExp IsaAsm::rxArrayMultiplier("((\\d)+)a");
+QRegExp IsaParserHelper::rxFormatTag("(#((1c)|(1d)|(1h)|(2d)|(2h))((\\d)+a)?(\\s|$))");
+QRegExp IsaParserHelper::rxArrayTag("(#((1c)|(1d)|(1h)|(2d)|(2h))(\\d)+a)(\\s|$)?");
+QRegExp IsaParserHelper::rxSymbolTag("#[a-zA-Z][a-zA-Z0-9]{0,7}");
+QRegExp IsaParserHelper::rxArrayMultiplier("((\\d)+)a");
 
-bool IsaAsm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenString)
+// Formats for trace tag error messages
+const QString bytesAllocMismatch = ";WARNING: Number of bytes allocated (%1) not equal to number of bytes listed in trace tag (%2).";
+const QString badTag = ";WARNING: %1 not specified in .EQUATE";
+const QString neSymbol(";WARNING: Looked up a symbol that does not exist: %1");
+const QString noEquate(";WARNING: Looked for existing symbol not defined in .EQUATE: %1");
+
+IsaAsm::IsaAsm(QSharedPointer<MainMemory> memDevice, AsmProgramManager &manager): memDevice(memDevice),
+manager(manager)
+{
+
+}
+
+IsaAsm::~IsaAsm()
+{
+
+}
+
+bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProgram> &progOut, QList<QPair<int, QString> > &errList)
+{
+    bool dotEndDetected = false, success = true;
+    QString sourceLine, errorString;
+    QStringList sourceCodeList = progText.split("\n");
+    AsmCode *code;
+    int lineNum = 0;
+    QList<QSharedPointer<AsmCode>> programList;
+
+    //Insert CharIn CharOut
+    QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
+    #pragma message ("handle input and output when not using BURN at FFFF")
+    quint16 chin, chout;
+    memDevice->getWord(0xFFF8, chin);
+    memDevice->getWord(0xFFFA, chout);
+    symTable->insertSymbol("charIn");
+    symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(chin));
+    symTable->insertSymbol("charOut");
+    symTable->setValue("charOut", QSharedPointer<SymbolValueNumeric>::create(chout));
+    int byteCount = 0;
+    // Contains information about the address of a .BURN, and the size of memory burned
+    BURNInfo info;
+    StaticTraceInfo traceInfo;
+    while (lineNum < sourceCodeList.size() && !dotEndDetected) {
+        sourceLine = sourceCodeList[lineNum];
+        if (!IsaAsm::processSourceLine(symTable.data(), info, traceInfo, byteCount,
+                                       sourceLine, lineNum, code,
+                                       errorString, dotEndDetected)) {
+            errList.append(QPair<int,QString>{lineNum, errorString});
+            return false;
+        }
+        programList.append(QSharedPointer<AsmCode>(code));
+        lineNum++;
+    }
+    // Perform whole program error checking
+    // Prefer to return after performing all error checks, to save
+    // the user from having to compile many times
+    // Error where no .END occured
+    if (!dotEndDetected) {
+        errorString = ";ERROR: Missing .END sentinel.";
+        errList.append(QPair<int,QString>{0, errorString});
+        success = false;
+    }
+    // Error where there the program is larger than memory
+    else if (byteCount > 65535) {
+        errorString = ";ERROR: Object code size too large to fit into memory.";
+        errList.append(QPair<int,QString>{0, errorString});
+        success = false;
+    }
+    // Error where an insturction use an undefined symbolic operand
+    else if(symTable->numUndefinedSymbols() > 0) {
+        // Search through the program to find which instructions' operand references an undefined symbol
+        for(int it = 0; it < programList.length(); it++) {
+            if(programList[it]->hasSymbolicOperand() && programList[it]->getSymbolicOperand()->isUndefined()) {
+                QString errorString =  QString(";ERROR: Symbol \"%1\" is undefined.").arg(programList[it]->getSymbolicOperand()->getName());
+                errList.append(QPair<int,QString>{it, errorString});
+            }
+        }
+        success = false;
+    }
+    progOut = QSharedPointer<AsmProgram>::create(programList, symTable);
+    handleTraceTags(*symTable.get(), traceInfo, programList, errList);
+    // Perform trace tag checks
+    // Otherwise construct the list of lines and the symbols they manipulate.
+    //      and attempt to balance pushes & pops.
+#pragma message("Memory trace needs some work")
+    manager.setUserProgram(progOut);
+    return success;
+}
+
+bool IsaAsm::assembleOperatingSystem(const QString &progText, QSharedPointer<AsmProgram> &progOut, QList<QPair<int, QString> > &errList)
+{
+    QStringList fileLines = progText.split("\n");
+    QString sourceLine;
+    QString errorString;
+    AsmCode *code;
+    int lineNum = 0;
+    bool dotEndDetected = false, success = true;
+
+    QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
+    QList<QSharedPointer<AsmCode>> codeList;
+    int byteCount = 0;
+    BURNInfo info;
+    StaticTraceInfo traceInfo;
+    while (lineNum < fileLines.size() && !dotEndDetected) {
+        sourceLine = fileLines[lineNum];
+        if (!IsaAsm::processSourceLine(symTable.data(), info, traceInfo,
+                                       byteCount, sourceLine, lineNum,
+                                       code, errorString, dotEndDetected)) {
+            return false;
+        }
+        codeList.append(QSharedPointer<AsmCode>(code));
+        lineNum++;
+    }
+
+    // Perform whole program error checking
+    // Prefer to return after performing all error checks, to save
+    // the user from having to compile many times
+    // Error where no .END occured
+    if (!dotEndDetected) {
+        success = false;
+    }
+    // Error where there the program is larger than memory
+    else if (byteCount > 65535) {
+        success = false;
+    }
+    // Error where an insturction use an undefined symbolic operand
+    else if(symTable->numUndefinedSymbols() > 0) {
+        // Search through the program to find which instructions' operand references an undefined symbol
+        for(int it = 0; it < codeList.length(); it++) {
+            if(codeList[it]->hasSymbolicOperand() && codeList[it]->getSymbolicOperand()->isUndefined()) {
+            }
+        }
+        success = false;
+    }
+    else if (info.burnCount != 1) {
+        success = false;
+    }
+    if(!success) return false;
+    for(int it = 0; it < codeList.size(); it++) {
+        if(codeList[it]->getMemoryAddress() < info.burnAddress) {
+            codeList[it]->setEmitObjectCode(false);
+        }
+    }
+
+    // Adjust for .BURN
+    int addressDelta = info.burnValue - byteCount + 1;
+    info.startROMAddress = info.burnValue - (byteCount - info.burnAddress) +1;
+    relocateCode(codeList, addressDelta);
+    progOut = QSharedPointer<AsmProgram>::create(codeList, symTable, info.startROMAddress, info.burnValue);
+    symTable->setOffset(addressDelta);
+    manager.setOperatingSystem(progOut);
+    return true;
+}
+
+QPair<QSharedPointer<StructType>,QString> IsaAsm::parseStruct(const SymbolTable& symTable,QString name,
+                                               QStringList symbols, StaticTraceInfo &traceInfo)
+{
+    // If there is no symbol associated with the struct-to-be, then assembly should fail
+    if(!symTable.exists(name)) return {nullptr, neSymbol.arg(name)};
+    else {
+        auto namePtr = symTable.getValue(name);
+        QList<QSharedPointer<AType>> structList;
+        // For every symbol tag in the tag list
+        for(auto string: symbols) {
+            // If there is no symbol by that name, error
+            if(!symTable.exists(string)) {
+                traceInfo.staticTraceError = true;
+                return {nullptr, neSymbol.arg(string)};
+            }
+            // If there is no non-static storage space associated with that symbol
+            // then it cannot appear in a struct. So error.
+            else if(!traceInfo.dynamicAllocSymbolTypes.contains(symTable.getValue(string))) {
+                traceInfo.staticTraceError = true;
+                return {nullptr, noEquate.arg(string)};
+            }
+            else structList.append(traceInfo.dynamicAllocSymbolTypes[symTable.getValue(string)]);
+        }
+        // Otherwise create the struct, and return no error message
+        return {QSharedPointer<StructType>::create(namePtr, structList),""};
+    }
+}
+
+void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& traceInfo,
+                             QList<QSharedPointer<AsmCode>>& programList, QList<QPair<int, QString>> &errList)
+{
+    // Extract the list of lines that have remaing trace tags
+    QList<QPair<int,QSharedPointer<AsmCode>>> structs, allocs;
+    int lineIt = 0;
+    for(auto line : programList) {
+        // If a line doesn't have a comment or a #, it can't be a trace tag;
+        if(!line->hasComment() || !hasSymbolTag(line->getComment()));
+        else {
+            // If a line has symbol tags and is *NOT* a non-unary instruction,
+            // then it must be an attempt at a symbol declaration
+            if(hasSymbolTag(line->getComment())
+                    && dynamic_cast<NonUnaryInstruction*>(line.get()) == nullptr) {
+                structs.append({lineIt,line});
+            }
+            // Otherwise it is most likely an SUBSP or ADDSP
+#pragma message("TODO: add additional error checking on type tags")
+            else {
+                allocs.append({lineIt,line});
+            }
+        }
+        lineIt++;
+    }
+
+    // Construct struct definitions
+    /*
+     * Every iteration, attempt to define all presumed structs in the struct list.
+     * If a struct can be defined this iteration, remove it from struct. If it can't be parsed,
+     * leave it in the list.
+     *
+     * Since structs camn be definde in terms of each other, it is not sufficent to loop through the list 1 time.
+     * To avoid gettign stuck in the infinite loop of struct "A{ B item;}; struct B{ A item;};",
+     * check that the length of structs shortens every pass through.
+     * If there is ever a pass where it does not shorten, then there is a recursively defined struct.
+     * Looping should be stopped, and errors should be emited.
+     *
+     */
+    int lastLen;
+    do {
+        lastLen = structs.length();
+        for(QMutableListIterator it(structs); it.hasNext();) {
+            auto line = it.next();
+            auto strDefs = extractTagList(line.second->getComment());
+            // Attempt to parse the struct definition given previously defined primitives,
+            // arrays, and structs. Will return non-null first if successful, or nullptr and
+            // error if unsucessful.
+            auto rVal = parseStruct(symTable, line.second->getSymbolEntry()->getName(), strDefs, traceInfo);
+            // If parseStruct didn't null, it could sucessfully parse the tag,
+            // so do remove it from the list of things todo.
+            if(!rVal.first.isNull()) {
+                it.remove();
+            }
+            // Otherwise continue working on the rest of the entries in the list
+            else {
+                // Don't do anything with the error message now, since additional repetitions of the
+                // loop might successfully define complicated structs.
+                continue;
+            }
+            // Global structs - static allocated
+            if(dynamic_cast<DotBlock*>(line.second.get()) != nullptr) {
+                DotBlock* instr = dynamic_cast<DotBlock*>(line.second.get());
+                // Check that the allocated size of a global struct is the same size as the type tag
+                if(instr->argument->getArgumentValue() != rVal.first->size()) {
+                    traceInfo.staticTraceError = true;
+                    errList.append({line.first, bytesAllocMismatch
+                                    .arg(instr->argument->getArgumentValue())
+                                    .arg(rVal.first->size())});
+                }
+                else {
+                    traceInfo.staticAllocSymbolTypes.insert(line.second->getSymbolEntry(), rVal.first);
+                }
+            }
+            // Dynamic structs - stack or heap allocated
+            else {
+                traceInfo.dynamicAllocSymbolTypes.insert(line.second->getSymbolEntry(), rVal.first);
+            }
+        }
+    } while(structs.length() != lastLen);
+
+    /* If a struct definition could not be parsed, there was an error.
+    * So, use the parseStruct method to return the exact error message, and append it to the
+    * offending line.
+    */
+    if(structs.length() != 0) {
+        for(auto line : structs) {
+            auto strDefs = extractTagList(line.second->getComment());
+            auto ret = parseStruct(symTable, line.second->getSymbolEntry()->getName(), strDefs, traceInfo);
+            errList.append({line.first, ret.second});
+        }
+    }
+
+    // Handle lines with instructions such as ADDSP, SUBSP
+    for(auto line: allocs) {
+        // Used to force a continue on the outer loop from an inner loop
+        bool forceContinue = false;
+        if(dynamic_cast<NonUnaryInstruction*>(line.second.get()) != nullptr) {
+            NonUnaryInstruction *instr = static_cast<NonUnaryInstruction*>(line.second.get());
+            QStringList texts = extractTagList(line.second->getComment());
+            QList<QSharedPointer<AType>> lineTypes;
+            for(auto tag : texts) {
+                if(!symTable.exists(tag)) {
+                    errList.append({line.first, badTag.arg(tag)});
+                    // The rest of the checks on a ADDSP or SUBSP are meaningless
+                    // if the tag list contains bad entries, so give up.
+                    traceInfo.staticTraceError = true;
+                    forceContinue = true;
+                    continue;
+                }
+                auto symPtr = symTable.getValue(tag);
+                if(!traceInfo.dynamicAllocSymbolTypes.contains(symPtr)) {
+                    errList.append({line.first, badTag.arg(tag)});
+                    // The rest of the checks on a ADDSP or SUBSP are meaningless
+                    // if the tag list contains bad entries, so give up.
+                    traceInfo.staticTraceError = true;
+                    forceContinue = true;
+                    continue;
+                }
+                else {
+                    lineTypes.append(traceInfo.dynamicAllocSymbolTypes[symPtr]);
+                }
+            }
+        if(forceContinue) continue;
+            // Calculate the number of bytes listed in the trace tags
+            quint16 size  = 0;
+            for(auto tag : lineTypes) {
+                size += tag->size();
+            }
+            // On lines where trace tags have significance, verify that the argument is equal to
+            switch(instr->getMnemonic()) {
+            case Enu::EMnemonic::ADDSP:
+                if(instr->argument->getArgumentValue() != size) {
+                    traceInfo.staticTraceError = true;
+                    errList.append({line.first, bytesAllocMismatch.arg(instr->argument->getArgumentValue()).arg(size)});
+                }
+                break;
+            case Enu::EMnemonic::SUBSP:
+                if(instr->argument->getArgumentValue() != size) {
+                    traceInfo.staticTraceError = true;
+                    errList.append({line.first, bytesAllocMismatch.arg(instr->argument->getArgumentValue()).arg(size)});
+                }
+                break;
+            default:
+                qDebug() << "Should never get here";
+                break;
+            }
+        }
+    }
+
+    // Print debug info
+    qDebug().noquote().nospace() << "Stack / Heap allocated types:";
+    for(auto sym : traceInfo.dynamicAllocSymbolTypes) {
+        qDebug().noquote().nospace() << sym->toPrimitives() << "\n";
+    }
+    qDebug().noquote().nospace() << "Static allocated types:";
+    for(auto sym : traceInfo.staticAllocSymbolTypes) {
+        qDebug().noquote().nospace() << sym->toPrimitives() << "\n";
+    }
+
+}
+
+void IsaAsm::relocateCode(QList<QSharedPointer<AsmCode> > &codeList, quint16 addressDelta)
+{
+    for (int i = 0; i < codeList.length(); i++) {
+        codeList[i]->adjustMemAddress(addressDelta);
+    }
+}
+
+bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTraceInfo& traceInfo,
+                               int& byteCount, QString sourceLine, int lineNum, AsmCode *&code,
+                               QString &errorString, bool &dotEndDetected, bool hasBreakpoint)
+{
+    IsaParserHelper::ELexicalToken token; // Passed to getToken.
+    QString tokenString; // Passed to getToken.
+    QString localSymbolDef = ""; // Saves symbol definition for processing in the following state.
+    Enu::EMnemonic localEnumMnemonic; // Key to Pep:: table lookups.
+
+    // The concrete code objects asssigned to code.
+    UnaryInstruction *unaryInstruction = nullptr;
+    NonUnaryInstruction *nonUnaryInstruction = nullptr;
+    DotAddrss *dotAddrss = nullptr;
+    DotAlign *dotAlign = nullptr;
+    DotAscii *dotAscii = nullptr;
+    DotBlock *dotBlock = nullptr;
+    DotBurn *dotBurn = nullptr;
+    DotByte *dotByte = nullptr;
+    DotEnd *dotEnd = nullptr;
+    DotEquate *dotEquate = nullptr;
+    DotWord *dotWord = nullptr;
+    CommentOnly *commentOnly = nullptr;
+    BlankLine *blankLine = nullptr;
+    dotEndDetected = false;
+    IsaParserHelper::ParseState state = IsaParserHelper::PS_START;
+    do {
+        if (!getToken(sourceLine, token, tokenString)) {
+            errorString = tokenString;
+            return false;
+        }
+        switch (state) {
+        case IsaParserHelper::PS_START:
+            if (token == IsaParserHelper::LT_IDENTIFIER) {
+                if (Pep::mnemonToEnumMap.contains(tokenString.toUpper())) {
+                    localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
+                    if (Pep::isUnaryMap.value(localEnumMnemonic)) {
+                        unaryInstruction = new UnaryInstruction;
+                        unaryInstruction->mnemonic = localEnumMnemonic;
+                        unaryInstruction->breakpoint = hasBreakpoint;
+                        code = unaryInstruction;
+                        code->memAddress = byteCount;
+                        byteCount += 1; // One byte generated for unary instruction.
+                        state = IsaParserHelper::PS_CLOSE;
+                    }
+                    else {
+                        nonUnaryInstruction = new NonUnaryInstruction;
+                        nonUnaryInstruction->mnemonic = localEnumMnemonic;
+                        nonUnaryInstruction->breakpoint = hasBreakpoint;
+                        code = nonUnaryInstruction;
+                        code->memAddress = byteCount;
+                        byteCount += 3; // Three bytes generated for nonunary instruction.
+                        state = IsaParserHelper::PS_INSTRUCTION;
+                    }
+                }
+                else {
+                    errorString = ";ERROR: Invalid mnemonic.";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_DOT_COMMAND) {
+                tokenString.remove(0, 1); // Remove the period
+                tokenString = tokenString.toUpper();
+                if (tokenString == "ADDRSS") {
+                    dotAddrss = new DotAddrss;
+                    code = dotAddrss;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_ADDRSS;
+                }
+                else if (tokenString == "ALIGN") {
+                    dotAlign = new DotAlign;
+                    code = dotAlign;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_ALIGN;
+                }
+                else if (tokenString == "ASCII") {
+                    dotAscii = new DotAscii;
+                    code = dotAscii;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_ASCII;
+                }
+                else if (tokenString == "BLOCK") {
+                    dotBlock = new DotBlock;
+                    code = dotBlock;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_BLOCK;
+                }
+                else if (tokenString == "BURN") {
+                    dotBurn = new DotBurn;
+                    code = dotBurn;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_BURN;
+                }
+                else if (tokenString == "BYTE") {
+                    dotByte = new DotByte;
+                    code = dotByte;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_BYTE;
+                }
+                else if (tokenString == "END") {
+                    dotEnd = new DotEnd;
+                    code = dotEnd;
+                    // End symbol does not have a memory address
+                    code->memAddress = byteCount;
+                    dotEndDetected = true;
+                    state = IsaParserHelper::PS_DOT_END;
+                }
+                else if (tokenString == "EQUATE") {
+                    dotEquate = new DotEquate;
+                    code = dotEquate;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_EQUATE;
+                }
+                else if (tokenString == "WORD") {
+                    dotWord = new DotWord;
+                    code = dotWord;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_WORD;
+                }
+                else {
+                    errorString = ";ERROR: Invalid dot command.";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_SYMBOL_DEF) {
+                tokenString.chop(1); // Remove the colon
+                if (tokenString.length() > 8) {
+                    errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
+                    return false;
+                }
+                // If the symbol is already defined, then there is an compilation error.
+                if (symTable->exists(tokenString) && symTable->getValue(tokenString)->isDefined()) {
+                    symTable->getValue(tokenString)->setMultiplyDefined();
+                    errorString = ";ERROR: Symbol " + tokenString + " was previously defined.";
+                    return false;
+                }
+                localSymbolDef = tokenString;
+                if(!symTable->exists(tokenString)) symTable->insertSymbol(tokenString);
+                symTable->setValue(localSymbolDef, QSharedPointer<SymbolValueLocation>::create(byteCount));
+                state = IsaParserHelper::PS_SYMBOL_DEF;
+            }
+            else if (token == IsaParserHelper::LT_COMMENT) {
+                commentOnly = new CommentOnly;
+                commentOnly->hasCom = true;
+                commentOnly->comment = tokenString;
+                code = commentOnly;
+                // Comments don't have a memory address
+                code->memAddress = -1;
+                state = IsaParserHelper::PS_COMMENT;
+            }
+            else if (token == IsaParserHelper::LT_EMPTY) {
+                blankLine = new BlankLine;
+                code = blankLine;
+                // Neither do empty lines
+                code->memAddress = -1;
+                code->sourceCodeLine = lineNum;
+                state = IsaParserHelper::PS_FINISH;
+            }
+            else {
+                errorString = ";ERROR: Line must start with symbol definition, mnemonic, dot command, or comment.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_SYMBOL_DEF:
+            if (token == IsaParserHelper::LT_IDENTIFIER){
+                if (Pep::mnemonToEnumMap.contains(tokenString.toUpper())) {
+                    localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
+                    if (Pep::isUnaryMap.value(localEnumMnemonic)) {
+                        unaryInstruction = new UnaryInstruction;
+                        unaryInstruction->symbolEntry = symTable->getValue(localSymbolDef);
+                        unaryInstruction->mnemonic = localEnumMnemonic;
+                        unaryInstruction->breakpoint = hasBreakpoint;
+                        code = unaryInstruction;
+                        code->memAddress = byteCount;
+                        byteCount += 1; // One byte generated for unary instruction.
+                        state = IsaParserHelper::PS_CLOSE;
+                    }
+                    else {
+                        nonUnaryInstruction = new NonUnaryInstruction;
+                        nonUnaryInstruction->symbolEntry = symTable->getValue(localSymbolDef);
+                        nonUnaryInstruction->mnemonic = localEnumMnemonic;
+                        nonUnaryInstruction->breakpoint = hasBreakpoint;
+                        code = nonUnaryInstruction;
+                        code->memAddress = byteCount;
+                        byteCount += 3; // Three bytes generated for unary instruction.
+                        state = IsaParserHelper::PS_INSTRUCTION;
+                    }
+                }
+                else {
+                    errorString = ";ERROR: Invalid mnemonic.";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_DOT_COMMAND) {
+                tokenString.remove(0, 1); // Remove the period
+                tokenString = tokenString.toUpper();
+                if (tokenString == "ADDRSS") {
+                    dotAddrss = new DotAddrss;
+                    dotAddrss->symbolEntry = symTable->getValue(localSymbolDef);
+                    code = dotAddrss;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_ADDRSS;
+                }
+                else if (tokenString == "ASCII") {
+                    dotAscii = new DotAscii;
+                    dotAscii->symbolEntry = symTable->getValue(localSymbolDef);
+                    code = dotAscii;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_ASCII;
+                }
+                else if (tokenString == "BLOCK") {
+                    dotBlock = new DotBlock;
+                    dotBlock->symbolEntry = symTable->getValue(localSymbolDef);
+                    code = dotBlock;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_BLOCK;
+                }
+                else if (tokenString == "BURN") {
+                    dotBurn = new DotBurn;
+                    dotBurn->symbolEntry = symTable->getValue(localSymbolDef);
+                    code = dotBurn;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_BURN;
+                }
+                else if (tokenString == "BYTE") {
+                    dotByte = new DotByte;
+                    dotByte->symbolEntry = symTable->getValue(localSymbolDef);
+                    code = dotByte;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_BYTE;
+                }
+                else if (tokenString == "END") {
+                    dotEnd = new DotEnd;
+                    dotEnd->symbolEntry = symTable->getValue(localSymbolDef);
+                    code = dotEnd;
+                    code->memAddress = byteCount;
+                    dotEndDetected = true;
+                    state = IsaParserHelper::PS_DOT_END;
+                }
+                else if (tokenString == "EQUATE") {
+                    dotEquate = new DotEquate;
+                    dotEquate->symbolEntry = symTable->getValue(localSymbolDef);
+                    code = dotEquate;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_EQUATE;
+                }
+                else if (tokenString == "WORD") {
+                    dotWord = new DotWord;
+                    dotWord->symbolEntry = symTable->getValue(localSymbolDef);
+                    code = dotWord;
+                    code->memAddress = byteCount;
+                    state = IsaParserHelper::PS_DOT_WORD;
+                }
+                else {
+                    errorString = ";ERROR: Invalid dot command.";
+                    return false;
+                }
+            }
+            else {
+                errorString = ";ERROR: Must have mnemonic or dot command after symbol definition.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_INSTRUCTION:
+            if (token == IsaParserHelper::LT_IDENTIFIER) {
+                if (tokenString.length() > 8) {
+                    errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
+                    return false;
+                }
+                if(!symTable->exists(tokenString)) symTable->insertSymbol(tokenString);
+                nonUnaryInstruction->argument = new SymbolRefArgument(symTable->getValue(tokenString));
+                state = IsaParserHelper::PS_ADDRESSING_MODE;
+            }
+            else if (token == IsaParserHelper::LT_STRING_CONSTANT) {
+                if (IsaParserHelper::byteStringLength(tokenString) > 2) {
+                    errorString = ";ERROR: String operands must have length at most two.";
+                    return false;
+                }
+                nonUnaryInstruction->argument = new StringArgument(tokenString);
+                state = IsaParserHelper::PS_ADDRESSING_MODE;
+            }
+            else if (token == IsaParserHelper::LT_HEX_CONSTANT) {
+                tokenString.remove(0, 2); // Remove "0x" prefix.
+                bool ok;
+                int value = tokenString.toInt(&ok, 16);
+                if (value < 65536) {
+                    nonUnaryInstruction->argument = new HexArgument(value);
+                    state = IsaParserHelper::PS_ADDRESSING_MODE;
+                }
+                else {
+                    errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_DEC_CONSTANT) {
+                bool ok;
+                int value = tokenString.toInt(&ok, 10);
+                if ((-32768 <= value) && (value <= 65535)) {
+                    if (value < 0) {
+                        value += 65536; // Stored as two-byte unsigned.
+                        nonUnaryInstruction->argument = new DecArgument(value);
+                    }
+                    else {
+                        nonUnaryInstruction->argument = new UnsignedDecArgument(value);
+                    }
+                    state = IsaParserHelper::PS_ADDRESSING_MODE;
+                }
+                else {
+                    errorString = ";ERROR: Decimal constant is out of range (-32768..65535).";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_CHAR_CONSTANT) {
+                nonUnaryInstruction->argument = new CharArgument(tokenString);
+                state = IsaParserHelper::PS_ADDRESSING_MODE;
+            }
+            else {
+                errorString = ";ERROR: Operand specifier expected after mnemonic.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_ADDRESSING_MODE:
+            if (token == IsaParserHelper::LT_ADDRESSING_MODE) {
+                Enu::EAddrMode addrMode = IsaParserHelper::stringToAddrMode(tokenString);
+                if ((static_cast<int>(addrMode) & Pep::addrModesMap.value(localEnumMnemonic)) == 0) { // Nested parens required.
+                    errorString = ";ERROR: Illegal addressing mode for this instruction.";
+                    return false;
+                }
+                nonUnaryInstruction->addressingMode = addrMode;
+                state = IsaParserHelper::PS_CLOSE;
+            }
+            else if (Pep::addrModeRequiredMap.value(localEnumMnemonic)) {
+                errorString = ";ERROR: Addressing mode required for this instruction.";
+                return false;
+            }
+            else { // Must be branch type instruction with no addressing mode. Assign default addressing mode.
+                nonUnaryInstruction->addressingMode = Enu::EAddrMode::I;
+                if (token == IsaParserHelper::LT_COMMENT) {
+                    code->hasCom = true;
+                    code->comment = tokenString;
+                    state = IsaParserHelper::PS_COMMENT;
+                }
+                else if (token == IsaParserHelper::LT_EMPTY) {
+                    code->sourceCodeLine = lineNum;
+                    state = IsaParserHelper::PS_FINISH;
+                }
+                else {
+                    errorString = ";ERROR: Comment expected following instruction.";
+                    return false;
+                }
+            }
+            break;
+
+        case IsaParserHelper::PS_DOT_ADDRSS:
+            if (token == IsaParserHelper::LT_IDENTIFIER) {
+                if (tokenString.length() > 8) {
+                    errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
+                    return false;
+                }
+                if(!symTable->exists(tokenString)) symTable->insertSymbol(tokenString);
+                dotAddrss->argument = new SymbolRefArgument(symTable->getValue(tokenString));
+                byteCount += 2;
+                state = IsaParserHelper::PS_CLOSE;
+            }
+            else {
+                errorString = ";ERROR: .ADDRSS requires a symbol argument.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_DOT_ALIGN:
+            if (token == IsaParserHelper::LT_DEC_CONSTANT) {
+                bool ok;
+                int value = tokenString.toInt(&ok, 10);
+                if (value == 2 || value == 4 || value == 8) {
+                    int numBytes = (value - byteCount % value) % value;
+                    dotAlign->argument = new UnsignedDecArgument(value);
+                    dotAlign->numBytesGenerated = new UnsignedDecArgument(numBytes);
+                    byteCount += numBytes;
+                    state = IsaParserHelper::PS_CLOSE;
+                }
+                else {
+                    errorString = ";ERROR: Decimal constant is out of range (2, 4, 8).";
+                    return false;
+                }
+            }
+            else {
+                errorString = ";ERROR: .ALIGN requires a decimal constant 2, 4, or 8.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_DOT_ASCII:
+            if (token == IsaParserHelper::LT_STRING_CONSTANT) {
+                dotAscii->argument = new StringArgument(tokenString);
+                byteCount += IsaParserHelper::byteStringLength(tokenString);
+                state = IsaParserHelper::PS_CLOSE;
+            }
+            else {
+                errorString = ";ERROR: .ASCII requires a string constant argument.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_DOT_BLOCK:
+            if (token == IsaParserHelper::LT_DEC_CONSTANT) {
+                bool ok;
+                int value = tokenString.toInt(&ok, 10);
+                if ((0 <= value) && (value <= 65535)) {
+                    if (value < 0) {
+                        value += 65536; // Stored as two-byte unsigned.
+                        dotBlock->argument = new DecArgument(value);
+                    }
+                    else {
+                        dotBlock->argument = new UnsignedDecArgument(value);
+                    }
+                    byteCount += value;
+                    state = IsaParserHelper::PS_CLOSE;
+                }
+                else {
+                    errorString = ";ERROR: Decimal constant is out of range (0..65535).";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_HEX_CONSTANT) {
+                tokenString.remove(0, 2); // Remove "0x" prefix.
+                bool ok;
+                int value = tokenString.toInt(&ok, 16);
+                if (value < 65536) {
+                    dotBlock->argument = new HexArgument(value);
+                    byteCount += value;
+                    state = IsaParserHelper::PS_CLOSE;
+                }
+                else {
+                    errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
+                    return false;
+                }
+            }
+            else {
+                errorString = ";ERROR: .BLOCK requires a decimal or hex constant argument.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_DOT_BURN:
+            if (token == IsaParserHelper::LT_HEX_CONSTANT) {
+                tokenString.remove(0, 2); // Remove "0x" prefix.
+                bool ok;
+                int value = tokenString.toInt(&ok, 16);
+                if (value < 65536) {
+                    dotBurn->argument = new HexArgument(value);
+                    info.burnCount++;
+                    info.burnValue = value;
+                    info.burnAddress = byteCount;
+                    // The strating rom address cannot be calculated until the length of the program is known
+                    // info.startROMAddress = ???;
+                    state = IsaParserHelper::PS_CLOSE;
+                }
+                else {
+                    errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
+                    return false;
+                }
+            }
+            else {
+                errorString = ";ERROR: .BURN requires a hex constant argument.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_DOT_BYTE:
+            if (token == IsaParserHelper::LT_CHAR_CONSTANT) {
+                dotByte->argument = new CharArgument(tokenString);
+                byteCount += 1;
+                state = IsaParserHelper::PS_CLOSE;
+            }
+            else if (token == IsaParserHelper::LT_DEC_CONSTANT) {
+                bool ok;
+                int value = tokenString.toInt(&ok, 10);
+                if ((-128 <= value) && (value <= 255)) {
+                    if (value < 0) {
+                        value += 256; // value stored as one-byte unsigned.
+                    }
+                    dotByte->argument = new DecArgument(value);
+                    byteCount += 1;
+                    state = IsaParserHelper::PS_CLOSE;
+                }
+                else {
+                    errorString = ";ERROR: Decimal constant is out of byte range (-128..255).";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_HEX_CONSTANT) {
+                tokenString.remove(0, 2); // Remove "0x" prefix.
+                bool ok;
+                int value = tokenString.toInt(&ok, 16);
+                if (value < 256) {
+                    dotByte->argument = new HexArgument(value);
+                    byteCount += 1;
+                    state = IsaParserHelper::PS_CLOSE;
+                }
+                else {
+                    errorString = ";ERROR: Hex constant is out of byte range (0x00..0xFF).";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_STRING_CONSTANT) {
+                if (IsaParserHelper::byteStringLength(tokenString) > 1) {
+                    errorString = ";ERROR: .BYTE string operands must have length one.";
+                    return false;
+                }
+                dotByte->argument = new StringArgument(tokenString);
+                byteCount += 1;
+                state = IsaParserHelper::PS_CLOSE;
+            }
+            else {
+                errorString = ";ERROR: .BYTE requires a char, dec, hex, or string constant argument.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_DOT_END:
+            if (token == IsaParserHelper::LT_COMMENT) {
+                dotEnd->hasCom = true;
+                dotEnd->comment = tokenString;
+                code->sourceCodeLine = lineNum;
+                state = IsaParserHelper::PS_FINISH;
+            }
+            else if (token == IsaParserHelper::LT_EMPTY) {
+                dotEnd->hasCom = false;
+                dotEnd->comment = "";
+                code->sourceCodeLine = lineNum;
+                state = IsaParserHelper::PS_FINISH;
+            }
+            else {
+                errorString = ";ERROR: Only a comment can follow .END.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_DOT_EQUATE:
+            if (dotEquate->symbolEntry == nullptr) {
+                errorString = ";ERROR: .EQUATE must have a symbol definition.";
+                return false;
+            }
+            else if (token == IsaParserHelper::LT_DEC_CONSTANT) {
+                bool ok;
+                int value = tokenString.toInt(&ok, 10);
+                if ((-32768 <= value) && (value <= 65535)) {
+
+                    if (value < 0) {
+                        value += 65536; // Stored as two-byte unsigned.
+                        dotEquate->argument = new DecArgument(value);
+                    }
+                    else {
+                        dotEquate->argument = new UnsignedDecArgument(value);
+                    }
+                    dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(value));
+                    state = IsaParserHelper::PS_CLOSE;
+                }
+                else {
+                    errorString = ";ERROR: Decimal constant is out of range (-32768..65535).";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_HEX_CONSTANT) {
+                tokenString.remove(0, 2); // Remove "0x" prefix.
+                bool ok;
+                int value = tokenString.toInt(&ok, 16);
+                if (value < 65536) {
+                    dotEquate->argument = new HexArgument(value);
+                    dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(value));
+                    state = IsaParserHelper::PS_CLOSE;
+                }
+                else {
+                    errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_STRING_CONSTANT) {
+                if (IsaParserHelper::byteStringLength(tokenString) > 2) {
+                    errorString = ";ERROR: .EQUATE string operand must have length at most two.";
+                    return false;
+                }
+                dotEquate->argument = new StringArgument(tokenString);
+                dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(IsaParserHelper::string2ArgumentToInt(tokenString)));
+                state = IsaParserHelper::PS_CLOSE;
+            }
+            else if (token == IsaParserHelper::LT_CHAR_CONSTANT) {
+                dotEquate->argument = new CharArgument(tokenString);
+                dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(IsaParserHelper::charStringToInt(tokenString)));
+                state = IsaParserHelper::PS_CLOSE;
+            }
+            else {
+                errorString = ";ERROR: .EQUATE requires a dec, hex, or string constant argument.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_DOT_WORD:
+            if (token == IsaParserHelper::LT_CHAR_CONSTANT) {
+                dotWord->argument = new CharArgument(tokenString);
+                byteCount += 2;
+                state = IsaParserHelper::PS_CLOSE;
+            }
+            else if (token == IsaParserHelper::LT_DEC_CONSTANT) {
+                bool ok;
+                int value = tokenString.toInt(&ok, 10);
+                if ((-32768 <= value) && (value < 65536)) {
+
+                    if (value < 0) {
+                        value += 65536; // Stored as two-byte unsigned.
+                        dotWord->argument = new DecArgument(value);
+                    }
+                    else {
+                        dotWord->argument = new UnsignedDecArgument(value);
+                    }
+                    byteCount += 2;
+                    state = IsaParserHelper::PS_CLOSE;
+                }
+                else {
+                    errorString = ";ERROR: Decimal constant is out of range (-32768..65535).";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_HEX_CONSTANT) {
+                tokenString.remove(0, 2); // Remove "0x" prefix.
+                bool ok;
+                int value = tokenString.toInt(&ok, 16);
+                if (value < 65536) {
+                    dotWord->argument = new HexArgument(value);
+                    byteCount += 2;
+                    state = IsaParserHelper::PS_CLOSE;
+                }
+                else {
+                    errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
+                    return false;
+                }
+            }
+            else if (token == IsaParserHelper::LT_STRING_CONSTANT) {
+                if (IsaParserHelper::byteStringLength(tokenString) > 2) {
+                    errorString = ";ERROR: .WORD string operands must have length at most two.";
+                    return false;
+                }
+                dotWord->argument = new StringArgument(tokenString);
+                byteCount += 2;
+                state = IsaParserHelper::PS_CLOSE;
+            }
+            else {
+                errorString = ";ERROR: .WORD requires a char, dec, hex, or string constant argument.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_CLOSE:
+            if (token == IsaParserHelper::LT_EMPTY) {
+                code->sourceCodeLine = lineNum;
+                state = IsaParserHelper::PS_FINISH;
+            }
+            else if (token == IsaParserHelper::LT_COMMENT) {
+                code->hasCom = true;
+                code->comment = tokenString;
+                state = IsaParserHelper::PS_COMMENT;
+            }
+            else {
+                errorString = ";ERROR: Comment expected following instruction.";
+                return false;
+            }
+            break;
+
+        case IsaParserHelper::PS_COMMENT:
+            if (token == IsaParserHelper::LT_EMPTY) {
+                code->sourceCodeLine = lineNum;
+                state = IsaParserHelper::PS_FINISH;
+            }
+            else {
+                // This error should not occur, as all characters are allowed in comments.
+                errorString = ";ERROR: Problem detected after comment.";
+                return false;
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
+    while (state != IsaParserHelper::PS_FINISH);
+    // Parse trace tags
+    if(!code->hasComment() || !hasTypeTag(code->getComment())) {
+        return true;
+    }
+    QString comment = code->getComment(), tag = extractTypeTags(comment);
+
+    if(hasArrayType(tag)) {
+        auto aTag = arrayType(tag);
+        if(!code->hasSymbolEntry()) {
+            errorString = ";ERROR: given trace tag, but no symbol";
+            traceInfo.staticTraceError = true;
+            return false;
+        }
+        auto item = QSharedPointer<ArrayType>::create(code->getSymbolEntry(), aTag.second, aTag.first);
+
+        // Global arrays - static alloacation
+        if(dotBlock != nullptr) {
+            // Check that size of allocated memory matches trace tag size
+            if(dotBlock->argument->getArgumentValue() != item->size()) {
+                traceInfo.staticTraceError = true;
+                errorString =   bytesAllocMismatch
+                                .arg(dotBlock->argument->getArgumentValue())
+                                .arg(item->size());
+               return true;
+            }
+            else {
+                traceInfo.staticAllocSymbolTypes.insert(code->getSymbolEntry(), item);
+            }
+        }
+        // Dynamic arrays - stack or heap allocation
+        else {
+            traceInfo.dynamicAllocSymbolTypes.insert(code->getSymbolEntry(), item);
+        }
+    }
+    else if(hasPrimitiveType(tag)){
+        auto pTag = primitiveType(tag);
+        if(!code->hasSymbolEntry()) {
+            errorString = ";ERROR: given trace tag, but no symbol";
+            traceInfo.staticTraceError = true;
+            return false;
+        }
+        auto item = QSharedPointer<PrimitiveType>::create(code->getSymbolEntry(), pTag);
+
+        // Global Primitives - static allocation
+        if(dotBlock != nullptr) {
+            // Check that size of allocated memory matches trace tag size
+            if(dotBlock->argument->getArgumentValue() != item->size()) {
+                traceInfo.staticTraceError = true;
+                errorString =   bytesAllocMismatch
+                                .arg(dotBlock->argument->getArgumentValue())
+                                .arg(item->size());
+               return true;
+            }
+            else {
+                traceInfo.staticAllocSymbolTypes.insert(code->getSymbolEntry(), item);
+            }
+        }
+        else if(dotWord != nullptr) {
+            // Check that size of allocated memory matches trace tag size
+            if(dotWord->argument->getArgumentValue() != item->size()) {
+                traceInfo.staticTraceError = true;
+                errorString =   bytesAllocMismatch
+                                .arg(dotWord->argument->getArgumentValue())
+                                .arg(item->size());
+               return true;
+            }
+            else {
+                traceInfo.staticAllocSymbolTypes.insert(code->getSymbolEntry(), item);
+            }
+        }
+        else if(dotByte != nullptr) {
+            // Check that size of allocated memory matches trace tag size
+            if(dotByte->argument->getArgumentValue() != item->size()) {
+                traceInfo.staticTraceError = true;
+                errorString =   bytesAllocMismatch
+                                .arg(dotByte->argument->getArgumentValue())
+                                .arg(item->size());
+               return true;
+            }
+            else {
+                traceInfo.staticAllocSymbolTypes.insert(code->getSymbolEntry(), item);
+            }
+        }
+        // Dynamic primitives - stack or heap allocation
+        else {
+            traceInfo.dynamicAllocSymbolTypes.insert(code->getSymbolEntry(), item);
+        }
+    }
+    return true;
+}
+
+bool IsaAsm::hasTypeTag(QString comment)
+{
+    if(comment.isEmpty() || !comment.contains(IsaParserHelper::rxFormatTag)) {
+        return false;
+    }
+    else if(primitiveType(comment.mid(comment.indexOf(IsaParserHelper::rxFormatTag))) != Enu::ESymbolFormat::F_NONE) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+QString IsaAsm::extractTypeTags(QString comment)
+{
+    return comment.mid(comment.indexOf(IsaParserHelper::rxFormatTag));
+}
+
+bool IsaAsm::hasPrimitiveType(QString typeTag)
+{
+    return typeTag.contains(IsaParserHelper::rxFormatTag);
+}
+
+bool IsaAsm::hasArrayType(QString formatTag)
+{
+    return primitiveType(formatTag) != Enu::ESymbolFormat::F_NONE
+            && formatTag.contains(IsaParserHelper::rxArrayTag);
+}
+
+bool IsaAsm::getToken(QString &sourceLine, IsaParserHelper::ELexicalToken &token, QString &tokenString)
 {
     sourceLine = sourceLine.trimmed();
     if (sourceLine.length() == 0) {
-        token = LT_EMPTY;
+        token = IsaParserHelper::LT_EMPTY;
         tokenString = "";
         return true;
     }
     QChar firstChar = sourceLine[0];
-    rxAddrMode.setCaseSensitivity (Qt::CaseInsensitive);  // Make rxAddrMode not case sensitive
+    IsaParserHelper::rxAddrMode.setCaseSensitivity (Qt::CaseInsensitive);  // Make rxAddrMode not case sensitive
     if (firstChar == ',') {
-        if (rxAddrMode.indexIn(sourceLine) == -1) {
+        if (IsaParserHelper::rxAddrMode.indexIn(sourceLine) == -1) {
             tokenString = ";ERROR: Malformed addressing mode.";
             return false;
         }
-        token = LT_ADDRESSING_MODE;
-        tokenString = rxAddrMode.capturedTexts()[0];
+        token = IsaParserHelper::LT_ADDRESSING_MODE;
+        tokenString = IsaParserHelper::rxAddrMode.capturedTexts()[0];
         sourceLine.remove(0, tokenString.length());
         return true;
     }
     if (firstChar == '\'') {
-        if (rxCharConst.indexIn(sourceLine) == -1) {
+        if (IsaParserHelper::rxCharConst.indexIn(sourceLine) == -1) {
             tokenString = ";ERROR: Malformed character constant.";
             return false;
         }
-        token = LT_CHAR_CONSTANT;
-        tokenString = rxCharConst.capturedTexts()[0];
+        token = IsaParserHelper::LT_CHAR_CONSTANT;
+        tokenString = IsaParserHelper::rxCharConst.capturedTexts()[0];
         sourceLine.remove(0, tokenString.length());
         return true;
     }
     if (firstChar == ';') {
-        if (rxComment.indexIn(sourceLine) == -1) {
+        if (IsaParserHelper::rxComment.indexIn(sourceLine) == -1) {
             // This error should not occur, as any characters are allowed in a comment.
             tokenString = ";ERROR: Malformed comment";
             return false;
         }
-        token = LT_COMMENT;
-        tokenString = rxComment.capturedTexts()[0];
+        token = IsaParserHelper::LT_COMMENT;
+        tokenString = IsaParserHelper::rxComment.capturedTexts()[0];
         sourceLine.remove(0, tokenString.length());
         return true;
     }
-    if (startsWithHexPrefix(sourceLine)) {
-        if (rxHexConst.indexIn(sourceLine) == -1) {
+    if (IsaParserHelper::startsWithHexPrefix(sourceLine)) {
+        if (IsaParserHelper::rxHexConst.indexIn(sourceLine) == -1) {
             tokenString = ";ERROR: Malformed hex constant.";
             return false;
         }
-        token = LT_HEX_CONSTANT;
-        tokenString = rxHexConst.capturedTexts()[0];
+        token = IsaParserHelper::LT_HEX_CONSTANT;
+        tokenString = IsaParserHelper::rxHexConst.capturedTexts()[0];
         sourceLine.remove(0, tokenString.length());
         return true;
     }
     if ((firstChar.isDigit() || firstChar == '+' || firstChar == '-')) {
-        if (rxDecConst.indexIn(sourceLine) == -1) {
+        if (IsaParserHelper::rxDecConst.indexIn(sourceLine) == -1) {
             tokenString = ";ERROR: Malformed decimal constant.";
             return false;
         }
-        token = LT_DEC_CONSTANT;
-        tokenString = rxDecConst.capturedTexts()[0];
+        token = IsaParserHelper::LT_DEC_CONSTANT;
+        tokenString = IsaParserHelper::rxDecConst.capturedTexts()[0];
         sourceLine.remove(0, tokenString.length());
         return true;
     }
     if (firstChar == '.') {
-        if (rxDotCommand.indexIn(sourceLine) == -1) {
+        if (IsaParserHelper::rxDotCommand.indexIn(sourceLine) == -1) {
             tokenString = ";ERROR: Malformed dot command.";
             return false;
         }
-        token = LT_DOT_COMMAND;
-        tokenString = rxDotCommand.capturedTexts()[0];
+        token = IsaParserHelper::LT_DOT_COMMAND;
+        tokenString = IsaParserHelper::rxDotCommand.capturedTexts()[0];
         sourceLine.remove(0, tokenString.length());
         return true;
     }
     if (firstChar.isLetter() || firstChar == '_') {
-        if (rxIdentifier.indexIn(sourceLine) == -1) {
+        if (IsaParserHelper::rxIdentifier.indexIn(sourceLine) == -1) {
             // This error should not occur, as one-character identifiers are valid.
             tokenString = ";ERROR: Malformed identifier.";
             return false;
         }
-        tokenString = rxIdentifier.capturedTexts()[0];
-        token = tokenString.endsWith(':') ? LT_SYMBOL_DEF : LT_IDENTIFIER;
+        tokenString = IsaParserHelper::rxIdentifier.capturedTexts()[0];
+        token = tokenString.endsWith(':') ?
+                    IsaParserHelper::LT_SYMBOL_DEF :
+                    IsaParserHelper::LT_IDENTIFIER;
         sourceLine.remove(0, tokenString.length());
         return true;
     }
     if (firstChar == '\"') {
-        if (rxStringConst.indexIn(sourceLine) == -1) {
+        if (IsaParserHelper::rxStringConst.indexIn(sourceLine) == -1) {
             tokenString = ";ERROR: Malformed string constant.";
             return false;
         }
-        token = LT_STRING_CONSTANT;
-        tokenString = rxStringConst.capturedTexts()[0];
+        token = IsaParserHelper::LT_STRING_CONSTANT;
+        tokenString = IsaParserHelper::rxStringConst.capturedTexts()[0];
         sourceLine.remove(0, tokenString.length());
         return true;
     }
@@ -135,10 +1300,46 @@ bool IsaAsm::getToken(QString &sourceLine, ELexicalToken &token, QString &tokenS
     return false;
 }
 
-QList<QString> IsaAsm::listOfReferencedSymbols;
-QList<int> IsaAsm::listOfReferencedSymbolLineNums;
+Enu::ESymbolFormat IsaAsm::primitiveType(QString formatTag) {
+    if (formatTag.startsWith("#1c")) return Enu::ESymbolFormat::F_1C;
+    if (formatTag.startsWith("#1d")) return Enu::ESymbolFormat::F_1D;
+    if (formatTag.startsWith("#2d")) return Enu::ESymbolFormat::F_2D;
+    if (formatTag.startsWith("#1h")) return Enu::ESymbolFormat::F_1H;
+    if (formatTag.startsWith("#2h")) return Enu::ESymbolFormat::F_2H;
+    return Enu::ESymbolFormat::F_NONE; // Should not occur
+}
 
-bool IsaAsm::startsWithHexPrefix(QString str)
+QPair<quint8, Enu::ESymbolFormat> IsaAsm::arrayType(QString formatTag)
+{
+    auto type = primitiveType(formatTag);
+    QRegularExpression matcher(IsaParserHelper::rxArrayMultiplier.pattern());
+    auto match = matcher.match(formatTag);
+    QString text = match.captured(0);
+    text.chop(1);
+    int size = text.toInt();
+    return QPair<quint8, Enu::ESymbolFormat>{size, type};
+
+}
+
+bool IsaAsm::hasSymbolTag(QString comment)
+{
+    return comment.contains(IsaParserHelper::rxSymbolTag);
+}
+
+QStringList IsaAsm::extractTagList(QString comment)
+{
+    QRegularExpression reg(IsaParserHelper::rxSymbolTag.pattern());
+    auto items = reg.globalMatch(comment);
+    QStringList out;
+    while(items.hasNext()) {
+        QString match = items.next().captured(0);
+        match = match.mid(1);
+        out.append(match);
+    }
+    return out;
+}
+
+bool IsaParserHelper::startsWithHexPrefix(QString str)
 {
     if (str.length() < 2) return false;
     if (str[0] != '0') return false;
@@ -146,7 +1347,7 @@ bool IsaAsm::startsWithHexPrefix(QString str)
     return false;
 }
 
-Enu::EAddrMode IsaAsm::stringToAddrMode(QString str)
+Enu::EAddrMode IsaParserHelper::stringToAddrMode(QString str)
 {
     str.remove(0, 1); // Remove the comma.
     str = str.trimmed().toUpper();
@@ -161,25 +1362,25 @@ Enu::EAddrMode IsaAsm::stringToAddrMode(QString str)
     return Enu::EAddrMode::NONE;
 }
 
-int IsaAsm::charStringToInt(QString str)
+int IsaParserHelper::charStringToInt(QString str)
 {
     str.remove(0, 1); // Remove the leftmost single quote.
     str.chop(1); // Remove the rightmost single quote.
     int value;
-    IsaAsm::unquotedStringToInt(str, value);
+    IsaParserHelper::unquotedStringToInt(str, value);
     return value;
 }
 
-int IsaAsm::string2ArgumentToInt(QString str) {
+int IsaParserHelper::string2ArgumentToInt(QString str) {
     int valueA, valueB;
     str.remove(0, 1); // Remove the leftmost double quote.
     str.chop(1); // Remove the rightmost double quote.
-    IsaAsm::unquotedStringToInt(str, valueA);
+    IsaParserHelper::unquotedStringToInt(str, valueA);
     if (str.length() == 0) {
         return valueA;
     }
     else {
-        IsaAsm::unquotedStringToInt(str, valueB);
+        IsaParserHelper::unquotedStringToInt(str, valueB);
         valueA = 256 * valueA + valueB;
         if (valueA < 0) {
             valueA += 65536; // Stored as two-byte unsigned.
@@ -188,7 +1389,7 @@ int IsaAsm::string2ArgumentToInt(QString str) {
     }
 }
 
-void IsaAsm::unquotedStringToInt(QString &str, int &value)
+void IsaParserHelper::unquotedStringToInt(QString &str, int &value)
 {
     QString s;
     if (str.startsWith("\\x") || str.startsWith("\\X")) {
@@ -232,7 +1433,7 @@ void IsaAsm::unquotedStringToInt(QString &str, int &value)
     value += value < 0 ? 256 : 0;
 }
 
-int IsaAsm::byteStringLength(QString str)
+int IsaParserHelper::byteStringLength(QString str)
 {
     str.remove(0, 1); // Remove the leftmost double quote.
     str.chop(1); // Remove the rightmost double quote.
@@ -250,725 +1451,4 @@ int IsaAsm::byteStringLength(QString str)
         length++;
     }
     return length;
-}
-
-Enu::ESymbolFormat IsaAsm::formatTagType(QString formatTag) {
-    if (formatTag.startsWith("#1c")) return Enu::ESymbolFormat::F_1C;
-    if (formatTag.startsWith("#1d")) return Enu::ESymbolFormat::F_1D;
-    if (formatTag.startsWith("#2d")) return Enu::ESymbolFormat::F_2D;
-    if (formatTag.startsWith("#1h")) return Enu::ESymbolFormat::F_1H;
-    if (formatTag.startsWith("#2h")) return Enu::ESymbolFormat::F_2H;
-    return Enu::ESymbolFormat::F_NONE; // Should not occur
-}
-
-int IsaAsm::tagNumBytes(Enu::ESymbolFormat symbolFormat) {
-    switch (symbolFormat) {
-    case Enu::ESymbolFormat::F_1C: return 1;
-    case Enu::ESymbolFormat::F_1D: return 1;
-    case Enu::ESymbolFormat::F_2D: return 2;
-    case Enu::ESymbolFormat::F_1H: return 1;
-    case Enu::ESymbolFormat::F_2H: return 2;
-    case Enu::ESymbolFormat::F_NONE: return 0;
-    default: return -1; // Should not occur.
-    }
-}
-
-int IsaAsm::formatMultiplier(QString formatTag) {
-    int pos = IsaAsm::rxArrayMultiplier.indexIn(formatTag);
-    if (pos > -1) {
-        QString multiplierTag = IsaAsm::rxArrayMultiplier.cap(0);
-        multiplierTag.chop(1); // Remove the last character 'a' from the array tag.
-        return multiplierTag.toInt();
-    }
-    else {
-        return 1;
-    }
-}
-
-bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, int& byteCount, QString sourceLine, int lineNum, AsmCode *&code, QString &errorString, bool &dotEndDetected, bool hasBreakpoint)
-{
-    IsaAsm::ELexicalToken token; // Passed to getToken.
-    QString tokenString; // Passed to getToken.
-    QString localSymbolDef = ""; // Saves symbol definition for processing in the following state.
-    Enu::EMnemonic localEnumMnemonic; // Key to Pep:: table lookups.
-
-    // The concrete code objects asssigned to code.
-    UnaryInstruction *unaryInstruction = nullptr;
-    NonUnaryInstruction *nonUnaryInstruction = nullptr;
-    DotAddrss *dotAddrss = nullptr;
-    DotAlign *dotAlign = nullptr;
-    DotAscii *dotAscii = nullptr;
-    DotBlock *dotBlock = nullptr;
-    DotBurn *dotBurn = nullptr;
-    DotByte *dotByte = nullptr;
-    DotEnd *dotEnd = nullptr;
-    DotEquate *dotEquate = nullptr;
-    DotWord *dotWord = nullptr;
-    CommentOnly *commentOnly = nullptr;
-    BlankLine *blankLine = nullptr;
-    dotEndDetected = false;
-    IsaAsm::ParseState state = IsaAsm::PS_START;
-    do {
-        if (!getToken(sourceLine, token, tokenString)) {
-            errorString = tokenString;
-            return false;
-        }
-        switch (state) {
-        case IsaAsm::PS_START:
-            if (token == IsaAsm::LT_IDENTIFIER) {
-                if (Pep::mnemonToEnumMap.contains(tokenString.toUpper())) {
-                    localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
-                    if (Pep::isUnaryMap.value(localEnumMnemonic)) {
-                        unaryInstruction = new UnaryInstruction;
-                        unaryInstruction->mnemonic = localEnumMnemonic;
-                        unaryInstruction->breakpoint = hasBreakpoint;
-                        code = unaryInstruction;
-                        code->memAddress = byteCount;                        
-                        byteCount += 1; // One byte generated for unary instruction.
-                        state = IsaAsm::PS_CLOSE;
-                    }
-                    else {
-                        nonUnaryInstruction = new NonUnaryInstruction;
-                        nonUnaryInstruction->mnemonic = localEnumMnemonic;
-                        nonUnaryInstruction->breakpoint = hasBreakpoint;
-                        code = nonUnaryInstruction;
-                        code->memAddress = byteCount;
-                        byteCount += 3; // Three bytes generated for nonunary instruction.
-                        state = IsaAsm::PS_INSTRUCTION;
-                    }
-                }
-                else {
-                    errorString = ";ERROR: Invalid mnemonic.";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_DOT_COMMAND) {
-                tokenString.remove(0, 1); // Remove the period
-                tokenString = tokenString.toUpper();
-                if (tokenString == "ADDRSS") {
-                    dotAddrss = new DotAddrss;
-                    code = dotAddrss;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_ADDRSS;
-                }
-                else if (tokenString == "ALIGN") {
-                    dotAlign = new DotAlign;
-                    code = dotAlign;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_ALIGN;
-                }
-                else if (tokenString == "ASCII") {
-                    dotAscii = new DotAscii;
-                    code = dotAscii;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_ASCII;
-                }
-                else if (tokenString == "BLOCK") {
-                    dotBlock = new DotBlock;
-                    code = dotBlock;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_BLOCK;
-                }
-                else if (tokenString == "BURN") {
-                    dotBurn = new DotBurn;
-                    code = dotBurn;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_BURN;
-                }
-                else if (tokenString == "BYTE") {
-                    dotByte = new DotByte;
-                    code = dotByte;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_BYTE;
-                }
-                else if (tokenString == "END") {
-                    dotEnd = new DotEnd;
-                    code = dotEnd;
-                    // End symbol does not have a memory address
-                    code->memAddress = byteCount;
-                    dotEndDetected = true;
-                    state = IsaAsm::PS_DOT_END;
-                }
-                else if (tokenString == "EQUATE") {
-                    dotEquate = new DotEquate;
-                    code = dotEquate;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_EQUATE;
-                }
-                else if (tokenString == "WORD") {
-                    dotWord = new DotWord;
-                    code = dotWord;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_WORD;
-                }
-                else {
-                    errorString = ";ERROR: Invalid dot command.";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_SYMBOL_DEF) {
-                tokenString.chop(1); // Remove the colon
-                if (tokenString.length() > 8) {
-                    errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
-                    return false;
-                }
-                // If the symbol is already defined, then there is an compilation error.
-                if (symTable->exists(tokenString) && symTable->getValue(tokenString)->isDefined()) {
-                    symTable->getValue(tokenString)->setMultiplyDefined();
-                    errorString = ";ERROR: Symbol " + tokenString + " was previously defined.";
-                    return false;
-                }
-                localSymbolDef = tokenString;
-                if(!symTable->exists(tokenString)) symTable->insertSymbol(tokenString);
-                symTable->setValue(localSymbolDef, QSharedPointer<SymbolValueLocation>::create(byteCount));
-                state = IsaAsm::PS_SYMBOL_DEF;
-            }
-            else if (token == IsaAsm::LT_COMMENT) {
-                commentOnly = new CommentOnly;
-                commentOnly->comment = tokenString;
-                code = commentOnly;
-                // Comments don't have a memory address
-                code->memAddress = -1;
-                state = IsaAsm::PS_COMMENT;
-            }
-            else if (token == IsaAsm::LT_EMPTY) {
-                blankLine = new BlankLine;
-                code = blankLine;
-                // Neither do empty lines
-                code->memAddress = -1;
-                code->sourceCodeLine = lineNum;
-                state = IsaAsm::PS_FINISH;
-            }
-            else {
-                errorString = ";ERROR: Line must start with symbol definition, mnemonic, dot command, or comment.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_SYMBOL_DEF:
-            if (token == IsaAsm::LT_IDENTIFIER){
-                if (Pep::mnemonToEnumMap.contains(tokenString.toUpper())) {
-                    localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
-                    if (Pep::isUnaryMap.value(localEnumMnemonic)) {
-                        unaryInstruction = new UnaryInstruction;
-                        unaryInstruction->symbolEntry = symTable->getValue(localSymbolDef);
-                        unaryInstruction->mnemonic = localEnumMnemonic;
-                        unaryInstruction->breakpoint = hasBreakpoint;
-                        code = unaryInstruction;
-                        code->memAddress = byteCount;
-                        byteCount += 1; // One byte generated for unary instruction.
-                        state = IsaAsm::PS_CLOSE;
-                    }
-                    else {
-                        nonUnaryInstruction = new NonUnaryInstruction;
-                        nonUnaryInstruction->symbolEntry = symTable->getValue(localSymbolDef);
-                        nonUnaryInstruction->mnemonic = localEnumMnemonic;
-                        nonUnaryInstruction->breakpoint = hasBreakpoint;
-                        code = nonUnaryInstruction;
-                        code->memAddress = byteCount;
-                        byteCount += 3; // Three bytes generated for unary instruction.
-                        state = IsaAsm::PS_INSTRUCTION;
-                    }
-                }
-                else {
-                    errorString = ";ERROR: Invalid mnemonic.";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_DOT_COMMAND) {
-                tokenString.remove(0, 1); // Remove the period
-                tokenString = tokenString.toUpper();
-                if (tokenString == "ADDRSS") {
-                    dotAddrss = new DotAddrss;
-                    dotAddrss->symbolEntry = symTable->getValue(localSymbolDef);
-                    code = dotAddrss;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_ADDRSS;
-                }
-                else if (tokenString == "ASCII") {
-                    dotAscii = new DotAscii;
-                    dotAscii->symbolEntry = symTable->getValue(localSymbolDef);
-                    code = dotAscii;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_ASCII;
-                }
-                else if (tokenString == "BLOCK") {
-                    dotBlock = new DotBlock;
-                    dotBlock->symbolEntry = symTable->getValue(localSymbolDef);
-                    code = dotBlock;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_BLOCK;
-                }
-                else if (tokenString == "BURN") {
-                    dotBurn = new DotBurn;
-                    dotBurn->symbolEntry = symTable->getValue(localSymbolDef);
-                    code = dotBurn;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_BURN;
-                }
-                else if (tokenString == "BYTE") {
-                    dotByte = new DotByte;
-                    dotByte->symbolEntry = symTable->getValue(localSymbolDef);
-                    code = dotByte;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_BYTE;
-                }
-                else if (tokenString == "END") {
-                    dotEnd = new DotEnd;
-                    dotEnd->symbolEntry = symTable->getValue(localSymbolDef);
-                    code = dotEnd;
-                    code->memAddress = byteCount;
-                    dotEndDetected = true;
-                    state = IsaAsm::PS_DOT_END;
-                }
-                else if (tokenString == "EQUATE") {
-                    dotEquate = new DotEquate;
-                    dotEquate->symbolEntry = symTable->getValue(localSymbolDef);
-                    code = dotEquate;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_EQUATE;
-                }
-                else if (tokenString == "WORD") {
-                    dotWord = new DotWord;
-                    dotWord->symbolEntry = symTable->getValue(localSymbolDef);
-                    code = dotWord;
-                    code->memAddress = byteCount;
-                    state = IsaAsm::PS_DOT_WORD;
-                }
-                else {
-                    errorString = ";ERROR: Invalid dot command.";
-                    return false;
-                }
-            }
-            else {
-                errorString = ";ERROR: Must have mnemonic or dot command after symbol definition.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_INSTRUCTION:
-            if (token == IsaAsm::LT_IDENTIFIER) {
-                if (tokenString.length() > 8) {
-                    errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
-                    return false;
-                }
-                if(!symTable->exists(tokenString)) symTable->insertSymbol(tokenString);
-                nonUnaryInstruction->argument = new SymbolRefArgument(symTable->getValue(tokenString));
-                IsaAsm::listOfReferencedSymbols.append(tokenString);
-                IsaAsm::listOfReferencedSymbolLineNums.append(lineNum);
-                state = IsaAsm::PS_ADDRESSING_MODE;
-            }
-            else if (token == IsaAsm::LT_STRING_CONSTANT) {
-                if (IsaAsm::byteStringLength(tokenString) > 2) {
-                    errorString = ";ERROR: String operands must have length at most two.";
-                    return false;
-                }
-                nonUnaryInstruction->argument = new StringArgument(tokenString);
-                state = IsaAsm::PS_ADDRESSING_MODE;
-            }
-            else if (token == IsaAsm::LT_HEX_CONSTANT) {
-                tokenString.remove(0, 2); // Remove "0x" prefix.
-                bool ok;
-                int value = tokenString.toInt(&ok, 16);
-                if (value < 65536) {
-                    nonUnaryInstruction->argument = new HexArgument(value);
-                    state = IsaAsm::PS_ADDRESSING_MODE;
-                }
-                else {
-                    errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_DEC_CONSTANT) {
-                bool ok;
-                int value = tokenString.toInt(&ok, 10);
-                if ((-32768 <= value) && (value <= 65535)) {
-                    if (value < 0) {
-                        value += 65536; // Stored as two-byte unsigned.
-                        nonUnaryInstruction->argument = new DecArgument(value);
-                    }
-                    else {
-                        nonUnaryInstruction->argument = new UnsignedDecArgument(value);
-                    }
-                    state = IsaAsm::PS_ADDRESSING_MODE;
-                }
-                else {
-                    errorString = ";ERROR: Decimal constant is out of range (-32768..65535).";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_CHAR_CONSTANT) {
-                nonUnaryInstruction->argument = new CharArgument(tokenString);
-                state = IsaAsm::PS_ADDRESSING_MODE;
-            }
-            else {
-                errorString = ";ERROR: Operand specifier expected after mnemonic.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_ADDRESSING_MODE:
-            if (token == IsaAsm::LT_ADDRESSING_MODE) {
-                Enu::EAddrMode addrMode = IsaAsm::stringToAddrMode(tokenString);
-                if ((static_cast<int>(addrMode) & Pep::addrModesMap.value(localEnumMnemonic)) == 0) { // Nested parens required.
-                    errorString = ";ERROR: Illegal addressing mode for this instruction.";
-                    return false;
-                }
-                nonUnaryInstruction->addressingMode = addrMode;
-                state = IsaAsm::PS_CLOSE;
-            }
-            else if (Pep::addrModeRequiredMap.value(localEnumMnemonic)) {
-                errorString = ";ERROR: Addressing mode required for this instruction.";
-                return false;
-            }
-            else { // Must be branch type instruction with no addressing mode. Assign default addressing mode.
-                nonUnaryInstruction->addressingMode = Enu::EAddrMode::I;
-                if (token == IsaAsm::LT_COMMENT) {
-                    code->comment = tokenString;
-                    state = IsaAsm::PS_COMMENT;
-                }
-                else if (token == IsaAsm::LT_EMPTY) {
-                    code->sourceCodeLine = lineNum;
-                    state = IsaAsm::PS_FINISH;
-                }
-                else {
-                    errorString = ";ERROR: Comment expected following instruction.";
-                    return false;
-                }
-            }
-            break;
-
-        case IsaAsm::PS_DOT_ADDRSS:
-            if (token == IsaAsm::LT_IDENTIFIER) {
-                if (tokenString.length() > 8) {
-                    errorString = ";ERROR: Symbol " + tokenString + " cannot have more than eight characters.";
-                    return false;
-                }
-                if(!symTable->exists(tokenString)) symTable->insertSymbol(tokenString);
-                dotAddrss->argument = new SymbolRefArgument(symTable->getValue(tokenString));
-                IsaAsm::listOfReferencedSymbols.append(tokenString);
-                IsaAsm::listOfReferencedSymbolLineNums.append(lineNum);
-                byteCount += 2;
-                state = IsaAsm::PS_CLOSE;
-            }
-            else {
-                errorString = ";ERROR: .ADDRSS requires a symbol argument.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_DOT_ALIGN:
-            if (token == IsaAsm::LT_DEC_CONSTANT) {
-                bool ok;
-                int value = tokenString.toInt(&ok, 10);
-                if (value == 2 || value == 4 || value == 8) {
-                    int numBytes = (value - byteCount % value) % value;
-                    dotAlign->argument = new UnsignedDecArgument(value);
-                    dotAlign->numBytesGenerated = new UnsignedDecArgument(numBytes);
-                    byteCount += numBytes;
-                    state = IsaAsm::PS_CLOSE;
-                }
-                else {
-                    errorString = ";ERROR: Decimal constant is out of range (2, 4, 8).";
-                    return false;
-                }
-            }
-            else {
-                errorString = ";ERROR: .ALIGN requires a decimal constant 2, 4, or 8.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_DOT_ASCII:
-            if (token == IsaAsm::LT_STRING_CONSTANT) {
-                dotAscii->argument = new StringArgument(tokenString);
-                byteCount += IsaAsm::byteStringLength(tokenString);
-                state = IsaAsm::PS_CLOSE;
-            }
-            else {
-                errorString = ";ERROR: .ASCII requires a string constant argument.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_DOT_BLOCK:
-            if (token == IsaAsm::LT_DEC_CONSTANT) {
-                bool ok;
-                int value = tokenString.toInt(&ok, 10);
-                if ((0 <= value) && (value <= 65535)) {
-                    if (value < 0) {
-                        value += 65536; // Stored as two-byte unsigned.
-                        dotBlock->argument = new DecArgument(value);
-                    }
-                    else {
-                        dotBlock->argument = new UnsignedDecArgument(value);
-                    }
-                    byteCount += value;
-                    state = IsaAsm::PS_CLOSE;
-                }
-                else {
-                    errorString = ";ERROR: Decimal constant is out of range (0..65535).";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_HEX_CONSTANT) {
-                tokenString.remove(0, 2); // Remove "0x" prefix.
-                bool ok;
-                int value = tokenString.toInt(&ok, 16);
-                if (value < 65536) {
-                    dotBlock->argument = new HexArgument(value);
-                    byteCount += value;
-                    state = IsaAsm::PS_CLOSE;
-                }
-                else {
-                    errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
-                    return false;
-                }
-            }
-            else {
-                errorString = ";ERROR: .BLOCK requires a decimal or hex constant argument.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_DOT_BURN:
-            if (token == IsaAsm::LT_HEX_CONSTANT) {
-                tokenString.remove(0, 2); // Remove "0x" prefix.
-                bool ok;
-                int value = tokenString.toInt(&ok, 16);
-                if (value < 65536) {
-                    dotBurn->argument = new HexArgument(value);
-                    info.burnCount++;
-                    info.burnValue = value;
-                    info.burnAddress = byteCount;
-                    // The strating rom address cannot be calculated until the length of the program is known
-                    // info.startROMAddress = ???;
-                    state = IsaAsm::PS_CLOSE;
-                }
-                else {
-                    errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
-                    return false;
-                }
-            }
-            else {
-                errorString = ";ERROR: .BURN requires a hex constant argument.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_DOT_BYTE:
-            if (token == IsaAsm::LT_CHAR_CONSTANT) {
-                dotByte->argument = new CharArgument(tokenString);
-                byteCount += 1;
-                state = IsaAsm::PS_CLOSE;
-            }
-            else if (token == IsaAsm::LT_DEC_CONSTANT) {
-                bool ok;
-                int value = tokenString.toInt(&ok, 10);
-                if ((-128 <= value) && (value <= 255)) {
-                    if (value < 0) {
-                        value += 256; // value stored as one-byte unsigned.
-                    }
-                    dotByte->argument = new DecArgument(value);
-                    byteCount += 1;
-                    state = IsaAsm::PS_CLOSE;
-                }
-                else {
-                    errorString = ";ERROR: Decimal constant is out of byte range (-128..255).";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_HEX_CONSTANT) {
-                tokenString.remove(0, 2); // Remove "0x" prefix.
-                bool ok;
-                int value = tokenString.toInt(&ok, 16);
-                if (value < 256) {
-                    dotByte->argument = new HexArgument(value);
-                    byteCount += 1;
-                    state = IsaAsm::PS_CLOSE;
-                }
-                else {
-                    errorString = ";ERROR: Hex constant is out of byte range (0x00..0xFF).";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_STRING_CONSTANT) {
-                if (IsaAsm::byteStringLength(tokenString) > 1) {
-                    errorString = ";ERROR: .BYTE string operands must have length one.";
-                    return false;
-                }
-                dotByte->argument = new StringArgument(tokenString);
-                byteCount += 1;
-                state = IsaAsm::PS_CLOSE;
-            }
-            else {
-                errorString = ";ERROR: .BYTE requires a char, dec, hex, or string constant argument.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_DOT_END:
-            if (token == IsaAsm::LT_COMMENT) {
-                dotEnd->comment = tokenString;
-                code->sourceCodeLine = lineNum;
-                state = IsaAsm::PS_FINISH;
-            }
-            else if (token == IsaAsm::LT_EMPTY) {
-                dotEnd->comment = "";
-                code->sourceCodeLine = lineNum;
-                state = IsaAsm::PS_FINISH;
-            }
-            else {
-                errorString = ";ERROR: Only a comment can follow .END.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_DOT_EQUATE:
-            if (dotEquate->symbolEntry == nullptr) {
-                errorString = ";ERROR: .EQUATE must have a symbol definition.";
-                return false;
-            }
-            else if (token == IsaAsm::LT_DEC_CONSTANT) {
-                bool ok;
-                int value = tokenString.toInt(&ok, 10);
-                if ((-32768 <= value) && (value <= 65535)) {
-
-                    if (value < 0) {
-                        value += 65536; // Stored as two-byte unsigned.
-                        dotEquate->argument = new DecArgument(value);
-                    }
-                    else {
-                        dotEquate->argument = new UnsignedDecArgument(value);
-                    }
-                    dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(value));
-                    state = IsaAsm::PS_CLOSE;
-                }
-                else {
-                    errorString = ";ERROR: Decimal constant is out of range (-32768..65535).";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_HEX_CONSTANT) {
-                tokenString.remove(0, 2); // Remove "0x" prefix.
-                bool ok;
-                int value = tokenString.toInt(&ok, 16);
-                if (value < 65536) {
-                    dotEquate->argument = new HexArgument(value);
-                    dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(value));
-                    state = IsaAsm::PS_CLOSE;
-                }
-                else {
-                    errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_STRING_CONSTANT) {
-                if (IsaAsm::byteStringLength(tokenString) > 2) {
-                    errorString = ";ERROR: .EQUATE string operand must have length at most two.";
-                    return false;
-                }
-                dotEquate->argument = new StringArgument(tokenString);
-                dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(IsaAsm::string2ArgumentToInt(tokenString)));
-                state = IsaAsm::PS_CLOSE;
-            }
-            else if (token == IsaAsm::LT_CHAR_CONSTANT) {
-                dotEquate->argument = new CharArgument(tokenString);
-                dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(IsaAsm::charStringToInt(tokenString)));
-                state = IsaAsm::PS_CLOSE;
-            }
-            else {
-                errorString = ";ERROR: .EQUATE requires a dec, hex, or string constant argument.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_DOT_WORD:
-            if (token == IsaAsm::LT_CHAR_CONSTANT) {
-                dotWord->argument = new CharArgument(tokenString);
-                byteCount += 2;
-                state = IsaAsm::PS_CLOSE;
-            }
-            else if (token == IsaAsm::LT_DEC_CONSTANT) {
-                bool ok;
-                int value = tokenString.toInt(&ok, 10);
-                if ((-32768 <= value) && (value < 65536)) {
-
-                    if (value < 0) {
-                        value += 65536; // Stored as two-byte unsigned.
-                        dotWord->argument = new DecArgument(value);
-                    }
-                    else {
-                        dotWord->argument = new UnsignedDecArgument(value);
-                    }
-                    byteCount += 2;
-                    state = IsaAsm::PS_CLOSE;
-                }
-                else {
-                    errorString = ";ERROR: Decimal constant is out of range (-32768..65535).";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_HEX_CONSTANT) {
-                tokenString.remove(0, 2); // Remove "0x" prefix.
-                bool ok;
-                int value = tokenString.toInt(&ok, 16);
-                if (value < 65536) {
-                    dotWord->argument = new HexArgument(value);
-                    byteCount += 2;
-                    state = IsaAsm::PS_CLOSE;
-                }
-                else {
-                    errorString = ";ERROR: Hexidecimal constant is out of range (0x0000..0xFFFF).";
-                    return false;
-                }
-            }
-            else if (token == IsaAsm::LT_STRING_CONSTANT) {
-                if (IsaAsm::byteStringLength(tokenString) > 2) {
-                    errorString = ";ERROR: .WORD string operands must have length at most two.";
-                    return false;
-                }
-                dotWord->argument = new StringArgument(tokenString);
-                byteCount += 2;
-                state = IsaAsm::PS_CLOSE;
-            }
-            else {
-                errorString = ";ERROR: .WORD requires a char, dec, hex, or string constant argument.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_CLOSE:
-            if (token == IsaAsm::LT_EMPTY) {
-                code->sourceCodeLine = lineNum;
-                state = IsaAsm::PS_FINISH;
-            }
-            else if (token == IsaAsm::LT_COMMENT) {
-                code->comment = tokenString;
-                state = IsaAsm::PS_COMMENT;
-            }
-            else {
-                errorString = ";ERROR: Comment expected following instruction.";
-                return false;
-            }
-            break;
-
-        case IsaAsm::PS_COMMENT:
-            if (token == IsaAsm::LT_EMPTY) {
-                code->sourceCodeLine = lineNum;
-                state = IsaAsm::PS_FINISH;
-            }
-            else {
-                // This error should not occur, as all characters are allowed in comments.
-                errorString = ";ERROR: Problem detected after comment.";
-                return false;
-            }
-            break;
-
-        default:
-            break;
-        }
-    }
-    while (state != IsaAsm::PS_FINISH);
-    return true;
 }

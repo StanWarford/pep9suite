@@ -107,16 +107,12 @@ public:
     // Post: hasCheckBox is populated with the checkBox list that specifies whether a trace line can have a break point.
     // Post: assemblerListingList is returned.
 
-    void adjustCodeList(QList<QSharedPointer<AsmCode>>& codeList, int addressDelta);
-    // Pre: codeList is populated with code from a complete correct Pep/9 source program.
-    // Post: The memAddress field of each code object is incremented by addressDelta.
-
     bool assembleDefaultOs();
     // Post: the pep/8 operating system is installed into memory, and true is returned
     // If assembly fails, false is returned
     // This function should only be called on program startup once
 
-    bool assembleOS(QStringList fileName);
+    bool assembleOS(const QString& sourceCode);
 
     void removeErrorMessages();
     // Post: Searces for the string ";ERROR: " on each line and removes the end of the line.

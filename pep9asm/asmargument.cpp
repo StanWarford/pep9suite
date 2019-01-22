@@ -48,7 +48,7 @@ StringArgument::StringArgument(QString sValue): stringValue(sValue)
 
 int StringArgument::getArgumentValue() const
 {
-    return IsaAsm::string2ArgumentToInt(stringValue);
+    return IsaParserHelper::string2ArgumentToInt(stringValue);
 }
 
 QString StringArgument::getArgumentString() const
@@ -63,7 +63,7 @@ CharArgument::CharArgument(QString cValue) : charValue(cValue)
 
 int CharArgument::getArgumentValue() const
 {
-    return IsaAsm::charStringToInt(charValue);
+    return IsaParserHelper::charStringToInt(charValue);
 }
 
 QString CharArgument::getArgumentString() const

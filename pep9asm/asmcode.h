@@ -27,11 +27,6 @@
 #include <QSet>
 class AsmArgument; // Forward declaration for attributes of code classes.
 class SymbolEntry;
-struct SymbolListings
-{
-    QSet<QString> blockSymbols = {}, equateSymbols = {}, symbolTraceList = {};
-    QMap<QString,QList<QString>> blockGlobals;
-};
 
 /*
  * Abstract Code class that represents a single line of assembly code.
@@ -51,12 +46,14 @@ public:
     QSharedPointer<const SymbolEntry> getSymbolEntry() const {return symbolEntry;}
     void setEmitObjectCode(bool emitObject);
     bool getEmitObjectCode() const;
+    virtual bool hasComment() const;
+    QString getComment() const;
 
     virtual void appendObjectCode(QList<int> &) const { return; }
     virtual void appendSourceLine(QStringList &assemblerListingList) const{ assemblerListingList.append(getAssemblerListing()); }
     void adjustMemAddress(int addressDelta);
-    virtual bool processFormatTraceTags(int &, QString &, SymbolListings &) { return true; }
-    virtual bool processSymbolTraceTags(int &, QString &, SymbolListings &) { return true; }
+    //virtual bool processFormatTraceTags(int &, QString &, SymbolListings &) { return true; }
+    //virtual bool processSymbolTraceTags(int &, QString &, SymbolListings &) { return true; }
     virtual int getMemoryAddress() const {return memAddress; }
     virtual QString getAssemblerListing() const = 0;
     virtual QString getAssemblerTrace() const { return getAssemblerListing(); }
@@ -69,7 +66,7 @@ protected:
     int sourceCodeLine, memAddress =-1;
     QSharedPointer<SymbolEntry> symbolEntry;
     QString comment;
-    bool emitObjectCode;
+    bool emitObjectCode, hasCom;
 };
 
 // Concrete code classes
@@ -104,8 +101,8 @@ public:
     // ~NonUnaryInstruction() { delete argument; }
     virtual void appendObjectCode(QList<int> &objectCode) const override;
     virtual void appendSourceLine(QStringList &assemblerListingList) const override;
-    virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
-    virtual bool processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
+    //virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
+    //virtual bool processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
 
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
@@ -114,6 +111,7 @@ public:
     virtual void setBreakpoint(bool b) override;
     bool hasSymbolicOperand() const override;
     QSharedPointer<const SymbolEntry> getSymbolicOperand() const override;
+    Enu::EMnemonic getMnemonic() const;
 };
 
 class DotAddrss: public AsmCode
@@ -169,8 +167,8 @@ private:
 public:
     virtual void appendObjectCode(QList<int> &objectCode) const override;
     virtual void appendSourceLine(QStringList &assemblerListingList) const override;
-    virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
-    virtual bool processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
+    //virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
+    //virtual bool processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
 
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
@@ -216,7 +214,7 @@ class DotEquate: public AsmCode
 private:
     AsmArgument *argument = nullptr;
 public:
-    virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
+    //virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
 };

@@ -260,12 +260,14 @@ void FullMicrocodedMemoizer::setDebugLevel(Enu::DebugLevels level)
 
 quint8 FullMicrocodedMemoizer::getRegisterByteStart(Enu::CPURegisters reg) const
 {
+#pragma message("TODO: store starting state for registers")
     if(reg != Enu::CPURegisters::IS) throw -1; // Attempted to access register that was not cached
     else return registers.regState.reg_IS_start;
 }
 
 quint16 FullMicrocodedMemoizer::getRegisterWordStart(Enu::CPURegisters reg) const
 {
+    #pragma message("TODO: store starting state for registers")
     if (cpu.getMicrocodeLineNumber() == 0){
         if(reg != Enu::CPURegisters::PC) throw std::runtime_error("Register not cached"); // Attempted to access register that was not cached
         else return cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
@@ -277,6 +279,7 @@ quint16 FullMicrocodedMemoizer::getRegisterWordStart(Enu::CPURegisters reg) cons
 
 bool FullMicrocodedMemoizer::getStatusBitStart(Enu::EStatusBit) const
 {
+    #pragma message("TODO: store starting state for status bits")
     throw std::runtime_error("Method not implemented");
 }
 
@@ -297,14 +300,14 @@ QString FullMicrocodedMemoizer::formatAddress(quint16 address)
 {
     return "0x"+formatNum(address);
 }
-
 //Convert a mnemonic into it's string
 QString FullMicrocodedMemoizer::mnemonDecode(quint8 instrSpec)
 {
     static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
     return QString(metaenum.valueToKey((int)Pep::decodeMnemonic[instrSpec])).toLower();
 }
-//Convert a mnemonic into it's string
+
+//Convert a mnemonic into its string
 QString FullMicrocodedMemoizer::mnemonDecode(Enu::EMnemonic instrSpec)
 {
     static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
@@ -343,12 +346,10 @@ QString FullMicrocodedMemoizer::formatInstr(quint8 instrSpec,quint16 oprSpec)
 QString FullMicrocodedMemoizer::generateStackFrame(CPUState&, bool enter)
 {
     return "";
-    if(enter)
-    {
+    if(enter) {
         //return stackFrameEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
-    else
-    {
+    else {
         //return stackFrameLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
 }
@@ -356,25 +357,23 @@ QString FullMicrocodedMemoizer::generateStackFrame(CPUState&, bool enter)
 QString FullMicrocodedMemoizer::generateTrapFrame(CPUState&, bool enter)
 {
     return "";
-    if(enter)
-    {
+    if(enter) {
         //return trapEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
-    else
-    {
+    else {
         //return trapLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
 }
 
 QString FullMicrocodedMemoizer::attempSymOprReplace(quint16 number)
 {
-    if(OSSymTable.count(number)==1) return OSSymTable.find(number).value();
+    if(OSSymTable.count(number) == 1) return OSSymTable.find(number).value();
     else return formatNum(number);
 }
 
 QString FullMicrocodedMemoizer::attempSymAddrReplace(quint16 number)
 {
-    if(OSSymTable.count(number)==1) return OSSymTable.find(number).value();
+    if(OSSymTable.count(number) == 1) return OSSymTable.find(number).value();
     else return formatAddress(number);
 }
 
@@ -385,13 +384,11 @@ void FullMicrocodedMemoizer::loadSymbols()
     if(true) osFileString = (":/help/osunalignedsymbols.txt");
     else osFileString = ("nope");
     QFile osFile(osFileString);
-    quint8 msylen=0;
-    if(osFile.open(QFile::ReadOnly))
-    {
-        bool temp=0;
+    quint8 msylen=  0;
+    if(osFile.open(QFile::ReadOnly)) {
+        bool temp = 0;
         QTextStream file(&osFile);
-        while(!file.atEnd())
-        {
+        while(!file.atEnd()) {
             QString text = file.readLine();
             QList<QString> parts =text.split(' ',QString::SplitBehavior::SkipEmptyParts );
             quint16 key = parts[1].toUShort(&temp,16);
@@ -399,8 +396,8 @@ void FullMicrocodedMemoizer::loadSymbols()
             msylen = msylen<parts[0].length() ? parts[0].length() : msylen;
         }
     }
-    oper_addr_size=msylen+3;
-    max_symLen=msylen;
+    oper_addr_size = msylen+3;
+    max_symLen = msylen;
 }
 
 //QString generateLine()

@@ -36,6 +36,7 @@ HEADERS += \
     $$SRC_PTH memorytracepane.h \
     $$SRC_PTH pepasmhighlighter.h \
     $$SRC_PTH stackframefsm.h \
+    $$SRC_PTH typetags.h
 
 SOURCES += \
     $$SRC_PTH asmargument.cpp \
@@ -52,3 +53,4 @@ SOURCES += \
     $$SRC_PTH memorytracepane.cpp \
     $$SRC_PTH pepasmhighlighter.cpp \
     $$SRC_PTH stackframefsm.cpp \
+    $$SRC_PTH typetags.cpp
