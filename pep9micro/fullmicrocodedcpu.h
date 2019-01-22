@@ -11,7 +11,7 @@ class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public Interf
     Q_OBJECT
     friend class CPUMemoizer;
 public:
-    FullMicrocodedCPU(QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
+    FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~FullMicrocodedCPU() override;
     QSharedPointer<NewCPUDataSection> getDataSection();
     // Returns true if the microprogram counter is at the

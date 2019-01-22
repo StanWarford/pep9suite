@@ -25,6 +25,10 @@
 #include <QtCore>
 #include <ostream>
 class AMemoryDevice;
+class AsmProgramManager;
+enum class stackAction {
+    locals, params, call
+};
 /*
  * InterfaceISACPU describes the operations that may be done on a ISA level CPU.
  * When inherited in combination with the data desciption of a CPU (ACPUModel), a
@@ -32,10 +36,11 @@ class AMemoryDevice;
  *
  * It also contains convenience methods for handling assembler breakpoints.
  */
+
 class InterfaceISACPU
 {
 public:
-    explicit InterfaceISACPU() noexcept;
+    explicit InterfaceISACPU(const AsmProgramManager* manager) noexcept;
     virtual ~InterfaceISACPU();
     // Add, remove, & get breakpoints for the program counter.
     // Simulation will trap if the program counter is an element of the breakpointSet.
@@ -54,10 +59,18 @@ public:
     // Execute the next ISA instruction.
     virtual void onISAStep() = 0;
 protected:
+    virtual void updateAtInstructionEnd() = 0; // Update simulation state at the start of a assembly level instruction
+    void calculateStackChangeStart(quint8 instr);
+    void calculateStackChangeEnd(quint8 instr, quint16 opspec);
+
+    const AsmProgramManager* manager;
     QSet<quint16> breakpointsISA;
     int asmInstructionCounter;
     bool asmBreakpointHit, doDebug;
-    virtual void updateAtInstructionEnd() = 0; // Update simulation state at the start of a assembly level instruction
+
+    bool firstLineAfterCall, isTrapped;
+    QStack<stackAction> userActions, osActions, *activeActions;
+    bool userStackIntact, osStackIntact, *activeIntact;
 };
 
 #endif // AISACPU_H

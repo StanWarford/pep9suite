@@ -16,13 +16,9 @@ static quint8 inst_size=6;
 static quint8 oper_addr_size=12;
 
 FullMicrocodedMemoizer::FullMicrocodedMemoizer(FullMicrocodedCPU& item): cpu(item),
-    registers(CPUState()), level(Enu::DebugLevels::MINIMAL), OSSymTable(), firstLineAfterCall(false), isTrapped(false), userStack(), osStack(),
-    activeStack(&userStack), userActions(), osActions(), activeActions(&userActions), userStackIntact(true), osStackIntact(true),
-    activeIntact(&userStackIntact)
+    registers(CPUState()), level(Enu::DebugLevels::MINIMAL), OSSymTable()
 {
-    loadSymbols();
-    userStack.push(0);
-    osStack.push(0);
+
 }
 
 Enu::DebugLevels FullMicrocodedMemoizer::getDebugLevel() const
@@ -33,21 +29,6 @@ Enu::DebugLevels FullMicrocodedMemoizer::getDebugLevel() const
 void FullMicrocodedMemoizer::clear()
 {
     registers = CPUState();
-
-    userStack.clear();
-    userStack.push(0);
-    osStack.clear();
-    osStack.push(0);
-    activeStack = &userStack;
-
-    userActions.clear();
-    osActions.clear();
-    activeActions = & userActions;
-    userStackIntact = true;
-    osStackIntact = true;
-    activeIntact = &userStackIntact;
-    isTrapped = false;
-    firstLineAfterCall = false;
 }
 
 void FullMicrocodedMemoizer::storeStateInstrEnd()
@@ -76,81 +57,6 @@ void FullMicrocodedMemoizer::storeStateInstrEnd()
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::NONE:
-        switch(Pep::decodeMnemonic[registers.regState.reg_IS_start]) {
-        case Enu::EMnemonic::CALL:
-            if(isTrapped) break;
-            firstLineAfterCall = true;
-            activeStack->top() += 2;
-            activeActions->push(stackAction::call);
-            qDebug() << "Called! " << activeStack->top();
-            break;
-        case Enu::EMnemonic::RET:
-            if(isTrapped) break;
-            if(activeActions->isEmpty()) break;
-            switch(activeActions->pop()) {
-            case stackAction::call:
-                activeStack->top() -= 2;
-                qDebug() << "Returned! " << activeStack->top();
-                firstLineAfterCall = true;
-                break;
-            default:
-                qDebug() <<"Unbalanced stack operation 1";
-                *activeIntact = false;
-            }
-            break;
-        case Enu::EMnemonic::SUBSP:
-            if(isTrapped) break;
-            if(firstLineAfterCall) {
-                activeActions->push(stackAction::locals);
-                activeStack->top() += cpu.getCPURegWordCurrent(Enu::CPURegisters::OS);
-                qDebug() << "Alloc'ed Locals! " << activeStack->top();
-            }
-            else {
-                activeActions->push(stackAction::params);
-                activeStack->push(registers.regState.reg_OS);
-                qDebug() << "Alloc'ed params! " << activeStack->top();
-            }
-            break;
-        case Enu::EMnemonic::ADDSP:
-            if(isTrapped) break;
-            if(activeActions->isEmpty()) break;
-            switch(activeActions->pop()) {
-            case stackAction::locals:
-                activeStack->pop();
-                qDebug() << "Popped locals! SS:" << activeStack->size();
-                break;
-            case stackAction::params:
-                activeStack->top() -= cpu.getCPURegWordCurrent(Enu::CPURegisters::OS);
-                qDebug() << "Popped Params! " << activeStack->top();
-                break;
-            default:
-                qDebug() << "Unbalance stack operation 2";
-                *activeIntact = false;
-            }
-            break;
-        case Enu::EMnemonic::BR:
-            [[fallthrough]];
-        case Enu::EMnemonic::BRC:
-            [[fallthrough]];
-        case Enu::EMnemonic::BREQ:
-            [[fallthrough]];
-        case Enu::EMnemonic::BRGE:
-            [[fallthrough]];
-        case Enu::EMnemonic::BRGT:
-            [[fallthrough]];
-        case Enu::EMnemonic::BRLE:
-            [[fallthrough]];
-        case Enu::EMnemonic::BRLT:
-            [[fallthrough]];
-        case Enu::EMnemonic::BRNE:
-            [[fallthrough]];
-        case Enu::EMnemonic::BRV:
-            firstLineAfterCall = true;
-            break;
-        default:
-            firstLineAfterCall = false;
-            break;
-        }
         #pragma message("This calculation is not quite right")
         break;
     }
@@ -173,18 +79,6 @@ void FullMicrocodedMemoizer::storeStateInstrStart()
         registers.regState.reg_PC_start = cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
         // Fetch the instruction specifier, located at the memory address of PC
         cpu.getMemoryDevice()->getByte(registers.regState.reg_PC_start, registers.regState.reg_IS_start);
-        if(Pep::isTrapMap[Pep::decodeMnemonic[registers.regState.reg_IS_start]]) {
-            isTrapped = true;
-            activeStack = &osStack;
-            activeActions = &osActions;
-            activeIntact = &osStackIntact;
-        }
-        else if(Pep::decodeMnemonic[registers.regState.reg_IS_start] == Enu::EMnemonic::RETTR) {
-            isTrapped = false;
-            activeStack = &userStack;
-            activeActions = &userActions;
-            activeIntact = &userStackIntact;
-        }
         break;
     }
 }
@@ -283,31 +177,32 @@ bool FullMicrocodedMemoizer::getStatusBitStart(Enu::EStatusBit) const
     throw std::runtime_error("Method not implemented");
 }
 
-//Properly formats a number as a 4 char hex
+// Properly formats a number as a 4 char hex
 QString FullMicrocodedMemoizer::formatNum(quint16 number)
 {
     return QString("%1").arg(QString::number(number,16),4,'0').toUpper();
 }
 
-//Properly format a number as 2 char hex
+// Properly format a number as 2 char hex
 QString FullMicrocodedMemoizer::formatNum(quint8 number)
 {
     return QString("%1").arg(QString::number(number,16),2,'0').toUpper();
 }
 
-//Properly format a 16 bit address
+// Properly format a 16 bit address
 QString FullMicrocodedMemoizer::formatAddress(quint16 address)
 {
     return "0x"+formatNum(address);
 }
-//Convert a mnemonic into it's string
+
+// Convert a mnemonic into it's string
 QString FullMicrocodedMemoizer::mnemonDecode(quint8 instrSpec)
 {
     static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
     return QString(metaenum.valueToKey((int)Pep::decodeMnemonic[instrSpec])).toLower();
 }
 
-//Convert a mnemonic into its string
+// Convert a mnemonic into its string
 QString FullMicrocodedMemoizer::mnemonDecode(Enu::EMnemonic instrSpec)
 {
     static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));

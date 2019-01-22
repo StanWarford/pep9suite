@@ -10,9 +10,9 @@
 #include "newcpudata.h"
 #include "symbolentry.h"
 #include "fullmicrocodedmemoizer.h"
-FullMicrocodedCPU::FullMicrocodedCPU(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
+FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
     InterfaceMCCPU(Enu::CPUType::TwoByteDataBus),
-    InterfaceISACPU()
+    InterfaceISACPU(manager)
 {
     memoizer = new FullMicrocodedMemoizer(*this);
     data = new NewCPUDataSection(Enu::CPUType::TwoByteDataBus, memoryDev, parent);
@@ -186,18 +186,18 @@ bool FullMicrocodedCPU::onRun()
     if(hadErrorOnStep()) {
         if(memory->hadError()) {
             qDebug() << "Memory section reporting an error";
-            return false;
             emit simulationFinished();
+            return false;
         }
         else if(data->hadErrorOnStep()) {
             qDebug() << "Data section reporting an error";
-            return false;
             emit simulationFinished();
+            return false;
         }
         else {
             qDebug() << "Control section reporting an error";
-            return false;
             emit simulationFinished();
+            return false;
         }
     }
 
@@ -251,6 +251,7 @@ void FullMicrocodedCPU::onMCStep()
         // could be selected.
         // Clear at start, so as to preserve highlighting AFTER finshing a write.
         memory->clearBytesWritten();
+        InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Enu::CPURegisters::IS));
     }
 
     // Do step logic
@@ -265,12 +266,14 @@ void FullMicrocodedCPU::onMCStep()
 
     if(microprogramCounter == 0 || executionFinished) {
         memoizer->storeStateInstrEnd();
+        InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteStart(Enu::CPURegisters::IS),
+                                                 this->getCPURegWordCurrent(Enu::CPURegisters::OS));
         updateAtInstructionEnd();
         emit asmInstructionFinished();
         asmInstructionCounter++;
-        if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
+        /*if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
             qDebug().noquote().nospace() << memoizer->memoize();
-        }
+        }*/
 
     }
     // Upon entering an instruction that is going to trap
