@@ -35,10 +35,16 @@ struct StaticTraceInfo
 {
     // Did the static analysis find a trace error?
     bool staticTraceError;
-#pragma message("TODO: Detect heapPtr and malloc")
     // Associate a symbol with its rendering type
     QMap<QSharedPointer<const SymbolEntry>, QSharedPointer<AType>> dynamicAllocSymbolTypes,
     staticAllocSymbolTypes;
+
+    // For the instruction located at an address, what symbols are being pushed, popped, or allocated?
+    QMap<quint16, QList<QSharedPointer<AType> > > instrToSymlist;
+    // Does the program have both malloc and a heap? Does the program have a free?
+    bool hasHeapMalloc, hasFree;
+    // If they exist, store the pointer to their values
+    QSharedPointer<const SymbolEntry> heapPtr, mallocPtr, freePtr;
 };
 
 class AsmProgram

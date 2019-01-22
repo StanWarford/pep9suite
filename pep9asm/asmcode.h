@@ -112,6 +112,7 @@ public:
     bool hasSymbolicOperand() const override;
     QSharedPointer<const SymbolEntry> getSymbolicOperand() const override;
     Enu::EMnemonic getMnemonic() const;
+    Enu::EAddrMode getAddressingMode() const;
 };
 
 class DotAddrss: public AsmCode

@@ -412,9 +412,30 @@
             <set>Qt::TextSelectableByMouse</set>
            </property>
           </widget>
-          <widget class="QTextEdit" name="leftPepTextEdit"/>
-          <widget class="QTextEdit" name="rightPepTextEdit"/>
-          <widget class="QTextEdit" name="rightCppTextEdit"/>
+          <widget class="QTextEdit" name="leftPepTextEdit">
+           <property name="lineWrapMode">
+            <enum>QTextEdit::NoWrap</enum>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QTextEdit" name="rightPepTextEdit">
+           <property name="lineWrapMode">
+            <enum>QTextEdit::NoWrap</enum>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+          <widget class="QTextEdit" name="rightCppTextEdit">
+           <property name="lineWrapMode">
+            <enum>QTextEdit::NoWrap</enum>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
          </widget>
         </item>
         <item>

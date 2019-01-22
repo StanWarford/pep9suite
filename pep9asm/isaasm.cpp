@@ -51,6 +51,8 @@ const QString bytesAllocMismatch = ";WARNING: Number of bytes allocated (%1) not
 const QString badTag = ";WARNING: %1 not specified in .EQUATE";
 const QString neSymbol(";WARNING: Looked up a symbol that does not exist: %1");
 const QString noEquate(";WARNING: Looked for existing symbol not defined in .EQUATE: %1");
+const QString noSymbol(";WARNING: Trace tag with no symbol declaration");
+const QString illegalAddrMode(";WARNING: Stack trace not possible unless immediate addressing is specified.");
 
 IsaAsm::IsaAsm(QSharedPointer<MainMemory> memDevice, AsmProgramManager &manager): memDevice(memDevice),
 manager(manager)
@@ -269,6 +271,11 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
         lastLen = structs.length();
         for(QMutableListIterator it(structs); it.hasNext();) {
             auto line = it.next();
+            // If a line with symbol tags listed does not contain a symbol definition, there is an error.
+            if(!line.second->hasSymbolEntry()) {
+                traceInfo.staticTraceError = true;
+                break;
+            }
             auto strDefs = extractTagList(line.second->getComment());
             // Attempt to parse the struct definition given previously defined primitives,
             // arrays, and structs. Will return non-null first if successful, or nullptr and
@@ -312,9 +319,15 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
     */
     if(structs.length() != 0) {
         for(auto line : structs) {
-            auto strDefs = extractTagList(line.second->getComment());
-            auto ret = parseStruct(symTable, line.second->getSymbolEntry()->getName(), strDefs, traceInfo);
-            errList.append({line.first, ret.second});
+            if(!line.second->hasSymbolEntry()) {
+                traceInfo.staticTraceError = true;
+                errList.append({line.first, noSymbol});
+            }
+            else {
+                auto strDefs = extractTagList(line.second->getComment());
+                auto ret = parseStruct(symTable, line.second->getSymbolEntry()->getName(), strDefs, traceInfo);
+                errList.append({line.first, ret.second});
+            }
         }
     }
 
@@ -355,17 +368,37 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                 size += tag->size();
             }
             // On lines where trace tags have significance, verify that the argument is equal to
+            if(instr->getAddressingMode() != Enu::EAddrMode::I) {
+                traceInfo.staticTraceError = true;
+                errList.append({line.first, illegalAddrMode});
+                continue;
+            }
             switch(instr->getMnemonic()) {
             case Enu::EMnemonic::ADDSP:
                 if(instr->argument->getArgumentValue() != size) {
                     traceInfo.staticTraceError = true;
                     errList.append({line.first, bytesAllocMismatch.arg(instr->argument->getArgumentValue()).arg(size)});
                 }
+                else {
+                    traceInfo.instrToSymlist[instr->getMemoryAddress()] = lineTypes;
+                }
                 break;
             case Enu::EMnemonic::SUBSP:
                 if(instr->argument->getArgumentValue() != size) {
                     traceInfo.staticTraceError = true;
                     errList.append({line.first, bytesAllocMismatch.arg(instr->argument->getArgumentValue()).arg(size)});
+                }
+                else {
+                    traceInfo.instrToSymlist[instr->getMemoryAddress()] = lineTypes;
+                }
+                break;
+            case Enu::EMnemonic::CALL:
+                if(instr->argument->getArgumentValue() != size) {
+                    traceInfo.staticTraceError = true;
+                    errList.append({line.first, bytesAllocMismatch.arg(instr->argument->getArgumentValue()).arg(size)});
+                }
+                else {
+                    traceInfo.instrToSymlist[instr->getMemoryAddress()] = lineTypes;
                 }
                 break;
             default:
@@ -375,14 +408,37 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
         }
     }
 
+    // Detect if heap, malloc are present.
+    // And if they are present, are they both locations?
+    // E.G. malloc: .equate 0 would be wrong
+    if(symTable.exists("malloc")
+            && symTable.exists("heap")
+            && symTable.getValue("malloc")->getRawValue()->getSymbolType() != SymbolType::ADDRESS
+            && symTable.getValue("heap")->getRawValue()->getSymbolType() != SymbolType::ADDRESS) {
+        traceInfo.hasHeapMalloc = true;
+        traceInfo.heapPtr = symTable.getValue("heap");
+        traceInfo.mallocPtr = symTable.getValue("malloc");
+    }
+    if(symTable.exists("free")
+            && symTable.getValue("free")->getRawValue()->getSymbolType() != SymbolType::ADDRESS) {
+        traceInfo.hasFree = true;
+        traceInfo.freePtr = symTable.getValue("free");
+    }
+
     // Print debug info
     qDebug().noquote().nospace() << "Stack / Heap allocated types:";
     for(auto sym : traceInfo.dynamicAllocSymbolTypes) {
-        qDebug().noquote().nospace() << sym->toPrimitives() << "\n";
+        qDebug().noquote().nospace() << sym->toPrimitives();
     }
+
     qDebug().noquote().nospace() << "Static allocated types:";
     for(auto sym : traceInfo.staticAllocSymbolTypes) {
-        qDebug().noquote().nospace() << sym->toPrimitives() << "\n";
+        qDebug().noquote().nospace() << sym->toPrimitives();
+    }
+
+    qDebug().noquote().nospace() << "Instructions modifying stack / heap:";
+    for(auto sym : traceInfo.instrToSymlist.keys()) {
+        qDebug().noquote().nospace() << QString("(%1,").arg(sym) << traceInfo.instrToSymlist[sym] <<")";
     }
 
 }
@@ -1091,7 +1147,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
     if(hasArrayType(tag)) {
         auto aTag = arrayType(tag);
         if(!code->hasSymbolEntry()) {
-            errorString = ";ERROR: given trace tag, but no symbol";
+            errorString = ";WARNING: given trace tag, but no symbol";
             traceInfo.staticTraceError = true;
             return false;
         }
@@ -1119,7 +1175,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
     else if(hasPrimitiveType(tag)){
         auto pTag = primitiveType(tag);
         if(!code->hasSymbolEntry()) {
-            errorString = ";ERROR: given trace tag, but no symbol";
+            errorString = ";WARNING: given trace tag, but no symbol";
             traceInfo.staticTraceError = true;
             return false;
         }

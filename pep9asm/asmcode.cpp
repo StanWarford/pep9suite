@@ -353,6 +353,11 @@ Enu::EMnemonic NonUnaryInstruction::getMnemonic() const
     return mnemonic;
 }
 
+Enu::EAddrMode NonUnaryInstruction::getAddressingMode() const
+{
+    return addressingMode;
+}
+
 QString UnaryInstruction::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
