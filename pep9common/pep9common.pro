@@ -30,7 +30,6 @@ FORMS += \
 HEADERS += \
     $$SRC_PTH aboutpep.h \
     $$SRC_PTH acpumodel.h \
-    $$SRC_PTH aisacpumodel.h \
     $$SRC_PTH amemorychip.h \
     $$SRC_PTH amemorydevice.h \
     $$SRC_PTH byteconverterbin.h \
@@ -42,6 +41,7 @@ HEADERS += \
     $$SRC_PTH enu.h \
     $$SRC_PTH htmlhighlightermixin.h \
     $$SRC_PTH inputpane.h \
+    $$SRC_PTH interfaceisacpu.h \
     $$SRC_PTH iowidget.h \
     $$SRC_PTH mainmemory.h \
     $$SRC_PTH memorychips.h \
@@ -58,7 +58,6 @@ HEADERS += \
 SOURCES += \
     $$SRC_PTH aboutpep.cpp \
     $$SRC_PTH acpumodel.cpp \
-    $$SRC_PTH aisacpumodel.cpp \
     $$SRC_PTH amemorychip.cpp \
     $$SRC_PTH amemorydevice.cpp \
     $$SRC_PTH byteconverterbin.cpp \
@@ -69,6 +68,7 @@ SOURCES += \
     $$SRC_PTH colors.cpp \
     $$SRC_PTH htmlhighlightermixin.cpp \
     $$SRC_PTH inputpane.cpp \
+    $$SRC_PTH interfaceisacpu.cpp \
     $$SRC_PTH iowidget.cpp \
     $$SRC_PTH mainmemory.cpp \
     $$SRC_PTH memorychips.cpp \

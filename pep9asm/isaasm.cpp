@@ -361,7 +361,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                     lineTypes.append(traceInfo.dynamicAllocSymbolTypes[symPtr]);
                 }
             }
-        if(forceContinue) continue;
+            if(forceContinue) continue;
             // Calculate the number of bytes listed in the trace tags
             quint16 size  = 0;
             for(auto tag : lineTypes) {

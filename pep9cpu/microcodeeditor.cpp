@@ -25,7 +25,7 @@
 #include "pep.h"
 #include "microcodeprogram.h"
 #include <limits.h>
-#include "amccpumodel.h"
+#include "interfacemccpu.h"
 
 MicrocodeEditor::MicrocodeEditor(bool highlightCurrentLine, bool isReadOnly, QWidget *parent): QPlainTextEdit(parent), cpu(nullptr), colors(&PepColors::lightMode)
 {

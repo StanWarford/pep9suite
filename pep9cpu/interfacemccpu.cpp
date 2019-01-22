@@ -1,4 +1,4 @@
-#include "amccpumodel.h"
+#include "interfacemccpu.h"
 #include "microcodeprogram.h"
 InterfaceMCCPU::InterfaceMCCPU(Enu::CPUType type) noexcept: microprogramCounter(0), microCycleCounter(0),
     microBreakpointHit(false), sharedProgram(nullptr), type(type)

@@ -30,7 +30,7 @@
 #include <QStringList>
 #include <QKeyEvent>
 #include <rotatedheaderview.h>
-#include "amccpumodel.h"
+#include "interfacemccpu.h"
 #include "microcode.h"
 #include "symboltable.h"
 #include "symbolentry.h"

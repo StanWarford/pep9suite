@@ -30,7 +30,7 @@
 #include <QWebEngineView>
 #include <QScrollBar>
 
-#include "amccpumodel.h"
+#include "interfacemccpu.h"
 #include "tristatelabel.h"
 #include "pep.h"
 #include "microcode.h"

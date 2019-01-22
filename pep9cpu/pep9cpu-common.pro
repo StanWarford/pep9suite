@@ -21,10 +21,10 @@ FORMS += \
     $$SRC_PTH microobjectcodepane.ui \
 
 HEADERS += \
-    $$SRC_PTH amccpumodel.h \
     $$SRC_PTH cpupane.h \
     $$SRC_PTH cpugraphicsitems.h \
     $$SRC_PTH disableselectionmodel.h \
+    $$SRC_PTH interfacemccpu.h \
     $$SRC_PTH microasm.h \
     $$SRC_PTH microcode.h \
     $$SRC_PTH microcodeeditor.h \
@@ -40,10 +40,10 @@ HEADERS += \
     $$SRC_PTH newcpudata.h
 
 SOURCES += \
-    $$SRC_PTH amccpumodel.cpp \
     $$SRC_PTH cpupane.cpp \
     $$SRC_PTH cpugraphicsitems.cpp \
     $$SRC_PTH disableselectionmodel.cpp \
+    $$SRC_PTH interfacemccpu.cpp \
     $$SRC_PTH microasm.cpp \
     $$SRC_PTH microcode.cpp \
     $$SRC_PTH microcodeeditor.cpp \

@@ -1,4 +1,4 @@
-#include "aisacpumodel.h"
+#include "interfaceisacpu.h"
 #include <QDebug>
 InterfaceISACPU::InterfaceISACPU() noexcept: breakpointsISA(), asmInstructionCounter(0), asmBreakpointHit(false), doDebug(false)
 {
