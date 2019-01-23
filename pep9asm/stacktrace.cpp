@@ -10,8 +10,8 @@ StackTrace::StackTrace(): callStack(), nextFrame(QSharedPointer<StackFrame>::cre
 
 void StackTrace::call(quint16 sp)
 {
-    static const QSharedPointer<LiteralPrimitiveType> alpha = QSharedPointer<LiteralPrimitiveType>::create("retAddr", Enu::ESymbolFormat::F_2H);
-    nextFrame->push({sp, alpha});
+    static const QPair<Enu::ESymbolFormat,QString> retType{Enu::ESymbolFormat::F_2H, "retAddr"};
+    nextFrame->push({sp, retType});
     callStack.push(nextFrame);
     nextFrame = QSharedPointer<StackFrame>::create();
 }
@@ -22,19 +22,19 @@ void StackTrace::ret()
     nextFrame->pop(2);
 }
 
-void StackTrace::pushLocals(quint16 sp, QList<QSharedPointer<AType> > items)
+void StackTrace::pushLocals(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items)
 {
-    for(auto symbol : items) {
-        callStack.top()->push({sp,symbol});
-        sp -= symbol->size();
+    for(auto pair : items) {
+        callStack.top()->push({start, pair});
+        start -= Enu::tagNumBytes(pair.first);
     }
 }
 
-void StackTrace::pushParams(quint16 sp, QList<QSharedPointer<AType> > items)
+void StackTrace::pushParams(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items)
 {
-    for(auto symbol : items) {
-        nextFrame->push({sp,symbol});
-        sp -= symbol->size();
+    for(auto pair :items) {
+        nextFrame->push({start,pair});
+        start -= Enu::tagNumBytes(pair.first);
     }
 }
 
@@ -56,15 +56,20 @@ quint16 StackTrace::callDepth() const
 StackTrace::operator QString() const
 {
     QList<QString> ts;
-    QString out = "";
+    QString tmp = "";
     if(nextFrame->size()>0) {
-        out = QString(*nextFrame)+"||";
+        tmp = QString(*nextFrame);
+    } else {
+        tmp="{}";
     }
     for(auto pair : callStack) {
         if (pair->size() == 0) continue;
         ts << QString("{%1}").arg(QString(*pair));
     }
-    return out + ts.join(",");
+    QStringList out;
+    std::reverse(ts.begin(),ts.end());
+    out << tmp << ts.join(",");
+    return out.join("||");
 }
 
 MemoryTrace::MemoryTrace()
@@ -77,18 +82,17 @@ void MemoryTrace::clear()
     //throw std::exception("Does not work");
 }
 
-void StackFrame::push(QPair<quint16, QSharedPointer<AType> > symbol)
+void StackFrame::push(MemTag tag)
 {
-    stack.push(symbol);
+    stack.push(tag);
 }
 
 bool StackFrame::pop(quint16 size)
 {
     quint16 popped = 0;
-    for (QMutableVectorIterator it(stack); it.hasNext() && popped<=size;) {
-        auto next = it.next();
-        popped += next.second->size();
-        it.remove();
+    while(popped<size) {
+        auto next = stack.pop();
+        popped += Enu::tagNumBytes(next.type.first);
     }
     return popped == size;
 }
@@ -97,17 +101,16 @@ quint16 StackFrame::size() const
 {
     quint16 size=0;
     for(auto x: stack) {
-        size += x.second->size();
+        size += Enu::tagNumBytes(x.type.first);
     }
     return size;
 }
 
-
 StackFrame::operator QString() const
 {
     QList<QString> items;
-    for(auto pair : stack) {
-        items << QString("(%1,%2)").arg(pair.first).arg((qint64) pair.second.get());
+    for(auto tag = stack.rbegin(); tag!=stack.rend(); tag++) {
+        items << QString("(%1: %2)").arg(tag->type.second).arg(tag->addr,4,16);
     }
     return items.join(", ");
 }

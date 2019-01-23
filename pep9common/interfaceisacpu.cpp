@@ -77,7 +77,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
         memTrace.activeStack->call(sp);
         activeActions->push(stackAction::call);
         qDebug() << "Called!" ;
-        qDebug() << *(memTrace.activeStack);
+        qDebug().noquote() << *(memTrace.activeStack);
         break;
 
     case Enu::EMnemonic::RET:
@@ -88,7 +88,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             memTrace.activeStack->ret();
             firstLineAfterCall = true;
             qDebug() << "Returned!" ;
-            qDebug() << *(memTrace.activeStack);
+            qDebug().noquote() << *(memTrace.activeStack);
             break;
         default:
             qDebug() <<"Unbalanced stack operation 1";
@@ -101,23 +101,29 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
         if(firstLineAfterCall) {
 #pragma message("TODO: Verify OS matches trace tag len. Verify trace tags exist.")
             if(manager->getProgramAt(pc)->getTraceInfo().instrToSymlist.contains(pc)) {
-                qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
-                memTrace.activeStack->pushLocals(sp,
-                                                 manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc]);
+                //qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
+                QList<QPair<Enu::ESymbolFormat,QString>> primList;
+                for(auto item : manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc]) {
+                    primList.append(item->toPrimitives());
+                }
+                memTrace.activeStack->pushLocals(sp, primList);
             }
             activeActions->push(stackAction::locals);
             qDebug() << "Alloc'ed Locals!" ;
         }
         else {
             if(manager->getProgramAt(pc)->getTraceInfo().instrToSymlist.contains(pc)) {
-                qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
-                memTrace.activeStack->pushParams(sp,
-                                                 manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc]);
+                //qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
+                QList<QPair<Enu::ESymbolFormat,QString>> primList;
+                for(auto item : manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc]) {
+                    primList.append(item->toPrimitives());
+                }
+                memTrace.activeStack->pushParams(sp, primList);
             }
             activeActions->push(stackAction::params);
             qDebug() << "Alloc'ed params! " ;//<< activeStack->top();
         }
-        qDebug() << *(memTrace.activeStack);
+        qDebug().noquote()<< *(memTrace.activeStack);
         break;
 
     case Enu::EMnemonic::ADDSP:
@@ -126,7 +132,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
         switch(activeActions->pop()) {
         case stackAction::locals:
             if(manager->getProgramAt(pc)->getTraceInfo().instrToSymlist.contains(pc)) {
-                qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
+                //qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
                 quint16 size = 0;
                 for(auto item : manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc]) {
                     size += item->size();
@@ -134,12 +140,12 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                 memTrace.activeStack->popLocals(size);
             }
             qDebug() << "Popped locals!" ;
-            qDebug() << *(memTrace.activeStack);
+            qDebug().noquote() << *(memTrace.activeStack);
             break;
         case stackAction::params:
 #pragma message("TODO: Verify that sizes match")
             if(manager->getProgramAt(pc)->getTraceInfo().instrToSymlist.contains(pc)) {
-                qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
+                //qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
                 quint16 size = 0;
                 for(auto item : manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc]) {
                     size += item->size();
@@ -147,7 +153,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                 memTrace.activeStack->popParams(size);
             }
             qDebug() << "Popped Params! " ;//<< activeStack->top();
-            qDebug() << *(memTrace.activeStack);
+            qDebug().noquote() << *(memTrace.activeStack);
             break;
         default:
             qDebug() << "Unbalance stack operation 2";
