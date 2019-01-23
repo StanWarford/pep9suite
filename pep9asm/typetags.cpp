@@ -30,7 +30,7 @@ QString PrimitiveType::toString(QString prefix) const
 {
     return QString("%1%2")
             .arg(prefix)
-            .arg(QString(symbol->getName()),0);
+            .arg(QString(symbol->getName()), 0);
 }
 
 quint16 PrimitiveType::size() const
@@ -134,6 +134,39 @@ ArrayType::operator QString() const
     return toString();
 }
 
+LiteralPrimitiveType::LiteralPrimitiveType(QString name, Enu::ESymbolFormat format): name(name), format(format)
+{
+
+}
+
+LiteralPrimitiveType::~LiteralPrimitiveType()
+{
+
+}
+
+QList<QPair<Enu::ESymbolFormat, QString> > LiteralPrimitiveType::toPrimitives(QString prefix) const
+{
+    return QList<QPair<Enu::ESymbolFormat, QString>>{{format, prefix+name}};
+}
+
+QString LiteralPrimitiveType::toString(QString prefix) const
+{
+    return QString("%1%2")
+            .arg(prefix)
+            .arg(QString(name), 0);
+}
+
+quint16 LiteralPrimitiveType::size() const
+{
+    return Enu::tagNumBytes(format);
+}
+
+LiteralPrimitiveType::operator QString() const
+{
+    return toString();
+}
+
+
 QDebug operator<<(QDebug os, const QSharedPointer<AType> &item)
 {
     return os.noquote().nospace()<< *item.get();
@@ -143,4 +176,3 @@ QDebug operator<<(QDebug os, const QSharedPointer<const AType> &item)
 {
     return os.noquote().nospace()<< *item.get();
 }
-

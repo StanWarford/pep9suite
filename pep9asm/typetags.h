@@ -60,7 +60,22 @@ public:
     operator QString() const override;
 
 };
+/*
+ * Class to represent the fundamental display types in Pep9, which are
+ * #2h, #2d, #1h, #1d, #1c.
+ */
+class LiteralPrimitiveType: public AType {
+    QString name;
+    Enu::ESymbolFormat format;
+public:
+    explicit LiteralPrimitiveType(QString name, Enu::ESymbolFormat format);
+    ~LiteralPrimitiveType() override;
+    QList<QPair<Enu::ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
+    QString toString(QString prefix = QString("")) const override;
+    quint16 size() const override;
+    operator QString() const override;
 
+};
 /*
  * Class to represent a C-style POD struct.
  */

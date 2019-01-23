@@ -125,11 +125,8 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
         }
         success = false;
     }
-    progOut = QSharedPointer<AsmProgram>::create(programList, symTable);
     handleTraceTags(*symTable.get(), traceInfo, programList, errList);
-    // Perform trace tag checks
-    // Otherwise construct the list of lines and the symbols they manipulate.
-    //      and attempt to balance pushes & pops.
+    progOut = QSharedPointer<AsmProgram>::create(programList, symTable, traceInfo);
 #pragma message("Memory trace needs some work")
     manager.setUserProgram(progOut);
     return success;
@@ -194,8 +191,9 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, QSharedPointer<Asm
     int addressDelta = info.burnValue - byteCount + 1;
     info.startROMAddress = info.burnValue - (byteCount - info.burnAddress) +1;
     relocateCode(codeList, addressDelta);
-    progOut = QSharedPointer<AsmProgram>::create(codeList, symTable, info.startROMAddress, info.burnValue);
     symTable->setOffset(addressDelta);
+    handleTraceTags(*symTable.get(), traceInfo, codeList, errList);
+    progOut = QSharedPointer<AsmProgram>::create(codeList, symTable, traceInfo, info.startROMAddress, info.burnValue);
     manager.setOperatingSystem(progOut);
     return true;
 }
@@ -380,7 +378,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                     errList.append({line.first, bytesAllocMismatch.arg(instr->argument->getArgumentValue()).arg(size)});
                 }
                 else {
-                    traceInfo.instrToSymlist[instr->getMemoryAddress()] = lineTypes;
+                    traceInfo.instrToSymlist[static_cast<quint16>(instr->getMemoryAddress())] = lineTypes;
                 }
                 break;
             case Enu::EMnemonic::SUBSP:

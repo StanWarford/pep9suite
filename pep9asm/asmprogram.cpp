@@ -3,13 +3,13 @@
 #include "symboltable.h"
 #include "symbolentry.h"
 AsmProgram::AsmProgram(): program(), indexToMemAddress(), memAddressToIndex(), symTable(QSharedPointer<SymbolTable>(new SymbolTable())),
-   burn(false), burnAddress(0), burnValue(0)
+   burn(false), traceInfo(), burnAddress(0), burnValue(0)
 {
 
 }
 
-AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable): program(programList),
-    indexToMemAddress(), memAddressToIndex(), symTable(symbolTable), burn(false), burnAddress(0), burnValue(0)
+AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable, const StaticTraceInfo traceInfo): program(programList),
+    indexToMemAddress(), memAddressToIndex(), symTable(symbolTable), burn(false), traceInfo(traceInfo), burnAddress(0), burnValue(0)
 {
     programByteLength = 0;
     int start = -1;
@@ -23,8 +23,8 @@ AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPoint
     programBounds = {static_cast<quint16>(start), static_cast<quint16>(start-1+programByteLength)};
 }
 
-AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable, quint16 burnAddress, quint16 burnValue) : program(programList),
-    indexToMemAddress(), memAddressToIndex(), symTable(symbolTable), burn(true), burnAddress(burnAddress), burnValue(burnValue)
+AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable, const StaticTraceInfo traceInfo, quint16 burnAddress, quint16 burnValue) : program(programList),
+    indexToMemAddress(), memAddressToIndex(), symTable(symbolTable), burn(true), traceInfo(traceInfo), burnAddress(burnAddress), burnValue(burnValue)
 {
     programByteLength = 0;
     int start = -1;
@@ -120,4 +120,9 @@ int AsmProgram::numberOfLines() const
 QPair<quint16, quint16> AsmProgram::getProgramBounds() const
 {
     return programBounds;
+}
+
+const StaticTraceInfo &AsmProgram::getTraceInfo() const
+{
+    return traceInfo;
 }

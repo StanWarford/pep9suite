@@ -24,6 +24,7 @@
 #include <QSet>
 #include <QtCore>
 #include <ostream>
+#include "stacktrace.h"
 class AMemoryDevice;
 class AsmProgramManager;
 enum class stackAction {
@@ -60,8 +61,8 @@ public:
     virtual void onISAStep() = 0;
 protected:
     virtual void updateAtInstructionEnd() = 0; // Update simulation state at the start of a assembly level instruction
-    void calculateStackChangeStart(quint8 instr);
-    void calculateStackChangeEnd(quint8 instr, quint16 opspec);
+    void calculateStackChangeStart(quint8 instr, quint16 sp);
+    void calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc);
 
     const AsmProgramManager* manager;
     QSet<quint16> breakpointsISA;
@@ -69,6 +70,7 @@ protected:
     bool asmBreakpointHit, doDebug;
 
     bool firstLineAfterCall, isTrapped;
+    MemoryTrace memTrace;
     QStack<stackAction> userActions, osActions, *activeActions;
     bool userStackIntact, osStackIntact, *activeIntact;
 };

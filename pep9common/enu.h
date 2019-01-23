@@ -174,10 +174,10 @@ namespace Enu {
         IsPrefetchValid = 10,
         IsUnary = 11,
         IsPCEven = 12,
-        AddressingModeDecoder = 13, //Adressing modes jump table
-        InstructionSpecifierDecoder = 14, //Instruction jump table
-        Stop=15,
-        Assembler_Assigned=16
+        AddressingModeDecoder = 13, // Adressing modes jump table
+        InstructionSpecifierDecoder = 14, // Instruction jump table
+        Stop = 15,
+        Assembler_Assigned = 16
     };
     Q_ENUM_NS(EBranchFunctions);
 
@@ -191,6 +191,7 @@ namespace Enu {
         PValid,
     };
     Q_ENUM_NS(EControlSignals);
+
     enum EClockSignals{
         NCk,ZCk,VCk,CCk,SCk,MARCk,LoadCk,MDRCk, MDROCk, MDRECk,
         PValidCk,

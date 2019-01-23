@@ -391,7 +391,7 @@ void NewCPUDataSection::handleMainBusState() noexcept
     bool marChanged = false;
     quint8 a, b;
     if(clockSignals[Enu::MARCk] && valueOnABus(a) && valueOnBBus(b)) {
-        marChanged =! (a == memoryRegisters[Enu::MEM_MARA] && b == memoryRegisters[Enu::MEM_MARB]);
+        marChanged = !(a == memoryRegisters[Enu::MEM_MARA] && b == memoryRegisters[Enu::MEM_MARB]);
     }
     switch(mainBusState)
     {

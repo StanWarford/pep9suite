@@ -63,20 +63,12 @@ quint16 FullMicrocodedCPU::getCPURegWordCurrent(Enu::CPURegisters reg) const
 
 quint8 FullMicrocodedCPU::getCPURegByteStart(Enu::CPURegisters reg) const
 {
-#pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
-    if (microprogramCounter == 0) {
-        return getCPURegByteCurrent(reg);
-    }
-    else return memoizer->getRegisterByteStart(reg);
+    return memoizer->getRegisterByteStart(reg);
 }
 
 quint16 FullMicrocodedCPU::getCPURegWordStart(Enu::CPURegisters reg) const
 {
-#pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
-    if (microprogramCounter == 0) {
-        return getCPURegWordCurrent(reg);
-    }
-    else return memoizer->getRegisterWordStart(reg);
+    return memoizer->getRegisterWordStart(reg);
 }
 
 void FullMicrocodedCPU::initCPU()
@@ -251,7 +243,8 @@ void FullMicrocodedCPU::onMCStep()
         // could be selected.
         // Clear at start, so as to preserve highlighting AFTER finshing a write.
         memory->clearBytesWritten();
-        InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Enu::CPURegisters::IS));
+        InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Enu::CPURegisters::IS),
+                                                   this->getCPURegWordStart(Enu::CPURegisters::SP));
     }
 
     // Do step logic
@@ -265,9 +258,11 @@ void FullMicrocodedCPU::onMCStep()
     //qDebug().nospace().noquote() << prog->getSourceCode();
 
     if(microprogramCounter == 0 || executionFinished) {
-        memoizer->storeStateInstrEnd();
         InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteStart(Enu::CPURegisters::IS),
-                                                 this->getCPURegWordCurrent(Enu::CPURegisters::OS));
+                                                 this->getCPURegWordCurrent(Enu::CPURegisters::OS),
+                                                 this->getCPURegWordStart(Enu::CPURegisters::SP),
+                                                 this->getCPURegWordStart(Enu::CPURegisters::PC));
+        memoizer->storeStateInstrEnd();
         updateAtInstructionEnd();
         emit asmInstructionFinished();
         asmInstructionCounter++;

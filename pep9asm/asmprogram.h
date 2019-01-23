@@ -51,8 +51,8 @@ class AsmProgram
 {
 public:
     explicit AsmProgram();
-    explicit AsmProgram(QList<QSharedPointer<AsmCode>> programList, QSharedPointer<SymbolTable> symbolTable);
-    explicit AsmProgram(QList<QSharedPointer<AsmCode>> programList, QSharedPointer<SymbolTable> symbolTable, quint16 burnAddress, quint16 burnValue);
+    explicit AsmProgram(QList<QSharedPointer<AsmCode>> programList, QSharedPointer<SymbolTable> symbolTable, const StaticTraceInfo traceInfo);
+    explicit AsmProgram(QList<QSharedPointer<AsmCode>> programList, QSharedPointer<SymbolTable> symbolTable, const StaticTraceInfo traceInfo, quint16 burnAddress, quint16 burnValue);
     ~AsmProgram();
 
     // Getters and setters for program features
@@ -73,6 +73,7 @@ public:
     const AsmCode* memAddressToCode(quint16 memAddress) const;
     int numberOfLines() const;
     QPair<quint16, quint16> getProgramBounds() const;
+    const StaticTraceInfo& getTraceInfo() const;
 
 private:
     QPair<quint16, quint16> programBounds;
@@ -81,10 +82,10 @@ private:
     QMap<quint16, int> memAddressToIndex;
     quint16 programByteLength;
     QSharedPointer<SymbolTable> symTable;
+    const StaticTraceInfo traceInfo;
 
     bool burn;
     quint16 burnAddress, burnValue;
-    StaticTraceInfo info;
 };
 
 #endif // ASMPROGRAM_H

@@ -16,7 +16,8 @@ static quint8 inst_size=6;
 static quint8 oper_addr_size=12;
 
 FullMicrocodedMemoizer::FullMicrocodedMemoizer(FullMicrocodedCPU& item): cpu(item),
-    registers(CPUState()), level(Enu::DebugLevels::MINIMAL), OSSymTable()
+    registers(CPUState()), level(Enu::DebugLevels::MINIMAL), cachedValuesValid(false),
+    OSSymTable()
 {
 
 }
@@ -29,6 +30,7 @@ Enu::DebugLevels FullMicrocodedMemoizer::getDebugLevel() const
 void FullMicrocodedMemoizer::clear()
 {
     registers = CPUState();
+    cachedValuesValid = false;
 }
 
 void FullMicrocodedMemoizer::storeStateInstrEnd()
@@ -41,7 +43,7 @@ void FullMicrocodedMemoizer::storeStateInstrEnd()
     case Enu::DebugLevels::MINIMAL:
         registers.regState.reg_A = cpu.getCPURegWordCurrent(Enu::CPURegisters::A);
         registers.regState.reg_X = cpu.getCPURegWordCurrent(Enu::CPURegisters::X);
-        registers.regState.reg_SP = cpu.getCPURegWordCurrent(Enu::CPURegisters::SP);
+        registers.regState.reg_SP_cur = cpu.getCPURegWordCurrent(Enu::CPURegisters::SP);
         registers.regState.reg_PC_end = cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
         cpu.getMemoryDevice()->getByte(registers.regState.reg_PC_start, registers.regState.reg_IR);
         if(!Pep::isUnaryMap[Pep::decodeMnemonic[registers.regState.reg_IR]]) {
@@ -79,6 +81,8 @@ void FullMicrocodedMemoizer::storeStateInstrStart()
         registers.regState.reg_PC_start = cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
         // Fetch the instruction specifier, located at the memory address of PC
         cpu.getMemoryDevice()->getByte(registers.regState.reg_PC_start, registers.regState.reg_IS_start);
+        cachedValuesValid = true;
+        registers.regState.reg_SP_start = cpu.getCPURegWordCurrent(Enu::CPURegisters::SP);
         break;
     }
 }
@@ -155,6 +159,7 @@ void FullMicrocodedMemoizer::setDebugLevel(Enu::DebugLevels level)
 quint8 FullMicrocodedMemoizer::getRegisterByteStart(Enu::CPURegisters reg) const
 {
 #pragma message("TODO: store starting state for registers")
+    #pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
     if(reg != Enu::CPURegisters::IS) throw -1; // Attempted to access register that was not cached
     else return registers.regState.reg_IS_start;
 }
@@ -162,12 +167,14 @@ quint8 FullMicrocodedMemoizer::getRegisterByteStart(Enu::CPURegisters reg) const
 quint16 FullMicrocodedMemoizer::getRegisterWordStart(Enu::CPURegisters reg) const
 {
     #pragma message("TODO: store starting state for registers")
-    if (cpu.getMicrocodeLineNumber() == 0){
+    #pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
+    if (!cachedValuesValid){
         if(reg != Enu::CPURegisters::PC) throw std::runtime_error("Register not cached"); // Attempted to access register that was not cached
         else return cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
     }
-    if(reg != Enu::CPURegisters::PC) assert(false); // Attempted to access register that was not cached
-    else return registers.regState.reg_PC_start;
+    //if(reg != Enu::CPURegisters::PC) assert(false); // Attempted to access register that was not cached
+    if(reg == Enu::CPURegisters::PC) return registers.regState.reg_PC_start;
+    else if (reg == Enu::CPURegisters::SP)return  registers.regState.reg_SP_start;
     throw -1;
 }
 
@@ -295,7 +302,7 @@ void FullMicrocodedMemoizer::loadSymbols()
     max_symLen = msylen;
 }
 
-//QString generateLine()
+/*QString generateLine()
 //{
     //QString out="";
     //1 is address of instruction, 2 is inst specifier, 3 is optional oprsndspc + , + addr.
@@ -305,7 +312,7 @@ void FullMicrocodedMemoizer::loadSymbols()
 
 
 
-    /*if(Pep::isUnaryMap[Pep::decodeMnemonic[cur.ir]])
+    if(Pep::isUnaryMap[Pep::decodeMnemonic[cur.ir]])
     {
         if(Pep::isTrapMap[Pep::decodeMnemonic[cur.ir]])
         {
@@ -318,10 +325,10 @@ void FullMicrocodedMemoizer::loadSymbols()
         else if(Pep::decodeMnemonic[cur.ir] == Enu::EMnemonic::RETTR)
         {
             out.append(trapFramepo.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
-        }*/
+        }
         //out.append(format.arg(fmtadr(cur.pc),fmtis(cur.ir),fmtu(),RHS));
     //}
-    /*else
+    else
     {
         if(cur.ir>=36 && cur.ir<=37)
         {
@@ -332,7 +339,7 @@ void FullMicrocodedMemoizer::loadSymbols()
             RHS = "NZVCS="+QString::number(cur.nzvcs,2).leftJustified(5,'0');
         }
         out.append(format.arg(fmtadr(cur.pc),fmtis(cur.ir),fmtn(cur.OS,cur.ir),RHS));
-    }*/
+    }
     //if(1); //If call, ret, trp, rettr generate generateSF
     //return out;
-//}
+//}*/

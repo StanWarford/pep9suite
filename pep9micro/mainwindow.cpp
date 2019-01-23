@@ -73,7 +73,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), debugState(DebugState::DISABLED), updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
-    memDevice(new MainMemory(this)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), memDevice, this)),
+    memDevice(new MainMemory(this)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), memDevice)),
     dataSection(controlSection->getDataSection()), programManager(AsmProgramManager::getInstance()),
     statisticsLevelsGroup(new QActionGroup(this)), inDarkMode(false)
 {

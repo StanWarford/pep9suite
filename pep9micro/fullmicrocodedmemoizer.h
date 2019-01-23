@@ -6,8 +6,8 @@
 class CPUControlSection;
 struct CPURegisterState
 {
-    quint16 reg_PC_start = 0, reg_PC_end = 0;
-    quint16 reg_A = 0, reg_X = 0, reg_SP = 0, reg_OS = 0;
+    quint16 reg_PC_start = 0, reg_PC_end = 0, reg_SP_start = 0;
+    quint16 reg_A = 0, reg_X = 0, reg_SP_cur = 0, reg_OS = 0;
     quint8 reg_IR = 0, bits_NZVCS = 0, reg_IS_start = 0;
 };
 
@@ -45,6 +45,7 @@ private:
     FullMicrocodedCPU& cpu;
     CPUState registers;
     Enu::DebugLevels level;
+    bool cachedValuesValid;
 
     QMultiMap<quint16, QString> OSSymTable;
     QString formatNum(quint16 number);
