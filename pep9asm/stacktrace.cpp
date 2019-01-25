@@ -32,6 +32,7 @@ bool StackTrace::ret()
 
 void StackTrace::pushLocals(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items)
 {
+    if(callStack.isEmpty()) callStack.push(QSharedPointer<StackFrame>::create());
     for(auto pair : items) {
         callStack.top()->push({start, pair});
         start -= Enu::tagNumBytes(pair.first);
