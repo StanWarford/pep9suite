@@ -272,7 +272,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
      * leave it in the list.
      *
      * Since structs camn be definde in terms of each other, it is not sufficent to loop through the list 1 time.
-     * To avoid gettign stuck in the infinite loop of struct "A{ B item;}; struct B{ A item;};",
+     * To avoid getting stuck in the infinite loop of struct "A{ B item;}; struct B{ A item;};",
      * check that the length of structs shortens every pass through.
      * If there is ever a pass where it does not shorten, then there is a recursively defined struct.
      * Looping should be stopped, and errors should be emited.
@@ -281,7 +281,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
     int lastLen;
     do {
         lastLen = structs.length();
-        for(QMutableListIterator it(structs); it.hasNext();) {
+        for(QMutableListIterator<QPair<int,QSharedPointer<AsmCode>>> it(structs); it.hasNext();) {
             auto line = it.next();
             // If a line with symbol tags listed does not contain a symbol definition, there is an error.
             if(!line.second->hasSymbolEntry()) {
@@ -1382,7 +1382,7 @@ QPair<quint8, Enu::ESymbolFormat> IsaAsm::arrayType(QString formatTag)
     QString text = match.captured(0);
     text.chop(1);
     int size = text.toInt();
-    return QPair<quint8, Enu::ESymbolFormat>{size, type};
+    return {static_cast<quint8>(size), type};
 
 }
 

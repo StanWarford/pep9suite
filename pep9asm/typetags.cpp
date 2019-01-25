@@ -5,11 +5,6 @@ AType::~AType()
 
 }
 
-QList<QPair<Enu::ESymbolFormat, QString> > AType::toPrimitives(QString runningPrefix) const
-{
-
-}
-
 PrimitiveType::PrimitiveType(QSharedPointer<const SymbolEntry> symbol, Enu::ESymbolFormat format):
     symbol(symbol), format(format)
 {
