@@ -129,6 +129,7 @@ void MemoryTrace::clear()
 {
     userStack.clear();
     osStack.clear();
+    globalTrace.clear();
 }
 
 void StackFrame::push(MemTag tag)
@@ -159,7 +160,31 @@ StackFrame::operator QString() const
 {
     QList<QString> items;
     for(auto tag = stack.rbegin(); tag!=stack.rend(); tag++) {
-        items << QString("(%1: %2)").arg(tag->type.second).arg(tag->addr,4,16);
+        items << *tag;
     }
     return items.join(", ");
+}
+
+void GlobalTrace::setTags(QList<QPair<quint16, QPair<Enu::ESymbolFormat, QString> > > items)
+{
+    tags.clear();
+    for(auto entry : items) {
+        quint16 addr = entry.first;
+        tags.insert(entry.first,{addr,entry.second});
+    }
+}
+
+void GlobalTrace::clear()
+{
+    tags.clear();
+}
+
+const QMap<quint16, MemTag> GlobalTrace::getMemTags() const
+{
+    return tags;
+}
+
+MemTag::operator QString() const
+{
+    return QString("(%1: %2)").arg(type.second).arg(addr,4,16,QChar('0'));
 }

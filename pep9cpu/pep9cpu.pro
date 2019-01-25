@@ -26,13 +26,11 @@ VPATH += $$PWD
 VPATH += $$PWD/../pep9common
 
 # Mac icon/plist
-warning("must fix mac icon")
 ICON = images/icon.icns
 QMAKE_INFO_PLIST = app.plist
 QMAKE_MAC_SDK = macosx10.14
 
 #Windows RC file for icon:
-warning("Must fix win icon in resource file")
 RC_FILE = pep9resources.rc
 
 FORMS += \

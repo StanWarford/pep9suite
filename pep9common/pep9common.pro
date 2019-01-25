@@ -68,6 +68,7 @@ SOURCES += \
     symbolvalue.cpp \
     terminalpane.cpp \
     updatechecker.cpp \
+    enu.cpp
 
 
 

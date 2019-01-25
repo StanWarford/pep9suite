@@ -10,6 +10,7 @@ struct MemTag
 {
     quint16 addr;
     QPair<Enu::ESymbolFormat, QString> type;
+    operator QString() const;
 };
 
 class StackFrame
@@ -50,7 +51,12 @@ class HeapTrace
 
 class GlobalTrace
 {
-
+    QMap<quint16, MemTag> tags;
+public:
+    void setTags(QList<QPair<quint16 /*address*/,
+                  QPair<Enu::ESymbolFormat, QString> /*tag*/ > > items);
+    void clear();
+    const QMap<quint16, MemTag> getMemTags() const;
 };
 
 class MemoryTrace

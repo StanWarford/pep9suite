@@ -5,6 +5,7 @@
 #include "asmprogrammanager.h"
 #include "asmprogram.h"
 #include "typetags.h"
+#include "symbolentry.h"
 InterfaceISACPU::InterfaceISACPU(const AsmProgramManager* manager) noexcept: manager(manager),
     breakpointsISA(), asmInstructionCounter(0), asmBreakpointHit(false), doDebug(false),
     firstLineAfterCall(false), isTrapped(false),userActions(), osActions(), activeActions(&userActions),
@@ -254,6 +255,22 @@ void InterfaceISACPU::reset() noexcept
             && !manager->getUserProgram()->getTraceInfo()->staticTraceError;
     // Never attempt to trace OS
     osStackIntact = false;
+    // Store globals, if there were no trace tag errors
+    if(userStackIntact) {
+        QList<QPair<quint16,QPair<Enu::ESymbolFormat,QString>>> lst;
+        QMap<QSharedPointer<const SymbolEntry>, QSharedPointer<AType>> map =
+                manager->getUserProgram()->getTraceInfo()->staticAllocSymbolTypes;
+        for(auto global : map.keys()) {
+            QList<QPair<Enu::ESymbolFormat,QString>> innerPairs = map[global]->toPrimitives();
+            quint16 addr = global->getValue();
+            for(auto primitive : innerPairs) {
+                lst.append({addr,{primitive}});
+                addr += Enu::tagNumBytes(primitive.first);
+            }
+
+        }
+        memTrace.globalTrace.setTags(lst);
+    }
 
     userActions.clear();
     osActions.clear();
