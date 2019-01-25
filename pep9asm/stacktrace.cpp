@@ -3,6 +3,7 @@
 #include "symbolentry.h"
 #include "enu.h"
 #include <QTextStream>
+
 StackTrace::StackTrace(): callStack(), nextFrame(QSharedPointer<StackFrame>::create())
 {
     callStack.push(QSharedPointer<StackFrame>::create());
@@ -16,10 +17,17 @@ void StackTrace::call(quint16 sp)
     nextFrame = QSharedPointer<StackFrame>::create();
 }
 
-void StackTrace::ret()
+void StackTrace::clear()
 {
+    callStack.clear();
+    nextFrame = QSharedPointer<StackFrame>::create();
+}
+
+bool StackTrace::ret()
+{
+    if(callStack.isEmpty()) return false;
     nextFrame = callStack.pop();
-    nextFrame->pop(2);
+    return nextFrame->pop(2);
 }
 
 void StackTrace::pushLocals(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items)
@@ -38,19 +46,58 @@ void StackTrace::pushParams(quint16 start, QList<QPair<Enu::ESymbolFormat, QStri
     }
 }
 
-void StackTrace::popLocals(quint16 size)
+bool StackTrace::popLocals(quint16 size)
 {
-    callStack.top()->pop(size);
+    if(callStack.isEmpty()) return false;
+    return callStack.top()->pop(size);
 }
 
-void StackTrace::popParams(quint16 size)
+bool StackTrace::popParams(quint16 size)
 {
-    nextFrame->pop(size);
+    // Handle recursive case when next frame has no contents
+    if(nextFrame->size() == 0) {
+        // If stack is entirely empty, return false
+        if(callStack.isEmpty()) return false;
+        // Otherwise take the next call stack and start popping from it
+        nextFrame = callStack.pop();
+        return popParams(size);
+    }
+    else if(size > nextFrame->size()) {
+        quint16 popped = nextFrame->pop(nextFrame->size());
+        return popParams(size-popped);
+    }
+    else {
+        return nextFrame->pop(size);
+    }
+}
+
+bool StackTrace::popAndOrphan(quint16 size)
+{
+    if(size >= nextFrame->size()) {
+        return false;
+    }
+    else {
+        nextFrame->isOrphaned = true;
+        callStack.push(nextFrame);
+        nextFrame = QSharedPointer<StackFrame>::create();
+        // Orphaned frame can now be removed from call stack
+        return popLocals(size);
+    }
 }
 
 quint16 StackTrace::callDepth() const
 {
     return callStack.length();
+}
+
+const StackFrame &StackTrace::getTOS()
+{
+    if(nextFrame->size() == 0 && callStack.size() > 0) {
+        return *callStack.top().get();
+    }
+    else {
+        return *nextFrame.get();
+    }
 }
 
 StackTrace::operator QString() const
@@ -79,6 +126,8 @@ MemoryTrace::MemoryTrace()
 
 void MemoryTrace::clear()
 {
+    userStack.clear();
+    osStack.clear();
     //throw std::exception("Does not work");
 }
 
@@ -90,7 +139,7 @@ void StackFrame::push(MemTag tag)
 bool StackFrame::pop(quint16 size)
 {
     quint16 popped = 0;
-    while(popped<size) {
+    while(popped<size && !stack.isEmpty()) {
         auto next = stack.pop();
         popped += Enu::tagNumBytes(next.type.first);
     }

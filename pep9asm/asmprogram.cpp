@@ -2,13 +2,20 @@
 #include "asmcode.h"
 #include "symboltable.h"
 #include "symbolentry.h"
+
+StaticTraceInfo::StaticTraceInfo(): staticTraceError(false), hadTraceTags(false), dynamicAllocSymbolTypes(), staticAllocSymbolTypes(),
+    instrToSymlist(), hasHeapMalloc(), heapPtr(), mallocPtr()
+{
+
+}
+
 AsmProgram::AsmProgram(): program(), indexToMemAddress(), memAddressToIndex(), symTable(QSharedPointer<SymbolTable>(new SymbolTable())),
    burn(false), traceInfo(), burnAddress(0), burnValue(0)
 {
 
 }
 
-AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable, const StaticTraceInfo traceInfo): program(programList),
+AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable, QSharedPointer<const StaticTraceInfo> traceInfo): program(programList),
     indexToMemAddress(), memAddressToIndex(), symTable(symbolTable), burn(false), traceInfo(traceInfo), burnAddress(0), burnValue(0)
 {
     programByteLength = 0;
@@ -23,7 +30,7 @@ AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPoint
     programBounds = {static_cast<quint16>(start), static_cast<quint16>(start-1+programByteLength)};
 }
 
-AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable, const StaticTraceInfo traceInfo, quint16 burnAddress, quint16 burnValue) : program(programList),
+AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable, QSharedPointer<const StaticTraceInfo> traceInfo, quint16 burnAddress, quint16 burnValue) : program(programList),
     indexToMemAddress(), memAddressToIndex(), symTable(symbolTable), burn(true), traceInfo(traceInfo), burnAddress(burnAddress), burnValue(burnValue)
 {
     programByteLength = 0;
@@ -122,7 +129,7 @@ QPair<quint16, quint16> AsmProgram::getProgramBounds() const
     return programBounds;
 }
 
-const StaticTraceInfo &AsmProgram::getTraceInfo() const
+QSharedPointer<const StaticTraceInfo> AsmProgram::getTraceInfo() const
 {
     return traceInfo;
 }

@@ -87,14 +87,19 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
     int byteCount = 0;
     // Contains information about the address of a .BURN, and the size of memory burned
     BURNInfo info;
-    StaticTraceInfo traceInfo;
+    QSharedPointer<StaticTraceInfo> traceInfo = QSharedPointer<StaticTraceInfo>::create();
     while (lineNum < sourceCodeList.size() && !dotEndDetected) {
         sourceLine = sourceCodeList[lineNum];
-        if (!IsaAsm::processSourceLine(symTable.data(), info, traceInfo, byteCount,
+        if (!IsaAsm::processSourceLine(symTable.data(), info, *traceInfo, byteCount,
                                        sourceLine, lineNum, code,
                                        errorString, dotEndDetected)) {
             errList.append(QPair<int,QString>{lineNum, errorString});
             return false;
+        }
+        // If a non-fatal error occured, log it to the error list
+        else if(!errorString.isEmpty()) {
+            errList.append(QPair<int,QString>{lineNum, errorString});
+            errorString.clear();
         }
         programList.append(QSharedPointer<AsmCode>(code));
         lineNum++;
@@ -125,7 +130,7 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
         }
         success = false;
     }
-    handleTraceTags(*symTable.get(), traceInfo, programList, errList);
+    handleTraceTags(*symTable.get(), *traceInfo.get(), programList, errList);
     progOut = QSharedPointer<AsmProgram>::create(programList, symTable, traceInfo);
 #pragma message("Memory trace needs some work")
     manager.setUserProgram(progOut);
@@ -145,10 +150,10 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, QSharedPointer<Asm
     QList<QSharedPointer<AsmCode>> codeList;
     int byteCount = 0;
     BURNInfo info;
-    StaticTraceInfo traceInfo;
+    QSharedPointer<StaticTraceInfo> traceInfo = QSharedPointer<StaticTraceInfo>::create();
     while (lineNum < fileLines.size() && !dotEndDetected) {
         sourceLine = fileLines[lineNum];
-        if (!IsaAsm::processSourceLine(symTable.data(), info, traceInfo,
+        if (!IsaAsm::processSourceLine(symTable.data(), info, *traceInfo.get(),
                                        byteCount, sourceLine, lineNum,
                                        code, errorString, dotEndDetected)) {
             return false;
@@ -192,7 +197,8 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, QSharedPointer<Asm
     info.startROMAddress = info.burnValue - (byteCount - info.burnAddress) +1;
     relocateCode(codeList, addressDelta);
     symTable->setOffset(addressDelta);
-    handleTraceTags(*symTable.get(), traceInfo, codeList, errList);
+    handleTraceTags(*symTable.get(), *traceInfo, codeList, errList);
+    traceInfo->hadTraceTags = false;
     progOut = QSharedPointer<AsmProgram>::create(codeList, symTable, traceInfo, info.startROMAddress, info.burnValue);
     manager.setOperatingSystem(progOut);
     return true;
@@ -233,6 +239,19 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
     QList<QPair<int,QSharedPointer<AsmCode>>> structs, allocs;
     int lineIt = 0;
     for(auto line : programList) {
+        // If a line is a non-unary instruction & the program has trace tags.
+        if(traceInfo.hadTraceTags && dynamic_cast<NonUnaryInstruction*>(line.get()) != nullptr) {
+            NonUnaryInstruction* instr = dynamic_cast<NonUnaryInstruction*>(line.get());
+            switch(instr->mnemonic) {
+            case Enu::EMnemonic::ADDSP:
+                [[fallthrough]];
+            case Enu::EMnemonic::SUBSP:
+                allocs.append({lineIt, line});
+                break;
+            default:
+                break;
+            }
+        }
         // If a line doesn't have a comment or a #, it can't be a trace tag;
         if(!line->hasComment() || !hasSymbolTag(line->getComment()));
         else {
@@ -240,12 +259,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
             // then it must be an attempt at a symbol declaration
             if(hasSymbolTag(line->getComment())
                     && dynamic_cast<NonUnaryInstruction*>(line.get()) == nullptr) {
-                structs.append({lineIt,line});
-            }
-            // Otherwise it is most likely an SUBSP or ADDSP
-#pragma message("TODO: add additional error checking on type tags")
-            else {
-                allocs.append({lineIt,line});
+                structs.append({lineIt, line});
             }
         }
         lineIt++;
@@ -416,11 +430,6 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
         traceInfo.hasHeapMalloc = true;
         traceInfo.heapPtr = symTable.getValue("heap");
         traceInfo.mallocPtr = symTable.getValue("malloc");
-    }
-    if(symTable.exists("free")
-            && symTable.getValue("free")->getRawValue()->getSymbolType() != SymbolType::ADDRESS) {
-        traceInfo.hasFree = true;
-        traceInfo.freePtr = symTable.getValue("free");
     }
 
     // Print debug info
@@ -1143,6 +1152,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
     QString comment = code->getComment(), tag = extractTypeTags(comment);
 
     if(hasArrayType(tag)) {
+        traceInfo.hadTraceTags = true;
         auto aTag = arrayType(tag);
         if(!code->hasSymbolEntry()) {
             errorString = ";WARNING: given trace tag, but no symbol";
@@ -1170,7 +1180,8 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
             traceInfo.dynamicAllocSymbolTypes.insert(code->getSymbolEntry(), item);
         }
     }
-    else if(hasPrimitiveType(tag)){
+    else if(hasPrimitiveType(tag)) {
+        traceInfo.hadTraceTags = true;
         auto pTag = primitiveType(tag);
         if(!code->hasSymbolEntry()) {
             errorString = ";WARNING: given trace tag, but no symbol";

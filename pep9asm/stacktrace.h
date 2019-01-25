@@ -17,6 +17,7 @@ class StackFrame
 private:
     QStack<MemTag> stack;
 public:
+    bool isOrphaned = false;
     void push(MemTag tag);
     bool pop(quint16 size);
     quint16 size() const;
@@ -30,12 +31,15 @@ class StackTrace
 public:
     explicit StackTrace();
     void call(quint16 sp);
-    void ret();
+    void clear();
+    bool ret();
     void pushLocals(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items);
     void pushParams(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items);
-    void popLocals(quint16 size);
-    void popParams(quint16 size);
+    bool popLocals(quint16 size);
+    bool popParams(quint16 size);
+    bool popAndOrphan(quint16 size);
     quint16 callDepth() const;
+    const StackFrame& getTOS();
     operator QString() const;
 };
 

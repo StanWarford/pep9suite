@@ -33,26 +33,28 @@ class SymbolTable;
 // Contains meta-info about the formats and types of symbols in a program
 struct StaticTraceInfo
 {
+    StaticTraceInfo();
     // Did the static analysis find a trace error?
-    bool staticTraceError;
+    bool staticTraceError, hadTraceTags;
     // Associate a symbol with its rendering type
     QMap<QSharedPointer<const SymbolEntry>, QSharedPointer<AType>> dynamicAllocSymbolTypes,
     staticAllocSymbolTypes;
 
     // For the instruction located at an address, what symbols are being pushed, popped, or allocated?
     QMap<quint16, QList<QSharedPointer<AType> > > instrToSymlist;
-    // Does the program have both malloc and a heap? Does the program have a free?
-    bool hasHeapMalloc, hasFree;
+    // Does the program have both malloc and a heap?
+    bool hasHeapMalloc;
     // If they exist, store the pointer to their values
-    QSharedPointer<const SymbolEntry> heapPtr, mallocPtr, freePtr;
+    QSharedPointer<const SymbolEntry> heapPtr, mallocPtr;
 };
+
 
 class AsmProgram
 {
 public:
     explicit AsmProgram();
-    explicit AsmProgram(QList<QSharedPointer<AsmCode>> programList, QSharedPointer<SymbolTable> symbolTable, const StaticTraceInfo traceInfo);
-    explicit AsmProgram(QList<QSharedPointer<AsmCode>> programList, QSharedPointer<SymbolTable> symbolTable, const StaticTraceInfo traceInfo, quint16 burnAddress, quint16 burnValue);
+    explicit AsmProgram(QList<QSharedPointer<AsmCode>> programList, QSharedPointer<SymbolTable> symbolTable, QSharedPointer<const StaticTraceInfo> traceInfo);
+    explicit AsmProgram(QList<QSharedPointer<AsmCode>> programList, QSharedPointer<SymbolTable> symbolTable, QSharedPointer<const StaticTraceInfo> traceInfo, quint16 burnAddress, quint16 burnValue);
     ~AsmProgram();
 
     // Getters and setters for program features
@@ -73,7 +75,7 @@ public:
     const AsmCode* memAddressToCode(quint16 memAddress) const;
     int numberOfLines() const;
     QPair<quint16, quint16> getProgramBounds() const;
-    const StaticTraceInfo& getTraceInfo() const;
+    QSharedPointer<const StaticTraceInfo> getTraceInfo() const;
 
 private:
     QPair<quint16, quint16> programBounds;
@@ -82,7 +84,7 @@ private:
     QMap<quint16, int> memAddressToIndex;
     quint16 programByteLength;
     QSharedPointer<SymbolTable> symTable;
-    const StaticTraceInfo traceInfo;
+    QSharedPointer<const StaticTraceInfo> traceInfo;
 
     bool burn;
     quint16 burnAddress, burnValue;

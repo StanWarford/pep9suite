@@ -60,6 +60,7 @@ void FullMicrocodedMemoizer::storeStateInstrEnd()
         [[fallthrough]];
     case Enu::DebugLevels::NONE:
         #pragma message("This calculation is not quite right")
+        cachedValuesValid = false;
         break;
     }
 }

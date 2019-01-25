@@ -70,9 +70,31 @@ void InterfaceISACPU::calculateStackChangeStart(quint8 instr, quint16 sp)
 
 void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc)
 {
-    switch(Pep::decodeMnemonic[instr]) {
+#pragma message("TODO: stack checks")
+    /*
+     * Following sanity checks must be performed:
+     *  x - Have static trace tag errors corrupted the stack (one time check)?
+     *  x - Has a dynamic runtime operation corrupted the stack?
+     *  x - Is the addressing mode immediate?
+     *  x - Do the tags listed in comments match in length to the argument?
+     *  x - Should trace tags be tracked? Or does the program lack tags?
+     *  x - What if some lines have trace tags but others don't?
+     *  Is alloc or free being called?
+     *      How do we handle alloc?
+     *
+     * **StackTrace**
+     *  x - After push / pop in StackTrace, verify that it returns true.
+     *      x - If it returns false, we have a corrupt stack.
+     *  x - If CallStack is ever exhausted before size is hit, return false.
+     */
+    if(this->manager->getProgramAt(pc)== nullptr || !this->manager->getProgramAt(pc)->getTraceInfo()->hadTraceTags) return;
+    else if(this->manager->getProgramAt(pc)->getTraceInfo()->staticTraceError == true) *activeIntact = false;
+    else if(isTrapped) return;
+    if((*activeIntact) == false) return;
+    Enu::EMnemonic mnemon = Pep::decodeMnemonic[instr];
+    quint16 size = 0;
+    switch(mnemon) {
     case Enu::EMnemonic::CALL:
-        if(isTrapped) break;
         firstLineAfterCall = true;
         memTrace.activeStack->call(sp);
         activeActions->push(stackAction::call);
@@ -81,14 +103,18 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
         break;
 
     case Enu::EMnemonic::RET:
-        if(isTrapped) break;
         if(activeActions->isEmpty()) break;
         switch(activeActions->pop()) {
         case stackAction::call:
-            memTrace.activeStack->ret();
-            firstLineAfterCall = true;
-            qDebug() << "Returned!" ;
-            qDebug().noquote() << *(memTrace.activeStack);
+            if(memTrace.activeStack->ret()) {
+                firstLineAfterCall = true;
+                qDebug() << "Returned!" ;
+                qDebug().noquote() << *(memTrace.activeStack);
+            }
+            else {
+                qDebug() <<"Unbalanced stack operation 7";
+                *activeIntact = false;
+            }
             break;
         default:
             qDebug() <<"Unbalanced stack operation 1";
@@ -97,13 +123,21 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
         break;
 
     case Enu::EMnemonic::SUBSP:
-        if(isTrapped) break;
+        if(manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist.contains(pc)) {
+            quint16 size = 0;
+            for(auto pair : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
+                size += pair->size();
+            }
+            if(size != opspec) {
+                *activeIntact = false;
+                qDebug() <<"Stack is wrong size";
+                break;
+            }
+        }
         if(firstLineAfterCall) {
-#pragma message("TODO: Verify OS matches trace tag len. Verify trace tags exist.")
-            if(manager->getProgramAt(pc)->getTraceInfo().instrToSymlist.contains(pc)) {
-                //qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
+            if(manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist.contains(pc)) {
                 QList<QPair<Enu::ESymbolFormat,QString>> primList;
-                for(auto item : manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc]) {
+                for(auto item : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
                     primList.append(item->toPrimitives());
                 }
                 memTrace.activeStack->pushLocals(sp, primList);
@@ -112,10 +146,9 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             qDebug() << "Alloc'ed Locals!" ;
         }
         else {
-            if(manager->getProgramAt(pc)->getTraceInfo().instrToSymlist.contains(pc)) {
-                //qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
+            if(manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist.contains(pc)) {
                 QList<QPair<Enu::ESymbolFormat,QString>> primList;
-                for(auto item : manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc]) {
+                for(auto item : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
                     primList.append(item->toPrimitives());
                 }
                 memTrace.activeStack->pushParams(sp, primList);
@@ -127,40 +160,67 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
         break;
 
     case Enu::EMnemonic::ADDSP:
-        if(isTrapped) break;
-        if(activeActions->isEmpty()) break;
-        switch(activeActions->pop()) {
-        case stackAction::locals:
-            if(manager->getProgramAt(pc)->getTraceInfo().instrToSymlist.contains(pc)) {
-                //qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
-                quint16 size = 0;
-                for(auto item : manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc]) {
-                    size += item->size();
-                }
-                memTrace.activeStack->popLocals(size);
+        if(manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist.contains(pc)) {
+            for(auto pair : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
+                size += pair->size();
             }
-            qDebug() << "Popped locals!" ;
-            qDebug().noquote() << *(memTrace.activeStack);
-            break;
-        case stackAction::params:
-#pragma message("TODO: Verify that sizes match")
-            if(manager->getProgramAt(pc)->getTraceInfo().instrToSymlist.contains(pc)) {
-                //qDebug().noquote().nospace() << manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc];
-                quint16 size = 0;
-                for(auto item : manager->getProgramAt(pc)->getTraceInfo().instrToSymlist[pc]) {
-                    size += item->size();
-                }
-                memTrace.activeStack->popParams(size);
+            if(size != opspec) {
+                *activeIntact = false;
+                qDebug() <<"Stack is wrong size";
+                break;
             }
-            qDebug() << "Popped Params! " ;//<< activeStack->top();
-            qDebug().noquote() << *(memTrace.activeStack);
-            break;
-        default:
-            qDebug() << "Unbalance stack operation 2";
+        }
+        else if(activeActions->isEmpty()) {
+            qDebug() << "Unbalanced stack operation 2";
             *activeIntact = false;
         }
+        else break;
+        switch(activeActions->pop()) {
+        case stackAction::locals:
+            if(memTrace.activeStack->popLocals(size)) {
+                qDebug() << "Popped locals!" ;
+                qDebug().noquote() << *(memTrace.activeStack);
+            }
+            else {
+                qDebug() << "Unbalanced stack operation 5";
+                *activeIntact = false;
+            }
+            break;
+        case stackAction::params:
+            if(memTrace.activeStack->getTOS().size()>size
+                    && memTrace.activeStack->popAndOrphan(size)) {
+                activeActions->push(stackAction::params);
+                qDebug() << "Popped Params & orphaned!" ;
+                qDebug().noquote() << *(memTrace.activeStack);
+            }
+            else if(memTrace.activeStack->getTOS().size() <= size) {
+                bool success = true;
+                activeActions->push(stackAction::params);
+                while(size > 0 && success) {
+                    size -= memTrace.activeStack->getTOS().size();
+                    success &= memTrace.activeStack->popParams(memTrace.activeStack->getTOS().size());
+                    activeActions->pop();
+                }
+                if(success) {
+                    qDebug() << "Popped Params!" ;
+                    qDebug().noquote() << *(memTrace.activeStack);
+                }
+                else {
+                    qDebug() << "Unbalanced stack operation 6";
+                    *activeIntact = false;
+                }
+            }
+            else {
+                qDebug() << "Unbalanced stack operation 8";
+                *activeIntact = false;
+            }
+            break;
+        default:
+            qDebug() << "Unbalanced stack operation 3";
+            *activeIntact = false;
+            break;
+        }
         break;
-
     case Enu::EMnemonic::BR:
         [[fallthrough]];
     case Enu::EMnemonic::BRC:
@@ -192,9 +252,8 @@ void InterfaceISACPU::reset() noexcept
     asmBreakpointHit = false;
     memTrace.clear();
     // Dependant upon trace info of program
-    userStackIntact = false;
-    osStackIntact = false;
-
+    userStackIntact = true;
+    osStackIntact = true;
 
     userActions.clear();
     osActions.clear();
