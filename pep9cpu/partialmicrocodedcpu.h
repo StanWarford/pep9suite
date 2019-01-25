@@ -1,7 +1,7 @@
 #ifndef FULLMICROCODEDCPU_H
 #define FULLMICROCODEDCPU_H
 
-#include "amccpumodel.h"
+#include "interfacemccpu.h"
 #include <QElapsedTimer>
 class NewCPUDataSection;
 class PartialMicrocodedMemoizer;

@@ -41,7 +41,6 @@ HEADERS += \
     $$SRC_PTH enu.h \
     $$SRC_PTH htmlhighlightermixin.h \
     $$SRC_PTH inputpane.h \
-    $$SRC_PTH interfaceisacpu.h \
     $$SRC_PTH iowidget.h \
     $$SRC_PTH mainmemory.h \
     $$SRC_PTH memorychips.h \
@@ -68,7 +67,6 @@ SOURCES += \
     $$SRC_PTH colors.cpp \
     $$SRC_PTH htmlhighlightermixin.cpp \
     $$SRC_PTH inputpane.cpp \
-    $$SRC_PTH interfaceisacpu.cpp \
     $$SRC_PTH iowidget.cpp \
     $$SRC_PTH mainmemory.cpp \
     $$SRC_PTH memorychips.cpp \

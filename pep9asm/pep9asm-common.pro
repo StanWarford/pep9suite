@@ -8,7 +8,7 @@ VPATH += $$PWD\..\pep9common
 # Issues occur when referencing source files from outside the current directory
 # In windows, files must use the fully qualified path in order to be found
 win32: {
-    SRC_PTH = $$PWD
+    SRC_PTH = $$PWD\
 }
 # On Max OS X or Ubuntu, qmake will not function with fully qualified paths
 else: {
@@ -31,6 +31,7 @@ HEADERS += \
     $$SRC_PTH asmsourcecodepane.h \
     $$SRC_PTH asmtracepane.h \
     $$SRC_PTH cpphighlighter.h \
+    $$SRC_PTH interfaceisacpu.h \
     $$SRC_PTH isaasm.h \
     $$SRC_PTH memorycellgraphicsitem.h \
     $$SRC_PTH memorytracepane.h \
@@ -49,6 +50,7 @@ SOURCES += \
     $$SRC_PTH asmsourcecodepane.cpp \
     $$SRC_PTH asmtracepane.cpp \
     $$SRC_PTH cpphighlighter.cpp \
+    $$SRC_PTH interfaceisacpu.cpp \
     $$SRC_PTH isaasm.cpp \
     $$SRC_PTH memorycellgraphicsitem.cpp \
     $$SRC_PTH memorytracepane.cpp \
