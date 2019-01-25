@@ -165,7 +165,7 @@ void MemoryTracePane::setMemoryTrace()
     stackFrameFSM.reset();*/
 }
 
-void MemoryTracePane::updateMemoryTrace()
+void MemoryTracePane::updateMemoryTrace(quint16 newSP)
 {
     // Color all of the cells normally (globals)
     for (int i = 0; i < globalVars.size(); i++) {

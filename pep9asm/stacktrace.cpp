@@ -129,7 +129,6 @@ void MemoryTrace::clear()
 {
     userStack.clear();
     osStack.clear();
-    //throw std::exception("Does not work");
 }
 
 void StackFrame::push(MemTag tag)

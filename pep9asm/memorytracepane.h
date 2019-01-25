@@ -45,7 +45,7 @@ public:
     void setMemoryTrace();
     // The memory trace is populated (on assembly).
 
-    void updateMemoryTrace();
+    void updateMemoryTrace(quint16 newSP);
     // Post: The memory trace is updated
 
     void cacheChanges();

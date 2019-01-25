@@ -87,10 +87,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
      *      x - If it returns false, we have a corrupt stack.
      *  x - If CallStack is ever exhausted before size is hit, return false.
      */
-    if(this->manager->getProgramAt(pc)== nullptr || !this->manager->getProgramAt(pc)->getTraceInfo()->hadTraceTags) return;
-    else if(this->manager->getProgramAt(pc)->getTraceInfo()->staticTraceError == true) *activeIntact = false;
-    else if(isTrapped) return;
-    if((*activeIntact) == false) return;
+    if(!(*activeIntact)|| this->manager->getProgramAt(pc) == nullptr) return;
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[instr];
     quint16 size = 0;
     switch(mnemon) {
@@ -251,9 +248,12 @@ void InterfaceISACPU::reset() noexcept
     asmInstructionCounter = 0;
     asmBreakpointHit = false;
     memTrace.clear();
-    // Dependant upon trace info of program
-    userStackIntact = true;
-    osStackIntact = true;
+    // Only trace the stack if trace tags are present, and no assembly time
+    // errors occured.
+    userStackIntact = this->manager->getUserProgram()->getTraceInfo()->hadTraceTags
+            && !manager->getUserProgram()->getTraceInfo()->staticTraceError;
+    // Never attempt to trace OS
+    osStackIntact = false;
 
     userActions.clear();
     osActions.clear();

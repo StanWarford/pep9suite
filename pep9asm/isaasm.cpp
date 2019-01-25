@@ -1206,7 +1206,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
         }
         else if(dotWord != nullptr) {
             // Check that size of allocated memory matches trace tag size
-            if(dotWord->argument->getArgumentValue() != item->size()) {
+            if(2 != item->size()) {
                 traceInfo.staticTraceError = true;
                 errorString =   bytesAllocMismatch
                                 .arg(dotWord->argument->getArgumentValue())
@@ -1219,7 +1219,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
         }
         else if(dotByte != nullptr) {
             // Check that size of allocated memory matches trace tag size
-            if(dotByte->argument->getArgumentValue() != item->size()) {
+            if(1 != item->size()) {
                 traceInfo.staticTraceError = true;
                 errorString =   bytesAllocMismatch
                                 .arg(dotByte->argument->getArgumentValue())
