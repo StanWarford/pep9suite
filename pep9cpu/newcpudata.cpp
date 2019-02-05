@@ -309,7 +309,9 @@ void NewCPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
 
     // Mask out the original value, then or it with the properly shifted bit
     oldVal = NZVCSbits&mask;
-    NZVCSbits = (NZVCSbits&~mask) | ((val?1:0)*mask);
+    // Mask out the target bit, then or the new value in to the target position.
+    // Explicitly narrow status bit calculation.
+    NZVCSbits = static_cast<quint8>((NZVCSbits & ~mask) | ((val ? 1 : 0) * mask));
     if(emitEvents) {
         if(oldVal != val) emit statusBitChanged(statusBit, val);
     }
@@ -366,7 +368,7 @@ bool NewCPUDataSection::setSignalsFromMicrocode(const MicroCode *line)
     }
     //For each clock signal in the input microcode, set the appropriate clock
     for(int it = 0;it < clockSignals.length(); it++) {
-        clockSignals[it] = line->getClockSignal((Enu::EClockSignals)it);
+        clockSignals[it] = line->getClockSignal(static_cast<Enu::EClockSignals>(it));
     }
     return true;
 }
@@ -450,15 +452,16 @@ void NewCPUDataSection::stepOneByte() noexcept
 
     isALUCacheValid = false;
     //Set up all variables needed by stepping calculation
-    Enu::EALUFunc aluFunc = (Enu::EALUFunc) controlSignals[Enu::ALU];
+    Enu::EALUFunc aluFunc = static_cast<Enu::EALUFunc>(controlSignals[Enu::ALU]);
     quint8 a = 0, b = 0, c = 0, alu = 0, NZVC = 0;
     bool hasA = valueOnABus(a), hasB = valueOnBBus(b), hasC = valueOnCBus(c), statusBitError = false;
     bool hasALUOutput = calculateALUOutput(alu,NZVC);
 
     //Handle write to memory
-    if(mainBusState == Enu::MemWriteReady)
-    {
-        quint16 address = (memoryRegisters[Enu::MEM_MARA]<<8) | memoryRegisters[Enu::MEM_MARB];
+    if(mainBusState == Enu::MemWriteReady) {
+        // << upcasts from quint8 to int32, must explicitly narrow.
+        quint16 address = static_cast<quint16>((memoryRegisters[Enu::MEM_MARA]<<8)
+                | memoryRegisters[Enu::MEM_MARB]);
         memDevice->writeByte(address, memoryRegisters[Enu::MEM_MDR]);
     }
 
@@ -526,10 +529,10 @@ void NewCPUDataSection::stepOneByte() noexcept
     if(clockSignals[Enu::ZCk]) {
         if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput)
         {
-            if(controlSignals[Enu::AndZ]==0) {
+            if(controlSignals[Enu::AndZ] == 0) {
                 onSetStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
             }
-            else if(controlSignals[Enu::AndZ]==1) {
+            else if(controlSignals[Enu::AndZ] == 1) {
                 onSetStatusBit(Enu::STATUS_Z,(bool)(Enu::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z));
             }
             else statusBitError = true;
@@ -539,7 +542,7 @@ void NewCPUDataSection::stepOneByte() noexcept
 
     //VCk
     if(clockSignals[Enu::VCk]) {
-        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V,Enu::VMask & NZVC);
+        if(aluFunc != Enu::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V,Enu::VMask & NZVC);
         else statusBitError = true;
     }
 
@@ -569,40 +572,42 @@ void NewCPUDataSection::stepTwoByte() noexcept
     if(hadErrorOnStep()) return; //If the bus had an error, give up now
 
     isALUCacheValid = false;
-    //Set up all variables needed by stepping calculation
-    Enu::EALUFunc aluFunc = (Enu::EALUFunc) controlSignals[Enu::ALU];
+    // Set up all variables needed by stepping calculation
+    Enu::EALUFunc aluFunc = static_cast<Enu::EALUFunc>(controlSignals[Enu::ALU]);
     quint8 a = 0, b = 0, c = 0, alu = 0, NZVC = 0, temp = 0;
     quint16 address;
     bool memSigError = false, hasA = valueOnABus(a), hasB = valueOnBBus(b), hasC = valueOnCBus(c);
     bool statusBitError = false, hasALUOutput = calculateALUOutput(alu, NZVC);
 
-    //Handle write to memory
+    // Handle write to memory
     if(mainBusState == Enu::MemWriteReady) {
-        quint16 address = (memoryRegisters[Enu::MEM_MARA]<<8) + memoryRegisters[Enu::MEM_MARB];
-        address&=0xFFFE; //Memory access ignores lowest order bit
+        // << widens quint8 to int32, must explictly narrow.
+        quint16 address = static_cast<quint16>((memoryRegisters[Enu::MEM_MARA]<<8)
+                | memoryRegisters[Enu::MEM_MARB]);
+        address&=0xFFFE; // Memory access ignores lowest order bit
         memDevice->writeWord(address, memoryRegisters[Enu::MEM_MDRE]*256 + memoryRegisters[Enu::MEM_MDRO]);
     }
 
-    //MARCk
+    // MARCk
     if(clockSignals[Enu::MARCk]) {
         if(controlSignals[Enu::MARMux] == 0) {
-            //If MARMux is 0, route MDRE, MDRO to MARA, MARB
+            // If MARMux is 0, route MDRE, MDRO to MARA, MARB
             onSetMemoryRegister(Enu::MEM_MARA, memoryRegisters[Enu::MEM_MDRE]);
             onSetMemoryRegister(Enu::MEM_MARB, memoryRegisters[Enu::MEM_MDRO]);
         }
         else if(controlSignals[Enu::MARMux] == 1 && hasA && hasB) {
-            //If MARMux is 1, route A, B to MARA, MARB
+            // If MARMux is 1, route A, B to MARA, MARB
             onSetMemoryRegister(Enu::MEM_MARA, a);
             onSetMemoryRegister(Enu::MEM_MARB,b );
         }
-        else {  //Otherwise MARCk is high, but no data flows through MARMux
+        else {  // Otherwise MARCk is high, but no data flows through MARMux
             hadDataError = true;
             errorMessage = "MARMux has no output but MARCk";
             return;
         }
     }
 
-    //LoadCk
+    // LoadCk
     if(clockSignals[Enu::LoadCk]) {
         if(controlSignals[Enu::C] == Enu::signalDisabled) {
             hadDataError = true;
@@ -615,13 +620,15 @@ void NewCPUDataSection::stepTwoByte() noexcept
         else onSetRegisterByte(controlSignals[Enu::C], c);
     }
 
-    //MDRECk
+    // MDRECk
     if(clockSignals[Enu::MDRECk]) {
         switch(controlSignals[Enu::MDREMux])
         {
-        case 0: //Pick memory
-            address = (memoryRegisters[Enu::MEM_MARA]<<8) + memoryRegisters[Enu::MEM_MARB];
-            address &= 0xFFFE; //Memory access ignores lowest order bit
+        case 0: // Pick memory
+            // << widens quint8 to int32, must explictly narrow.
+            address = static_cast<quint16>((memoryRegisters[Enu::MEM_MARA]<<8)
+                    | memoryRegisters[Enu::MEM_MARB]);
+            address &= 0xFFFE; // Memory access ignores lowest order bit
             if(mainBusState != Enu::MemReadReady){
                 hadDataError = true;
                 errorMessage = "No value from data bus to write to MDRE";
@@ -635,7 +642,7 @@ void NewCPUDataSection::stepTwoByte() noexcept
                 onSetMemoryRegister(Enu::MEM_MDRE, temp);
             }
             break;
-        case 1: //Pick C Bus;
+        case 1: // Pick C Bus;
             if(!hasC) {
                 hadDataError=true;
                 errorMessage = "No value on C bus to write to MDRE";
@@ -652,12 +659,13 @@ void NewCPUDataSection::stepTwoByte() noexcept
     }
 
     //MDRECk
-    if(clockSignals[Enu::MDROCk])
-    {
+    if(clockSignals[Enu::MDROCk]) {
         switch(controlSignals[Enu::MDROMux])
         {
         case 0: //Pick memory
-            address = (memoryRegisters[Enu::MEM_MARA]<<8) + memoryRegisters[Enu::MEM_MARB];
+            // << widens to quint8 to int32, must explictly narrow.
+            address = static_cast<quint16>((memoryRegisters[Enu::MEM_MARA]<<8)
+                    | memoryRegisters[Enu::MEM_MARB]);
             address &= 0xFFFE; //Memory access ignores lowest order bit
             address += 1;
             if(mainBusState != Enu::MemReadReady){

@@ -104,6 +104,7 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
         programList.append(QSharedPointer<AsmCode>(code));
         lineNum++;
     }
+
     // Perform whole program error checking
     // Prefer to return after performing all error checks, to save
     // the user from having to compile many times
@@ -130,9 +131,10 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
         }
         success = false;
     }
+    // Finds remaining trace tags (structs, add/subsp) and handles malloc/heap allocation.
     handleTraceTags(*symTable.get(), *traceInfo.get(), programList, errList);
     progOut = QSharedPointer<AsmProgram>::create(programList, symTable, traceInfo);
-#pragma message("Memory trace needs some work")
+
     manager.setUserProgram(progOut);
     return success;
 }
@@ -197,7 +199,9 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, QSharedPointer<Asm
     info.startROMAddress = info.burnValue - (byteCount - info.burnAddress) +1;
     relocateCode(codeList, addressDelta);
     symTable->setOffset(addressDelta);
-    handleTraceTags(*symTable.get(), *traceInfo, codeList, errList);
+    // Don't trace tags in the OS. We don't want to support this behavior, since
+    // the operating system is not simply a translation of a C program.
+    // handleTraceTags(*symTable.get(), *traceInfo, codeList, errList);
     traceInfo->hadTraceTags = false;
     progOut = QSharedPointer<AsmProgram>::create(codeList, symTable, traceInfo, info.startROMAddress, info.burnValue);
     manager.setOperatingSystem(progOut);
@@ -425,10 +429,10 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
     if(symTable.exists("malloc")
             && symTable.exists("heap")
             && symTable.exists("hpPtr")
-            && symTable.getValue("malloc")->getRawValue()->getSymbolType() != SymbolType::ADDRESS
-            && symTable.getValue("heap")->getRawValue()->getSymbolType() != SymbolType::ADDRESS) {
+            && symTable.getValue("malloc")->getRawValue()->getSymbolType() == SymbolType::ADDRESS
+            && symTable.getValue("heap")->getRawValue()->getSymbolType() == SymbolType::ADDRESS) {
         traceInfo.hasHeapMalloc = true;
-        traceInfo.heapPtr = symTable.getValue("hpPtr");
+        traceInfo.heapPtr = symTable.getValue("heap");
         traceInfo.mallocPtr = symTable.getValue("malloc");
     }
 
