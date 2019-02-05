@@ -24,13 +24,13 @@
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
-	<string>pep9micro</string>
+	<string>Pep9Micro</string>
 	<key>CFBundleGetInfoString</key>
 	<string>47</string>
 	<key>CFBundleIconFile</key>
 	<string>icon.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.pepcsdept.pep8cpu</string>
+	<string>com.pepcsdept.pep9micro</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>

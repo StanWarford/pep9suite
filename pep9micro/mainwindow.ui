@@ -190,7 +190,7 @@
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>17</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -373,7 +373,6 @@
    <addaction name="ActionBuild_Assemble"/>
    <addaction name="actionBuild_Run"/>
    <addaction name="actionDebug_Start_Debugging"/>
-   <addaction name="actionDebug_Stop_Debugging"/>
   </widget>
   <widget class="QToolBar" name="byteConverterToolBar">
    <property name="windowTitle">
@@ -391,6 +390,14 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionDebug_Continue"/>
+   <addaction name="actionDebug_Stop_Debugging"/>
+   <addaction name="actionDebug_Single_Step_Assembler"/>
+   <addaction name="actionDebug_Step_Over_Assembler"/>
+   <addaction name="actionDebug_Step_Into_Assembler"/>
+   <addaction name="actionDebug_Step_Out_Assembler"/>
+   <addaction name="separator"/>
+   <addaction name="actionDebug_Single_Step_Microcode"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="debugToolBar">
@@ -412,12 +419,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionDebug_Single_Step_Assembler"/>
-   <addaction name="actionDebug_Step_Over_Assembler"/>
-   <addaction name="actionDebug_Step_Into_Assembler"/>
-   <addaction name="actionDebug_Step_Out_Assembler"/>
-   <addaction name="separator"/>
-   <addaction name="actionDebug_Single_Step_Microcode"/>
   </widget>
   <widget class="QDockWidget" name="memoryDockWdget">
    <property name="sizePolicy">
@@ -428,8 +429,8 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>0</width>
-     <height>229</height>
+     <width>174</width>
+     <height>246</height>
     </size>
    </property>
    <property name="windowTitle">
@@ -951,6 +952,10 @@
    </property>
   </action>
   <action name="actionDebug_Continue">
+   <property name="icon">
+    <iconset resource="../pep9common/pep9common-resources.qrc">
+     <normaloff>:/images/debugger_continue.png</normaloff>:/images/debugger_continue.png</iconset>
+   </property>
    <property name="text">
     <string>Continue</string>
    </property>
@@ -1074,15 +1079,27 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>IOWidget</class>
-   <extends>QWidget</extends>
-   <header>iowidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>MicrocodePane</class>
    <extends>QWidget</extends>
    <header>microcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MicroObjectCodePane</class>
+   <extends>QWidget</extends>
+   <header>microobjectcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CpuPane</class>
+   <extends>QWidget</extends>
+   <header>cpupane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>IOWidget</class>
+   <extends>QWidget</extends>
+   <header>iowidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -1101,18 +1118,6 @@
    <class>AsmObjectCodePane</class>
    <extends>QWidget</extends>
    <header>asmobjectcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MicroObjectCodePane</class>
-   <extends>QWidget</extends>
-   <header>microobjectcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CpuPane</class>
-   <extends>QWidget</extends>
-   <header>cpupane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

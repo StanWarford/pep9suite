@@ -69,7 +69,7 @@
      <x>0</x>
      <y>0</y>
      <width>1179</width>
-     <height>17</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -216,7 +216,9 @@
    <addaction name="actionBuild_Microcode"/>
    <addaction name="actionBuild_Run"/>
    <addaction name="actionDebug_Start_Debugging"/>
+   <addaction name="actionDebug_Continue"/>
    <addaction name="actionDebug_Stop_Debugging"/>
+   <addaction name="actionDebug_Single_Step_Microcode"/>
   </widget>
   <widget class="QToolBar" name="byteConverterToolBar">
    <property name="windowTitle">
@@ -245,8 +247,8 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>162</width>
-     <height>229</height>
+     <width>174</width>
+     <height>246</height>
     </size>
    </property>
    <property name="features">
@@ -298,7 +300,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionDebug_Single_Step_Microcode"/>
   </widget>
   <action name="actionFile_Open">
    <property name="icon">
@@ -606,7 +607,7 @@
   <action name="actionDebug_Continue">
    <property name="icon">
     <iconset resource="../pep9common/pep9common-resources.qrc">
-     <normaloff>:/images/run.png</normaloff>:/images/run.png</iconset>
+     <normaloff>:/images/debugger_continue.png</normaloff>:/images/debugger_continue.png</iconset>
    </property>
    <property name="text">
     <string>Continue</string>
@@ -730,8 +731,8 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9cpu-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
  </resources>
  <connections>
   <connection>

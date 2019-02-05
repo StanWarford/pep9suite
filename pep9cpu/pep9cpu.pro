@@ -21,10 +21,6 @@ win32{
 }
 QT += widgets webenginewidgets printsupport concurrent
 
-INCLUDEPATH += $$PWD/../pep9common
-VPATH += $$PWD
-VPATH += $$PWD/../pep9common
-
 # Mac icon/plist
 ICON = images/icon.icns
 QMAKE_INFO_PLIST = app.plist
@@ -51,13 +47,17 @@ SOURCES += \
     partialmicrocodedmemoizer.cpp
 
 RESOURCES += \
-    ..\pep9common\dark_style.qrc \
-    ..\pep9common\pep9common-resources.qrc\
     cpu_helpresources.qrc \
-    pep9cpu-resources.qrc
+    pep9cpu-resources.qrc \
+    ../pep9common/dark_style.qrc \
+    ../pep9common/pep9common-resources.qrc
 
 DISTFILES += \
     pep9resources.rc
+
+INCLUDEPATH += $$PWD/../pep9common
+VPATH += $$PWD
+VPATH += $$PWD/../pep9common
 
 include(../pep9common/pep9common.pro)
 include(pep9cpu-common.pro)
