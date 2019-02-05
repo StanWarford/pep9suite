@@ -155,11 +155,13 @@ void MicrocodeEditor::highlightSimulatedLine()
         // Convert a micro-address to a logical text block
         int activeBlockNum = blockToCycle.key(activeLineNum, std::numeric_limits<quint16>::max());
         // Iterate over blocks, because lines do not work correctly with line wrap
-        cursor.movePosition(QTextCursor::NextBlock,
-                            QTextCursor::MoveAnchor,
-                            activeBlockNum);
+        cursor.movePosition(QTextCursor::NextBlock, QTextCursor::MoveAnchor, activeBlockNum);
+        cursor.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor);
         this->setTextCursor(cursor);
-        ensureCursorVisible(); 
+        // Since the cursor (potentially) spans multiple lines, center it, since
+        // ensureCursorVisible() might only show the bottom
+        // line of a multi-row selection.
+        centerCursor();
         selection.cursor = cursor;
         extraSelections.append(selection);
 

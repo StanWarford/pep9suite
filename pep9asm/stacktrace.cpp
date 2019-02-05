@@ -209,7 +209,7 @@ void HeapTrace::pushHeap(quint16 start, QList<QPair<Enu::ESymbolFormat, QString>
     QSharedPointer<StackFrame> frm = QSharedPointer<StackFrame>::create();
     quint16 addr = start;
     for(auto pair : items) {
-        frm->push({start, pair});
+        frm->push({addr, pair});
         addr += Enu::tagNumBytes(pair.first);
     }
     heap.insert(start, frm);
@@ -224,9 +224,8 @@ void HeapTrace::clear()
 HeapTrace::operator QString() const
 {
     QList<QString> items;
-    for(auto tag = heap.keyBegin(); tag!=heap.keyEnd(); tag++) {
-        heap[*tag];
-        items << QString("%1:%2").arg(*tag).arg(QString(*heap[*tag]));
+    for(auto frame = heap.keyBegin(); frame!=heap.keyEnd(); frame++) {
+        items << QString("%1").arg(heap[(*frame)]->operator QString());
     }
     return items.join(", ");
 }

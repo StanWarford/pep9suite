@@ -68,6 +68,7 @@ const QSet<quint16> AsmTracePane::getBreakpoints() const
 
 void AsmTracePane::writeSettings(QSettings &)
 {
+
 }
 
 void AsmTracePane::readSettings(QSettings &)
@@ -287,8 +288,12 @@ void AsmTraceTextEdit::highlightActiveLine()
         cursor.setPosition(0);
         // Iterate over blocks, because lines do not work correctly with line wrap
         cursor.movePosition(QTextCursor::NextBlock, QTextCursor::MoveAnchor, addrToLine[activeAddress]);
+        cursor.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor);
         this->setTextCursor(cursor);
-        ensureCursorVisible();
+        // Since the cursor (potentially) spans multiple lines, center it, since
+        // ensureCursorVisible() might only show the bottom
+        // line of a multi-row selection.
+        centerCursor();
         selection.cursor = cursor;
         extraSelections.append(selection);
     }
