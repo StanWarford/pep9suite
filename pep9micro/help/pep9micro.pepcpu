@@ -564,7 +564,7 @@ MemRead
 MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, MDREMux=0, C=6; LoadCk, MDRECk
 EOMux=0, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start
 ret_e: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
-MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; SCk
+MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; LoadCk
 MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 EOMux=0, AMux=0, ALU=0, CMux=1, C=6; LoadCk
 EOMux=1, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start

@@ -140,7 +140,7 @@ bool NewCPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
     case Enu::ASLA_func: // ASL A
         res = static_cast<quint8>(a<<1);
         NZVC |= Enu::CMask * ((a & 0x80) >> 7); // Carry out equals the hi order bit
-        NZVC |= Enu::VMask * (((a << 1) ^a) >>7); // Signed overflow if a<hi> doesn't match a<hi-1>
+        NZVC |= Enu::VMask * (((a << 1) ^ a) >>7); // Signed overflow if a<hi> doesn't match a<hi-1>
         break;
     case Enu::ROLA_func: // ROL A
         if (!hasCIn) return false;

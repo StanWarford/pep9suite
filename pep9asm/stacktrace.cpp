@@ -3,6 +3,7 @@
 #include "symbolentry.h"
 #include "enu.h"
 #include <QTextStream>
+#include "amemorydevice.h"
 
 StackTrace::StackTrace(): callStack(), nextFrame(QSharedPointer<StackFrame>::create())
 {
@@ -34,16 +35,16 @@ void StackTrace::pushLocals(quint16 start, QList<QPair<Enu::ESymbolFormat, QStri
 {
     if(callStack.isEmpty()) callStack.push(QSharedPointer<StackFrame>::create());
     for(auto pair : items) {
-        callStack.top()->push({start, pair});
         start -= Enu::tagNumBytes(pair.first);
+        callStack.top()->push({start, pair});
     }
 }
 
 void StackTrace::pushParams(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items)
 {
     for(auto pair :items) {
-        nextFrame->push({start,pair});
         start -= Enu::tagNumBytes(pair.first);
+        nextFrame->push({start, pair});
     }
 }
 
@@ -120,7 +121,8 @@ StackTrace::operator QString() const
     return out.join("||");
 }
 
-MemoryTrace::MemoryTrace()
+MemoryTrace::MemoryTrace(): userStack(StackTrace()),
+    heapTrace(HeapTrace()), globalTrace(GlobalTrace())
 {
 
 }
@@ -128,8 +130,8 @@ MemoryTrace::MemoryTrace()
 void MemoryTrace::clear()
 {
     userStack.clear();
-    osStack.clear();
     globalTrace.clear();
+    heapTrace.clear();
 }
 
 void StackFrame::push(MemTag tag)
@@ -165,12 +167,17 @@ StackFrame::operator QString() const
     return items.join(", ");
 }
 
+GlobalTrace::GlobalTrace()
+{
+
+}
+
 void GlobalTrace::setTags(QList<QPair<quint16, QPair<Enu::ESymbolFormat, QString> > > items)
 {
     tags.clear();
     for(auto entry : items) {
         quint16 addr = entry.first;
-        tags.insert(entry.first,{addr,entry.second});
+        tags.insert(entry.first, {addr, entry.second});
     }
 }
 
@@ -186,5 +193,40 @@ const QMap<quint16, MemTag> GlobalTrace::getMemTags() const
 
 MemTag::operator QString() const
 {
-    return QString("(%1: %2)").arg(type.second).arg(addr,4,16,QChar('0'));
+
+    return QString("(%1:[%2])")
+            .arg(type.second)
+            .arg(addr,4,16,QChar('0'));
+}
+
+HeapTrace::HeapTrace()
+{
+
+}
+
+void HeapTrace::pushHeap(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items)
+{
+    QSharedPointer<StackFrame> frm = QSharedPointer<StackFrame>::create();
+    quint16 addr = start;
+    for(auto pair : items) {
+        frm->push({start, pair});
+        addr += Enu::tagNumBytes(pair.first);
+    }
+    heap.insert(start, frm);
+
+}
+
+void HeapTrace::clear()
+{
+    heap.clear();
+}
+
+HeapTrace::operator QString() const
+{
+    QList<QString> items;
+    for(auto tag = heap.keyBegin(); tag!=heap.keyEnd(); tag++) {
+        heap[*tag];
+        items << QString("%1:%2").arg(*tag).arg(QString(*heap[*tag]));
+    }
+    return items.join(", ");
 }

@@ -278,6 +278,7 @@ void MemoryDumpPane::onSimulationStarted()
 void MemoryDumpPane::onSimulationFinished()
 {
     inSimulation = false;
+    refreshMemory();
 }
 
 void MemoryDumpPane::highlightByte(quint16 memAddr, QColor foreground, QColor background)

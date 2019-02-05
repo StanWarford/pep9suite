@@ -6,10 +6,11 @@
 #include "asmprogram.h"
 #include "typetags.h"
 #include "symbolentry.h"
-InterfaceISACPU::InterfaceISACPU(const AsmProgramManager* manager) noexcept: manager(manager),
+#include "asmcode.h"
+InterfaceISACPU::InterfaceISACPU(const AMemoryDevice* dev, const AsmProgramManager* manager) noexcept: manager(manager),
     breakpointsISA(), asmInstructionCounter(0), asmBreakpointHit(false), doDebug(false),
     firstLineAfterCall(false), isTrapped(false),userActions(), osActions(), activeActions(&userActions),
-    userStackIntact(true), osStackIntact(true), activeIntact(&userStackIntact)
+    userStackIntact(true), osStackIntact(true), activeIntact(&userStackIntact), memTrace()
 {
     memTrace.activeStack = &memTrace.userStack;
 }
@@ -53,11 +54,10 @@ void InterfaceISACPU::setDebugBreakpoints(bool doDebug) noexcept
     this->doDebug = doDebug;
 }
 
-void InterfaceISACPU::calculateStackChangeStart(quint8 instr, quint16 sp)
+void InterfaceISACPU::calculateStackChangeStart(quint8 instr)
 {
     if(Pep::isTrapMap[Pep::decodeMnemonic[instr]]) {
         isTrapped = true;
-        memTrace.activeStack = &memTrace.osStack;
         activeActions = &osActions;
         activeIntact = &osStackIntact;
     }
@@ -69,7 +69,7 @@ void InterfaceISACPU::calculateStackChangeStart(quint8 instr, quint16 sp)
     }
 }
 
-void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc)
+void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc, quint16 acc)
 {
 #pragma message("TODO: stack checks")
     /*
@@ -94,10 +94,33 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
     switch(mnemon) {
     case Enu::EMnemonic::CALL:
         firstLineAfterCall = true;
-        memTrace.activeStack->call(sp);
+        memTrace.activeStack->call(sp - 2);
         activeActions->push(stackAction::call);
-        qDebug() << "Called!" ;
-        qDebug().noquote() << *(memTrace.activeStack);
+        if(dynamic_cast<const NonUnaryInstruction*>(manager->getUserProgram()->memAddressToCode(pc)) != nullptr){
+            const NonUnaryInstruction* instr = dynamic_cast<const NonUnaryInstruction*>(manager->getUserProgram()->memAddressToCode(pc));
+            // In case a user wrote a self modifying program
+            if(instr->getMnemonic() != Enu::EMnemonic::CALL) return;
+            // Don't try to track calls to malloc via a literal address
+            else if(!instr->hasSymbolicOperand()) return;
+            // A call to things other than malloc don't trigger heap behavior
+            else if(instr->getSymbolicOperand()->getName() != "malloc") return;
+            // A call with no symbol traces listed is ignored
+            if(manager->getUserProgram()->getTraceInfo()->instrToSymlist.contains(pc))
+            {
+                memTrace.heapTrace.isMalloc = true;
+                QList<QPair<Enu::ESymbolFormat, QString>> primList;
+                for(auto item : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
+                    primList.append(item->toPrimitives());
+                }
+                memTrace.heapTrace.pushHeap(heapPtr, primList);
+                /*qDebug().noquote().nospace() << "HEAP: "<<
+                                                memTrace.heapTrace;*/
+            }
+            heapPtr += acc;
+
+        }
+        /*qDebug() << "Called!" ;
+        qDebug().noquote() << *(memTrace.activeStack);*/
         break;
 
     case Enu::EMnemonic::RET:
@@ -106,16 +129,17 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
         case stackAction::call:
             if(memTrace.activeStack->ret()) {
                 firstLineAfterCall = true;
+                memTrace.heapTrace.isMalloc = false;
                 qDebug() << "Returned!" ;
                 qDebug().noquote() << *(memTrace.activeStack);
             }
             else {
-                qDebug() <<"Unbalanced stack operation 7";
+                // qDebug() <<"Unbalanced stack operation 7";
                 *activeIntact = false;
             }
             break;
         default:
-            qDebug() <<"Unbalanced stack operation 1";
+            // qDebug() <<"Unbalanced stack operation 1";
             *activeIntact = false;
         }
         break;
@@ -128,7 +152,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             }
             if(size != opspec) {
                 *activeIntact = false;
-                qDebug() <<"Stack is wrong size";
+                //qDebug() <<"Stack is wrong size";
                 break;
             }
         }
@@ -141,7 +165,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                 memTrace.activeStack->pushLocals(sp, primList);
             }
             activeActions->push(stackAction::locals);
-            qDebug() << "Alloc'ed Locals!" ;
+            //qDebug() << "Alloc'ed Locals!" ;
         }
         else {
             if(manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist.contains(pc)) {
@@ -152,9 +176,9 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                 memTrace.activeStack->pushParams(sp, primList);
             }
             activeActions->push(stackAction::params);
-            qDebug() << "Alloc'ed params! " ;//<< activeStack->top();
+            //qDebug() << "Alloc'ed params! " ;//<< activeStack->top();
         }
-        qDebug().noquote()<< *(memTrace.activeStack);
+        //qDebug().noquote()<< *(memTrace.activeStack);
         break;
 
     case Enu::EMnemonic::ADDSP:
@@ -164,23 +188,23 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             }
             if(size != opspec) {
                 *activeIntact = false;
-                qDebug() <<"Stack is wrong size";
+                //qDebug() <<"Stack is wrong size";
                 break;
             }
         }
         else if(activeActions->isEmpty()) {
-            qDebug() << "Unbalanced stack operation 2";
+            //qDebug() << "Unbalanced stack operation 2";
             *activeIntact = false;
         }
         else break;
         switch(activeActions->pop()) {
         case stackAction::locals:
             if(memTrace.activeStack->popLocals(size)) {
-                qDebug() << "Popped locals!" ;
-                qDebug().noquote() << *(memTrace.activeStack);
+                //qDebug() << "Popped locals!" ;
+                //qDebug().noquote() << *(memTrace.activeStack);
             }
             else {
-                qDebug() << "Unbalanced stack operation 5";
+                //qDebug() << "Unbalanced stack operation 5";
                 *activeIntact = false;
             }
             break;
@@ -188,8 +212,8 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             if(memTrace.activeStack->getTOS().size()>size
                     && memTrace.activeStack->popAndOrphan(size)) {
                 activeActions->push(stackAction::params);
-                qDebug() << "Popped Params & orphaned!" ;
-                qDebug().noquote() << *(memTrace.activeStack);
+                //qDebug() << "Popped Params & orphaned!" ;
+                //qDebug().noquote() << *(memTrace.activeStack);
             }
             else if(memTrace.activeStack->getTOS().size() <= size) {
                 bool success = true;
@@ -200,21 +224,21 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                     activeActions->pop();
                 }
                 if(success) {
-                    qDebug() << "Popped Params!" ;
-                    qDebug().noquote() << *(memTrace.activeStack);
+                    //qDebug() << "Popped Params!" ;
+                    //qDebug().noquote() << *(memTrace.activeStack);
                 }
                 else {
-                    qDebug() << "Unbalanced stack operation 6";
+                    //qDebug() << "Unbalanced stack operation 6";
                     *activeIntact = false;
                 }
             }
             else {
-                qDebug() << "Unbalanced stack operation 8";
+                //qDebug() << "Unbalanced stack operation 8";
                 *activeIntact = false;
             }
             break;
         default:
-            qDebug() << "Unbalanced stack operation 3";
+            //qDebug() << "Unbalanced stack operation 3";
             *activeIntact = false;
             break;
         }
@@ -270,6 +294,9 @@ void InterfaceISACPU::reset() noexcept
 
         }
         memTrace.globalTrace.setTags(lst);
+        if(manager->getUserProgram()->getTraceInfo()->hasHeapMalloc) {
+            heapPtr = manager->getUserProgram()->getTraceInfo()->heapPtr->getValue();
+        }
     }
 
     userActions.clear();

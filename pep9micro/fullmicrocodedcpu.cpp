@@ -12,7 +12,7 @@
 #include "fullmicrocodedmemoizer.h"
 FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
     InterfaceMCCPU(Enu::CPUType::TwoByteDataBus),
-    InterfaceISACPU(manager)
+    InterfaceISACPU(memoryDev.get(), manager)
 {
     memoizer = new FullMicrocodedMemoizer(*this);
     data = new NewCPUDataSection(Enu::CPUType::TwoByteDataBus, memoryDev, parent);
@@ -243,8 +243,7 @@ void FullMicrocodedCPU::onMCStep()
         // could be selected.
         // Clear at start, so as to preserve highlighting AFTER finshing a write.
         memory->clearBytesWritten();
-        InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Enu::CPURegisters::IS),
-                                                   this->getCPURegWordStart(Enu::CPURegisters::SP));
+        InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Enu::CPURegisters::IS));
     }
 
     // Do step logic
@@ -261,14 +260,15 @@ void FullMicrocodedCPU::onMCStep()
         InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteStart(Enu::CPURegisters::IS),
                                                  this->getCPURegWordCurrent(Enu::CPURegisters::OS),
                                                  this->getCPURegWordStart(Enu::CPURegisters::SP),
-                                                 this->getCPURegWordStart(Enu::CPURegisters::PC));
+                                                 this->getCPURegWordStart(Enu::CPURegisters::PC),
+                                                 this->getCPURegWordCurrent(Enu::CPURegisters::A));
         memoizer->storeStateInstrEnd();
         updateAtInstructionEnd();
         emit asmInstructionFinished();
         asmInstructionCounter++;
-        /*if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
+        if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
             qDebug().noquote().nospace() << memoizer->memoize();
-        }*/
+        }
 
     }
     // Upon entering an instruction that is going to trap

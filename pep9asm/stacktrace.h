@@ -6,6 +6,7 @@
 #include <QSharedPointer>
 #include "enu.h"
 class AType;
+class AMemoryDevice;
 struct MemTag
 {
     quint16 addr;
@@ -46,13 +47,20 @@ public:
 
 class HeapTrace
 {
-
+    QMap<quint16, QSharedPointer<StackFrame>> heap;
+public:
+    explicit HeapTrace();
+    bool isMalloc;
+    void pushHeap(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items);
+    void clear();
+    operator QString() const;
 };
 
 class GlobalTrace
 {
     QMap<quint16, MemTag> tags;
 public:
+    explicit GlobalTrace();
     void setTags(QList<QPair<quint16 /*address*/,
                   QPair<Enu::ESymbolFormat, QString> /*tag*/ > > items);
     void clear();
@@ -65,7 +73,7 @@ class MemoryTrace
 public:
     explicit MemoryTrace();
     void clear();
-    StackTrace userStack, osStack, *activeStack;
+    StackTrace userStack, *activeStack;
     HeapTrace heapTrace;
     GlobalTrace globalTrace;
 };

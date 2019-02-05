@@ -41,7 +41,7 @@ enum class stackAction {
 class InterfaceISACPU
 {
 public:
-    explicit InterfaceISACPU(const AsmProgramManager* manager) noexcept;
+    explicit InterfaceISACPU(const AMemoryDevice* dev, const AsmProgramManager* manager) noexcept;
     virtual ~InterfaceISACPU();
     // Add, remove, & get breakpoints for the program counter.
     // Simulation will trap if the program counter is an element of the breakpointSet.
@@ -61,8 +61,8 @@ public:
     virtual void onISAStep() = 0;
 protected:
     virtual void updateAtInstructionEnd() = 0; // Update simulation state at the start of a assembly level instruction
-    void calculateStackChangeStart(quint8 instr, quint16 sp);
-    void calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc);
+    void calculateStackChangeStart(quint8 instr);
+    void calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc, quint16 acc);
 
     const AsmProgramManager* manager;
     QSet<quint16> breakpointsISA;
@@ -73,6 +73,7 @@ protected:
     MemoryTrace memTrace;
     QStack<stackAction> userActions, osActions, *activeActions;
     bool userStackIntact, osStackIntact, *activeIntact;
+    quint16 heapPtr;
 };
 
 #endif // AISACPU_H

@@ -94,8 +94,11 @@ QString FullMicrocodedMemoizer::memoize()
     case Enu::DebugLevels::ALL:
         [[fallthrough]];
     case Enu::DebugLevels::MINIMAL:
-        AX = QString(" A=%1, X=%2,").arg(formatNum(registers.regState.reg_A),formatNum(registers.regState.reg_X));
-        NZVC = QString(" NZVC=") % QString("%1").arg(QString::number(registers.regState.bits_NZVCS & ~Enu::SMask,2), 4, '0');
+        AX = QString(" A=%1, X=%2, SP=%3")
+                .arg(formatNum(registers.regState.reg_A),
+                     formatNum(registers.regState.reg_X),
+                     formatNum(registers.regState.reg_SP_cur));
+        NZVC = QString(" NZVCS=") % QString("%1").arg(QString::number(registers.regState.bits_NZVCS,2), 5, '0');
         build = (attempSymAddrReplace(registers.regState.reg_PC_start) + QString(":")).leftJustified(10) %
                 formatInstr(registers.regState.reg_IR,registers.regState.reg_OS);
         build += "  " + AX;

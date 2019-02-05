@@ -243,6 +243,8 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
         if(traceInfo.hadTraceTags && dynamic_cast<NonUnaryInstruction*>(line.get()) != nullptr) {
             NonUnaryInstruction* instr = dynamic_cast<NonUnaryInstruction*>(line.get());
             switch(instr->mnemonic) {
+            case Enu::EMnemonic::CALL:
+                [[fallthrough]];
             case Enu::EMnemonic::ADDSP:
                 [[fallthrough]];
             case Enu::EMnemonic::SUBSP:
@@ -405,11 +407,8 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                 }
                 break;
             case Enu::EMnemonic::CALL:
-                if(instr->argument->getArgumentValue() != size) {
-                    traceInfo.staticTraceError = true;
-                    errList.append({line.first, bytesAllocMismatch.arg(instr->argument->getArgumentValue()).arg(size)});
-                }
-                else {
+                if(instr->hasSymbolicOperand()
+                        && instr->getSymbolicOperand()->getName() == "malloc") {
                     traceInfo.instrToSymlist[instr->getMemoryAddress()] = lineTypes;
                 }
                 break;
@@ -425,10 +424,11 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
     // E.G. malloc: .equate 0 would be wrong
     if(symTable.exists("malloc")
             && symTable.exists("heap")
+            && symTable.exists("hpPtr")
             && symTable.getValue("malloc")->getRawValue()->getSymbolType() != SymbolType::ADDRESS
             && symTable.getValue("heap")->getRawValue()->getSymbolType() != SymbolType::ADDRESS) {
         traceInfo.hasHeapMalloc = true;
-        traceInfo.heapPtr = symTable.getValue("heap");
+        traceInfo.heapPtr = symTable.getValue("hpPtr");
         traceInfo.mallocPtr = symTable.getValue("malloc");
     }
 
