@@ -1435,13 +1435,15 @@ void MainWindow::handleDebugButtons()
         break;
     case DebugState::DEBUG_ISA:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE*(!waiting_io);
-        enabledButtons |= DebugButtons::SINGLE_STEP_ASM*(!waiting_io) | DebugButtons::STEP_OUT_ASM*(!waiting_io);
+        enabledButtons |= DebugButtons::SINGLE_STEP_ASM*(!waiting_io * 0) | DebugButtons::STEP_OUT_ASM*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_OVER_ASM*(!waiting_io) | DebugButtons::SINGLE_STEP_MICRO*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_INTO_ASM*(enable_into * !waiting_io);
         break;
     case DebugState::DEBUG_MICRO:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE*(!waiting_io);
-        enabledButtons |= DebugButtons::SINGLE_STEP_ASM*(!waiting_io) | DebugButtons::SINGLE_STEP_MICRO*(!waiting_io);
+        enabledButtons |= DebugButtons::SINGLE_STEP_ASM*(!waiting_io * 0) | DebugButtons::STEP_OUT_ASM*(!waiting_io);
+        enabledButtons |= DebugButtons::STEP_OVER_ASM*(!waiting_io) | DebugButtons::SINGLE_STEP_MICRO*(!waiting_io);
+        enabledButtons |= DebugButtons::STEP_INTO_ASM*(enable_into * !waiting_io);
         break;
     case DebugState::DEBUG_RESUMED:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART;

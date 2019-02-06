@@ -424,20 +424,14 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
                 state = MicroAsm::PSE_OPTIONAL_COMMENT;
             }
             else if(token == LTE_GOTO) {
-                microCode = new MicroCode(cpuType);
-                code = microCode;
-                state = PSE_LONE_GOTO;;
+                state = PSE_LONE_GOTO;
             }
             else if (token == LTE_AMD) {
-                microCode = new MicroCode(cpuType);
                 microCode->setBranchFunction(Enu::EBranchFunctions::AddressingModeDecoder);
-                code = microCode;
                 state = PSE_OPTIONAL_COMMENT;
             }
             else if (token == LTE_ISD) {
-                microCode = new MicroCode(cpuType);
                 microCode->setBranchFunction(Enu::EBranchFunctions::InstructionSpecifierDecoder);
-                code = microCode;
                 state = PSE_OPTIONAL_COMMENT;
             }
             else {

@@ -1026,6 +1026,9 @@
    <property name="shortcut">
     <string>Ctrl+Return</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionSystem_Trace_Traps">
    <property name="checkable">

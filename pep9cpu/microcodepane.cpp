@@ -142,7 +142,7 @@ bool MicrocodePane::microAssemble()
             }
     }
 
-    // Use line-1, since internally code lines are 0 indexed, but display as 1 indexed.
+    // Use line - 1, since internally code lines are 0 indexed, but display as 1 indexed.
     for(auto line : editor->getBreakpoints()) {
         program->getCodeLine(line - 1)->setBreakpoint(true);
     }
