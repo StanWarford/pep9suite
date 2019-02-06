@@ -49,7 +49,7 @@ EOMux=1, AMux=0, ALU=0, CMux=1, C=8; LoadCk
 //Instruction is fetched. Either prepare to execute unary instruction,
 // or fetch operand specifier for non-unary instructions
 end_is_fetch: if ISUNARY unary_dispatch else os_fetch
-unary_dispatch: A=5; ISD //Start the unary execution path via the instruction specifier decoder.
+unary_dispatch: ISD //Start the unary execution path via the instruction specifier decoder.
 //"A=5" is placeholder so that the assembler compiles this statement, since branches are currently not allowed
 //on a line by themselves
 
@@ -607,12 +607,12 @@ EOMux=0, AMux=0, ALU=0, CMux=1, C=4; LoadCk; goto start //Move PC <lo>
 
 
 //trap instructions
-nop1: A=5; goto trap
-nop: A=5; goto trap
-deci: A=5; goto trap
-deco: A=5; goto trap
-hexo: A=5; goto trap
-stro: A=5
+nop1: goto trap
+nop: goto trap
+deci: goto trap
+deco: goto trap
+hexo: goto trap
+stro: goto trap
 //T4 <- Mem[0xFFF6]. Registers T1, T3,T4  are in use.
 trap: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk
 MemRead
