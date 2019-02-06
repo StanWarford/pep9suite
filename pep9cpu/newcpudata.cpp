@@ -472,7 +472,7 @@ void NewCPUDataSection::stepOneByte() noexcept
     }
     else if(clockSignals[Enu::MARCk]) {//Handle error where no data is present
         hadDataError = true;
-        errorMessage = "No values on A & B during MARCk";
+        errorMessage = "No values on A & B during MARCk.";
         return;
     }
 
@@ -497,7 +497,7 @@ void NewCPUDataSection::stepOneByte() noexcept
             address = (memoryRegisters[Enu::MEM_MARA]<<8) + memoryRegisters[Enu::MEM_MARB];
             if(mainBusState != Enu::MemReadReady) {
                 hadDataError = true;
-                errorMessage = "No value from data bus to write to MDR";
+                errorMessage = "No value from data bus to write to MDR.";
             }
             else {
                 memDevice->getByte(address, value);
@@ -507,13 +507,13 @@ void NewCPUDataSection::stepOneByte() noexcept
         case 1: //Pick C Bus;
             if(!hasC) {
                 hadDataError = true;
-                errorMessage = "No value on C bus to write to MDR";
+                errorMessage = "No value on C bus to write to MDR.";
             }
             else onSetMemoryRegister(Enu::MEM_MDR,c);
             break;
         default:
             hadDataError = true;
-            errorMessage = "No value to clock into MDR";
+            errorMessage = "No value to clock into MDR.";
             break;
         }
 
@@ -602,7 +602,7 @@ void NewCPUDataSection::stepTwoByte() noexcept
         }
         else {  // Otherwise MARCk is high, but no data flows through MARMux
             hadDataError = true;
-            errorMessage = "MARMux has no output but MARCk";
+            errorMessage = "MARMux has no output but MARCk.";
             return;
         }
     }
@@ -631,7 +631,7 @@ void NewCPUDataSection::stepTwoByte() noexcept
             address &= 0xFFFE; // Memory access ignores lowest order bit
             if(mainBusState != Enu::MemReadReady){
                 hadDataError = true;
-                errorMessage = "No value from data bus to write to MDRE";
+                errorMessage = "No value from data bus to write to MDRE.";
                 return;
             }
             else {
@@ -645,14 +645,14 @@ void NewCPUDataSection::stepTwoByte() noexcept
         case 1: // Pick C Bus;
             if(!hasC) {
                 hadDataError=true;
-                errorMessage = "No value on C bus to write to MDRE";
+                errorMessage = "No value on C bus to write to MDRE.";
                 return;
             }
             else onSetMemoryRegister(Enu::MEM_MDRE,c);
             break;
         default:
             hadDataError = true;
-            errorMessage = "No value to clock into MDRE";
+            errorMessage = "No value to clock into MDRE.";
             break;
         }
 
@@ -670,7 +670,7 @@ void NewCPUDataSection::stepTwoByte() noexcept
             address += 1;
             if(mainBusState != Enu::MemReadReady){
                 hadDataError = true;
-                errorMessage = "No value from data bus to write to MDRO";
+                errorMessage = "No value from data bus to write to MDRO.";
                 return;
             }
             else {
@@ -684,14 +684,14 @@ void NewCPUDataSection::stepTwoByte() noexcept
         case 1: //Pick C Bus;
             if(!hasC) {
                 hadDataError = true;
-                errorMessage = "No value on C bus to write to MDRO";
+                errorMessage = "No value on C bus to write to MDRO.";
                 return;
             }
             else onSetMemoryRegister(Enu::MEM_MDRO, c);
             break;
         default:
             hadDataError = true;
-            errorMessage = "No value to clock into MDRO";
+            errorMessage = "No value to clock into MDRO.";
             break;
         }
 

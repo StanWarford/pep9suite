@@ -99,14 +99,14 @@ bool NilChip::writeByte(quint16 offsetFromBase, quint8 value)
 bool NilChip::getByte(quint16 offsetFromBase, quint8 &/*output*/) const
 {
     std::string message = "Attempted to access nil chip at: " +
-            QString("0x%1").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
+            QString("0x%1.").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
     throw bad_chip_write(message);
 }
 
 bool NilChip::setByte(quint16 offsetFromBase, quint8)
 {
     std::string message = "Attempted to access nil chip at: " +
-            QString("0x%1").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
+            QString("0x%1.").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
     throw bad_chip_write(message);
 }
 
@@ -162,7 +162,7 @@ bool InputChip::readByte(quint16 offsetFromBase, quint8 &output) const
     QApplication::processEvents();
     if(requestCanceled[offsetFromBase]) return false;
     else if(requestAborted[offsetFromBase]) {
-        throw io_aborted("Requested input that was not received");
+        throw io_aborted("Requested input that was not received.");
     }
     output = memory[offsetFromBase];
     return true;
@@ -170,7 +170,7 @@ bool InputChip::readByte(quint16 offsetFromBase, quint8 &output) const
 
 bool InputChip::writeByte(quint16, quint8)
 {
-    std::string const str("Attempted to write to read only memory");
+    std::string const str("Attempted to write to read only memory.");
     throw bad_chip_write(str);
 }
 
@@ -364,7 +364,7 @@ bool ROMChip::readByte(quint16 offsetFromBase, quint8 &output) const
 
 bool ROMChip::writeByte(quint16 offsetFromBase, quint8)
 {
-    QString format("Attempted to write to read only memory at: 0x%1");
+    QString format("Attempted to write to read only memory at: 0x%1.");
     std::string message = format.
             arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).
             toStdString();

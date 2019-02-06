@@ -69,13 +69,13 @@ bool AMemoryChip::setWord(quint16 offsetFromBase, quint16 value)
 [[noreturn]] void AMemoryChip::outOfBoundsReadHelper(quint16 offsetFromBase) const
 {
     std::string message = "Out of range memory read at: " +
-            QString("0x%1").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
+            QString("0x%1.").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
     throw std::out_of_range(message);
 }
 
 [[noreturn]] void AMemoryChip::outOfBoundsWriteHelper(quint16 offsetFromBase, quint8 value)
 {
-    QString format("Out of range memory write (value = 0x%1) at: 0x%2");
+    QString format("Out of range memory write (value = 0x%1) at: 0x%2.");
     std::string message = format.
             arg(value, 2, 16, QLatin1Char('0')).
             arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).
@@ -85,7 +85,7 @@ bool AMemoryChip::setWord(quint16 offsetFromBase, quint16 value)
 
 [[noreturn]] void AMemoryChip::outOfBoundsWriteHelper(quint16 offsetFromBase, quint16 value)
 {
-    QString format("Out of range memory write (value = 0x%1) at: 0x%2");
+    QString format("Out of range memory write (value = 0x%1) at: 0x%2.");
     std::string message = format.
             arg(value, 4, 16, QLatin1Char('0')).
             arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).
