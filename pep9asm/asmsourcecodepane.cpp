@@ -138,9 +138,10 @@ bool AsmSourceCodePane::assembleOS(const QString& sourceCode)
     auto elist = QList<QPair<int, QString>>();
     bool success = myAsm.assembleOperatingSystem(sourceCode, prog, elist);
     // Add all warnings and errors to source files
-    for (QPair<int,QString> pair : elist) {
+#pragma message("TODO: handle appending error messages in operating system")
+    /*for (QPair<int,QString> pair : elist) {
         appendMessageInSourceCodePaneAt(pair.first, pair.second);
-    }
+    }*/
     // If assemble failed, don't perform any more work
     if(!success) {
         return false;

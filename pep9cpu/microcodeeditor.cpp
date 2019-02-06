@@ -353,28 +353,13 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 {
     QPainter painter(lineNumberArea);
     painter.fillRect(event->rect(), colors->lineAreaBackground); // light grey
+    // Since the text cursor may span multiple lines, use multiple cursors to determine
+    // the span of the selected text.
+    QTextCursor start = textCursor(), end = textCursor();
+    start.setPosition(textCursor().selectionStart(), QTextCursor::MoveAnchor);
+    end.setPosition(textCursor().selectionEnd(), QTextCursor::MoveAnchor);
     QTextBlock block;
     int blockNumber, top, bottom;
-    // Highlight the current line containing the cursor
-    if (highlightCurLine && textCursor().block().isVisible()) {
-        block = firstVisibleBlock();
-        blockNumber = block.blockNumber();
-        textCursor();
-        top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
-        bottom = top + static_cast<int>(blockBoundingRect(block).height());
-        while (blockNumber != textCursor().block().blockNumber() && block.isValid()) {
-            block = block.next();
-            top = bottom;
-            bottom = top + static_cast<int>(blockBoundingRect(block).height());
-            ++blockNumber;
-        }
-        if (block.isValid()) {
-            painter.setPen(PepColors::transparent);
-            painter.setBrush(colors->lineAreaHighlight);
-            painter.drawRect(-1, top, lineNumberArea->width(), fontMetrics().height());
-        }
-    }
-
     // Display the cycle numbers
     block = firstVisibleBlock();
     blockNumber = block.blockNumber();
@@ -384,17 +369,29 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     while (block.isValid() && top < event->rect().bottom()) {
         // If the selected block is on the screen, and it is within the repaint area
         if (block.isVisible() && bottom >= event->rect().top()) {
+            // Handle the line highlighting
+            // If the cursor is highlight a visible line, and the current block number is the target block number.
+            if(highlightCurLine && start.block().isVisible() && start.blockNumber() == block.blockNumber()) {
+                painter.setPen(PepColors::transparent);
+                painter.setBrush(colors->lineAreaHighlight);
+                // Querry the target block for how many lines it spans.
+                painter.drawRect(-1, top, lineNumberArea->width(), start.block().lineCount() * fontMetrics().height());
+            }
+            // If the current block is a valid μ-operation, and is an μ-op with a breakpoint
             if(blockToCycle.contains(blockNumber) && breakpoints.contains(blockToCycle[blockNumber])) {
                 painter.setPen(PepColors::transparent);
                 painter.setBrush(colors->combCircuitRed);
                 painter.setRenderHint(QPainter::Antialiasing, true);
+                // Draw a circular breakpoint that is scaled to the height of the text
                 painter.drawEllipse(QPoint(fontMetrics().height()/2, top+fontMetrics().height()/2),
-                                    fontMetrics().height()/2 -1, fontMetrics().height()/2 -1);
+                                    fontMetrics().height()/2 - 1, fontMetrics().height()/2 - 1);
                 painter.setRenderHint(QPainter::Antialiasing, antialias);
             }
+            // Determine the line number text, or the empty string otherwise
             QString number = !blockToCycle.contains(blockNumber) ? QString("") : QString::number(blockToCycle[blockNumber]);
             painter.setPen(colors->lineAreaText); // grey
             painter.setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+            // Render the line number
             painter.drawText(-1, top, lineNumberArea->width(), fontMetrics().height(), Qt::AlignRight | Qt::AlignVCenter, number);
         }
         block = block.next();
