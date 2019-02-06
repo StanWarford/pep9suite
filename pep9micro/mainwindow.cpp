@@ -337,7 +337,7 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
             else if(ui->asmListingTracePane->hasFocus() || ui->assemblerDebuggerTab->hasFocus()) {
                 if (ui->actionDebug_Single_Step_Assembler->isEnabled()) {
                     // single step
-                    on_actionDebug_Single_Step_Assembler_triggered();
+                    on_actionDebug_Step_Over_Assembler_triggered();
                     return true;
                 }
             }
@@ -975,7 +975,7 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionDebug_Continue->setEnabled(which&DebugButtons::CONTINUE);
     ui->actionDebug_Restart_Debugging->setEnabled(which&DebugButtons::RESTART);
     ui->actionDebug_Stop_Debugging->setEnabled(which&DebugButtons::STOP);
-    ui->actionDebug_Single_Step_Assembler->setEnabled(which&DebugButtons::SINGLE_STEP_ASM);
+    // ui->actionDebug_Single_Step_Assembler->setEnabled(which&DebugButtons::SINGLE_STEP_ASM);
     ui->actionDebug_Step_Over_Assembler->setEnabled(which&DebugButtons::STEP_OVER_ASM);
     ui->actionDebug_Step_Into_Assembler->setEnabled(which&DebugButtons::STEP_INTO_ASM);
     ui->actionDebug_Step_Out_Assembler->setEnabled(which&DebugButtons::STEP_OUT_ASM);
@@ -1404,12 +1404,8 @@ void MainWindow::on_actionBuild_Run_triggered()
 
 void MainWindow::handleDebugButtons()
 {
-    quint8 byte;
-    memDevice->getByte(controlSection->getCPURegWordStart(Enu::CPURegisters::PC), byte);
-    Enu::EMnemonic mnemon = Pep::decodeMnemonic[byte];
-    bool enable_into = (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
+    bool enable_into = controlSection->canStepInto();
     // Disable button stepping if waiting on IO
-
     bool waiting_io =
             // If the simulation is running
             debugState != DebugState::DISABLED
@@ -1435,13 +1431,13 @@ void MainWindow::handleDebugButtons()
         break;
     case DebugState::DEBUG_ISA:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE*(!waiting_io);
-        enabledButtons |= DebugButtons::SINGLE_STEP_ASM*(!waiting_io * 0) | DebugButtons::STEP_OUT_ASM*(!waiting_io);
+        enabledButtons |= /*DebugButtons::SINGLE_STEP_ASM*(!waiting_io * 0) |*/ DebugButtons::STEP_OUT_ASM*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_OVER_ASM*(!waiting_io) | DebugButtons::SINGLE_STEP_MICRO*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_INTO_ASM*(enable_into * !waiting_io);
         break;
     case DebugState::DEBUG_MICRO:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE*(!waiting_io);
-        enabledButtons |= DebugButtons::SINGLE_STEP_ASM*(!waiting_io * 0) | DebugButtons::STEP_OUT_ASM*(!waiting_io);
+        enabledButtons |= /*DebugButtons::SINGLE_STEP_ASM*(!waiting_io * 0) |*/ DebugButtons::STEP_OUT_ASM*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_OVER_ASM*(!waiting_io) | DebugButtons::SINGLE_STEP_MICRO*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_INTO_ASM*(enable_into * !waiting_io);
         break;
@@ -1541,51 +1537,19 @@ void MainWindow::on_actionDebug_Restart_Debugging_triggered()
     on_actionDebug_Start_Debugging_triggered();
 }
 
-void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
-{
-    debugState = DebugState::DEBUG_ISA;
-    quint8 byte;
-    memDevice->getByte(controlSection->getCPURegWordStart(Enu::CPURegisters::PC), byte);
-    Enu::EMnemonic mnemon = Pep::decodeMnemonic[byte];
-    bool isTrap = Pep::isTrapMap[mnemon];
-    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
-    if(isTrap && ui->actionSystem_Trace_Traps->isChecked()){ //If it is a trap instruction & we are tracing traps, step into the trap.
-        on_actionDebug_Step_Into_Assembler_triggered();
-    }
-    else if(isTrap) { //If we aren't tracing traps, step over the trap
-        on_actionDebug_Step_Over_Assembler_triggered();
-    }
-    else{ //Otherwise, execute a single ISA step
-        controlSection->onISAStep();
-        if (controlSection->hadErrorOnStep()) {
-            // simulation had issues.
-            QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
-            onSimulationFinished();
-        }
-    }
-    emit simulationUpdate();
-
-}
-
 void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
 {
     debugState = DebugState::DEBUG_ISA;
-    int callDepth = controlSection->getCallDepth();
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
     //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
     disconnectViewUpdate();
-    do{
-        controlSection->onISAStep();
-        if (controlSection->hadErrorOnStep()) {
-            // simulation had issues.
-            QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
-            onSimulationFinished();
-            break;
-        }
-    } while(callDepth < controlSection->getCallDepth()
-            && !controlSection->getExecutionFinished()
-            && !controlSection->stoppedForBreakpoint());
+    controlSection->stepOver();
     connectViewUpdate();
+    if (controlSection->hadErrorOnStep()) {
+        // simulation had issues.
+        QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
+        onSimulationFinished();
+    }
     emit simulationUpdate();
 }
 
@@ -1593,7 +1557,7 @@ void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
 {
     debugState = DebugState::DEBUG_ISA;
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
-    controlSection->onISAStep();
+    controlSection->stepInto();
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
         QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
@@ -1606,20 +1570,14 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
 {
     debugState = DebugState::DEBUG_ISA;
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
-    int callDepth = controlSection->getCallDepth();
     //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
     disconnectViewUpdate();
-    do{
-        controlSection->onISAStep();
-        if (controlSection->hadErrorOnStep()) {
-            // simulation had issues.
-            QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
-            onSimulationFinished();
-            break;
-        }
-    } while(callDepth <= controlSection->getCallDepth()
-            && !controlSection->getExecutionFinished()
-            && !controlSection->stoppedForBreakpoint());
+    controlSection->stepOut();
+    if (controlSection->hadErrorOnStep()) {
+        // simulation had issues.
+        QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
+        onSimulationFinished();
+    }
     connectViewUpdate();
     emit simulationUpdate();
 }

@@ -38,7 +38,10 @@ public:
     void onClock() override;
 
     // InterfaceISACPU interface
-    void onISAStep() override;
+    void stepOver() override;
+    bool canStepInto() const override;
+    void stepInto() override;
+    void stepOut() override;
 
 public slots:
     void onSimulationStarted() override;
@@ -48,6 +51,10 @@ public slots:
     void onCancelExecution() override;
     bool onRun() override;
     void onResetCPU() override;
+
+protected:
+    // InterfaceISACPU interface
+    void onISAStep() override;
 
 private:
     void breakpointHandler();

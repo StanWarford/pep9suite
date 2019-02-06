@@ -258,7 +258,6 @@
     <addaction name="actionUse_Unaligned_OS"/>
     <addaction name="actionUse_Aligned_OS"/>
     <addaction name="separator"/>
-    <addaction name="actionSystem_Trace_Traps"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1028,14 +1027,6 @@
    </property>
    <property name="visible">
     <bool>false</bool>
-   </property>
-  </action>
-  <action name="actionSystem_Trace_Traps">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Trace Traps</string>
    </property>
   </action>
   <action name="actionStatistics_Level_All">

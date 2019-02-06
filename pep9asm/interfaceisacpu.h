@@ -57,10 +57,21 @@ public:
     // Output breakpoint changes to the console.
     void setDebugBreakpoints(bool doDebug) noexcept;
 
-    // Execute the next ISA instruction.
-    virtual void onISAStep() = 0;
+
+    // Stores the call depth, and continues to execute ISA instructions
+    // until the new call depth equals the old call depth.
+    virtual void stepOver() = 0;
+    // Is the next instruction a call or a trap that can be stepped into?
+    virtual bool canStepInto() const = 0;
+    // Uncoditionally executes the next ISA instruction, including going into function calls and traps.
+    virtual void stepInto() = 0;
+    // Executes the next ISA instructions until the call depth is decreased by 1.
+    virtual void stepOut() = 0;
 protected:
-    virtual void updateAtInstructionEnd() = 0; // Update simulation state at the start of a assembly level instruction
+    // Execute a single ISA instruction.
+    virtual void onISAStep() = 0;
+    // Update simulation state at the start of a assembly level instruction
+    virtual void updateAtInstructionEnd() = 0;
     void calculateStackChangeStart(quint8 instr);
     void calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc, quint16 acc);
 

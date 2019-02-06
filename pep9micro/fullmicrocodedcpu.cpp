@@ -312,6 +312,41 @@ void FullMicrocodedCPU::onISAStep()
     if(executionFinished) emit simulationFinished();
 }
 
+void FullMicrocodedCPU::stepOver()
+{
+    int localCallDepth = getCallDepth();
+    do{
+        onISAStep();
+    } while(localCallDepth < getCallDepth()
+            && !getExecutionFinished()
+            && !stoppedForBreakpoint()
+            && !hadErrorOnStep());
+}
+
+bool FullMicrocodedCPU::canStepInto() const
+{
+    quint8 byte;
+    memory->getByte(getCPURegWordStart(Enu::CPURegisters::PC), byte);
+    Enu::EMnemonic mnemon = Pep::decodeMnemonic[byte];
+    return (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
+}
+
+void FullMicrocodedCPU::stepInto()
+{
+    onISAStep();
+}
+
+void FullMicrocodedCPU::stepOut()
+{
+    int localCallDepth = getCallDepth();
+    do{
+        onISAStep();
+    } while(localCallDepth <= getCallDepth()
+            && !getExecutionFinished()
+            && !stoppedForBreakpoint()
+            && !hadErrorOnStep());
+}
+
 void FullMicrocodedCPU::branchHandler()
 {
     const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
