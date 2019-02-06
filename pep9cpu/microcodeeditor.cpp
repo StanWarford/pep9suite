@@ -354,12 +354,12 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     QPainter painter(lineNumberArea);
     painter.fillRect(event->rect(), colors->lineAreaBackground); // light grey
     QTextBlock block;
-    int blockNumber, toHighlight, top, bottom;
-    toHighlight = block.blockNumber();
+    int blockNumber, top, bottom;
     // Highlight the current line containing the cursor
     if (highlightCurLine && textCursor().block().isVisible()) {
         block = firstVisibleBlock();
         blockNumber = block.blockNumber();
+        textCursor();
         top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
         bottom = top + static_cast<int>(blockBoundingRect(block).height());
         while (blockNumber != textCursor().block().blockNumber() && block.isValid()) {
@@ -382,6 +382,7 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     bottom = top + static_cast<int>(blockBoundingRect(block).height());
     bool antialias = painter.renderHints() & QPainter::Antialiasing;
     while (block.isValid() && top < event->rect().bottom()) {
+        // If the selected block is on the screen, and it is within the repaint area
         if (block.isVisible() && bottom >= event->rect().top()) {
             if(blockToCycle.contains(blockNumber) && breakpoints.contains(blockToCycle[blockNumber])) {
                 painter.setPen(PepColors::transparent);

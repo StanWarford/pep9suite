@@ -30,7 +30,7 @@ loop:    CPWX    depth,s
          ADDA    arr,sfx     
 ;Store to computer address mem[it] and store next value to mem[it]
          ADDX    4,i         
-         STWA    arr,sfx     
+         STWA    arr,sfx 
 ;Must load iterator again, can't use right shift, otherwise sign extension on shift causes problems.
          LDWX    it,s        
          ADDX    1,i         

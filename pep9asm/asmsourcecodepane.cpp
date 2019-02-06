@@ -86,12 +86,10 @@ bool AsmSourceCodePane::assemble()
     QString sourceCode = ui->textEdit->toPlainText();
     IsaAsm myAsm(memDevice, *programManager);
     // List of errors and warnings and the lines on which they occured
-    auto elist = QList<QPair<int, QString>>();
+    auto elist = QList<QPair<int, QString> >();
     bool success = myAsm.assembleUserProgram(sourceCode, currentProgram, elist);
     // Add all warnings and errors to source files
-    for (QPair<int,QString> pair : elist) {
-        appendMessageInSourceCodePaneAt(pair.first, pair.second);
-    }
+    appendMessagesInSourceCodePane(elist);
     // If assemble failed, don't perform any more work
     if(!success) {
         return false;
@@ -156,37 +154,68 @@ bool AsmSourceCodePane::assembleOS(const QString& sourceCode)
 
 void AsmSourceCodePane::removeErrorMessages()
 {
-    QTextCursor cursor(ui->textEdit->document()->find(";ERROR:"));
-    while (!cursor.isNull()) {
+    static const QString errorStr   = ";ERROR:";
+    static const QString warnStr    = ";WARNING:";
+
+    QTextCursor cursor(ui->textEdit->document());
+    // Return if no useful changes can be made to the document
+    if(cursor.isNull() ||
+            ((ui->textEdit->document()->find(";ERROR:").position() == -1)
+             && (ui->textEdit->document()->find(";WARNING:").position() == -1))) return;
+    cursor.movePosition(QTextCursor::Start,QTextCursor::MoveAnchor);
+    // Group the removing of all errors and warnings as a single edit action (can be undone with one undo).
+    // This group must not be empty, nor can the cursor be changed to point to a differnt object,
+    // otherwise the UI become an unusable mess
+    cursor.beginEditBlock();
+    int pos = 0;
+    // Remove errors
+    while (cursor.document()->find(errorStr, pos).position() != -1) {
+        // Calculate the next position instead of using find(), since we don't want to change our cursor.
+        pos = ui->textEdit->document()->find(errorStr).position();
+        cursor.setPosition(pos-errorStr.length(), QTextCursor::MoveAnchor);
         cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
         cursor.removeSelectedText();
-        cursor = ui->textEdit->document()->find(";ERROR:", cursor);
+
     }
-    cursor = ui->textEdit->document()->find(";WARNING:");
-    while (!cursor.isNull()) {
+    // Remove warnings
+    pos = 0;
+    while (cursor.document()->find(warnStr, pos).position() != -1) {
+        // Calculate the next position instead of using find(), since we don't want to change our cursor.
+        pos = ui->textEdit->document()->find(warnStr).position();
+        cursor.setPosition(pos-warnStr.length(), QTextCursor::MoveAnchor);
         cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
         cursor.removeSelectedText();
-        cursor = ui->textEdit->document()->find(";WARNING:", cursor);
+
     }
+
+    cursor.endEditBlock();
 }
 
-void AsmSourceCodePane::appendMessageInSourceCodePaneAt(int lineNumber, QString message)
+void AsmSourceCodePane::appendMessagesInSourceCodePane(QList<QPair<int, QString> > errList)
 {
     QTextCursor cursor(ui->textEdit->document());
-    cursor.setPosition(0);
-    for (int i = 0; i < lineNumber; i++) {
-        cursor.movePosition(QTextCursor::NextBlock);
+    // If there are no errors to append, return early.
+    // Otherwise an empty edit group would be created, which could cause issues
+    // with the UI.
+    if(errList.isEmpty()) return;
+    else cursor.beginEditBlock();
+    for (QPair<int,QString> pair : errList) {
+        cursor.setPosition(0);
+        for (int i = 0; i < pair.first; i++) {
+            cursor.movePosition(QTextCursor::NextBlock);
+        }
+        cursor.movePosition(QTextCursor::EndOfLine);
+        cursor.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, 1);
+        if (cursor.selectedText() == " ") {
+            cursor.setPosition(cursor.anchor());
+        }
+        else {
+            cursor.setPosition(cursor.anchor());
+            cursor.insertText(" ");
+        }
+        cursor.insertText(pair.second);
     }
-    cursor.movePosition(QTextCursor::EndOfLine);
-    cursor.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, 1);
-    if (cursor.selectedText() == " ") {
-        cursor.setPosition(cursor.anchor());
-    }
-    else {
-        cursor.setPosition(cursor.anchor());
-        cursor.insertText(" ");
-    }
-    cursor.insertText(message);
+    cursor.endEditBlock();
 }
 
 void AsmSourceCodePane::setSourceCodePaneText(QString string)

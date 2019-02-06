@@ -125,7 +125,7 @@ private:
         static const int RUN = 1<<0, DEBUG = 1<<1,
         INTERRUPT = 1<<2, CONTINUE = 1<<3, RESTART = 1<<4, STOP = 1<<5,
         SINGLE_STEP_MICRO = 1<<6, BUILD_MICRO = 1<<7,
-        STATS_LEVELS = 1<<8, OPEN_NEW = 1<<9;
+        STATS_LEVELS = 1<<8, OPEN_NEW = 1<<9, SWITCH_BUSES = 1<<10;
     };
 
     // Which debug buttons to enable, based on integer cracking of the above struct. It is not strongly typed with an enum, because all of the casting

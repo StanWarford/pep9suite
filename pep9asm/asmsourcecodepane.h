@@ -118,8 +118,9 @@ public:
     // Post: Searces for the string ";ERROR: " on each line and removes the end of the line.
     // Post: Searces for the string ";WARNING: " on each line and removes the end of the line.
 
-    void appendMessageInSourceCodePaneAt(int lineNumber, QString message);
-    // Post: Appends message to the end of line lineNumber in color color.
+    void appendMessagesInSourceCodePane(QList<QPair<int, QString> > errList);
+    // Post: For each <line #, message> pair, on the line => append error message.
+    // Post: Returns immediately if given an empty error list.
 
     void setSourceCodePaneText(QString string);
     // Post: Sets text in source code pane to string.

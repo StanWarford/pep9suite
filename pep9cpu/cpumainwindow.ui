@@ -680,6 +680,9 @@
    <property name="text">
     <string>One Byte Model</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
   </action>
   <action name="actionSystem_Two_Byte">
    <property name="checkable">
@@ -690,6 +693,9 @@
    </property>
    <property name="text">
     <string>Two Byte Model</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
    </property>
   </action>
   <action name="actionEdit_Remove_Error_Microcode">

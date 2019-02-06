@@ -517,27 +517,31 @@ void MainWindow::debugButtonEnableHelper(const int which)
 {
     // Crack the parameter using DebugButtons to properly enable and disable all buttons related to debugging and running.
     // Build Actions
-    ui->actionBuild_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
-    ui->actionEdit_Remove_Error_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
-    ui->actionEdit_Format_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
+    ui->actionBuild_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
+    ui->actionEdit_Remove_Error_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
+    ui->actionEdit_Format_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
 
     // Debug & Run Actions
-    ui->actionBuild_Run->setEnabled(which&DebugButtons::RUN);
-    ui->actionDebug_Start_Debugging->setEnabled(which&DebugButtons::DEBUG);
+    ui->actionBuild_Run->setEnabled(which & DebugButtons::RUN);
+    ui->actionDebug_Start_Debugging->setEnabled(which & DebugButtons::DEBUG);
     ui->actionDebug_Interupt_Execution->setEnabled(which&DebugButtons::INTERRUPT);
-    ui->actionDebug_Continue->setEnabled(which&DebugButtons::CONTINUE);
-    ui->actionDebug_Restart_Debugging->setEnabled(which&DebugButtons::RESTART);
-    ui->actionDebug_Stop_Debugging->setEnabled(which&DebugButtons::STOP);
-    ui->actionDebug_Single_Step_Microcode->setEnabled(which&DebugButtons::SINGLE_STEP_MICRO);
+    ui->actionDebug_Continue->setEnabled(which & DebugButtons::CONTINUE);
+    ui->actionDebug_Restart_Debugging->setEnabled(which & DebugButtons::RESTART);
+    ui->actionDebug_Stop_Debugging->setEnabled(which & DebugButtons::STOP);
+    ui->actionDebug_Single_Step_Microcode->setEnabled(which & DebugButtons::SINGLE_STEP_MICRO);
+
+    // System Actions
+    ui->actionSystem_One_Byte->setEnabled(which & DebugButtons::SWITCH_BUSES);
+    ui->actionSystem_Two_Byte->setEnabled(which & DebugButtons::SWITCH_BUSES);
 
     // Statistics Actions
-    ui->actionStatistics_Level_All->setEnabled(which&DebugButtons::STATS_LEVELS);
-    ui->actionStatistics_Level_Minimal->setEnabled(which&DebugButtons::STATS_LEVELS);
-    ui->actionStatistics_Level_None->setEnabled(which&DebugButtons::STATS_LEVELS);
+    ui->actionStatistics_Level_All->setEnabled(which & DebugButtons::STATS_LEVELS);
+    ui->actionStatistics_Level_Minimal->setEnabled(which & DebugButtons::STATS_LEVELS);
+    ui->actionStatistics_Level_None->setEnabled(which & DebugButtons::STATS_LEVELS);
 
     //File open & new actions
-    ui->actionFile_New_Microcode->setEnabled(which&DebugButtons::OPEN_NEW);
-    ui->actionFile_Open->setEnabled(which&DebugButtons::OPEN_NEW);
+    ui->actionFile_New_Microcode->setEnabled(which & DebugButtons::OPEN_NEW);
+    ui->actionFile_Open->setEnabled(which & DebugButtons::OPEN_NEW);
 }
 
 void MainWindow::highlightActiveLines(bool forceISA)
@@ -786,11 +790,10 @@ void MainWindow::handleDebugButtons()
     case DebugState::DISABLED:
         enabledButtons = DebugButtons::RUN| DebugButtons::DEBUG;
         enabledButtons |= DebugButtons::BUILD_MICRO | DebugButtons::STATS_LEVELS;
-        enabledButtons |= DebugButtons::OPEN_NEW;
+        enabledButtons |= DebugButtons::OPEN_NEW | DebugButtons::SWITCH_BUSES;
         break;
     case DebugState::RUN:
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;
-        break;
         break;
     case DebugState::DEBUG_MICRO:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE;
