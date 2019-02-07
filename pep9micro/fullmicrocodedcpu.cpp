@@ -252,16 +252,27 @@ void FullMicrocodedCPU::onMCStep()
     this->setSignalsFromMicrocode(prog);
     try {
         data->setSignalsFromMicrocode(prog);
-    } catch (std::exception &e) {
+    }
+    /*
+     * An invalid_argument execption will be thrown if data's memcpy would fail.
+     * By catching this exception, we convert a hard failure to a friendly error message
+     * for the user application. Any other exceptions should crash the program, because
+     * we do not expect other issues to arise from memcpy.
+     *
+     * Since exceptions are zero-cost during error-free execution, and failing to set microcode
+     * signals would be irreparable, the decisions to communicate failure through execptions
+     * was made as a perfomance decision.
+     */
+    catch (std::invalid_argument &) {
         return;
     }
+
     data->onStep();
     branchHandler();
     microCycleCounter++;
     //qDebug().nospace().noquote() << prog->getSourceCode();
 
     if(microprogramCounter == 0 || executionFinished) {
-        // Possibly
         quint16 progCounter = getCPURegWordStart(Enu::CPURegisters::PC);
         InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteCurrent(Enu::CPURegisters::IS),
                                                  this->getCPURegWordCurrent(Enu::CPURegisters::OS),
@@ -276,6 +287,8 @@ void FullMicrocodedCPU::onMCStep()
             qDebug().noquote().nospace() << memoizer->memoize();
         }*/
         data->getRegisterBank().flattenFile();
+        // If execution finished on this instruction, then restore original starting program counter,
+        // as the instruction at the current program counter will not be executed.
         if(executionFinished) data->getRegisterBank().writePCStart(progCounter);
 
     }

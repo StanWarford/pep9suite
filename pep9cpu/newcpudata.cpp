@@ -340,20 +340,17 @@ void NewCPUDataSection::onSetControlSignal(Enu::EControlSignals control, quint8 
 
 bool NewCPUDataSection::setSignalsFromMicrocode(const MicroCode *line)
 { 
-    // To start with, there are no
-    // For each control signal in the input line, set the appropriate control
-    /*for(int it = 0; it < controlSignals.length(); it++) {
-        controlSignals[it] = line->getControlSignal(static_cast<Enu::EControlSignals>(it));
-    }
-    // For each clock signal in the input microcode, set the appropriate clock
-    for(int it = 0;it < clockSignals.length(); it++) {
-        clockSignals[it] = line->getClockSignal(static_cast<Enu::EClockSignals>(it));
-    }*/
-    //To start with, there are no
-    //For each control signal in the input line, set the appropriate control
+    /*
+     * Verify that both arrays of control signals are the same length,
+     * so that memcpy is safe. Otherwise, raise an exception that must be dealt with
+     * informing the simulation that the CPU has an unrecoverable error.
+     *
+     * Memcpy was used instead of a for loop, as the original loop was profiled
+     * to be the most time consuming piece of the simulation. Memcpy yielded a ~30%
+     * increase in perfomance.
+     */
     if(controlSignals.length() == line->getControlSignals().length()) {
         // Memcpy is safe as long as both arrays match in size.
-        // If they don't, there are most likely bigger issues
         memcpy(controlSignals.data(),
                line->getControlSignals().data(),
                static_cast<std::size_t>(controlSignals.length()));
@@ -361,12 +358,13 @@ bool NewCPUDataSection::setSignalsFromMicrocode(const MicroCode *line)
     else {
         hadDataError = true;
         errorMessage = "Control signals did not match in length";
-        return false;
+        throw std::invalid_argument("Argument's # of control signals did not match internal \
+        number of control signals");
     }
 
+    // Same verification as described above, except for clock signals.
     if(clockSignals.length() == line->getClockSignals().length()) {
         // Memcpy is safe as long as both arrays match in size.
-        // If they don't, there are most likely bigger issues
         memcpy(clockSignals.data(),
                line->getClockSignals().data(),
                static_cast<std::size_t>(clockSignals.length()));
@@ -374,7 +372,8 @@ bool NewCPUDataSection::setSignalsFromMicrocode(const MicroCode *line)
     else {
         hadDataError = true;
         errorMessage = "Clock signals did not match in length";
-        return false;
+        throw std::invalid_argument("Argument's # of clock signals did not match internal \
+        number of clock signals");
     }
     return true;
 }

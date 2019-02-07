@@ -1,9 +1,12 @@
 #include "registerfile.h"
 
-RegisterFile::RegisterFile(): registersStart(QVector<quint8>(32, 0)), registersCurrent(QVector<quint8>(32, 0)),
-    statusBitsStart(0), statusBitsCurrent(0), irCache(0)
+RegisterFile::RegisterFile(): registersStart(),
+    registersCurrent(),
+    statusBitsStart(0),
+    statusBitsCurrent(0), irCache(0)
 {
-
+    registersStart.fill(0);
+    registersCurrent.fill(0);
 }
 
 quint8 RegisterFile::readStatusBitsStart() const
@@ -61,16 +64,9 @@ void RegisterFile::clearStatusBits()
    statusBitsCurrent = 0;
 }
 
-quint8 RegisterFile::convertRegister(Enu::CPURegisters reg) const
-{
-    // The CPU register enum is defined such that the integer value of
-    // each register in the enum is the location of the first byte of the reigster.
-    return static_cast<quint8>(reg);
-}
-
 quint16 RegisterFile::readRegisterWordCurrent(quint8 reg) const
 {
-    if(reg + 1< Enu::maxRegisterNumber) return static_cast<quint16>(registersCurrent[reg] << 8 | registersCurrent[reg + 1]);
+    if(reg + 1 <= Enu::maxRegisterNumber) return static_cast<quint16>(registersCurrent[reg] << 8 | registersCurrent[reg + 1]);
     else return 0;
 }
 
@@ -81,7 +77,7 @@ quint16 RegisterFile::readRegisterWordCurrent(Enu::CPURegisters reg) const
 
 quint16 RegisterFile::readRegisterWordStart(quint8 reg) const
 {
-    if(reg + 1< Enu::maxRegisterNumber) return static_cast<quint16>(registersStart[reg] << 8 | registersStart[reg + 1]);
+    if(reg + 1 <= Enu::maxRegisterNumber) return static_cast<quint16>(registersStart[reg] << 8 | registersStart[reg + 1]);
     else return 0;
 }
 
@@ -164,13 +160,14 @@ quint8 RegisterFile::getIRCache() const
 
 void RegisterFile::flattenFile()
 {
-    if(registersStart.length() != registersCurrent.length()) {
-        qErrnoWarning("Warning, register banks do not match in size");
-        return;
-    }
-    // Compilers might complain about this, but this can be optimized more easily to use SIMD
-    // or vector instructions, hopefully making the cost of copying registers neglibible
-    memcpy(registersStart.data(), registersCurrent.data(), static_cast<std::size_t>(registersStart.length()));
+    /*
+     * Compilers might complain about this, but this can be optimized more easily to use SIMD
+     * or vector instructions, hopefully making the cost of copying registers neglibible.
+     *
+     * Since the arrays are declared to be the same size using std::array, no need
+     * to verify that both arrays are indeed the same length at runtime.
+     */
+    memcpy(registersStart.data(), registersCurrent.data(), static_cast<std::size_t>(registersStart.size()));
     statusBitsStart = statusBitsCurrent;
 }
 
