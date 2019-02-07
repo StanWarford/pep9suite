@@ -1947,26 +1947,34 @@ void MainWindow::helpCopyToSourceClicked()
                 }
                 break;
             case Enu::EPane::EObject:
-            if(maybeSave(Enu::EPane::EObject)) {
-                ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-                ui->AsmObjectCodeWidgetPane->setFocus();
-                ui->AsmObjectCodeWidgetPane->setCurrentFile("");
-                ui->AsmObjectCodeWidgetPane->setObjectCodePaneText(code);
-                ui->AsmObjectCodeWidgetPane->setModifiedFalse();
-                statusBar()->showMessage("Copied to assembler object code", 4000);
+                if(maybeSave(Enu::EPane::EObject)) {
+                    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
+                    ui->AsmObjectCodeWidgetPane->setFocus();
+                    ui->AsmObjectCodeWidgetPane->setCurrentFile("");
+                    ui->AsmObjectCodeWidgetPane->setObjectCodePaneText(code);
+                    ui->AsmObjectCodeWidgetPane->setModifiedFalse();
+                    statusBar()->showMessage("Copied to assembler object code", 4000);
                 }
                 break;
-            }
-            switch(inputPane)
-            {
-            case Enu::EPane::ETerminal:
-                qDebug() << input;
-                break;
-            }
         }
-        //statusBar()->showMessage("Copied to microcode", 4000);
-        //ui->microcodeWidget->microAssemble();
-        //ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
+    }
+
+    switch(inputPane)
+    {
+    case Enu::EPane::ETerminal:
+        // It doesn't make sense to put input text into a terminal, so ignore input text.
+        ui->ioWidget->setActivePane(Enu::EPane::ETerminal);
+        break;
+    case Enu::EPane::EBatchIO:
+        ui->ioWidget->setBatchInput(input);
+        ui->ioWidget->setActivePane(Enu::EPane::EBatchIO);
+        break;
+    default:
+        break;
+    }
+    //statusBar()->showMessage("Copied to microcode", 4000);
+    //ui->microcodeWidget->microAssemble();
+    //ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
 }
 
 void MainWindow::onOutputReceived(quint16 address, quint8 value)

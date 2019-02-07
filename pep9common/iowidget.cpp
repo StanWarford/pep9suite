@@ -23,6 +23,21 @@ IOWidget::~IOWidget()
     delete ui;
 }
 
+void IOWidget::setBatchInput(QString text)
+{
+    ui->batchInput->setText(text);
+}
+
+void IOWidget::setActivePane(Enu::EPane pane)
+{
+    if(pane == Enu::EPane::EBatchIO) {
+        ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->batchIOTab));
+    }
+    else if(pane == Enu::EPane::ETerminal) {
+        ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->terminalIOTab));
+    }
+}
+
 void IOWidget::cancelWaiting()
 {
     switch(ui->tabWidget->currentIndex())

@@ -2,7 +2,7 @@
 #define IOWIDGET_H
 
 #include <QWidget>
-
+#include "enu.h"
 namespace Ui {
 class IOWidget;
 }
@@ -15,6 +15,8 @@ public:
     explicit IOWidget(QWidget *parent = nullptr);
     ~IOWidget();
 
+    void setBatchInput(QString text);
+    void setActivePane(Enu::EPane pane);
     void cancelWaiting();
     // Address of character input / output devices MUST be set, otherwise IO will not work,
     // and the program will probably crash.
@@ -28,8 +30,6 @@ public:
 
 signals:
     void dataEntered(const QString &data);
-
-signals:
     void undoAvailable(bool b);
     void redoAvailable(bool b);
     void inputReady(quint16 addr, quint8 val);
