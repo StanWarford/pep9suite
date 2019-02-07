@@ -969,6 +969,12 @@ void CpuPane::onSimulationUpdate()
 void CpuPane::onDarkModeChanged(bool darkMode)
 {
     cpuPaneItems->onDarkModeChanged(darkMode);
+    if(darkMode) {
+        ui->graphicsView->setBackgroundBrush(QBrush(PepColors::darkMode.backgroundFill));
+    } else {
+        ui->graphicsView->setBackgroundBrush(QBrush(PepColors::lightMode.backgroundFill));
+    }
+
     ui->graphicsView->invalidateScene();
 }
 
