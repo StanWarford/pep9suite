@@ -975,7 +975,6 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionDebug_Continue->setEnabled(which&DebugButtons::CONTINUE);
     ui->actionDebug_Restart_Debugging->setEnabled(which&DebugButtons::RESTART);
     ui->actionDebug_Stop_Debugging->setEnabled(which&DebugButtons::STOP);
-    // ui->actionDebug_Single_Step_Assembler->setEnabled(which&DebugButtons::SINGLE_STEP_ASM);
     ui->actionDebug_Step_Over_Assembler->setEnabled(which&DebugButtons::STEP_OVER_ASM);
     ui->actionDebug_Step_Into_Assembler->setEnabled(which&DebugButtons::STEP_INTO_ASM);
     ui->actionDebug_Step_Out_Assembler->setEnabled(which&DebugButtons::STEP_OUT_ASM);
@@ -1431,7 +1430,7 @@ void MainWindow::handleDebugButtons()
         break;
     case DebugState::DEBUG_ISA:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE*(!waiting_io);
-        enabledButtons |= /*DebugButtons::SINGLE_STEP_ASM*(!waiting_io * 0) |*/ DebugButtons::STEP_OUT_ASM*(!waiting_io);
+        enabledButtons |= DebugButtons::STEP_OUT_ASM*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_OVER_ASM*(!waiting_io) | DebugButtons::SINGLE_STEP_MICRO*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_INTO_ASM*(enable_into * !waiting_io);
         break;
@@ -1591,15 +1590,17 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
             memDevice->clearBytesWritten();
     }
     controlSection->onMCStep();
+    // Raise warning boxes
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
         QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
-    emit simulationUpdate();
-    if(controlSection->getExecutionFinished()) {
+    else if(controlSection->getExecutionFinished()) {
         onSimulationFinished();
     }
+    emit simulationUpdate();
+
 }
 
 void MainWindow::onMicroBreakpointHit()

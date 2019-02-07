@@ -194,16 +194,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->memoryWidget->setMinimumWidth(maxSize);
     ui->memoryWidget->setMaximumWidth(maxSize);
 
-
-    //Initialize Microcode panes
-    QFile file("://help/pep9micro.pepcpu");
-    if(file.open(QFile::ReadOnly | QFile::Text)){
-        QTextStream in(&file);
-        ui->microcodeWidget->setMicrocode(in.readAll());
-        ui->microcodeWidget->setModifiedFalse();
-        ui->microcodeWidget->setCurrentFile(QFileInfo(file).filePath());
-    }
-
     //Initialize debug menu
     handleDebugButtons();
 
@@ -396,7 +386,7 @@ void MainWindow::loadFile(const QString &fileName)
 {
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Pep/9 Micro"), tr("Cannot read file %1:\n%2.")
+        QMessageBox::warning(this, tr("Pep/9 CPU"), tr("Cannot read file %1:\n%2.")
                              .arg(fileName).arg(file.errorString()));
         return;
     }
@@ -544,18 +534,13 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionFile_Open->setEnabled(which & DebugButtons::OPEN_NEW);
 }
 
-void MainWindow::highlightActiveLines(bool forceISA)
+void MainWindow::highlightActiveLines()
 {
-    //always highlight the current microinstruction
+    // always highlight the current microinstruction
     ui->microcodeWidget->updateSimulationView();
     ui->microobjectWidget->highlightCurrentInstruction();
     ui->memoryWidget->clearHighlight();
     ui->memoryWidget->highlight();
-}
-
-void MainWindow::highlightActiveLines()
-{
-    return highlightActiveLines(false);
 }
 
 bool MainWindow::initializeSimulation()
@@ -766,12 +751,17 @@ void MainWindow::on_actionBuild_Run_triggered()
         memDevice->clearBytesWritten();
         controlSection->onSimulationStarted();
         controlSection->onRun();
+        // Make sure to highlight modified memory addresses to make it clear to the user
+        // what has been modified over the course of execution.
+        highlightActiveLines();
         connectViewUpdate();
 
     }
     else {
+        // If the simulation can't be initialized, revert to default state.
         debugState = DebugState::DISABLED;
-    }
+   }
+   // If somehow the simulation is not finished, then make sure to terminate it.
    if(debugState != DebugState::DISABLED) onSimulationFinished();
 }
 
@@ -825,7 +815,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_triggered()
 void MainWindow::on_actionDebug_Stop_Debugging_triggered()
 {
     connectViewUpdate();
-    highlightActiveLines(true);
+    highlightActiveLines();
     debugState = DebugState::DISABLED;
     // Handle case of execution being canceled during IO
     ui->microcodeWidget->clearSimulationView();
@@ -858,7 +848,7 @@ void MainWindow::on_actionDebug_Continue_triggered()
     if(controlSection->stoppedForBreakpoint()) {
         emit simulationUpdate();
         QApplication::processEvents();
-        highlightActiveLines(true);
+        highlightActiveLines();
     }
     else onSimulationFinished();
 }
@@ -873,15 +863,16 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
 {
     debugState = DebugState::DEBUG_MICRO;
     controlSection->onMCStep();
+    // Only allow onSimulationFinished() to be triggered once, or too many pop-ups might be created.
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
-        QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
+        QMessageBox::warning(nullptr, "Pep/9 CPU", controlSection->getErrorMessage());
+        onSimulationFinished();
+    }
+    else if(controlSection->getExecutionFinished()) {
         onSimulationFinished();
     }
     emit simulationUpdate();
-    if(controlSection->getExecutionFinished()) {
-        onSimulationFinished();
-    }
 }
 
 void MainWindow::onMicroBreakpointHit()
@@ -946,7 +937,7 @@ void MainWindow::onSimulationFinished()
          if (x->hasUnitPost()&&!((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString)) {
              ((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString);
              ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
-             QMessageBox::warning(this, "Pep9CPU", "Failed unit test");
+             QMessageBox::warning(this, "Pep/9 CPU", "Failed unit test");
              return;
          }
     }
