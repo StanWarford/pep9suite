@@ -335,7 +335,7 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
                 return true;
             }
             else if(ui->asmListingTracePane->hasFocus() || ui->assemblerDebuggerTab->hasFocus()) {
-                if (ui->actionDebug_Single_Step_Assembler->isEnabled()) {
+                if (ui->actionDebug_Step_Over_Assembler->isEnabled()) {
                     // single step
                     on_actionDebug_Step_Over_Assembler_triggered();
                     return true;

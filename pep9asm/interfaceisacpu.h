@@ -30,6 +30,7 @@ class AsmProgramManager;
 enum class stackAction {
     locals, params, call
 };
+
 /*
  * InterfaceISACPU describes the operations that may be done on a ISA level CPU.
  * When inherited in combination with the data desciption of a CPU (ACPUModel), a
@@ -37,7 +38,6 @@ enum class stackAction {
  *
  * It also contains convenience methods for handling assembler breakpoints.
  */
-
 class InterfaceISACPU
 {
 public:

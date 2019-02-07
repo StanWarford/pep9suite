@@ -2,10 +2,15 @@
 #include "microcode.h"
 #include "microcodeprogram.h"
 #include "amemorydevice.h"
-
+#include "pep.h"
+#include <stdexcept>
+#include <exception>
+#include <string>
+#include <registerfile.h>
 NewCPUDataSection::NewCPUDataSection(Enu::CPUType type, QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
     cpuFeatures(type), mainBusState(Enu::None),
-    registerBank(32), memoryRegisters(6), controlSignals(20), clockSignals(10), emitEvents(true), hadDataError(false), errorMessage(""),
+    registerBank(QSharedPointer<RegisterFile>::create()), memoryRegisters(6), controlSignals(Pep::numControlSignals()),
+    clockSignals(Pep::numClockSignals()), emitEvents(true), hadDataError(false), errorMessage(""),
     isALUCacheValid(false), ALUHasOutputCache(false), ALUOutputCache(0), ALUStatusBitCache(0)
 {
     presetStaticRegisters();
@@ -53,12 +58,12 @@ bool NewCPUDataSection::calculateCSMuxOutput(bool &result) const
 {
     //CSMux either outputs C when CS is 0
     if(controlSignals[Enu::CSMux]==0) {
-        result = NZVCSbits & Enu::CMask;
+        result = registerBank->readStatusBitsCurrent() & Enu::CMask;
         return true;
     }
     //Or outputs S when CS is 1
     else if(controlSignals[Enu::CSMux] == 1)  {
-        result = NZVCSbits & Enu::SMask;
+        result = registerBank->readStatusBitsCurrent() & Enu::SMask;
         return true;
     }
     //Otherwise it does not have valid output
@@ -188,37 +193,34 @@ Enu::CPUType NewCPUDataSection::getCPUType() const
     return cpuFeatures;
 }
 
+RegisterFile &NewCPUDataSection::getRegisterBank()
+{
+    return *registerBank.get();
+}
+
+const RegisterFile &NewCPUDataSection::getRegisterBank() const
+{
+    return *registerBank.get();
+}
+
 quint8 NewCPUDataSection::getRegisterBankByte(quint8 registerNumber) const
 {
-    quint8 rval;
-    if(registerNumber>Enu::maxRegisterNumber) return 0;
-    else rval = registerBank[registerNumber];
-    return rval;
-
+    return registerBank->readRegisterByteCurrent(registerNumber);
 }
 
 quint16 NewCPUDataSection::getRegisterBankWord(quint8 registerNumber) const
 {
-    quint16 returnValue;
-    if(registerNumber + 1 > Enu::maxRegisterNumber) returnValue = 0;
-    else {
-        returnValue = static_cast<quint16>(quint16{registerBank[registerNumber]} << 8);
-        returnValue |= registerBank[registerNumber + 1];
-    }
-    return returnValue;
-
+    return registerBank->readRegisterWordCurrent(registerNumber);
 }
 
 quint8 NewCPUDataSection::getRegisterBankByte(Enu::CPURegisters registerNumber) const
 {
-    // Call the overloaded version taking a quint8
-    return getRegisterBankByte(static_cast<quint8>(registerNumber));
+    return registerBank->readRegisterByteCurrent(registerNumber);
 }
 
 quint16 NewCPUDataSection::getRegisterBankWord(Enu::CPURegisters registerNumber) const
 {
-    // Call the overloaded version taking a quint8
-    return getRegisterBankWord(static_cast<quint8>(registerNumber));
+    return registerBank->readRegisterWordCurrent(registerNumber);
 }
 
 quint8 NewCPUDataSection::getMemoryRegister(Enu::EMemoryRegisters registerNumber) const
@@ -244,7 +246,7 @@ bool NewCPUDataSection::valueOnCBus(quint8 &result) const
 {
     if(controlSignals[Enu::CMux] == 0) {
         // If CMux is 0, then the NZVC bits (minus S) are directly routed to result
-        result = (NZVCSbits & (~Enu::SMask));
+        result = (registerBank->readStatusBitsCurrent() & (~Enu::SMask));
         return true;
     }
     else if(controlSignals[Enu::CMux] == 1) {
@@ -262,6 +264,7 @@ Enu::MainBusState NewCPUDataSection::getMainBusState() const
 
 bool NewCPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
 {
+    quint8 NZVCSbits = registerBank->readStatusBitsCurrent();
     switch(statusBit)
     {
     // Mask out bit of interest, then convert to bool
@@ -284,34 +287,10 @@ bool NewCPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
 void NewCPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
 {
     bool oldVal = false;
-    int mask = 0;
-    switch(statusBit)
-    {
-    case Enu::STATUS_N:
-        mask = Enu::NMask;
-        break;
-    case Enu::STATUS_Z:
-        mask = Enu::ZMask;
-        break;
-    case Enu::STATUS_V:
-        mask = Enu::VMask;
-        break;
-    case Enu::STATUS_C:
-        mask = Enu::CMask;
-        break;
-    case Enu::STATUS_S:
-        mask = Enu::SMask;
-        break;
-    default:
-        // Should never occur, but might happen if a bad status bit is passed
-        return;
-    }
 
     // Mask out the original value, then or it with the properly shifted bit
-    oldVal = NZVCSbits&mask;
-    // Mask out the target bit, then or the new value in to the target position.
-    // Explicitly narrow status bit calculation.
-    NZVCSbits = static_cast<quint8>((NZVCSbits & ~mask) | ((val ? 1 : 0) * mask));
+    oldVal = registerBank->readStatusBitCurrent(statusBit);
+    registerBank->writeStatusBit(statusBit, val);
     if(emitEvents) {
         if(oldVal != val) emit statusBitChanged(statusBit, val);
     }
@@ -320,8 +299,8 @@ void NewCPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
 void NewCPUDataSection::onSetRegisterByte(quint8 reg, quint8 val)
 {
     if(reg > 21) return; // Don't allow static registers to be written to
-    quint8 oldVal = registerBank[reg];
-    registerBank[reg] = val;
+    quint8 oldVal = getRegisterBankByte(reg);
+    registerBank->writeRegisterByte(reg, val);
     if(emitEvents) {
         if(oldVal != val) emit registerChanged(reg, oldVal, val);
     }
@@ -330,10 +309,10 @@ void NewCPUDataSection::onSetRegisterByte(quint8 reg, quint8 val)
 void NewCPUDataSection::onSetRegisterWord(quint8 reg, quint16 val)
 {
    if(reg + 1 >21) return; // Don't allow static registers to be written to
-   quint8 oldHigh = registerBank[reg], oldLow = registerBank[reg+1];
+   quint8 oldHigh = getRegisterBankByte(reg), oldLow = getRegisterBankByte(reg+1);
    quint8 newHigh = val / 256, newLow = val & quint8{255};
-   registerBank[reg] = newHigh;
-   registerBank[reg + 1] = newLow;
+   registerBank->writeRegisterByte(reg, newHigh);
+   registerBank->writeRegisterByte(reg + 1, newLow);
    if(emitEvents) {
        if(oldHigh != val) emit registerChanged(reg, oldHigh, newHigh);
        if(oldLow != val) emit registerChanged(reg, oldLow, newLow);
@@ -361,14 +340,41 @@ void NewCPUDataSection::onSetControlSignal(Enu::EControlSignals control, quint8 
 
 bool NewCPUDataSection::setSignalsFromMicrocode(const MicroCode *line)
 { 
-    //To start with, there are no
-    //For each control signal in the input line, set the appropriate control
-    for(int it = 0; it < controlSignals.length(); it++) {
+    // To start with, there are no
+    // For each control signal in the input line, set the appropriate control
+    /*for(int it = 0; it < controlSignals.length(); it++) {
         controlSignals[it] = line->getControlSignal(static_cast<Enu::EControlSignals>(it));
     }
-    //For each clock signal in the input microcode, set the appropriate clock
+    // For each clock signal in the input microcode, set the appropriate clock
     for(int it = 0;it < clockSignals.length(); it++) {
         clockSignals[it] = line->getClockSignal(static_cast<Enu::EClockSignals>(it));
+    }*/
+    //To start with, there are no
+    //For each control signal in the input line, set the appropriate control
+    if(controlSignals.length() == line->getControlSignals().length()) {
+        // Memcpy is safe as long as both arrays match in size.
+        // If they don't, there are most likely bigger issues
+        memcpy(controlSignals.data(),
+               line->getControlSignals().data(),
+               static_cast<std::size_t>(controlSignals.length()));
+    }
+    else {
+        hadDataError = true;
+        errorMessage = "Control signals did not match in length";
+        return false;
+    }
+
+    if(clockSignals.length() == line->getClockSignals().length()) {
+        // Memcpy is safe as long as both arrays match in size.
+        // If they don't, there are most likely bigger issues
+        memcpy(clockSignals.data(),
+               line->getClockSignals().data(),
+               static_cast<std::size_t>(clockSignals.length()));
+    }
+    else {
+        hadDataError = true;
+        errorMessage = "Clock signals did not match in length";
+        return false;
     }
     return true;
 }
@@ -745,16 +751,16 @@ void NewCPUDataSection::stepTwoByte() noexcept
 void NewCPUDataSection::presetStaticRegisters() noexcept
 {
     // Pre-assign static registers according to CPU diagram
-    registerBank[22] = 0x00;
-    registerBank[23] = 0x01;
-    registerBank[24] = 0x02;
-    registerBank[25] = 0x03;
-    registerBank[26] = 0x04;
-    registerBank[27] = 0x08;
-    registerBank[28] = 0xF0;
-    registerBank[29] = 0xF6;
-    registerBank[30] = 0xFE;
-    registerBank[31] = 0xFF;
+    registerBank->writeRegisterByte(22, 0x00);
+    registerBank->writeRegisterByte(23, 0x01);
+    registerBank->writeRegisterByte(24, 0x02);
+    registerBank->writeRegisterByte(25, 0x03);
+    registerBank->writeRegisterByte(26, 0x04);
+    registerBank->writeRegisterByte(27, 0x08);
+    registerBank->writeRegisterByte(28, 0xF0);
+    registerBank->writeRegisterByte(29, 0xF6);
+    registerBank->writeRegisterByte(30, 0xFE);
+    registerBank->writeRegisterByte(31, 0xFF);
 }
 
 void NewCPUDataSection::clearControlSignals() noexcept
@@ -775,13 +781,12 @@ void NewCPUDataSection::clearClockSignals() noexcept
 
 void NewCPUDataSection::clearRegisters() noexcept
 {
-    //Clear all registers in register bank, then restore the static values
-    for(int it = 0; it < registerBank.length(); it++) {
-        registerBank[it] = 0;
-    }
+    // Clear all registers in register bank, then restore the static values
+    registerBank->clearRegisters();
+    registerBank->clearStatusBits();
     presetStaticRegisters();
 
-     //Clear all values from memory registers
+     // Clear all values from memory registers
     for(int it = 0; it < memoryRegisters.length(); it++) {
         memoryRegisters[it] = 0;
     }
@@ -817,7 +822,6 @@ void NewCPUDataSection::onClearCPU() noexcept
 {
     //Reset evey value associated with the CPU
     mainBusState = Enu::None;
-    NZVCSbits = 0;
     clearErrors();
     clearRegisters();
     clearClockSignals();

@@ -9,6 +9,7 @@ class PartialMicrocodedCPU : public ACPUModel, public InterfaceMCCPU
 {
     Q_OBJECT
     friend class CPUMemoizer;
+    friend class PartialMicrocodedMemoizer;
 public:
     PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~PartialMicrocodedCPU() override;

@@ -303,7 +303,6 @@
     <addaction name="actionDebug_Restart_Debugging"/>
     <addaction name="actionDebug_Stop_Debugging"/>
     <addaction name="separator"/>
-    <addaction name="actionDebug_Single_Step_Assembler"/>
     <addaction name="actionDebug_Step_Over_Assembler"/>
     <addaction name="actionDebug_Step_Into_Assembler"/>
     <addaction name="actionDebug_Step_Out_Assembler"/>
@@ -391,7 +390,6 @@
    </attribute>
    <addaction name="actionDebug_Continue"/>
    <addaction name="actionDebug_Stop_Debugging"/>
-   <addaction name="actionDebug_Single_Step_Assembler"/>
    <addaction name="actionDebug_Step_Over_Assembler"/>
    <addaction name="actionDebug_Step_Into_Assembler"/>
    <addaction name="actionDebug_Step_Out_Assembler"/>
@@ -1012,21 +1010,6 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
-   </property>
-  </action>
-  <action name="actionDebug_Single_Step_Assembler">
-   <property name="icon">
-    <iconset resource="../pep9common/pep9common-resources.qrc">
-     <normaloff>:/images/debug_single_step_asm.png</normaloff>:/images/debug_single_step_asm.png</iconset>
-   </property>
-   <property name="text">
-    <string>Single Step - Assembler</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Return</string>
-   </property>
-   <property name="visible">
-    <bool>false</bool>
    </property>
   </action>
   <action name="actionStatistics_Level_All">

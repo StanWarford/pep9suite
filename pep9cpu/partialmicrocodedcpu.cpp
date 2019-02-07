@@ -10,6 +10,7 @@
 #include "newcpudata.h"
 #include "symbolentry.h"
 #include "partialmicrocodedmemoizer.h"
+#include "registerfile.h"
 PartialMicrocodedCPU::PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
     InterfaceMCCPU(type)
 {
@@ -32,45 +33,37 @@ QSharedPointer<NewCPUDataSection> PartialMicrocodedCPU::getDataSection()
 
 bool PartialMicrocodedCPU::getStatusBitCurrent(Enu::EStatusBit bit) const
 {
-    return data->getStatusBit(bit);
+    return data->getRegisterBank().readStatusBitCurrent(bit);
 }
 
 bool PartialMicrocodedCPU::getStatusBitStart(Enu::EStatusBit bit) const
 {
-    if (microprogramCounter == 0) {
-        return getStatusBitCurrent(bit);
-    }
-    else return memoizer->getStatusBitStart(bit);
+    return data->getRegisterBank().readStatusBitStart(bit);
 }
 
 quint8 PartialMicrocodedCPU::getCPURegByteCurrent(Enu::CPURegisters reg) const
 {
-    return data->getRegisterBankByte(reg);
+    return data->getRegisterBank().readRegisterByteCurrent(reg);
 }
 
 quint16 PartialMicrocodedCPU::getCPURegWordCurrent(Enu::CPURegisters reg) const
 {
-    return data->getRegisterBankWord(reg);
+    return data->getRegisterBank().readRegisterWordCurrent(reg);
 }
 
 quint8 PartialMicrocodedCPU::getCPURegByteStart(Enu::CPURegisters reg) const
 {
-    if (microprogramCounter == 0) {
-        return getCPURegByteCurrent(reg);
-    }
-    else return memoizer->getRegisterByteStart(reg);
+    return data->getRegisterBank().readRegisterByteStart(reg);
 }
 
 quint16 PartialMicrocodedCPU::getCPURegWordStart(Enu::CPURegisters reg) const
 {
-    if (microprogramCounter == 0) {
-        return getCPURegWordCurrent(reg);
-    }
-    else return memoizer->getRegisterWordStart(reg);
+    return data->getRegisterBank().readRegisterWordStart(reg);
 }
 
 void PartialMicrocodedCPU::initCPU()
 {
+#pragma message ("Should there be any init done here?")
 }
 
 bool PartialMicrocodedCPU::stoppedForBreakpoint() const noexcept
@@ -232,9 +225,11 @@ void PartialMicrocodedCPU::onMCStep()
     if(microprogramCounter == 0 || executionFinished) {
         memoizer->storeStateInstrEnd();
         emit asmInstructionFinished();
-        if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
+        /*Don't memoize state, since Pep9CPU CPU doesn't do full ISA instructions.
+         * if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
             qDebug().noquote().nospace() << memoizer->memoize();
-        }
+        }*/
+        data->getRegisterBank().flattenFile();
 
     }
     // Upon entering an instruction that is going to trap

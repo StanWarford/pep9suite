@@ -2,6 +2,8 @@
 #include "partialmicrocodedcpu.h"
 #include "pep.h"
 #include "amemorydevice.h"
+#include "newcpudata.h"
+#include "registerfile.h"
 #include <assert.h>
 #include <QString>
 #include <QtCore>
@@ -15,7 +17,7 @@ static quint8 inst_size=6;
 static quint8 oper_addr_size=12;
 
 PartialMicrocodedMemoizer::PartialMicrocodedMemoizer(PartialMicrocodedCPU& item): cpu(item),
-    registers(CPUState()), level(Enu::DebugLevels::MINIMAL)
+    level(Enu::DebugLevels::MINIMAL)
 {
 }
 
@@ -26,7 +28,6 @@ Enu::DebugLevels PartialMicrocodedMemoizer::getDebugLevel() const
 
 void PartialMicrocodedMemoizer::clear()
 {
-    registers = CPUState();
 }
 
 void PartialMicrocodedMemoizer::storeStateInstrEnd()
@@ -37,16 +38,6 @@ void PartialMicrocodedMemoizer::storeStateInstrEnd()
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::MINIMAL:
-        registers.regState.reg_A = cpu.getCPURegWordCurrent(Enu::CPURegisters::A);
-        registers.regState.reg_X = cpu.getCPURegWordCurrent(Enu::CPURegisters::X);
-        registers.regState.reg_SP = cpu.getCPURegWordCurrent(Enu::CPURegisters::SP);
-        registers.regState.reg_PC_end = cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
-        registers.regState.bits_NZVCS =
-                cpu.getStatusBitCurrent(Enu::STATUS_N) * Enu::NMask |
-                cpu.getStatusBitCurrent(Enu::STATUS_Z) * Enu::ZMask |
-                cpu.getStatusBitCurrent(Enu::STATUS_V) * Enu::VMask |
-                cpu.getStatusBitCurrent(Enu::STATUS_C) * Enu::CMask |
-                cpu.getStatusBitCurrent(Enu::STATUS_S) * Enu::SMask;
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::NONE:
@@ -66,21 +57,25 @@ void PartialMicrocodedMemoizer::storeStateInstrStart()
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::NONE:
-        registers.regState.reg_PC_start = cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
-        registers.regState.reg_IS_start = cpu.getCPURegByteCurrent(Enu::CPURegisters::IS);
         break;
     }
 }
 
 QString PartialMicrocodedMemoizer::memoize()
-{   QString build, AX, NZVC;
+{
+    QString build, AX, NZVC;
+    const RegisterFile& file = cpu.data->getRegisterBank();
     switch(level){
     case Enu::DebugLevels::ALL:
         [[fallthrough]];
     case Enu::DebugLevels::MINIMAL:
-        AX = QString(" A=%1, X=%2,").arg(formatNum(registers.regState.reg_A),formatNum(registers.regState.reg_X));
-        NZVC = QString(" NZVC=") % QString("%1").arg(QString::number(registers.regState.bits_NZVCS & ~Enu::SMask,2), 4, '0');
-        build == "  " + AX;
+        AX = QString(" A=%1, X=%2, SP=%3, ")
+
+                .arg(formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::A)),
+                     formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::X)),
+                     formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::SP)));
+        NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(file.readStatusBitsCurrent(), 2), 5, '0');
+        build = AX;
         build += NZVC;
     case Enu::DebugLevels::NONE:
         break;
@@ -98,28 +93,6 @@ QString PartialMicrocodedMemoizer::finalStatistics()
 void PartialMicrocodedMemoizer::setDebugLevel(Enu::DebugLevels level)
 {
     this->level = level;
-}
-
-quint8 PartialMicrocodedMemoizer::getRegisterByteStart(Enu::CPURegisters reg) const
-{
-    if(reg != Enu::CPURegisters::IS) throw -1; // Attempted to access register that was not cached
-    else return registers.regState.reg_IS_start;
-}
-
-quint16 PartialMicrocodedMemoizer::getRegisterWordStart(Enu::CPURegisters reg) const
-{
-    if (cpu.getMicrocodeLineNumber() == 0){
-        if(reg != Enu::CPURegisters::PC) throw std::runtime_error("Register not cached"); // Attempted to access register that was not cached
-        else return cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
-    }
-    if(reg != Enu::CPURegisters::PC) assert(false); // Attempted to access register that was not cached
-    else return registers.regState.reg_PC_start;
-    throw -1;
-}
-
-bool PartialMicrocodedMemoizer::getStatusBitStart(Enu::EStatusBit) const
-{
-    throw std::runtime_error("Method not implemented");
 }
 
 //Properly formats a number as a 4 char hex

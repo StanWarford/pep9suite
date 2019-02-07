@@ -10,6 +10,7 @@ class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public Interf
 {
     Q_OBJECT
     friend class CPUMemoizer;
+    friend class FullMicrocodedMemoizer;
 public:
     FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~FullMicrocodedCPU() override;

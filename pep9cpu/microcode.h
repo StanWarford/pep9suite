@@ -55,8 +55,12 @@ public:
     bool hasSymbol() const;
     bool hasControlSignal(Enu::EControlSignals field) const;
     bool hasClockSignal(Enu::EClockSignals field) const;
+
     quint8 getControlSignal(Enu::EControlSignals field) const;
+    const QVector<quint8> getControlSignals() const;
     bool getClockSignal(Enu::EClockSignals field) const;
+    const QVector<bool> getClockSignals() const;
+
     bool hasBreakpoint() const;
     Enu::EBranchFunctions getBranchFunction() const;
     const SymbolEntry* getSymbol() const;

@@ -2,6 +2,8 @@
 #include "fullmicrocodedcpu.h"
 #include "pep.h"
 #include "amemorydevice.h"
+#include "newcpudata.h"
+#include "registerfile.h"
 #include <assert.h>
 #include <QString>
 #include <QtCore>
@@ -16,8 +18,7 @@ static quint8 inst_size=6;
 static quint8 oper_addr_size=12;
 
 FullMicrocodedMemoizer::FullMicrocodedMemoizer(FullMicrocodedCPU& item): cpu(item),
-    registers(CPUState()), level(Enu::DebugLevels::MINIMAL), cachedValuesValid(false),
-    OSSymTable()
+    state(CPUState()), level(Enu::DebugLevels::MINIMAL), OSSymTable()
 {
 
 }
@@ -29,8 +30,7 @@ Enu::DebugLevels FullMicrocodedMemoizer::getDebugLevel() const
 
 void FullMicrocodedMemoizer::clear()
 {
-    registers = CPUState();
-    cachedValuesValid = false;
+    state = CPUState();
 }
 
 void FullMicrocodedMemoizer::storeStateInstrEnd()
@@ -41,26 +41,10 @@ void FullMicrocodedMemoizer::storeStateInstrEnd()
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::MINIMAL:
-        registers.regState.reg_A = cpu.getCPURegWordCurrent(Enu::CPURegisters::A);
-        registers.regState.reg_X = cpu.getCPURegWordCurrent(Enu::CPURegisters::X);
-        registers.regState.reg_SP_cur = cpu.getCPURegWordCurrent(Enu::CPURegisters::SP);
-        registers.regState.reg_PC_end = cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
-        cpu.getMemoryDevice()->getByte(registers.regState.reg_PC_start, registers.regState.reg_IR);
-        if(!Pep::isUnaryMap[Pep::decodeMnemonic[registers.regState.reg_IR]]) {
-            cpu.getMemoryDevice()->getWord(registers.regState.reg_PC_start + 1, registers.regState.reg_OS);
-        }
-
-        registers.regState.bits_NZVCS =
-                cpu.getStatusBitCurrent(Enu::STATUS_N) * Enu::NMask |
-                cpu.getStatusBitCurrent(Enu::STATUS_Z) * Enu::ZMask |
-                cpu.getStatusBitCurrent(Enu::STATUS_V) * Enu::VMask |
-                cpu.getStatusBitCurrent(Enu::STATUS_C) * Enu::CMask |
-                cpu.getStatusBitCurrent(Enu::STATUS_S) * Enu::SMask;
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::NONE:
         #pragma message("This calculation is not quite right")
-        cachedValuesValid = false;
         break;
     }
 }
@@ -74,46 +58,49 @@ void FullMicrocodedMemoizer::storeStateInstrStart()
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::MINIMAL:
-        cpu.getMemoryDevice()->getByte(registers.regState.reg_PC_start, instr);
-        registers.instructionsCalled[instr]++;
         //Intentional fallthrough
         [[fallthrough]];
     case Enu::DebugLevels::NONE:
-        registers.regState.reg_PC_start = cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
         // Fetch the instruction specifier, located at the memory address of PC
-        cpu.getMemoryDevice()->getByte(registers.regState.reg_PC_start, registers.regState.reg_IS_start);
-        cachedValuesValid = true;
-        registers.regState.reg_SP_start = cpu.getCPURegWordCurrent(Enu::CPURegisters::SP);
+        cpu.getMemoryDevice()->getByte(cpu.data->getRegisterBank()
+                                       .readRegisterWordStart(Enu::CPURegisters::PC), instr);
+        state.instructionsCalled[instr]++;
+        cpu.data->getRegisterBank().setIRCache(instr);
         break;
     }
 }
 
 QString FullMicrocodedMemoizer::memoize()
-{   QString build, AX, NZVC;
-    switch(level){
+{
+    const RegisterFile& file = cpu.data->getRegisterBank();
+    quint8 ir = 0;
+    QString build, AX, NZVC;
+    switch(level) {
     case Enu::DebugLevels::ALL:
         [[fallthrough]];
     case Enu::DebugLevels::MINIMAL:
         AX = QString(" A=%1, X=%2, SP=%3")
-                .arg(formatNum(registers.regState.reg_A),
-                     formatNum(registers.regState.reg_X),
-                     formatNum(registers.regState.reg_SP_cur));
-        NZVC = QString(" NZVCS=") % QString("%1").arg(QString::number(registers.regState.bits_NZVCS,2), 5, '0');
-        build = (attempSymAddrReplace(registers.regState.reg_PC_start) + QString(":")).leftJustified(10) %
-                formatInstr(registers.regState.reg_IR,registers.regState.reg_OS);
+
+                .arg(formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::A)),
+                     formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::X)),
+                     formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::SP)));
+        NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(file.readStatusBitsCurrent(), 2), 5, '0');
+        build = (attempSymAddrReplace(file.readRegisterWordStart(Enu::CPURegisters::PC)) + QString(":")).leftJustified(10) %
+                formatInstr(file.getIRCache(), file.readRegisterWordCurrent(Enu::CPURegisters::OS));
         build += "  " + AX;
         build += NZVC;
-        if(Pep::isTrapMap[Pep::decodeMnemonic[registers.regState.reg_IR]]) {
-            build += generateTrapFrame(registers);
+        ir = cpu.data->getRegisterBank().getIRCache();
+        if(Pep::isTrapMap[Pep::decodeMnemonic[ir]]) {
+            build += generateTrapFrame(state);
         }
-        else if(Pep::decodeMnemonic[registers.regState.reg_IR] == Enu::EMnemonic::RETTR) {
-            build += generateTrapFrame(registers,false);
+        else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::RETTR) {
+            build += generateTrapFrame(state,false);
         }
-        else if(Pep::decodeMnemonic[registers.regState.reg_IR] == Enu::EMnemonic::CALL) {
-            build += generateStackFrame(registers);
+        else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::CALL) {
+            build += generateStackFrame(state);
         }
-        else if(Pep::decodeMnemonic[registers.regState.reg_IR] == Enu::EMnemonic::RET) {
-            build += generateStackFrame(registers,false);
+        else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::RET) {
+            build += generateStackFrame(state,false);
         }
         break;
     case Enu::DebugLevels::NONE:
@@ -135,11 +122,11 @@ QString FullMicrocodedMemoizer::finalStatistics()
     {
         if(mnemon == Pep::decodeMnemonic[it])
         {
-            tally[tallyIt]+= registers.instructionsCalled[it];
+            tally[tallyIt]+= state.instructionsCalled[it];
         }
         else
         {
-            tally.append(registers.instructionsCalled[it]);
+            tally.append(state.instructionsCalled[it]);
             tallyIt++;
             mnemon = Pep::decodeMnemonic[it];
             mnemonList.append(mnemon);
@@ -158,34 +145,6 @@ QString FullMicrocodedMemoizer::finalStatistics()
 void FullMicrocodedMemoizer::setDebugLevel(Enu::DebugLevels level)
 {
     this->level = level;
-}
-
-quint8 FullMicrocodedMemoizer::getRegisterByteStart(Enu::CPURegisters reg) const
-{
-#pragma message("TODO: store starting state for registers")
-    #pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
-    if(reg != Enu::CPURegisters::IS) throw -1; // Attempted to access register that was not cached
-    else return registers.regState.reg_IS_start;
-}
-
-quint16 FullMicrocodedMemoizer::getRegisterWordStart(Enu::CPURegisters reg) const
-{
-    #pragma message("TODO: store starting state for registers")
-    #pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
-    if (!cachedValuesValid){
-        if(reg != Enu::CPURegisters::PC) throw std::runtime_error("Register not cached"); // Attempted to access register that was not cached
-        else return cpu.getCPURegWordCurrent(Enu::CPURegisters::PC);
-    }
-    //if(reg != Enu::CPURegisters::PC) assert(false); // Attempted to access register that was not cached
-    if(reg == Enu::CPURegisters::PC) return registers.regState.reg_PC_start;
-    else if (reg == Enu::CPURegisters::SP)return  registers.regState.reg_SP_start;
-    throw -1;
-}
-
-bool FullMicrocodedMemoizer::getStatusBitStart(Enu::EStatusBit) const
-{
-    #pragma message("TODO: store starting state for status bits")
-    throw std::runtime_error("Method not implemented");
 }
 
 // Properly formats a number as a 4 char hex

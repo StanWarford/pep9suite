@@ -204,6 +204,18 @@ void Pep::initMicroEnumMnemonMaps(CPUType cpuType, bool fullCtrlSection)
     statusSpecToMnemonMap.insert(S, "S");               mnemonToStatusSpecMap.insert("S", S);
 }
 
+quint8 Pep::numControlSignals()
+{
+#pragma message("Calculate the number of signals")
+    return 22;
+}
+
+quint8 Pep::numClockSignals()
+{
+#pragma message("Calculate the number of signals")
+    return 12;
+}
+
 /*
  * Begin Pep9 Sources
  */

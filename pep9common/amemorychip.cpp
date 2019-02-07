@@ -92,3 +92,13 @@ bool AMemoryChip::setWord(quint16 offsetFromBase, quint16 value)
             toStdString();
     throw std::out_of_range(message);
 }
+
+bad_chip_write::~bad_chip_write()
+{
+
+}
+
+io_aborted::~io_aborted()
+{
+
+}

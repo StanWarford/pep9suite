@@ -10,6 +10,7 @@
 #include "newcpudata.h"
 #include "symbolentry.h"
 #include "fullmicrocodedmemoizer.h"
+#include "registerfile.h"
 FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
     InterfaceMCCPU(Enu::CPUType::TwoByteDataBus),
     InterfaceISACPU(memoryDev.get(), manager)
@@ -38,45 +39,43 @@ bool FullMicrocodedCPU::atMicroprogramStart() const noexcept
 
 bool FullMicrocodedCPU::getStatusBitCurrent(Enu::EStatusBit bit) const
 {
-#pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
-    return data->getStatusBit(bit);
+    return data->getRegisterBank().readStatusBitCurrent(bit);
 }
 
 bool FullMicrocodedCPU::getStatusBitStart(Enu::EStatusBit bit) const
 {
-#pragma message ("TODO: Handle case where mupc is !0 at the start of the cycle")
-    if (microprogramCounter == 0) {
-        return getStatusBitCurrent(bit);
-    }
-    else return memoizer->getStatusBitStart(bit);
+    return data->getRegisterBank().readStatusBitStart(bit);
 }
 
 quint8 FullMicrocodedCPU::getCPURegByteCurrent(Enu::CPURegisters reg) const
 {
-    return data->getRegisterBankByte(reg);
+    return data->getRegisterBank().readRegisterByteCurrent(reg);
 }
 
 quint16 FullMicrocodedCPU::getCPURegWordCurrent(Enu::CPURegisters reg) const
 {
-    return data->getRegisterBankWord(reg);
+    return data->getRegisterBank().readRegisterWordCurrent(reg);
 }
 
 quint8 FullMicrocodedCPU::getCPURegByteStart(Enu::CPURegisters reg) const
 {
-    return memoizer->getRegisterByteStart(reg);
+    return data->getRegisterBank().readRegisterByteStart(reg);
 }
 
 quint16 FullMicrocodedCPU::getCPURegWordStart(Enu::CPURegisters reg) const
 {
-    return memoizer->getRegisterWordStart(reg);
+    return data->getRegisterBank().readRegisterWordStart(reg);
 }
 
 void FullMicrocodedCPU::initCPU()
 {
     // Initialize CPU with proper stack pointer value in SP register.
 #pragma message ("TODO: Init cpu with proper SP when not burned in at 0xffff")
+    #pragma message("BAD ACCESS??")
     data->onSetRegisterByte(4,0xFB);
     data->onSetRegisterByte(5,0x82);
+#pragma message("TODO: Make sure this where registers should be flattened")
+    data->getRegisterBank().flattenFile();
 }
 
 bool FullMicrocodedCPU::stoppedForBreakpoint() const noexcept
@@ -247,17 +246,24 @@ void FullMicrocodedCPU::onMCStep()
     }
 
     // Do step logic
+
     const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
 
     this->setSignalsFromMicrocode(prog);
-    data->setSignalsFromMicrocode(prog);
+    try {
+        data->setSignalsFromMicrocode(prog);
+    } catch (std::exception &e) {
+        return;
+    }
     data->onStep();
     branchHandler();
     microCycleCounter++;
     //qDebug().nospace().noquote() << prog->getSourceCode();
 
     if(microprogramCounter == 0 || executionFinished) {
-        InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteStart(Enu::CPURegisters::IS),
+        // Possibly
+        quint16 progCounter = getCPURegWordStart(Enu::CPURegisters::PC);
+        InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteCurrent(Enu::CPURegisters::IS),
                                                  this->getCPURegWordCurrent(Enu::CPURegisters::OS),
                                                  this->getCPURegWordStart(Enu::CPURegisters::SP),
                                                  this->getCPURegWordStart(Enu::CPURegisters::PC),
@@ -266,9 +272,11 @@ void FullMicrocodedCPU::onMCStep()
         updateAtInstructionEnd();
         emit asmInstructionFinished();
         asmInstructionCounter++;
-        if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
+        /*if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
             qDebug().noquote().nospace() << memoizer->memoize();
-        }
+        }*/
+        data->getRegisterBank().flattenFile();
+        if(executionFinished) data->getRegisterBank().writePCStart(progCounter);
 
     }
     // Upon entering an instruction that is going to trap

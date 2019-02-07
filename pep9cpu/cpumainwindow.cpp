@@ -825,6 +825,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_triggered()
 void MainWindow::on_actionDebug_Stop_Debugging_triggered()
 {
     connectViewUpdate();
+    highlightActiveLines(true);
     debugState = DebugState::DISABLED;
     // Handle case of execution being canceled during IO
     ui->microcodeWidget->clearSimulationView();
@@ -832,7 +833,6 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     ui->microcodeWidget->setReadOnly(false);
     ui->cpuWidget->stopDebugging();
     handleDebugButtons();
-    highlightActiveLines(true);
     ui->memoryWidget->updateMemory();
     controlSection->onDebuggingFinished();
     emit simulationFinished();

@@ -4,12 +4,6 @@
 #include <QString>
 #include "enu.h"
 class CPUControlSection;
-struct CPURegisterState
-{
-    quint16 reg_PC_start = 0, reg_PC_end = 0, reg_SP_start = 0;
-    quint16 reg_A = 0, reg_X = 0, reg_SP_cur = 0, reg_OS = 0;
-    quint8 reg_IR = 0, bits_NZVCS = 0, reg_IS_start = 0;
-};
 
 struct callStack
 {
@@ -18,8 +12,7 @@ struct callStack
 
 struct CPUState
 {
-    CPURegisterState regState = CPURegisterState();
-    QVector<quint32> instructionsCalled = QVector<quint32>(256,0);
+    QVector<quint32> instructionsCalled = QVector<quint32>(256, 0);
   //QVector<callStack> call_tracer;
 };
 
@@ -37,15 +30,11 @@ public:
     QString memoize();
     QString finalStatistics();
     void setDebugLevel(Enu::DebugLevels level);
-    quint8 getRegisterByteStart(Enu::CPURegisters reg) const;
-    quint16 getRegisterWordStart(Enu::CPURegisters reg) const;
-    bool getStatusBitStart(Enu::EStatusBit bit) const;
 
 private:
     FullMicrocodedCPU& cpu;
-    CPUState registers;
+    CPUState state;
     Enu::DebugLevels level;
-    bool cachedValuesValid;
 
     QMultiMap<quint16, QString> OSSymTable;
     QString formatNum(quint16 number);

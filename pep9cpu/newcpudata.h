@@ -11,6 +11,7 @@ class AMemoryDevice;
 class InterfaceMCCPU;
 class MemorySection;
 class MicroCode;
+class RegisterFile;
 class NewCPUDataSection: public QObject
 {
     Q_OBJECT
@@ -23,6 +24,8 @@ public:
 
     Enu::CPUType getCPUType() const;
     //Access CPU registers
+    RegisterFile& getRegisterBank();
+    const RegisterFile& getRegisterBank() const;
     quint8 getRegisterBankByte(quint8 registerNumber) const;
     quint16 getRegisterBankWord(quint8 registerNumber) const; //Follows even/odd conventions of pep/9
     quint8 getRegisterBankByte(Enu::CPURegisters registerNumber) const;
@@ -72,9 +75,8 @@ private:
     bool emitEvents;
 
     //Data registers
-    QVector<quint8> registerBank;
+    QSharedPointer<RegisterFile> registerBank;
     QVector<quint8> memoryRegisters;
-    quint8 NZVCSbits;
 
     //Control Signals
     QVector<quint8> controlSignals;

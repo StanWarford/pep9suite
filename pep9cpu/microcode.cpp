@@ -29,8 +29,9 @@
 #include "cpupane.h"
 #include "newcpudata.h"
 
-MicroCode::MicroCode(Enu::CPUType cpuType): cpuType(cpuType), controlSignals(22, Enu::signalDisabled), clockSignals(12, false), breakpoint(false),
-    branchFunc(Enu::Assembler_Assigned), symbol(nullptr), trueTargetAddr(nullptr), falseTargetAddr(nullptr)
+MicroCode::MicroCode(Enu::CPUType cpuType): cpuType(cpuType), controlSignals(Pep::numControlSignals(), Enu::signalDisabled),
+    clockSignals(Pep::numClockSignals(), false), breakpoint(false), branchFunc(Enu::Assembler_Assigned),
+    symbol(nullptr), trueTargetAddr(nullptr), falseTargetAddr(nullptr)
 {
     for(auto memLines : Pep::memControlToMnemonMap.keys()) {
         controlSignals[memLines] = Enu::signalDisabled;
@@ -306,9 +307,19 @@ quint8 MicroCode::getControlSignal(Enu::EControlSignals field) const
     return controlSignals[field];
 }
 
+const QVector<quint8> MicroCode::getControlSignals() const
+{
+    return controlSignals;
+}
+
 bool MicroCode::getClockSignal(Enu::EClockSignals field) const
 {
     return clockSignals[field];
+}
+
+const QVector<bool> MicroCode::getClockSignals() const
+{
+    return clockSignals;
 }
 
 bool MicroCode::hasBreakpoint() const

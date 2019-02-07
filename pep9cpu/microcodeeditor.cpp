@@ -352,6 +352,7 @@ void MicrocodeEditor::resizeEvent(QResizeEvent *e)
 void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 {
     QPainter painter(lineNumberArea);
+    // Draw the background rectangle for the line area
     painter.fillRect(event->rect(), colors->lineAreaBackground); // light grey
     // Since the text cursor may span multiple lines, use multiple cursors to determine
     // the span of the selected text.
@@ -377,7 +378,7 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
                 // Querry the target block for how many lines it spans.
                 painter.drawRect(-1, top, lineNumberArea->width(), start.block().lineCount() * fontMetrics().height());
             }
-            // If the current block is a valid μ-operation, and is an μ-op with a breakpoint
+            // If the current block is a valid μ-operation, and is an μ-op with a breakpoint => draw a red circle
             if(blockToCycle.contains(blockNumber) && breakpoints.contains(blockToCycle[blockNumber])) {
                 painter.setPen(PepColors::transparent);
                 painter.setBrush(colors->combCircuitRed);
@@ -385,6 +386,7 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
                 // Draw a circular breakpoint that is scaled to the height of the text
                 painter.drawEllipse(QPoint(fontMetrics().height()/2, top+fontMetrics().height()/2),
                                     fontMetrics().height()/2 - 1, fontMetrics().height()/2 - 1);
+                // Undo antialias mode, so as not to accidentally antialias text
                 painter.setRenderHint(QPainter::Antialiasing, antialias);
             }
             // Determine the line number text, or the empty string otherwise
