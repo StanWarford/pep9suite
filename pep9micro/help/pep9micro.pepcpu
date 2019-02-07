@@ -445,16 +445,16 @@ cpbx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; NCk, ZCk, VCk, CCk, LoadCk
 ldba: A=27, B=23, AMux=1, ALU=3, CMux=1, C=17; LoadCk
 A=8, B=17, AMux=1, ALU=5, CMux=1, C=17; LoadCk
 A=17, B=31, AMux=1, ALU=1; SCk; if BRS ldba_eo else ldba_i
-ldba_eo: A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto ldba_z
-ldba_i: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk
-ldba_z: A=22, AMux=1, ALU=0, CMux=1, C=0; LoadCk; goto start
+ldba_eo: A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto start
+ldba_i: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto start
+//ldba_z: A=22, AMux=1, ALU=0, CMux=1, C=0; LoadCk; goto start
 
 ldbx: A=27, B=23, AMux=1, ALU=3, CMux=1, C=17; LoadCk
 A=8, B=17, AMux=1, ALU=5, CMux=1, C=17; LoadCk
 A=17, B=31, AMux=1, ALU=1; SCk; if BRS ldbx_eo else ldbx_i
-ldbx_eo: A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto ldbx_z
-ldbx_i: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk
-ldbx_z: A=22, AMux=1, ALU=0, CMux=1, C=2; LoadCk; goto start
+ldbx_eo: A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto start
+ldbx_i: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto start
+//ldbx_z: A=22, AMux=1, ALU=0, CMux=1, C=2; LoadCk; goto start
 
 ldwa: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; ZCk, LoadCk
 A=20, AMux=1, ALU=0, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
