@@ -63,7 +63,8 @@ OTHER_FILES += help/images/registeraddresssignals.png \
     help/debugging.html \
     help/cpu.html
 RESOURCES += \
-    ../pep9common/dark_style.qrc \
+    ../PepStyles/breeze.qrc \
+    #../pep9common/dark_style.qrc \
     ../pep9common/pep9common-resources.qrc\
     pep9micro-resources.qrc \
     micro_helpresources.qrc \
