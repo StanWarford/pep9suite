@@ -814,8 +814,10 @@ void MainWindow::print(Enu::EPane which)
 
     dialog->setWindowTitle(*title);
     if (dialog->exec() == QDialog::Accepted) {
-        printer.setPaperSize(QPrinter::A4);
+        //printer.setPaperSize(QPrinter::Letter);
+        printer.setPageMargins(1, 1, 1, 1, QPrinter::Inch);
         document.setDefaultFont(QFont("Courier", 10, -1));
+        document.setPageSize(printer.paperSize(QPrinter::Point));
         qDebug() << document.pageCount();
         document.print(&printer);
     }
