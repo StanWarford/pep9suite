@@ -31,11 +31,13 @@ int cellSize(Enu::ESymbolFormat symbolFormat);
 class MemoryCellGraphicsItem : public QGraphicsItem
 {
 public:
+    MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int xLoc);
     MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int addr, QString sym, Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc);
     ~MemoryCellGraphicsItem() { }
 
     QRectF boundingRect() const;
 
+    void updateContents(int newAddr, QString newSymbol, Enu::ESymbolFormat newFmt, int newY);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
 
     static const int boxHeight;

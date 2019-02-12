@@ -59,15 +59,6 @@ void addDLabelToScene(QLabel** labelLoc, QGraphicsScene *scene, QString name, co
     scene->addWidget(*labelLoc);
 }
 
-void addLineEditToScene(QLineEdit** lineEdit, QGraphicsScene *scene, QRegExp validator, const QRect& geometry){
-    (*lineEdit) = new QLineEdit();
-    (*lineEdit)->setAlignment(Qt::AlignCenter);
-    (*lineEdit)->setGeometry(geometry);
-    (*lineEdit)->setValidator(new QRegExpValidator(validator, (*lineEdit)));
-    (*lineEdit)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
-    scene->addWidget(*lineEdit);
-}
-
 void addTLabel(TristateLabel** labelLoc, QGraphicsScene *scene, const QRect& geometry){
     (*labelLoc) = new TristateLabel(nullptr, TristateLabel::Tristate);
     (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -119,11 +110,12 @@ void addStaticRegister(QVector<QLabel*> &labelVec, QGraphicsScene* scene, QStrin
     labelVec.append(ph);
 }
 
-void addCheckToScene(QCheckBox** checkLoc, QGraphicsScene *scene,QString name, const QRect& geometry)
+void addCheckToScene(QCheckBox** checkLoc, QVector<QCheckBox*> &checkVector, QGraphicsScene *scene, QString name, const QRect& geometry)
 {
     *checkLoc = new QCheckBox(name);
     (*checkLoc)->setGeometry(geometry);
     (*checkLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    checkVector.append(*checkLoc);
     scene->addWidget(*checkLoc);
 }
 
@@ -139,7 +131,7 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection *dataSec
     // ************************************
     // one  byte exclusive items
     // ************************************
-    addCheckToScene(&MDRCk, scene, "MDRCk", OneByteShapes::MDRCkCheckbox);
+    addCheckToScene(&MDRCk, checkVector, scene, "MDRCk", OneByteShapes::MDRCkCheckbox);
     addLabelToScene(&MDRMuxLabel, scene, "MDRMux", OneByteShapes::MDRMuxLabel);
     addDLabelToScene(&MDRMuxerDataLabel, scene, "MDRMux", OneByteShapes::MDRMuxerDataLabel);
     addTLabel(&MDRMuxTristateLabel, scene, OneByteShapes::MDRMuxTristateLabel);
@@ -152,8 +144,8 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection *dataSec
     // two byte exclusive items
     // ************************************
     addDLabelToScene(&MARMuxerDataLabel, scene, "MARMux", TwoByteShapes::MARMuxerDataLabel);
-    addCheckToScene(&MDROCk, scene, "MDROCk", TwoByteShapes::MDROCkCheckbox);
-    addCheckToScene(&MDRECk, scene, "MDRECk", TwoByteShapes::MDRECkCheckbox);
+    addCheckToScene(&MDROCk, checkVector, scene, "MDROCk", TwoByteShapes::MDROCkCheckbox);
+    addCheckToScene(&MDRECk, checkVector, scene, "MDRECk", TwoByteShapes::MDRECkCheckbox);
     addLabelToScene(&MDROMuxLabel, scene, "MDROMux", TwoByteShapes::MDROMuxLabel);
     addDLabelToScene(&MDROMuxerDataLabel, scene, "MDROMux", TwoByteShapes::MDROMuxerDataLabel);
     addTLabel(&MDROMuxTristateLabel, scene, TwoByteShapes::MDROMuxTristateLabel);
@@ -193,25 +185,25 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection *dataSec
     MARBLabel->setAutoFillBackground(false);
 
     // LoadCk
-    addCheckToScene(&loadCk, scene, "LoadCk", OneByteShapes::loadCkCheckbox);
+    addCheckToScene(&loadCk, checkVector, scene, "LoadCk", OneByteShapes::loadCkCheckbox);
 
     // C
     // Note: the line edits must be added first, otherwise they cover the
     //  labels that go with them.
     QRegExp cbaRegExp("^((3[0-1])|([0-2][0-9])|([0-9]))$");
-    addLineEditToScene(&cLineEdit, scene, cbaRegExp, OneByteShapes::cLineEdit);
+    addEditableRegister(&cLineEdit, framedVector, scene, "", cbaRegExp, OneByteShapes::cLineEdit, colorScheme);
     addLabelToScene(&cLabel, scene, "C", OneByteShapes::cLabel);
 
     // B
-    addLineEditToScene(&bLineEdit, scene, cbaRegExp, OneByteShapes::bLineEdit);
+    addEditableRegister(&bLineEdit,framedVector, scene, "", cbaRegExp, OneByteShapes::bLineEdit, colorScheme);
     addLabelToScene(&bLabel, scene, "B", OneByteShapes::bLabel);
 
     // A
-    addLineEditToScene(&aLineEdit, scene, cbaRegExp, OneByteShapes::aLineEdit);
+    addEditableRegister(&aLineEdit, framedVector, scene, "", cbaRegExp, OneByteShapes::aLineEdit, colorScheme);
     addLabelToScene(&aLabel, scene, "A", OneByteShapes::aLabel);
 
     // MARCk
-    addCheckToScene(&MARCk, scene, "MARCk", OneByteShapes::MARCkCheckbox);
+    addCheckToScene(&MARCk, checkVector, scene, "MARCk", OneByteShapes::MARCkCheckbox);
 
 
     // AMux
@@ -227,7 +219,8 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection *dataSec
     // ALU
     // keep this before the label that goes with it, or the line edit
     //  appears on top of the label
-    addLineEditToScene(&ALULineEdit, scene, QRegExp("^((1[0-5])|(0[0-9])|[0-9])$"), OneByteShapes::ALULineEdit);
+    addEditableRegister(&ALULineEdit, framedVector, scene, "",
+                       QRegExp("^((1[0-5])|(0[0-9])|[0-9])$"), OneByteShapes::ALULineEdit, colorScheme);
     addLabelToScene(&ALULabel, scene, "ALU", OneByteShapes::ALULabel);
     addCenteredLabelToScene(&ALUFunctionLabel, scene, "", OneByteShapes::ALUFunctionLabel);
 
@@ -246,15 +239,15 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection *dataSec
     addTLabel(&CSMuxTristateLabel, scene, OneByteShapes::CSMuxTristateLabel);
 
     // SCk
-    addCheckToScene(&SCkCheckBox, scene, "SCk", OneByteShapes::SCkCheckBox);
+    addCheckToScene(&SCkCheckBox, checkVector, scene, "SCk", OneByteShapes::SCkCheckBox);
     addStatusLabel(&sBitLabel, scene, OneByteShapes::sBitLabel);
 
     // CCk
-    addCheckToScene(&CCkCheckBox, scene, "CCk", OneByteShapes::CCkCheckBox);
+    addCheckToScene(&CCkCheckBox, checkVector, scene, "CCk", OneByteShapes::CCkCheckBox);
     addStatusLabel(&cBitLabel, scene, OneByteShapes::cBitLabel);
 
     // VCk
-    addCheckToScene(&VCkCheckBox, scene, "VCk", OneByteShapes::VCkCheckBox);
+    addCheckToScene(&VCkCheckBox, checkVector, scene, "VCk", OneByteShapes::VCkCheckBox);
     addStatusLabel(&vBitLabel, scene, OneByteShapes::vBitLabel);
 
     // AndZ
@@ -263,11 +256,11 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection *dataSec
     addDLabelToScene(&AndZMuxLabel, scene, "AndZ", OneByteShapes::AndZMuxLabel);
 
     // ZCk
-    addCheckToScene(&ZCkCheckBox, scene, "ZCk", OneByteShapes::ZCkCheckBox);
+    addCheckToScene(&ZCkCheckBox, checkVector, scene, "ZCk", OneByteShapes::ZCkCheckBox);
     addStatusLabel(&zBitLabel, scene, OneByteShapes::zBitLabel);
 
     // NCk
-    addCheckToScene(&NCkCheckBox, scene, "NCk", OneByteShapes::NCkCheckBox);
+    addCheckToScene(&NCkCheckBox, checkVector, scene, "NCk", OneByteShapes::NCkCheckBox);
     addStatusLabel(&nBitLabel, scene, OneByteShapes::nBitLabel);
 
     // MemRead/Write
@@ -359,11 +352,10 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection *dataSec
                                                 Qt::MiterJoin));
 
     if(type == Enu::TwoByteDataBus) {
-        onCPUTypeChanged(type);
+        CPUTypeChanged(type);
     }
 
-    // Status Bits
-    onDarkModeChanged(false);
+    darkModeChanged(false, "");
 }
 
 CpuGraphicsItems::~CpuGraphicsItems()
@@ -628,7 +620,7 @@ void CpuGraphicsItems::drawLabels()
     QPalette seqColor = QPalette();
     seqColor.setColor(QPalette::Text, colorScheme->arrowColorOn);
     seqColor.setColor(QPalette::WindowText, colorScheme->arrowColorOn);
-    seqColor.setColor(QPalette::Base, PepColors::transparent);
+    seqColor.setColor(QPalette::Base, colorScheme->backgroundFill);
     seqColor.setColor(QPalette::Window, PepColors::transparent);
 
     QPalette combColor = QPalette();
@@ -642,10 +634,22 @@ void CpuGraphicsItems::drawLabels()
     aluLabel.setColor(QPalette::Window, PepColors::transparent);
 
     // Set Line editors first
-    cLineEdit->setPalette(seqColor);
-    bLineEdit->setPalette(seqColor);
-    aLineEdit->setPalette(seqColor);
-    ALULineEdit->setPalette(seqColor);
+    QString lineStyle = QString("QLineEdit, QCheckbox::indicator { border: 1px solid rgb(%1, %2, %3);\
+                                 background: rgb(%4, %5, %6); color: rgb(%7, %8, %9)}")
+            .arg(colorScheme->arrowColorOff.red(), 3, 10)
+            .arg(colorScheme->arrowColorOff.green(), 3, 10)
+            .arg(colorScheme->arrowColorOff.blue(), 3, 10)
+            .arg(colorScheme->backgroundFill.red(), 3, 10)
+            .arg(colorScheme->backgroundFill.green(), 3, 10)
+            .arg(colorScheme->backgroundFill.blue(), 3, 10)
+            .arg(colorScheme->arrowColorOn.red(), 3, 10)
+            .arg(colorScheme->arrowColorOn.green(), 3, 10)
+            .arg(colorScheme->arrowColorOn.blue(), 3, 10);
+
+    cLineEdit->setStyleSheet(lineStyle);
+    bLineEdit->setStyleSheet(lineStyle);
+    aLineEdit->setStyleSheet(lineStyle);
+    ALULineEdit->setStyleSheet(lineStyle);
 
     // Common labels
     cLabel->setPalette(seqColor);
@@ -2454,7 +2458,7 @@ void CpuGraphicsItems::repaintCBusTwoByte(QPainter *painter)
 // Public Slosts
 // ***************************************************************************
 
-void CpuGraphicsItems::onDarkModeChanged(bool darkMode)
+void CpuGraphicsItems::darkModeChanged(bool darkMode, QString styleSheet)
 {
     this->darkMode = darkMode;
     if(darkMode) {
@@ -2463,7 +2467,10 @@ void CpuGraphicsItems::onDarkModeChanged(bool darkMode)
     else {
         colorScheme = &(PepColors::lightMode);
     }
-
+    for(auto checkbox : this->checkVector) {
+        checkbox->setStyleSheet(styleSheet);
+        checkbox->setAutoFillBackground(false);
+    }
     // set up arrow heads:
     arrowLeft = QImage(colorScheme->arrowImageOn);
     arrowRight = arrowLeft.mirrored(true, false);
@@ -2483,7 +2490,7 @@ void CpuGraphicsItems::onDarkModeChanged(bool darkMode)
     drawLabels();
 }
 
-void CpuGraphicsItems::onCPUTypeChanged(Enu::CPUType newType)
+void CpuGraphicsItems::CPUTypeChanged(Enu::CPUType newType)
 {
     //if(type == newType) return;
     if(newType == Enu::CPUType::TwoByteDataBus) {

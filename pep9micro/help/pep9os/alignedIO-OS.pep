@@ -12,7 +12,7 @@ addrMask:.BLOCK  2           ;Addressing mode mask
 opAddr:  .BLOCK  2           ;Trap instruction operand address
 charIn:  .BLOCK  2           ;Memory-mapped input device
 charOut: .BLOCK  2           ;Memory-mapped output device
-stop ;Align all 2 byte quantities.
+.align 2
 ; Alignment starts 
 ;******* Operating system ROM
          .BURN   0xFFFF
@@ -56,7 +56,8 @@ stopLoad:STOP                ;
 ;******* Trap handler
 oldIR:   .EQUATE 9           ;Stack address of IR on trap
 ;
-trap:    LDBX    oldIR,s     ;X <- trapped IR
+trap:    LDWX    0,i
+         LDBX    oldIR,s     ;X <- trapped IR
          CPBX    0x0028,i    ;If X >= first nonunary trap opcode
          BRGE    nonUnary    ;  trap opcode is nonunary
 ;

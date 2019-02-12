@@ -966,9 +966,9 @@ void CpuPane::onSimulationUpdate()
     update();
 }
 
-void CpuPane::onDarkModeChanged(bool darkMode)
+void CpuPane::onDarkModeChanged(bool darkMode, QString styleSheet)
 {
-    cpuPaneItems->onDarkModeChanged(darkMode);
+    cpuPaneItems->darkModeChanged(darkMode, styleSheet);
     if(darkMode) {
         ui->graphicsView->setBackgroundBrush(QBrush(PepColors::darkMode.backgroundFill));
     } else {
@@ -981,7 +981,7 @@ void CpuPane::onDarkModeChanged(bool darkMode)
 void CpuPane::onCPUTypeChanged()
 {
     type = cpu->getCPUType();
-    cpuPaneItems->onCPUTypeChanged(type);
+    cpuPaneItems->CPUTypeChanged(type);
     repaint();
 
 }

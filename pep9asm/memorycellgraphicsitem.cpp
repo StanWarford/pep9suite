@@ -48,6 +48,17 @@ QRectF MemoryCellGraphicsItem::boundingRect() const
                   QSizeF(addressWidth + bufferWidth * 2 + boxWidth + symbolWidth + Margin * 2, boxHeight + Margin * 2));
 }
 
+void MemoryCellGraphicsItem::updateContents(int newAddr, QString newSymbol, Enu::ESymbolFormat newFmt, int newY)
+{
+    this->address = newAddr;
+    if (newSymbol.length() > 0 && newSymbol.at(0).isDigit()) {
+        newSymbol = "";
+    }
+    this->symbol = newSymbol;
+    this->eSymbolFormat = newFmt;
+    this->y = newY;
+}
+
 void MemoryCellGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
     QPen pen(boxColor);

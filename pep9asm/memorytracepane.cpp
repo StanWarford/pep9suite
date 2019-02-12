@@ -580,3 +580,76 @@ void MemoryTracePane::mouseDoubleClickEvent(QMouseEvent *)
 {
     emit labelDoubleClicked(Enu::EPane::EMemoryTrace);
 }
+
+NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent)
+{
+    #pragma message ("TODO")
+}
+
+void NewMemoryTracePane::init(QSharedPointer<const MainMemory> memorySection, QSharedPointer<const MemoryTrace> trace)
+{
+    this->memorySection = memorySection;
+    this->trace = trace;
+}
+
+NewMemoryTracePane::~NewMemoryTracePane()
+{
+    #pragma message ("TODO")
+}
+
+void NewMemoryTracePane::updateTrace()
+{
+    updateGlobals();
+    updateHeap();
+    updateStack();
+}
+
+void NewMemoryTracePane::highlightOnFocus()
+{
+    #pragma message ("TODO")
+}
+
+bool NewMemoryTracePane::hasFocus()
+{
+#pragma message ("TODO")
+}
+
+void NewMemoryTracePane::setFocus()
+{
+#pragma message ("TODO")
+}
+
+void NewMemoryTracePane::onFontChanged(QFont font)
+{
+#pragma message ("TODO")
+}
+
+void NewMemoryTracePane::updateGlobals()
+{
+#pragma message ("TODO")
+}
+
+void NewMemoryTracePane::updateHeap()
+{
+#pragma message ("TODO")
+}
+
+void NewMemoryTracePane::updateStack()
+{
+#pragma message ("TODO")
+}
+
+void NewMemoryTracePane::mouseReleaseEvent(QMouseEvent *)
+{
+#pragma message ("TODO")
+}
+
+void NewMemoryTracePane::mouseDoubleClickEvent(QMouseEvent *)
+{
+#pragma message ("TODO")
+}
+
+void NewMemoryTracePane::zoomFactorChanged(int factor)
+{
+   #pragma message ("TODO")
+}

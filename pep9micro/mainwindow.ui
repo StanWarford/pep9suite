@@ -258,6 +258,8 @@
     <addaction name="actionUse_Unaligned_OS"/>
     <addaction name="actionUse_Aligned_OS"/>
     <addaction name="separator"/>
+    <addaction name="actionFragment_Simulator"/>
+    <addaction name="actionComplete_Microcode_Mode"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -368,6 +370,7 @@
    <addaction name="actionEdit_Undo"/>
    <addaction name="actionEdit_Redo"/>
    <addaction name="actionHelp"/>
+   <addaction name="actionBuild_Microcode"/>
    <addaction name="ActionBuild_Assemble"/>
    <addaction name="actionBuild_Run"/>
    <addaction name="actionDebug_Start_Debugging"/>
@@ -461,7 +464,7 @@
    <property name="sizePolicy">
     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
      <horstretch>0</horstretch>
-     <verstretch>3</verstretch>
+     <verstretch>4</verstretch>
     </sizepolicy>
    </property>
    <property name="windowTitle">
@@ -1044,6 +1047,25 @@
   <action name="actionDebug_Remove_All_Microcode_Breakpoints">
    <property name="text">
     <string>Remove All Microcode Breakpoints</string>
+   </property>
+  </action>
+  <action name="actionFragment_Simulator">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Code Fragment</string>
+   </property>
+  </action>
+  <action name="actionComplete_Microcode_Mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Complete Microcode</string>
    </property>
   </action>
  </widget>

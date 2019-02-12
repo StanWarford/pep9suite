@@ -278,7 +278,6 @@ MainWindow::MainWindow(QWidget *parent) :
         QTextStream in(&file);
         ui->microcodeWidget->setMicrocode(in.readAll());
         ui->microcodeWidget->setModifiedFalse();
-        ui->microcodeWidget->setCurrentFile(QFileInfo(file).filePath());
     }
 
     //Initialize debug menu
@@ -1685,7 +1684,7 @@ void MainWindow::on_actionDark_Mode_triggered()
     else {
         this->setStyleSheet(lightStyle);
     }
-    emit darkModeChanged(inDarkMode);
+    emit darkModeChanged(inDarkMode, styleSheet());
 }
 
 // help:

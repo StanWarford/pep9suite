@@ -43,9 +43,8 @@ public:
 
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                QWidget *widget);
-public slots:
-    void onDarkModeChanged(bool);
-    void onCPUTypeChanged(Enu::CPUType newType);
+    void darkModeChanged(bool darkMode, QString styleSheet);
+    void CPUTypeChanged(Enu::CPUType newType);
 
 private:
     // Try to draw as many free-floating strings in one centralized function as possible. Both 1 & 2 byte models.
@@ -194,9 +193,12 @@ public:
     QLabel *MemWriteLabel;
     TristateLabel *MemWriteTristateLabel;
 
+    QVector<QCheckBox*> checkVector;
+    QVector<QLineEdit*> framedVector;
     // REGISTER BANK
     QGraphicsRectItem* regBankOutline;
     QGraphicsRectItem* regBank;
+
     QVector<QLabel*> labelVec;
     QVector<QLineEdit*> editorVector;
     QLineEdit *aRegLineEdit;

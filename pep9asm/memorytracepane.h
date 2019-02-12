@@ -34,6 +34,83 @@ namespace Ui {
     class MemoryTracePane;
 }
 class MainMemory;
+class MemoryTrace;
+class NewMemoryTracePane : public QWidget {
+    Q_OBJECT
+    Q_DISABLE_COPY(NewMemoryTracePane)
+public:
+    explicit NewMemoryTracePane(QWidget *parent = nullptr);
+    void init(QSharedPointer<const MainMemory> memorySection, QSharedPointer<const MemoryTrace> trace);
+    virtual ~NewMemoryTracePane();
+    void updateTrace();
+
+    void highlightOnFocus();
+    // Post: Highlights the label based on the label window color saved in the UI file
+
+    bool hasFocus();
+    // Post: returns if the pane has focus
+
+    void setFocus();
+    // Post: the graphics item has focus
+
+public slots:
+    void onFontChanged(QFont font);
+
+private:
+    void updateGlobals();
+    void updateHeap();
+    void updateStack();
+    Ui::MemoryTracePane *ui;
+    QSharedPointer<const MainMemory> memorySection;
+    QSharedPointer<const MemoryTrace> trace;
+    QGraphicsScene *scene;
+    QStack<MemoryCellGraphicsItem *> globalVars;
+    // Stack of the global variables
+    QStack<MemoryCellGraphicsItem *> runtimeStack;
+    // Stack of the stack items
+    QStack<MemoryCellGraphicsItem *> heap;
+    // Stack of heap items
+
+    // Stack frame
+    QMap<int, QGraphicsRectItem *> stackHeightToStackFrameMap;
+    QStack<int> numCellsInStackFrame;
+    // This is a stack of ints that each represent how many cells each stack frame encompass
+    QStack<bool> isStackFrameAddedStack;
+    // Stack used to determine if a stack frame has been added to the scene yet
+    QStack<QGraphicsRectItem *> graphicItemsInStackFrame;
+    // Stack of *items used to access the stack frames
+    QStack<bool> isHeapFrameAddedStack;
+    // Stack used to determine if a heap frame has been added to the scene yet
+    QStack<QGraphicsRectItem *> heapFrameItemStack;
+    // Stack of *items for the heap graphic frames
+
+    QPointF globalLocation;
+    // This is the location where the next global item will be added
+    QPointF stackLocation;
+    // This is the location where the next stack item will be added
+    QPointF heapLocation;
+    // This is the location where the next heap item will be added
+
+    QMap<quint16, MemoryCellGraphicsItem *> addressToGlobalItemMap;
+    // This map is used to identify if an address is in the globals
+    QMap<quint16, MemoryCellGraphicsItem *> addressToStackItemMap;
+    // This map is used to identify if an address is part of the stack
+    QMap<quint16, MemoryCellGraphicsItem *> addressToHeapItemMap;
+    // Used to identify if an address is part of the heap
+
+    QList<MemoryCellGraphicsItem *> newestHeapItemsList;
+    // This is used to color the most recently malloc'd heap items light green
+
+    void mouseReleaseEvent(QMouseEvent *);
+    void mouseDoubleClickEvent(QMouseEvent *);
+
+private slots:
+    void zoomFactorChanged(int factor);
+
+signals:
+    void labelDoubleClicked(Enu::EPane pane);
+};
+
 class MemoryTracePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(MemoryTracePane)
