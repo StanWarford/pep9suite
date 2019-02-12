@@ -2,7 +2,7 @@
 #define REGISTERFILE_H
 #include <QtCore>
 #include "enu.h"
-
+#include <array>
 /*
  * Provides access to all 32 CPU registers and 5 status bits with one backup history state.
  */
@@ -17,7 +17,6 @@ class RegisterFile
     // Given a quint8 that contains several status bits, mask out the value of the desired bit.
     bool crackStatusBit(quint8 statusBits, Enu::EStatusBit bit);
 public:
-    // Constructor must initialize
     explicit RegisterFile();
 
     // While status bits are not in the register bank, the must also be preserved from

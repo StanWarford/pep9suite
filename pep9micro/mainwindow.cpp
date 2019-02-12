@@ -30,6 +30,7 @@
 #include <QFileDialog>
 #include <QFontDialog>
 #include <QMessageBox>
+#include <QPageSize>
 #include <QPrinter>
 #include <QPrintDialog>
 #include <QSettings>
@@ -782,10 +783,9 @@ void MainWindow::print(Enu::EPane which)
      * Store text-to-print and dialog title based on which pane is to be printed
      */
     QPrinter printer(QPrinter::HighResolution);
-    QTextDocument document = QTextDocument();
-    document.setDefaultFont(QFont("Courier", 10, -1));
-    PepASMHighlighter asHi = PepASMHighlighter(PepColors::lightMode, &document);
-    PepMicroHighlighter mcHi = PepMicroHighlighter(Enu::CPUType::TwoByteDataBus,
+    QTextDocument document;
+    PepASMHighlighter asHi(PepColors::lightMode, &document);
+    PepMicroHighlighter mcHi(Enu::CPUType::TwoByteDataBus,
                                                    true, PepColors::lightMode, &document);
     mcHi.forceAllFeatures(true);
     switch(which)
@@ -811,8 +811,12 @@ void MainWindow::print(Enu::EPane which)
         break;
     }
     QPrintDialog *dialog = new QPrintDialog(&printer, this);
+
     dialog->setWindowTitle(*title);
     if (dialog->exec() == QDialog::Accepted) {
+        printer.setPaperSize(QPrinter::A4);
+        document.setDefaultFont(QFont("Courier", 10, -1));
+        qDebug() << document.pageCount();
         document.print(&printer);
     }
     dialog->deleteLater();

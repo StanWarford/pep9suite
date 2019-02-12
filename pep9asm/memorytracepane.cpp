@@ -612,6 +612,7 @@ void NewMemoryTracePane::highlightOnFocus()
 bool NewMemoryTracePane::hasFocus()
 {
 #pragma message ("TODO")
+    throw -1;
 }
 
 void NewMemoryTracePane::setFocus()
