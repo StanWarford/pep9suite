@@ -181,9 +181,6 @@ public:
     void writeSettings(QSettings& settings);
     void readSettings(QSettings& settings);
 
-    void asHTML(QString &html) const;
-    // Post: returns the stylized assembler source as string containing html
-
 public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
@@ -231,7 +228,7 @@ public:
     AsmSourceBreakpointArea(AsmSourceTextEdit *editor) : QWidget(editor) {
         this->editor = editor;
     }
-
+    virtual ~AsmSourceBreakpointArea() override;
     QSize sizeHint() const override {
         return QSize(/*editor->breakpointAreaWidth()*/0, 0);
     }

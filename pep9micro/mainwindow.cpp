@@ -777,35 +777,39 @@ void MainWindow::print(Enu::EPane which)
     const QString object = base.arg("Object Code");
     const QString listing = base.arg("Assembler Listing");
     const QString micro = base.arg("Microcode");
-    const QString *title; //Pointer to the title of the dialog
+    const QString *title = &source; //Pointer to the title of the dialog
     /*
      * Store text-to-print and dialog title based on which pane is to be printed
      */
+    QPrinter printer(QPrinter::HighResolution);
+    QTextDocument document = QTextDocument();
+    document.setDefaultFont(QFont("Courier", 10, -1));
+    PepASMHighlighter asHi = PepASMHighlighter(PepColors::lightMode, &document);
+    PepMicroHighlighter mcHi = PepMicroHighlighter(Enu::CPUType::TwoByteDataBus,
+                                                   true, PepColors::lightMode, &document);
+    mcHi.forceAllFeatures(true);
     switch(which)
     {
     case Enu::EPane::ESource:
         title = &source;
-        ui->AsmSourceCodeWidgetPane->asHTML(text);
+        document.setPlainText(ui->AsmSourceCodeWidgetPane->toPlainText());
+        asHi.rehighlight();
         break;
     case Enu::EPane::EObject:
         title = &object;
-        text = ui->AsmObjectCodeWidgetPane->toPlainText();
+        document.setPlainText(ui->AsmObjectCodeWidgetPane->toPlainText());
         break;
     case Enu::EPane::EListing:
         title = &listing;
-        ui->AsmListingWidgetPane->asHTML(text);
+        document.setPlainText(ui->AsmListingWidgetPane->toPlainText());
+        asHi.rehighlight();
         break;
     case Enu::EPane::EMicrocode:
         title = &micro;
-        ui->microcodeWidget->asHTML(text);
+        document.setPlainText(ui->microcodeWidget->toPlainText());
+        mcHi.rehighlight();
         break;
     }
-    QTextDocument document(this);
-    document.setHtml(text);
-    document.setDefaultFont(QFont("Courier", 10, -1));
-
-    QPrinter printer(QPrinter::HighResolution);
-
     QPrintDialog *dialog = new QPrintDialog(&printer, this);
     dialog->setWindowTitle(*title);
     if (dialog->exec() == QDialog::Accepted) {

@@ -23,7 +23,6 @@
 #define PEPHIGHLIGHTER_H
 
 #include <QSyntaxHighlighter>
-#include "htmlhighlightermixin.h"
 #include <QHash>
 #include <QTextCharFormat>
 #include "enu.h"
@@ -32,7 +31,7 @@ QT_BEGIN_NAMESPACE
 class QTextDocument;
 QT_END_NAMESPACE
 
-class PepMicroHighlighter : public HTMLHighlighterMixin/*, RestyleableItem*/
+class PepMicroHighlighter : public QSyntaxHighlighter /*, RestyleableItem*/
 {
 public:
     PepMicroHighlighter(Enu::CPUType type, bool fullCtrlSection, const PepColors::Colors colors, QTextDocument *parent = nullptr);

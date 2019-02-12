@@ -23,7 +23,7 @@
 #include "pep.h"
 #include <QTextDocument>
 PepMicroHighlighter::PepMicroHighlighter(Enu::CPUType type, bool fullCtrlSection, const PepColors::Colors color, QTextDocument *parent)
-    : HTMLHighlighterMixin(parent), cpuType(type),
+    : QSyntaxHighlighter(parent), cpuType(type),
       /*RestyleableItem(color, parent),*/ forcedFeatures(false), fullCtrlSection(fullCtrlSection)
 {
     // Trigger an update whenever a style is changed.

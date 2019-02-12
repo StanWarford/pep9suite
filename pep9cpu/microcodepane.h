@@ -97,7 +97,7 @@ public:
     void readSettings(QSettings &settings);
     void writeSettings(QSettings &settings);
     MicrocodeEditor* getEditor();
-    void asHTML(QString& html) const;
+    QString toPlainText();
 
     void useFullCtrlSection(bool fullCtrlSection);
 

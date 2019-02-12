@@ -57,7 +57,6 @@ public:
     bool hasFocus();
     // Post: returns if the pane has focus
 
-
     void copy();
     // Copies selected text to the clipboard
 
@@ -68,8 +67,6 @@ public:
     bool isEmpty();
     // Post: returns if the assembler listing is empty
 
-    void asHTML(QString& html) const;
-    // Post: returns the stylized assembler listing as string containing html
 
 public slots:
     void onFontChanged(QFont font);

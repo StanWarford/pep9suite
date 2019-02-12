@@ -29,7 +29,6 @@ HEADERS += \
     byteconverterinstr.h \
     colors.h \
     enu.h \
-    htmlhighlightermixin.h \
     inputpane.h \
     iowidget.h \
     mainmemory.h \
@@ -55,7 +54,6 @@ SOURCES += \
     byteconverterhex.cpp \
     byteconverterinstr.cpp \
     colors.cpp \
-    htmlhighlightermixin.cpp \
     inputpane.cpp \
     iowidget.cpp \
     mainmemory.cpp \

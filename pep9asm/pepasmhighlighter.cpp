@@ -21,7 +21,7 @@
 #include "pepasmhighlighter.h"
 
 PepASMHighlighter::PepASMHighlighter(PepColors::Colors colors, QTextDocument *parent)
-    : HTMLHighlighterMixin(parent)
+    : QSyntaxHighlighter(parent)
 {
     rebuildHighlightingRules(colors);
 }

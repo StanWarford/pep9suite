@@ -27,15 +27,14 @@
 #include <QHash>
 #include <QTextCharFormat>
 #include "colors.h"
-#include "htmlhighlightermixin.h"
 QT_BEGIN_NAMESPACE
 class QTextDocument;
 QT_END_NAMESPACE
 
-class PepASMHighlighter : public HTMLHighlighterMixin
+class PepASMHighlighter : public QSyntaxHighlighter
 {
 public:
-    PepASMHighlighter(PepColors::Colors colors, QTextDocument *parent = 0);
+    PepASMHighlighter(PepColors::Colors colors, QTextDocument *parent = nullptr);
     void rebuildHighlightingRules(PepColors::Colors color);
 protected:
     void highlightBlock(const QString &text);

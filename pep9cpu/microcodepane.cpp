@@ -339,17 +339,9 @@ MicrocodeEditor *MicrocodePane::getEditor()
     return editor;
 }
 
-void MicrocodePane::asHTML(QString &html) const
+QString MicrocodePane::toPlainText()
 {
-    if(inDarkMode) {
-        // Only print in light mode color scheme, as paper is usually white.
-        QTextDocument *doc = editor->document()->clone();
-        PepMicroHighlighter high(dataSection->getCPUType(), fullCtrlSection, PepColors::lightMode, doc);
-        high.rehighlight();
-        high.asHtml(html, editor->font());
-        delete doc;
-    }
-    else highlighter->asHtml(html, editor->font());
+    return editor->document()->toPlainText();
 }
 
 void MicrocodePane::useFullCtrlSection(bool fullCtrlSection)
