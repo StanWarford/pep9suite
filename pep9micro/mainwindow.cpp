@@ -241,15 +241,7 @@ MainWindow::MainWindow(QWidget *parent) :
             [&](QSet<quint16> addresses){controlSection->breakpointsSet(addresses);});
     connect(programManager, &AsmProgramManager::removeAllBreakpoints,
             [&](){controlSection->breakpointsRemoveAll();});
-    /*
-    // Load dark mode style sheet.
-    QFile f(":qdarkstyle/dark_style.qss");
-    f.open(QFile::ReadOnly | QFile::Text);
-    QTextStream ts(&f);
-    darkStyle = ts.readAll();
-    // Load light mode style sheet
-    lightStyle = this->styleSheet();
-    */
+
     // Load dark mode style sheet.
     QFile fDark(":/dark.qss");
     fDark.open(QFile::ReadOnly | QFile::Text);

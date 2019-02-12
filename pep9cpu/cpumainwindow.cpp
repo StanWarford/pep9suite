@@ -181,11 +181,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionDebug_Remove_All_Microcode_Breakpoints, &QAction::triggered, ui->microcodeWidget, &MicrocodePane::onRemoveAllBreakpoints);
 
     // Load dark mode style sheet.
-    QFile f(":qdarkstyle/dark_style.qss");
-    f.open(QFile::ReadOnly | QFile::Text);
-    QTextStream ts(&f);
-    darkStyle = ts.readAll();
-    lightStyle = this->styleSheet();
+    QFile fDark(":/dark.qss");
+    fDark.open(QFile::ReadOnly | QFile::Text);
+    QTextStream tsDark(&fDark);
+    darkStyle = tsDark.readAll();
+    // Load light mode style sheet
+    QFile fLight(":/light.qss");
+    fLight.open(QFile::ReadOnly | QFile::Text);
+    QTextStream tsLight(&fLight);
+    lightStyle = tsLight.readAll();
 
 
 
@@ -318,10 +322,8 @@ void MainWindow::readSettings()
     curPath = settings.value("filePath", QDir::homePath()).toString();
     // Restore dark mode state
     bool tempDarkMode = settings.value("inDarkMode", false).toBool();
-    if(tempDarkMode != inDarkMode) {
-        ui->actionDark_Mode->setChecked(tempDarkMode);
-        on_actionDark_Mode_triggered();
-    }
+    ui->actionDark_Mode->setChecked(tempDarkMode);
+    on_actionDark_Mode_triggered();
     quint16 debuggerLevel = settings.value("debugLevel", 1).toInt();
     if(debuggerLevel >= static_cast<quint16>(Enu::DebugLevels::END)) debuggerLevel = static_cast<int>(Enu::DebugLevels::DEFAULT);
     controlSection->setDebugLevel(static_cast<Enu::DebugLevels>(debuggerLevel));
@@ -960,7 +962,7 @@ void MainWindow::on_actionDark_Mode_triggered()
     else {
         this->setStyleSheet(lightStyle);
     }
-    emit darkModeChanged(inDarkMode);
+    emit darkModeChanged(inDarkMode, styleSheet());
 }
 
 // help:

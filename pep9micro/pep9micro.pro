@@ -63,7 +63,7 @@ OTHER_FILES += help/images/registeraddresssignals.png \
     help/debugging.html \
     help/cpu.html
 RESOURCES += \
-    ../PepStyles/breeze.qrc \
+    ../PepStyles/pepstyles.qrc \
     #../pep9common/dark_style.qrc \
     ../pep9common/pep9common-resources.qrc\
     pep9micro-resources.qrc \
@@ -86,7 +86,6 @@ DISTFILES += \
     ..\packages/pep9cpu/installscript.js \
     ..\rc/License.md \
     ProjectDefs.pri \
-    help/osunalignedsymbols.txt \
     help/osunalignedsymbols.txt \
 
 INCLUDEPATH += $$PWD/../pep9common

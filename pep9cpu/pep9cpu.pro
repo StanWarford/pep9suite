@@ -49,7 +49,8 @@ SOURCES += \
 RESOURCES += \
     cpu_helpresources.qrc \
     pep9cpu-resources.qrc \
-    ../pep9common/dark_style.qrc \
+    ../PepStyles/pepstyles.qrc \
+    #../pep9common/dark_style.qrc \
     ../pep9common/pep9common-resources.qrc
 
 DISTFILES += \

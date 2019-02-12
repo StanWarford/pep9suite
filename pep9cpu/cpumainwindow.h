@@ -244,7 +244,7 @@ signals:
     void simulationFinished();
     //If a sub-compnent wants to be notified that fonts should be restored to their default values, connect to this signal.
     void fontChanged(QFont font);
-    void darkModeChanged(bool);
+    void darkModeChanged(bool darkMode, QString styleSheet);
 };
 
 #endif // MAINWINDOW_H
