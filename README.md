@@ -4,8 +4,8 @@ In addition to supporting all of assembly programming features of the Pep9 appli
 
 * The Micro IDE provides the assembler from Pep9 and the CPU simulator of Pep9CPU so that complete assembly language programs can be executed at the microcode level - spanning two levels of system abstraction.
 * Run both memory aligned and nonaligned programs. Assembly language programs that do not use optimal .ALIGN directives still execute correctly but slower.
-* Provides performance statistics in the form of statement execution counts at the microcode level and the ISA level. Students can measure the performance differ- ences between aligned and nonaligned programs.
-* Retains the unit tests of the original Pep/9 CPU IDE so that students can write mi- crocode fragments with the extended microinstruction format.
+* Provides performance statistics in the form of statement execution counts at the microcode level and the ISA level. Students can measure the performance differences between aligned and nonaligned programs.
+* Retains the unit tests of the original Pep/9 CPU IDE so that students can write microcode fragments with the extended microinstruction format.
 * Supports new debugging features like step-into, step-out, and step-over so students can trace assembly programs more efficiently.
 
 # Building from Sources
@@ -18,4 +18,4 @@ If you do not have a copy of Qt installed, it can be downloaded from [the Qt web
 After making a local clone of the repository, navigate to the pep9micro/pep9micro directory, and open the project in Qt Creator. All that's left to do is build and enjoy.
 
 # Help Documentation
-The program comes packaged with help documentation to describe the nature & function of the Pep/9 virtual machine. This includes walkthroughs on Pep/9 assembly language programming and debugging tools/tips. It also includes a collection of sample assembly programs.
+The program comes packaged with help documentation to describe the nature and function of the Pep/9 virtual machine including walkthroughs on Pep/9 assembly language programming and debugging tools/tips. It also has a collection of sample assembly programs from the text _Computer Systems_, J. Stanley Warford, 5th edition, on which Pep/9 is based.
