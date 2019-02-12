@@ -35,10 +35,6 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     delayLastStepClear(false), darkModeEnabled(false), inSimulation(false), highlightPC(true)
 {
     ui->setupUi(this);
-    if (Pep::getSystem() != "Mac") {
-        ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
-        ui->tableView->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
-    }
     // Insert 1 column for address, 8 for memory bytes, and 1 for character dump
     data->insertColumns(0, 1+8+1);
     // Insert enough rows to hold 64k of memory
@@ -217,12 +213,7 @@ void MemoryDumpPane::scrollToTop()
 
 void MemoryDumpPane::highlightOnFocus()
 {
-    if (ui->tableView->hasFocus() || ui->scrollToLineEdit->hasFocus()) {
-        ui->label->setAutoFillBackground(true);
-    }
-    else {
-        ui->label->setAutoFillBackground(false);
-    }
+
 }
 
 bool MemoryDumpPane::hasFocus()

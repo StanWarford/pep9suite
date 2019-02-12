@@ -1,0 +1,108 @@
+// Textual substitutions start with an @, continue until an ":=",
+// and are replaced with all non-whitespace text to the right of the ":=".
+// Comments start with a //, and made either be on a line by themselves
+// or may be after a substitution.
+
+// Background colors for application window.
+@default-background:=          #31363b
+// Much lighter background as accent to default.
+@darker-background:=           #545c65
+// Slightly lighter background to contrast the default.
+@dark-background:=             #3daee9
+// Very dark background to contrast the default, used for things like text editors.
+@lighter-background:=          #232629
+// A heavily accented outline for widgets.
+@dark-outline:=                #929090
+
+// Background for the scroll bar.
+@scroll-background:=           #2A2929
+// Background color for a scroll handle.
+@scroll-handle-background:=    #3daee9
+// Color of actual scroll handle.
+@scroll-color:=                #2A2929
+
+// Colors for QSlider components.
+@slider-groove:=               #565a5e
+@slider-handle-background:=    #232629
+@slider-handle-border:=        #626568
+@slider-handle-hover:=         #3daee9
+@slider-subpage:=              #626568
+
+// QRC path under which are default theme icons.
+@theme-path:=                  dark
+// QRC path under which are opposite theme icons.
+@alt-theme-path:=              light
+
+// Default text color of widgets.
+@default-text:=                #eff0f1
+// Default selection color for text.
+@default-selection-color:=     #eff0f1
+// Default background highlighting for text.
+@default-selection-background:=#3daee9
+// Alternating row background color in tree, list, and table views.
+@alt-default-background:=      #5e6872
+
+// Color for disabled widgets.
+@disabled-gray:=               #76797c
+// Higher contrast color for disabled widgets.
+@disabled-dark-gray:=          #454545
+
+@tooltip-background:=          #eff0f1
+
+// Background color for toolbars.
+@toolbar:=                     #393838
+// Border color for toolbox.
+@toolbox-border:=              black
+
+// Background color for menu item when pressed.
+@menu-button-pressed:=         #3daee9
+
+// Colors for menu separators.
+@menu-seperator-color:=        lightblue
+@menu-seperator-hover:=        #787876
+
+// Background color for QFrames.
+@frame-color:=                 #76797c
+
+// Background color of an QAbstractView::Item when selected.
+@item-selected:=               #3daee9
+// Background color of a table item when hovered over.
+@table-hover:=                 #47b8f3
+// Background color of a QAbstractView::Item when hovered over.
+@item-hover:=                  #47b8f3
+
+// Colors for QHeaderViews
+@header-view-checked:=         #334e5e
+@header-view-text:=            white
+
+// Text/background colors of a disabled button.
+@button-disabled-background:=  #31363b
+@button-disabled-foreground:=  #454545
+// Background color for a focused button.
+@button-focus:=                black
+// Background color for a button with a checkbox.
+@button-checked:=              #6A6969
+// Background color of a hovered button.
+@button-hover-color:=          #3daee9
+// Gradients used to style push buttons
+@button-grad1-start:=          #3b4045
+@button-grad1-end:=            #31363b
+@button-hover-grad1-start:=    #3b4045
+@button-hover-grad1-end:=      #31363b
+@button-hover-grad2-start:=    #3b4045
+@button-hover-grad2-end:=      #31363b
+
+// Tab widget border color.
+@tab-border:=                  #76797c
+// Tab control border outline when unselected.
+@tab-unfocus:=                 #54575B
+// Tab control border outline when selected.
+@tab-focus:=                   black
+// Background color when hovering over a tab control.
+@tab-hover-background:=        rgba(61, 173, 232, 0.2)
+
+// Absolute dark border outline.
+@solid-dark-border:=           black
+
+// High-contrast border outline for QDockWidget.
+@dock-border:=                 #403F3F
