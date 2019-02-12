@@ -784,6 +784,8 @@ void MainWindow::print(Enu::EPane which)
      */
     QPrinter printer(QPrinter::HighResolution);
     QTextDocument document;
+    // Create highlighters (which may or may not be needed),
+    // so that the documents may be properly highlighted.
     PepASMHighlighter asHi(PepColors::lightMode, &document);
     PepMicroHighlighter mcHi(Enu::CPUType::TwoByteDataBus,
                                                    true, PepColors::lightMode, &document);
@@ -814,11 +816,16 @@ void MainWindow::print(Enu::EPane which)
 
     dialog->setWindowTitle(*title);
     if (dialog->exec() == QDialog::Accepted) {
-        //printer.setPaperSize(QPrinter::Letter);
+        // printer.setPaperSize(QPrinter::Letter);
+        // Must set margins, or printer might default to 2cm
         printer.setPageMargins(1, 1, 1, 1, QPrinter::Inch);
-        document.setDefaultFont(QFont("Courier", 10, -1));
+        // The document will pick the system default font.
+        // It is not monospaced, and it will not print well.
+        document.setDefaultFont(this->codeFont);
+        // If the document page size is not specified, then Windows mught try
+        // and fit the entire document on a single page.
         document.setPageSize(printer.paperSize(QPrinter::Point));
-        qDebug() << document.pageCount();
+        // qDebug() << document.pageCount();
         document.print(&printer);
     }
     dialog->deleteLater();

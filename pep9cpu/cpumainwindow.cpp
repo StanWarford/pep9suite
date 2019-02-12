@@ -484,22 +484,32 @@ void MainWindow::print()
 {
     // Don't use a pointer for the text, because toPlainText() returns a temporary object
     QString text;
-    const QString base = "Print Microcode";
-    const QString *title; //Pointer to the title of the dialog
-    /*
-     * Store text-to-print and dialog title based on which pane is to be printed
-     */
-    title = &base;
-    ui->microcodeWidget->asHTML(text);
-    QTextDocument document(this);
-    document.setHtml(text);
-    document.setDefaultFont(QFont("Courier", 10, -1));
+    const QString title = "Print Microcode";
 
     QPrinter printer(QPrinter::HighResolution);
+    QTextDocument document;
+
+    // Create a highlighter independent of the microcodewidget's highlighter,
+    // so that we may force it to use light mode colors.
+    PepMicroHighlighter mcHi(Enu::CPUType::TwoByteDataBus,
+                                                   true, PepColors::lightMode, &document);
+    mcHi.forceAllFeatures(true);
+    document.setPlainText(ui->microcodeWidget->toPlainText());
+    mcHi.rehighlight();
 
     QPrintDialog *dialog = new QPrintDialog(&printer, this);
-    dialog->setWindowTitle(*title);
+    dialog->setWindowTitle(title);
     if (dialog->exec() == QDialog::Accepted) {
+        // printer.setPaperSize(QPrinter::Letter);
+        // Must set margins, or printer might default to 2cm
+        printer.setPageMargins(1, 1, 1, 1, QPrinter::Inch);
+        // The document will pick the system default font.
+        // It is not monospaced, and it will not print well.
+        document.setDefaultFont(this->codeFont);
+        // If the document page size is not specified, then Windows mught try
+        // and fit the entire document on a single page.
+        document.setPageSize(printer.paperSize(QPrinter::Point));
+        // qDebug() << document.pageCount();
         document.print(&printer);
     }
     dialog->deleteLater();
