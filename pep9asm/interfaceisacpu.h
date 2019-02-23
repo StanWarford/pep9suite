@@ -50,6 +50,7 @@ public:
     void breakpointsRemoveAll() noexcept;
     void breakpointRemoved(quint16 address) noexcept;
     void breakpointAdded(quint16 address) noexcept;
+    QSharedPointer<const MemoryTrace> getMemoryTrace() const;
 
     // Clear program counters & breakpoint status
     void reset() noexcept;
@@ -81,9 +82,8 @@ protected:
     bool asmBreakpointHit, doDebug;
 
     bool firstLineAfterCall, isTrapped;
-    MemoryTrace memTrace;
+    QSharedPointer<MemoryTrace> memTrace;
     QStack<stackAction> userActions, osActions, *activeActions;
-    bool userStackIntact, osStackIntact, *activeIntact;
     quint16 heapPtr;
 };
 

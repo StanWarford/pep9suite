@@ -97,7 +97,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->memoryWidget->init(memDevice, controlSection);
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
-    ui->memoryTracePane->init(memDevice);
+    ui->memoryTracePane->init(memDevice, controlSection->getMemoryTrace());
     ui->AsmSourceCodeWidgetPane->init(memDevice, programManager);
     ui->asmListingTracePane->init(controlSection, programManager);
     ui->microcodeWidget->init(controlSection, dataSection, memDevice, true);
@@ -160,7 +160,9 @@ MainWindow::MainWindow(QWidget *parent) :
     // via connectMicroDraw() and disconnectMicroDraw().
     connect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, ui->memoryTracePane, &NewMemoryTracePane::updateTrace, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationStarted, ui->memoryWidget, &MemoryDumpPane::onSimulationStarted);
+    connect(this, &MainWindow::simulationStarted, ui->memoryTracePane, &NewMemoryTracePane::onSimulationStarted);
     connect(controlSection.get(), &FullMicrocodedCPU::hitBreakpoint, this, &MainWindow::onBreakpointHit);
 
     // Clear IOWidget every time a simulation is started.
@@ -340,7 +342,7 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
             else if(ui->asmListingTracePane->hasFocus() || ui->assemblerDebuggerTab->hasFocus()) {
                 if (ui->actionDebug_Step_Over_Assembler->isEnabled()) {
                     // single step
-                    on_actionDebug_Step_Over_Assembler_triggered();
+                    on_actionDebug_Single_Step_Assembler_triggered();
                     return true;
                 }
             }
@@ -992,6 +994,7 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionDebug_Continue->setEnabled(which&DebugButtons::CONTINUE);
     ui->actionDebug_Restart_Debugging->setEnabled(which&DebugButtons::RESTART);
     ui->actionDebug_Stop_Debugging->setEnabled(which&DebugButtons::STOP);
+    ui->actionDebug_Single_Step_Assembler->setEnabled(which&DebugButtons::STEP_OVER_ASM);
     ui->actionDebug_Step_Over_Assembler->setEnabled(which&DebugButtons::STEP_OVER_ASM);
     ui->actionDebug_Step_Into_Assembler->setEnabled(which&DebugButtons::STEP_INTO_ASM);
     ui->actionDebug_Step_Out_Assembler->setEnabled(which&DebugButtons::STEP_OUT_ASM);
@@ -1490,6 +1493,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         memDevice->clearBytesWritten();
         ui->cpuWidget->startDebugging();
         ui->memoryWidget->updateMemory();
+        ui->memoryTracePane->updateTrace();
         ui->asmListingTracePane->setFocus();
         return true;
     }
@@ -1518,8 +1522,25 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     handleDebugButtons();
     highlightActiveLines(true);
     ui->memoryWidget->updateMemory();
+    ui->memoryTracePane->updateTrace();
     controlSection->onDebuggingFinished();
     emit simulationFinished();
+}
+
+void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
+{
+    quint8 is;
+    quint16 addr = controlSection->getCPURegWordStart(Enu::CPURegisters::PC);
+    memDevice->getByte(addr, is);
+    if(controlSection->canStepInto()
+            && Pep::isTrapMap[Pep::decodeMnemonic[is]]) {
+        on_actionDebug_Step_Over_Assembler_triggered();
+    } else if (controlSection->canStepInto()) {
+        on_actionDebug_Step_Into_Assembler_triggered();
+    } else {
+        on_actionDebug_Step_Over_Assembler_triggered();
+    }
+
 }
 
 void MainWindow::on_actionDebug_Interupt_Execution_triggered()

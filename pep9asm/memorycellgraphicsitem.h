@@ -31,7 +31,6 @@ int cellSize(Enu::ESymbolFormat symbolFormat);
 class MemoryCellGraphicsItem : public QGraphicsItem
 {
 public:
-    MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int xLoc);
     MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int addr, QString sym, Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc);
     ~MemoryCellGraphicsItem() { }
 
@@ -39,30 +38,31 @@ public:
 
     void updateContents(int newAddr, QString newSymbol, Enu::ESymbolFormat newFmt, int newY);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
-
+    // Cell changes background color if it has been modified.
+    void setModified(bool value);
     static const int boxHeight;
     static const int boxWidth;
     static const int addressWidth;
     static const int symbolWidth;
     static const int bufferWidth;
 
-    QString value;
     QColor boxColor;
     QColor boxBgColor;
     QColor textColor;
     QColor boxTextColor;
     void updateValue();
-    int getAddress();
-    int getNumBytes();
+    quint16 getAddress() const;
+    quint16 getNumBytes() const;
+    quint16 getValue() const;
 
 private:
     const AMemoryDevice *memDevice;
-    int x;
-    int y;
-    int address;
+    int x, y;
+    quint16 address, iValue;
     Enu::ESymbolFormat eSymbolFormat;
-    QString symbol;
+    QString symbol, value;
     QRectF box;
+    bool isModified;
 
 };
 

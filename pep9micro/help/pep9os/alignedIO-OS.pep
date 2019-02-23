@@ -13,6 +13,7 @@ opAddr:  .BLOCK  2           ;Trap instruction operand address
 charIn:  .BLOCK  2           ;Memory-mapped input device
 charOut: .BLOCK  2           ;Memory-mapped output device
 .align 2
+         stop
 ; Alignment starts 
 ;******* Operating system ROM
          .BURN   0xFFFF

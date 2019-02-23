@@ -10,9 +10,9 @@
 InterfaceISACPU::InterfaceISACPU(const AMemoryDevice* dev, const AsmProgramManager* manager) noexcept: manager(manager),
     breakpointsISA(), asmInstructionCounter(0), asmBreakpointHit(false), doDebug(false),
     firstLineAfterCall(false), isTrapped(false),userActions(), osActions(), activeActions(&userActions),
-    userStackIntact(true), osStackIntact(true), activeIntact(&userStackIntact), memTrace()
+    memTrace(QSharedPointer<MemoryTrace>::create())
 {
-    memTrace.activeStack = &memTrace.userStack;
+    memTrace->activeStack = &memTrace->userStack;
 }
 
 InterfaceISACPU::~InterfaceISACPU()
@@ -49,6 +49,11 @@ void InterfaceISACPU::breakpointAdded(quint16 address) noexcept
     if(doDebug)qDebug() << "Added breakpoint at: " << address;
 }
 
+QSharedPointer<const MemoryTrace> InterfaceISACPU::getMemoryTrace() const
+{
+    return memTrace;
+}
+
 void InterfaceISACPU::setDebugBreakpoints(bool doDebug) noexcept
 {
     this->doDebug = doDebug;
@@ -59,13 +64,11 @@ void InterfaceISACPU::calculateStackChangeStart(quint8 instr)
     if(Pep::isTrapMap[Pep::decodeMnemonic[instr]]) {
         isTrapped = true;
         activeActions = &osActions;
-        activeIntact = &osStackIntact;
     }
     else if(Pep::decodeMnemonic[instr] == Enu::EMnemonic::RETTR) {
         isTrapped = false;
-        memTrace.activeStack = &memTrace.userStack;
+        memTrace->activeStack = &memTrace->userStack;
         activeActions = &userActions;
-        activeIntact = &userStackIntact;
     }
 }
 
@@ -88,58 +91,70 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
      *      x - If it returns false, we have a corrupt stack.
      *  x - If CallStack is ever exhausted before size is hit, return false.
      */
-    if(!(*activeIntact)|| this->manager->getProgramAt(pc) == nullptr) return;
+    if(!memTrace->activeStack->isStackIntact() || this->manager->getProgramAt(pc) == nullptr) return;
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[instr];
     quint16 size = 0;
+    bool mallocPreError = false;
     switch(mnemon) {
     case Enu::EMnemonic::CALL:
         firstLineAfterCall = true;
-        memTrace.activeStack->call(sp - 2);
+        memTrace->activeStack->call(sp - 2);
         activeActions->push(stackAction::call);
         if(dynamic_cast<const NonUnaryInstruction*>(manager->getUserProgram()->memAddressToCode(pc)) != nullptr){
             const NonUnaryInstruction* instr = dynamic_cast<const NonUnaryInstruction*>(manager->getUserProgram()->memAddressToCode(pc));
-            // In case a user wrote a self modifying program
-            if(instr->getMnemonic() != Enu::EMnemonic::CALL) return;
-            // Don't try to track calls to malloc via a literal address
-            else if(!instr->hasSymbolicOperand()) return;
-            // A call to things other than malloc don't trigger heap behavior
+            // If a previous call to malloc has corrupted the heap,
+            // don't attempt any further processing.
+            if(memTrace->heapTrace.canAddNew() == false) return;
+            // A call to things other than malloc don't trigger heap changes.
             else if(instr->getSymbolicOperand()->getName() != "malloc") return;
-            // A call with no symbol traces listed is ignored
-            if(manager->getUserProgram()->getTraceInfo()->instrToSymlist.contains(pc)) {
-                memTrace.heapTrace.isMalloc = true;
+            // In case a user wrote a self modifying program, and
+            // give up on tracking futue heap changes.
+            else if(instr->getMnemonic() != Enu::EMnemonic::CALL) mallocPreError = true;
+            // Don't try to track calls to malloc via a literal address, and give up
+            // on tracking future heap changes.
+            else if(!instr->hasSymbolicOperand()) mallocPreError = true;
+
+            // If there was an error, prevent any new heap adjustments from being made.
+            if(mallocPreError == true) {
+                memTrace->heapTrace.setCanAddNew(false);
+                return;
+            }
+            // A call with no symbol traces listed is ignored.
+            else if(manager->getUserProgram()->getTraceInfo()->instrToSymlist.contains(pc)) {
+                memTrace->heapTrace.setInMalloc(true);
                 QList<QPair<Enu::ESymbolFormat, QString>> primList;
                 for(auto item : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
                     primList.append(item->toPrimitives());
                 }
-                memTrace.heapTrace.pushHeap(heapPtr, primList);
-                qDebug().noquote().nospace() << "HEAP: "<<
-                                                memTrace.heapTrace;
+                memTrace->heapTrace.pushHeap(heapPtr, primList);
+                /*qDebug().noquote().nospace() << "HEAP: "<<
+                                                memTrace->heapTrace;*/
             }
             heapPtr += acc;
 
         }
         qDebug() << "Called!" ;
-        qDebug().noquote() << *(memTrace.activeStack);
+        qDebug().noquote() << *(memTrace->activeStack);
         break;
 
     case Enu::EMnemonic::RET:
         if(activeActions->isEmpty()) break;
         switch(activeActions->pop()) {
         case stackAction::call:
-            if(memTrace.activeStack->ret()) {
+            if(memTrace->activeStack->ret()) {
                 firstLineAfterCall = true;
-                memTrace.heapTrace.isMalloc = false;
+                memTrace->heapTrace.setInMalloc(false);
                 qDebug() << "Returned!" ;
-                qDebug().noquote() << *(memTrace.activeStack);
+                qDebug().noquote() << *(memTrace->activeStack);
             }
             else {
                  qDebug() <<"Unbalanced stack operation 7";
-                *activeIntact = false;
+                memTrace->activeStack->setStackIntact(false);
             }
             break;
         default:
             qDebug() <<"Unbalanced stack operation 1";
-            *activeIntact = false;
+            memTrace->activeStack->setStackIntact(false);
         }
         break;
 
@@ -150,7 +165,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                 size += pair->size();
             }
             if(size != opspec) {
-                *activeIntact = false;
+                memTrace->activeStack->setStackIntact(false);
                 qDebug() <<"Stack is wrong size";
                 break;
             }
@@ -161,7 +176,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                 for(auto item : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
                     primList.append(item->toPrimitives());
                 }
-                memTrace.activeStack->pushLocals(sp, primList);
+                memTrace->activeStack->pushLocals(sp, primList);
             }
             activeActions->push(stackAction::locals);
             qDebug() << "Alloc'ed Locals!" ;
@@ -172,12 +187,12 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                 for(auto item : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
                     primList.append(item->toPrimitives());
                 }
-                memTrace.activeStack->pushParams(sp, primList);
+                memTrace->activeStack->pushParams(sp, primList);
             }
             activeActions->push(stackAction::params);
             qDebug() << "Alloc'ed params! " ;//<< activeStack->top();
         }
-        qDebug().noquote()<< *(memTrace.activeStack);
+        qDebug().noquote()<< *(memTrace->activeStack);
         break;
 
     case Enu::EMnemonic::ADDSP:
@@ -186,59 +201,59 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                 size += pair->size();
             }
             if(size != opspec) {
-                *activeIntact = false;
+                memTrace->activeStack->setStackIntact(false);
                 qDebug() <<"Stack is wrong size";
                 break;
             }
         }
         else if(activeActions->isEmpty()) {
             qDebug() << "Unbalanced stack operation 2";
-            *activeIntact = false;
+            memTrace->activeStack->setStackIntact(false);
         }
         else break;
         switch(activeActions->pop()) {
         case stackAction::locals:
-            if(memTrace.activeStack->popLocals(size)) {
+            if(memTrace->activeStack->popLocals(size)) {
                 qDebug() << "Popped locals!" ;
-                qDebug().noquote() << *(memTrace.activeStack);
+                qDebug().noquote() << *(memTrace->activeStack);
             }
             else {
                 qDebug() << "Unbalanced stack operation 5";
-                *activeIntact = false;
+                memTrace->activeStack->setStackIntact(false);
             }
             break;
         case stackAction::params:
-            if(memTrace.activeStack->getTOS().size()>size
-                    && memTrace.activeStack->popAndOrphan(size)) {
+            if(memTrace->activeStack->getTOS().size()>size
+                    && memTrace->activeStack->popAndOrphan(size)) {
                 activeActions->push(stackAction::params);
                 qDebug() << "Popped Params & orphaned!" ;
-                qDebug().noquote() << *(memTrace.activeStack);
+                qDebug().noquote() << *(memTrace->activeStack);
             }
-            else if(memTrace.activeStack->getTOS().size() <= size) {
+            else if(memTrace->activeStack->getTOS().size() <= size) {
                 bool success = true;
                 activeActions->push(stackAction::params);
                 while(size > 0 && success) {
-                    size -= memTrace.activeStack->getTOS().size();
-                    success &= memTrace.activeStack->popParams(memTrace.activeStack->getTOS().size());
+                    size -= memTrace->activeStack->getTOS().size();
+                    success &= memTrace->activeStack->popParams(memTrace->activeStack->getTOS().size());
                     activeActions->pop();
                 }
                 if(success) {
                     qDebug() << "Popped Params!" ;
-                    qDebug().noquote() << *(memTrace.activeStack);
+                    qDebug().noquote() << *(memTrace->activeStack);
                 }
                 else {
                     qDebug() << "Unbalanced stack operation 6";
-                    *activeIntact = false;
+                    memTrace->activeStack->setStackIntact(false);
                 }
             }
             else {
                 qDebug() << "Unbalanced stack operation 8";
-                *activeIntact = false;
+                memTrace->activeStack->setStackIntact(false);
             }
             break;
         default:
             qDebug() << "Unbalanced stack operation 3";
-            *activeIntact = false;
+            memTrace->activeStack->setStackIntact(false);
             break;
         }
         break;
@@ -271,15 +286,16 @@ void InterfaceISACPU::reset() noexcept
 {
     asmInstructionCounter = 0;
     asmBreakpointHit = false;
-    memTrace.clear();
+    memTrace->clear();
     // Only trace the stack if trace tags are present, and no assembly time
     // errors occured.
-    userStackIntact = this->manager->getUserProgram()->getTraceInfo()->hadTraceTags
-            && !manager->getUserProgram()->getTraceInfo()->staticTraceError;
-    // Never attempt to trace OS
-    osStackIntact = false;
+    bool hadWarnings = !this->manager->getUserProgram()->getTraceInfo()->hadTraceTags
+            || manager->getUserProgram()->getTraceInfo()->staticTraceError;
+    memTrace->setHasTraceWarnings(hadWarnings);
+    memTrace->userStack.setStackIntact(!hadWarnings);
+
     // Store globals, if there were no trace tag errors
-    if(userStackIntact) {
+    if(!memTrace->hasTraceWarnings()) {
         QList<QPair<quint16,QPair<Enu::ESymbolFormat,QString>>> lst;
         QMap<QSharedPointer<const SymbolEntry>, QSharedPointer<AType>> map =
                 manager->getUserProgram()->getTraceInfo()->staticAllocSymbolTypes;
@@ -292,16 +308,24 @@ void InterfaceISACPU::reset() noexcept
             }
 
         }
-        memTrace.globalTrace.setTags(lst);
+
+        memTrace->globalTrace.setTags(lst);
+
+        // Handle the existence of the heap
         if(manager->getUserProgram()->getTraceInfo()->hasHeapMalloc) {
             heapPtr = manager->getUserProgram()->getTraceInfo()->heapPtr->getValue();
+            memTrace->heapTrace.setHeapIntact(!hadWarnings);
+            memTrace->heapTrace.setCanAddNew(!hadWarnings);
         }
+    }
+    else {
+        memTrace->heapTrace.setHeapIntact(false);
+        memTrace->heapTrace.setCanAddNew(false);
     }
 
     userActions.clear();
     osActions.clear();
     activeActions = & userActions;
-    activeIntact = &userStackIntact;
     isTrapped = false;
     firstLineAfterCall = false;
 }

@@ -160,6 +160,12 @@ bool FullMicrocodedCPU::onRun()
             if(microCycleCounter % 5000 == 0) {
                 QApplication::processEvents();
             }
+            else if(microprogramCounter == 0) {
+                // Clear at start, so as to preserve highlighting AFTER finshing a write.
+                // When running in debug, clear written bytes after every instruction,
+                // otherwise too many writes may queue up.
+                memory->clearBytesWritten();
+            }
             onMCStep();
         } while(!hadErrorOnStep() && !executionFinished && !(microBreakpointHit || asmBreakpointHit));
     }
@@ -237,11 +243,6 @@ void FullMicrocodedCPU::onMCStep()
         // Also store any other values needed for detailed statistics
         memoizer->storeStateInstrStart();
         memory->onCycleStarted();
-        // Must clear the written bytes each cycle
-        // or over the course of a program lifetime extraneous bytes
-        // could be selected.
-        // Clear at start, so as to preserve highlighting AFTER finshing a write.
-        memory->clearBytesWritten();
         InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Enu::CPURegisters::IS));
     }
 
@@ -335,6 +336,8 @@ void FullMicrocodedCPU::onISAStep()
 
 void FullMicrocodedCPU::stepOver()
 {
+    // Clear at start, so as to preserve highlighting AFTER finshing a write.
+    memory->clearBytesWritten();
     int localCallDepth = getCallDepth();
     do{
         onISAStep();
@@ -354,11 +357,15 @@ bool FullMicrocodedCPU::canStepInto() const
 
 void FullMicrocodedCPU::stepInto()
 {
+    // Clear at start, so as to preserve highlighting AFTER finshing a write.
+    memory->clearBytesWritten();
     onISAStep();
 }
 
 void FullMicrocodedCPU::stepOut()
 {
+    // Clear at start, so as to preserve highlighting AFTER finshing a write.
+    memory->clearBytesWritten();
     int localCallDepth = getCallDepth();
     do{
         onISAStep();

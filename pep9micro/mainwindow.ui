@@ -393,6 +393,7 @@
    </attribute>
    <addaction name="actionDebug_Continue"/>
    <addaction name="actionDebug_Stop_Debugging"/>
+   <addaction name="actionDebug_Single_Step_Assembler"/>
    <addaction name="actionDebug_Step_Over_Assembler"/>
    <addaction name="actionDebug_Step_Into_Assembler"/>
    <addaction name="actionDebug_Step_Out_Assembler"/>
@@ -507,7 +508,7 @@
    <widget class="QWidget" name="dockWidgetContents_3">
     <layout class="QGridLayout" name="gridLayout_7">
      <item row="0" column="0">
-      <widget class="MemoryTracePane" name="memoryTracePane" native="true">
+      <widget class="NewMemoryTracePane" name="memoryTracePane" native="true">
        <property name="minimumSize">
         <size>
          <width>150</width>
@@ -1074,6 +1075,18 @@
     <string>Complete Microcode</string>
    </property>
   </action>
+  <action name="actionDebug_Single_Step_Assembler">
+   <property name="icon">
+    <iconset resource="../pep9common/pep9common-resources.qrc">
+     <normaloff>:/images/debug_single_step_asm.png</normaloff>:/images/debug_single_step_asm.png</iconset>
+   </property>
+   <property name="text">
+    <string>Single Step - Assembler</string>
+   </property>
+   <property name="toolTip">
+    <string>Single Step - Assembler</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -1126,15 +1139,15 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>MemoryTracePane</class>
-   <extends>QWidget</extends>
-   <header>memorytracepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>AsmTracePane</class>
    <extends>QWidget</extends>
    <header>asmtracepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>NewMemoryTracePane</class>
+   <extends>QWidget</extends>
+   <header>memorytracepane.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

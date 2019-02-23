@@ -138,12 +138,12 @@ private:
     {
         static const int RUN = 1<<0, RUN_OBJECT = 1<<1, DEBUG = 1<<2, DEBUG_OBJECT = 1<<3, DEBUG_LOADER = 1<<4,
         INTERRUPT = 1<<5, CONTINUE = 1<<6, RESTART = 1<<7, STOP = 1<<8, STEP_OVER_ASM = 1<<9, STEP_INTO_ASM = 1<<10,
-        STEP_OUT_ASM = 1<<11, SINGLE_STEP_MICRO = 1<<12, /*SINGLE_STEP_ASM = 1<<13,*/ BUILD_ASM = 1<<14, BUILD_MICRO = 1<<15,
+        STEP_OUT_ASM = 1<<11, SINGLE_STEP_MICRO = 1<<12/*, SINGLE_STEP_ASM = 1<<13*/, BUILD_ASM = 1<<14, BUILD_MICRO = 1<<15,
         STATS_LEVELS = 1<<16, OPEN_NEW = 1<<17;
     };
 
-    // Which debug buttons to enable, based on integer cracking of the above struct. It is not strongly typed with an enum, because all of the casting
-    // would add signifcant code volume, and it would not increase code clarity.
+    // Which debug buttons to enable, based on integer cracking of the above struct. It is not strongly typed with an enum, because the casting
+    // would add signifcant code volume, and would not increase code clarity.
     // To enable only the run and stop buttons one would call "buttonEnableHelper(DebugButtons::RUN | DebugButtons::STOP)".
     void debugButtonEnableHelper(const int which);
 
@@ -213,6 +213,8 @@ private slots:
     void on_actionDebug_Restart_Debugging_triggered();
     void on_actionDebug_Stop_Debugging_triggered();
 
+    // TODO
+    void on_actionDebug_Single_Step_Assembler_triggered();
     // Stores the call depth, and continues to execute ISA instructions until the new call depth equals the old call depth.
     void on_actionDebug_Step_Over_Assembler_triggered();
     // Uncoditionally executes the next ISA instruction, including going into function calls and traps.

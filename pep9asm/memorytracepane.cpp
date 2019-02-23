@@ -3,7 +3,7 @@
     Pep9 is a virtual machine for writing machine language and assembly
     language programs.
     
-    Copyright (C) 2009  J. Stanley Warford, Pepperdine University
+    Copyright (C) 2019  J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,10 +27,13 @@
 
 #include <QMessageBox>
 #include <QDebug>
+#include "amemorydevice.h"
+#include "mainmemory.h"
+#include "stacktrace.h"
+#include "colors.h"
 
-MemoryTracePane::MemoryTracePane(QWidget *parent) :
-        QWidget(parent),
-        ui(new Ui::MemoryTracePane)
+NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent),
+    ui(new Ui::MemoryTracePane), globalLocation(QPointF(0, 0)), stackLocation(QPointF(200, 0)), heapLocation (QPointF(400, 0 - MemoryCellGraphicsItem::boxHeight))
 {
     ui->setupUi(this);
 
@@ -40,442 +43,48 @@ MemoryTracePane::MemoryTracePane(QWidget *parent) :
     connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(zoomFactorChanged(int)));
 
     scene = new QGraphicsScene(this);
+    ui->graphicsView->setScene(scene);
+    ui->graphicsView->setBackgroundBrush(QBrush(PepColors::lightMode.backgroundFill));
 }
 
-void MemoryTracePane::init(QSharedPointer<const MainMemory> memorySection)
+void NewMemoryTracePane::init(QSharedPointer<const MainMemory> memorySection, QSharedPointer<const MemoryTrace> trace)
 {
     this->memorySection = memorySection;
+    this->trace = trace;
+
 }
 
-MemoryTracePane::~MemoryTracePane()
+NewMemoryTracePane::~NewMemoryTracePane()
 {
     delete ui;
 }
 
-void MemoryTracePane::setMemoryTrace()
+void NewMemoryTracePane::updateTrace()
 {
-    globalVars.clear();
-    runtimeStack.clear();
-    heap.clear();
-    isRuntimeStackItemAddedStack.clear();
-    isHeapItemAddedStack.clear();
-    isStackFrameAddedStack.clear();
-    isHeapFrameAddedStack.clear();
-    stackHeightToStackFrameMap.clear();
-    modifiedBytes.clear();
-    bytesWrittenLastStep.clear();
-    addressToGlobalItemMap.clear();
-    addressToStackItemMap.clear();
-    addressToHeapItemMap.clear();
-    numCellsInStackFrame.clear();
-    graphicItemsInStackFrame.clear();
-    heapFrameItemStack.clear();
-    newestHeapItemsList.clear();
-    scene->clear();
-
-    /*if (Pep::traceTagWarning) {
-        hide();
-        return;
-    }*/
-
-    stackLocation = QPointF(200, 0);
-    globalLocation = QPointF(0, 0);
-    heapLocation = QPointF(400, 0 - MemoryCellGraphicsItem::boxHeight);
-    QString blockSymbol;
-    //int multiplier;
-
-    // Globals:
-    /*for (int i = 0; i < Pep::blockSymbols.size(); i++) {
-        blockSymbol = Pep::blockSymbols.at(i);
-        multiplier = Pep::symbolFormatMultiplier.value(blockSymbol);
-        int address = Pep::symbolTable.value(blockSymbol);
-        if (Pep::globalStructSymbols.contains(blockSymbol)) {
-            int offset = 0;
-            int bytesPerCell;
-            QString structField = "";
-            for (int j = 0; j < Pep::globalStructSymbols.value(blockSymbol).size(); j++) {
-                structField = Pep::globalStructSymbols.value(blockSymbol).at(j);
-                bytesPerCell = cellSize(Pep::symbolFormat.value(structField));
-                MemoryCellGraphicsItem *item = new MemoryCellGraphicsItem(memorySection, address + offset,
-                                                                          QString("%1.%2").arg(blockSymbol).arg(structField),
-                                                                          Pep::symbolFormat.value(structField),
-                                                                          static_cast<int>(globalLocation.x()),
-                                                                          static_cast<int>(globalLocation.y()));
-                item->updateValue();
-                globalLocation = QPointF(globalLocation.x(), globalLocation.y() + MemoryCellGraphicsItem::boxHeight);
-                globalVars.push(item);
-                addressToGlobalItemMap.insert(address + offset, item);
-                scene->addItem(item);
-                offset += bytesPerCell;
-            }
-        }
-        else {
-            if (multiplier == 1) {
-                MemoryCellGraphicsItem *item = new MemoryCellGraphicsItem(memorySection, address,
-                                                                          blockSymbol,
-                                                                          Pep::symbolFormat.value(blockSymbol),
-                                                                          static_cast<int>(globalLocation.x()),
-                                                                          static_cast<int>(globalLocation.y()));
-                item->updateValue();
-                globalLocation = QPointF(globalLocation.x(), globalLocation.y() + MemoryCellGraphicsItem::boxHeight);
-                globalVars.push(item);
-                addressToGlobalItemMap.insert(address, item);
-                scene->addItem(item);
-            }
-            else { // Array
-                int offset = 0;
-                int bytesPerCell = cellSize(Pep::symbolFormat.value(blockSymbol));
-                for (int j = 0; j < multiplier; j++) {
-                    MemoryCellGraphicsItem *item = new MemoryCellGraphicsItem(memorySection, address + offset,
-                                                                              blockSymbol + QString("[%1]").arg(j),
-                                                                              Pep::symbolFormat.value(blockSymbol),
-                                                                              static_cast<int>(globalLocation.x()),
-                                                                              static_cast<int>(globalLocation.y()));
-                    item->updateValue();
-                    globalLocation = QPointF(globalLocation.x(), globalLocation.y() + MemoryCellGraphicsItem::boxHeight);
-                    globalVars.push(item);
-                    addressToGlobalItemMap.insert(address + offset, item);
-                    scene->addItem(item);
-                    offset += bytesPerCell;
-                }
-            }
+    // If there were trace warnings, then the stack view won't be meaningful.
+    if(trace->hasTraceWarnings()) return;
+    updateGlobals();
+    // Only render stack / heap if they are still intact.
+    if(trace->activeStack->isStackIntact()) updateStack();
+    if(trace->heapTrace.heapIntact()) updateHeap();
+    // Using main memory device, update
+    for(quint16 address : memorySection->getBytesWritten()) {
+        if(addressToItems.contains(address)) {
+            addressToItems[address]->setModified(true);
+            addressToItems[address]->updateValue();
         }
     }
-
-    // Stack frame:
-    stackLocation.setY(globalLocation.y());
-    scene->addLine(stackLocation.x() - MemoryCellGraphicsItem::boxWidth * 0.2, stackLocation.y(),
-                   stackLocation.x() + MemoryCellGraphicsItem::boxWidth * 1.2, stackLocation.y(),
-                   QPen(QBrush(Qt::SolidPattern), 2, Qt::SolidLine));
-    int dist = static_cast<int>(MemoryCellGraphicsItem::boxWidth * 1.2 - MemoryCellGraphicsItem::boxWidth * 1.4);
-    for (int i = static_cast<int>(MemoryCellGraphicsItem::boxWidth * 1.2); i > dist; i = i - 10) {
-        scene->addLine(stackLocation.x() + i - 10, stackLocation.y() + 10,
-                       stackLocation.x() + i, stackLocation.y(),
-                       QPen(QBrush(Qt::SolidPattern), 1, Qt::SolidLine));
-    }
-    stackLocation.setY(stackLocation.y() - MemoryCellGraphicsItem::boxHeight);
-
-    heapLocation.setY(globalLocation.y() - MemoryCellGraphicsItem::boxHeight);
-    
-    scene->setSceneRect(scene->itemsBoundingRect());
-    ui->graphicsView->setScene(scene);
-
-    ui->warningLabel->clear();
-
-    stackFrameFSM.reset();*/
-}
-
-void MemoryTracePane::updateMemoryTrace(quint16 newSP)
-{
-    // Color all of the cells normally (globals)
-    for (int i = 0; i < globalVars.size(); i++) {
-        globalVars.at(i)->boxBgColor = Qt::white;
-        globalVars.at(i)->boxTextColor = Qt::black;
-    }
-    // Color all of the cells normally (stack)
-    for (int i = 0; i < runtimeStack.size(); i++) {
-        runtimeStack.at(i)->boxBgColor = Qt::white;
-        runtimeStack.at(i)->boxTextColor = Qt::black;
-    }
-    // Color all of the cells normally (heap)
-    for (int i = 0; i < heap.size(); i++) {
-        heap.at(i)->boxBgColor = Qt::white;
-        heap.at(i)->boxTextColor = Qt::black;
-    }
-    // Color the newest 'malloc' items on the heap light green
-    for (int i = 0; i < newestHeapItemsList.size(); i++) {
-        newestHeapItemsList.at(i)->boxBgColor = QColor(72, 255, 72, 192);
-    }
-    newestHeapItemsList.clear();
-
-    // Add cached stack items to the scene
-    for (int i = 0; i < runtimeStack.size(); i++) {
-        if (!isRuntimeStackItemAddedStack.at(i)) {
-            scene->addItem(runtimeStack.at(i));
-            isRuntimeStackItemAddedStack[i] = true;
-        }
-    }
-    // Add cached stack FRAME items to the scene
-    for (int i = 0; i < isStackFrameAddedStack.size(); i++) {
-        if (!isStackFrameAddedStack.at(i)) {
-            scene->addItem(graphicItemsInStackFrame.at(i));
-            isStackFrameAddedStack[i] = true;
-        }
-    }
-
-    // Add cached heap items to the scene
-    for (int i = 0; i < isHeapItemAddedStack.size(); i++) {
-        if (!isHeapItemAddedStack.at(i)) {
-            scene->addItem(heap.at(i));
-            isHeapItemAddedStack[i] = true;
-        }
-    }
-    for (int i = 0; i < isHeapFrameAddedStack.size(); i++) {
-        if (!isHeapFrameAddedStack.at(i)) {
-            scene->addItem(heapFrameItemStack.at(i));
-            isHeapFrameAddedStack[i] = true;
-        }
-    }
-
-    // Color global/stack/heap items red if they were modified last step
-    QList<int> modifiedBytesToBeUpdated = modifiedBytes.toList();
-    for (int i = 0; i < bytesWrittenLastStep.size(); i++) {
-        if (addressToGlobalItemMap.contains(bytesWrittenLastStep.at(i))) {
-            addressToGlobalItemMap.value(bytesWrittenLastStep.at(i))->boxBgColor = Qt::red;
-            addressToGlobalItemMap.value(bytesWrittenLastStep.at(i))->boxTextColor = Qt::white;
-        }
-        if (addressToStackItemMap.contains(bytesWrittenLastStep.at(i))) {
-            addressToStackItemMap.value(bytesWrittenLastStep.at(i))->boxBgColor = Qt::red;
-            addressToStackItemMap.value(bytesWrittenLastStep.at(i))->boxTextColor = Qt::white;
-        }
-        if (addressToHeapItemMap.contains(bytesWrittenLastStep.at(i))) {
-            addressToHeapItemMap.value(bytesWrittenLastStep.at(i))->boxBgColor = Qt::red;
-            addressToHeapItemMap.value(bytesWrittenLastStep.at(i))->boxTextColor = Qt::white;
-        }
-    }
-    // Update modified cells
-    for (int i = 0; i < modifiedBytesToBeUpdated.size(); i++) {
-        if (addressToGlobalItemMap.contains(modifiedBytesToBeUpdated.at(i))) {
-            addressToGlobalItemMap.value(modifiedBytesToBeUpdated.at(i))->updateValue();
-        }
-        if (addressToStackItemMap.contains(modifiedBytesToBeUpdated.at(i))) {
-            addressToStackItemMap.value(modifiedBytesToBeUpdated.at(i))->updateValue();
-        }
-        if (addressToHeapItemMap.contains(modifiedBytesToBeUpdated.at(i))) {
-            addressToHeapItemMap.value(modifiedBytesToBeUpdated.at(i))->updateValue();
-        }
-    }
-
-    scene->setSceneRect(scene->itemsBoundingRect());
-    // This is time-consuming, but worthwhile to ensure scrollbars aren't going off into oblivion after items are removed.
-    // From the documentation for the 'itemsBoundingRect()' function:
-    //  Calculates and returns the bounding rect of all items on the scene.
-    //  This function works by iterating over all items, and because if this, it can be slow for large scenes.
-    // Our it is unlikely that this scene become very large (as in the 30,000 chips example), so I would expect this to remain
-    // a reasonable function call. It is also called in the 'setMemoryTrace' function, but the scene will have very few items at that point.
-
-    scene->invalidate(); // redraw the scene!
-    // this is fast, so we do this for the whole scene instead of just certain boxes
 
     // Scroll to the top item if we have a scrollbar:
     if (!runtimeStack.isEmpty() && ui->graphicsView->viewport()->height() < scene->height()) {
         ui->graphicsView->centerOn(runtimeStack.top());
     }
 
-    // Clear modified bytes so for the next update:
-    bytesWrittenLastStep.clear();
-    modifiedBytes.clear();
+    scene->invalidate();
+
 }
 
-void MemoryTracePane::cacheChanges()
-{
-    //modifiedBytes.unite(Sim::modifiedBytes);
-    /*if (Sim::tracingTraps) {
-        bytesWrittenLastStep.clear();
-        bytesWrittenLastStep = Sim::modifiedBytes.toList();
-    }
-    else if (Sim::trapped) {
-        // We delay for a single vonNeumann step so that we preserve the modified bytes until we leave the trap - this allows for
-        // recoloring of cells modified by a trap instruction.
-        delayLastStepClear = true;
-        bytesWrittenLastStep.append(Sim::modifiedBytes.toList());
-    }
-    else if (delayLastStepClear) {
-        // Phew! We can now update (in updateMemoryTrace). If we don't, no harm done - they didn't want to see what happened in the trap
-        delayLastStepClear = false;
-    }
-    else {
-        // Clear the bytes written the step before last, and get the new list from the previous step. This is used in our update for coloring.
-        bytesWrittenLastStep.clear();
-        bytesWrittenLastStep = Sim::modifiedBytes.toList();
-    }*/
-
-    // Look ahead for heap/stack changes:
-    /*if (Sim::trapped) {
-        return;
-    }
-    // Look ahead for the symbol trace list (needs to be done here
-    // because of the possibility of call (can't look behind on a call)
-    // so we just do it for them all)
-    switch (Pep::decodeMnemonic[Sim::readByte(Sim::programCounter)]) {
-    case Enu::SUBSP:
-    case Enu::CALL:
-    case Enu::RET:
-    case Enu::ADDSP:
-        if (Pep::symbolTraceList.contains(Sim::programCounter)) {
-            lookAheadSymbolList = Pep::symbolTraceList.value(Sim::programCounter);
-        }
-        break;
-    default:
-        break;
-    }*/
-    // End look ahead
-}
-
-void MemoryTracePane::cacheStackChanges()
-{
-    /*if (Sim::trapped) {
-        return;
-    }*/
-
-    //int multiplier = 0;
-    //int bytesPerCell = 0;
-    //int offset = 0;
-    //int numCellsToAdd = 0;
-    //int frameSizeToAdd = 0;
-    //QString stackSymbol;
-
-    /*switch (Pep::decodeMnemonic[Sim::instructionSpecifier]) {
-    case Enu::CALL:
-        {
-            MemoryCellGraphicsItem *item = new MemoryCellGraphicsItem(Sim::stackPointer, "retAddr", Enu::F_2H,
-                                                                      static_cast<int>(stackLocation.x()), static_cast<int>(stackLocation.y()));
-            item->updateValue();
-            stackLocation.setY(stackLocation.y() - MemoryCellGraphicsItem::boxHeight);
-
-            isRuntimeStackItemAddedStack.push(false);
-            runtimeStack.push(item);
-            addressToStackItemMap.insert(Sim::stackPointer, item);
-            frameSizeToAdd = stackFrameFSM.makeTransition(1);
-        }
-        break;
-    case Enu::SUBSP:
-        {
-            for (int i = 0; i < lookAheadSymbolList.size(); i++) {
-                stackSymbol = lookAheadSymbolList.at(i);
-                multiplier = Pep::symbolFormatMultiplier.value(stackSymbol);
-                if (multiplier == 1) {
-                    offset += Sim::cellSize(Pep::symbolFormat.value(stackSymbol));
-                    MemoryCellGraphicsItem *item = new MemoryCellGraphicsItem(Sim::stackPointer - offset + Sim::operandSpecifier,
-                                                                              stackSymbol,
-                                                                              Pep::symbolFormat.value(stackSymbol),
-                                                                              static_cast<int>(stackLocation.x()),
-                                                                              static_cast<int>(stackLocation.y()));
-                    item->updateValue();
-                    stackLocation.setY(stackLocation.y() - MemoryCellGraphicsItem::boxHeight);
-                    isRuntimeStackItemAddedStack.push(false);
-                    runtimeStack.push(item);
-                    addressToStackItemMap.insert(Sim::stackPointer - offset + Sim::operandSpecifier, item);
-                    numCellsToAdd++;
-                }
-                else { // This is an array!
-                    bytesPerCell = Sim::cellSize(Pep::symbolFormat.value(stackSymbol));
-                    for (int j = multiplier - 1; j >= 0; j--) {
-                        offset += bytesPerCell;
-                        MemoryCellGraphicsItem *item = new MemoryCellGraphicsItem(Sim::stackPointer - offset + Sim::operandSpecifier,
-                                                                                  stackSymbol + QString("[%1]").arg(j),
-                                                                                  Pep::symbolFormat.value(stackSymbol),
-                                                                                  static_cast<int>(stackLocation.x()),
-                                                                                  static_cast<int>(stackLocation.y()));
-                        item->updateValue();
-                        stackLocation.setY(stackLocation.y() - MemoryCellGraphicsItem::boxHeight);
-                        isRuntimeStackItemAddedStack.push(false);
-                        runtimeStack.push(item);
-                        addressToStackItemMap.insert(Sim::stackPointer - offset + Sim::operandSpecifier, item);
-                        numCellsToAdd++;
-                    }
-                }
-            }
-            // qDebug() << "numCellsToAdd before makeTransition in ADDSP: " << numCellsToAdd;
-            frameSizeToAdd = stackFrameFSM.makeTransition(numCellsToAdd);
-        }
-        break;
-    case Enu::RET:
-        popBytes(2);
-        frameSizeToAdd = stackFrameFSM.makeTransition(0); // makeTransition(0) -> 0 bytes to add to the stack frame FSM.
-        break;
-    case Enu::ADDSP:
-        popBytes(Sim::operandSpecifier);
-        frameSizeToAdd = stackFrameFSM.makeTransition(0);
-        break;
-    default:
-        frameSizeToAdd = stackFrameFSM.makeTransition(0);
-        break;
-    }
-
-    if (frameSizeToAdd != 0) {
-        addStackFrame(frameSizeToAdd);
-        // This map is used to correlate the top of the stack frame with the frame itself,
-        // useful for determining when the frame should dissapear.
-        // IE: The top byte of the frame gets removed, so does the frame
-        stackHeightToStackFrameMap.insert(runtimeStack.size() - 1, graphicItemsInStackFrame.top());
-    }*/
-}
-
-void MemoryTracePane::cacheHeapChanges()
-{
-    /*if (Sim::trapped) {
-        return;
-    }
-    if (ui->warningLabel->text() != "") {
-        ui->warningLabel->clear();
-    }*/
-
-    /*if (Pep::decodeMnemonic[Sim::instructionSpecifier] == Enu::CALL && Pep::symbolTable.value("malloc") == Sim::operandSpecifier) {
-        newestHeapItemsList.clear();
-        int numCellsToAdd = 0;
-        int offset = 0;
-        int multiplier;
-        QString heapSymbol;
-        int heapPointer;
-        if (Pep::symbolTable.contains("hpPtr")) {
-            heapPointer = Pep::symbolTable.value("hpPtr");
-        }
-        else {
-            // We have no idea where the heap pointer is. Error!
-            ui->warningLabel->setText("Warning: hpPtr not found, unable to trace <code>CALL \'malloc\'</code>.");
-            return;
-        }
-        int listNumBytes = 0;
-        // Check and make sure the accumulator matches the number of bytes we're mallocing:
-        // We'll start by adding up the number of bytes...
-        for (int i = 0; i < lookAheadSymbolList.size(); i++) {
-            heapSymbol = lookAheadSymbolList.at(i);
-            if (Pep::equateSymbols.contains(heapSymbol) || Pep::blockSymbols.contains(heapSymbol)) {
-                // listNumBytes += number of bytes for that tag * the multiplier (IE, 2d4a is a 4 cell
-                // array of 2 byte decimals, where 2 is the multiplier and 4 is the number of cells.
-                // Note: the multiplier should always be 1 for malloc'd cells, but that's checked below, where we'll give a more specific error.
-                listNumBytes += Asm::tagNumBytes(Pep::symbolFormat.value(heapSymbol)) * Pep::symbolFormatMultiplier.value(heapSymbol);
-            }
-        }
-        if (listNumBytes != Sim::accumulator) {
-            ui->warningLabel->setText("Warning: The accumulator doesn't match the number of bytes in the trace tags");
-            return;
-        }
-        for (int i = 0; i < lookAheadSymbolList.size(); i++) {
-            heapSymbol = lookAheadSymbolList.at(i);
-            if (Pep::equateSymbols.contains(heapSymbol) || Pep::blockSymbols.contains(heapSymbol)) {
-                multiplier = Pep::symbolFormatMultiplier.value(heapSymbol);
-            }
-            else {
-                ui->warningLabel->setText("Warning: Symbol \"" + heapSymbol + "\" not found in .equates, unknown size.");
-                return;
-            }
-            if (multiplier == 1) { // We can't support arrays on the stack with our current addressing modes.
-                // All our prereqs have been met to make an item
-                moveHeapUpOneCell();
-
-                MemoryCellGraphicsItem *item = new MemoryCellGraphicsItem(Sim::readWord(heapPointer) + offset,
-                                                                          heapSymbol,
-                                                                          Pep::symbolFormat.value(heapSymbol),
-                                                                          static_cast<int>(heapLocation.x()),
-                                                                          static_cast<int>(heapLocation.y()));
-                item->updateValue();
-                isHeapItemAddedStack.push(false);
-                heap.push(item);
-                addressToHeapItemMap.insert(Sim::readWord(heapPointer) + offset, item);
-                newestHeapItemsList.append(item);
-                offset += Sim::cellSize(Pep::symbolFormat.value(heapSymbol));
-                numCellsToAdd++;
-            }
-        }
-        if (numCellsToAdd != 0) {
-            addHeapFrame(numCellsToAdd);
-        }
-    }*/
-}
-
-void MemoryTracePane::highlightOnFocus()
+void NewMemoryTracePane::highlightOnFocus()
 {
     if (ui->graphicsView->hasFocus() || ui->spinBox->hasFocus()) {
         ui->label->setAutoFillBackground(true);
@@ -485,172 +94,305 @@ void MemoryTracePane::highlightOnFocus()
     }
 }
 
-bool MemoryTracePane::hasFocus()
+bool NewMemoryTracePane::hasFocus()
 {
     return ui->graphicsView->hasFocus() || ui->spinBox->hasFocus();
 }
 
-void MemoryTracePane::setFocus()
-{
-    ui->graphicsView->setFocus();
-}
-
-void MemoryTracePane::onFontChanged(QFont font)
-{
-   ui->graphicsView->setFont(font);
-}
-
-void MemoryTracePane::addStackFrame(int numCells)
-{
-    QPen pen(Qt::black);
-    pen.setWidth(4);
-    QGraphicsRectItem *item = new QGraphicsRectItem(stackLocation.x() - 2, stackLocation.y() + MemoryCellGraphicsItem::boxHeight, 
-                      static_cast<qreal>(MemoryCellGraphicsItem::boxWidth + 4),
-                      static_cast<qreal>(MemoryCellGraphicsItem::boxHeight * numCells), nullptr);
-    item->setPen(pen);
-    graphicItemsInStackFrame.push(item);
-    isStackFrameAddedStack.push(false);
-    item->setZValue(1.0); // This moves the stack frame to the front
-    numCellsInStackFrame.push(numCells);
-}
-
-void MemoryTracePane::addHeapFrame(int numCells)
-{
-    QPen pen(Qt::black);
-    pen.setWidth(4);
-    QGraphicsRectItem *item = new QGraphicsRectItem(heapLocation.x() - 2,
-                                                    heapLocation.y() - MemoryCellGraphicsItem::boxHeight * (numCells - 1),
-                      static_cast<qreal>(MemoryCellGraphicsItem::boxWidth + 4),
-                      static_cast<qreal>(MemoryCellGraphicsItem::boxHeight * numCells), nullptr);
-    item->setPen(pen);
-    heapFrameItemStack.push(item);
-    isHeapFrameAddedStack.push(false);
-    item->setZValue(1.0); // This moves the heap frame to the front
-}
-
-void MemoryTracePane::moveHeapUpOneCell()
-{
-    for (int i = 0; i < heap.size(); i++) {
-        heap.at(i)->moveBy(0, 0 - MemoryCellGraphicsItem::boxHeight);
-    }
-    for (int i = 0; i < heapFrameItemStack.size(); i++) {
-        heapFrameItemStack.at(i)->moveBy(0, 0 - MemoryCellGraphicsItem::boxHeight);
-    }
-}
-
-void MemoryTracePane::popBytes(int bytesToPop)
-{
-    while (bytesToPop > 0 && !runtimeStack.isEmpty()) {
-        if (stackHeightToStackFrameMap.contains(runtimeStack.size() - 1)) {
-            if (stackHeightToStackFrameMap.value(runtimeStack.size() - 1)->scene() == scene) {
-                scene->removeItem(stackHeightToStackFrameMap.value(runtimeStack.size() - 1));
-            }
-            delete stackHeightToStackFrameMap.value(runtimeStack.size() - 1);
-            graphicItemsInStackFrame.pop();
-            stackHeightToStackFrameMap.remove(runtimeStack.size() - 1);
-            isStackFrameAddedStack.pop();
-            numCellsInStackFrame.pop();
-        }
-        
-        if (runtimeStack.top()->scene() == scene) {
-            scene->removeItem(runtimeStack.top());
-        }
-        addressToStackItemMap.remove(runtimeStack.top()->getAddress());
-        bytesToPop -= runtimeStack.top()->getNumBytes();
-        delete runtimeStack.top();
-        runtimeStack.pop();
-        isRuntimeStackItemAddedStack.pop();
-        stackLocation.setY(stackLocation.y() + MemoryCellGraphicsItem::boxHeight);
-    }
-}
-
-void MemoryTracePane::mouseReleaseEvent(QMouseEvent *)
-{
-    ui->graphicsView->setFocus();
-}
-
-void MemoryTracePane::zoomFactorChanged(int factor)
-{
-    QMatrix matrix;
-    matrix.scale(factor * .01, factor * .01);
-    ui->graphicsView->setMatrix(matrix);
-}
-
-void MemoryTracePane::mouseDoubleClickEvent(QMouseEvent *)
-{
-    emit labelDoubleClicked(Enu::EPane::EMemoryTrace);
-}
-
-NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent)
-{
-    #pragma message ("TODO")
-}
-
-void NewMemoryTracePane::init(QSharedPointer<const MainMemory> memorySection, QSharedPointer<const MemoryTrace> trace)
-{
-    this->memorySection = memorySection;
-    this->trace = trace;
-}
-
-NewMemoryTracePane::~NewMemoryTracePane()
-{
-    #pragma message ("TODO")
-}
-
-void NewMemoryTracePane::updateTrace()
-{
-    updateGlobals();
-    updateHeap();
-    updateStack();
-}
-
-void NewMemoryTracePane::highlightOnFocus()
-{
-    #pragma message ("TODO")
-}
-
-bool NewMemoryTracePane::hasFocus()
-{
-#pragma message ("TODO")
-    throw -1;
-}
-
 void NewMemoryTracePane::setFocus()
 {
-#pragma message ("TODO")
+    ui->graphicsView->setFocus();
 }
 
 void NewMemoryTracePane::onFontChanged(QFont font)
 {
-#pragma message ("TODO")
+    ui->graphicsView->setFont(font);
+}
+
+void NewMemoryTracePane::onSimulationStarted()
+{
+    globalVars.clear();
+    runtimeStack.clear();
+    heap.clear();
+    addressToItems.clear();
+    graphicItemsInStackFrame.clear();
+    heapFrameItemStack.clear();
+    scene->clear();
+    MemoryCellGraphicsItem* ptr = nullptr;
+    qreal globaly = globalLocation.y();
+
+    // Don't attempt to render items if there are trace tag warnings.
+    if(trace->hasTraceWarnings()) return;
+    // Add global symbols
+    for(auto tag : trace->globalTrace.getMemTags()) {
+        ptr = new MemoryCellGraphicsItem(memorySection.get(), tag.addr, tag.type.second, tag.type.first, globalLocation.x(), globaly);
+        ptr->updateValue();
+        scene->addItem(ptr);
+        globalVars.push(ptr);
+        addressToItems.insert(tag.addr, ptr);
+        if(ptr->getNumBytes() == 2) {
+            addressToItems.insert((tag.addr + 1) % memorySection->size(), ptr);
+        }
+        globaly += globalLocation.y() + MemoryCellGraphicsItem::boxHeight;
+    }
+
+    // This is time-consuming, but worthwhile to ensure scrollbars aren't going off into oblivion after items are removed.
+    // From the documentation for the 'itemsBoundingRect()' function:
+    //  Calculates and returns the bounding rect of all items on the scene.
+    //  This function works by iterating over all items, and because if this, it can be slow for large scenes.
+    // Our it is unlikely that this scene become very large (as in the 30,000 chips example), so I would expect this to remain
+    // a reasonable function call. It is also called in the 'setMemoryTrace' function, but the scene will have very few items at that point.
+    scene->setSceneRect(scene->itemsBoundingRect());
+
+    // Add lines under stack
+    scene->addLine(stackLocation.x() - MemoryCellGraphicsItem::boxWidth * 0.2, stackLocation.y(),
+                   stackLocation.x() + MemoryCellGraphicsItem::boxWidth * 1.2, stackLocation.y(),
+                   QPen(QBrush(Qt::SolidPattern), 2, Qt::SolidLine));
+    int dist = static_cast<int>(MemoryCellGraphicsItem::boxWidth * 1.2 - MemoryCellGraphicsItem::boxWidth * 1.4);
+    for (int i = static_cast<int>(MemoryCellGraphicsItem::boxWidth * 1.2); i > dist; i = i - 10) {
+        scene->addLine(stackLocation.x() + i - 10, stackLocation.y() + 10,
+                       stackLocation.x() + i, stackLocation.y() + 1,
+                       QPen(QBrush(Qt::SolidPattern), 1, Qt::SolidLine));
+    }
+
+    scene->invalidate(); // redraw the scene!
+
+}
+
+void NewMemoryTracePane::onSimulationFinished()
+{
+    #pragma message("TODO")
 }
 
 void NewMemoryTracePane::updateGlobals()
 {
-#pragma message ("TODO")
+    // Update the value of all global items
+    for(MemoryCellGraphicsItem* item : globalVars) {
+        item->setModified(false);
+        item->updateValue();
+    }
 }
 
 void NewMemoryTracePane::updateHeap()
 {
-#pragma message ("TODO")
+    // Pen to draw dark border
+    QPen pen(Qt::black);
+    pen.setWidth(4);
+    // Y location where bold outline should be drawn.
+    int frameBase = heapLocation.y();
+    // Number of bytes allocated by the current call to malloc, or 0 otherwise.
+    quint16 frameItemCount = 0;
+    // Since we want to allocate any previously missed frames,
+    // iterate from the oldest frame to the newest frame,
+    // and shift up any old frame to make room for new ones.
+    for(auto stackFrame = trace->heapTrace.begin();
+        stackFrame != trace->heapTrace.end(); ++stackFrame) {
+        // Reset starting y location for each iteration, or multiple frames may be allocated on top of each other
+        int yLoc = heapLocation.y() - MemoryCellGraphicsItem::boxHeight;
+        // Number of cells in current frame.
+        frameItemCount = stackFrame->numItems();
+        // If a frame has 0 items, it is already allocated (or doesn't matter), otherwise, it might not be allocated.
+        bool frameAdded = frameItemCount == 0;
+        for(auto graphicsItem : heap){
+            // If the first address of any arbitrary item in the current frame is found on the
+            // heap, assume the entire frame has already been sucessfully placed on the heap.
+            if(graphicsItem->getAddress() == stackFrame->begin()->addr) {
+                frameAdded = true;
+                break;
+            }
+        }
+        // If the frame hasn't been added yet and the heap is still
+        // able to be added to (i.e. it is intact), there's work to do.
+        if(!frameAdded && trace->heapTrace.canAddNew()){
+            // First, shift up all existing stack entries by the size of this stack frame.
+            for(auto item : heap) {
+                item->moveBy(0, 0 - frameItemCount * MemoryCellGraphicsItem::boxHeight);
+            }
+            // Shift up the frame outlines by the size of this stack frame
+            for(auto frame: heapFrameItemStack) {
+                frame->moveBy(0, 0 - frameItemCount * MemoryCellGraphicsItem::boxHeight);
+            }
+            // Add the cells from this frame to the heap
+            for(auto memTag = stackFrame->begin();
+                memTag != stackFrame->end(); ++memTag) {
+                MemoryCellGraphicsItem* item = new MemoryCellGraphicsItem(memorySection.get(), memTag->addr,
+                                                  memTag->type.second, memTag->type.first,
+                                                  heapLocation.x(), yLoc);
+                addressToItems.insert(item->getAddress(), item);
+                if(item->getNumBytes() == 2) addressToItems.insert(item->getAddress() + 1, item);
+                heap.append(item);
+                scene->addItem(item);
+                yLoc -= MemoryCellGraphicsItem::boxHeight;
+            }
+            // Add the bolded frame
+            QGraphicsRectItem * rectItem = new QGraphicsRectItem(heapLocation.x() - 2, frameBase,
+                              static_cast<qreal>(MemoryCellGraphicsItem::boxWidth + 4),
+                              - static_cast<qreal>(MemoryCellGraphicsItem::boxHeight * stackFrame->numItems()), nullptr);
+            scene->addItem(rectItem);
+            rectItem->setPen(pen);
+            rectItem->setZValue(1.0); // This moves the frame to the front
+            heapFrameItemStack.push(rectItem);
+        }
+
+    }
+    // Update the contents of every cell in the memory view
+    for (auto item : heap) {
+        item->setModified(false);
+        item->updateValue();
+        item->boxBgColor = Qt::white;
+    }
+    // If currently in malloc, and there are items to highlight, highlight (in green) the last added frame.
+    if(trace->heapTrace.inMalloc()
+            && trace->heapTrace.crbegin() != trace->heapTrace.crend()) {
+        for(int it = 0; it < trace->heapTrace.crbegin()->numItems(); it++) {
+            heap[heap.size() - 1 - it]->boxBgColor = Qt::green;
+        }
+    }
 }
 
 void NewMemoryTracePane::updateStack()
 {
-#pragma message ("TODO")
+    // Pen to draw dark border
+    QPen pen(Qt::black);
+    pen.setWidth(4);
+
+    // Pointer to item being rendered.
+    MemoryCellGraphicsItem * item = nullptr;
+    // Items that are being added to the runtime stack this cycle.
+    QList<MemoryCellGraphicsItem *> newItems = {};
+    // Mantain cache of usable rectangle to avoid useless memory allocations
+    QStack<QGraphicsRectItem *> itemCache = graphicItemsInStackFrame;
+    graphicItemsInStackFrame.clear();
+    // Iterator to traverse the items already on the runtime stack.
+    QStack<MemoryCellGraphicsItem *>::iterator rtit = runtimeStack.begin();
+    // Iterator to traverse the unused graphics items that are lying around.
+    QList<MemoryCellGraphicsItem *>::iterator exit = extraItems.begin();
+    int yLoc = stackLocation.y() - MemoryCellGraphicsItem::boxHeight;
+    int frameBase;
+    for(auto stackFrame = trace->activeStack->cbegin();
+        stackFrame != trace->activeStack->cend(); ++stackFrame) {
+        // Store the bottom Y value of this stack frame,
+        // so that a bold outline might be drawn around it.
+        frameBase = yLoc + MemoryCellGraphicsItem::boxHeight;
+        for(auto memTag = stackFrame->begin();
+            memTag != stackFrame->end(); ++memTag) {
+
+            // Exhaust items on the runtime stack.
+            if(rtit != runtimeStack.cend()) {
+                // If the current tag does not match the item at the current
+                // position on the runtime stack, extra cleanup work todo
+                if((*rtit)->getAddress() != memTag->addr) {
+                    // Remove old entry's address from the lookup map,
+                    // else a modifcation to that address might effect this one.
+                    addressToItems.remove((*rtit)->getAddress());
+                    if((*rtit)->getNumBytes() == 2) addressToItems.remove((*rtit)->getAddress() + 1);
+                    (*rtit)->updateContents(memTag->addr, memTag->type.second, memTag->type.first, yLoc);
+                    // Add updated cell to address lookup map.
+                    addressToItems.insert((*rtit)->getAddress(), (*rtit));
+                    if((*rtit)->getNumBytes() == 2) addressToItems.insert((*rtit)->getAddress() + 1, (*rtit));
+                }
+                // Set the item whose contents are to be updated.
+                item = *rtit;
+                ++rtit;
+            }
+
+            // Then exhaust extra cached items.
+            else if(exit != extraItems.end()) {
+                // Take an item from the extra list and update its contents.
+                item = *exit;
+                item->updateContents(memTag->addr, memTag->type.second, memTag->type.first, yLoc);
+                // Add updated cell to address lookup map.
+                addressToItems.insert(item->getAddress(), item);
+                if(item->getNumBytes() == 2) addressToItems.insert(item->getAddress() + 1, item);
+                ++exit;
+                // Remove item from extra list, and append it to the list of newly added items this update pass.
+                extraItems.pop_front();
+                newItems.append(item);
+                scene->addItem(item);
+
+            }
+
+            // Then start creating new items
+            else {
+                // No cached items, so must allocate some via new.
+                item = new MemoryCellGraphicsItem(memorySection.get(), memTag->addr,
+                                                  memTag->type.second, memTag->type.first,
+                                                  stackLocation.x(), yLoc);
+                // Add updated cell to address lookup map.
+                addressToItems.insert(item->getAddress(), item);
+                if(item->getNumBytes() == 2) addressToItems.insert(item->getAddress() + 1, item);
+                newItems.append(item);
+                scene->addItem(item);
+            }
+
+            // Adjust location of next stack item to account for the most recently processed item
+            yLoc -= MemoryCellGraphicsItem::boxHeight;
+            item->setModified(false);
+            item->updateValue();
+        }
+
+        // If a frame is orphaned or incomplete, it should not be outlined.
+        if(stackFrame->isOrphaned == false) {
+            QGraphicsRectItem * item;
+            // If there are no leftover frame outlines, start creating new ones
+            if(itemCache.isEmpty()) {
+            item = new QGraphicsRectItem(stackLocation.x() - 2, frameBase,
+                              static_cast<qreal>(MemoryCellGraphicsItem::boxWidth + 4),
+                              - static_cast<qreal>(MemoryCellGraphicsItem::boxHeight * stackFrame->numItems()), nullptr);
+                scene->addItem(item);
+            }
+            // Otherwise reuse an old outline.
+            else {
+                item = itemCache.takeFirst();
+                item->setRect(stackLocation.x() - 2, frameBase,
+                              static_cast<qreal>(MemoryCellGraphicsItem::boxWidth + 4),
+                              - static_cast<qreal>(MemoryCellGraphicsItem::boxHeight * stackFrame->numItems()));
+            }
+            item->setPen(pen);
+            graphicItemsInStackFrame.push(item);
+            item->setZValue(1.0); // This moves the stack frame to the front
+        }
+    }
+
+    // Remove items from rendering on runtime stack if they have been popped.
+    // Cache the items, to save calls to new.
+    while(rtit != runtimeStack.cend()) {
+        addressToItems.remove((*rtit)->getAddress());
+        if((*rtit)->getNumBytes() == 2) addressToItems.remove((*rtit)->getAddress() + 1);
+        scene->removeItem(*rtit);
+        extraItems.append(*rtit);
+        // Don't need to delete items, as they have been sucessfully appended to extraItems.
+        rtit = runtimeStack.erase(rtit);
+    }
+
+    // Delete additional frame outlines. These should be cached, but the performance gain should be minimal
+    while(!itemCache.isEmpty()) {
+        QGraphicsRectItem * item = itemCache.takeFirst();
+        scene->removeItem(item);
+        delete item;
+    }
+
+    // Move newItems to runtime stack.
+    // Don't move them until after updating stack,
+    // since adding items would confuse our non-mutable iterators.
+    for(auto item : newItems) {
+        runtimeStack.push(item);
+    }
 }
 
 void NewMemoryTracePane::mouseReleaseEvent(QMouseEvent *)
 {
-#pragma message ("TODO")
+    ui->graphicsView->setFocus();
 }
 
 void NewMemoryTracePane::mouseDoubleClickEvent(QMouseEvent *)
 {
-#pragma message ("TODO")
+    emit labelDoubleClicked(Enu::EPane::EMemoryTrace);
 }
 
 void NewMemoryTracePane::zoomFactorChanged(int factor)
 {
-   #pragma message ("TODO")
+    QMatrix matrix;
+    matrix.scale(factor * .01, factor * .01);
+    ui->graphicsView->setMatrix(matrix);
 }

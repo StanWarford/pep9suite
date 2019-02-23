@@ -33,7 +33,8 @@ const int MemoryCellGraphicsItem::bufferWidth = 14;
 
 MemoryCellGraphicsItem::MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int addr, QString sym,
                                                Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc): memDevice(memDevice), x(xLoc), y(yLoc),
-    address(addr), eSymbolFormat(eSymFrmt), boxColor(Qt::black), boxBgColor(Qt::white), textColor(Qt::black), boxTextColor(Qt::black)
+    address(addr), eSymbolFormat(eSymFrmt), boxColor(Qt::black), boxBgColor(Qt::white), textColor(Qt::black), boxTextColor(Qt::black),
+    isModified(false)
 {
     if (sym.length() > 0 && sym.at(0).isDigit()) {
         sym = "";
@@ -64,7 +65,12 @@ void MemoryCellGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphics
     QPen pen(boxColor);
     pen.setWidth(2);
     painter->setPen(pen);
-    painter->setBrush(boxBgColor);
+    if(isModified) {
+        painter->setBrush(Qt::red);
+    }
+    else {
+        painter->setBrush(boxBgColor);
+    }
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawRoundedRect(QRectF(x, y, boxWidth, boxHeight), 2, 2, Qt::RelativeSize);
 
@@ -80,6 +86,16 @@ void MemoryCellGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphics
     painter->drawText(QRectF(x, y, boxWidth, boxHeight), Qt::AlignCenter, value);
 }
 
+void MemoryCellGraphicsItem::setModified(bool value)
+{
+    isModified = value;
+}
+
+quint16 MemoryCellGraphicsItem::getValue() const
+{
+    return iValue;
+}
+
 void MemoryCellGraphicsItem::updateValue()
 {
     quint8 byte;
@@ -88,35 +104,42 @@ void MemoryCellGraphicsItem::updateValue()
     case Enu::ESymbolFormat::F_1C:
         memDevice->getByte(address, byte);
         value = QString(QChar(byte));
+        iValue = byte;
         break;
     case Enu::ESymbolFormat::F_1D:
         memDevice->getByte(address, byte);
         value = QString("%1").arg(QChar(byte));
+        iValue = byte;
         break;
     case Enu::ESymbolFormat::F_2D:
         memDevice->getWord(address, word);
-        value = QString("%1").arg(word);
+        value = QString("%1").arg((qint16) word);
+        iValue = word;
         break;
     case Enu::ESymbolFormat::F_1H:
         memDevice->getByte(address, byte);
         value = QString("%1").arg(byte, 2, 16, QLatin1Char('0')).toUpper();
+        iValue = byte;
         break;
     case Enu::ESymbolFormat::F_2H:
         memDevice->getWord(address, word);
         value = QString("%1").arg(word, 4, 16, QLatin1Char('0')).toUpper();
+        iValue = word;
         break;
     default:
         value = ""; // Should not occur
+        iValue = 0;
         break;
     }
+
 }
 
-int MemoryCellGraphicsItem::getAddress()
+quint16 MemoryCellGraphicsItem::getAddress() const
 {
     return address;
 }
 
-int MemoryCellGraphicsItem::getNumBytes()
+quint16 MemoryCellGraphicsItem::getNumBytes() const
 {
     return cellSize(eSymbolFormat);
 }
