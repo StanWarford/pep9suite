@@ -29,6 +29,7 @@ const PepColors::Colors PepColors::initDark()
 
     retVal.arrowColorOn = QColor(0xeeeeee); //Used to be Qt::white
     retVal.arrowColorOff = QColor(Qt::gray); //Used to be Qt:gray
+    retVal.textColor = retVal.arrowColorOn;
     retVal.backgroundFill= QColor(0x31363b);
     retVal.arrowImageOn=(":/images/arrowhead_dark.png");
     retVal.arrowImageOff=(":/images/arrowhead_gray.png");
@@ -73,6 +74,7 @@ const PepColors::Colors PepColors::initLight()
 
     retVal.arrowColorOn = Qt::black;
     retVal.arrowColorOff = Qt::gray;
+    retVal.textColor = retVal.arrowColorOn;
     retVal.backgroundFill= QColor(Qt::white);
     retVal.arrowImageOn=(":/images/arrowhead.png");
     retVal.arrowImageOff=(":/images/arrowhead_gray.png");

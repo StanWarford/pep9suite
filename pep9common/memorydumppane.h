@@ -112,7 +112,7 @@ private:
     // lastModifiedBytes indicates which bytes were written in the last ISA instruction.
 
 
-    bool delayLastStepClear, darkModeEnabled, inSimulation, highlightPC;
+    bool delayLastStepClear, inSimulation, highlightPC;
     // This is used to delay a clear of the QList bytesWrittenLastStep when leaving a trap that modifies bytes
     // to allow highlighting of modified bytes in trap instructions.
 

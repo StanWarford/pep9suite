@@ -58,12 +58,16 @@ public slots:
     void onFontChanged(QFont font);
     void onSimulationStarted();
     void onSimulationFinished();
+    // Handle switching styles to and from dark mode & potential re-highlighting
+    void onDarkModeChanged(bool darkMode);
 private:
     void updateGlobals();
     void updateHeap();
     void updateStack();
+    void updateStatics();
 
     Ui::MemoryTracePane *ui;
+    const PepColors::Colors *colors;
     QSharedPointer<const MainMemory> memorySection;
     QSharedPointer<const MemoryTrace> trace;
     QGraphicsScene *scene;

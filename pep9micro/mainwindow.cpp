@@ -201,6 +201,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::darkModeChanged, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->AsmListingWidgetPane, &AsmListingPane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->asmListingTracePane, &AsmTracePane::onDarkModeChanged);
+    connect(this, &MainWindow::darkModeChanged, ui->memoryTracePane, &NewMemoryTracePane::onDarkModeChanged);
 
     connect(ui->cpuWidget, &CpuPane::appendMicrocodeLine, this, &MainWindow::appendMicrocodeLine);
 
@@ -492,6 +493,10 @@ bool MainWindow::save(Enu::EPane which)
         else retVal = saveFile(ui->microcodeWidget->getCurrentFile().fileName(),Enu::EPane::EMicrocode);
         if(retVal) ui->microcodeWidget->setModifiedFalse();
         break;
+    default:
+        // Provided a default - even though it should never occur -
+        // to silence compiler warnings.
+        break;
     }
     return retVal;
 }
@@ -596,6 +601,10 @@ void MainWindow::loadFile(const QString &fileName, Enu::EPane which)
         ui->microcodeWidget->setMicrocode(in.readAll());
         ui->microcodeWidget->setModifiedFalse();
         break;
+    default:
+        // Provided a default - even though it should never occur -
+        // to silence compiler warnings.
+        break;
     }
     curPath = QFileInfo(file).dir().absolutePath();
     statusBar()->showMessage(tr("File loaded"), 4000);
@@ -619,6 +628,10 @@ bool MainWindow::saveFile(Enu::EPane which)
         break;
     case Enu::EPane::EMicrocode:
         fileName = QFileInfo(ui->microcodeWidget->getCurrentFile()).absoluteFilePath();
+        break;
+    default:
+        // Provided a default - even though it should never occur -
+        // to silence compiler warnings.
         break;
     }
     return saveFile(fileName, which);
@@ -665,6 +678,11 @@ bool MainWindow::saveFile(const QString &fileName, Enu::EPane which)
         out << ui->microcodeWidget->getMicrocodeText();
         msgOutput = &msgMicro;
         break;
+    default:
+        // Provided a default - even though it should never occur -
+        // to silence compiler warnings.
+        // An invalid pane can't be saved, so return false
+        return false;
     }
     QApplication::restoreOverrideCursor();
     curPath = QFileInfo(file).dir().absolutePath();
@@ -734,6 +752,11 @@ bool MainWindow::saveAsFile(Enu::EPane which)
         usingTitle = &microTitle;
         usingTypes = &microTypes;
         break;
+    default:
+        // Provided a default - even though it should never occur -
+        // to silence compiler warnings.
+        // An invalid pane can't be saved, so return false.
+        return false;
     }
 
     QString fileName = QFileDialog::getSaveFileName(
@@ -759,6 +782,10 @@ bool MainWindow::saveAsFile(Enu::EPane which)
             break;
         case Enu::EPane::EMicrocode:
             ui->microcodeWidget->setCurrentFile(fileName);
+            break;
+        default:
+            // Provided a default - even though it should never occur -
+            // to silence compiler warnings.
             break;
         }
         return true;
@@ -813,6 +840,10 @@ void MainWindow::print(Enu::EPane which)
         document.setPlainText(ui->microcodeWidget->toPlainText());
         mcHi.rehighlight();
         break;
+    default:
+        // Provided a default - even though it should never occur -
+        // to silence compiler warnings.
+        break;
     }
     QPrintDialog *dialog = new QPrintDialog(&printer, this);
 
@@ -856,7 +887,7 @@ void MainWindow::loadOperatingSystem()
 #pragma message ("TODO: Add ability to switch between operating systems")
     //In the future, have a switch between loading the aligned and unaligned code
     if(true) osFileString = (":/help/pep9os/alignedIO-OS.pep");
-    else osFileString = ("failure_to_load");
+    else (osFileString = ("failure_to_load"));
     QFile osFile(osFileString);
     if(programManager->getOperatingSystem() == nullptr) {
         if(osFile.open(QFile::ReadOnly)) {
@@ -968,6 +999,10 @@ void MainWindow::doubleClickedCodeLabel(Enu::EPane which)
             list.append(largeSize);
         }
         ui->codeSplitter->setSizes(list);
+        break;
+    default:
+        // Provided a default - even though it should never occur -
+        // to silence compiler warnings.
         break;
     }
 }
@@ -1121,7 +1156,8 @@ void MainWindow::on_actionFile_Open_triggered()
                 "Open text file",
                 curPath,
                 "Pep/9 files (*.pep *.pepo *.pepl *.pepcpu *.txt)");
-    Enu::EPane which;
+    // If we don't recognize an extension, assume it is an assembler source document
+    Enu::EPane which = Enu::EPane::ESource;
     // Depending on the file ending, change which pane will be loaded into.
     if (!fileName.isEmpty()) {
         if(fileName.endsWith("pep", Qt::CaseInsensitive)) which = Enu::EPane::ESource;
@@ -1994,6 +2030,7 @@ void MainWindow::helpCopyToSourceClicked()
                     statusBar()->showMessage("Copied to assembler object code", 4000);
                 }
                 break;
+
         }
     }
 

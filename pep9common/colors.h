@@ -28,6 +28,7 @@ namespace PepColors{
         QColor muxCircuitGreen; // A sightly lighter shade of combCircuitGreen that is a better background for text
         QColor arrowColorOn;
         QColor arrowColorOff;
+        QColor textColor;
         QColor backgroundFill;
         QString arrowImageOn;
         QString arrowImageOff;

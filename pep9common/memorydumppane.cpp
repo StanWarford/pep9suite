@@ -32,7 +32,7 @@
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     QWidget(parent), ui(new Ui::MemoryDumpPane), data(new QStandardItemModel(this)), lineSize(500), memDevice(nullptr),
     cpu(nullptr), delegate(nullptr), colors(&PepColors::lightMode), highlightedData(), modifiedBytes(), lastModifiedBytes(),
-    delayLastStepClear(false), darkModeEnabled(false), inSimulation(false), highlightPC(true)
+    delayLastStepClear(false), inSimulation(false), highlightPC(true)
 {
     ui->setupUi(this);
     // Insert 1 column for address, 8 for memory bytes, and 1 for character dump

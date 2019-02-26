@@ -33,13 +33,13 @@ const int MemoryCellGraphicsItem::bufferWidth = 14;
 
 MemoryCellGraphicsItem::MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int addr, QString sym,
                                                Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc): memDevice(memDevice), x(xLoc), y(yLoc),
-    address(addr), eSymbolFormat(eSymFrmt), boxColor(Qt::black), boxBgColor(Qt::white), textColor(Qt::black), boxTextColor(Qt::black),
-    isModified(false)
+    address(addr), eSymbolFormat(eSymFrmt), colors(&PepColors::lightMode), isModified(false)
 {
     if (sym.length() > 0 && sym.at(0).isDigit()) {
         sym = "";
     }
     symbol = sym;
+    setColorTheme(*colors);
 }
 
 QRectF MemoryCellGraphicsItem::boundingRect() const
@@ -62,19 +62,19 @@ void MemoryCellGraphicsItem::updateContents(int newAddr, QString newSymbol, Enu:
 
 void MemoryCellGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    QPen pen(boxColor);
+    QPen pen(colors->textColor);
     pen.setWidth(2);
     painter->setPen(pen);
     if(isModified) {
-        painter->setBrush(Qt::red);
+        painter->setBrush(colors->muxCircuitRed);
     }
     else {
-        painter->setBrush(boxBgColor);
+        painter->setBrush(backgroundColor);
     }
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawRoundedRect(QRectF(x, y, boxWidth, boxHeight), 2, 2, Qt::RelativeSize);
 
-    painter->setPen(textColor);
+    painter->setPen(colors->textColor);
     painter->setRenderHint(QPainter::TextAntialiasing);
     painter->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
 
@@ -82,13 +82,24 @@ void MemoryCellGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphics
 
     painter->drawText(QRectF(x + bufferWidth + boxWidth, y, symbolWidth, boxHeight), Qt::AlignVCenter | Qt::AlignLeft, QString("%1").arg(symbol));
 
-    painter->setPen(boxTextColor);
+    painter->setPen(colors->textColor);
     painter->drawText(QRectF(x, y, boxWidth, boxHeight), Qt::AlignCenter, value);
 }
 
 void MemoryCellGraphicsItem::setModified(bool value)
 {
     isModified = value;
+}
+
+void MemoryCellGraphicsItem::setColorTheme(const PepColors::Colors &newColors)
+{
+    this->colors = &newColors;
+    backgroundColor = colors->backgroundFill;
+}
+
+QColor MemoryCellGraphicsItem::setBackgroundColor(QColor color)
+{
+    backgroundColor = color;
 }
 
 quint16 MemoryCellGraphicsItem::getValue() const

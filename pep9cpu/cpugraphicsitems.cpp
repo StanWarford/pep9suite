@@ -618,18 +618,18 @@ void CpuGraphicsItems::drawLabels()
 {
 
     QPalette seqColor = QPalette();
-    seqColor.setColor(QPalette::Text, colorScheme->arrowColorOn);
-    seqColor.setColor(QPalette::WindowText, colorScheme->arrowColorOn);
+    seqColor.setColor(QPalette::Text, colorScheme->textColor);
+    seqColor.setColor(QPalette::WindowText, colorScheme->textColor);
     seqColor.setColor(QPalette::Base, colorScheme->backgroundFill);
     seqColor.setColor(QPalette::Window, PepColors::transparent);
 
     QPalette combColor = QPalette();
-    combColor.setColor(QPalette::WindowText, colorScheme->arrowColorOn);
+    combColor.setColor(QPalette::WindowText, colorScheme->textColor);
     combColor.setColor(QPalette::Base, colorScheme->seqCircuitColor);
     combColor.setColor(QPalette::Window, colorScheme->seqCircuitColor);
 
     QPalette aluLabel = QPalette();
-    aluLabel.setColor(QPalette::WindowText, colorScheme->arrowColorOn);
+    aluLabel.setColor(QPalette::WindowText, colorScheme->textColor);
     aluLabel.setColor(QPalette::Base, PepColors::transparent);
     aluLabel.setColor(QPalette::Window, PepColors::transparent);
 
@@ -642,9 +642,9 @@ void CpuGraphicsItems::drawLabels()
             .arg(colorScheme->backgroundFill.red(), 3, 10)
             .arg(colorScheme->backgroundFill.green(), 3, 10)
             .arg(colorScheme->backgroundFill.blue(), 3, 10)
-            .arg(colorScheme->arrowColorOn.red(), 3, 10)
-            .arg(colorScheme->arrowColorOn.green(), 3, 10)
-            .arg(colorScheme->arrowColorOn.blue(), 3, 10);
+            .arg(colorScheme->textColor.red(), 3, 10)
+            .arg(colorScheme->textColor.green(), 3, 10)
+            .arg(colorScheme->textColor.blue(), 3, 10);
 
     cLineEdit->setStyleSheet(lineStyle);
     bLineEdit->setStyleSheet(lineStyle);

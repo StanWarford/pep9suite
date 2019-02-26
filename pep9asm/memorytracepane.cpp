@@ -32,8 +32,9 @@
 #include "stacktrace.h"
 #include "colors.h"
 
-NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent),
-    ui(new Ui::MemoryTracePane), globalLocation(QPointF(0, 0)), stackLocation(QPointF(200, 0)), heapLocation (QPointF(400, 0 - MemoryCellGraphicsItem::boxHeight))
+NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent), colors(&PepColors::lightMode),
+    ui(new Ui::MemoryTracePane), globalLocation(QPointF(0, 0)), stackLocation(QPointF(200, 0)),
+    heapLocation (QPointF(400, 0 - MemoryCellGraphicsItem::boxHeight))
 {
     ui->setupUi(this);
 
@@ -44,10 +45,11 @@ NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent),
 
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
-    ui->graphicsView->setBackgroundBrush(QBrush(PepColors::lightMode.backgroundFill));
+    ui->graphicsView->setBackgroundBrush(QBrush(colors->backgroundFill));
 }
 
-void NewMemoryTracePane::init(QSharedPointer<const MainMemory> memorySection, QSharedPointer<const MemoryTrace> trace)
+void NewMemoryTracePane::init(QSharedPointer<const MainMemory> memorySection,
+                              QSharedPointer<const MemoryTrace> trace)
 {
     this->memorySection = memorySection;
     this->trace = trace;
@@ -125,7 +127,10 @@ void NewMemoryTracePane::onSimulationStarted()
     if(trace->hasTraceWarnings()) return;
     // Add global symbols
     for(auto tag : trace->globalTrace.getMemTags()) {
-        ptr = new MemoryCellGraphicsItem(memorySection.get(), tag.addr, tag.type.second, tag.type.first, globalLocation.x(), globaly);
+        ptr = new MemoryCellGraphicsItem(memorySection.get(),
+                                         tag.addr, tag.type.second,
+                                         tag.type.first, globalLocation.x(),
+                                         static_cast<int>(globaly));
         ptr->updateValue();
         scene->addItem(ptr);
         globalVars.push(ptr);
@@ -136,32 +141,46 @@ void NewMemoryTracePane::onSimulationStarted()
         globaly += globalLocation.y() + MemoryCellGraphicsItem::boxHeight;
     }
 
-    // This is time-consuming, but worthwhile to ensure scrollbars aren't going off into oblivion after items are removed.
+    // This is time-consuming, but worthwhile to ensure scrollbars aren't going off into
+    // oblivion after items are removed.
     // From the documentation for the 'itemsBoundingRect()' function:
-    //  Calculates and returns the bounding rect of all items on the scene.
-    //  This function works by iterating over all items, and because if this, it can be slow for large scenes.
-    // Our it is unlikely that this scene become very large (as in the 30,000 chips example), so I would expect this to remain
-    // a reasonable function call. It is also called in the 'setMemoryTrace' function, but the scene will have very few items at that point.
+    // Calculates and returns the bounding rect of all items on the scene.
+    // This function works by iterating over all items, and because if this,
+    //it can be slow for large scenes. It is unlikely that this scene become very large
+    // (as in the 30,000 chips example), so this should remain performant.
     scene->setSceneRect(scene->itemsBoundingRect());
-
-    // Add lines under stack
-    scene->addLine(stackLocation.x() - MemoryCellGraphicsItem::boxWidth * 0.2, stackLocation.y(),
-                   stackLocation.x() + MemoryCellGraphicsItem::boxWidth * 1.2, stackLocation.y(),
-                   QPen(QBrush(Qt::SolidPattern), 2, Qt::SolidLine));
-    int dist = static_cast<int>(MemoryCellGraphicsItem::boxWidth * 1.2 - MemoryCellGraphicsItem::boxWidth * 1.4);
-    for (int i = static_cast<int>(MemoryCellGraphicsItem::boxWidth * 1.2); i > dist; i = i - 10) {
-        scene->addLine(stackLocation.x() + i - 10, stackLocation.y() + 10,
-                       stackLocation.x() + i, stackLocation.y() + 1,
-                       QPen(QBrush(Qt::SolidPattern), 1, Qt::SolidLine));
-    }
-
+    updateStatics();
     scene->invalidate(); // redraw the scene!
 
 }
 
 void NewMemoryTracePane::onSimulationFinished()
 {
-    #pragma message("TODO")
+    // Nothing in need of cleaning up
+}
+
+void NewMemoryTracePane::onDarkModeChanged(bool darkMode)
+{
+    if(darkMode) {
+        colors = &PepColors::darkMode;
+    }
+    else {
+        colors = &PepColors::lightMode;
+    }
+    for(auto item : this->addressToItems) {
+        item->setColorTheme(*colors);
+    }
+    // Pen to draw dark border
+    QPen pen(colors->textColor);
+    pen.setWidth(4);
+    for(auto item : this->graphicItemsInStackFrame) {
+        item->setPen(pen);
+    }
+    for(auto item : this->heapFrameItemStack) {
+        item->setPen(pen);
+    }
+    ui->graphicsView->setBackgroundBrush(QBrush(colors->backgroundFill));
+    updateStatics();
 }
 
 void NewMemoryTracePane::updateGlobals()
@@ -176,7 +195,7 @@ void NewMemoryTracePane::updateGlobals()
 void NewMemoryTracePane::updateHeap()
 {
     // Pen to draw dark border
-    QPen pen(Qt::black);
+    QPen pen(colors->textColor);
     pen.setWidth(4);
     // Y location where bold outline should be drawn.
     int frameBase = heapLocation.y();
@@ -218,6 +237,7 @@ void NewMemoryTracePane::updateHeap()
                 MemoryCellGraphicsItem* item = new MemoryCellGraphicsItem(memorySection.get(), memTag->addr,
                                                   memTag->type.second, memTag->type.first,
                                                   heapLocation.x(), yLoc);
+                item->setColorTheme(*colors);
                 addressToItems.insert(item->getAddress(), item);
                 if(item->getNumBytes() == 2) addressToItems.insert(item->getAddress() + 1, item);
                 heap.append(item);
@@ -239,13 +259,13 @@ void NewMemoryTracePane::updateHeap()
     for (auto item : heap) {
         item->setModified(false);
         item->updateValue();
-        item->boxBgColor = Qt::white;
+        item->setBackgroundColor(colors->backgroundFill);
     }
     // If currently in malloc, and there are items to highlight, highlight (in green) the last added frame.
     if(trace->heapTrace.inMalloc()
             && trace->heapTrace.crbegin() != trace->heapTrace.crend()) {
         for(int it = 0; it < trace->heapTrace.crbegin()->numItems(); it++) {
-            heap[heap.size() - 1 - it]->boxBgColor = Qt::green;
+            heap[heap.size() - 1 - it]->setBackgroundColor(Qt::green);
         }
     }
 }
@@ -253,7 +273,7 @@ void NewMemoryTracePane::updateHeap()
 void NewMemoryTracePane::updateStack()
 {
     // Pen to draw dark border
-    QPen pen(Qt::black);
+    QPen pen(colors->textColor);
     pen.setWidth(4);
 
     // Pointer to item being rendered.
@@ -301,6 +321,7 @@ void NewMemoryTracePane::updateStack()
                 // Take an item from the extra list and update its contents.
                 item = *exit;
                 item->updateContents(memTag->addr, memTag->type.second, memTag->type.first, yLoc);
+                item->setColorTheme(*colors);
                 // Add updated cell to address lookup map.
                 addressToItems.insert(item->getAddress(), item);
                 if(item->getNumBytes() == 2) addressToItems.insert(item->getAddress() + 1, item);
@@ -318,6 +339,7 @@ void NewMemoryTracePane::updateStack()
                 item = new MemoryCellGraphicsItem(memorySection.get(), memTag->addr,
                                                   memTag->type.second, memTag->type.first,
                                                   stackLocation.x(), yLoc);
+                item->setColorTheme(*colors);
                 // Add updated cell to address lookup map.
                 addressToItems.insert(item->getAddress(), item);
                 if(item->getNumBytes() == 2) addressToItems.insert(item->getAddress() + 1, item);
@@ -378,6 +400,21 @@ void NewMemoryTracePane::updateStack()
     for(auto item : newItems) {
         runtimeStack.push(item);
     }
+}
+
+void NewMemoryTracePane::updateStatics()
+{
+    // Add lines under stack
+    scene->addLine(stackLocation.x() - MemoryCellGraphicsItem::boxWidth * 0.2, stackLocation.y(),
+                   stackLocation.x() + MemoryCellGraphicsItem::boxWidth * 1.2, stackLocation.y(),
+                   QPen(QBrush(colors->textColor, Qt::SolidPattern), 2, Qt::SolidLine));
+    int dist = static_cast<int>(MemoryCellGraphicsItem::boxWidth * 1.2 - MemoryCellGraphicsItem::boxWidth * 1.4);
+    for (int i = static_cast<int>(MemoryCellGraphicsItem::boxWidth * 1.2); i > dist; i = i - 10) {
+        scene->addLine(stackLocation.x() + i - 10, stackLocation.y() + 10,
+                       stackLocation.x() + i, stackLocation.y() + 1,
+                       QPen(QBrush(colors->textColor, Qt::SolidPattern), 1, Qt::SolidLine));
+    }
+
 }
 
 void NewMemoryTracePane::mouseReleaseEvent(QMouseEvent *)

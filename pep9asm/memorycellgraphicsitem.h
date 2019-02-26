@@ -24,6 +24,7 @@
 
 #include <QGraphicsItem>
 #include "enu.h"
+#include "colors.h"
 class AMemoryDevice;
 
 int cellSize(Enu::ESymbolFormat symbolFormat);
@@ -40,16 +41,17 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
     // Cell changes background color if it has been modified.
     void setModified(bool value);
+    void setColorTheme(const PepColors::Colors &newColors);
     static const int boxHeight;
     static const int boxWidth;
     static const int addressWidth;
     static const int symbolWidth;
     static const int bufferWidth;
 
-    QColor boxColor;
-    QColor boxBgColor;
-    QColor textColor;
-    QColor boxTextColor;
+    // QColor boxColor;
+    QColor setBackgroundColor(QColor color);
+    // QColor textColor;
+    // QColor boxTextColor;
     void updateValue();
     quint16 getAddress() const;
     quint16 getNumBytes() const;
@@ -62,6 +64,8 @@ private:
     Enu::ESymbolFormat eSymbolFormat;
     QString symbol, value;
     QRectF box;
+    const PepColors::Colors * colors;
+    QColor backgroundColor;
     bool isModified;
 
 };
