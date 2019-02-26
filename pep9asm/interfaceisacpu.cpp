@@ -117,6 +117,8 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             // If there was an error, prevent any new heap adjustments from being made.
             if(mallocPreError == true) {
                 memTrace->heapTrace.setCanAddNew(false);
+                #pragma message("TODO: Add heap error messages")
+                memTrace->heapTrace.setErrorMessage("Heap corrupted");
                 return;
             }
             // A call with no symbol traces listed is ignored.
@@ -127,14 +129,12 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                     primList.append(item->toPrimitives());
                 }
                 memTrace->heapTrace.pushHeap(heapPtr, primList);
-                /*qDebug().noquote().nospace() << "HEAP: "<<
-                                                memTrace->heapTrace;*/
             }
             heapPtr += acc;
 
         }
-        qDebug() << "Called!" ;
-        qDebug().noquote() << *(memTrace->activeStack);
+        //qDebug() << "Called!" ;
+        //qDebug().noquote() << *(memTrace->activeStack);
         break;
 
     case Enu::EMnemonic::RET:
@@ -144,16 +144,17 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             if(memTrace->activeStack->ret()) {
                 firstLineAfterCall = true;
                 memTrace->heapTrace.setInMalloc(false);
-                qDebug() << "Returned!" ;
-                qDebug().noquote() << *(memTrace->activeStack);
+                //qDebug() << "Returned!" ;
+                //qDebug().noquote() << *(memTrace->activeStack);
             }
             else {
-                 qDebug() <<"Unbalanced stack operation 7";
+                //qDebug() <<"Unbalanced stack operation 7";
                 memTrace->activeStack->setStackIntact(false);
+                memTrace->activeStack->setErrorMessage("ERROR: Executed a return, expected a ADD- or SUBSP.");
             }
             break;
         default:
-            qDebug() <<"Unbalanced stack operation 1";
+            memTrace->activeStack->setErrorMessage("ERROR: Unspecified error during return (e.g. stack was empty).");
             memTrace->activeStack->setStackIntact(false);
         }
         break;
@@ -166,7 +167,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             }
             if(size != opspec) {
                 memTrace->activeStack->setStackIntact(false);
-                qDebug() <<"Stack is wrong size";
+                memTrace->activeStack->setErrorMessage("ERROR: Operand of SUBSP does not match size of trace tags.");
                 break;
             }
         }
@@ -179,7 +180,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                 memTrace->activeStack->pushLocals(sp, primList);
             }
             activeActions->push(stackAction::locals);
-            qDebug() << "Alloc'ed Locals!" ;
+            //qDebug() << "Alloc'ed Locals!" ;
         }
         else {
             if(manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist.contains(pc)) {
@@ -190,9 +191,9 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                 memTrace->activeStack->pushParams(sp, primList);
             }
             activeActions->push(stackAction::params);
-            qDebug() << "Alloc'ed params! " ;//<< activeStack->top();
+            //qDebug() << "Alloc'ed params! " ;//<< activeStack->top();
         }
-        qDebug().noquote()<< *(memTrace->activeStack);
+        //qDebug().noquote()<< *(memTrace->activeStack);
         break;
 
     case Enu::EMnemonic::ADDSP:
@@ -202,23 +203,23 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             }
             if(size != opspec) {
                 memTrace->activeStack->setStackIntact(false);
-                qDebug() <<"Stack is wrong size";
+                memTrace->activeStack->setErrorMessage("ERROR: Operand of ADDSP does not match size of trace tags.");
                 break;
             }
         }
         else if(activeActions->isEmpty()) {
-            qDebug() << "Unbalanced stack operation 2";
+            memTrace->activeStack->setErrorMessage("ERROR: Executed ADDSP, but no items are eligible to be popped.");
             memTrace->activeStack->setStackIntact(false);
         }
         else break;
         switch(activeActions->pop()) {
         case stackAction::locals:
             if(memTrace->activeStack->popLocals(size)) {
-                qDebug() << "Popped locals!" ;
-                qDebug().noquote() << *(memTrace->activeStack);
+                //qDebug() << "Popped locals!" ;
+                //qDebug().noquote() << *(memTrace->activeStack);
             }
             else {
-                qDebug() << "Unbalanced stack operation 5";
+                memTrace->activeStack->setErrorMessage("ERROR: Executed ADDSP when a return was expected.");
                 memTrace->activeStack->setStackIntact(false);
             }
             break;
@@ -226,8 +227,8 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             if(memTrace->activeStack->getTOS().size()>size
                     && memTrace->activeStack->popAndOrphan(size)) {
                 activeActions->push(stackAction::params);
-                qDebug() << "Popped Params & orphaned!" ;
-                qDebug().noquote() << *(memTrace->activeStack);
+                //qDebug() << "Popped Params & orphaned!" ;
+                //qDebug().noquote() << *(memTrace->activeStack);
             }
             else if(memTrace->activeStack->getTOS().size() <= size) {
                 bool success = true;
@@ -238,21 +239,21 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                     activeActions->pop();
                 }
                 if(success) {
-                    qDebug() << "Popped Params!" ;
-                    qDebug().noquote() << *(memTrace->activeStack);
+                    //qDebug() << "Popped Params!" ;
+                    //qDebug().noquote() << *(memTrace->activeStack);
                 }
                 else {
-                    qDebug() << "Unbalanced stack operation 6";
+                    memTrace->activeStack->setErrorMessage("ERROR: Failed to pop correct number of bytes in ADDSP.");
                     memTrace->activeStack->setStackIntact(false);
                 }
             }
             else {
-                qDebug() << "Unbalanced stack operation 8";
+                memTrace->activeStack->setErrorMessage("ERROR: Failed to pop correct number of bytes in ADDSP.");
                 memTrace->activeStack->setStackIntact(false);
             }
             break;
         default:
-            qDebug() << "Unbalanced stack operation 3";
+            memTrace->activeStack->setErrorMessage("ERROR: An unspecified error occured in ADDSP (e.g. the stack was empty).");
             memTrace->activeStack->setStackIntact(false);
             break;
         }

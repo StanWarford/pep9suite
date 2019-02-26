@@ -28,7 +28,6 @@
 #include <QSet>
 #include "memorycellgraphicsitem.h"
 #include "enu.h"
-#include "stackframefsm.h"
 
 namespace Ui {
     class MemoryTracePane;

@@ -51,6 +51,7 @@ class StackTrace
 {
     QStack<QSharedPointer<StackFrame>> callStack;
     QSharedPointer<StackFrame> nextFrame;
+    QString errMessage;
     bool stackIntact;
 public:
 
@@ -88,6 +89,8 @@ public:
 
     bool isStackIntact() const;
     void setStackIntact(bool value);
+    QString getErrorMessage() const;
+    void setErrorMessage(QString message);
 
 };
 
@@ -95,6 +98,7 @@ class HeapTrace
 {
     QVector<quint16> itToAddresses;
     QMap<quint16, QSharedPointer<StackFrame>> heap;
+    QString errMessage;
     bool intact, addNew, isInMalloc;
 public:
 
@@ -127,6 +131,9 @@ public:
     bool canAddNew() const;
     bool heapIntact() const;
     bool inMalloc() const;
+    QString getErrorMessage() const;
+    void setErrorMessage(QString message);
+
     operator QString() const;
 };
 

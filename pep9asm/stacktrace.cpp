@@ -92,6 +92,7 @@ void StackTrace::clear()
     nextFrame = QSharedPointer<StackFrame>::create();
     nextFrame->isOrphaned = true;
     stackIntact = true;
+    errMessage = "";
 }
 
 bool StackTrace::ret()
@@ -187,6 +188,16 @@ bool StackTrace::isStackIntact() const
 void StackTrace::setStackIntact(bool value)
 {
     stackIntact = value;
+}
+
+QString StackTrace::getErrorMessage() const
+{
+    return errMessage;
+}
+
+void StackTrace::setErrorMessage(QString message)
+{
+    errMessage = message;
 }
 
 StackTrace::operator QString() const
@@ -453,6 +464,7 @@ void HeapTrace::clear()
     intact = true;
     addNew = true;
     isInMalloc = false;
+    errMessage = "";
 }
 
 void HeapTrace::setCanAddNew(bool val)
@@ -483,6 +495,16 @@ bool HeapTrace::heapIntact() const
 bool HeapTrace::inMalloc() const
 {
     return isInMalloc;
+}
+
+QString HeapTrace::getErrorMessage() const
+{
+    return errMessage;
+}
+
+void HeapTrace::setErrorMessage(QString message)
+{
+    errMessage = message;
 }
 
 HeapTrace::operator QString() const

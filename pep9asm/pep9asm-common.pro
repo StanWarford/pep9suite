@@ -27,7 +27,6 @@ HEADERS += \
     memorycellgraphicsitem.h \
     memorytracepane.h \
     pepasmhighlighter.h \
-    stackframefsm.h \
     typetags.h \
     stacktrace.h
 
@@ -46,6 +45,5 @@ SOURCES += \
     memorycellgraphicsitem.cpp \
     memorytracepane.cpp \
     pepasmhighlighter.cpp \
-    stackframefsm.cpp \
     typetags.cpp \
     stacktrace.cpp
