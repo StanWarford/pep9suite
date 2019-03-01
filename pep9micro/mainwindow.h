@@ -42,6 +42,7 @@ class MicrocodePane;
 class MicroObjectCodePane;
 class UpdateChecker;
 class QActionGroup;
+class RedefineMnemonicsDialog;
 
 //WIP classes
 class FullMicrocodedCPU;
@@ -91,8 +92,10 @@ private:
     QSharedPointer<FullMicrocodedCPU> controlSection;
     QSharedPointer<NewCPUDataSection> dataSection;
 
+    // Dialogues
     HelpDialog *helpDialog;
     AboutPep *aboutPepDialog;
+    RedefineMnemonicsDialog *redefineMnemonicsDialog;
 
     AsmProgramManager* programManager;
 
@@ -227,6 +230,7 @@ private slots:
     // System
     void on_actionSystem_Clear_CPU_triggered();
     void on_actionSystem_Clear_Memory_triggered();
+    void on_actionSystem_Redefine_Mnemonics_triggered();
 
     // Statistics Events
     void on_actionStatistics_Level_All_triggered();

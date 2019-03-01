@@ -64,6 +64,7 @@
 #include "microcodeprogram.h"
 #include "microobjectcodepane.h"
 #include "updatechecker.h"
+#include "redefinemnemonicsdialog.h"
 
 //WIP include
 #include "fullmicrocodedcpu.h"
@@ -73,7 +74,8 @@
 #include "symboltable.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
+    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), redefineMnemonicsDialog(new RedefineMnemonicsDialog()),
+    updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
     memDevice(new MainMemory(this)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), memDevice)),
     dataSection(controlSection->getDataSection()), programManager(AsmProgramManager::getInstance()),
     statisticsLevelsGroup(new QActionGroup(this)), inDarkMode(false)
@@ -102,6 +104,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->asmListingTracePane->init(controlSection, programManager);
     ui->microcodeWidget->init(controlSection, dataSection, memDevice, true);
     ui->microObjectCodePane->init(controlSection, true);
+    redefineMnemonicsDialog->init(false);
 
     // Create button group to hold statistics items
     statisticsLevelsGroup->addAction(ui->actionStatistics_Level_All);
@@ -1700,6 +1703,11 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
 {
     memDevice->clearMemory();
     ui->memoryWidget->refreshMemory();
+}
+
+void MainWindow::on_actionSystem_Redefine_Mnemonics_triggered()
+{
+    redefineMnemonicsDialog->show();
 }
 
 void MainWindow::on_actionStatistics_Level_All_triggered()

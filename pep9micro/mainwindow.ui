@@ -257,9 +257,11 @@
     <addaction name="separator"/>
     <addaction name="actionUse_Unaligned_OS"/>
     <addaction name="actionUse_Aligned_OS"/>
+    <addaction name="actionSystem_Redefine_Mnemonics"/>
     <addaction name="separator"/>
     <addaction name="actionFragment_Simulator"/>
     <addaction name="actionComplete_Microcode_Mode"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1087,6 +1089,11 @@
     <string>Single Step - Assembler</string>
    </property>
   </action>
+  <action name="actionSystem_Redefine_Mnemonics">
+   <property name="text">
+    <string>Redefine Mnemonics...</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -1152,8 +1159,8 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9micro-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
  </resources>
  <connections>
   <connection>
