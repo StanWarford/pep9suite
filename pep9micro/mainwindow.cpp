@@ -74,7 +74,7 @@
 #include "symboltable.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), redefineMnemonicsDialog(new RedefineMnemonicsDialog()),
+    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),
     updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
     memDevice(new MainMemory(this)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), memDevice)),
     dataSection(controlSection->getDataSection()), programManager(AsmProgramManager::getInstance()),
@@ -124,6 +124,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QPixmap pixmap("://images/Pep9micro-icon.png");
     aboutPepDialog = new AboutPep(text, pixmap, this);
 
+    connect(redefineMnemonicsDialog, &RedefineMnemonicsDialog::closed, this, &MainWindow::on_Redefine_Mnemonics_closed);
     // Byte converter setup.
     byteConverterDec = new ByteConverterDec();
     ui->byteConverterToolBar->addWidget(byteConverterDec);
@@ -1708,6 +1709,14 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
 void MainWindow::on_actionSystem_Redefine_Mnemonics_triggered()
 {
     redefineMnemonicsDialog->show();
+}
+
+void MainWindow::on_Redefine_Mnemonics_closed()
+{
+    // Propogate ASM-level instruction definition changes across the application.
+    ui->AsmSourceCodeWidgetPane->rebuildHighlightingRules();
+    ui->asmListingTracePane->rebuildHighlightingRules();
+    ui->AsmListingWidgetPane->rebuildHighlightingRules();
 }
 
 void MainWindow::on_actionStatistics_Level_All_triggered()

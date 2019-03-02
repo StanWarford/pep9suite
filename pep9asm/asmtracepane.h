@@ -100,6 +100,8 @@ public:
     bool hasFocus();
     // Post: returns if the pane has focus
 
+    void rebuildHighlightingRules();
+    // Post: highlighting rules for highlighter will be recreated from mnemonic maps
 
     void setProgram(QSharedPointer<AsmProgram> program);
     void setBreakpoints(QSet<quint16> memAddresses);
@@ -110,6 +112,12 @@ public:
     void startSimulationView();
     void updateSimulationView();
     void clearSimulationView();
+
+signals:
+    // Propogates event from AsmSourceTextEdit
+    void breakpointAdded(quint16 line);
+    // Propogates event from AsmSourceTextEdit
+    void breakpointRemoved(quint16 line);
 
 public slots:
     void onFontChanged(QFont font);
@@ -127,18 +135,13 @@ private:
     AsmProgramManager* programManager;
     QSharedPointer<const ACPUModel> cpu;
     PepASMHighlighter *pepHighlighter;
+    bool inDarkMode;
     void mouseReleaseEvent(QMouseEvent *);
     void mouseDoubleClickEvent(QMouseEvent *);
 
 private slots:
-    void onBreakpointAddedProp(quint16 address); //Propogate breakpointAdded(quint16) from AsmSourceTextEdit
-    void onBreakpointRemovedProp(quint16 address); //Propogate breakpointRemoved(quint16) from AsmSourceTextEdit
-
-signals:
-    // Propogates event from AsmSourceTextEdit
-    void breakpointAdded(quint16 line);
-    // Propogates event from AsmSourceTextEdit
-    void breakpointRemoved(quint16 line);
+    void onBreakpointAddedProp(quint16 address); // Propogate breakpointAdded(quint16) from AsmSourceTextEdit
+    void onBreakpointRemovedProp(quint16 address); // Propogate breakpointRemoved(quint16) from AsmSourceTextEdit
 };
 
 class AsmTraceBreakpointArea : public QWidget

@@ -19,7 +19,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "pepasmhighlighter.h"
-
+#include "enu.h"
+#include "pep.h"
 PepASMHighlighter::PepASMHighlighter(PepColors::Colors colors, QTextDocument *parent)
     : QSyntaxHighlighter(parent)
 {
@@ -34,17 +35,26 @@ void PepASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
     oprndFormat.setForeground(colors.leftOfExpression);
     oprndFormat.setFontWeight(QFont::Bold);
     QStringList oprndPatterns;
-    oprndPatterns << "\\bADD(A|SP|X)\\b" << "\\bAND(A|X)\\b" << "\\bASL(A|X)\\b"
+    highlightingRules.clear();
+    for(QString text : Pep::enumToMnemonMap) {
+        oprndPatterns << "\\b" + text + "\\b";
+    }
+    /*oprndPatterns << "\\bADD(A|SP|X)\\b" << "\\bAND(A|X)\\b" << "\\bASL(A|X)\\b"
             << "\\bASR(A|X)\\b" << "\\bBR\\b" << "\\bBR(C|EQ|GE|GT|LE|LT|NE|V)\\b"
             << "\\bCALL\\b" << "\\bCPB(A|X)\\b" << "\\bCPW(A|X)\\b"
-            << "\\bDEC(I|O)\\b"
-            << "\\bHEXO\\b"
             << "\\bLDB(A|X)\\b" << "\\bLDW(A|X)\\b"
             << "\\bMOV(FLGA|AFLG|SPA)\\b"
-            << "\\bNEG(A|X)\\b" << "\\bNOP\\b" << "\\bNOP(0|1)\\b" << "\\bNOT(A|X)\\b"
+            << "\\bNEG(A|X)\\b" << "\\bNOT(A|X)\\b"
             << "\\bOR(A|X)\\b"
             << "\\bRET\\b" << "\\bRETTR\\b" << "\\bROL(A|X)\\b" << "\\bROR(A|X)\\b"
-            << "\\bSTB(A|X)\\b" << "\\bSTOP\\b" << "\\bSTRO\\b" << "\\bSTW(A|X)\\b" << "\\bSUB(A|X|SP)\\b";
+            << "\\bSTB(A|X)\\b" << "\\bSTOP\\b" << "\\bSTW(A|X)\\b" << "\\bSUB(A|X|SP)\\b"
+            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::DECI]+"\\b"
+            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::DECO]+"\\b"
+            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::HEXO]+"\\b"
+            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::NOP]+"\\b"
+            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::STRO]+"\\b"
+            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::NOP0]+"\\b"
+            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::NOP1]+"\\b";*/
     foreach (const QString &pattern, oprndPatterns) {
         rule.pattern = QRegExp(pattern);
         rule.format = oprndFormat;

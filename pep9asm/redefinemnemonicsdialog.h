@@ -36,11 +36,10 @@ public:
     explicit RedefineMnemonicsDialog(QWidget *parent = nullptr);
     virtual ~RedefineMnemonicsDialog() override;
     void init(bool nop0IsTrap);
-
-private:
-    Ui::RedefineMnemonicsDialog *ui;
-    bool nop0IsTrap;
-
+public slots:
+    void reject() override;
+signals:
+    void closed();
 private slots:
     void restoreDefaults();
 
@@ -54,6 +53,10 @@ private slots:
     void redefineUnaryMnemonic1(QString);
 
     void setNonUnaryAllowedModes();
+    void onDone();
+private:
+    Ui::RedefineMnemonicsDialog *ui;
+    bool nop0IsTrap;
 
 };
 

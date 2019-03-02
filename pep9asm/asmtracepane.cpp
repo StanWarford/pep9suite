@@ -9,7 +9,7 @@
 #include "asmprogram.h"
 AsmTracePane::AsmTracePane(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::AsmTracePane)
+    ui(new Ui::AsmTracePane), inDarkMode(false)
 {
     ui->setupUi(this);
     pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->tracePaneTextEdit->document());
@@ -48,6 +48,13 @@ void AsmTracePane::highlightOnFocus()
 bool AsmTracePane::hasFocus()
 {
     return ui->tracePaneTextEdit->hasFocus();
+}
+
+void AsmTracePane::rebuildHighlightingRules()
+{
+    if(inDarkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
+    else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
+    pepHighlighter->rehighlight();
 }
 
 void AsmTracePane::setProgram(QSharedPointer<AsmProgram> program)
@@ -110,6 +117,7 @@ void AsmTracePane::onFontChanged(QFont font)
 
 void AsmTracePane::onDarkModeChanged(bool darkMode)
 {
+    inDarkMode = darkMode;
     if(darkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
     else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
     ((AsmTraceTextEdit*)ui->tracePaneTextEdit)->onDarkModeChanged(darkMode);
@@ -316,6 +324,7 @@ void AsmTraceTextEdit::clearSimulationView()
     QList<QTextEdit::ExtraSelection> extraSelections;
     setExtraSelections(extraSelections);
 }
+
 
 void AsmTraceTextEdit::onRemoveAllBreakpoints()
 {

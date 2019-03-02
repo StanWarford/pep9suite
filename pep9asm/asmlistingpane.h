@@ -67,6 +67,8 @@ public:
     bool isEmpty();
     // Post: returns if the assembler listing is empty
 
+    void rebuildHighlightingRules();
+    // Post: highlighting rules for highlighter will be recreated from mnemonic maps
 
 public slots:
     void onFontChanged(QFont font);

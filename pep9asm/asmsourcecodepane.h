@@ -173,6 +173,9 @@ public:
     void setReadOnly(bool b);
     // Post: the text edit's read only attribute is set to b
 
+    void rebuildHighlightingRules();
+    // Post: highlighting rules for highlighter will be recreated from mnemonic maps
+
     void tab();
 
     QSharedPointer<AsmProgram> getAsmProgram();

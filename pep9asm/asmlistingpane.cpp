@@ -146,6 +146,13 @@ bool AsmListingPane::isEmpty()
     return ui->textEdit->toPlainText() == "";
 }
 
+void AsmListingPane::rebuildHighlightingRules()
+{
+    if(inDarkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
+    else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
+    pepHighlighter->rehighlight();
+}
+
 void AsmListingPane::onFontChanged(QFont font)
 {
     ui->textEdit->setFont(font);

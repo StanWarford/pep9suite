@@ -29,6 +29,7 @@ RedefineMnemonicsDialog::RedefineMnemonicsDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     restoreDefaults();
+    connect(this, &RedefineMnemonicsDialog::closed, this, &RedefineMnemonicsDialog::onDone);
 
     ui->unaryOpCodeLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
     ui->unaryOpCode0Label->setFont(QFont(Pep::codeFont));
@@ -129,6 +130,8 @@ RedefineMnemonicsDialog::RedefineMnemonicsDialog(QWidget *parent) :
     connect(ui->mnemon4xCheckBox, &QAbstractButton::clicked, this, &RedefineMnemonicsDialog::setNonUnaryAllowedModes);
     connect(ui->mnemon4sxCheckBox, &QAbstractButton::clicked, this, &RedefineMnemonicsDialog::setNonUnaryAllowedModes);
     connect(ui->mnemon4sfxCheckBox, &QAbstractButton::clicked, this, &RedefineMnemonicsDialog::setNonUnaryAllowedModes);
+
+    setWindowFlag(Qt::WindowStaysOnTopHint);
 }
 
 RedefineMnemonicsDialog::~RedefineMnemonicsDialog()
@@ -145,6 +148,12 @@ void RedefineMnemonicsDialog::init(bool nop0IsTrap)
         ui->unaryMnemonic0LineEdit->setHidden(true);
         ui->unaryMnemonic0LineEdit->setEnabled(false);
     }
+}
+
+void RedefineMnemonicsDialog::reject()
+{
+    QDialog::reject();
+    emit closed();
 }
 
 void RedefineMnemonicsDialog::restoreDefaults()
@@ -384,4 +393,9 @@ void RedefineMnemonicsDialog::setNonUnaryAllowedModes()
     if (ui->mnemon4sxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SX);
     if (ui->mnemon4sfxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SFX);
     Pep::addrModesMap.insert(Enu::EMnemonic::STRO, addrMode);
+}
+
+void RedefineMnemonicsDialog::onDone()
+{
+
 }

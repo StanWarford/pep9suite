@@ -316,6 +316,13 @@ void AsmSourceCodePane::setReadOnly(bool b)
     ui->textEdit->setReadOnly(b);
 }
 
+void AsmSourceCodePane::rebuildHighlightingRules()
+{
+    if(inDarkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
+    else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
+    pepHighlighter->rehighlight();
+}
+
 void AsmSourceCodePane::tab()
 {
     if (!ui->textEdit->isReadOnly()) {
