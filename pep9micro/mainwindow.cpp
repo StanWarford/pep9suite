@@ -1601,7 +1601,7 @@ void MainWindow::on_actionDebug_Continue_triggered()
     disconnectViewUpdate();
     controlSection->onRun();
     if(controlSection->hadErrorOnStep()) {
-        QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
+        // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
         return; // we'll just return here instead of letting it fail and go to the bottom
     }
@@ -1631,7 +1631,7 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
         // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
-        onSimulationFinished();
+        // onSimulationFinished();
     }
     emit simulationUpdate();
 }
@@ -1644,7 +1644,7 @@ void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
         // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
-        onSimulationFinished();
+        // onSimulationFinished();
     }
     emit simulationUpdate();
 }
@@ -1659,7 +1659,7 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
         // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
-        onSimulationFinished();
+        // onSimulationFinished();
     }
     connectViewUpdate();
     emit simulationUpdate();

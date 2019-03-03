@@ -163,17 +163,17 @@ bool PartialMicrocodedCPU::onRun()
     if(hadErrorOnStep()) {
         if(memory->hadError()) {
             qDebug() << "Memory section reporting an error";
-            emit simulationFinished();
+            // emit simulationFinished();
             return false;
         }
         else if(data->hadErrorOnStep()) {
             qDebug() << "Data section reporting an error";
-            emit simulationFinished();
+            // emit simulationFinished();
             return false;
         }
         else {
             qDebug() << "Control section reporting an error";
-            emit simulationFinished();
+            // emit simulationFinished();
             return false;
         }
     }
@@ -240,14 +240,10 @@ void PartialMicrocodedCPU::onMCStep()
 
     if(microprogramCounter == 0 || executionFinished) {
         memoizer->storeStateInstrEnd();
-        emit asmInstructionFinished();
-        /*Don't memoize state, since Pep9CPU CPU doesn't do full ISA instructions.
-         * if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
-            qDebug().noquote().nospace() << memoizer->memoize();
-        }*/
         data->getRegisterBank().flattenFile();
 
     }
+
     // Upon entering an instruction that is going to trap
     // If running in debug mode, first check if this line has any microcode breakpoints.
     if(inDebug) {

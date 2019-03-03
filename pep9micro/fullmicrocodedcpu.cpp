@@ -185,17 +185,17 @@ bool FullMicrocodedCPU::onRun()
     if(hadErrorOnStep()) {
         if(memory->hadError()) {
             qDebug() << "Memory section reporting an error";
-            emit simulationFinished();
+            //emit simulationFinished();
             return false;
         }
         else if(data->hadErrorOnStep()) {
             qDebug() << "Data section reporting an error";
-            emit simulationFinished();
+            //emit simulationFinished();
             return false;
         }
         else {
             qDebug() << "Control section reporting an error";
-            emit simulationFinished();
+            //emit simulationFinished();
             return false;
         }
     }
@@ -212,7 +212,7 @@ bool FullMicrocodedCPU::onRun()
     qDebug().nospace().noquote() << "Execution time (ms): " << value;
     qDebug().nospace().noquote() << "Cycles per second: " << microCycleCounter / (((float)value/1000));
     qDebug().nospace().noquote() << "Instructions per second: " << asmInstructionCounter / (((float)value/1000));
-    emit simulationFinished();
+    //emit simulationFinished();
     return true;
 }
 
@@ -321,15 +321,15 @@ void FullMicrocodedCPU::onISAStep()
     if(hadErrorOnStep()) {
         if(memory->hadError()) {
             qDebug() << "Memory section reporting an error";
-            emit simulationFinished();
+            // emit simulationFinished();
         }
         else if(data->hadErrorOnStep()) {
             qDebug() << "Data section reporting an error";
-            emit simulationFinished();
+            // emit simulationFinished();
         }
         else {
             qDebug() << "Control section reporting an error";
-            emit simulationFinished();
+            // emit simulationFinished();
         }
     }
     if(executionFinished) emit simulationFinished();
