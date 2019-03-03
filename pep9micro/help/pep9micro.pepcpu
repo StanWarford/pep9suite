@@ -49,7 +49,7 @@ EOMux=1, AMux=0, ALU=0, CMux=1, C=8; LoadCk
 //Instruction is fetched. Either prepare to execute unary instruction,
 // or fetch operand specifier for non-unary instructions
 end_is_fetch: if ISUNARY unary_dispatch else os_fetch
-unary_dispatch: ISD //Start the unary execution path via the instruction specifier decoder.
+unary_dispatch: ISD //Start the unary execution path via the instruction specifier decoder. 
 //"A=5" is placeholder so that the assembler compiles this statement, since branches are currently not allowed
 //on a line by themselves
 
@@ -428,9 +428,9 @@ A=0, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=14; NCk, ZCk, VCk, CCk, Loa
 cpwx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; ZCk, SCk, LoadCk
 A=2, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=14; NCk, ZCk, VCk, CCk, LoadCk; if BRV cpw_n_fix else start
 
-cpw_n_fix: cmux=0, c=17; loadck
-a=17, b=27, amux=1, alu=9, cmux=1, c=17; loadck
-a=17, amux=1, alu=15, andz=0; Nck, Zck, Vck, Cck; goto start
+cpw_n_fix: CMux=0, C=17; LoadCk
+A=17, B=27, AMux=1, ALU=9, CMux=1, C=17; LoadCk
+A=17, AMux=1, ALU=15, AndZ=0; NCk, ZCk, VCk, CCk; goto start
 
 cpba: A=1, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; NCk, ZCk, VCk, CCk, LoadCk; goto start
 cpbx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; NCk, ZCk, VCk, CCk, LoadCk; goto start
@@ -603,7 +603,7 @@ MemRead, EOMux=0, AMux=0, ALU=0, CMux=1, C=6; LoadCk //Move PC<hi>
 MemRead
 MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 EOMux=1, AMux=0, ALU=0, CMux=1, C=5; LoadCk //Move PC<hi>
-EOMux=0, AMux=0, ALU=0, CMux=1, C=4; LoadCk; goto start //Move PC <lo>
+EOMux=0, AMux=0, ALU=0, CMux=1, C=4, PValid=0; LoadCk, PValidCk; goto start //Move PC <lo>
 
 
 //trap instructions
@@ -645,8 +645,8 @@ MemWrite, A=8, AMux=1, ALU=13, CMux=1, C=21; LoadCk
 A=14, B=15, MARMux=1, CMux=0, C=19; MARCk, LoadCk
 //Calculate if the IR is unary or nonunary, and increment the PC before pushing it onto the stack
 A=21, AMux=1, ALU=13, CMux=1, C=21; LoadCk
-A=21, B=23, AMux=1, ALU=1, CMux=1, C=21; LoadCk
-A=21, B=27, AMux=1, ALU=1, AndZ=0, CMux=1, C=21; NCk, ZCk, LoadCk; if BRGE trap_pc2 else trap_wrtpc
+A=21, B=23, AMux=1, ALU=3, CMux=1, C=21; LoadCk
+A=21, B=27, AMux=1, ALU=3, AndZ=0, CMux=1, C=21; NCk, ZCk, LoadCk; if BRGT trap_pc2 else trap_wrtpc
 trap_pc2: A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
 A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
 

@@ -62,11 +62,25 @@ private:
     void setSignalsFromMicrocode(const MicroCode *line);
     void branchHandler() override;
     void updateAtInstructionEnd() override;
+    // For all 256 instructions in the Pep/9 insturction set,
+    // map the instruction to the first line of microcode that implements it.
+    void calculateInstrJT();
     bool isPrefetchValid;
     QElapsedTimer timer;
     NewCPUDataSection *data;
     QSharedPointer<NewCPUDataSection> dataShared;
     FullMicrocodedMemoizer *memoizer;
+    // A class to represent a single item in the instruction specifier
+    // or addressing mode decoder.
+    struct decoder_entry {
+        quint16 addr;
+        bool isValid;
+    };
+    /* For each instruction, specify the first line of microcode that implements
+     * that instruction. This jump table is constructed at the beginning of each
+     * microprogram-execution to reduce the number of lookups performed by the CPU.
+     */
+    std::array<decoder_entry, 256> instrSpecJT;
 };
 
 #endif // FULLMICROCODEDCPU_H

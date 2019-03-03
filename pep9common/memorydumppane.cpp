@@ -203,7 +203,6 @@ void MemoryDumpPane::updateMemory()
         refreshMemoryLines(x*8, x*8);
     }
 
-    modifiedBytes.clear();
 }
 
 void MemoryDumpPane::scrollToTop()

@@ -92,7 +92,9 @@ public:
     static QString addrModeToCommaSpace(Enu::EAddrMode addressMode);
 
     // Maps between mnemonic enums and strings
-    static QMap<Enu::EMnemonic, QString> enumToMnemonMap;
+    static QMap<Enu::EMnemonic, QString> enumToMnemonMap,
+    // Map mnemonic to the symbol in microcode which implements that instruction.
+    enumToMicrocodeSymbol;
     static QMap<QString, Enu::EMnemonic> mnemonToEnumMap;
     static void initEnumMnemonMaps();
 

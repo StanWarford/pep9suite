@@ -124,7 +124,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QPixmap pixmap("://images/Pep9micro-icon.png");
     aboutPepDialog = new AboutPep(text, pixmap, this);
 
-    connect(redefineMnemonicsDialog, &RedefineMnemonicsDialog::closed, this, &MainWindow::on_Redefine_Mnemonics_closed);
+    connect(redefineMnemonicsDialog, &RedefineMnemonicsDialog::closed, this, &MainWindow::redefine_Mnemonics_closed);
     // Byte converter setup.
     byteConverterDec = new ByteConverterDec();
     ui->byteConverterToolBar->addWidget(byteConverterDec);
@@ -1445,9 +1445,9 @@ void MainWindow::on_actionBuild_Run_triggered()
     if (initializeSimulation()) {
         disconnectViewUpdate();
         emit simulationStarted();
-        ui->memoryWidget->updateMemory();
         memDevice->clearBytesSet();
         memDevice->clearBytesWritten();
+        ui->memoryWidget->updateMemory();
         controlSection->onSimulationStarted();
         controlSection->onRun();
         connectViewUpdate();
@@ -1533,6 +1533,11 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         memDevice->clearBytesWritten();
         ui->cpuWidget->startDebugging();
         ui->memoryWidget->updateMemory();
+        // Force re-highlighting on memory to prevent last run's data
+        // from remaining highlighted. Otherwise, if the last program
+        // was "run", then every byte that it modified will be highlighted
+        // upon starting the simulation.
+        highlightActiveLines(true);
         ui->memoryTracePane->updateTrace();
         ui->asmListingTracePane->setFocus();
         return true;
@@ -1671,7 +1676,9 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
     // Raise warning boxes
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
-        QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
+        // Do not print warning here, as simulation finished logic will raise
+        // any and all warnings.
+        // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
     else if(controlSection->getExecutionFinished()) {
@@ -1711,7 +1718,7 @@ void MainWindow::on_actionSystem_Redefine_Mnemonics_triggered()
     redefineMnemonicsDialog->show();
 }
 
-void MainWindow::on_Redefine_Mnemonics_closed()
+void MainWindow::redefine_Mnemonics_closed()
 {
     // Propogate ASM-level instruction definition changes across the application.
     ui->AsmSourceCodeWidgetPane->rebuildHighlightingRules();

@@ -231,7 +231,9 @@ private slots:
     void on_actionSystem_Clear_CPU_triggered();
     void on_actionSystem_Clear_Memory_triggered();
     void on_actionSystem_Redefine_Mnemonics_triggered();
-    void on_Redefine_Mnemonics_closed();
+    // Allow main window to update highlighting rules after
+    // changes to the mnemonics have been finished.
+    void redefine_Mnemonics_closed();
 
     // Statistics Events
     void on_actionStatistics_Level_All_triggered();

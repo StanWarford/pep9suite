@@ -117,6 +117,12 @@ void FullMicrocodedCPU::onSimulationStarted()
     inSimulation = false;
     executionFinished = false;
     memoizer->clear();
+    // For each instruction in the instruction set, map the instruction to
+    // the first line of microcode that implements it.This calculation is
+    // done each time a microprogram is run to account for mnemonic redefinitons.
+    // Any modification to the Pep:: instruction mappings while the simulator is running
+    // could cause the microprogram to error in unexpected ways.
+    calculateInstrJT();
 }
 
 void FullMicrocodedCPU::onSimulationFinished()
@@ -502,17 +508,27 @@ void FullMicrocodedCPU::branchHandler()
 
         break;
     case Enu::InstructionSpecifierDecoder:
-        temp = data->getRegisterBankByte(8);
-        tempString = Pep::enumToMnemonMap[Pep::decodeMnemonic[temp]].toLower();
-        val = symTable->getValue(tempString);
-        if(val == nullptr || !val->isDefined()) {
+        // If the value in the instruction specifier decoder table is invalid,
+        // report the unrecoverable error.
+        if(!instrSpecJT[data->getRegisterBankByte(8)].isValid) {
             executionFinished = true;
             controlError = true;
+            // Get the enumerated & string values of current instruction.
+            Enu::EMnemonic mnemon = Pep::decodeMnemonic[data->getRegisterBankByte(8)];
+            tempString = Pep::enumToMicrocodeSymbol[mnemon];
+            // Attempt to lookup the symbol associated with the instruction
+            QSharedPointer<const SymbolTable> symTable = this->sharedProgram->getSymTable();
+            val = symTable->getValue(tempString);
+            // If the symbol table returns a nullptr, the symbol is undefined.
             if(val == nullptr) errorMessage = "ERROR: ISD jumped to undefined inst - " + tempString;
             else errorMessage = "ERROR: ISD jumped to multiply defined instr - " + tempString;
             break;
         }
-        temp = val->getValue();
+        else{
+            // Otherwise branch to the appropriate address in the instruction specifer jump table.
+           temp = instrSpecJT[data->getRegisterBankByte(8)].addr;
+        }
+
         break;
     case Enu::Stop:
         executionFinished = true;
@@ -552,6 +568,30 @@ void FullMicrocodedCPU::updateAtInstructionEnd()
     }
     else if(Pep::decodeMnemonic[data->getRegisterBankByte(Enu::CPURegisters::IS)] == Enu::EMnemonic::RETTR){
         callDepth--;
+    }
+}
+
+void FullMicrocodedCPU::calculateInstrJT()
+{
+    // Symbol table of prgram
+    QSharedPointer<const SymbolTable> symTable = this->sharedProgram->getSymTable();
+    QSharedPointer<SymbolEntry> val;
+    FullMicrocodedCPU::decoder_entry entry;
+    for(int it = 0; it <= 255; ++it) {
+        QString tempString = Pep::enumToMicrocodeSymbol[Pep::decodeMnemonic[it]].toLower();
+        val = symTable->getValue(tempString);
+        // Instead of causing an error before execution starts,
+        // flag the entry as invalid so that the error can be caught at runtime.
+        // This allows microprogram fragments that do not define all instructions
+        // to be created, which is of instructional value to students
+        if(val == nullptr || !val->isDefined()) {
+            entry.isValid = false;
+        }
+        else {
+            entry.isValid = true;
+            entry.addr = val->getValue();
+        }
+        instrSpecJT[it] = entry;
     }
 }
 
