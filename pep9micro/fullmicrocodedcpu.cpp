@@ -291,7 +291,10 @@ void FullMicrocodedCPU::onMCStep()
         data->getRegisterBank().flattenFile();
         // If execution finished on this instruction, then restore original starting program counter,
         // as the instruction at the current program counter will not be executed.
-        if(executionFinished) data->getRegisterBank().writePCStart(progCounter);
+        if(executionFinished) {
+            data->getRegisterBank().writePCStart(progCounter);
+            emit simulationFinished();
+        }
 
     }
     // Upon entering an instruction that is going to trap
@@ -321,18 +324,16 @@ void FullMicrocodedCPU::onISAStep()
     if(hadErrorOnStep()) {
         if(memory->hadError()) {
             qDebug() << "Memory section reporting an error";
-            // emit simulationFinished();
         }
         else if(data->hadErrorOnStep()) {
             qDebug() << "Data section reporting an error";
-            // emit simulationFinished();
         }
         else {
             qDebug() << "Control section reporting an error";
-            // emit simulationFinished();
         }
     }
-    if(executionFinished) emit simulationFinished();
+    // If there was an error, execution is finished.
+    // if(executionFinished) emit simulationFinished();
 }
 
 void FullMicrocodedCPU::stepOver()

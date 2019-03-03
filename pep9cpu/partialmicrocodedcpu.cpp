@@ -163,17 +163,14 @@ bool PartialMicrocodedCPU::onRun()
     if(hadErrorOnStep()) {
         if(memory->hadError()) {
             qDebug() << "Memory section reporting an error";
-            // emit simulationFinished();
             return false;
         }
         else if(data->hadErrorOnStep()) {
             qDebug() << "Data section reporting an error";
-            // emit simulationFinished();
             return false;
         }
         else {
             qDebug() << "Control section reporting an error";
-            // emit simulationFinished();
             return false;
         }
     }
@@ -182,7 +179,6 @@ bool PartialMicrocodedCPU::onRun()
     if(microBreakpointHit) {
         return false;
     }
-    emit simulationFinished();
     return true;
 }
 
@@ -238,9 +234,10 @@ void PartialMicrocodedCPU::onMCStep()
     microCycleCounter++;
     //qDebug().nospace().noquote() << prog->getSourceCode();
 
-    if(microprogramCounter == 0 || executionFinished) {
+    if(/*microprogramCounter == 0 ||*/ executionFinished) {
         memoizer->storeStateInstrEnd();
         data->getRegisterBank().flattenFile();
+        if(executionFinished) emit simulationFinished();
 
     }
 

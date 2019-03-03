@@ -3,7 +3,7 @@
     Pep9 is a virtual machine for writing machine language and assembly
     language programs.
     
-    Copyright (C) 2019  J. Stanley Warford, Pepperdine University
+    Copyright (C) 2019  Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,12 +39,14 @@ struct BURNInfo
 
 namespace IsaParserHelper
 {
+    // Lexical tokens
     enum ELexicalToken
     {
         LT_ADDRESSING_MODE, LT_CHAR_CONSTANT, LT_COMMENT, LT_DEC_CONSTANT, LT_DOT_COMMAND,
         LT_EMPTY, LT_HEX_CONSTANT, LT_IDENTIFIER, LT_STRING_CONSTANT, LT_SYMBOL_DEF
     };
 
+    // Parser state for the assembler FSM
     enum ParseState
     {
         PS_ADDRESSING_MODE, PS_CLOSE, PS_COMMENT, PS_DOT_ADDRSS, PS_DOT_ALIGN, PS_DOT_ASCII,
@@ -93,6 +95,7 @@ namespace IsaParserHelper
     // Post: Returns the byte length of str accounting for possibly \ quoted characters.
 
 }
+
 class StructType;
 class IsaAsm
 {
@@ -101,14 +104,19 @@ class IsaAsm
 public:
     IsaAsm(QSharedPointer<MainMemory> memDevice, AsmProgramManager& manager);
     ~IsaAsm();
-    // Lexical tokens
 
-    bool assembleUserProgram(const QString& progText, QSharedPointer<AsmProgram> &progOut, QList<QPair<int, QString>> &errList);
+    bool assembleUserProgram(const QString& progText, QSharedPointer<AsmProgram> &progOut,
+                             QList<QPair<int, QString>> &errList);
     // Pre: Operating system has been succesfully assembled, and
     // is already burned into memory.
-    // Pre:
 
-    bool assembleOperatingSystem(const QString& progText, QSharedPointer<AsmProgram> &progOut, QList<QPair<int, QString>> &errList);
+
+    bool assembleOperatingSystem(const QString& progText, bool forceBurnAt0xFFFF,
+                                 QSharedPointer<AsmProgram> &progOut, QList<QPair<int, QString>> &errList);
+    // Attempt to assemble progText as the operating system.
+    // The flag forceBurnAt0xFFFF requires the the argument of the .BURN have a value of 0xFFFF.
+    // this is needed in Pep9Micro, as there is not enough flexibility in the static registers
+    // to allow a relocatable operating system.
 
 private:
 

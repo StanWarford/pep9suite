@@ -126,6 +126,7 @@ private:
     void print(Enu::EPane which);
 
     //Methods to load user compiled code
+    void assembleDefaultOperatingSystem();
     void loadOperatingSystem();
     void loadObjectCodeProgram();
 
@@ -216,7 +217,6 @@ private slots:
     void on_actionDebug_Restart_Debugging_triggered();
     void on_actionDebug_Stop_Debugging_triggered();
 
-    // TODO
     void on_actionDebug_Single_Step_Assembler_triggered();
     // Stores the call depth, and continues to execute ISA instructions until the new call depth equals the old call depth.
     void on_actionDebug_Step_Over_Assembler_triggered();
@@ -230,6 +230,7 @@ private slots:
     // System
     void on_actionSystem_Clear_CPU_triggered();
     void on_actionSystem_Clear_Memory_triggered();
+    void on_actionSystem_Reinstall_Default_OS_triggered();
     void on_actionSystem_Redefine_Mnemonics_triggered();
     // Allow main window to update highlighting rules after
     // changes to the mnemonics have been finished.

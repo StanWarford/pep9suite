@@ -107,10 +107,6 @@ public:
     static QMap<Enu::EMnemonic, int> addrModesMap;
     static void initAddrModesMap();
 
-    // The trace tag tables
-    static QMap<QString, Enu::ESymbolFormat> symbolFormat;
-    static QMap<QString, int> symbolFormatMultiplier;
-
     // Decoder tables
     static QVector<Enu::EMnemonic> decodeMnemonic;
     static QVector<Enu::EAddrMode> decodeAddrMode;

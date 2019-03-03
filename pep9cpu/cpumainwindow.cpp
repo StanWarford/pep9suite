@@ -852,8 +852,6 @@ void MainWindow::on_actionDebug_Continue_triggered()
     disconnectViewUpdate();
     controlSection->onRun();
     if(controlSection->hadErrorOnStep()) {
-        // QMessageBox::warning(nullptr, "Pep/9 CPU", controlSection->getErrorMessage());
-        //onSimulationFinished();
         return; // we'll just return here instead of letting it fail and go to the bottom
     }
     connectViewUpdate();
@@ -862,7 +860,6 @@ void MainWindow::on_actionDebug_Continue_triggered()
         QApplication::processEvents();
         highlightActiveLines();
     }
-    else onSimulationFinished();
 }
 
 void MainWindow::on_actionDebug_Restart_Debugging_triggered()
@@ -875,13 +872,6 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
 {
     debugState = DebugState::DEBUG_MICRO;
     controlSection->onMCStep();
-    // Only allow onSimulationFinished() to be triggered once, or too many pop-ups might be created.
-    if (controlSection->hadErrorOnStep()) {
-        onSimulationFinished();
-    }
-    else if(controlSection->getExecutionFinished()) {
-         onSimulationFinished();
-    }
     emit simulationUpdate();
 }
 

@@ -442,10 +442,6 @@ void Pep::initAddrModesMap()
     addrModesMap.insert(EMnemonic::STRO, defaultMnemon4AddrModes);
 }
 
-// The trace tag tables
-QMap<QString, Enu::ESymbolFormat> Pep::symbolFormat;
-QMap<QString, int> Pep::symbolFormatMultiplier;
-
 // Decoder tables
 QVector<Enu::EMnemonic> Pep::decodeMnemonic(256);
 QVector<Enu::EAddrMode> Pep::decodeAddrMode(256);

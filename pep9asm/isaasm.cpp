@@ -139,7 +139,8 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
     return success;
 }
 
-bool IsaAsm::assembleOperatingSystem(const QString &progText, QSharedPointer<AsmProgram> &progOut, QList<QPair<int, QString> > &errList)
+bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0xFFFF,
+                                     QSharedPointer<AsmProgram> &progOut, QList<QPair<int, QString> > &errList)
 {
     QStringList fileLines = progText.split("\n");
     QString sourceLine;
@@ -180,12 +181,20 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, QSharedPointer<Asm
         // Search through the program to find which instructions' operand references an undefined symbol
         for(int it = 0; it < codeList.length(); it++) {
             if(codeList[it]->hasSymbolicOperand() && codeList[it]->getSymbolicOperand()->isUndefined()) {
+                QString errorString =  QString(";ERROR: Symbol \"%1\" is undefined.").arg(programList[it]->getSymbolicOperand()->getName());
+                errList.append(QPair<int,QString>{it, errorString});
             }
         }
         success = false;
     }
     else if (info.burnCount != 1) {
+        #pragma message("TODO: Insert error on correct line")
         success = false;
+    }
+    else if(forceBurnAt0xFFFF && info.burnValue != 0xFFFF) {
+        success = false;
+#pragma message("TODO: Insert error on correct line")
+        errList.append({0,".BURN must have an argument of 0xFFFF."});
     }
     if(!success) return false;
     for(int it = 0; it < codeList.size(); it++) {

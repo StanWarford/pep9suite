@@ -269,11 +269,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->memoryWidget->setMaximumWidth(maxSize);
     //ui->ioWidget->setMaximumWidth(maxSize);
 
-    //Initialize state for ISA level simulation
-    //Pep::memAddrssToAssemblerListing = &Pep::memAddrssToAssemblerListingProg;
-    //Pep::listingRowChecked = &Pep::listingRowCheckedProg;
+    // Assemble default OS
+    assembleDefaultOperatingSystem();
 
-    //Initialize Microcode panes
+    // Initialize Microcode panes
     QFile file("://help/pep9micro.pepcpu");
     if(file.open(QFile::ReadOnly | QFile::Text)){
         QTextStream in(&file);
@@ -281,10 +280,10 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->microcodeWidget->setModifiedFalse();
     }
 
-    //Initialize debug menu
+    // Initialize debug menu
     handleDebugButtons();
 
-    //Lastly, read in settings
+    // Read in settings
     readSettings();
 
     // Resize docking widgets because QT does a poor job of it
@@ -869,6 +868,24 @@ void MainWindow::print(Enu::EPane which)
     dialog->deleteLater();
 }
 
+void MainWindow::assembleDefaultOperatingSystem()
+{
+    QString defaultOSText = Pep::resToString(":/help/pep9os/alignedIO-OS.pep");
+    if(!defaultOSText.isEmpty()) {
+        IsaAsm assembler(memDevice, *programManager);
+        auto elist = QList<QPair<int, QString>>();
+        QSharedPointer<AsmProgram> prog;
+        if(assembler.assembleOperatingSystem(defaultOSText, true, prog, elist)) {
+            IsaAsm myAsm(memDevice, *programManager);
+            programManager->setOperatingSystem(prog);
+            this->on_actionSystem_Clear_Memory_triggered();
+        }
+    }
+    else {
+        throw std::logic_error("The default operating system failed to assemble.");
+    }
+}
+
 //Helper function that turns hexadecimal object code into a vector of unsigned characters, which is easier to copy into memory.
 QVector<quint8> convertObjectCodeToIntArray(QString line)
 {
@@ -888,25 +905,8 @@ void MainWindow::loadOperatingSystem()
 {
     QVector<quint8> values;
     quint16 startAddress;
-    QString  osFileString;
-#pragma message ("TODO: Add ability to switch between operating systems")
-    //In the future, have a switch between loading the aligned and unaligned code
-    if(true) osFileString = (":/help/pep9os/alignedIO-OS.pep");
-    else (osFileString = ("failure_to_load"));
-    QFile osFile(osFileString);
-    if(programManager->getOperatingSystem() == nullptr) {
-        if(osFile.open(QFile::ReadOnly)) {
-            QString ls = QString(osFile.readAll());
-            osFile.close();
-            ui->AsmSourceCodeWidgetPane->assembleOS(ls);
-        }
-        else {
-            return;
-        }
-    }
     values = programManager->getOperatingSystem()->getObjectCode();
     startAddress = programManager->getOperatingSystem()->getBurnAddress();
-    qDebug() << startAddress;
     memDevice->autoUpdateMemoryMap(false);
     auto memChips = memDevice->removeAllChips();
     // Re-insert RAM chip
@@ -1601,8 +1601,6 @@ void MainWindow::on_actionDebug_Continue_triggered()
     disconnectViewUpdate();
     controlSection->onRun();
     if(controlSection->hadErrorOnStep()) {
-        // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
-        onSimulationFinished();
         return; // we'll just return here instead of letting it fail and go to the bottom
     }
     connectViewUpdate();
@@ -1611,7 +1609,6 @@ void MainWindow::on_actionDebug_Continue_triggered()
         QApplication::processEvents();
         highlightActiveLines(true);
     }
-    else onSimulationFinished();
 }
 
 void MainWindow::on_actionDebug_Restart_Debugging_triggered()
@@ -1628,11 +1625,6 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
     disconnectViewUpdate();
     controlSection->stepOver();
     connectViewUpdate();
-    if (controlSection->hadErrorOnStep()) {
-        // simulation had issues.
-        // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
-        // onSimulationFinished();
-    }
     emit simulationUpdate();
 }
 
@@ -1641,11 +1633,6 @@ void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
     debugState = DebugState::DEBUG_ISA;
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
     controlSection->stepInto();
-    if (controlSection->hadErrorOnStep()) {
-        // simulation had issues.
-        // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
-        // onSimulationFinished();
-    }
     emit simulationUpdate();
 }
 
@@ -1656,11 +1643,6 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
     //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
     disconnectViewUpdate();
     controlSection->stepOut();
-    if (controlSection->hadErrorOnStep()) {
-        // simulation had issues.
-        // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
-        // onSimulationFinished();
-    }
     connectViewUpdate();
     emit simulationUpdate();
 }
@@ -1674,17 +1656,6 @@ void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
             memDevice->clearBytesWritten();
     }
     controlSection->onMCStep();
-    // Raise warning boxes
-    if (controlSection->hadErrorOnStep()) {
-        // simulation had issues.
-        // Do not print warning here, as simulation finished logic will raise
-        // any and all warnings.
-        // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
-        onSimulationFinished();
-    }
-    else if(controlSection->getExecutionFinished()) {
-        onSimulationFinished();
-    }
     emit simulationUpdate();
 
 }
@@ -1712,6 +1683,13 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
 {
     memDevice->clearMemory();
     ui->memoryWidget->refreshMemory();
+}
+
+void MainWindow::on_actionSystem_Reinstall_Default_OS_triggered()
+{
+    qDebug() << "Reinstalled default OS";
+    assembleDefaultOperatingSystem();
+    loadOperatingSystem();
 }
 
 void MainWindow::on_actionSystem_Redefine_Mnemonics_triggered()

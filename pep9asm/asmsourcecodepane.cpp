@@ -79,8 +79,6 @@ bool AsmSourceCodePane::assemble()
 {
     // Clean up any global state from previous compilation attempts
     removeErrorMessages();
-    Pep::symbolFormat.clear();
-    Pep::symbolFormatMultiplier.clear();
     addressToIndex.clear();
 
     QString sourceCode = ui->textEdit->toPlainText();
@@ -124,24 +122,16 @@ QStringList AsmSourceCodePane::getAssemblerListingList()
     return assemblerListingList;
 }
 
-bool AsmSourceCodePane::assembleDefaultOs()
-{
-    QString sourceCode = Pep::resToString(":/help/figures/pep9os.pep");
-    return assembleOS(sourceCode);
-}
-
-bool AsmSourceCodePane::assembleOS(const QString& sourceCode)
+bool AsmSourceCodePane::assembleOS(bool forceBurnAt0xFFFF)
 {
     QSharedPointer<AsmProgram> prog;
     IsaAsm myAsm(memDevice, *programManager);
     // List of errors and warnings and the lines on which they occured
     auto elist = QList<QPair<int, QString>>();
-    bool success = myAsm.assembleOperatingSystem(sourceCode, prog, elist);
+    QString sourceCode = ui->textEdit->toPlainText();
+    bool success = myAsm.assembleOperatingSystem(sourceCode, forceBurnAt0xFFFF, prog, elist);
     // Add all warnings and errors to source files
-#pragma message("TODO: handle appending error messages in operating system")
-    /*for (QPair<int,QString> pair : elist) {
-        appendMessageInSourceCodePaneAt(pair.first, pair.second);
-    }*/
+    appendMessagesInSourceCodePane(elist);
     // If assemble failed, don't perform any more work
     if(!success) {
         return false;
@@ -149,7 +139,6 @@ bool AsmSourceCodePane::assembleOS(const QString& sourceCode)
     for (int i = 0; i < prog->getProgram().size(); i++) {
         if(prog->getProgram()[i]->getMemoryAddress() >=0) addressToIndex[prog->getProgram()[i]->getMemoryAddress()] = i;
     }
-    programManager->setOperatingSystem(prog);
     return true;
 }
 

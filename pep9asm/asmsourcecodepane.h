@@ -107,12 +107,7 @@ public:
     // Post: hasCheckBox is populated with the checkBox list that specifies whether a trace line can have a break point.
     // Post: assemblerListingList is returned.
 
-    bool assembleDefaultOs();
-    // Post: the pep/8 operating system is installed into memory, and true is returned
-    // If assembly fails, false is returned
-    // This function should only be called on program startup once
-
-    bool assembleOS(const QString& sourceCode);
+    bool assembleOS(bool forceBurnAt0xFFFF);
 
     void removeErrorMessages();
     // Post: Searces for the string ";ERROR: " on each line and removes the end of the line.

@@ -257,6 +257,8 @@
     <addaction name="separator"/>
     <addaction name="actionUse_Unaligned_OS"/>
     <addaction name="actionUse_Aligned_OS"/>
+    <addaction name="actionSystem_Assemble_Install_New_OS"/>
+    <addaction name="actionSystem_Reinstall_Default_OS"/>
     <addaction name="actionSystem_Redefine_Mnemonics"/>
     <addaction name="separator"/>
     <addaction name="actionFragment_Simulator"/>
@@ -1092,6 +1094,16 @@
   <action name="actionSystem_Redefine_Mnemonics">
    <property name="text">
     <string>Redefine Mnemonics...</string>
+   </property>
+  </action>
+  <action name="actionSystem_Assemble_Install_New_OS">
+   <property name="text">
+    <string>Assemble &amp;&amp; Install New OS</string>
+   </property>
+  </action>
+  <action name="actionSystem_Reinstall_Default_OS">
+   <property name="text">
+    <string>Reinstall Default OS</string>
    </property>
   </action>
  </widget>
