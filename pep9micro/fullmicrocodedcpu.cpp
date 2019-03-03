@@ -501,8 +501,8 @@ void FullMicrocodedCPU::branchHandler()
             QSharedPointer<const SymbolTable> symTable = this->sharedProgram->getSymTable();
             val = symTable->getValue(tempString);
             // If the symbol table returns a nullptr, the symbol is undefined.
-            if(val == nullptr) errorMessage = "ERROR: AMD jumped to undefined inst - " + tempString;
-            else errorMessage = "ERROR: AMD jumped to multiply defined instr - " + tempString;
+            if(val == nullptr) errorMessage = "ERROR: AMD jumped to undefined addressing mode - " + tempString;
+            else errorMessage = "ERROR: AMD jumped to multiply defined addressing mode - " + tempString;
         }
         else{
             // Otherwise branch to the appropriate address in the instruction specifer jump table.
