@@ -92,9 +92,7 @@ public:
     static QString addrModeToCommaSpace(Enu::EAddrMode addressMode);
 
     // Maps between mnemonic enums and strings
-    static QMap<Enu::EMnemonic, QString> enumToMnemonMap,
-    // Map mnemonic to the symbol in microcode which implements that instruction.
-    enumToMicrocodeSymbol;
+    static QMap<Enu::EMnemonic, QString> enumToMnemonMap;
     static QMap<QString, Enu::EMnemonic> mnemonToEnumMap;
     static void initEnumMnemonMaps();
 
@@ -117,5 +115,12 @@ public:
     static QVector<Enu::EMnemonic> decodeMnemonic;
     static QVector<Enu::EAddrMode> decodeAddrMode;
     static void initDecoderTables();
+
+    // Microprogram decoder table
+    // Map mnemonic to the symbol in microcode which implements that instruction.
+    static QMap<Enu::EMnemonic, QString> enumToMicrocodeInstrSymbol;
+    // Map mnemonic to the symbopl in microcode which implements that iunstruction.
+    static QMap<Enu::EAddrMode, QString> enumToMicrocodeAddrSymbol;
+    static void initMicroDecoderTables();
 };
 #endif // PEP_H

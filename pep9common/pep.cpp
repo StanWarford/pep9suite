@@ -282,7 +282,7 @@ QString Pep::addrModeToCommaSpace(EAddrMode addressMode) {
 }
 
 // Maps between mnemonic enums and strings
-QMap<Enu::EMnemonic, QString> Pep::enumToMnemonMap, Pep::enumToMicrocodeSymbol;
+QMap<Enu::EMnemonic, QString> Pep::enumToMnemonMap;
 QMap<QString, Enu::EMnemonic> Pep::mnemonToEnumMap;
 void Pep::initEnumMnemonMaps()
 {
@@ -296,7 +296,6 @@ void Pep::initEnumMnemonMaps()
         EMnemonic tempi = static_cast<EMnemonic>(metaEnum.value(it));
         tempqs = QString(metaEnum.key(it)).toUpper();
         enumToMnemonMap.insert(tempi, tempqs); mnemonToEnumMap.insert(tempqs, tempi);
-        enumToMicrocodeSymbol.insert(tempi, tempqs);
     }
 
     //Lastly, override whatever the above enumerator put in for the redefinable mnemonics
@@ -307,14 +306,6 @@ void Pep::initEnumMnemonMaps()
     enumToMnemonMap.insert(EMnemonic::DECO, defaultNonUnaryMnemonic2); mnemonToEnumMap.insert(defaultNonUnaryMnemonic2, EMnemonic::DECO);
     enumToMnemonMap.insert(EMnemonic::HEXO, defaultNonUnaryMnemonic3); mnemonToEnumMap.insert(defaultNonUnaryMnemonic3, EMnemonic::HEXO);
     enumToMnemonMap.insert(EMnemonic::STRO, defaultNonUnaryMnemonic4); mnemonToEnumMap.insert(defaultNonUnaryMnemonic4, EMnemonic::STRO);
-
-    enumToMicrocodeSymbol.insert(EMnemonic::NOP, defaultNonUnaryMnemonic0);
-    enumToMicrocodeSymbol.insert(EMnemonic::NOP0, defaultUnaryMnemonic0);
-    enumToMicrocodeSymbol.insert(EMnemonic::NOP1, defaultUnaryMnemonic1);
-    enumToMicrocodeSymbol.insert(EMnemonic::DECI, defaultNonUnaryMnemonic1);
-    enumToMicrocodeSymbol.insert(EMnemonic::DECO, defaultNonUnaryMnemonic2);
-    enumToMicrocodeSymbol.insert(EMnemonic::HEXO, defaultNonUnaryMnemonic3);
-    enumToMicrocodeSymbol.insert(EMnemonic::STRO, defaultNonUnaryMnemonic4);
 }
 
 // Maps to characterize each instruction
@@ -547,4 +538,41 @@ void Pep::initDecoderTables()
     initDecoderTableAAAHelper(EMnemonic::STWX, 232);
     initDecoderTableAAAHelper(EMnemonic::STBA, 240);
     initDecoderTableAAAHelper(EMnemonic::STBX, 248);
+}
+
+QMap<Enu::EMnemonic, QString> Pep::enumToMicrocodeInstrSymbol;
+QMap<Enu::EAddrMode, QString> Pep::enumToMicrocodeAddrSymbol;
+
+void Pep::initMicroDecoderTables()
+{
+    // Initialize insturction specifiers for microcode symbols
+    enumToMicrocodeInstrSymbol.clear();
+
+    QMetaObject meta = Enu::staticMetaObject;
+    QMetaEnum metaEnum = meta.enumerator(meta.indexOfEnumerator("EMnemonic"));
+    QString tempqs;
+    for(int it = 0; it < metaEnum.keyCount(); it++)
+    {
+        EMnemonic tempi = static_cast<EMnemonic>(metaEnum.value(it));
+        tempqs = QString(metaEnum.key(it)).toUpper();
+        enumToMicrocodeInstrSymbol.insert(tempi, tempqs);
+    }
+
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::NOP, defaultNonUnaryMnemonic0);
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::NOP0, defaultUnaryMnemonic0);
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::NOP1, defaultUnaryMnemonic1);
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::DECI, defaultNonUnaryMnemonic1);
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::DECO, defaultNonUnaryMnemonic2);
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::HEXO, defaultNonUnaryMnemonic3);
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::STRO, defaultNonUnaryMnemonic4);
+
+    // Initialize symbols for addressing modes
+    enumToMicrocodeAddrSymbol.clear();
+    metaEnum = meta.enumerator(meta.indexOfEnumerator("EAddrMode"));
+    for(int it = 0; it < metaEnum.keyCount(); it++)
+    {
+        EAddrMode tempi = static_cast<EAddrMode>(metaEnum.value(it));
+        tempqs = QString(metaEnum.key(it)).toLower()+"Addr";
+        enumToMicrocodeAddrSymbol.insert(tempi, tempqs);
+    }
 }

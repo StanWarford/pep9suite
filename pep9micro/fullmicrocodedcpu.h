@@ -65,6 +65,7 @@ private:
     // For all 256 instructions in the Pep/9 insturction set,
     // map the instruction to the first line of microcode that implements it.
     void calculateInstrJT();
+    void calculateAddrJT();
     bool isPrefetchValid;
     QElapsedTimer timer;
     NewCPUDataSection *data;
@@ -76,11 +77,20 @@ private:
         quint16 addr;
         bool isValid;
     };
-    /* For each instruction, specify the first line of microcode that implements
-     * that instruction. This jump table is constructed at the beginning of each
-     * microprogram-execution to reduce the number of lookups performed by the CPU.
-     */
+
+    // For each instruction in the instruction set, map the instruction to
+    // the first line of microcode that implements it.This calculation is
+    // done each time a microprogram is run to account for mnemonic redefinitons.
+    // Any modification to the Pep:: instruction mappings while the simulator is running
+    // could cause the microprogram to error in unexpected ways.
     std::array<decoder_entry, 256> instrSpecJT;
+
+    // For each of the 256 instruction specifier values, map the
+    // addressing mode associated with that IS to the first line of
+    // microcode implementing that addressing mode. Do not modify
+    // any of the Pep:: addressing mode maps while the simulator
+    // is running, else a microprogram might fail unexpectedly.
+    std::array<decoder_entry, 256> addrModeJT;
 };
 
 #endif // FULLMICROCODEDCPU_H

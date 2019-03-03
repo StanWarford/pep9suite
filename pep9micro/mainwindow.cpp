@@ -86,6 +86,7 @@ MainWindow::MainWindow(QWidget *parent) :
     Pep::initMnemonicMaps();
     Pep::initAddrModesMap();
     Pep::initDecoderTables();
+    Pep::initMicroDecoderTables();
 
     // Initialize the memory subsystem
     QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memDevice.get()));
@@ -1629,7 +1630,7 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
     connectViewUpdate();
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
-        QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
+        // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
     emit simulationUpdate();
@@ -1642,7 +1643,7 @@ void MainWindow::on_actionDebug_Step_Into_Assembler_triggered()
     controlSection->stepInto();
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
-        QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
+        // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
     emit simulationUpdate();
@@ -1657,7 +1658,7 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
     controlSection->stepOut();
     if (controlSection->hadErrorOnStep()) {
         // simulation had issues.
-        QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
+        // QMessageBox::warning(nullptr, "Pep/9", controlSection->getErrorMessage());
         onSimulationFinished();
     }
     connectViewUpdate();
