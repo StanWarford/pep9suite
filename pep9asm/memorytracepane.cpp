@@ -157,6 +157,7 @@ void NewMemoryTracePane::onSimulationStarted()
 void NewMemoryTracePane::onSimulationFinished()
 {
     // Nothing in need of cleaning up
+    updateTrace();
 }
 
 void NewMemoryTracePane::onDarkModeChanged(bool darkMode)

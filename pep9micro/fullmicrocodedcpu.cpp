@@ -177,6 +177,12 @@ bool FullMicrocodedCPU::onRun()
             if(microCycleCounter % 5000 == 0) {
                 QApplication::processEvents();
             }
+            else if(microprogramCounter == 0) {
+                // Clear at start, so as to preserve highlighting AFTER finshing a write.
+                // When running in debug, clear written bytes after every instruction,
+                // otherwise too many writes may queue up.
+                memory->clearBytesWritten();
+            }
             onMCStep();
         }
     }

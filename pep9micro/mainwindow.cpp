@@ -177,6 +177,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::simulationFinished, controlSection.get(), &FullMicrocodedCPU::onSimulationFinished);
     connect(this, &MainWindow::simulationFinished, ui->cpuWidget, &CpuPane::onSimulationUpdate);
     connect(this, &MainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished);
+    connect(this, &MainWindow::simulationFinished, ui->memoryTracePane, &NewMemoryTracePane::onSimulationFinished);
     // Connect MainWindow so that it can propogate simulationFinished event and clean up when execution is finished.
     connect(controlSection.get(), &FullMicrocodedCPU::simulationFinished, this, &MainWindow::onSimulationFinished);
 
@@ -1472,10 +1473,11 @@ void MainWindow::on_actionBuild_Run_triggered()
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
         disconnectViewUpdate();
-        emit simulationStarted();
         memDevice->clearBytesSet();
         memDevice->clearBytesWritten();
+        emit simulationStarted();
         ui->memoryWidget->updateMemory();
+        ui->memoryTracePane->updateTrace();
         controlSection->onSimulationStarted();
         controlSection->onRun();
         connectViewUpdate();
@@ -1594,8 +1596,8 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     ui->asmListingTracePane->clearSimulationView();
     handleDebugButtons();
     highlightActiveLines(true);
-    ui->memoryWidget->updateMemory();
-    ui->memoryTracePane->updateTrace();
+    // ui->memoryWidget->updateMemory();
+    // ui->memoryTracePane->updateTrace();
     controlSection->onDebuggingFinished();
     emit simulationFinished();
 }
