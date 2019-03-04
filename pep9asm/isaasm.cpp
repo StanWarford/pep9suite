@@ -99,14 +99,14 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
 
     // Insert charIn, charOut symbols if they have not been previously defined.
     quint16 chin, chout;
-    if(!symTable->exists("charIn")) {
+    if(!symTable->exists("charIn") || symTable->getValue("charIn")->isUndefined()) {
         // According to the OS memory map vector, the location of chicharIn is
         // stored in the 6th and 7th bytes from the end of the operating system.
         quint16 chinOffset = manager.getOperatingSystem()->getBurnValue() - 0x7;
         memDevice->getWord(chinOffset, chin);
         symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(chin));
     }
-    if(!symTable->exists("charOut")) {
+    if(!symTable->exists("charOut") || symTable->getValue("charOut")->isUndefined()) {
         // According to the OS memory map vector, the location of charOut is
         // stored in the 4th and 5th bytes from the end of the operating system.
         quint16 choutOffset = manager.getOperatingSystem()->getBurnValue() - 0x5;
@@ -230,8 +230,68 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0x
     info.startROMAddress = info.burnValue - (byteCount - info.burnAddress) +1;
     relocateCode(programList, addressDelta);
     symTable->setOffset(addressDelta);
+
+    /*
+     * Adjust for .ALIGNs before .BURN
+     *
+     * For any .ALIGNs before a .BURN, they should align in the opposite direction.
+     * That is, instead of spanning from an arbitray starting address to the byte
+     * before the desired alignment, they should end at the address of the next
+     * instruction, and continue upwards in memory until the first byte of the
+     * .ALIGN is on the proper byte boundary.
+     *
+     * This feature is needed so that arbitrary changes may be made to the
+     * operating system without the user having to manually align the IO ports.
+     *
+     */
+    // Find the .BURN directive
+    int indexOfBurn = 0;
+    for(int it = 0; it < programList.size(); it++) {
+        if(dynamic_cast<DotBurn*>(programList[it].get()) != nullptr) {
+            indexOfBurn = it;
+            break;
+        }
+    }
+
+    // Total number of bytes that each instruction needs to be shifted.
+    int rollingOffset = 0;
+
+    // Begin aligning every instruction from the .BURN upwards.
+    for(int it = indexOfBurn; it > 0; it--) {
+        // Every line of assembly code before a .BURN must be moved upward by the size of all preceding .ALIGN
+        // directives, starting from the .BURN and moving upward.
+        programList[it]->adjustMemAddress(rollingOffset);
+        // Symbols that represent memory locations must also be adjusted.
+        if(programList[it]->hasSymbolEntry()) {
+            auto sym = symTable->getValue(programList[it]->getSymbolEntry()->getSymbolID());
+            // Don't allow symbols with an .EQUATE, .ADDRSS to be re-adjusted.
+            if(sym->getRawValue()->canRelocate()) {
+                sym->setValue(QSharedPointer<SymbolValueLocation>::create(programList[it]->getMemoryAddress()));
+            }
+        }
+
+        // If the instruction is a .ALIGN, then we must re-calculate the rolling offset.
+        if(dynamic_cast<DotAlign*>(programList[it].get()) != nullptr) {
+            // The instruction is known to be an ALIGN directive, so just cast it.
+            DotAlign* asAlign = static_cast<DotAlign*>(programList[it].get());
+            // The address of the .ALIGN.
+            int startAddr = asAlign->memAddress;
+            // The address of the last byte of the .ALIGN.
+            int endAddr = startAddr + asAlign->numBytesGenerated->getArgumentValue();
+            // Based on the ending byte, calculate where the first byte needs to be for proper alignment.
+            int blockStart = endAddr - endAddr % asAlign->argument->getArgumentValue();
+            // We can't change an AsmArgument in place, so we must construct a new one.
+            delete asAlign->numBytesGenerated;
+            // The align must still reach down to endAddr, but now must span up to blockStart.
+            asAlign->numBytesGenerated = new UnsignedDecArgument(blockStart - endAddr);
+            // Other instructions will be shifter by the change in starting address.
+            rollingOffset += blockStart - startAddr;
+            asAlign->memAddress = blockStart;
+        }
+    }
+
     // Don't trace tags in the OS. We don't want to support this behavior, since
-    // the operating system is not simply a translation of a C program.
+    // the operating system is not a translation of a C program.
     // handleTraceTags(*symTable.get(), *traceInfo, codeList, errList);
     traceInfo->hadTraceTags = false;
     progOut = QSharedPointer<AsmProgram>::create(programList, symTable, traceInfo, info.startROMAddress, info.burnValue);

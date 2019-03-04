@@ -1,22 +1,21 @@
-;******* Pep/9 Operating System, 2015/05/17
+;******* Pep/9 Operating System, 2019/03/03
 ;
-TRUE:    .EQUATE 1
-FALSE:   .EQUATE 0
+TRUE:    .EQUATE 1           
+FALSE:   .EQUATE 0           
 ;
 ;******* Operating system RAM
 osRAM:   .BLOCK  128         ;System stack area
 wordTemp:.BLOCK  1           ;Temporary word storage
 byteTemp:.BLOCK  1           ;Least significant byte of wordTemp
-stop; Unalign everything above this
+         STOP                ; Unalign everything above this
 addrMask:.BLOCK  2           ;Addressing mode mask
 opAddr:  .BLOCK  2           ;Trap instruction operand address
 charIn:  .BLOCK  2           ;Memory-mapped input device
 charOut: .BLOCK  2           ;Memory-mapped output device
-.align 2
-         stop
-; Alignment starts 
+.align 2    
+; Alignment starts
 ;******* Operating system ROM
-         .BURN   0xFFFF
+         .BURN   0xFFFF      
 ;
 ;******* System Loader
 ;Data must be in the following format:
@@ -39,7 +38,7 @@ getChar: LDBA    charIn,d    ;Get first hex character
 shift:   ASLA                ;Shift left by four bits to send
          ASLA                ;  the digit to the most significant
          ASLA                ;  position in the byte
-         ASLA
+         ASLA                
          STBA    byteTemp,d  ;Save the most significant nybble
          LDBA    charIn,d    ;Get second hex character
          CPBA    '9',i       ;If characer <= '9', assume decimal
@@ -57,7 +56,7 @@ stopLoad:STOP                ;
 ;******* Trap handler
 oldIR:   .EQUATE 9           ;Stack address of IR on trap
 ;
-trap:    LDWX    0,i
+trap:    LDWX    0,i         
          LDBX    oldIR,s     ;X <- trapped IR
          CPBX    0x0028,i    ;If X >= first nonunary trap opcode
          BRGE    nonUnary    ;  trap opcode is nonunary
@@ -72,7 +71,7 @@ unaryJT: .ADDRSS opcode26    ;Address of NOP0 subroutine
 ;
 nonUnary:ASRX                ;Trap opcode is nonunary
          ASRX                ;Discard addressing mode bits
-         ASRX
+         ASRX                
          SUBX    5,i         ;Adjust so that NOP opcode = 0
          ASLX                ;Two bytes per address
          CALL    nonUnJT,x   ;Call nonunary trap routine
@@ -94,14 +93,14 @@ loop:    ASLA                ;Shift the 1 bit left
          SUBX    1,i         ;Subtract from addressing mode count
          BRNE    loop        ;Try next addressing mode
 testAd:  ANDA    addrMask,d  ;AND the 1 bit with legal modes
-         BREQ    addrErr
+         BREQ    addrErr     
          RET                 ;Legal addressing mode, return
-addrErr: LDBA    '\n',i
-         STBA    charOut,d
+addrErr: LDBA    '\n',i      
+         STBA    charOut,d   
          LDWA    trapMsg,i   ;Push address of error message
-         STWA    -2,s
+         STWA    -2,s        
          SUBSP   2,i         ;Call print subroutine
-         CALL    prntMsg
+         CALL    prntMsg     
          STOP                ;Halt: Fatal runtime error
 trapMsg: .ASCII  "ERROR: Invalid trap addressing mode.\x00"
 ;
@@ -112,7 +111,7 @@ oldSP4:  .EQUATE 11          ;oldSP + 4 with two return addresses
 setAddr: LDBX    oldIR4,s    ;X <- old instruction register
          ANDX    0x0007,i    ;Keep only the addressing mode bits
          ASLX                ;Two bytes per address
-         BR      addrJT,x
+         BR      addrJT,x    
 addrJT:  .ADDRSS addrI       ;Immediate addressing
          .ADDRSS addrD       ;Direct addressing
          .ADDRSS addrN       ;Indirect addressing
@@ -124,75 +123,75 @@ addrJT:  .ADDRSS addrI       ;Immediate addressing
 ;
 addrI:   LDWX    oldPC4,s    ;Immediate addressing
          SUBX    2,i         ;Oprnd = OprndSpec
-         STWX    opAddr,d
-         RET
+         STWX    opAddr,d    
+         RET                 
 ;
 addrD:   LDWX    oldPC4,s    ;Direct addressing
          SUBX    2,i         ;Oprnd = Mem[OprndSpec]
-         LDWX    0,x
-         STWX    opAddr,d
-         RET
+         LDWX    0,x         
+         STWX    opAddr,d    
+         RET                 
 ;
 addrN:   LDWX    oldPC4,s    ;Indirect addressing
          SUBX    2,i         ;Oprnd = Mem[Mem[OprndSpec]]
-         LDWX    0,x
-         LDWX    0,x
-         STWX    opAddr,d
-         RET
+         LDWX    0,x         
+         LDWX    0,x         
+         STWX    opAddr,d    
+         RET                 
 ;
 addrS:   LDWX    oldPC4,s    ;Stack-relative addressing
          SUBX    2,i         ;Oprnd = Mem[SP + OprndSpec]
-         LDWX    0,x
-         ADDX    oldSP4,s
-         STWX    opAddr,d
-         RET
+         LDWX    0,x         
+         ADDX    oldSP4,s    
+         STWX    opAddr,d    
+         RET                 
 ;
 addrSF:  LDWX    oldPC4,s    ;Stack-relative deferred addressing
          SUBX    2,i         ;Oprnd = Mem[Mem[SP + OprndSpec]]
-         LDWX    0,x
-         ADDX    oldSP4,s
-         LDWX    0,x
-         STWX    opAddr,d
-         RET
+         LDWX    0,x         
+         ADDX    oldSP4,s    
+         LDWX    0,x         
+         STWX    opAddr,d    
+         RET                 
 ;
 addrX:   LDWX    oldPC4,s    ;Indexed addressing
          SUBX    2,i         ;Oprnd = Mem[OprndSpec + X]
-         LDWX    0,x
-         ADDX    oldX4,s
-         STWX    opAddr,d
-         RET
+         LDWX    0,x         
+         ADDX    oldX4,s     
+         STWX    opAddr,d    
+         RET                 
 ;
 addrSX:  LDWX    oldPC4,s    ;Stack-indexed addressing
          SUBX    2,i         ;Oprnd = Mem[SP + OprndSpec + X]
-         LDWX    0,x
-         ADDX    oldX4,s
-         ADDX    oldSP4,s
-         STWX    opAddr,d
-         RET
+         LDWX    0,x         
+         ADDX    oldX4,s     
+         ADDX    oldSP4,s    
+         STWX    opAddr,d    
+         RET                 
 ;
 addrSFX: LDWX    oldPC4,s    ;Stack-deferred indexed addressing
          SUBX    2,i         ;Oprnd = Mem[Mem[SP + OprndSpec] + X]
-         LDWX    0,x
-         ADDX    oldSP4,s
-         LDWX    0,x
-         ADDX    oldX4,s
-         STWX    opAddr,d
-         RET
+         LDWX    0,x         
+         ADDX    oldSP4,s    
+         LDWX    0,x         
+         ADDX    oldX4,s     
+         STWX    opAddr,d    
+         RET                 
 ;
 ;******* Opcode 0x26
 ;The NOP0 instruction.
-opcode26:RET
+opcode26:RET                 
 ;
 ;******* Opcode 0x27
 ;The NOP1 instruction.
-opcode27:RET
+opcode27:RET                 
 ;
 ;******* Opcode 0x28
 ;The NOP instruction.
 opcode28:LDWA    0x0001,i    ;Assert i
-         STWA    addrMask,d
-         CALL    assertAd
-         RET
+         STWA    addrMask,d  
+         CALL    assertAd    
+         RET                 
 ;
 ;******* Opcode 0x30
 ;The DECI instruction.
@@ -210,143 +209,143 @@ valAscii:.EQUATE 8           ;value(asciiCh)
 isOvfl:  .EQUATE 6           ;Overflow boolean
 isNeg:   .EQUATE 4           ;Negative boolean
 state:   .EQUATE 2           ;State variable
-temp:    .EQUATE 0
+temp:    .EQUATE 0           
 ;
 init:    .EQUATE 0           ;Enumerated values for state
-sign:    .EQUATE 1
-digit:   .EQUATE 2
+sign:    .EQUATE 1           
+digit:   .EQUATE 2           
 ;
 opcode30:LDWA    0x00FE,i    ;Assert d, n, s, sf, x, sx, sfx
-         STWA    addrMask,d
-         CALL    assertAd
+         STWA    addrMask,d  
+         CALL    assertAd    
          CALL    setAddr     ;Set address of trap operand
          SUBSP   13,i        ;Allocate storage for locals
          LDWA    FALSE,i     ;isOvfl <- FALSE
-         STWA    isOvfl,s
+         STWA    isOvfl,s    
          LDWA    init,i      ;state <- init
-         STWA    state,s
+         STWA    state,s     
 ;
 do:      LDBA    charIn,d    ;Get asciiCh
-         STBA    asciiCh,s
+         STBA    asciiCh,s   
          ANDA    0x000F,i    ;Set value(asciiCh)
-         STWA    valAscii,s
+         STWA    valAscii,s  
          LDBA    asciiCh,s   ;A<low> = asciiCh throughout the loop
          LDWX    state,s     ;switch (state)
          ASLX                ;Two bytes per address
-         BR      stateJT,x
+         BR      stateJT,x   
 ;
-stateJT: .ADDRSS sInit
-         .ADDRSS sSign
-         .ADDRSS sDigit
+stateJT: .ADDRSS sInit       
+         .ADDRSS sSign       
+         .ADDRSS sDigit      
 ;
 sInit:   CPBA    '+',i       ;if (asciiCh == '+')
-         BRNE    ifMinus
+         BRNE    ifMinus     
          LDWX    FALSE,i     ;isNeg <- FALSE
-         STWX    isNeg,s
+         STWX    isNeg,s     
          LDWX    sign,i      ;state <- sign
-         STWX    state,s
-         BR      do
+         STWX    state,s     
+         BR      do          
 ;
 ifMinus: CPBA    '-',i       ;else if (asciiCh == '-')
-         BRNE    ifDigit
+         BRNE    ifDigit     
          LDWX    TRUE,i      ;isNeg <- TRUE
-         STWX    isNeg,s
+         STWX    isNeg,s     
          LDWX    sign,i      ;state <- sign
-         STWX    state,s
-         BR      do
+         STWX    state,s     
+         BR      do          
 ;
 ifDigit: CPBA    '0',i       ;else if (asciiCh is a digit)
-         BRLT    ifWhite
-         CPBA    '9',i
-         BRGT    ifWhite
+         BRLT    ifWhite     
+         CPBA    '9',i       
+         BRGT    ifWhite     
          LDWX    FALSE,i     ;isNeg <- FALSE
-         STWX    isNeg,s
+         STWX    isNeg,s     
          LDWX    valAscii,s  ;total <- value(asciiCh)
-         STWX    total,s
+         STWX    total,s     
          LDWX    digit,i     ;state <- digit
-         STWX    state,s
-         BR      do
+         STWX    state,s     
+         BR      do          
 ;
 ifWhite: CPBA    ' ',i       ;else if (asciiCh is not a space
-         BREQ    do
+         BREQ    do          
          CPBA    '\n',i      ;or line feed)
          BRNE    deciErr     ;exit with DECI error
-         BR      do
+         BR      do          
 ;
 sSign:   CPBA    '0',i       ;if asciiCh (is not a digit)
-         BRLT    deciErr
-         CPBA    '9',i
+         BRLT    deciErr     
+         CPBA    '9',i       
          BRGT    deciErr     ;exit with DECI error
          LDWX    valAscii,s  ;else total <- value(asciiCh)
-         STWX    total,s
+         STWX    total,s     
          LDWX    digit,i     ;state <- digit
-         STWX    state,s
-         BR      do
+         STWX    state,s     
+         BR      do          
 ;
 sDigit:  CPBA    '0',i       ;if (asciiCh is not a digit)
-         BRLT    deciNorm
-         CPBA    '9',i
+         BRLT    deciNorm    
+         CPBA    '9',i       
          BRGT    deciNorm    ;exit normaly
          LDWX    TRUE,i      ;else X <- TRUE for later assignments
          LDWA    total,s     ;Multiply total by 10 as follows:
          ASLA                ;First, times 2
          BRV     ovfl1       ;If overflow then
-         BR      L1
+         BR      L1          
 ovfl1:   STWX    isOvfl,s    ;isOvfl <- TRUE
 L1:      STWA    temp,s      ;Save 2 * total in temp
          ASLA                ;Now, 4 * total
          BRV     ovfl2       ;If overflow then
-         BR      L2
+         BR      L2          
 ovfl2:   STWX    isOvfl,s    ;isOvfl <- TRUE
 L2:      ASLA                ;Now, 8 * total
          BRV     ovfl3       ;If overflow then
-         BR      L3
+         BR      L3          
 ovfl3:   STWX    isOvfl,s    ;isOvfl <- TRUE
 L3:      ADDA    temp,s      ;Finally, 8 * total + 2 * total
          BRV     ovfl4       ;If overflow then
-         BR      L4
+         BR      L4          
 ovfl4:   STWX    isOvfl,s    ;isOvfl <- TRUE
 L4:      ADDA    valAscii,s  ;A <- 10 * total + valAscii
          BRV     ovfl5       ;If overflow then
-         BR      L5
+         BR      L5          
 ovfl5:   STWX    isOvfl,s    ;isOvfl <- TRUE
 L5:      STWA    total,s     ;Update total
-         BR      do
+         BR      do          
 ;
 deciNorm:LDWA    isNeg,s     ;If isNeg then
-         BREQ    setNZ
+         BREQ    setNZ       
          LDWA    total,s     ;If total != 0x8000 then
-         CPWA    0x8000,i
-         BREQ    L6
+         CPWA    0x8000,i    
+         BREQ    L6          
          NEGA                ;Negate total
-         STWA    total,s
-         BR      setNZ
+         STWA    total,s     
+         BR      setNZ       
 L6:      LDWA    FALSE,i     ;else -32768 is a special case
          STWA    isOvfl,s    ;isOvfl <- FALSE
 ;
 setNZ:   LDBX    oldNZVC,s   ;Set NZ according to total result:
          ANDX    0x0001,i    ;First initialize NZV to 000
          LDWA    total,s     ;If total is negative then
-         BRGE    checkZ
+         BRGE    checkZ      
          ORX     0x0008,i    ;set N to 1
 checkZ:  CPWA    0,i         ;If total is not zero then
-         BRNE    setV
+         BRNE    setV        
          ORX     0x0004,i    ;set Z to 1
 setV:    LDWA    isOvfl,s    ;If not isOvfl then
-         BREQ    storeFl
+         BREQ    storeFl     
          ORX     0x0002,i    ;set V to 1
 storeFl: STBX    oldNZVC,s   ;Store the NZVC flags
 ;
 exitDeci:LDWA    total,s     ;Put total in memory
-         STWA    opAddr,n
+         STWA    opAddr,n    
          ADDSP   13,i        ;Deallocate locals
          RET                 ;Return to trap handler
 ;
-deciErr: LDBA    '\n',i
-         STBA    charOut,d
+deciErr: LDBA    '\n',i      
+         STBA    charOut,d   
          LDWA    deciMsg,i   ;Push address of message onto stack
-         STWA    -2,s
-         SUBSP   2,i
+         STWA    -2,s        
+         SUBSP   2,i         
          CALL    prntMsg     ;and print
          STOP                ;Fatal error: program terminates
 ;
@@ -363,36 +362,36 @@ outYet:  .EQUATE 2           ;Has a character been output yet?
 place:   .EQUATE 4           ;Place value for division
 ;
 opcode38:LDWA    0x00FF,i    ;Assert i, d, n, s, sf, x, sx, sfx
-         STWA    addrMask,d
-         CALL    assertAd
+         STWA    addrMask,d  
+         CALL    assertAd    
          CALL    setAddr     ;Set address of trap operand
          SUBSP   6,i         ;Allocate storage for locals
          LDWA    opAddr,n    ;A <- oprnd
          CPWA    0,i         ;If oprnd is negative then
-         BRGE    printMag
+         BRGE    printMag    
          LDBX    '-',i       ;Print leading '-'
-         STBX    charOut,d
+         STBX    charOut,d   
          NEGA                ;Make magnitude positive
 printMag:STWA    remain,s    ;remain <- abs(oprnd)
          LDWA    FALSE,i     ;Initialize outYet <- FALSE
-         STWA    outYet,s
+         STWA    outYet,s    
          LDWA    10000,i     ;place <- 10,000
-         STWA    place,s
+         STWA    place,s     
          CALL    divide      ;Write 10,000's place
          LDWA    1000,i      ;place <- 1,000
-         STWA    place,s
+         STWA    place,s     
          CALL    divide      ;Write 1000's place
          LDWA    100,i       ;place <- 100
-         STWA    place,s
+         STWA    place,s     
          CALL    divide      ;Write 100's place
          LDWA    10,i        ;place <- 10
-         STWA    place,s
+         STWA    place,s     
          CALL    divide      ;Write 10's place
          LDWA    remain,s    ;Always write 1's place
          ORA     0x0030,i    ;Convert decimal to ASCII
          STBA    charOut,d   ;  and output it
          ADDSP   6,i         ;Dallocate storage for locals
-         RET
+         RET                 
 ;
 ;Subroutine to print the most significant decimal digit of the
 ;remainder. It assumes that place (place2 here) contains the
@@ -408,12 +407,12 @@ divLoop: SUBA    place2,s    ;Division by repeated subtraction
          BRLT    writeNum    ;If remainder is negative then done
          ADDX    1,i         ;X <- X + 1
          STWA    remain2,s   ;Store the new remainder
-         BR      divLoop
+         BR      divLoop     
 ;
 writeNum:CPWX    0,i         ;If X != 0 then
-         BREQ    checkOut
+         BREQ    checkOut    
          LDWA    TRUE,i      ;outYet <- TRUE
-         STWA    outYet2,s
+         STWA    outYet2,s   
          BR      printDgt    ;and branch to print this digit
 checkOut:LDWA    outYet2,s   ;else if a previous char was output
          BRNE    printDgt    ;then branch to print this zero
@@ -428,56 +427,56 @@ printDgt:ORX     0x0030,i    ;Convert decimal to ASCII
 ;Outputs one word as four hex characters from memory.
 ;
 opcode40:LDWA    0x00FF,i    ;Assert i, d, n, s, sf, x, sx, sfx
-         STWA    addrMask,d
-         CALL    assertAd
+         STWA    addrMask,d  
+         CALL    assertAd    
          CALL    setAddr     ;Set address of trap operand
          LDWA    opAddr,n    ;A <- oprnd
          STWA    wordTemp,d  ;Save oprnd in wordTemp
          LDBA    wordTemp,d  ;Put high-order byte in low-order A
          ASRA                ;Shift right four bits
-         ASRA
-         ASRA
-         ASRA
+         ASRA                
+         ASRA                
+         ASRA                
          CALL    hexOut      ;Output first hex character
          LDBA    wordTemp,d  ;Put high-order byte in low-order A
          CALL    hexOut      ;Output second hex character
          LDBA    byteTemp,d  ;Put low-order byte in low order A
          ASRA                ;Shift right four bits
-         ASRA
-         ASRA
-         ASRA
+         ASRA                
+         ASRA                
+         ASRA                
          CALL    hexOut      ;Output third hex character
          LDBA    byteTemp,d  ;Put low-order byte in low order A
          CALL    hexOut      ;Output fourth hex character
-         RET
+         RET                 
 ;
 ;Subroutine to output in hex the least significant nybble of the
 ;accumulator.
 ;
 hexOut:  ANDA    0x000F,i    ;Isolate the digit value
          CPBA    9,i         ;If it is not in 0..9 then
-         BRLE    prepNum
+         BRLE    prepNum     
          SUBA    9,i         ;  convert to ASCII letter
          ORA     0x0040,i    ;  and prefix ASCII code for letter
-         BR      writeHex
+         BR      writeHex    
 prepNum: ORA     0x0030,i    ;else prefix ASCII code for number
 writeHex:STBA    charOut,d   ;Output nybble as hex
-         RET
+         RET                 
 ;
 ;******* Opcode 0x48
 ;The STRO instruction.
 ;Outputs a null-terminated string from memory.
 ;
 opcode48:LDWA    0x003E,i    ;Assert d, n, s, sf, x
-         STWA    addrMask,d
-         CALL    assertAd
+         STWA    addrMask,d  
+         CALL    assertAd    
          CALL    setAddr     ;Set address of trap operand
          LDWA    opAddr,d    ;Push address of string to print
-         STWA    -2,s
-         SUBSP   2,i
+         STWA    -2,s        
+         SUBSP   2,i         
          CALL    prntMsg     ;and print
-         ADDSP   2,i
-         RET
+         ADDSP   2,i         
+         RET                 
 ;
 ;******* Print subroutine
 ;Prints a string of ASCII bytes until it encounters a null
@@ -492,9 +491,9 @@ prntMore:LDBA    msgAddr,sfx ;Test next char
          BREQ    exitPrnt    ;If null then exit
          STBA    charOut,d   ;else print
          ADDX    1,i         ;X <- X + 1 for next character
-         BR      prntMore
+         BR      prntMore    
 ;
-exitPrnt:RET
+exitPrnt:RET                 
 ;
 ;******* Vectors for system memory map
          .ADDRSS osRAM       ;User stack pointer
@@ -504,4 +503,4 @@ exitPrnt:RET
          .ADDRSS loader      ;Loader program counter
          .ADDRSS trap        ;Trap program counter
 ;
-         .END
+         .END                  

@@ -60,6 +60,7 @@ public:
     virtual qint32 getValue() const override;
     virtual SymbolType getSymbolType() const override;
 };
+
 /*
  * A symbol value representing an constant numeric value.
  */
@@ -75,6 +76,7 @@ public:
     virtual qint32 getValue() const override;
     virtual SymbolType getSymbolType() const override;
 };
+
 /*
  * A symbol value representing an address of a line of code.
  */
