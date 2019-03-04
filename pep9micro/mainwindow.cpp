@@ -384,6 +384,7 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
 void MainWindow::connectViewUpdate()
 {
     connect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
+    connect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
     connect(ui->cpuWidget, &CpuPane::registerChanged, dataSection.get(), &NewCPUDataSection::onSetRegisterByte, Qt::ConnectionType::UniqueConnection);
     connect(dataSection.get(), &NewCPUDataSection::statusBitChanged, ui->cpuWidget, &CpuPane::onStatusBitChanged, Qt::ConnectionType::UniqueConnection);
     connect(dataSection.get(), &NewCPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged, Qt::ConnectionType::UniqueConnection);
@@ -400,6 +401,7 @@ void MainWindow::connectViewUpdate()
 void MainWindow::disconnectViewUpdate()
 {
     disconnect(memDevice.get(), &MainMemory::changed, ui->memoryWidget,&MemoryDumpPane::onMemoryChanged);
+        connect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged);
     disconnect(ui->cpuWidget, &CpuPane::registerChanged, dataSection.get(), &NewCPUDataSection::onSetRegisterByte);
     disconnect(dataSection.get(), &NewCPUDataSection::statusBitChanged, ui->cpuWidget, &CpuPane::onStatusBitChanged);
     disconnect(dataSection.get(), &NewCPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged);

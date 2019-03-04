@@ -64,7 +64,7 @@ NewMemoryTracePane::~NewMemoryTracePane()
 void NewMemoryTracePane::updateTrace()
 {
     // If there were trace warnings, then the stack view won't be meaningful.
-    if(trace->hasTraceWarnings()) return;
+    if(trace == nullptr || trace->hasTraceWarnings()) return;
     updateGlobals();
     // Only render stack / heap if they are still intact.
     if(trace->activeStack->isStackIntact()) updateStack();
@@ -182,6 +182,11 @@ void NewMemoryTracePane::onDarkModeChanged(bool darkMode)
     }
     ui->graphicsView->setBackgroundBrush(QBrush(colors->backgroundFill));
     updateStatics();
+}
+
+void NewMemoryTracePane::onMemoryChanged()
+{
+    updateTrace();
 }
 
 void NewMemoryTracePane::updateGlobals()

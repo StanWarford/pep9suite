@@ -59,6 +59,7 @@ public slots:
     void onSimulationFinished();
     // Handle switching styles to and from dark mode & potential re-highlighting
     void onDarkModeChanged(bool darkMode);
+    void onMemoryChanged();
 private:
     void updateGlobals();
     void updateHeap();
