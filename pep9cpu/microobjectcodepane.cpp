@@ -146,7 +146,9 @@ void MicroObjectCodePane::setObjectCode(QSharedPointer<MicrocodeProgram> prog, Q
                 model->setItem(rowNum,colNum++,y);
             }
             // Header ignores a font when given one at header level, so we have to do it per line
-            ui->codeTable->model()->setHeaderData(rowNum, Qt::Vertical, QString("%1").arg(rowNum), Qt::EditRole);
+            // Must add 1 to rowNum, since the microcode pane line numbers start at 1,
+            // and rowNum starts at 0.
+            ui->codeTable->model()->setHeaderData(rowNum, Qt::Vertical, QString("%1").arg(rowNum + 1), Qt::EditRole);
             ui->codeTable->model()->setHeaderData(rowNum, Qt::Vertical, QFont(Pep::codeFont, Pep::codeFontSize), Qt::FontRole);
             rowNum++;
         }
