@@ -346,6 +346,44 @@ void AsmSourceCodePane::tab()
     }
 }
 
+void AsmSourceCodePane::backTab()
+{
+    if (!ui->textEdit->isReadOnly()) {
+        QTextCursor cursor = ui->textEdit->textCursor();
+        QTextCursor editCursor = ui->textEdit->textCursor();
+        cursor.movePosition(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
+        int curLinePos = ui->textEdit->textCursor().position() - cursor.position();
+        int startPos = 0;
+        if (curLinePos <= 9) {
+            // Starting position is 0
+            startPos = 0;
+            editCursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor, curLinePos);
+        }
+        else if (curLinePos <= 17) {
+            // Starting position is 9
+            startPos = 9;
+            editCursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor,  curLinePos - 9);
+        }
+        else if (curLinePos <= 29) {
+            // Starting position is 17
+            startPos =17;
+            editCursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor,  curLinePos - 17);
+        }
+        else {
+            // Starting position is 29
+            startPos = curLinePos - 4;
+            editCursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor,  4);
+        }
+        // Validate that all characters from startPos to curLinePos are spaces, or back tab is useless.
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, startPos);
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, curLinePos - startPos);
+        // Only remove text if it is only spaces.
+        if(cursor.selectedText().simplified().isEmpty()) {
+            editCursor.removeSelectedText();
+        }
+    }
+}
+
 QSharedPointer<AsmProgram> AsmSourceCodePane::getAsmProgram()
 {
     return currentProgram;

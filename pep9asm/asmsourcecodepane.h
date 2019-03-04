@@ -172,6 +172,7 @@ public:
     // Post: highlighting rules for highlighter will be recreated from mnemonic maps
 
     void tab();
+    void backTab();
 
     QSharedPointer<AsmProgram> getAsmProgram();
     const QSharedPointer<AsmProgram> getAsmProgram() const;

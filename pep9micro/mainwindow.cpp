@@ -356,6 +356,18 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
                 ui->cpuWidget->giveFocus();
             }
         }
+        else if(keyEvent->key() == Qt::Key_Tab) {
+            if(ui->AsmSourceCodeWidgetPane->hasFocus()) {
+                ui->AsmSourceCodeWidgetPane->tab();
+                return true;
+            }
+        }
+    else if(keyEvent->key() == Qt::Key_Backtab) {
+            if(ui->AsmSourceCodeWidgetPane->hasFocus()) {
+                ui->AsmSourceCodeWidgetPane->backTab();
+                return true;
+            }
+        }
     }
     else if (event->type() == QEvent::FileOpen) {
         if (ui->actionDebug_Stop_Debugging->isEnabled()) {
