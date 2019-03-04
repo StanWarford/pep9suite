@@ -1762,22 +1762,27 @@ void MainWindow::onSimulationFinished()
     on_actionDebug_Stop_Debugging_triggered();
 
     QVector<AMicroCode*> prog = ui->microcodeWidget->getMicrocodeProgram()->getObjectCode();
+    bool hadPostTest = false;
     for (AMicroCode* x : prog) {
-         if (x->hasUnitPost()&&!((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString)) {
+        if(x->hasUnitPost()) hadPostTest = true;
+        if (x->hasUnitPost()&&!((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString)) {
              ((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString);
              ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
-             QMessageBox::warning(this, "Pep9CPU", "Failed unit test");
+             QMessageBox::warning(this, "Pep/9 Micro", "Failed unit test");
+             ui->statusBar->showMessage("Failed unit test", 4000);
              return;
-         }
+        }
     }
     if(controlSection->hadErrorOnStep()) {
         QMessageBox::critical(
           this,
-          tr("Pep9Micro"),
+          tr("Pep/9 Micro"),
           controlSection->getErrorMessage());
         ui->statusBar->showMessage("Execution Failed", 4000);
     }
+    else if(hadPostTest) ui->statusBar->showMessage("Passed unit test", 4000);
     else ui->statusBar->showMessage("Execution Finished", 4000);
+
 }
 
 void MainWindow::on_actionDark_Mode_triggered()
