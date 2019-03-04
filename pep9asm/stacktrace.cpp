@@ -317,8 +317,7 @@ bool StackFrame::pop(quint16 size)
         auto next = stack.pop();
         popped += Enu::tagNumBytes(next.type.first);
     }
-    //
-    if(size == 0) isOrphaned = true;
+    if(this->size() == 0) isOrphaned = true;
     return popped == size;
 }
 

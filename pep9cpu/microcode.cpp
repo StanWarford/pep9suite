@@ -423,7 +423,6 @@ bool UnitPreCode::hasUnitPre() const
     return !unitPreList.isEmpty();
 }
 
-
 void UnitPreCode::setUnitPre(NewCPUDataSection *data)
 {
     for(auto x : unitPreList) {
