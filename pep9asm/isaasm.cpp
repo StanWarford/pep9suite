@@ -98,14 +98,20 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
         lineNum++;
     }
 
-    #pragma message ("TODO: handle input and output when not using BURN at FFFF")
+    // Insert charIn, charOut symbols if they have not been previously defined
     quint16 chin, chout;
-    memDevice->getWord(0xFFF8, chin);
-    memDevice->getWord(0xFFFA, chout);
     if(!symTable->exists("charIn")) {
+        // According to the OS memory map vector, the location of chicharIn is
+        // stored in the 6th and 7th bytes from the end of the operating system.
+        quint16 chinOffset = manager.getOperatingSystem()->getBurnValue() - 0x7;
+        memDevice->getWord(chinOffset, chin);
         symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(chin));
     }
     if(!symTable->exists("charOut")) {
+        // According to the OS memory map vector, the location of charOut is
+        // stored in the 4th and 5th bytes from the end of the operating system.
+        quint16 choutOffset = manager.getOperatingSystem()->getBurnValue() - 0x5;
+        memDevice->getWord(choutOffset, chout);
         symTable->setValue("charOut", QSharedPointer<SymbolValueNumeric>::create(chout));
     }
     // Perform whole program error checking
