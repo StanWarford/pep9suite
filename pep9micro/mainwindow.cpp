@@ -1014,41 +1014,56 @@ void MainWindow::doubleClickedCodeLabel(Enu::EPane which)
 
 void MainWindow::debugButtonEnableHelper(const int which)
 {
-    // Crack the parameter using DebugButtons to properly enable and disable all buttons related to debugging and running.
+    // Crack the parameter using DebugButtons to properly enable
+    // and disable all buttons related to debugging and running.
     // Build Actions
-    ui->ActionBuild_Assemble->setEnabled(which&DebugButtons::BUILD_ASM);
-    ui->actionEdit_Remove_Error_Assembler->setEnabled(which&DebugButtons::BUILD_ASM);
-    ui->actionEdit_Format_Assembler->setEnabled(which&DebugButtons::BUILD_ASM);
-    ui->actionBuild_Load_Object->setEnabled(which&DebugButtons::BUILD_ASM);
-    ui->actionBuild_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
-    ui->actionEdit_Remove_Error_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
-    ui->actionEdit_Format_Microcode->setEnabled(which&DebugButtons::BUILD_MICRO);
+    ui->ActionBuild_Assemble->setEnabled(which & DebugButtons::BUILD_ASM);
+    ui->actionEdit_Remove_Error_Assembler->setEnabled(which & DebugButtons::BUILD_ASM);
+    ui->actionEdit_Format_Assembler->setEnabled(which & DebugButtons::BUILD_ASM);
+    ui->actionBuild_Load_Object->setEnabled(which & DebugButtons::BUILD_ASM);
+    ui->actionBuild_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
+    ui->actionEdit_Remove_Error_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
+    ui->actionEdit_Format_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
 
     // Debug & Run Actions
-    ui->actionBuild_Run->setEnabled(which&DebugButtons::RUN);
-    ui->actionBuild_Run_Object->setEnabled(which&DebugButtons::RUN_OBJECT);
-    ui->actionDebug_Start_Debugging->setEnabled(which&DebugButtons::DEBUG);
-    ui->actionDebug_Start_Debugging_Object->setEnabled(which&DebugButtons::DEBUG_OBJECT);
-    ui->actionDebug_Start_Debugging_Loader->setEnabled(which&DebugButtons::DEBUG_LOADER);
-    ui->actionDebug_Interupt_Execution->setEnabled(which&DebugButtons::INTERRUPT);
-    ui->actionDebug_Continue->setEnabled(which&DebugButtons::CONTINUE);
-    ui->actionDebug_Restart_Debugging->setEnabled(which&DebugButtons::RESTART);
-    ui->actionDebug_Stop_Debugging->setEnabled(which&DebugButtons::STOP);
-    ui->actionDebug_Single_Step_Assembler->setEnabled(which&DebugButtons::STEP_OVER_ASM);
-    ui->actionDebug_Step_Over_Assembler->setEnabled(which&DebugButtons::STEP_OVER_ASM);
-    ui->actionDebug_Step_Into_Assembler->setEnabled(which&DebugButtons::STEP_INTO_ASM);
-    ui->actionDebug_Step_Out_Assembler->setEnabled(which&DebugButtons::STEP_OUT_ASM);
-    ui->actionDebug_Single_Step_Microcode->setEnabled(which&DebugButtons::SINGLE_STEP_MICRO);
+    ui->actionBuild_Run->setEnabled(which & DebugButtons::RUN);
+    ui->actionBuild_Run_Object->setEnabled(which & DebugButtons::RUN_OBJECT);
+    ui->actionDebug_Start_Debugging->setEnabled(which & DebugButtons::DEBUG);
+    ui->actionDebug_Start_Debugging_Object->setEnabled(which & DebugButtons::DEBUG_OBJECT);
+    ui->actionDebug_Start_Debugging_Loader->setEnabled(which & DebugButtons::DEBUG_LOADER);
+    ui->actionDebug_Interupt_Execution->setEnabled(which & DebugButtons::INTERRUPT);
+    ui->actionDebug_Continue->setEnabled(which & DebugButtons::CONTINUE);
+    ui->actionDebug_Restart_Debugging->setEnabled(which & DebugButtons::RESTART);
+    ui->actionDebug_Stop_Debugging->setEnabled(which & DebugButtons::STOP);
+    ui->actionDebug_Single_Step_Assembler->setEnabled(which & DebugButtons::STEP_OVER_ASM);
+    ui->actionDebug_Step_Over_Assembler->setEnabled(which & DebugButtons::STEP_OVER_ASM);
+    ui->actionDebug_Step_Into_Assembler->setEnabled(which & DebugButtons::STEP_INTO_ASM);
+    ui->actionDebug_Step_Out_Assembler->setEnabled(which & DebugButtons::STEP_OUT_ASM);
+    ui->actionDebug_Single_Step_Microcode->setEnabled(which & DebugButtons::SINGLE_STEP_MICRO);
 
     // Statistics Actions
-    ui->actionStatistics_Level_All->setEnabled(which&DebugButtons::STATS_LEVELS);
-    ui->actionStatistics_Level_Minimal->setEnabled(which&DebugButtons::STATS_LEVELS);
-    ui->actionStatistics_Level_None->setEnabled(which&DebugButtons::STATS_LEVELS);
+    ui->actionStatistics_Level_All->setEnabled(which & DebugButtons::STATS_LEVELS);
+    ui->actionStatistics_Level_Minimal->setEnabled(which & DebugButtons::STATS_LEVELS);
+    ui->actionStatistics_Level_None->setEnabled(which & DebugButtons::STATS_LEVELS);
 
-    //File open & new actions
-    ui->actionFile_New_Asm->setEnabled(which&DebugButtons::OPEN_NEW);
-    ui->actionFile_New_Microcode->setEnabled(which&DebugButtons::OPEN_NEW);
-    ui->actionFile_Open->setEnabled(which&DebugButtons::OPEN_NEW);
+    // File open & new actions
+    ui->actionFile_New_Asm->setEnabled(which & DebugButtons::OPEN_NEW);
+    ui->actionFile_New_Microcode->setEnabled(which & DebugButtons::OPEN_NEW);
+    ui->actionFile_Open->setEnabled(which & DebugButtons::OPEN_NEW);
+
+    // Operating Assembly / Mnemonic Redefinition actions
+    ui->actionSystem_Redefine_Mnemonics->setEnabled(which & DebugButtons::INSTALL_OS);
+    ui->actionSystem_Reinstall_Default_OS->setEnabled(which & DebugButtons::INSTALL_OS);
+    ui->actionSystem_Assemble_Install_New_OS->setEnabled(which & DebugButtons::INSTALL_OS);
+
+    // If the user starts simulating while the redefine mnemonics dialog is open,
+    // force it to close so that the user can't change any mnemonics at runtime.
+    // Also explictly call redefine_Mnemonics_closed(), since QDialog::closed is
+    // not emitted when QDialog::hide() is invoked.
+    if(!(which & DebugButtons::INSTALL_OS) && redefineMnemonicsDialog->isVisible()) {
+        redefineMnemonicsDialog->hide();
+        redefine_Mnemonics_closed();
+    }
 }
 
 void MainWindow::highlightActiveLines(bool forceISA)
@@ -1484,7 +1499,7 @@ void MainWindow::handleDebugButtons()
     case DebugState::DISABLED:
         enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
         enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO | DebugButtons::STATS_LEVELS;
-        enabledButtons |= DebugButtons::OPEN_NEW;
+        enabledButtons |= DebugButtons::OPEN_NEW | DebugButtons::INSTALL_OS;
         break;
     case DebugState::RUN:
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;
