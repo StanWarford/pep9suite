@@ -139,7 +139,7 @@ QString MicroCode::getObjectCode() const
 QString MicroCode::getSourceCode() const
 {
     QString str = "",symbolString="";
-    if(symbol!=nullptr && !symbol->getName().startsWith(("_"))) {
+    if(symbol != nullptr && !symbol->getName().startsWith(("_"))) {
         symbolString.append(symbol->getName()+": ");
     }
 
@@ -248,12 +248,12 @@ QString MicroCode::getSourceCode() const
     }
     else {
         if(str.isEmpty()) {
-            str.append("if "+Pep::branchFuncToMnemonMap[branchFunc]+" "+
-                       trueTargetAddr->getName()+" else "+falseTargetAddr->getName());
+            str.append("if " + Pep::branchFuncToMnemonMap[branchFunc] + " " +
+                       trueTargetAddr->getName() + " else " + falseTargetAddr->getName());
         }
         else {
-            str.append("; if "+Pep::branchFuncToMnemonMap[branchFunc]+" "+
-                       trueTargetAddr->getName()+" else "+falseTargetAddr->getName());
+            str.append("; if " + Pep::branchFuncToMnemonMap[branchFunc] + " "+
+                       trueTargetAddr->getName() + " else "+falseTargetAddr->getName());
         }
 
     }
@@ -383,7 +383,7 @@ bool MicroCode::inRange(Enu::EControlSignals field, int value) const
 
 void MicroCode::setSymbol(SymbolEntry* symbol)
 {
-    this->symbol=symbol;
+    this->symbol = symbol;
 }
 
 CommentOnlyCode::CommentOnlyCode(QString comment)
@@ -398,8 +398,7 @@ QString CommentOnlyCode::getSourceCode()const
 
 UnitPreCode::~UnitPreCode()
 {
-    while (!unitPreList.isEmpty())
-    {
+    while (!unitPreList.isEmpty()) {
         delete unitPreList.takeFirst();
     }
 }
@@ -407,16 +406,13 @@ UnitPreCode::~UnitPreCode()
 QString UnitPreCode::getSourceCode() const
 {
     QString str = "UnitPre: ";
-    for (int i = 0; i < unitPreList.size(); i++)
-    {
+    for (int i = 0; i < unitPreList.size(); i++) {
         str.append(unitPreList.at(i)->getSourceCode() + ", ");
     }
-    if (str.endsWith(", "))
-    {
+    if (str.endsWith(", ")) {
         str.chop(2);
     }
-    if (!cComment.isEmpty())
-    {
+    if (!cComment.isEmpty()) {
         str.append(" " + cComment);
     }
     return str;
@@ -430,8 +426,7 @@ bool UnitPreCode::hasUnitPre() const
 
 void UnitPreCode::setUnitPre(NewCPUDataSection *data)
 {
-    for(auto x : unitPreList)
-    {
+    for(auto x : unitPreList) {
         x->setUnitPre(data);
     }
 }
@@ -448,8 +443,7 @@ void UnitPreCode::setComment(QString comment)
 
 UnitPostCode::~UnitPostCode()
 {
-    while (!unitPostList.isEmpty())
-    {
+    while (!unitPostList.isEmpty()) {
         delete unitPostList.takeFirst();
     }
 }
@@ -457,16 +451,13 @@ UnitPostCode::~UnitPostCode()
 QString UnitPostCode::getSourceCode() const
 {
     QString str = "UnitPost: ";
-    for (int i = 0; i < unitPostList.size(); i++)
-    {
+    for (int i = 0; i < unitPostList.size(); i++) {
         str.append(unitPostList.at(i)->getSourceCode() + ", ");
     }
-    if (str.endsWith(", "))
-    {
+    if (str.endsWith(", ")) {
         str.chop(2);
     }
-    if (!cComment.isEmpty())
-    {
+    if (!cComment.isEmpty()) {
         str.append(" " + cComment);
     }
     return str;
@@ -474,11 +465,10 @@ QString UnitPostCode::getSourceCode() const
 
 bool UnitPostCode::testPostcondition(NewCPUDataSection *data, QString &err)
 {
-    bool val=true;;
-    for(auto x : unitPostList)
-    {
-        val&=x->testUnitPost(data, err);
-        if(!val) return false;
+    bool val = true;;
+    for(auto x : unitPostList){
+        val &= x->testUnitPost(data, err);
+        if(!val) break;
     }
     return val;
 }
