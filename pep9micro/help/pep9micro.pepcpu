@@ -43,13 +43,13 @@ MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
 MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
 MemRead, MDROMux=0; MDROCk
 //T1 <- MDROdd.
-EOMux=1, AMux=0, ALU=0, CMux=1, C=8; LoadCk
+EOMux=1, AMux=0, ALU=0, CMux=1, C=8; LoadCk; goto end_is_fetch
 
 
 //Instruction is fetched. Either prepare to execute unary instruction,
 // or fetch operand specifier for non-unary instructions
 end_is_fetch: if ISUNARY unary_dispatch else os_fetch
-unary_dispatch: ISD //Start the unary execution path via the instruction specifier decoder. 
+unary_dispatch: ISD //Start the unary execution path via the instruction specifier decoder.
 //"A=5" is placeholder so that the assembler compiles this statement, since branches are currently not allowed
 //on a line by themselves
 
@@ -121,7 +121,7 @@ A=9, B=10, MARMux=1; MARCk
 MemRead, A=10, AMux=1, ALU=13; SCk; if BRS d_odd else d_even
 
 d_odd: MemRead, A=10, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
+MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto d_odd_shared
 
 //Shared between all "direct derivative" addressing modes.
 //Assumes T4 is address of next byte to fetch, and MDRO contrinas T6<hi>
@@ -158,7 +158,7 @@ A=9, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
 sxAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
 A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
 A=19, B=3, AMux=1, ALU=1, CMux=1, C=19; SCk, LoadCk
-A=18, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
+A=18, B=2, AMux=1, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sx_shared
 
 //S, X, SX addressing modes all behave like D once the addition is performed.
 //Determine if the memory address being fetched is even. If so goto d_even.
@@ -191,7 +191,7 @@ MemRead; if BRS n2_odd else d_even
 //Odd path for first memread
 //Fetch Mem[OperSpec], T4 <- OperSpec plus 1,
 n1_odd: MemRead, A=10, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
+MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk; goto n1_odd_shared
 //Fetch Mem[T4]
 n1_odd_shared: A=16, B=17, MARMux=1; MARCk
 //T5<hi> <- MDRO
@@ -254,7 +254,7 @@ MemRead
 MemRead, MDREMux=0; MDRECk
 //T5 <- MDRO plus X<hi> plus cin & MDRE plus X<lo>
 B=3, EOMux=0, AMux=0, ALU=1, CMux=1, C=19; SCk, LoadCk
-B=2, EOMux=1, AMux=0, CSMux=1, ALU=2, CMux=1, C=18; LoadCk
+B=2, EOMux=1, AMux=0, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sfx1_shared
 
 //Prepare for second memread
 sfx1_shared: A=18, B=19, MARMux=1; MARCk
@@ -479,9 +479,9 @@ stbx_e: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
 
 //Shared store byte ode
 stbr_o: MemRead, MDREMux=0; MDRECk; goto mwrte
-stbr_e: MemRead, MDROMux=0; MDROCk
+stbr_e: MemRead, MDROMux=0; MDROCk; goto mwrte
 mwrte: MemWrite
-MemWrite
+MemWrite; goto mwrte3
 mwrte3: MemWrite; goto start
 
 
@@ -648,7 +648,7 @@ A=21, AMux=1, ALU=13, CMux=1, C=21; LoadCk
 A=21, B=23, AMux=1, ALU=3, CMux=1, C=21; LoadCk
 A=21, B=27, AMux=1, ALU=3, AndZ=0, CMux=1, C=21; NCk, ZCk, LoadCk; if BRGT trap_pc2 else trap_wrtpc
 trap_pc2: A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk; goto trap_wrtpc
 
 //Write modified PC to stack
 

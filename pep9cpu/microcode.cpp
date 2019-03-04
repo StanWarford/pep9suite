@@ -33,6 +33,7 @@ MicroCode::MicroCode(Enu::CPUType cpuType): cpuType(cpuType), controlSignals(Pep
     clockSignals(Pep::numClockSignals(), false), breakpoint(false), branchFunc(Enu::Assembler_Assigned),
     symbol(nullptr), trueTargetAddr(nullptr), falseTargetAddr(nullptr)
 {
+    // Initialize all memory controls, normal controls, and clocklines to disabled.
     for(auto memLines : Pep::memControlToMnemonMap.keys()) {
         controlSignals[memLines] = Enu::signalDisabled;
     }
@@ -44,7 +45,10 @@ MicroCode::MicroCode(Enu::CPUType cpuType): cpuType(cpuType), controlSignals(Pep
     }
 }
 
-bool MicroCode::isMicrocode() const { return true; }
+bool MicroCode::isMicrocode() const
+{
+    return true;
+}
 
 void MicroCode::setCpuLabels(CpuGraphicsItems *cpuPaneItems) const
 {
@@ -135,10 +139,10 @@ QString MicroCode::getObjectCode() const
 QString MicroCode::getSourceCode() const
 {
     QString str = "",symbolString="";
-    if(symbol!=nullptr&&!symbol->getName().startsWith(("_")))
-    {
+    if(symbol!=nullptr && !symbol->getName().startsWith(("_"))) {
         symbolString.append(symbol->getName()+": ");
     }
+
     if (cpuType == Enu::OneByteDataBus) {
         if (controlSignals[Enu::MemRead] != Enu::signalDisabled) { str.append("MemRead, "); }
         if (controlSignals[Enu::MemWrite] != Enu::signalDisabled) { str.append("MemWrite, "); }
@@ -165,6 +169,7 @@ QString MicroCode::getSourceCode() const
 
         if (str.endsWith(", ") || str.endsWith("; ")) { str.chop(2); }
     }
+
     else if (cpuType == Enu::TwoByteDataBus) {
         if (controlSignals[Enu::MemRead] != Enu::signalDisabled) { str.append("MemRead, "); }
         if (controlSignals[Enu::MemWrite] != Enu::signalDisabled) { str.append("MemWrite, "); }
@@ -199,8 +204,15 @@ QString MicroCode::getSourceCode() const
     }
 
     if (branchFunc == Enu::Unconditional) {
-        if(symbol->getValue()+1==trueTargetAddr->getValue()) {
-            //A jump to the next line is assumed by the microassembler, so nothing further must be done
+        // If the true target of an unconditional branch is assembler assigned
+        // (e.g. _as212), then there is no need to write the implicit goto.
+        // The only way to have an assembler assigned symbol is if the branch function
+        // at some point was Enu::Assembler_Assigned, which means the symbol's
+        // name is meaningless to the user.
+        // However, if it is a meaningful symbol (e.g. trap), it should be retained,
+        // even if it the next logical line of microcode.
+        if(trueTargetAddr->getName().startsWith("_")) {
+            // A jump to the next line is assumed by the microassembler, so nothing further must be done
         }
         else {
             if(str.isEmpty()) {
@@ -211,9 +223,11 @@ QString MicroCode::getSourceCode() const
             }
         }
     }
+
     else if(branchFunc == Enu::Assembler_Assigned) {
-        //Assume that a jump to the next line will be used unless otherwise specified.
+        // Assume that a jump to the next line will be used unless otherwise specified.
     }
+
     else if (branchFunc == Enu::Stop) {
         if(str.isEmpty()){
             str.append("stop");
@@ -222,11 +236,15 @@ QString MicroCode::getSourceCode() const
            str.append("; stop");
         }
     }
-    else if (branchFunc == Enu::InstructionSpecifierDecoder) {
-        str.append("; "+Pep::branchFuncToMnemonMap[branchFunc]);
-    }
-    else if (branchFunc == Enu::AddressingModeDecoder) {
-        str.append("; "+Pep::branchFuncToMnemonMap[branchFunc]);
+
+    else if (branchFunc == Enu::InstructionSpecifierDecoder ||
+             branchFunc == Enu::AddressingModeDecoder) {
+        if(str.isEmpty()){
+            str.append(Pep::branchFuncToMnemonMap[branchFunc]);
+        }
+        else  {
+            str.append("; "+Pep::branchFuncToMnemonMap[branchFunc]);
+        }
     }
     else {
         if(str.isEmpty()) {
@@ -243,6 +261,7 @@ QString MicroCode::getSourceCode() const
     if (!cComment.isEmpty()) {
         str.append(" " + cComment);
     }
+
     symbolString.append(str);
     return symbolString;
 }
