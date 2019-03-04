@@ -124,6 +124,7 @@ QStringList AsmSourceCodePane::getAssemblerListingList()
 
 bool AsmSourceCodePane::assembleOS(bool forceBurnAt0xFFFF)
 {
+    removeErrorMessages();
     QSharedPointer<AsmProgram> prog;
     IsaAsm myAsm(memDevice, *programManager);
     // List of errors and warnings and the lines on which they occured
@@ -139,6 +140,7 @@ bool AsmSourceCodePane::assembleOS(bool forceBurnAt0xFFFF)
     for (int i = 0; i < prog->getProgram().size(); i++) {
         if(prog->getProgram()[i]->getMemoryAddress() >=0) addressToIndex[prog->getProgram()[i]->getMemoryAddress()] = i;
     }
+    currentProgram = prog;
     return true;
 }
 

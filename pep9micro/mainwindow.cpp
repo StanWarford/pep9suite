@@ -1685,6 +1685,27 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
     ui->memoryWidget->refreshMemory();
 }
 
+void MainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
+{
+    if(ui->AsmSourceCodeWidgetPane->assembleOS(true)){
+        ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
+        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
+                                                      ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
+        ui->asmListingTracePane->onRemoveAllBreakpoints();
+        controlSection->breakpointsRemoveAll();
+        set_Obj_Listing_filenames_from_Source();
+        ui->statusBar->showMessage("Assembly succeeded, OS installed", 4000);
+    }
+    else {
+        ui->AsmObjectCodeWidgetPane->clearObjectCode();
+        ui->AsmListingWidgetPane->clearAssemblerListing();
+        ui->asmListingTracePane->clearSourceCode();
+        ui->asmListingTracePane->onRemoveAllBreakpoints();
+        ui->statusBar->showMessage("Assembly failed, previous OS left", 4000);
+    }
+    loadOperatingSystem();
+}
+
 void MainWindow::on_actionSystem_Reinstall_Default_OS_triggered()
 {
     qDebug() << "Reinstalled default OS";

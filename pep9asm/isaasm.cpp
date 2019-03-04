@@ -76,14 +76,7 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
 
     //Insert CharIn CharOut
     QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
-    #pragma message ("handle input and output when not using BURN at FFFF")
-    quint16 chin, chout;
-    memDevice->getWord(0xFFF8, chin);
-    memDevice->getWord(0xFFFA, chout);
-    symTable->insertSymbol("charIn");
-    symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(chin));
-    symTable->insertSymbol("charOut");
-    symTable->setValue("charOut", QSharedPointer<SymbolValueNumeric>::create(chout));
+
     int byteCount = 0;
     // Contains information about the address of a .BURN, and the size of memory burned
     BURNInfo info;
@@ -105,6 +98,16 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
         lineNum++;
     }
 
+    #pragma message ("TODO: handle input and output when not using BURN at FFFF")
+    quint16 chin, chout;
+    memDevice->getWord(0xFFF8, chin);
+    memDevice->getWord(0xFFFA, chout);
+    if(!symTable->exists("charIn")) {
+        symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(chin));
+    }
+    if(!symTable->exists("charOut")) {
+        symTable->setValue("charOut", QSharedPointer<SymbolValueNumeric>::create(chout));
+    }
     // Perform whole program error checking
     // Prefer to return after performing all error checks, to save
     // the user from having to compile many times
@@ -117,6 +120,11 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
     // Error where there the program is larger than memory
     else if (byteCount > 65535) {
         errorString = ";ERROR: Object code size too large to fit into memory.";
+        errList.append(QPair<int,QString>{0, errorString});
+        success = false;
+    }
+    else if(info.burnCount != 0) {
+        errorString = ";ERROR: Only operating systems may contain a .BURN.";
         errList.append(QPair<int,QString>{0, errorString});
         success = false;
     }
@@ -150,7 +158,7 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0x
     bool dotEndDetected = false, success = true;
 
     QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
-    QList<QSharedPointer<AsmCode>> codeList;
+    QList<QSharedPointer<AsmCode>> programList;
     int byteCount = 0;
     BURNInfo info;
     QSharedPointer<StaticTraceInfo> traceInfo = QSharedPointer<StaticTraceInfo>::create();
@@ -161,7 +169,7 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0x
                                        code, errorString, dotEndDetected)) {
             return false;
         }
-        codeList.append(QSharedPointer<AsmCode>(code));
+        programList.append(QSharedPointer<AsmCode>(code));
         lineNum++;
     }
 
@@ -170,17 +178,21 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0x
     // the user from having to compile many times
     // Error where no .END occured
     if (!dotEndDetected) {
+        errorString = ";ERROR: Missing .END sentinel.";
+        errList.append(QPair<int,QString>{0, errorString});
         success = false;
     }
     // Error where there the program is larger than memory
     else if (byteCount > 65535) {
+        errorString = ";ERROR: Object code size too large to fit into memory.";
+        errList.append(QPair<int,QString>{0, errorString});
         success = false;
     }
     // Error where an insturction use an undefined symbolic operand
     else if(symTable->numUndefinedSymbols() > 0) {
         // Search through the program to find which instructions' operand references an undefined symbol
-        for(int it = 0; it < codeList.length(); it++) {
-            if(codeList[it]->hasSymbolicOperand() && codeList[it]->getSymbolicOperand()->isUndefined()) {
+        for(int it = 0; it < programList.length(); it++) {
+            if(programList[it]->hasSymbolicOperand() && programList[it]->getSymbolicOperand()->isUndefined()) {
                 QString errorString =  QString(";ERROR: Symbol \"%1\" is undefined.").arg(programList[it]->getSymbolicOperand()->getName());
                 errList.append(QPair<int,QString>{it, errorString});
             }
@@ -188,31 +200,32 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0x
         success = false;
     }
     else if (info.burnCount != 1) {
-        #pragma message("TODO: Insert error on correct line")
+        errorString = ";ERROR: Operating systems must contain exactly 1 .BURN.";
+        errList.append(QPair<int,QString>{0, errorString});
         success = false;
     }
     else if(forceBurnAt0xFFFF && info.burnValue != 0xFFFF) {
         success = false;
 #pragma message("TODO: Insert error on correct line")
-        errList.append({0,".BURN must have an argument of 0xFFFF."});
+        errList.append({0,";ERROR: .BURN must have an argument of 0xFFFF."});
     }
     if(!success) return false;
-    for(int it = 0; it < codeList.size(); it++) {
-        if(codeList[it]->getMemoryAddress() < info.burnAddress) {
-            codeList[it]->setEmitObjectCode(false);
+    for(int it = 0; it < programList.size(); it++) {
+        if(programList[it]->getMemoryAddress() < info.burnAddress) {
+            programList[it]->setEmitObjectCode(false);
         }
     }
 
     // Adjust for .BURN
     int addressDelta = info.burnValue - byteCount + 1;
     info.startROMAddress = info.burnValue - (byteCount - info.burnAddress) +1;
-    relocateCode(codeList, addressDelta);
+    relocateCode(programList, addressDelta);
     symTable->setOffset(addressDelta);
     // Don't trace tags in the OS. We don't want to support this behavior, since
     // the operating system is not simply a translation of a C program.
     // handleTraceTags(*symTable.get(), *traceInfo, codeList, errList);
     traceInfo->hadTraceTags = false;
-    progOut = QSharedPointer<AsmProgram>::create(codeList, symTable, traceInfo, info.startROMAddress, info.burnValue);
+    progOut = QSharedPointer<AsmProgram>::create(programList, symTable, traceInfo, info.startROMAddress, info.burnValue);
     manager.setOperatingSystem(progOut);
     return true;
 }

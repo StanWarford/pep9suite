@@ -230,6 +230,7 @@ private slots:
     // System
     void on_actionSystem_Clear_CPU_triggered();
     void on_actionSystem_Clear_Memory_triggered();
+    void on_actionSystem_Assemble_Install_New_OS_triggered();
     void on_actionSystem_Reinstall_Default_OS_triggered();
     void on_actionSystem_Redefine_Mnemonics_triggered();
     // Allow main window to update highlighting rules after
