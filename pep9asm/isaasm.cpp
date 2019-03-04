@@ -74,11 +74,10 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
     int lineNum = 0;
     QList<QSharedPointer<AsmCode>> programList;
 
-    //Insert CharIn CharOut
     QSharedPointer<SymbolTable> symTable = QSharedPointer<SymbolTable>::create();
 
     int byteCount = 0;
-    // Contains information about the address of a .BURN, and the size of memory burned
+    // Contains information about the address of a .BURN, and the size of memory burned.
     BURNInfo info;
     QSharedPointer<StaticTraceInfo> traceInfo = QSharedPointer<StaticTraceInfo>::create();
     while (lineNum < sourceCodeList.size() && !dotEndDetected) {
@@ -89,7 +88,7 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
             errList.append(QPair<int,QString>{lineNum, errorString});
             return false;
         }
-        // If a non-fatal error occured, log it to the error list
+        // If a non-fatal error occured, log it to the error list.
         else if(!errorString.isEmpty()) {
             errList.append(QPair<int,QString>{lineNum, errorString});
             errorString.clear();
@@ -98,7 +97,7 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
         lineNum++;
     }
 
-    // Insert charIn, charOut symbols if they have not been previously defined
+    // Insert charIn, charOut symbols if they have not been previously defined.
     quint16 chin, chout;
     if(!symTable->exists("charIn")) {
         // According to the OS memory map vector, the location of chicharIn is
@@ -114,16 +113,16 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
         memDevice->getWord(choutOffset, chout);
         symTable->setValue("charOut", QSharedPointer<SymbolValueNumeric>::create(chout));
     }
-    // Perform whole program error checking
-    // Prefer to return after performing all error checks, to save
-    // the user from having to compile many times
-    // Error where no .END occured
+
+    // Perform whole program error checking.
+
+    // Error where no .END occured.
     if (!dotEndDetected) {
         errorString = ";ERROR: Missing .END sentinel.";
         errList.append(QPair<int,QString>{0, errorString});
         success = false;
     }
-    // Error where there the program is larger than memory
+    // Error where there the program is larger than memory.
     else if (byteCount > 65535) {
         errorString = ";ERROR: Object code size too large to fit into memory.";
         errList.append(QPair<int,QString>{0, errorString});
@@ -134,7 +133,7 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
         errList.append(QPair<int,QString>{0, errorString});
         success = false;
     }
-    // Error where an insturction use an undefined symbolic operand
+    // Error where an insturction use an undefined symbolic operand.
     else if(symTable->numUndefinedSymbols() > 0) {
         // Search through the program to find which instructions' operand references an undefined symbol
         for(int it = 0; it < programList.length(); it++) {
@@ -175,28 +174,32 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0x
                                        code, errorString, dotEndDetected)) {
             return false;
         }
+        // If a non-fatal error occured, log it to the error list.
+        else if(!errorString.isEmpty()) {
+            errList.append(QPair<int,QString>{lineNum, errorString});
+            errorString.clear();
+        }
         programList.append(QSharedPointer<AsmCode>(code));
         lineNum++;
     }
 
-    // Perform whole program error checking
-    // Prefer to return after performing all error checks, to save
-    // the user from having to compile many times
-    // Error where no .END occured
+    // Perform whole program error checking.
+
+    // Error where no .END occured.
     if (!dotEndDetected) {
         errorString = ";ERROR: Missing .END sentinel.";
         errList.append(QPair<int,QString>{0, errorString});
         success = false;
     }
-    // Error where there the program is larger than memory
+    // Error where there the program is larger than memory.
     else if (byteCount > 65535) {
         errorString = ";ERROR: Object code size too large to fit into memory.";
         errList.append(QPair<int,QString>{0, errorString});
         success = false;
     }
-    // Error where an insturction use an undefined symbolic operand
+    // Error where an insturction use an undefined symbolic operand.
     else if(symTable->numUndefinedSymbols() > 0) {
-        // Search through the program to find which instructions' operand references an undefined symbol
+        // Search through the program to find which instructions' operand references an undefined symbol.
         for(int it = 0; it < programList.length(); it++) {
             if(programList[it]->hasSymbolicOperand() && programList[it]->getSymbolicOperand()->isUndefined()) {
                 QString errorString =  QString(";ERROR: Symbol \"%1\" is undefined.").arg(programList[it]->getSymbolicOperand()->getName());
@@ -222,7 +225,7 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0x
         }
     }
 
-    // Adjust for .BURN
+    // Adjust for .BURN.
     int addressDelta = info.burnValue - byteCount + 1;
     info.startROMAddress = info.burnValue - (byteCount - info.burnAddress) +1;
     relocateCode(programList, addressDelta);
@@ -239,14 +242,14 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0x
 QPair<QSharedPointer<StructType>,QString> IsaAsm::parseStruct(const SymbolTable& symTable,QString name,
                                                QStringList symbols, StaticTraceInfo &traceInfo)
 {
-    // If there is no symbol associated with the struct-to-be, then assembly should fail
+    // If there is no symbol associated with the struct-to-be, then assembly should fail.
     if(!symTable.exists(name)) return {nullptr, neSymbol.arg(name)};
     else {
         auto namePtr = symTable.getValue(name);
         QList<QSharedPointer<AType>> structList;
-        // For every symbol tag in the tag list
+        // For every symbol tag in the tag list:
         for(auto string: symbols) {
-            // If there is no symbol by that name, error
+            // If there is no symbol by that name, error.
             if(!symTable.exists(string)) {
                 traceInfo.staticTraceError = true;
                 return {nullptr, neSymbol.arg(string)};
@@ -259,7 +262,7 @@ QPair<QSharedPointer<StructType>,QString> IsaAsm::parseStruct(const SymbolTable&
             }
             else structList.append(traceInfo.dynamicAllocSymbolTypes[symTable.getValue(string)]);
         }
-        // Otherwise create the struct, and return no error message
+        // Otherwise create the struct, and return no error message.
         return {QSharedPointer<StructType>::create(namePtr, structList),""};
     }
 }
@@ -267,7 +270,7 @@ QPair<QSharedPointer<StructType>,QString> IsaAsm::parseStruct(const SymbolTable&
 void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& traceInfo,
                              QList<QSharedPointer<AsmCode>>& programList, QList<QPair<int, QString>> &errList)
 {
-    // Extract the list of lines that have remaing trace tags
+    // Extract the list of lines that have remaing trace tags.
     QList<QPair<int,QSharedPointer<AsmCode>>> structs, allocs;
     int lineIt = 0;
     for(auto line : programList) {
@@ -286,11 +289,11 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                 break;
             }
         }
-        // If a line doesn't have a comment or a #, it can't be a trace tag;
+        // If a line doesn't have a comment or a #, it can't be a trace tag.
         if(!line->hasComment() || !hasSymbolTag(line->getComment()));
         else {
             // If a line has symbol tags and is *NOT* a non-unary instruction,
-            // then it must be an attempt at a symbol declaration
+            // then it must be an attempt at a symbol declaration.
             if(hasSymbolTag(line->getComment())
                     && dynamic_cast<NonUnaryInstruction*>(line.get()) == nullptr) {
                 structs.append({lineIt, line});
@@ -332,16 +335,16 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
             if(!rVal.first.isNull()) {
                 it.remove();
             }
-            // Otherwise continue working on the rest of the entries in the list
+            // Otherwise continue working on the rest of the entries in the list.
             else {
                 // Don't do anything with the error message now, since additional repetitions of the
                 // loop might successfully define complicated structs.
                 continue;
             }
-            // Global structs - static allocated
+            // Global structs - static allocated.
             if(dynamic_cast<DotBlock*>(line.second.get()) != nullptr) {
                 DotBlock* instr = dynamic_cast<DotBlock*>(line.second.get());
-                // Check that the allocated size of a global struct is the same size as the type tag
+                // Check that the allocated size of a global struct is the same size as the type tag.
                 if(instr->argument->getArgumentValue() != rVal.first->size()) {
                     traceInfo.staticTraceError = true;
                     errList.append({line.first, bytesAllocMismatch
@@ -352,7 +355,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                     traceInfo.staticAllocSymbolTypes.insert(line.second->getSymbolEntry(), rVal.first);
                 }
             }
-            // Dynamic structs - stack or heap allocated
+            // Dynamic structs - stack or heap allocated.
             else {
                 traceInfo.dynamicAllocSymbolTypes.insert(line.second->getSymbolEntry(), rVal.first);
             }
@@ -377,9 +380,9 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
         }
     }
 
-    // Handle lines with instructions such as ADDSP, SUBSP
+    // Handle lines with instructions such as ADDSP, SUBSP.
     for(auto line: allocs) {
-        // Used to force a continue on the outer loop from an inner loop
+        // Used to force a continue on the outer loop from an inner loop.
         bool forceContinue = false;
         if(dynamic_cast<NonUnaryInstruction*>(line.second.get()) != nullptr) {
             NonUnaryInstruction *instr = static_cast<NonUnaryInstruction*>(line.second.get());
@@ -408,12 +411,13 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                 }
             }
             if(forceContinue) continue;
-            // Calculate the number of bytes listed in the trace tags
+            // Calculate the number of bytes listed in the trace tags.
             quint16 size  = 0;
             for(auto tag : lineTypes) {
                 size += tag->size();
             }
-            // On lines where trace tags have significance, verify that the argument is equal to
+            // On lines where trace tags have significance, verify that the value of the argument
+            // is equal to the number of bytes listed in the trace tags.
             if(instr->getAddressingMode() != Enu::EAddrMode::I) {
                 traceInfo.staticTraceError = true;
                 errList.append({line.first, illegalAddrMode});
@@ -456,7 +460,6 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
     // E.G. malloc: .equate 0 would be wrong
     if(symTable.exists("malloc")
             && symTable.exists("heap")
-            && symTable.exists("hpPtr")
             && symTable.getValue("malloc")->getRawValue()->getSymbolType() == SymbolType::ADDRESS
             && symTable.getValue("heap")->getRawValue()->getSymbolType() == SymbolType::ADDRESS) {
         traceInfo.hasHeapMalloc = true;
@@ -464,8 +467,8 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
         traceInfo.mallocPtr = symTable.getValue("malloc");
     }
 
-    // Print debug info
-    qDebug().noquote().nospace() << "Stack / Heap allocated types:";
+    // Since model works, no need to print debug info, but retain code for future debugging.
+    /*qDebug().noquote().nospace() << "Stack / Heap allocated types:";
     for(auto sym : traceInfo.dynamicAllocSymbolTypes) {
         qDebug().noquote().nospace() << sym->toPrimitives();
     }
@@ -478,7 +481,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
     qDebug().noquote().nospace() << "Instructions modifying stack / heap:";
     for(auto sym : traceInfo.instrToSymlist.keys()) {
         qDebug().noquote().nospace() << QString("(%1,").arg(sym) << traceInfo.instrToSymlist[sym] <<")";
-    }
+    }*/
 
 }
 
@@ -1272,9 +1275,11 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
 bool IsaAsm::hasTypeTag(QString comment)
 {
+    // A comment can't be a type tag if it is empty or lacks a "#".
     if(comment.isEmpty() || !comment.contains(IsaParserHelper::rxFormatTag)) {
         return false;
     }
+    // If the comment contains a primitive type (e.g. #2d, #2da), then it has a type.
     else if(primitiveType(comment.mid(comment.indexOf(IsaParserHelper::rxFormatTag))) != Enu::ESymbolFormat::F_NONE) {
         return true;
     }
