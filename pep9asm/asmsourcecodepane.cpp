@@ -366,13 +366,25 @@ void AsmSourceCodePane::backTab()
         }
         else if (curLinePos <= 29) {
             // Starting position is 17
-            startPos =17;
+            startPos = 17;
             editCursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor,  curLinePos - 17);
         }
-        else {
+        else if (curLinePos <= 29 + 5) {
             // Starting position is 29
-            startPos = curLinePos - 4;
-            editCursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor,  4);
+            startPos = 29;
+            editCursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor,  curLinePos - 29);
+        }
+        else {
+            // Starting position is 4 characters backwards
+            startPos = curLinePos - (curLinePos - 30) % 4;
+            if((curLinePos - 30) % 4 == 0) {
+                startPos = curLinePos - 4;
+            }
+            else {
+                startPos =  curLinePos - (curLinePos - 30) % 4;
+            }
+            editCursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor,
+                                    curLinePos - startPos);
         }
         // Validate that all characters from startPos to curLinePos are spaces, or back tab is useless.
         cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, startPos);

@@ -1,7 +1,3 @@
-//* This file contains a complete implementation of the microcode needed to execute
-//* the Pep/9 instruction set. In order to test a working program,
-//* Clone this file,
-
 //*****************
 //
 // Instruction Specifier & Operand Specifier Fetch
@@ -643,14 +639,6 @@ MemWrite, A=8, AMux=1, ALU=13, CMux=1, C=21; LoadCk
 //Mem[T-5] <- PC
 //NZVC bits go to T5<lo>
 A=14, B=15, MARMux=1, CMux=0, C=19; MARCk, LoadCk
-//Calculate if the IR is unary or nonunary, and increment the PC before pushing it onto the stack
-A=21, AMux=1, ALU=13, CMux=1, C=21; LoadCk
-A=21, B=23, AMux=1, ALU=3, CMux=1, C=21; LoadCk
-A=21, B=27, AMux=1, ALU=3, AndZ=0, CMux=1, C=21; NCk, ZCk, LoadCk; if BRGT trap_pc2 else trap_wrtpc
-trap_pc2: A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
-A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk; goto trap_wrtpc
-
-//Write modified PC to stack
 
 //Calculate lo order of T-7
 trap_wrtpc: A=15, B=24, AMux=1, ALU=3, CMux=1, C=17; SCk, LoadCk

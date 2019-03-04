@@ -7,13 +7,13 @@ FALSE:   .EQUATE 0
 osRAM:   .BLOCK  128         ;System stack area
 wordTemp:.BLOCK  1           ;Temporary word storage
 byteTemp:.BLOCK  1           ;Least significant byte of wordTemp
-         STOP                ; Unalign everything above this
+         STOP                ;Unalign everything above this
 addrMask:.BLOCK  2           ;Addressing mode mask
 opAddr:  .BLOCK  2           ;Trap instruction operand address
 charIn:  .BLOCK  2           ;Memory-mapped input device
 charOut: .BLOCK  2           ;Memory-mapped output device
-.align 2    
-; Alignment starts
+         .align 2            ;Force I/O ports to be aligned on even byte boundaries
+
 ;******* Operating system ROM
          .BURN   0xFFFF      
 ;
@@ -55,8 +55,9 @@ stopLoad:STOP                ;
 ;
 ;******* Trap handler
 oldIR:   .EQUATE 9           ;Stack address of IR on trap
+oldPC:   .EQUATE 5           ;Stack address of PC on trap
 ;
-trap:    LDWX    0,i         
+trap:    LDWX    0,i         ;      
          LDBX    oldIR,s     ;X <- trapped IR
          CPBX    0x0028,i    ;If X >= first nonunary trap opcode
          BRGE    nonUnary    ;  trap opcode is nonunary
@@ -69,11 +70,14 @@ unary:   ANDX    0x0001,i    ;Mask out all but rightmost bit
 unaryJT: .ADDRSS opcode26    ;Address of NOP0 subroutine
          .ADDRSS opcode27    ;Address of NOP1 subroutine
 ;
-nonUnary:ASRX                ;Trap opcode is nonunary
+nonUnary:ASRX                ;Trap opcode is nonunary               
          ASRX                ;Discard addressing mode bits
          ASRX                
          SUBX    5,i         ;Adjust so that NOP opcode = 0
          ASLX                ;Two bytes per address
+         LDWA    oldPC,s     ;Must increment program counter
+         ADDA    2,i         ;  for nonunary instructions
+         STWA    oldPC,s
          CALL    nonUnJT,x   ;Call nonunary trap routine
 return:  RETTR               ;Return from trap
 ;
