@@ -182,28 +182,9 @@ bool AsmCpuPane::hasFocus()
     return this->isAncestorOf(focusWidget());
 }
 
-void AsmCpuPane::onDarkModeChange(bool darkMode)
-{
-
-}
-
-void AsmCpuPane::onFontChanged(QFont newFont)
-{
-
-}
-
 void AsmCpuPane::onSimulationUpdate()
 {
     updateCpu();
 }
 
-void AsmCpuPane::onSimulationStarted()
-{
-    updateCpu();
-}
-
-void AsmCpuPane::onSimulationFinished()
-{
-    updateCpu();
-}
 

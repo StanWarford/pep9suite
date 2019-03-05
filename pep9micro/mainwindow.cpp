@@ -1135,6 +1135,7 @@ bool MainWindow::initializeSimulation()
     controlSection->onResetCPU();
     controlSection->initCPU();
     ui->cpuWidget->clearCpu();
+    ui->asmCpuPane->clearCpu();
 
     // Don't allow the microcode pane to be edited while the program is running
     ui->microcodeWidget->setReadOnly(true);
@@ -1722,6 +1723,7 @@ void MainWindow::on_actionSystem_Clear_CPU_triggered()
 {
     controlSection->onResetCPU();
     ui->cpuWidget->clearCpu();
+    ui->asmCpuPane->clearCpu();
 }
 
 void MainWindow::on_actionSystem_Clear_Memory_triggered()

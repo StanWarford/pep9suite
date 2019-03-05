@@ -53,11 +53,8 @@ public:
     // Post: Returns if the single step button has focus
 
 public slots:
-    void onDarkModeChange(bool darkMode);
-    void onFontChanged(QFont newFont);
     void onSimulationUpdate();
-    void onSimulationStarted();
-    void onSimulationFinished();
+
 private:
     Ui::AsmCpuPane *ui;
     QSharedPointer<ACPUModel> cpu;
