@@ -834,16 +834,17 @@ void MainWindow::print(Enu::EPane which)
     QTextDocument document;
     // Create highlighters (which may or may not be needed),
     // so that the documents may be properly highlighted.
-    PepASMHighlighter asHi(PepColors::lightMode, &document);
-    PepMicroHighlighter mcHi(Enu::CPUType::TwoByteDataBus,
-                                                   true, PepColors::lightMode, &document);
-    mcHi.forceAllFeatures(true);
+    QSyntaxHighlighter* hi = nullptr;
+    PepASMHighlighter* asHi;
+    PepMicroHighlighter* mcHi;
     switch(which)
     {
     case Enu::EPane::ESource:
         title = &source;
         document.setPlainText(ui->AsmSourceCodeWidgetPane->toPlainText());
-        asHi.rehighlight();
+        asHi = new PepASMHighlighter(PepColors::lightMode, &document);
+        hi = asHi;
+        hi->rehighlight();
         break;
     case Enu::EPane::EObject:
         title = &object;
@@ -852,12 +853,18 @@ void MainWindow::print(Enu::EPane which)
     case Enu::EPane::EListing:
         title = &listing;
         document.setPlainText(ui->AsmListingWidgetPane->toPlainText());
-        asHi.rehighlight();
+        asHi = new PepASMHighlighter(PepColors::lightMode, &document);
+        hi = asHi;
+        hi->rehighlight();
         break;
     case Enu::EPane::EMicrocode:
         title = &micro;
         document.setPlainText(ui->microcodeWidget->toPlainText());
-        mcHi.rehighlight();
+        mcHi = new PepMicroHighlighter(Enu::CPUType::TwoByteDataBus,
+                true, PepColors::lightMode, &document);
+        mcHi->forceAllFeatures(true);
+        hi = mcHi;
+        hi->rehighlight();
         break;
     default:
         // Provided a default - even though it should never occur -
@@ -881,6 +888,9 @@ void MainWindow::print(Enu::EPane which)
         document.print(&printer);
     }
     dialog->deleteLater();
+    if(hi != nullptr) {
+        hi->deleteLater();
+    }
 }
 
 void MainWindow::assembleDefaultOperatingSystem()
@@ -2088,6 +2098,17 @@ void MainWindow::helpCopyToSourceClicked()
                     ui->AsmObjectCodeWidgetPane->setObjectCodePaneText(code);
                     ui->AsmObjectCodeWidgetPane->setModifiedFalse();
                     statusBar()->showMessage("Copied to assembler object code", 4000);
+                }
+                break;
+            case Enu::EPane::EMicrocode:
+                if(maybeSave(Enu::EPane::EMicrocode)) {
+                    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
+                    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
+                    ui->microcodeWidget->setFocus();
+                    ui->microcodeWidget->setCurrentFile("");
+                    ui->microcodeWidget->setMicrocode(code);
+                    ui->microcodeWidget->setModifiedFalse();
+                    statusBar()->showMessage("Copied to microcode", 4000);
                 }
                 break;
 

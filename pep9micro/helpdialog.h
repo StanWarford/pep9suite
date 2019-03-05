@@ -69,6 +69,8 @@ private:
         eUSINGPEP9CPU,
         ePEP9REFERENCE,
         eASMEXAMPLES,
+        eOS,
+        eMICROIMPL,
 
         //Writing Assembler options
         eMACHINELANG = 0,

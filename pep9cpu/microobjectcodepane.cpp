@@ -135,10 +135,11 @@ void MicroObjectCodePane::setObjectCode(QSharedPointer<MicrocodeProgram> prog, Q
                 auto y = new QStandardItem(QString::number(((MicroCode*)row)->getBranchFunction()));
                 y->setTextAlignment(Qt::AlignCenter);
                 model->setItem(rowNum,colNum++,y);
-                y = new QStandardItem(QString::number(((MicroCode*)row)->getTrueTarget()->getValue()));
+                // Increment row number by 1 to account for display rows starting at 1, not 0.
+                y = new QStandardItem(QString::number(((MicroCode*)row)->getTrueTarget()->getValue() + 1));
                 y->setTextAlignment(Qt::AlignCenter);
                 model->setItem(rowNum,colNum++,y);
-                y = new QStandardItem(QString::number(((MicroCode*)row)->getFalseTarget()->getValue()));
+                y = new QStandardItem(QString::number(((MicroCode*)row)->getFalseTarget()->getValue() + 1));
                 y->setTextAlignment(Qt::AlignCenter);
                 model->setItem(rowNum,colNum++,y);
                 y = new QStandardItem(((MicroCode*)row)->getSymbol()->getName());

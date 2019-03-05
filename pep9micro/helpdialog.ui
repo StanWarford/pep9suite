@@ -366,6 +366,16 @@
         </property>
        </item>
       </item>
+      <item>
+       <property name="text">
+        <string>Pep/9 Operating System</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Pep/9 Microcode Implementation</string>
+       </property>
+      </item>
      </widget>
      <widget class="QSplitter" name="helpSplitter">
       <property name="orientation">

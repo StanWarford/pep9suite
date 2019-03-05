@@ -173,6 +173,11 @@ QString HelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString
             inputDest = Enu::EPane::ETerminal;
         }
     }
+    else if(parentRow == eMICROIMPL || row == eMICROIMPL) {
+        destPane = Enu::EPane::EMicrocode;
+        #pragma message ("TODO: fix microcode path")
+        return Pep::resToString(":/help/pep9micro.pepcpu");
+    }
     destPane = Enu::EPane::ESource;
     return ui->leftPepTextEdit->toPlainText();
 }
@@ -581,6 +586,30 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
                 ui->rightPepTextEdit->hide();
             }
         }
+    }
+    else if (!isHelpSubCat && row == eOS) {         // Pep/9 Operating System
+        ui->copyToSourceButton->setText("Copy to Source");
+        ui->helpSplitter->widget(0)->hide();
+        ui->helpSplitter->widget(1)->show();
+        ui->leftPepTextEdit->setText(Pep::resToString(":/help/pep9os/alignedIO-OS.pep"));
+        ui->leftPepTextEdit->show();
+        ui->rightCppTextEdit->hide();
+        ui->rightPepTextEdit->hide();
+        ui->microTextEdit->hide();
+#pragma message ("TODO: Fix label text")
+        ui->helpFigureLabel->setText("<b>Figures 8.2, 8.3, 8.6, 8.8, 8.10, 8.11</b><code>  </code> The Pep/9 operating system.");
+    }
+    else if (!isHelpSubCat && row == eMICROIMPL) {
+        ui->copyToSourceButton->setText("Copy to Microcode");
+        ui->helpSplitter->widget(0)->hide();
+        ui->helpSplitter->widget(1)->show();
+        ui->leftPepTextEdit->hide();
+        ui->rightCppTextEdit->hide();
+        ui->rightPepTextEdit->hide();
+#pragma message ("TODO: fix microcode path")
+        ui->microTextEdit->setText(Pep::resToString(":/help/pep9micro.pepcpu"));
+        ui->microTextEdit->show();
+        ui->helpFigureLabel->setText("Microcoded implementation of the <i>Pep/9</i> instruction set.");
     }
 }
 
