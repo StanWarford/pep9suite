@@ -39,22 +39,7 @@ void PepASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
     for(QString text : Pep::enumToMnemonMap) {
         oprndPatterns << "\\b" + text + "\\b";
     }
-    /*oprndPatterns << "\\bADD(A|SP|X)\\b" << "\\bAND(A|X)\\b" << "\\bASL(A|X)\\b"
-            << "\\bASR(A|X)\\b" << "\\bBR\\b" << "\\bBR(C|EQ|GE|GT|LE|LT|NE|V)\\b"
-            << "\\bCALL\\b" << "\\bCPB(A|X)\\b" << "\\bCPW(A|X)\\b"
-            << "\\bLDB(A|X)\\b" << "\\bLDW(A|X)\\b"
-            << "\\bMOV(FLGA|AFLG|SPA)\\b"
-            << "\\bNEG(A|X)\\b" << "\\bNOT(A|X)\\b"
-            << "\\bOR(A|X)\\b"
-            << "\\bRET\\b" << "\\bRETTR\\b" << "\\bROL(A|X)\\b" << "\\bROR(A|X)\\b"
-            << "\\bSTB(A|X)\\b" << "\\bSTOP\\b" << "\\bSTW(A|X)\\b" << "\\bSUB(A|X|SP)\\b"
-            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::DECI]+"\\b"
-            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::DECO]+"\\b"
-            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::HEXO]+"\\b"
-            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::NOP]+"\\b"
-            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::STRO]+"\\b"
-            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::NOP0]+"\\b"
-            << "\\b"+Pep::enumToMnemonMap[Enu::EMnemonic::NOP1]+"\\b";*/
+
     foreach (const QString &pattern, oprndPatterns) {
         rule.pattern = QRegExp(pattern);
         rule.format = oprndFormat;
@@ -75,7 +60,9 @@ void PepASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
 
     symbolFormat.setFontWeight(QFont::Bold);
     symbolFormat.setForeground(colors.rightOfExpression);
-    rule.pattern = QRegExp("[A-Za-z0-9_]+(?=:)");
+    // Selects most accented unicode characters, based on answer:
+    // https://stackoverflow.com/a/26900132
+    rule.pattern = QRegExp("([A-zÀ-ÖØ-öø-ÿ_][0-9A-zÀ-ÖØ-öø-ÿ_]+)(?=:)");
     rule.format = symbolFormat;
     highlightingRules.append(rule);
 
