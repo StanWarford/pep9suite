@@ -281,6 +281,29 @@ QString Pep::addrModeToCommaSpace(EAddrMode addressMode) {
     return ""; // Should not occur
 }
 
+int Pep::operandDisplayFieldWidth(EMnemonic mnemon)
+{
+    switch(mnemon) {
+    // All byte instructions only use 1 byte, which is 2 characters.
+    case Enu::EMnemonic::LDBA:
+        [[fallthrough]];
+    case Enu::EMnemonic::LDBX:
+        [[fallthrough]];
+    case Enu::EMnemonic::STBA:
+        [[fallthrough]];
+    case Enu::EMnemonic::STBX:
+        [[fallthrough]];
+    case Enu::EMnemonic::CPBA:
+        [[fallthrough]];
+    case Enu::EMnemonic::CPBX:
+        return 2;
+    // All others use 2 bytes, which is 4 characters.
+    default:
+        return 4;
+
+    }
+}
+
 // Maps between mnemonic enums and strings
 QMap<Enu::EMnemonic, QString> Pep::enumToMnemonMap;
 QMap<QString, Enu::EMnemonic> Pep::mnemonToEnumMap;

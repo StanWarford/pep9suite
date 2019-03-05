@@ -11,7 +11,8 @@ FORMS += \
     asmsourcecodepane.ui \
     asmtracepane.ui \
     memorytracepane.ui \
-    redefinemnemonicsdialog.ui
+    redefinemnemonicsdialog.ui \
+    asmcpupane.ui
 
 HEADERS += \
     asmargument.h \
@@ -30,7 +31,8 @@ HEADERS += \
     pepasmhighlighter.h \
     typetags.h \
     stacktrace.h \
-    redefinemnemonicsdialog.h
+    redefinemnemonicsdialog.h \
+    asmcpupane.h
 
 SOURCES += \
     asmargument.cpp \
@@ -49,4 +51,5 @@ SOURCES += \
     pepasmhighlighter.cpp \
     typetags.cpp \
     stacktrace.cpp \
-    redefinemnemonicsdialog.cpp
+    redefinemnemonicsdialog.cpp \
+    asmcpupane.cpp

@@ -91,6 +91,11 @@ public:
     static QString intToAddrMode(Enu::EAddrMode addressMode);
     static QString addrModeToCommaSpace(Enu::EAddrMode addressMode);
 
+    // Function to compute the number of display character in an operand.
+    // (e.g. LDBX only uses a 1 byte operand, while LDWX uses 2,
+    // so LDBX needs 2 chars and LDWX 4).
+    static int operandDisplayFieldWidth(Enu::EMnemonic mnemon);
+
     // Maps between mnemonic enums and strings
     static QMap<Enu::EMnemonic, QString> enumToMnemonMap;
     static QMap<QString, Enu::EMnemonic> mnemonToEnumMap;

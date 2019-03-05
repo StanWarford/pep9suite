@@ -55,7 +55,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -179,6 +179,15 @@
        <attribute name="title">
         <string>Statistics</string>
        </attribute>
+       <layout class="QGridLayout" name="gridLayout_10">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_8">
+          <item row="0" column="0">
+           <widget class="AsmCpuPane" name="asmCpuPane" native="true"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -1143,6 +1152,12 @@
    <class>NewMemoryTracePane</class>
    <extends>QWidget</extends>
    <header>memorytracepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AsmCpuPane</class>
+   <extends>QWidget</extends>
+   <header>asmcpupane.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

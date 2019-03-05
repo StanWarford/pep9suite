@@ -72,6 +72,7 @@
 #include "mainmemory.h"
 #include "memorychips.h"
 #include "symboltable.h"
+#include "asmcpupane.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), debugState(DebugState::DISABLED), redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),
@@ -87,7 +88,6 @@ MainWindow::MainWindow(QWidget *parent) :
     Pep::initAddrModesMap();
     Pep::initDecoderTables();
     Pep::initMicroDecoderTables();
-
     // Initialize the memory subsystem
     QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memDevice.get()));
     memDevice->insertChip(ramChip, 0);
@@ -105,6 +105,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->asmListingTracePane->init(controlSection, programManager);
     ui->microcodeWidget->init(controlSection, dataSection, memDevice, true);
     ui->microObjectCodePane->init(controlSection, true);
+    ui->asmCpuPane->init(controlSection);
     redefineMnemonicsDialog->init(false);
 
     // Create button group to hold statistics items
@@ -164,6 +165,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Events that fire on simulationUpdate should be UniqueConnections, as they will be repeatedly connected and disconnected
     // via connectMicroDraw() and disconnectMicroDraw().
     connect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->memoryTracePane, &NewMemoryTracePane::updateTrace, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationStarted, ui->memoryWidget, &MemoryDumpPane::onSimulationStarted);
@@ -390,6 +392,7 @@ void MainWindow::connectViewUpdate()
     connect(dataSection.get(), &NewCPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged, Qt::ConnectionType::UniqueConnection);
     connect(dataSection.get(), &NewCPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged, Qt::ConnectionType::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
+    connect(this, &MainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, this, static_cast<void(MainWindow::*)()>(&MainWindow::highlightActiveLines), Qt::UniqueConnection);
@@ -401,12 +404,13 @@ void MainWindow::connectViewUpdate()
 void MainWindow::disconnectViewUpdate()
 {
     disconnect(memDevice.get(), &MainMemory::changed, ui->memoryWidget,&MemoryDumpPane::onMemoryChanged);
-        connect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged);
+    disconnect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged);
     disconnect(ui->cpuWidget, &CpuPane::registerChanged, dataSection.get(), &NewCPUDataSection::onSetRegisterByte);
     disconnect(dataSection.get(), &NewCPUDataSection::statusBitChanged, ui->cpuWidget, &CpuPane::onStatusBitChanged);
     disconnect(dataSection.get(), &NewCPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged);
     disconnect(dataSection.get(), &NewCPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged);
     disconnect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory);
+    disconnect(this, &MainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate);
     disconnect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate);
     disconnect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons);
     disconnect(this, &MainWindow::simulationUpdate, this, static_cast<void(MainWindow::*)()>(&MainWindow::highlightActiveLines));
