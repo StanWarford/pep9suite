@@ -66,6 +66,11 @@ bool ISACPU::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint
     return operandWordValueHelper(operand, addrMode, &AMemoryDevice::getWord, opVal);
 }
 
+bool ISACPU::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint8 &opVal)
+{
+    return operandByteValueHelper(operand, addrMode, &AMemoryDevice::getByte, opVal);
+}
+
 void ISACPU::onISAStep()
 {
     // Store PC at the start of the cycle, so that we know where the instruction started from.
@@ -132,6 +137,11 @@ void ISACPU::updateAtInstructionEnd()
 bool ISACPU::readOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
 {
     return operandWordValueHelper(operand, addrMode, &AMemoryDevice::readWord, opVal);
+}
+
+bool ISACPU::readOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quint8 &opVal)
+{
+    return operandByteValueHelper(operand, addrMode, &AMemoryDevice::readByte, opVal);
 }
 
 void ISACPU::initCPU()
@@ -413,12 +423,94 @@ bool ISACPU::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
 
 bool ISACPU::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode addrMode)
 {
-
+    bool rVal = true;
+    quint16 effectiveAddress = 0;
+    switch(addrMode) {
+    case Enu::EAddrMode::I:
+        rVal = false;
+        break;
+    case Enu::EAddrMode::D:
+        effectiveAddress = operand;
+        rVal = memory->writeWord(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::S:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
+        rVal = memory->writeWord(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::X:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::X);
+        rVal = memory->writeWord(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::SX:
+        effectiveAddress = operand
+                + getCPURegWordCurrent(Enu::CPURegisters::SP)
+                + getCPURegWordCurrent(Enu::CPURegisters::X);
+        rVal = memory->writeWord(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::N:
+        effectiveAddress = operand;
+        rVal = memory->readWord(effectiveAddress, effectiveAddress);
+        rVal &= memory->writeWord(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::SF:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
+        rVal = memory->readWord(effectiveAddress, effectiveAddress);
+        rVal &= memory->writeWord(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::SFX:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
+        rVal = memory->readWord(effectiveAddress, effectiveAddress);
+        effectiveAddress += getCPURegWordCurrent(Enu::CPURegisters::X);
+        rVal &= memory->writeWord(effectiveAddress, value);
+        break;
+    }
+    return rVal;
 }
 
 bool ISACPU::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addrMode)
 {
-
+    bool rVal = true;
+    quint16 effectiveAddress = 0;
+    switch(addrMode) {
+    case Enu::EAddrMode::I:
+        rVal = false;
+        break;
+    case Enu::EAddrMode::D:
+        effectiveAddress = operand;
+        rVal = memory->writeByte(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::S:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
+        rVal = memory->writeByte(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::X:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::X);
+        rVal = memory->writeByte(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::SX:
+        effectiveAddress = operand
+                + getCPURegWordCurrent(Enu::CPURegisters::SP)
+                + getCPURegWordCurrent(Enu::CPURegisters::X);
+        rVal = memory->writeByte(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::N:
+        effectiveAddress = operand;
+        rVal = memory->readWord(effectiveAddress, effectiveAddress);
+        rVal &= memory->writeByte(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::SF:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
+        rVal = memory->readWord(effectiveAddress, effectiveAddress);
+        rVal &= memory->writeByte(effectiveAddress, value);
+        break;
+    case Enu::EAddrMode::SFX:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
+        rVal = memory->readWord(effectiveAddress, effectiveAddress);
+        effectiveAddress += getCPURegWordCurrent(Enu::CPURegisters::X);
+        rVal &= memory->writeByte(effectiveAddress, value);
+        break;
+    }
+    return rVal;
 }
 
 void ISACPU::executeUnary(Enu::EMnemonic mnemon)
