@@ -67,9 +67,6 @@ public:
     // Return the value of a register at the start of an instruction
     virtual quint8 getCPURegByteStart(Enu::CPURegisters reg) const = 0;
     virtual quint16 getCPURegWordStart(Enu::CPURegisters reg) const = 0;
-    // CPU can be debugged with multiple levels of diagnostic information
-    virtual Enu::DebugLevels getDebugLevel() const noexcept = 0;
-    virtual void setDebugLevel(Enu::DebugLevels level) = 0;
     // Did any part of the CPU simulation cause an error?
     virtual QString getErrorMessage() const noexcept = 0;
     virtual bool hadErrorOnStep() const noexcept = 0;

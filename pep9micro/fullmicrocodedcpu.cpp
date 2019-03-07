@@ -18,7 +18,6 @@ FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPo
     memoizer = new FullMicrocodedMemoizer(*this);
     data = new NewCPUDataSection(Enu::CPUType::TwoByteDataBus, memoryDev, parent);
     dataShared = QSharedPointer<NewCPUDataSection>(data);
-    setDebugLevel(Enu::DebugLevels::ALL);
 }
 
 FullMicrocodedCPU::~FullMicrocodedCPU()
@@ -94,16 +93,6 @@ QString FullMicrocodedCPU::getErrorMessage() const noexcept
 bool FullMicrocodedCPU::hadErrorOnStep() const noexcept
 {
     return controlError || data->hadErrorOnStep() || memory->hadError();
-}
-
-Enu::DebugLevels FullMicrocodedCPU::getDebugLevel() const noexcept
-{
-    return memoizer->getDebugLevel();
-}
-
-void FullMicrocodedCPU::setDebugLevel(Enu::DebugLevels level)
-{
-    memoizer->setDebugLevel(level);
 }
 
 void FullMicrocodedCPU::setCPUType(Enu::CPUType)

@@ -18,14 +18,9 @@ static quint8 inst_size=6;
 static quint8 oper_addr_size=12;
 
 FullMicrocodedMemoizer::FullMicrocodedMemoizer(FullMicrocodedCPU& item): cpu(item),
-    state(CPUState()), level(Enu::DebugLevels::MINIMAL), OSSymTable()
+    state(CPUState()), OSSymTable()
 {
 
-}
-
-Enu::DebugLevels FullMicrocodedMemoizer::getDebugLevel() const
-{
-    return level;
 }
 
 void FullMicrocodedMemoizer::clear()
@@ -35,39 +30,17 @@ void FullMicrocodedMemoizer::clear()
 
 void FullMicrocodedMemoizer::storeStateInstrEnd()
 {
-    switch(level)
-    {
-    case Enu::DebugLevels::ALL:
-        //Intentional fallthrough
-        [[fallthrough]];
-    case Enu::DebugLevels::MINIMAL:
-        //Intentional fallthrough
-        [[fallthrough]];
-    case Enu::DebugLevels::NONE:
-        #pragma message("This calculation is not quite right")
-        break;
-    }
+
 }
 
 void FullMicrocodedMemoizer::storeStateInstrStart()
 {
     quint8 instr;
-    switch(level)
-    {
-    case Enu::DebugLevels::ALL:
-        //Intentional fallthrough
-        [[fallthrough]];
-    case Enu::DebugLevels::MINIMAL:
-        //Intentional fallthrough
-        [[fallthrough]];
-    case Enu::DebugLevels::NONE:
-        // Fetch the instruction specifier, located at the memory address of PC
-        cpu.getMemoryDevice()->getByte(cpu.data->getRegisterBank()
-                                       .readRegisterWordStart(Enu::CPURegisters::PC), instr);
-        state.instructionsCalled[instr]++;
-        cpu.data->getRegisterBank().setIRCache(instr);
-        break;
-    }
+    // Fetch the instruction specifier, located at the memory address of PC
+    cpu.getMemoryDevice()->getByte(cpu.data->getRegisterBank()
+                                   .readRegisterWordStart(Enu::CPURegisters::PC), instr);
+    state.instructionsCalled[instr]++;
+    cpu.data->getRegisterBank().setIRCache(instr);
 }
 
 QString FullMicrocodedMemoizer::memoize()
@@ -75,57 +48,45 @@ QString FullMicrocodedMemoizer::memoize()
     const RegisterFile& file = cpu.data->getRegisterBank();
     quint8 ir = 0;
     QString build, AX, NZVC;
-    switch(level) {
-    case Enu::DebugLevels::ALL:
-        [[fallthrough]];
-    case Enu::DebugLevels::MINIMAL:
-        AX = QString(" A=%1, X=%2, SP=%3")
+    AX = QString(" A=%1, X=%2, SP=%3")
 
-                .arg(formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::A)),
-                     formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::X)),
-                     formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::SP)));
-        NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(file.readStatusBitsCurrent(), 2), 5, '0');
-        build = (attempSymAddrReplace(file.readRegisterWordStart(Enu::CPURegisters::PC)) + QString(":")).leftJustified(10) %
-                formatInstr(file.getIRCache(), file.readRegisterWordCurrent(Enu::CPURegisters::OS));
-        build += "  " + AX;
-        build += NZVC;
-        ir = cpu.data->getRegisterBank().getIRCache();
-        if(Pep::isTrapMap[Pep::decodeMnemonic[ir]]) {
-            build += generateTrapFrame(state);
-        }
-        else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::RETTR) {
-            build += generateTrapFrame(state,false);
-        }
-        else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::CALL) {
-            build += generateStackFrame(state);
-        }
-        else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::RET) {
-            build += generateStackFrame(state,false);
-        }
-        break;
-    case Enu::DebugLevels::NONE:
-        break;
+            .arg(formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::A)),
+                 formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::X)),
+                 formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::SP)));
+    NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(file.readStatusBitsCurrent(), 2), 5, '0');
+    build = (attempSymAddrReplace(file.readRegisterWordStart(Enu::CPURegisters::PC)) + QString(":")).leftJustified(10) %
+            formatInstr(file.getIRCache(), file.readRegisterWordCurrent(Enu::CPURegisters::OS));
+    build += "  " + AX;
+    build += NZVC;
+    ir = cpu.data->getRegisterBank().getIRCache();
+    if(Pep::isTrapMap[Pep::decodeMnemonic[ir]]) {
+        build += generateTrapFrame(state);
+    }
+    else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::RETTR) {
+        build += generateTrapFrame(state,false);
+    }
+    else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::CALL) {
+        build += generateStackFrame(state);
+    }
+    else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::RET) {
+        build += generateStackFrame(state,false);
     }
     return build;
 }
 
 QString FullMicrocodedMemoizer::finalStatistics()
 {
-    if(level == Enu::DebugLevels::NONE) return "";
     Enu::EMnemonic mnemon = Enu::EMnemonic::STOP;
     QList<Enu::EMnemonic> mnemonList = QList<Enu::EMnemonic>();
     mnemonList.append(mnemon);
     QList<quint32> tally = QList<quint32>();
     tally.append(0);
-    int tallyIt=0;
-    for(int it=0; it<256; it++)
-    {
-        if(mnemon == Pep::decodeMnemonic[it])
-        {
+    int tallyIt = 0;
+    for(int it = 0; it < 256; it++) {
+        if(mnemon == Pep::decodeMnemonic[it]) {
             tally[tallyIt]+= state.instructionsCalled[it];
         }
-        else
-        {
+        else {
             tally.append(state.instructionsCalled[it]);
             tallyIt++;
             mnemon = Pep::decodeMnemonic[it];
@@ -133,18 +94,12 @@ QString FullMicrocodedMemoizer::finalStatistics()
         }
     }
     //qSort(tally);
-    QString output="";
-    for(int index = 0; index < tally.length(); index++)
-    {
+    QString output = "";
+    for(int index = 0; index < tally.length(); index++) {
         if(tally[index] == 0) continue;
         output.append(QString("%1").arg(mnemonDecode(mnemonList[index]),5) % QString(": ") % QString::number(tally[index]) % QString("\n"));
     }
     return output;
-}
-
-void FullMicrocodedMemoizer::setDebugLevel(Enu::DebugLevels level)
-{
-    this->level = level;
 }
 
 // Properly formats a number as a 4 char hex

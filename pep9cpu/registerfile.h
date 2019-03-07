@@ -31,6 +31,8 @@ public:
     bool readStatusBitStart(Enu::EStatusBit bit);
     // Set a named status bit.
     void writeStatusBit(Enu::EStatusBit bit, bool val);
+    // Write to all status bits
+    void writeStatusBits(quint8 bits);
 
     // Set all status bits to 0 / false.
     void clearStatusBits();

@@ -41,7 +41,6 @@ class HelpDialog;
 class MicrocodePane;
 class MicroObjectCodePane;
 class UpdateChecker;
-class QActionGroup;
 class RedefineMnemonicsDialog;
 
 //WIP classes
@@ -99,8 +98,6 @@ private:
 
     AsmProgramManager* programManager;
 
-    QActionGroup* statisticsLevelsGroup;
-
     // Disconnect or reconnect events that notify views of changes in model,
     // Disconnecting these events allow for faster execution when running or continuing.
     void connectViewUpdate();
@@ -143,7 +140,7 @@ private:
         static const int RUN = 1<<0, RUN_OBJECT = 1<<1, DEBUG = 1<<2, DEBUG_OBJECT = 1<<3, DEBUG_LOADER = 1<<4,
         INTERRUPT = 1<<5, CONTINUE = 1<<6, RESTART = 1<<7, STOP = 1<<8, STEP_OVER_ASM = 1<<9, STEP_INTO_ASM = 1<<10,
         STEP_OUT_ASM = 1<<11, SINGLE_STEP_MICRO = 1<<12/*, SINGLE_STEP_ASM = 1<<13*/, BUILD_ASM = 1<<14, BUILD_MICRO = 1<<15,
-        STATS_LEVELS = 1<<16, OPEN_NEW = 1<<17, INSTALL_OS = 1<<18;
+        OPEN_NEW = 1<<17, INSTALL_OS = 1<<18;
     };
 
     // Which debug buttons to enable, based on integer cracking of the above struct. It is not strongly typed with an enum, because the casting
@@ -159,9 +156,6 @@ private:
 
     // Update the views and initialize the models in a way that can be used for debugging or running.
     bool initializeSimulation();
-
-    // Set the appropriate checkboxes in teh statistics tab based on a debug level
-    void setCheckedFromDebugLevel(Enu::DebugLevels level);
 
 private slots:
     // Update Check
@@ -236,11 +230,6 @@ private slots:
     // Allow main window to update highlighting rules after
     // changes to the mnemonics have been finished.
     void redefine_Mnemonics_closed();
-
-    // Statistics Events
-    void on_actionStatistics_Level_All_triggered();
-    void on_actionStatistics_Level_Minimal_triggered();
-    void on_actionStatistics_Level_None_triggered();
 
     // View
     void on_actionDark_Mode_triggered();

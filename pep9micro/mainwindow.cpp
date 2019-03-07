@@ -79,7 +79,7 @@ MainWindow::MainWindow(QWidget *parent) :
     updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
     memDevice(new MainMemory(this)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), memDevice)),
     dataSection(controlSection->getDataSection()), programManager(AsmProgramManager::getInstance()),
-    statisticsLevelsGroup(new QActionGroup(this)), inDarkMode(false)
+    inDarkMode(false)
 {
     // Initialize all global maps.
     Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, true);
@@ -107,12 +107,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->microObjectCodePane->init(controlSection, true);
     ui->asmCpuPane->init(controlSection);
     redefineMnemonicsDialog->init(false);
-
-    // Create button group to hold statistics items
-    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_All);
-    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_Minimal);
-    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_None);
-    statisticsLevelsGroup->setExclusive(true);
 
     // Create & connect all dialogs.
     helpDialog = new HelpDialog(this);
@@ -439,10 +433,6 @@ void MainWindow::readSettings()
     bool tempDarkMode = settings.value("inDarkMode", false).toBool();
     ui->actionDark_Mode->setChecked(tempDarkMode);
     on_actionDark_Mode_triggered();
-    quint16 debuggerLevel = settings.value("debugLevel", 1).toInt();
-    if(debuggerLevel >= static_cast<quint16>(Enu::DebugLevels::END)) debuggerLevel = static_cast<int>(Enu::DebugLevels::DEFAULT);
-    controlSection->setDebugLevel(static_cast<Enu::DebugLevels>(debuggerLevel));
-    setCheckedFromDebugLevel(static_cast<Enu::DebugLevels>(debuggerLevel));
 
     // Restore last used split in assembly code pane
     val = settings.beginReadArray("codePaneSplit");
@@ -469,7 +459,6 @@ void MainWindow::writeSettings()
     settings.setValue("font", codeFont);
     settings.setValue("filePath", curPath);
     settings.setValue("inDarkMode", inDarkMode);
-    settings.setValue("debugLevel", (int)controlSection->getDebugLevel());
     settings.beginWriteArray("codePaneSplit", 3);
     QList<int> temp = ui->codeSplitter->sizes();
     for(int it = 0; it < 3; it++) {
@@ -978,8 +967,8 @@ void MainWindow::set_Obj_Listing_filenames_from_Source()
     // Otherwise, set the filenames to empty.
     QFileInfo fileInfo(ui->AsmSourceCodeWidgetPane->getCurrentFile());
     QString object, listing;
+    // If there is no file name, then empty file name of listing and object code panes.
     if(fileInfo.fileName().isEmpty()){
-#pragma message("TODO: Determine title of object and listing panes")
         object = "";
         listing = "";
     }
@@ -1070,11 +1059,6 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionDebug_Step_Out_Assembler->setEnabled(which & DebugButtons::STEP_OUT_ASM);
     ui->actionDebug_Single_Step_Microcode->setEnabled(which & DebugButtons::SINGLE_STEP_MICRO);
 
-    // Statistics Actions
-    ui->actionStatistics_Level_All->setEnabled(which & DebugButtons::STATS_LEVELS);
-    ui->actionStatistics_Level_Minimal->setEnabled(which & DebugButtons::STATS_LEVELS);
-    ui->actionStatistics_Level_None->setEnabled(which & DebugButtons::STATS_LEVELS);
-
     // File open & new actions
     ui->actionFile_New_Asm->setEnabled(which & DebugButtons::OPEN_NEW);
     ui->actionFile_New_Microcode->setEnabled(which & DebugButtons::OPEN_NEW);
@@ -1144,22 +1128,6 @@ bool MainWindow::initializeSimulation()
     ui->ioWidget->batchInputToBuffer();
     // No longer emits simulationStarted(), as this could trigger extra screen painting that is unwanted.
     return true;
-}
-
-void MainWindow::setCheckedFromDebugLevel(Enu::DebugLevels level)
-{
-    switch(level)
-    {
-    case Enu::DebugLevels::ALL:
-        ui->actionStatistics_Level_All->setChecked(true);
-        break;
-    case Enu::DebugLevels::MINIMAL:
-        ui->actionStatistics_Level_Minimal->setChecked(true);
-        break;
-    case Enu::DebugLevels::NONE:
-        ui->actionStatistics_Level_None->setChecked(true);
-        break;
-    }
 }
 
 void MainWindow::onUpdateCheck(int val)
@@ -1529,7 +1497,7 @@ void MainWindow::handleDebugButtons()
     {
     case DebugState::DISABLED:
         enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
-        enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO | DebugButtons::STATS_LEVELS;
+        enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO;
         enabledButtons |= DebugButtons::OPEN_NEW | DebugButtons::INSTALL_OS;
         break;
     case DebugState::RUN:
@@ -1556,11 +1524,22 @@ void MainWindow::handleDebugButtons()
     debugButtonEnableHelper(enabledButtons);
 }
 
+#include "isacpu.h"
 bool MainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
     if(!on_ActionBuild_Assemble_triggered()) return false;
     loadObjectCodeProgram();
     loadOperatingSystem();
+    ISACPU cpu(programManager, memDevice,this);
+    quint16 result;
+    cpu.getOperandSpec(0,Enu::EAddrMode::I, result);
+    cpu.getOperandSpec(0,Enu::EAddrMode::D, result);
+    cpu.getOperandSpec(0,Enu::EAddrMode::S, result);
+    cpu.getOperandSpec(0,Enu::EAddrMode::X, result);
+    cpu.getOperandSpec(0,Enu::EAddrMode::SX, result);
+    cpu.getOperandSpec(0,Enu::EAddrMode::N, result);
+    cpu.getOperandSpec(0,Enu::EAddrMode::SF, result);
+    cpu.getOperandSpec(0,Enu::EAddrMode::SFX, result);
     return on_actionDebug_Start_Debugging_Object_triggered();
 
 }
@@ -1771,21 +1750,6 @@ void MainWindow::redefine_Mnemonics_closed()
     ui->AsmSourceCodeWidgetPane->rebuildHighlightingRules();
     ui->asmListingTracePane->rebuildHighlightingRules();
     ui->AsmListingWidgetPane->rebuildHighlightingRules();
-}
-
-void MainWindow::on_actionStatistics_Level_All_triggered()
-{
-    if(ui->actionStatistics_Level_All->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::ALL);
-}
-
-void MainWindow::on_actionStatistics_Level_Minimal_triggered()
-{
-    if(ui->actionStatistics_Level_Minimal->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::MINIMAL);
-}
-
-void MainWindow::on_actionStatistics_Level_None_triggered()
-{
-    if(ui->actionStatistics_Level_None->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::NONE);
 }
 
 void MainWindow::onSimulationFinished()

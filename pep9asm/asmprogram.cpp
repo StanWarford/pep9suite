@@ -10,13 +10,13 @@ StaticTraceInfo::StaticTraceInfo(): staticTraceError(false), hadTraceTags(false)
 }
 
 AsmProgram::AsmProgram(): program(), indexToMemAddress(), memAddressToIndex(), symTable(QSharedPointer<SymbolTable>(new SymbolTable())),
-   burn(false), traceInfo(), burnAddress(0), burnValue(0)
+    traceInfo(), burn(false), burnAddress(0), burnValue(0)
 {
 
 }
 
 AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable, QSharedPointer<const StaticTraceInfo> traceInfo): program(programList),
-    indexToMemAddress(), memAddressToIndex(), symTable(symbolTable), burn(false), traceInfo(traceInfo), burnAddress(0), burnValue(0)
+    indexToMemAddress(), memAddressToIndex(), symTable(symbolTable), traceInfo(traceInfo), burn(false), burnAddress(0), burnValue(0)
 {
     programByteLength = 0;
     int start = -1;

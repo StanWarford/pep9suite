@@ -22,19 +22,16 @@ class FullMicrocodedMemoizer
 {
 public:
     explicit FullMicrocodedMemoizer(FullMicrocodedCPU& item);
-    Enu::DebugLevels getDebugLevel() const;
 
     void clear();
     void storeStateInstrEnd();
     void storeStateInstrStart();
     QString memoize();
     QString finalStatistics();
-    void setDebugLevel(Enu::DebugLevels level);
 
 private:
     FullMicrocodedCPU& cpu;
     CPUState state;
-    Enu::DebugLevels level;
 
     QMultiMap<quint16, QString> OSSymTable;
     QString formatNum(quint16 number);

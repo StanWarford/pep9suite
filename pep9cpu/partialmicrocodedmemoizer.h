@@ -14,18 +14,15 @@ class PartialMicrocodedMemoizer
 {
 public:
     explicit PartialMicrocodedMemoizer(PartialMicrocodedCPU& item);
-    Enu::DebugLevels getDebugLevel() const;
 
     void clear();
     void storeStateInstrEnd();
     void storeStateInstrStart();
     QString memoize();
     QString finalStatistics();
-    void setDebugLevel(Enu::DebugLevels level);
 
 private:
     PartialMicrocodedCPU& cpu;
-    Enu::DebugLevels level;
     QString formatNum(quint16 number);
     QString formatNum(quint8 number);
     QString formatAddress(quint16 address);
