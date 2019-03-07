@@ -3,12 +3,19 @@
 #include "interfaceisacpu.h"
 #include <QElapsedTimer>
 #include "registerfile.h"
+
 /* Though not part of the specification, the trap mechanism  must
  * set the index register to 0 to prevent a bug in OS where
  * non-unary instructions fail due to junk in the high order byte of the index
- * register. This flag enables or disables this behavior
+ * register. This flag enables or disables this behavior.
  */
 #define performTrapFix false
+
+/* Though not part of the specification, the trap mechanism  must
+ * increment the program counter by 2 in Pep/9 for the operating system
+ * to function correctly. This flag enables or disables this behvaior.
+ */
+#define hardwarePCIncr false
 class NewCPUDataSection;
 class IsaCpuMemoizer;
 class IsaCpu: public ACPUModel, public InterfaceISACPU
