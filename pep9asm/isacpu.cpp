@@ -75,7 +75,7 @@ void IsaCpu::onISAStep()
 {
     // Store PC at the start of the cycle, so that we know where the instruction started from.
     // Also store any other values needed for detailed statistics
-    // memoizer->storeStateInstrStart();
+    memoizer->storeStateInstrStart();
     memory->onCycleStarted();
     InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Enu::CPURegisters::IS));
 
@@ -83,6 +83,8 @@ void IsaCpu::onISAStep()
     quint16 startPC = pc;
     quint8 is;
     bool okay = memory->readByte(pc, is);
+
+    registerBank.writeRegisterByte(Enu::CPURegisters::IS, is);
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[is];
     Enu::EAddrMode addrMode;
 
@@ -96,6 +98,7 @@ void IsaCpu::onISAStep()
     }
     else {
         okay &= memory->readWord(pc, opSpec);
+        registerBank.writeRegisterWord(Enu::CPURegisters::OS, opSpec);
         addrMode = Pep::decodeAddrMode[is];
         pc += 2;
         registerBank.writeRegisterWord(Enu::CPURegisters::PC, pc);
@@ -108,14 +111,12 @@ void IsaCpu::onISAStep()
                                              this->getCPURegWordStart(Enu::CPURegisters::SP),
                                              this->getCPURegWordStart(Enu::CPURegisters::PC),
                                              this->getCPURegWordCurrent(Enu::CPURegisters::A));
-    // memoizer->storeStateInstrEnd();
+    memoizer->storeStateInstrEnd();
     updateAtInstructionEnd();
     emit asmInstructionFinished();
     asmInstructionCounter++;
 
-    /*if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
-        qDebug().noquote().nospace() << memoizer->memoize();
-    }*/
+    qDebug().noquote().nospace() << memoizer->memoize();
 
     registerBank.flattenFile();
 
@@ -146,7 +147,11 @@ bool IsaCpu::readOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quin
 
 void IsaCpu::initCPU()
 {
-
+    // Initialize CPU with proper stack pointer value in SP register.
+    #pragma message ("TODO: Init cpu with proper SP when not burned in at 0xffff")
+    registerBank.writeRegisterWord(Enu::CPURegisters::SP, 0xFB82);
+    #pragma message("TODO: Make sure this where registers should be flattened")
+    registerBank.flattenFile();
 }
 
 bool IsaCpu::getStatusBitCurrent(Enu::EStatusBit statusBit) const
@@ -233,27 +238,36 @@ bool IsaCpu::stoppedForBreakpoint() const noexcept
 
 void IsaCpu::onSimulationStarted()
 {
-#pragma message("TODO")
+    inDebug = false;
+    inSimulation = false;
+    executionFinished = false;
+    memoizer->clear();
 }
 
 void IsaCpu::onSimulationFinished()
 {
-    #pragma message("TODO")
+    executionFinished = true;
+    inDebug = false;
+    #pragma message("TODO: Inform memory that execution is finished")
 }
 
 void IsaCpu::onDebuggingStarted()
 {
-    #pragma message("TODO")
+    onSimulationStarted();
+    inDebug = true;
+    asmBreakpointHit = false;
 }
 
 void IsaCpu::onDebuggingFinished()
 {
-    #pragma message("TODO")
+    onSimulationFinished();
+    inDebug = false;
 }
 
 void IsaCpu::onCancelExecution()
 {
     #pragma message("TODO")
+    throw -1;
 }
 
 bool IsaCpu::onRun()
@@ -370,6 +384,7 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
     bool rVal = true;
     quint16 effectiveAddress = 0;
     quint8 tempByteHi, tempByteLo;
+    // Having tested it, it definitely does the wrong thing
 #pragma message("Totally untested, might very well not do what I expect")
     switch(addrMode) {
     case Enu::EAddrMode::I:
@@ -519,16 +534,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
     sp = registerBank.readRegisterWordCurrent(Enu::CPURegisters::SP);
     acc = registerBank.readRegisterWordCurrent(Enu::CPURegisters::A);
     idx = registerBank.readRegisterWordCurrent(Enu::CPURegisters::X);
-    quint8 nzvc = registerBank.readStatusBitsCurrent();
-    /*
-     * All status bit calculations take the form
-     * nzvc = (nzvc & ~MASK) | ((some & calculation) * MASK); // Some comment
-     *
-     * The "(nzvc & ~MASK)" masks out only the bit about to be set.
-     * The "(some & calculation)" calculate the correct boolean value for the bit.
-     * The " * MASK" then shifts it into the proper position, before being |'ed with
-     * the NZVC bits (with the original bit already masked out).
-     */
+
     switch(mnemon) {
     case Enu::EMnemonic::STOP:
         executionFinished = true;
@@ -560,7 +566,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         break;
 
     case Enu::EMnemonic::MOVFLGA:
-        registerBank.writeRegisterWord(Enu::CPURegisters::A, nzvc);
+        registerBank.writeRegisterWord(Enu::CPURegisters::A, registerBank.readStatusBitsCurrent());
         break;
 
     case Enu::EMnemonic::MOVAFLG:
@@ -568,117 +574,146 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         registerBank.writeStatusBits(static_cast<quint8>(acc));
         break;
 
-    case Enu::EMnemonic::NOTA: //Modifies NZ bits
+    case Enu::EMnemonic::NOTA: // Modifies NZ bits
         acc = ~acc;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, acc);
-        nzvc = (nzvc & ~Enu::NMask) | ((acc & 0x8000) ? Enu::NMask : 0); // Is negative if high order bit is 1.
-        nzvc = (nzvc & ~Enu::ZMask) | ((acc == 0) ? Enu::ZMask : 0); // Is zero if all bits are 0's.
+        // Is negative if high order bit is 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, acc & 0x8000);
+         // Is zero if all bits are 0's.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, acc == 0);
         break;
 
-    case Enu::EMnemonic::NOTX: //Modifies NZ bits
+    case Enu::EMnemonic::NOTX: // Modifies NZ bits
         idx = ~idx;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, idx);
-        nzvc = (nzvc & ~Enu::NMask) | ((idx & 0x8000) ? Enu::NMask : 0); // Is negative if high order bit is 1.
-        nzvc = (nzvc & ~Enu::ZMask) | ((idx == 0) ? Enu::ZMask : 0); // Is zero if all bits are 0's.
+        // Is negative if high order bit is 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, idx & 0x8000);
+         // Is zero if all bits are 0's.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, idx == 0);
         break;
 
-    case Enu::EMnemonic::NEGA: //Modifies NZV bits
+    case Enu::EMnemonic::NEGA: // Modifies NZV bits
         acc = ~acc + 1;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, acc);
-        nzvc = (nzvc & ~Enu::NMask) | ((acc & 0x8000) ? Enu::NMask : 0); // Is negative if high order bit is 1.
-        nzvc = (nzvc & ~Enu::ZMask) | ((acc == 0) ? Enu::ZMask : 0); // Is zero if all bits are 0's.
-        nzvc = (nzvc & ~Enu::VMask) | ((acc == 0x8000) ? Enu::CMask : 0); // Only a signed overflow if accumulator is 0x8000.
+        // Is negative if high order bit is 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, acc & 0x8000);
+         // Is zero if all bits are 0's.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, acc == 0);
+        // Only a signed overflow if register is 0x8000.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, acc == 0x8000);
         break;
 
-    case Enu::EMnemonic::NEGX: //Modifies NZV bits
+    case Enu::EMnemonic::NEGX: // Modifies NZV bits
         idx = ~idx + 1;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, idx);
-        nzvc = (nzvc & ~Enu::NMask) | ((idx & 0x8000) ? Enu::NMask : 0); // Is negative if high order bit is 1.
-        nzvc = (nzvc & ~Enu::ZMask) | ((idx == 0) ? Enu::ZMask : 0); // Is zero if all bits are 0's.
-        nzvc = (nzvc & ~Enu::VMask) | ((idx == 0x8000) ? Enu::VMask : 0); // Only a signed overflow if index reg is 0x8000.
+        // Is negative if high order bit is 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, idx & 0x8000);
+         // Is zero if all bits are 0's.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, idx == 0);
+        // Only a signed overflow if register is 0x8000.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, idx == 0x8000);
         break;
 
     // Arithmetic shift instructions
-    case Enu::EMnemonic::ASLA: //Modifies NZVC bits
+    case Enu::EMnemonic::ASLA: // Modifies NZVC bits
         temp = static_cast<quint16>(acc << 1);
         registerBank.writeRegisterWord(Enu::CPURegisters::A, temp);
-        nzvc = (nzvc & ~Enu::NMask) | ((temp & 0x8000) ? Enu::NMask : 0); // Is negative if high order bit is 1.
-        nzvc = (nzvc & ~Enu::ZMask) | ((temp == 0) ? Enu::ZMask : 0); // Is zero if all bits are 0's.
+        // Is negative if high order bit is 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, temp & 0x8000);
+         // Is zero if all bits are 0's.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, temp == 0);
         // Signed overflow occurs when the starting & ending values of the high order bit differ (a xor temp == 1).
         // Then shift the result over by 15 places to only keep high order bit (which is the sign).
-        nzvc = (nzvc & ~Enu::VMask) | (((acc ^ temp) >> 15) ? Enu::VMask : 0);
-        // Carry out if accumulator starts with high order 1.
-        nzvc = (nzvc & ~Enu::CMask) | ((acc & 0x8000) ? Enu::CMask : 0);
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (acc ^ temp) >> 15);
+        // Carry out if register starts with high order 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, acc & 0x8000);
         break;
 
-    case Enu::EMnemonic::ASLX: //Modifies NZVC bits
+    case Enu::EMnemonic::ASLX: // Modifies NZVC bits
         temp = static_cast<quint16>(idx << 1);
-        registerBank.writeRegisterWord(Enu::CPURegisters::X, idx);
-        nzvc = (nzvc & ~Enu::NMask) | ((temp & 0x8000) ? Enu::NMask : 0); // Is negative if high order bit is 1.
-        nzvc = (nzvc & ~Enu::ZMask) | ((temp == 0) ? Enu::ZMask : 0); // Is zero if all bits are 0's.
+        registerBank.writeRegisterWord(Enu::CPURegisters::X, temp);
+        // Is negative if high order bit is 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, temp & 0x8000);
+         // Is zero if all bits are 0's.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, temp == 0);
         // Signed overflow occurs when the starting & ending values of the high order bit differ (a xor temp == 1).
         // Then shift the result over by 15 places to only keep high order bit (which is the sign).
-        nzvc = (nzvc & ~Enu::VMask) | (((idx ^ temp) >> 15) ? Enu::VMask : 0);
-        // Carry out if index reg starts with high order 1.
-        nzvc = (nzvc & ~Enu::CMask) | ((idx & 0x8000) ? Enu::CMask : 0);
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (idx ^ temp) >> 15);
+        // Carry out if register starts with high order 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, idx & 0x8000);
+
         break;
 
-    case Enu::EMnemonic::ASRA: //Modifies NZC bits
+    case Enu::EMnemonic::ASRA: // Modifies NZC bits
         // Shift all bits to the right by 1 position. Since using unsigned shift, must explicitly
         // perform sign extension by hand.
         temp = static_cast<quint16>(acc >> 1 |
                                     // If the high order bit is 1, then sign extend with 1, else 0.
                                     ((acc & 0x8000) ? 1<<15 : 0));
         registerBank.writeRegisterWord(Enu::CPURegisters::A, temp);
-        nzvc = (nzvc & ~Enu::NMask) | ((temp & 0x8000) ? Enu::NMask : 0); // Is negative if high order bit is 1.
-        nzvc = (nzvc & ~Enu::ZMask) | ((temp == 0) ? Enu::ZMask : 0); // Is zero if all bits are 0's.
-        nzvc = (nzvc & ~Enu::CMask) | ((acc & 0x1) ? Enu::CMask : 0); // Carry out if accumulator starts with low order 1.
+        // Is negative if high order bit is 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, temp & 0x8000);
+         // Is zero if all bits are 0's.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, temp == 0);
+        // Carry out if register starts with low order 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, acc & 0x01);
         break;
 
-    case Enu::EMnemonic::ASRX: //Modifies NZC bits
+    case Enu::EMnemonic::ASRX: // Modifies NZC bits
         // Shift all bits to the right by 1 position. Since using unsigned shift, must explicitly
         // perform sign extension by hand.
         temp = static_cast<quint16>(idx >> 1 |
                                     // If the high order bit is 1, then sign extend with 1, else 0.
                                     ((idx & 0x8000) ? 1<<15 : 0));
         registerBank.writeRegisterWord(Enu::CPURegisters::X, temp);
-        nzvc = (nzvc & ~Enu::NMask) | ((temp & 0x8000) ? Enu::NMask : 0); // Is negative if high order bit is 1.
-        nzvc = (nzvc & ~Enu::ZMask) | ((temp == 0) ? Enu::ZMask : 0); // Is zero if all bits are 0's.
-        nzvc = (nzvc & ~Enu::CMask) | ((idx & 0x1) ? Enu::CMask : 0); // Carry out if index reg starts with low order 1.
+        // Is negative if high order bit is 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, temp & 0x8000);
+         // Is zero if all bits are 0's.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, temp == 0);
+        // Carry out if register starts with low order 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, idx & 0x01);
         break;
 
     // Rotate instructions.
-    case Enu::EMnemonic::RORA: //Modifies C bits
+    case Enu::EMnemonic::RORA: // Modifies C bits
         temp = static_cast<quint16>(acc >> 1
-                                    // Shift the carry in to correct position.
-                                    | ((nzvc & Enu::CMask) ? 1<<15 : 0));
+                                    // Shift the carry to high order bit.
+                                    | (registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_C)
+                                        ? 1<<15 : 0));
         registerBank.writeRegisterWord(Enu::CPURegisters::A, temp);
-        nzvc = (nzvc & ~Enu::CMask) | ((acc & 0x1) ? Enu::CMask : 0); // Carry out if accumulator starts with low order 1.
+        // Carry out if register starts with low order 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, acc & 0x01);
         break;
 
-    case Enu::EMnemonic::RORX: //Modifies C bit
+    case Enu::EMnemonic::RORX: // Modifies C bit
         temp = static_cast<quint16>(idx >> 1
-                                    // Shift the carry in to correct position.
-                                    | ((nzvc & Enu::CMask) ? 1<<15 : 0));
+                                    // Shift the carry to high order bit.
+                                    | (registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_C)
+                                        ? 1<<15 : 0));
         registerBank.writeRegisterWord(Enu::CPURegisters::X, temp);
-        nzvc = (nzvc & ~Enu::CMask) | ((idx & 0x1) ? Enu::CMask : 0); // Carry out if index reg starts with low order 1.
+        // Carry out if register starts with low order 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, idx & 0x01);
         break;
 
     case Enu::EMnemonic::ROLA: // Modifies C bit
         temp = static_cast<quint16>(acc << 1
-                                    // Bring in carry to low order bit.
-                                    | ((nzvc & Enu::CMask) ? 1:0));
+                                    // Shift the carry in to low order bit.
+                                    | (registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_C)
+                                        ? 1 : 0));
         registerBank.writeRegisterWord(Enu::CPURegisters::A, temp);
-        nzvc = (nzvc & ~Enu::CMask) | ((acc & 0x8000) ? Enu::CMask : 0); // Carry out if accumulator starts with high order 1.
+        // Carry out if register starts with high order 1.
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, acc & 0x8000);
         break;
 
     case Enu::EMnemonic::ROLX: // Modifies C bit
         temp = static_cast<quint16>(acc << 1
-                                    // Bring in carry to low order bit.
-                                    | ((nzvc & Enu::CMask) ? 1:0));
-        registerBank.writeRegisterWord(Enu::CPURegisters::A, temp);
-        nzvc = (nzvc & ~Enu::CMask) | ((acc & 0x8000) ? Enu::CMask : 0); // Carry out if index reg starts with high order 1.
+                                    // Shift the carry in to low order bit.
+                                    | (registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_C)
+                                        ? 1 : 0));
+        registerBank.writeRegisterWord(Enu::CPURegisters::X, temp);
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, idx & 0x8000);
         break;
+
     default:
         // Should never occur, but gaurd against to make compiler happy.
         controlError = true;
@@ -686,7 +721,6 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         errorMessage = "Attempt to execute invalid unary instruction";
         return;
     }
-    registerBank.writeStatusBits(nzvc);
 }
 
 void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode)
@@ -766,6 +800,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         sp -= 2;
         memory->writeWord(sp, registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC));
         registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
+        registerBank.writeRegisterWord(Enu::CPURegisters::SP, sp);
         break;
 
     case Enu::EMnemonic::ADDSP:
@@ -996,7 +1031,8 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
 {
     quint16 pc;
     // The
-    quint16 tempAddr = manager->getOperatingSystem()->getBurnValue() - 9;
+    quint16 tempAddr, temp = manager->getOperatingSystem()->getBurnValue() - 9;
+    memory->readWord(temp, tempAddr);
     quint16 pcAddr = manager->getOperatingSystem()->getBurnValue() - 1;
     switch(mnemon) {
     // Non-unary traps

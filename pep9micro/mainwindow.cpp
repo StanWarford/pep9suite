@@ -73,6 +73,7 @@
 #include "memorychips.h"
 #include "symboltable.h"
 #include "asmcpupane.h"
+#include "isacpu.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), debugState(DebugState::DISABLED), redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),
@@ -1463,8 +1464,12 @@ void MainWindow::on_actionBuild_Run_triggered()
         emit simulationStarted();
         ui->memoryWidget->updateMemory();
         ui->memoryTracePane->updateTrace();
-        controlSection->onSimulationStarted();
-        controlSection->onRun();
+        IsaCpu cpu(programManager, memDevice,this);
+        cpu.initCPU();
+        cpu.onSimulationStarted();
+        cpu.onRun();
+        // controlSection->onSimulationStarted();
+        // controlSection->onRun();
         connectViewUpdate();
 
     }
@@ -1524,22 +1529,12 @@ void MainWindow::handleDebugButtons()
     debugButtonEnableHelper(enabledButtons);
 }
 
-#include "isacpu.h"
 bool MainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
     if(!on_ActionBuild_Assemble_triggered()) return false;
     loadObjectCodeProgram();
     loadOperatingSystem();
-    IsaCpu cpu(programManager, memDevice,this);
-    quint16 result;
-    cpu.getOperandWordValue(0,Enu::EAddrMode::I, result);
-    cpu.getOperandWordValue(0,Enu::EAddrMode::D, result);
-    cpu.getOperandWordValue(0,Enu::EAddrMode::S, result);
-    cpu.getOperandWordValue(0,Enu::EAddrMode::X, result);
-    cpu.getOperandWordValue(0,Enu::EAddrMode::SX, result);
-    cpu.getOperandWordValue(0,Enu::EAddrMode::N, result);
-    cpu.getOperandWordValue(0,Enu::EAddrMode::SF, result);
-    cpu.getOperandWordValue(0,Enu::EAddrMode::SFX, result);
+
     return on_actionDebug_Start_Debugging_Object_triggered();
 
 }
