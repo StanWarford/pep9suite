@@ -60,7 +60,8 @@ void RegisterFile::writeStatusBit(Enu::EStatusBit bit, bool val)
 
 void RegisterFile::writeStatusBits(quint8 bits)
 {
-    this->statusBitsCurrent = bits & 0b1111;
+    // Only keep SNZVC positions
+    this->statusBitsCurrent = bits & 0b11111;
 }
 
 void RegisterFile::clearStatusBits()

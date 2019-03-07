@@ -1532,14 +1532,14 @@ bool MainWindow::on_actionDebug_Start_Debugging_triggered()
     loadOperatingSystem();
     ISACPU cpu(programManager, memDevice,this);
     quint16 result;
-    cpu.getOperandSpec(0,Enu::EAddrMode::I, result);
-    cpu.getOperandSpec(0,Enu::EAddrMode::D, result);
-    cpu.getOperandSpec(0,Enu::EAddrMode::S, result);
-    cpu.getOperandSpec(0,Enu::EAddrMode::X, result);
-    cpu.getOperandSpec(0,Enu::EAddrMode::SX, result);
-    cpu.getOperandSpec(0,Enu::EAddrMode::N, result);
-    cpu.getOperandSpec(0,Enu::EAddrMode::SF, result);
-    cpu.getOperandSpec(0,Enu::EAddrMode::SFX, result);
+    cpu.getOperandWordValue(0,Enu::EAddrMode::I, result);
+    cpu.getOperandWordValue(0,Enu::EAddrMode::D, result);
+    cpu.getOperandWordValue(0,Enu::EAddrMode::S, result);
+    cpu.getOperandWordValue(0,Enu::EAddrMode::X, result);
+    cpu.getOperandWordValue(0,Enu::EAddrMode::SX, result);
+    cpu.getOperandWordValue(0,Enu::EAddrMode::N, result);
+    cpu.getOperandWordValue(0,Enu::EAddrMode::SF, result);
+    cpu.getOperandWordValue(0,Enu::EAddrMode::SFX, result);
     return on_actionDebug_Start_Debugging_Object_triggered();
 
 }

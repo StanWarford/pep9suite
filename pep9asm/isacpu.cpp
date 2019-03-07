@@ -61,9 +61,9 @@ void ISACPU::stepOut()
             && !hadErrorOnStep());
 }
 
-bool ISACPU::getOperandSpec(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
+bool ISACPU::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
 {
-    return readOperandWord(operand, addrMode, &AMemoryDevice::getWord, opVal);
+    return operandWordValueHelper(operand, addrMode, &AMemoryDevice::getWord, opVal);
 }
 
 void ISACPU::onISAStep()
@@ -129,9 +129,9 @@ void ISACPU::updateAtInstructionEnd()
 
 }
 
-bool ISACPU::readOperandSpec(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
+bool ISACPU::readOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
 {
-    return readOperandWord(operand, addrMode, &AMemoryDevice::readWord, opVal);
+    return operandWordValueHelper(operand, addrMode, &AMemoryDevice::readWord, opVal);
 }
 
 void ISACPU::initCPU()
@@ -305,7 +305,7 @@ void ISACPU::onResetCPU()
     registerBank.clearStatusBits();
 }
 
-bool ISACPU::readOperandWord(quint16 operand, Enu::EAddrMode addrMode,
+bool ISACPU::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
                                bool (AMemoryDevice::*readFunc)(quint16, quint16 &) const,
                                quint16 &opVal)
 {
@@ -355,7 +355,68 @@ bool ISACPU::readOperandWord(quint16 operand, Enu::EAddrMode addrMode,
     return rVal;
 }
 
+bool ISACPU::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bool (AMemoryDevice::*readFunc)(quint16, quint8 &) const, quint8 &opVal)
+{
+    bool rVal = true;
+    quint16 effectiveAddress = 0;
+    quint8 tempByteHi, tempByteLo;
+#pragma message("Totally untested, might very well not do what I expect")
+    switch(addrMode) {
+    case Enu::EAddrMode::I:
+        opVal = static_cast<quint8>(operand & 0xff);
+        break;
+    case Enu::EAddrMode::D:
+        effectiveAddress = operand;
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        break;
+    case Enu::EAddrMode::S:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        break;
+    case Enu::EAddrMode::X:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::X);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        break;
+    case Enu::EAddrMode::SX:
+        effectiveAddress = operand
+                + getCPURegWordCurrent(Enu::CPURegisters::SP)
+                + getCPURegWordCurrent(Enu::CPURegisters::X);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        break;
+    case Enu::EAddrMode::N:
+        effectiveAddress = operand;
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
+        effectiveAddress = tempByteHi << 8 | tempByteLo;
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress , opVal);
+        break;
+    case Enu::EAddrMode::SF:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
+        effectiveAddress = tempByteHi << 8 | tempByteLo;
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        break;
+    case Enu::EAddrMode::SFX:
+        effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
+        effectiveAddress = tempByteHi << 8 | tempByteLo;
+        effectiveAddress += getCPURegWordCurrent(Enu::CPURegisters::X);
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        break;
+    default:
+        break;
+    }
+    return rVal;
+}
+
 bool ISACPU::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode addrMode)
+{
+
+}
+
+bool ISACPU::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addrMode)
 {
 
 }
@@ -407,7 +468,7 @@ void ISACPU::executeUnary(Enu::EMnemonic mnemon)
         break;
 
     case Enu::EMnemonic::MOVFLGA:
-        registerBank.writeRegisterWord(Enu::CPURegisters::A, registerBank.readStatusBitsCurrent());
+        registerBank.writeRegisterWord(Enu::CPURegisters::A, nzvc);
         break;
 
     case Enu::EMnemonic::MOVAFLG:
@@ -538,216 +599,305 @@ void ISACPU::executeUnary(Enu::EMnemonic mnemon)
 
 void ISACPU::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode)
 {
-    quint16 temp, a, x, sp, result;
-#pragma message("TODO: this is the wrong status bit set")
-    quint8 nzvc = registerBank.readStatusBitsStart();
+    quint16 tempWord, a, x, sp, result;
+    quint8 tempByte, nzvc = registerBank.readStatusBitsCurrent();
     a = registerBank.readRegisterWordCurrent(Enu::CPURegisters::A);
     x = registerBank.readRegisterWordCurrent(Enu::CPURegisters::X);
     sp = registerBank.readRegisterWordCurrent(Enu::CPURegisters::SP);
     switch(mnemon) {
 
     case Enu::EMnemonic::BR:
-        readOperandSpec(opSpec, addrMode, temp);
-        registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
+        registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         break;
 
     case Enu::EMnemonic::BRLE:
         if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N) ||
                 registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
-            readOperandSpec(opSpec, addrMode, temp);
-            registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
+            readOperandWordValue(opSpec, addrMode, tempWord);
+            registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRLT:
         if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N)) {
-            readOperandSpec(opSpec, addrMode, temp);
-            registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
+            readOperandWordValue(opSpec, addrMode, tempWord);
+            registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BREQ:
         if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
-            readOperandSpec(opSpec, addrMode, temp);
-            registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
+            readOperandWordValue(opSpec, addrMode, tempWord);
+            registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRNE:
-        if(true) {
-            readOperandSpec(opSpec, addrMode, temp);
-            registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
+        if(!registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
+            readOperandWordValue(opSpec, addrMode, tempWord);
+            registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRGE:
         if(!registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N)) {
-            readOperandSpec(opSpec, addrMode, temp);
-            registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
+            readOperandWordValue(opSpec, addrMode, tempWord);
+            registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRGT:
         if(!registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N) &&
                 !registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
-            readOperandSpec(opSpec, addrMode, temp);
-            registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
+            readOperandWordValue(opSpec, addrMode, tempWord);
+            registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRV:
         if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_V)) {
-            readOperandSpec(opSpec, addrMode, temp);
-            registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
+            readOperandWordValue(opSpec, addrMode, tempWord);
+            registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRC:
         if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_C)) {
-            readOperandSpec(opSpec, addrMode, temp);
-            registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
+            readOperandWordValue(opSpec, addrMode, tempWord);
+            registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::CALL:
-        readOperandSpec(opSpec, addrMode, temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
         sp -= 2;
         memory->writeWord(sp, registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC));
-        registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
+        registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         break;
 
     case Enu::EMnemonic::ADDSP:
-        readOperandSpec(opSpec, addrMode, temp);
-        registerBank.writeRegisterWord(Enu::CPURegisters::SP, sp + temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
+        registerBank.writeRegisterWord(Enu::CPURegisters::SP, sp + tempWord);
         break;
 
     case Enu::EMnemonic::SUBSP:
-        readOperandSpec(opSpec, addrMode, temp);
-        registerBank.writeRegisterWord(Enu::CPURegisters::SP, sp - temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
+        registerBank.writeRegisterWord(Enu::CPURegisters::SP, sp - tempWord);
         break;
 
     case Enu::EMnemonic::ADDA:
-        readOperandSpec(opSpec, addrMode, temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier plus the accumulator
-        result = a + temp;
+        result = a + tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
         nzvc = (nzvc & ~Enu::NMask) | ( result & 0x8000 ? Enu::NMask : 0);
         nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        nzvc = (nzvc & ~Enu::VMask) | ((~(a ^ temp) & (a ^ result)) >> 15) ? Enu::VMask : 0;
+        nzvc = (nzvc & ~Enu::VMask) | ((~(a ^ tempWord) & (a ^ result)) >> 15) ? Enu::VMask : 0;
         // Carry out iff result is unsigned less than register or operand.
-        nzvc = (nzvc & ~Enu::CMask) | ( (result < a  || result < temp) ? Enu::CMask : 0);
+        nzvc = (nzvc & ~Enu::CMask) | ( (result < a  || result < tempWord) ? Enu::CMask : 0);
         break;
 
     case Enu::EMnemonic::ADDX:
-        readOperandSpec(opSpec, addrMode, temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier plus the index reg.
-        result = x + temp;
+        result = x + tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
         nzvc = (nzvc & ~Enu::NMask) | ( result & 0x8000 ? Enu::NMask : 0);
         nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        nzvc = (nzvc & ~Enu::VMask) | ((~(x ^ temp) & (x ^ result)) >> 15) ? Enu::VMask : 0;
+        nzvc = (nzvc & ~Enu::VMask) | ((~(x ^ tempWord) & (x ^ result)) >> 15) ? Enu::VMask : 0;
         // Carry out iff result is unsigned less than register or operand.
-        nzvc = (nzvc & ~Enu::CMask) | ( (result < x  || result < temp) ? Enu::CMask : 0);
+        nzvc = (nzvc & ~Enu::CMask) | ( (result < x  || result < tempWord) ? Enu::CMask : 0);
         break;
 
     case Enu::EMnemonic::SUBA:
-        readOperandSpec(opSpec, addrMode, temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier minus the accumulator.
-        result = a - temp;
+        result = a - tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
         nzvc = (nzvc & ~Enu::NMask) | ( result & 0x8000 ? Enu::NMask : 0);
         nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        nzvc = (nzvc & ~Enu::VMask) | ((~(a ^ temp) & (a ^ result)) >> 15) ? Enu::VMask : 0;
+        nzvc = (nzvc & ~Enu::VMask) | ((~(a ^ tempWord) & (a ^ result)) >> 15) ? Enu::VMask : 0;
         // Carry out iff result is unsigned less than register or operand.
-        nzvc = (nzvc & ~Enu::CMask) | ( (result < a  || result < temp) ? Enu::CMask : 0);
+        nzvc = (nzvc & ~Enu::CMask) | ( (result < a  || result < tempWord) ? Enu::CMask : 0);
         break;
 
     case Enu::EMnemonic::SUBX:
-        readOperandSpec(opSpec, addrMode, temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier minus the index reg.
-        result = x - temp;
+        result = x - tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
         nzvc = (nzvc & ~Enu::NMask) | ( result & 0x8000 ? Enu::NMask : 0);
         nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        nzvc = (nzvc & ~Enu::VMask) | ((~(x ^ temp) & (x ^ result)) >> 15) ? Enu::VMask : 0;
+        nzvc = (nzvc & ~Enu::VMask) | ((~(x ^ tempWord) & (x ^ result)) >> 15) ? Enu::VMask : 0;
         // Carry out iff result is unsigned less than register or operand.
-        nzvc = (nzvc & ~Enu::CMask) | ( (result < x  || result < temp) ? Enu::CMask : 0);
+        nzvc = (nzvc & ~Enu::CMask) | ( (result < x  || result < tempWord) ? Enu::CMask : 0);
         break;
 
     case Enu::EMnemonic::ANDA:
-        readOperandSpec(opSpec, addrMode, temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier bitwise and'ed with the accumulator.
-        result = a & temp;
+        result = a & tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
         nzvc = (nzvc & ~Enu::NMask) | ( result & 0x8000 ? Enu::NMask : 0);
         nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
         break;
 
     case Enu::EMnemonic::ANDX:
-        readOperandSpec(opSpec, addrMode, temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier bitwise and'ed the index reg.
-        result = x & temp;
+        result = x & tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
         nzvc = (nzvc & ~Enu::NMask) | ( result & 0x8000 ? Enu::NMask : 0);
         nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
         break;
 
     case Enu::EMnemonic::ORA:
-        readOperandSpec(opSpec, addrMode, temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier bitwise or'ed with the accumulator.
-        result = a | temp;
+        result = a | tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
         nzvc = (nzvc & ~Enu::NMask) | ( result & 0x8000 ? Enu::NMask : 0);
         nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
         break;
     case Enu::EMnemonic::ORX:
-        readOperandSpec(opSpec, addrMode, temp);
+        readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier bitwise or'ed the index reg.
-        result = x | temp;
+        result = x | tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
         nzvc = (nzvc & ~Enu::NMask) | ( result & 0x8000 ? Enu::NMask : 0);
         nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
         break;
 
     case Enu::EMnemonic::CPWA:
+        readOperandWordValue(opSpec, addrMode, tempWord);
+        // The result is the decode operand specifier minus the index reg.
+        result = a - tempWord;
+        nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
+        // There is a signed overflow iff the high order bits of the register and operand
+        //are the same, and one input & the output differ in sign.
+        // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
+        nzvc = (nzvc & ~Enu::VMask) | ((~(a ^ tempWord) & (a ^ result)) >> 15) ? Enu::VMask : 0;
+        // Carry out iff result is unsigned less than register or operand.
+        nzvc = (nzvc & ~Enu::CMask) | ( (result < a  || result < tempWord) ? Enu::CMask : 0);
+        // Calculate negative bit as normal.
+        nzvc = (nzvc & ~Enu::NMask) | ( result & 0x8000 ? Enu::NMask : 0);
+        // If there was a signed overflow, selectively invert N bit.
+        nzvc = nzvc ^ (nzvc & Enu::VMask ? Enu::NMask : 0);
         break;
+
     case Enu::EMnemonic::CPWX:
+        readOperandWordValue(opSpec, addrMode, tempWord);
+        // The result is the decode operand specifier minus the index reg.
+        result = x - tempWord;
+        nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
+        // There is a signed overflow iff the high order bits of the register and operand
+        //are the same, and one input & the output differ in sign.
+        // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
+        nzvc = (nzvc & ~Enu::VMask) | ((~(x ^ tempWord) & (x ^ result)) >> 15) ? Enu::VMask : 0;
+        // Carry out iff result is unsigned less than register or operand.
+        nzvc = (nzvc & ~Enu::CMask) | ( (result < x  || result < tempWord) ? Enu::CMask : 0);
+        // Calculate negative bit as normal.
+        nzvc = (nzvc & ~Enu::NMask) | ( result & 0x8000 ? Enu::NMask : 0);
+        // If there was a signed overflow, selectively invert N bit.
+        nzvc = nzvc ^ (nzvc & Enu::VMask ? Enu::NMask : 0);
         break;
+
     case Enu::EMnemonic::LDWA:
+        readOperandWordValue(opSpec, addrMode, tempWord);
+        registerBank.writeRegisterWord(Enu::CPURegisters::A, tempWord);
+        nzvc = (nzvc & ~Enu::NMask) | ( tempWord & 0x8000 ? Enu::NMask : 0);
+        nzvc = (nzvc & ~Enu::ZMask) | ( tempWord == 0 ? Enu::ZMask : 0);
         break;
+
     case Enu::EMnemonic::LDWX:
+        readOperandWordValue(opSpec, addrMode, tempWord);
+        registerBank.writeRegisterWord(Enu::CPURegisters::X, tempWord);
+        nzvc = (nzvc & ~Enu::NMask) | ( tempWord & 0x8000 ? Enu::NMask : 0);
+        nzvc = (nzvc & ~Enu::ZMask) | ( tempWord == 0 ? Enu::ZMask : 0);
         break;
+
     case Enu::EMnemonic::STWA:
+        tempWord = registerBank.readRegisterWordCurrent(Enu::CPURegisters::A);
+        writeOperandWord(opSpec, tempWord, addrMode);
         break;
+
     case Enu::EMnemonic::STWX:
+        tempWord = registerBank.readRegisterWordCurrent(Enu::CPURegisters::X);
+        writeOperandWord(opSpec, tempWord, addrMode);
         break;
 
     // Single byte instructions
     case Enu::EMnemonic::CPBA:
+        readOperandByteValue(opSpec, addrMode, tempByte);
+        // The result is the decode operand specifier minus the accumulator.
+        // Narrow a and operand to 1 byte before widening to 2 bytes.
+        result = (a & 0xff) - (tempByte & 0xff);
+        nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
+        // There is a signed overflow iff the high order bits of the register and operand
+        //are the same, and one input & the output differ in sign.
+        // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
+        nzvc = (nzvc & ~Enu::VMask) | false;
+        // Carry out iff result is unsigned less than register or operand.
+        nzvc = (nzvc & ~Enu::CMask) | false;
+        nzvc = (nzvc & ~Enu::NMask) | (result & 0x8000 ? Enu::NMask : 0);
         break;
+
     case Enu::EMnemonic::CPBX:
+        readOperandByteValue(opSpec, addrMode, tempByte);
+        // The result is the decode operand specifier minus the index reg.
+        // Narrow a and operand to 1 byte before widening to 2 bytes.
+        result = (x & 0xff) - (tempByte & 0xff);
+        nzvc = (nzvc & ~Enu::ZMask) | ( result == 0 ? Enu::ZMask : 0);
+        // There is a signed overflow iff the high order bits of the register and operand
+        //are the same, and one input & the output differ in sign.
+        // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
+        nzvc = (nzvc & ~Enu::VMask) | false;
+        // Carry out iff result is unsigned less than register or operand.
+        nzvc = (nzvc & ~Enu::CMask) | false;
+        nzvc = (nzvc & ~Enu::NMask) | (result & 0x8000 ? Enu::NMask : 0);
         break;
     case Enu::EMnemonic::LDBA:
+        readOperandByteValue(opSpec, addrMode, tempByte);
+        tempWord = a & 0xff00;
+        tempWord |= tempByte;
+        registerBank.writeRegisterWord(Enu::CPURegisters::A, tempWord);
+        nzvc = (nzvc & ~Enu::NMask) | false;
+        nzvc = (nzvc & ~Enu::ZMask) | ( (tempWord & 0xff) == 0 ? Enu::ZMask : 0);
         break;
+
     case Enu::EMnemonic::LDBX:
+        readOperandByteValue(opSpec, addrMode, tempByte);
+        tempWord = x & 0xff00;
+        tempWord |= tempByte;
+        registerBank.writeRegisterWord(Enu::CPURegisters::X, tempWord);
+        nzvc = (nzvc & ~Enu::NMask) | false;
+        nzvc = (nzvc & ~Enu::ZMask) | ( (tempWord & 0xff) == 0 ? Enu::ZMask : 0);
         break;
+
     case Enu::EMnemonic::STBA:
+        tempByte = static_cast<quint8>(0xff & registerBank.readRegisterWordCurrent(Enu::CPURegisters::A));
+        writeOperandByte(opSpec, tempByte, addrMode);
         break;
+
     case Enu::EMnemonic::STBX:
+        tempByte = static_cast<quint8>(0xff & registerBank.readRegisterWordCurrent(Enu::CPURegisters::X));
+        writeOperandByte(opSpec, tempByte, addrMode);
         break;
     }
+    registerBank.writeStatusBits(nzvc);
 }
 
 void ISACPU::executeTrap(Enu::EMnemonic mnemon)

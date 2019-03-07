@@ -17,12 +17,15 @@ public:
     bool canStepInto() const override;
     void stepInto() override;
     void stepOut() override;
-    bool getOperandSpec(quint16 operand, Enu::EAddrMode addrMode, quint16& opVal);
+    bool getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16& opVal);
+    bool getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint8& opVal);
 
 protected:
     void onISAStep() override;
     void updateAtInstructionEnd() override;
-    bool readOperandSpec(quint16 operand, Enu::EAddrMode addrMode, quint16& opVal);
+    bool readOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16& opVal);
+    bool readOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quint8& opVal);
+
 
     // ACPUModel interface
 public:
@@ -50,9 +53,12 @@ public slots:
 private:
     RegisterFile registerBank;
     QElapsedTimer timer;
-    bool readOperandWord(quint16 operand, Enu::EAddrMode addrMode,
-                           bool (AMemoryDevice::*readFunc)(quint16, quint16&) const , quint16& opVal);
+    bool operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
+                           bool (AMemoryDevice::*readFunc)(quint16, quint16&) const, quint16& opVal);
+    bool operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode,
+                         bool (AMemoryDevice::*readFunc)(quint16, quint8&) const, quint8& opVal);
     bool writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode addrMode);
+    bool writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addrMode);
     void executeUnary(Enu::EMnemonic mnemon);
     void executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode);
     void executeTrap(Enu::EMnemonic mnemon);
