@@ -714,6 +714,13 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, idx & 0x8000);
         break;
 
+    case Enu::EMnemonic::NOP0:
+        if(Pep::isTrapMap[Enu::EMnemonic::NOP0]) {
+            controlError = true;
+            executionFinished = true;
+            errorMessage = "NOP0 is not a unary instruction.";
+        }
+        break;
     default:
         // Should never occur, but gaurd against to make compiler happy.
         controlError = true;
