@@ -1033,11 +1033,13 @@ void ISACPU::executeTrap(Enu::EMnemonic mnemon)
         memory->readWord(pcAddr, pc);
         registerBank.writeRegisterWord(Enu::CPURegisters::SP, tempAddr - 10);
         registerBank.writeRegisterWord(Enu::CPURegisters::PC, pc);
+#if performTrapFix
         // Though not part of the specification, clear out the index register to
         // prevent bug in OS where non-unary instructions fail due to junk
         // in the high order byte of the index register. The book is published,
         // so we have to fix it here.
         registerBank.writeRegisterWord(Enu::CPURegisters::X, 0);
+#endif
     }
 }
 

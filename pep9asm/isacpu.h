@@ -3,6 +3,12 @@
 #include "interfaceisacpu.h"
 #include <QElapsedTimer>
 #include "registerfile.h"
+/* Though not part of the specification, the trap mechanism  must
+ * set the index register to 0 to prevent a bug in OS where
+ * non-unary instructions fail due to junk in the high order byte of the index
+ * register. This flag enables or disables this behavior
+ */
+#define performTrapFix false
 class NewCPUDataSection;
 class ISACPUMemoizer;
 
