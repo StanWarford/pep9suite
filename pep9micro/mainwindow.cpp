@@ -1530,7 +1530,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_triggered()
     if(!on_ActionBuild_Assemble_triggered()) return false;
     loadObjectCodeProgram();
     loadOperatingSystem();
-    ISACPU cpu(programManager, memDevice,this);
+    IsaCpu cpu(programManager, memDevice,this);
     quint16 result;
     cpu.getOperandWordValue(0,Enu::EAddrMode::I, result);
     cpu.getOperandWordValue(0,Enu::EAddrMode::D, result);

@@ -10,13 +10,13 @@
  */
 #define performTrapFix false
 class NewCPUDataSection;
-class ISACPUMemoizer;
-
-class ISACPU: public ACPUModel, public InterfaceISACPU
+class IsaCpuMemoizer;
+class IsaCpu: public ACPUModel, public InterfaceISACPU
 {
+    friend class IsaCpuMemoizer;
 public:
-    explicit ISACPU(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice>, QObject* parent = nullptr);
-    virtual ~ISACPU() override;
+    explicit IsaCpu(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice>, QObject* parent = nullptr);
+    virtual ~IsaCpu() override;
     // InterfaceISACPU interface
 public:
     void stepOver() override;
@@ -59,6 +59,7 @@ public slots:
 private:
     RegisterFile registerBank;
     QElapsedTimer timer;
+    IsaCpuMemoizer* memoizer;
     bool operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
                            bool (AMemoryDevice::*readFunc)(quint16, quint16&) const, quint16& opVal);
     bool operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode,

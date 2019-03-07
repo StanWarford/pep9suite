@@ -6,20 +6,20 @@
 #include <QApplication>
 #include "asmprogrammanager.h"
 #include "asmprogram.h"
-
-ISACPU::ISACPU(const AsmProgramManager *manager, QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
-    ACPUModel(memDevice, parent), InterfaceISACPU(memDevice.get(), manager)
+#include "isacpumemoizer.h"
+IsaCpu::IsaCpu(const AsmProgramManager *manager, QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
+    ACPUModel(memDevice, parent), InterfaceISACPU(memDevice.get(), manager), memoizer(new IsaCpuMemoizer(*this))
 {
 
 }
 
-ISACPU::~ISACPU()
+IsaCpu::~IsaCpu()
 {
-
+    delete memoizer;
 }
 
 
-void ISACPU::stepOver()
+void IsaCpu::stepOver()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
@@ -33,7 +33,7 @@ void ISACPU::stepOver()
 
 }
 
-bool ISACPU::canStepInto() const
+bool IsaCpu::canStepInto() const
 {
     quint8 byte;
     memory->getByte(getCPURegWordStart(Enu::CPURegisters::PC), byte);
@@ -41,14 +41,14 @@ bool ISACPU::canStepInto() const
     return (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
 }
 
-void ISACPU::stepInto()
+void IsaCpu::stepInto()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
     onISAStep();
 }
 
-void ISACPU::stepOut()
+void IsaCpu::stepOut()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
@@ -61,17 +61,17 @@ void ISACPU::stepOut()
             && !hadErrorOnStep());
 }
 
-bool ISACPU::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
+bool IsaCpu::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
 {
     return operandWordValueHelper(operand, addrMode, &AMemoryDevice::getWord, opVal);
 }
 
-bool ISACPU::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint8 &opVal)
+bool IsaCpu::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint8 &opVal)
 {
     return operandByteValueHelper(operand, addrMode, &AMemoryDevice::getByte, opVal);
 }
 
-void ISACPU::onISAStep()
+void IsaCpu::onISAStep()
 {
     // Store PC at the start of the cycle, so that we know where the instruction started from.
     // Also store any other values needed for detailed statistics
@@ -129,27 +129,27 @@ void ISACPU::onISAStep()
     breakpointHandler();
 }
 
-void ISACPU::updateAtInstructionEnd()
+void IsaCpu::updateAtInstructionEnd()
 {
 
 }
 
-bool ISACPU::readOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
+bool IsaCpu::readOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
 {
     return operandWordValueHelper(operand, addrMode, &AMemoryDevice::readWord, opVal);
 }
 
-bool ISACPU::readOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quint8 &opVal)
+bool IsaCpu::readOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quint8 &opVal)
 {
     return operandByteValueHelper(operand, addrMode, &AMemoryDevice::readByte, opVal);
 }
 
-void ISACPU::initCPU()
+void IsaCpu::initCPU()
 {
 
 }
 
-bool ISACPU::getStatusBitCurrent(Enu::EStatusBit statusBit) const
+bool IsaCpu::getStatusBitCurrent(Enu::EStatusBit statusBit) const
 {
     quint8 NZVCSbits = registerBank.readStatusBitsCurrent();
     switch(statusBit)
@@ -171,7 +171,7 @@ bool ISACPU::getStatusBitCurrent(Enu::EStatusBit statusBit) const
     }
 }
 
-bool ISACPU::getStatusBitStart(Enu::EStatusBit statusBit) const
+bool IsaCpu::getStatusBitStart(Enu::EStatusBit statusBit) const
 {
     quint8 NZVCSbits = registerBank.readStatusBitsStart();
     switch(statusBit)
@@ -193,27 +193,27 @@ bool ISACPU::getStatusBitStart(Enu::EStatusBit statusBit) const
     }
 }
 
-quint8 ISACPU::getCPURegByteCurrent(Enu::CPURegisters reg) const
+quint8 IsaCpu::getCPURegByteCurrent(Enu::CPURegisters reg) const
 {
     return registerBank.readRegisterByteCurrent(reg);
 }
 
-quint16 ISACPU::getCPURegWordCurrent(Enu::CPURegisters reg) const
+quint16 IsaCpu::getCPURegWordCurrent(Enu::CPURegisters reg) const
 {
     return registerBank.readRegisterWordCurrent(reg);
 }
 
-quint8 ISACPU::getCPURegByteStart(Enu::CPURegisters reg) const
+quint8 IsaCpu::getCPURegByteStart(Enu::CPURegisters reg) const
 {
     return registerBank.readRegisterByteStart(reg);
 }
 
-quint16 ISACPU::getCPURegWordStart(Enu::CPURegisters reg) const
+quint16 IsaCpu::getCPURegWordStart(Enu::CPURegisters reg) const
 {
     return registerBank.readRegisterWordStart(reg);
 }
 
-QString ISACPU::getErrorMessage() const noexcept
+QString IsaCpu::getErrorMessage() const noexcept
 {
     if(memory->hadError()) return memory->getErrorMessage();
     // else if(data->hadErrorOnStep()) return data->getErrorMessage();
@@ -221,42 +221,42 @@ QString ISACPU::getErrorMessage() const noexcept
     else return "";
 }
 
-bool ISACPU::hadErrorOnStep() const noexcept
+bool IsaCpu::hadErrorOnStep() const noexcept
 {
     return memory->hadError() || controlError;
 }
 
-bool ISACPU::stoppedForBreakpoint() const noexcept
+bool IsaCpu::stoppedForBreakpoint() const noexcept
 {
     return asmBreakpointHit;
 }
 
-void ISACPU::onSimulationStarted()
+void IsaCpu::onSimulationStarted()
 {
 #pragma message("TODO")
 }
 
-void ISACPU::onSimulationFinished()
+void IsaCpu::onSimulationFinished()
 {
     #pragma message("TODO")
 }
 
-void ISACPU::onDebuggingStarted()
+void IsaCpu::onDebuggingStarted()
 {
     #pragma message("TODO")
 }
 
-void ISACPU::onDebuggingFinished()
+void IsaCpu::onDebuggingFinished()
 {
     #pragma message("TODO")
 }
 
-void ISACPU::onCancelExecution()
+void IsaCpu::onCancelExecution()
 {
     #pragma message("TODO")
 }
 
-bool ISACPU::onRun()
+bool IsaCpu::onRun()
 {
     timer.start();
     // If debugging, there is the potential to hit breakpoints, so a different main loop is needed.
@@ -308,14 +308,14 @@ bool ISACPU::onRun()
     return true;
 }
 
-void ISACPU::onResetCPU()
+void IsaCpu::onResetCPU()
 {
     InterfaceISACPU::reset();
     registerBank.clearRegisters();
     registerBank.clearStatusBits();
 }
 
-bool ISACPU::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
+bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
                                bool (AMemoryDevice::*readFunc)(quint16, quint16 &) const,
                                quint16 &opVal)
 {
@@ -365,7 +365,7 @@ bool ISACPU::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
     return rVal;
 }
 
-bool ISACPU::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bool (AMemoryDevice::*readFunc)(quint16, quint8 &) const, quint8 &opVal)
+bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bool (AMemoryDevice::*readFunc)(quint16, quint8 &) const, quint8 &opVal)
 {
     bool rVal = true;
     quint16 effectiveAddress = 0;
@@ -421,7 +421,7 @@ bool ISACPU::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
     return rVal;
 }
 
-bool ISACPU::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode addrMode)
+bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode addrMode)
 {
     bool rVal = true;
     quint16 effectiveAddress = 0;
@@ -467,7 +467,7 @@ bool ISACPU::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
     return rVal;
 }
 
-bool ISACPU::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addrMode)
+bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addrMode)
 {
     bool rVal = true;
     quint16 effectiveAddress = 0;
@@ -513,7 +513,7 @@ bool ISACPU::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
     return rVal;
 }
 
-void ISACPU::executeUnary(Enu::EMnemonic mnemon)
+void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
 {
     quint16 temp, sp, acc, idx;
     sp = registerBank.readRegisterWordCurrent(Enu::CPURegisters::SP);
@@ -689,7 +689,7 @@ void ISACPU::executeUnary(Enu::EMnemonic mnemon)
     registerBank.writeStatusBits(nzvc);
 }
 
-void ISACPU::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode)
+void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode)
 {
     quint16 tempWord, a, x, sp, result;
     quint8 tempByte, nzvc = registerBank.readStatusBitsCurrent();
@@ -992,7 +992,7 @@ void ISACPU::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
     registerBank.writeStatusBits(nzvc);
 }
 
-void ISACPU::executeTrap(Enu::EMnemonic mnemon)
+void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
 {
     quint16 pc;
     // The
@@ -1043,7 +1043,7 @@ void ISACPU::executeTrap(Enu::EMnemonic mnemon)
     }
 }
 
-void ISACPU::breakpointHandler()
+void IsaCpu::breakpointHandler()
 {
     // If the CPU is not being debugged, breakpoints make no sense. Abort.
     if(!inDebug) return;
