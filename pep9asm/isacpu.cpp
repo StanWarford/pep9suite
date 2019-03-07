@@ -63,18 +63,24 @@ void ISACPU::stepOut()
 
 bool ISACPU::getOperandSpec(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
 {
-    return decodeOperandSpec(operand, addrMode, &AMemoryDevice::getWord, opVal);
+    return readOperandWord(operand, addrMode, &AMemoryDevice::getWord, opVal);
 }
 
 void ISACPU::onISAStep()
 {
+    // Store PC at the start of the cycle, so that we know where the instruction started from.
+    // Also store any other values needed for detailed statistics
+    // memoizer->storeStateInstrStart();
+    memory->onCycleStarted();
+    InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Enu::CPURegisters::IS));
+
     quint16 opSpec, pc = registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC);
     quint8 is;
     bool okay = memory->readByte(pc, is);
-    pc += 1;
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[is];
     Enu::EAddrMode addrMode;
 
+    pc += 1;
     if(Pep::isTrapMap[mnemon]) {
         executeTrap(mnemon);
     }
@@ -87,6 +93,34 @@ void ISACPU::onISAStep()
         pc += 2;
         executeNonunary(mnemon, opSpec, addrMode);
     }
+
+    // Post instruction execution cleanup
+    quint16 startProgCounter = getCPURegWordStart(Enu::CPURegisters::PC);
+    registerBank.writeRegisterWord(Enu::CPURegisters::PC, pc);
+    InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteCurrent(Enu::CPURegisters::IS),
+                                             this->getCPURegWordCurrent(Enu::CPURegisters::OS),
+                                             this->getCPURegWordStart(Enu::CPURegisters::SP),
+                                             this->getCPURegWordStart(Enu::CPURegisters::PC),
+                                             this->getCPURegWordCurrent(Enu::CPURegisters::A));
+    // memoizer->storeStateInstrEnd();
+    updateAtInstructionEnd();
+    emit asmInstructionFinished();
+    asmInstructionCounter++;
+
+    /*if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
+        qDebug().noquote().nospace() << memoizer->memoize();
+    }*/
+
+    registerBank.flattenFile();
+
+    // If execution finished on this instruction, then restore original starting program counter,
+    // as the instruction at the current program counter will not be executed.
+    if(executionFinished) {
+        registerBank.writePCStart(startProgCounter);
+        emit simulationFinished();
+    }
+
+    breakpointHandler();
 }
 
 void ISACPU::updateAtInstructionEnd()
@@ -96,7 +130,7 @@ void ISACPU::updateAtInstructionEnd()
 
 bool ISACPU::readOperandSpec(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
 {
-    return decodeOperandSpec(operand, addrMode, &AMemoryDevice::readWord, opVal);
+    return readOperandWord(operand, addrMode, &AMemoryDevice::readWord, opVal);
 }
 
 void ISACPU::initCPU()
@@ -270,7 +304,7 @@ void ISACPU::onResetCPU()
     registerBank.clearStatusBits();
 }
 
-bool ISACPU::decodeOperandSpec(quint16 operand, Enu::EAddrMode addrMode,
+bool ISACPU::readOperandWord(quint16 operand, Enu::EAddrMode addrMode,
                                bool (AMemoryDevice::*readFunc)(quint16, quint16 &) const,
                                quint16 &opVal)
 {
@@ -320,9 +354,14 @@ bool ISACPU::decodeOperandSpec(quint16 operand, Enu::EAddrMode addrMode,
     return rVal;
 }
 
+bool ISACPU::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode addrMode)
+{
+
+}
+
 void ISACPU::executeUnary(Enu::EMnemonic mnemon)
 {
-    quint16 temp, sp, pc, acc, idx;
+    quint16 temp, sp, acc, idx;
     sp = registerBank.readRegisterWordCurrent(Enu::CPURegisters::SP);
     acc = registerBank.readRegisterWordCurrent(Enu::CPURegisters::A);
     idx = registerBank.readRegisterWordCurrent(Enu::CPURegisters::X);
@@ -349,7 +388,17 @@ void ISACPU::executeUnary(Enu::EMnemonic mnemon)
         break;
 
     case Enu::EMnemonic::RETTR:
-#pragma message("TODO")
+        memory->readWord(sp, temp);
+        // Function will automatically mask out bits that don't matter
+        registerBank.writeStatusBits(temp);
+        memory->readWord(sp + 1, temp);
+        registerBank.writeRegisterWord(Enu::CPURegisters::A, temp);
+        memory->readWord(sp + 3, temp);
+        registerBank.writeRegisterWord(Enu::CPURegisters::X, temp);
+        memory->readWord(sp + 5, temp);
+        registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
+        memory->readWord(sp + 7, temp);
+        registerBank.writeRegisterWord(Enu::CPURegisters::SP, temp);
         break;
 
     case Enu::EMnemonic::MOVSPA:
@@ -444,7 +493,6 @@ void ISACPU::executeUnary(Enu::EMnemonic mnemon)
         nzvc = (nzvc & ~Enu::CMask) | ((idx & 0x1) ? 1:0 * Enu::CMask); // Carry out if index reg starts with low order 1.
         break;
 
-    #pragma message("Next to check")
     // Rotate instructions.
     case Enu::EMnemonic::RORA: //Modifies C bits
         temp = static_cast<quint16>(acc >> 1
@@ -479,6 +527,9 @@ void ISACPU::executeUnary(Enu::EMnemonic mnemon)
         break;
     default:
         // Should never occur, but gaurd against to make compiler happy.
+        controlError = true;
+        executionFinished = true;
+        errorMessage = "Attempt to execute invalid unary instruction";
         return;
     }
     registerBank.writeStatusBits(nzvc);
@@ -486,7 +537,7 @@ void ISACPU::executeUnary(Enu::EMnemonic mnemon)
 
 void ISACPU::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode)
 {
-    #pragma message("TODO")
+
 }
 
 void ISACPU::executeTrap(Enu::EMnemonic mnemon)
@@ -515,19 +566,39 @@ void ISACPU::executeTrap(Enu::EMnemonic mnemon)
     case Enu::EMnemonic::NOP0:;
         [[fallthrough]];
     case Enu::EMnemonic::NOP1:;
-#pragma message("These offsets don't seem right...")
+        // Writes to mem[T-1].
         memory->writeByte(tempAddr - 1, registerBank.readRegisterByteCurrent(Enu::CPURegisters::IS) /*IS*/);
+        // Writes to mem[T-2], mem[T-3].
         memory->writeWord(tempAddr - 3, registerBank.readRegisterWordCurrent(Enu::CPURegisters::SP) /*SP*/);
+        // Writes to mem[T-4], mem[T-5].
         memory->writeWord(tempAddr - 5, registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC) /*PC*/);
+        // Writes to mem[T-6], mem[T-7].
         memory->writeWord(tempAddr - 7, registerBank.readRegisterWordCurrent(Enu::CPURegisters::X) /*X*/);
+        // Writes to mem[T-8], mem[T-9].
         memory->writeWord(tempAddr - 9, registerBank.readRegisterWordCurrent(Enu::CPURegisters::A) /*A*/);
-        memory->writeWord(tempAddr - 10, registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC) /*NZVC*/);
+        // Writes to mem[T-10].
+        memory->writeByte(tempAddr - 10, registerBank.readStatusBitsCurrent() /*NZVC*/);
         memory->readWord(pcAddr, pc);
         registerBank.writeRegisterWord(Enu::CPURegisters::SP, tempAddr - 10);
         registerBank.writeRegisterWord(Enu::CPURegisters::PC, pc);
         // Though not part of the specification, clear out the index register to
         // prevent bug in OS where non-unary instructions fail due to junk
-        // in the high order byte of the index register.
+        // in the high order byte of the index register. The book is published,
+        // so we have to fix it here.
         registerBank.writeRegisterWord(Enu::CPURegisters::X, 0);
+    }
+}
+
+void ISACPU::breakpointHandler()
+{
+    // If the CPU is not being debugged, breakpoints make no sense. Abort.
+    if(!inDebug) return;
+    else if(breakpointsISA.contains(registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC))) {
+        asmBreakpointHit = true;
+        emit hitBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
+        return;
+    }
+    else {
+        asmBreakpointHit = false;
     }
 }

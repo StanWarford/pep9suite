@@ -50,11 +50,13 @@ public slots:
 private:
     RegisterFile registerBank;
     QElapsedTimer timer;
-    bool decodeOperandSpec(quint16 operand, Enu::EAddrMode addrMode,
+    bool readOperandWord(quint16 operand, Enu::EAddrMode addrMode,
                            bool (AMemoryDevice::*readFunc)(quint16, quint16&) const , quint16& opVal);
+    bool writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode addrMode);
     void executeUnary(Enu::EMnemonic mnemon);
     void executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode);
     void executeTrap(Enu::EMnemonic mnemon);
+    void breakpointHandler();
 
 
 };
