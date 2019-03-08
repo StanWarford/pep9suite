@@ -41,6 +41,7 @@ HEADERS += \
     symbolvalue.h \
     terminalpane.h \
     updatechecker.h \
+    registerfile.h
 
 
 SOURCES += \
@@ -66,7 +67,8 @@ SOURCES += \
     symbolvalue.cpp \
     terminalpane.cpp \
     updatechecker.cpp \
-    enu.cpp
+    enu.cpp \
+    registerfile.cpp
 
 
 

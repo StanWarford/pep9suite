@@ -73,7 +73,6 @@ void FullMicrocodedCPU::initCPU()
     #pragma message("BAD ACCESS??")
     data->onSetRegisterByte(4,0xFB);
     data->onSetRegisterByte(5,0x82);
-#pragma message("TODO: Make sure this where registers should be flattened")
     data->getRegisterBank().flattenFile();
 }
 

@@ -33,8 +33,7 @@ HEADERS += \
     stacktrace.h \
     redefinemnemonicsdialog.h \
     asmcpupane.h \
-    isacpu.h \
-    isacpumemoizer.h
+    isacpu.h
 
 SOURCES += \
     asmargument.cpp \
@@ -55,5 +54,4 @@ SOURCES += \
     stacktrace.cpp \
     redefinemnemonicsdialog.cpp \
     asmcpupane.cpp \
-    isacpu.cpp \
-    isacpumemoizer.cpp
+    isacpu.cpp

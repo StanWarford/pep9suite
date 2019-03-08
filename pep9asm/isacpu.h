@@ -13,7 +13,7 @@
 
 /* Though not part of the specification, the trap mechanism  must
  * increment the program counter by 2 in Pep/9 for the operating system
- * to function correctly. This flag enables or disables this behvaior.
+ * to function correctly. This flag enables or disables this behvaior
  */
 #define hardwarePCIncr false
 class NewCPUDataSection;

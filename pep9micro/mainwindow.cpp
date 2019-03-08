@@ -65,6 +65,7 @@
 #include "microobjectcodepane.h"
 #include "updatechecker.h"
 #include "redefinemnemonicsdialog.h"
+#include "registerfile.h"
 
 //WIP include
 #include "fullmicrocodedcpu.h"
@@ -73,7 +74,6 @@
 #include "memorychips.h"
 #include "symboltable.h"
 #include "asmcpupane.h"
-#include "isacpu.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), debugState(DebugState::DISABLED), redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),
@@ -1408,7 +1408,6 @@ bool MainWindow::on_ActionBuild_Assemble_triggered()
         ui->asmListingTracePane->onRemoveAllBreakpoints();
         controlSection->breakpointsRemoveAll();
         ui->asmListingTracePane->setProgram(ui->AsmSourceCodeWidgetPane->getAsmProgram());
-        //ui->memoryTracePane->setMemoryTrace();
         set_Obj_Listing_filenames_from_Source();
         loadObjectCodeProgram();
         ui->statusBar->showMessage("Assembly succeeded", 4000);
@@ -1464,12 +1463,8 @@ void MainWindow::on_actionBuild_Run_triggered()
         emit simulationStarted();
         ui->memoryWidget->updateMemory();
         ui->memoryTracePane->updateTrace();
-        IsaCpu cpu(programManager, memDevice,this);
-        cpu.initCPU();
-        cpu.onSimulationStarted();
-        cpu.onRun();
-        // controlSection->onSimulationStarted();
-        // controlSection->onRun();
+        controlSection->onSimulationStarted();
+        controlSection->onRun();
         connectViewUpdate();
 
     }
@@ -1568,8 +1563,22 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
 
 bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
 {
-#pragma message("TODO: Implement 'Start Debugging Loader' once the operating system is implemented")
-    return false;
+    if(!on_ActionBuild_Assemble_triggered()) return false;
+    memDevice->clearMemory();
+    loadOperatingSystem();
+    // Copy object code to batch input pane and make it the active input pane
+    ui->ioWidget->setBatchInput(ui->AsmObjectCodeWidgetPane->toPlainText());
+    ui->ioWidget->setActivePane(Enu::EPane::EBatchIO);
+    if(!on_actionDebug_Start_Debugging_Object_triggered()) return false;
+    quint16 sp, pc;
+    memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 9, sp);
+    memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 3, pc);
+    // Write SP, PC to simulator
+    controlSection->getDataSection()->getRegisterBank().writePCStart(pc);
+    controlSection->getDataSection()->getRegisterBank().writeRegisterWord(Enu::CPURegisters::PC, pc);
+    controlSection->getDataSection()->getRegisterBank().writeRegisterWord(Enu::CPURegisters::SP, sp);
+    emit simulationUpdate();
+    return true;
 }
 
 void MainWindow::on_actionDebug_Stop_Debugging_triggered()
@@ -1933,6 +1942,8 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
         ui->AsmListingWidgetPane->highlightOnFocus();
     else if(ui->asmListingTracePane->isAncestorOf(oldFocus))
         ui->asmListingTracePane->highlightOnFocus();
+    else if(ui->asmCpuPane->isAncestorOf(oldFocus))
+        ui->asmCpuPane->highlightOnFocus();
 
     int which = 0;
     if (ui->microcodeWidget->hasFocus()) {
@@ -1947,6 +1958,10 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     else if (ui->cpuWidget->hasFocus()) {
         which = 0;
         ui->cpuWidget->highlightOnFocus();
+    }
+    else if (ui->asmCpuPane->hasFocus()) {
+        which = 0;
+        ui->asmCpuPane->highlightOnFocus();
     }
     else if (ui->microObjectCodePane->hasFocus()) {
         which = Enu::EditButton::COPY;
@@ -2003,6 +2018,9 @@ void MainWindow::setUndoability(bool b)
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->actionEdit_Undo->setEnabled(b);
     }
+    else if (ui->asmCpuPane->hasFocus()) {
+        ui->actionEdit_Undo->setEnabled(false);
+    }
 }
 
 void MainWindow::setRedoability(bool b)
@@ -2027,6 +2045,9 @@ void MainWindow::setRedoability(bool b)
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->actionEdit_Redo->setEnabled(b);
+    }
+    else if (ui->asmCpuPane->hasFocus()) {
+        ui->actionEdit_Redo->setEnabled(false);
     }
 }
 

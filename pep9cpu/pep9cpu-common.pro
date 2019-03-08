@@ -27,8 +27,7 @@ HEADERS += \
     shapes_two_byte_data_bus.h \
     specification.h \
     tristatelabel.h \
-    newcpudata.h \
-    registerfile.h
+    newcpudata.h
 
 SOURCES += \
     cpupane.cpp \
@@ -45,5 +44,4 @@ SOURCES += \
     rotatedheaderview.cpp \
     specification.cpp \
     tristatelabel.cpp \
-    newcpudata.cpp \
-    registerfile.cpp
+    newcpudata.cpp

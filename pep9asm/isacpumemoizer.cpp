@@ -1,5 +1,14 @@
 #include "isacpumemoizer.h"
 #include "isacpu.h"
+#include "pep.h"
+#include "amemorydevice.h"
+#include "registerfile.h"
+#include <assert.h>
+#include <QString>
+#include <QtCore>
+#include <QDebug>
+#include <QStack>
+
 IsaCpuMemoizer::IsaCpuMemoizer(IsaCpu &cpu): cpu(cpu), state(IsaCpuMemoizer::CPUState()), OSSymTable()
 {
 
@@ -10,15 +19,6 @@ IsaCpuMemoizer::~IsaCpuMemoizer()
 
 }
 
-#include "pep.h"
-#include "amemorydevice.h"
-#include "newcpudata.h"
-#include "registerfile.h"
-#include <assert.h>
-#include <QString>
-#include <QtCore>
-#include <QDebug>
-#include <QStack>
 const QString stackFrameEnter("%1\n===CALL===\n");
 const QString stackFrameLeave("%1\n===RET====\n");
 const QString trapEnter("%1\n===TRAP===\n");
