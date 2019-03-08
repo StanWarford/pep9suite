@@ -439,7 +439,7 @@ bool MainWindow::saveAsFile()
 
 
     // Patterns for source code files.
-    static const QString microTypes = "Pep9 Microcode (*.pepcpu *.txt)";
+    static const QString microTypes = "Pep/9 Microcode (*.pepcpu *.txt)";
 
     // Pick the filename
     if(ui->microcodeWidget->getCurrentFile().fileName().isEmpty()) {
