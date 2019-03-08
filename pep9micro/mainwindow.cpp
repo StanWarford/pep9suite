@@ -614,6 +614,7 @@ void MainWindow::loadFile(const QString &fileName, Enu::EPane which)
         ui->microcodeWidget->setMicrocode(in.readAll());
         ui->microcodeWidget->setModifiedFalse();
         break;
+
     default:
         // Provided a default - even though it should never occur -
         // to silence compiler warnings.
@@ -721,10 +722,10 @@ bool MainWindow::saveAsFile(Enu::EPane which)
     const QString *usingTitle;
 
     // Patterns for source code files.
-    static const QString sourceTypes = "Pep9 Source (*.pep *.txt)";
-    static const QString objectTypes = "Pep9 Object (*.pepo *.txt)";
-    static const QString listingTypes = "Pep9 Listing (*.pepl)";
-    static const QString microTypes = "Pep9 Microcode (*.pepcpu *.txt)";
+    static const QString sourceTypes = "Pep/9 Source (*.pep *.txt)";
+    static const QString objectTypes = "Pep/9 Object (*.pepo *.txt)";
+    static const QString listingTypes = "Pep/9 Listing (*.pepl)";
+    static const QString microTypes = "Pep/9 Microcode (*.pepcpu *.txt)";
     const QString *usingTypes;
 
     /*
@@ -1401,7 +1402,6 @@ bool MainWindow::on_ActionBuild_Assemble_triggered()
 {
     loadOperatingSystem();
     if(ui->AsmSourceCodeWidgetPane->assemble()){
-#pragma message ("TODO: cancel run on burn and reset prog state")
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
         ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
                                                       ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
