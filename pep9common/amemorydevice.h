@@ -1,3 +1,24 @@
+// File: amemorydevice.h
+/*
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
+
+    Copyright (C) 2018  J. Stanley Warford & Matthew McRaven, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef AMEMORYDEVICE_H
 #define AMEMORYDEVICE_H
 
@@ -15,7 +36,7 @@
  * like trying to write to the read-only storage for the operating system.
  *
  * Get and set do not trigger side effects. Get simply reports the value at an address,
- * and set will modify the value. Some chips (like the ConstCHip) do not support any modification, even
+ * and set will modify the value. Some chips (like the ConstChip) do not support any modification, even
  * through set, but some chips like the ROMChip will error if written to, but will succede if set.
  *
  * Both set / write will trigger the changed(...) signal
@@ -29,8 +50,8 @@ class AMemoryDevice : public QObject
     Q_OBJECT
 protected:
     QSet<quint16> bytesWritten, bytesSet;
-    mutable bool error;
     mutable QString errorMessage;
+    mutable bool error;
 public:
     explicit AMemoryDevice(QObject *parent = nullptr) noexcept;
 
@@ -43,6 +64,7 @@ public:
     // representa range of 0 to 2^16 bytes of memory.
     virtual quint32 size() const noexcept = 0;
 
+    // Remove any pending errors in the memory device.
     void clearErrors();
 
     // Returns the set of bytes the have been written / set.

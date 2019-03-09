@@ -1,7 +1,8 @@
 // File: byteconverterdec.h
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
 
     Copyright (C) 2010  J. Stanley Warford, Pepperdine University
 
@@ -29,9 +30,16 @@ namespace Ui {
     class ByteConverterDec;
 }
 
+/*
+ * The byte converter class set are used to show how a byte value is represented
+ * in different forms (e.g. bin, hec, character, etc.).
+ *
+ * This particular byte converter renders a byte value as a binary number
+ */
 class ByteConverterDec : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(ByteConverterDec)
+
 public:
     explicit ByteConverterDec(QWidget *parent = nullptr);
     virtual ~ByteConverterDec();
