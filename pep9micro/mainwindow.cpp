@@ -1309,6 +1309,9 @@ void MainWindow::on_actionEdit_Copy_triggered()
     else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
         ui->AsmObjectCodeWidgetPane->copy();
     }
+    else if(ui->AsmListingWidgetPane->hasFocus()) {
+        ui->AsmListingWidgetPane->copy();
+    }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->ioWidget->copy();
     }
