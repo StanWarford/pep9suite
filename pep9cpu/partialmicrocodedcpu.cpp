@@ -17,7 +17,6 @@ PartialMicrocodedCPU::PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<AMe
     memoizer = new PartialMicrocodedMemoizer(*this);
     data = new NewCPUDataSection(type, memoryDev, parent);
     dataShared = QSharedPointer<NewCPUDataSection>(data);
-    setDebugLevel(Enu::DebugLevels::NONE);
 }
 
 PartialMicrocodedCPU::~PartialMicrocodedCPU()
@@ -82,16 +81,6 @@ QString PartialMicrocodedCPU::getErrorMessage() const noexcept
 bool PartialMicrocodedCPU::hadErrorOnStep() const noexcept
 {
     return controlError || data->hadErrorOnStep() || memory->hadError();
-}
-
-Enu::DebugLevels PartialMicrocodedCPU::getDebugLevel() const noexcept
-{
-    return memoizer->getDebugLevel();
-}
-
-void PartialMicrocodedCPU::setDebugLevel(Enu::DebugLevels level)
-{
-    memoizer->setDebugLevel(level);
 }
 
 void PartialMicrocodedCPU::setCPUType(Enu::CPUType type)

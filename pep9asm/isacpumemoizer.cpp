@@ -1,14 +1,24 @@
-#include "fullmicrocodedmemoizer.h"
-#include "fullmicrocodedcpu.h"
+#include "isacpumemoizer.h"
+#include "isacpu.h"
 #include "pep.h"
 #include "amemorydevice.h"
-#include "newcpudata.h"
 #include "registerfile.h"
 #include <assert.h>
 #include <QString>
 #include <QtCore>
 #include <QDebug>
 #include <QStack>
+
+IsaCpuMemoizer::IsaCpuMemoizer(IsaCpu &cpu): cpu(cpu), state(IsaCpuMemoizer::CPUState()), OSSymTable()
+{
+
+}
+
+IsaCpuMemoizer::~IsaCpuMemoizer()
+{
+
+}
+
 const QString stackFrameEnter("%1\n===CALL===\n");
 const QString stackFrameLeave("%1\n===RET====\n");
 const QString trapEnter("%1\n===TRAP===\n");
@@ -17,35 +27,28 @@ static quint8 max_symLen=0;
 static quint8 inst_size=6;
 static quint8 oper_addr_size=12;
 
-FullMicrocodedMemoizer::FullMicrocodedMemoizer(FullMicrocodedCPU& item): cpu(item),
-    state(CPUState()), OSSymTable()
-{
-
-}
-
-void FullMicrocodedMemoizer::clear()
+void IsaCpuMemoizer::clear()
 {
     state = CPUState();
 }
 
-void FullMicrocodedMemoizer::storeStateInstrEnd()
+void IsaCpuMemoizer::storeStateInstrEnd()
 {
 
 }
 
-void FullMicrocodedMemoizer::storeStateInstrStart()
+void IsaCpuMemoizer::storeStateInstrStart()
 {
     quint8 instr;
     // Fetch the instruction specifier, located at the memory address of PC
-    cpu.getMemoryDevice()->getByte(cpu.data->getRegisterBank()
-                                   .readRegisterWordStart(Enu::CPURegisters::PC), instr);
+    cpu.getMemoryDevice()->getByte(cpu.registerBank.readRegisterWordStart(Enu::CPURegisters::PC), instr);
     state.instructionsCalled[instr]++;
-    cpu.data->getRegisterBank().setIRCache(instr);
+    cpu.registerBank.setIRCache(instr);
 }
 
-QString FullMicrocodedMemoizer::memoize()
+QString IsaCpuMemoizer::memoize()
 {
-    const RegisterFile& file = cpu.data->getRegisterBank();
+    const RegisterFile& file = cpu.registerBank;
     quint8 ir = 0;
     QString build, AX, NZVC;
     AX = QString(" A=%1, X=%2, SP=%3")
@@ -58,7 +61,7 @@ QString FullMicrocodedMemoizer::memoize()
             formatInstr(file.getIRCache(), file.readRegisterWordCurrent(Enu::CPURegisters::OS));
     build += "  " + AX;
     build += NZVC;
-    ir = cpu.data->getRegisterBank().getIRCache();
+    ir = file.getIRCache();
     if(Pep::isTrapMap[Pep::decodeMnemonic[ir]]) {
         build += generateTrapFrame(state);
     }
@@ -74,7 +77,7 @@ QString FullMicrocodedMemoizer::memoize()
     return build;
 }
 
-QString FullMicrocodedMemoizer::finalStatistics()
+QString IsaCpuMemoizer::finalStatistics()
 {
     Enu::EMnemonic mnemon = Enu::EMnemonic::STOP;
     QList<Enu::EMnemonic> mnemonList = QList<Enu::EMnemonic>();
@@ -103,55 +106,55 @@ QString FullMicrocodedMemoizer::finalStatistics()
 }
 
 // Properly formats a number as a 4 char hex
-QString FullMicrocodedMemoizer::formatNum(quint16 number)
+QString IsaCpuMemoizer::formatNum(quint16 number)
 {
     return QString("%1").arg(QString::number(number,16),4,'0').toUpper();
 }
 
 // Properly format a number as 2 char hex
-QString FullMicrocodedMemoizer::formatNum(quint8 number)
+QString IsaCpuMemoizer::formatNum(quint8 number)
 {
     return QString("%1").arg(QString::number(number,16),2,'0').toUpper();
 }
 
 // Properly format a 16 bit address
-QString FullMicrocodedMemoizer::formatAddress(quint16 address)
+QString IsaCpuMemoizer::formatAddress(quint16 address)
 {
     return "0x"+formatNum(address);
 }
 
 // Convert a mnemonic into it's string
-QString FullMicrocodedMemoizer::mnemonDecode(quint8 instrSpec)
+QString IsaCpuMemoizer::mnemonDecode(quint8 instrSpec)
 {
     static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
     return QString(metaenum.valueToKey((int)Pep::decodeMnemonic[instrSpec])).toLower();
 }
 
 // Convert a mnemonic into its string
-QString FullMicrocodedMemoizer::mnemonDecode(Enu::EMnemonic instrSpec)
+QString IsaCpuMemoizer::mnemonDecode(Enu::EMnemonic instrSpec)
 {
     static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
     return QString(metaenum.valueToKey((int)instrSpec)).toLower();
 }
 
-QString FullMicrocodedMemoizer::formatIS(quint8 instrSpec)
+QString IsaCpuMemoizer::formatIS(quint8 instrSpec)
 {
     return QString(mnemonDecode(instrSpec)).leftJustified(inst_size,' ');
 }
 
-QString FullMicrocodedMemoizer::formatUnary(quint8 instrSpec)
+QString IsaCpuMemoizer::formatUnary(quint8 instrSpec)
 {
     return formatIS(instrSpec).leftJustified(inst_size+max_symLen+2+4);
 }
 
-QString FullMicrocodedMemoizer::formatNonUnary(quint8 instrSpec,quint16 oprSpec)
+QString IsaCpuMemoizer::formatNonUnary(quint8 instrSpec,quint16 oprSpec)
 {
     return formatIS(instrSpec).leftJustified(inst_size) %
             QString(attempSymOprReplace(oprSpec)).rightJustified(max_symLen) %
             ", " % Pep::intToAddrMode(Pep::decodeAddrMode[instrSpec]).leftJustified(4,' ');
 }
 
-QString FullMicrocodedMemoizer::formatInstr(quint8 instrSpec,quint16 oprSpec)
+QString IsaCpuMemoizer::formatInstr(quint8 instrSpec,quint16 oprSpec)
 {
     if(Pep::isUnaryMap[Pep::decodeMnemonic[instrSpec]])
     {
@@ -163,7 +166,7 @@ QString FullMicrocodedMemoizer::formatInstr(quint8 instrSpec,quint16 oprSpec)
     }
 }
 
-QString FullMicrocodedMemoizer::generateStackFrame(CPUState&, bool enter)
+QString IsaCpuMemoizer::generateStackFrame(CPUState&, bool enter)
 {
     return "";
     if(enter) {
@@ -174,7 +177,7 @@ QString FullMicrocodedMemoizer::generateStackFrame(CPUState&, bool enter)
     }
 }
 
-QString FullMicrocodedMemoizer::generateTrapFrame(CPUState&, bool enter)
+QString IsaCpuMemoizer::generateTrapFrame(CPUState&, bool enter)
 {
     return "";
     if(enter) {
@@ -185,19 +188,19 @@ QString FullMicrocodedMemoizer::generateTrapFrame(CPUState&, bool enter)
     }
 }
 
-QString FullMicrocodedMemoizer::attempSymOprReplace(quint16 number)
+QString IsaCpuMemoizer::attempSymOprReplace(quint16 number)
 {
     if(OSSymTable.count(number) == 1) return OSSymTable.find(number).value();
     else return formatNum(number);
 }
 
-QString FullMicrocodedMemoizer::attempSymAddrReplace(quint16 number)
+QString IsaCpuMemoizer::attempSymAddrReplace(quint16 number)
 {
     if(OSSymTable.count(number) == 1) return OSSymTable.find(number).value();
     else return formatAddress(number);
 }
 
-void FullMicrocodedMemoizer::loadSymbols()
+void IsaCpuMemoizer::loadSymbols()
 {
     QString  osFileString;
     //In the future, have a switch between loading the aligned and unaligned code
@@ -219,45 +222,3 @@ void FullMicrocodedMemoizer::loadSymbols()
     oper_addr_size = msylen+3;
     max_symLen = msylen;
 }
-
-/*QString generateLine()
-//{
-    //QString out="";
-    //1 is address of instruction, 2 is inst specifier, 3 is optional oprsndspc + , + addr.
-    //4 is data block (AXSP) for all NZVCS for BR, PCB & stack tracefor call
-    //const QString format("0x%1: %2 %3 %4");
-    //QString RHS ="";
-
-
-
-    if(Pep::isUnaryMap[Pep::decodeMnemonic[cur.ir]])
-    {
-        if(Pep::isTrapMap[Pep::decodeMnemonic[cur.ir]])
-        {
-            out.append(trapFramepu.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
-        }
-        else if(Pep::decodeMnemonic[cur.ir] == Enu::EMnemonic::RET)
-        {
-            out.append(stackFramepo.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
-        }
-        else if(Pep::decodeMnemonic[cur.ir] == Enu::EMnemonic::RETTR)
-        {
-            out.append(trapFramepo.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
-        }
-        //out.append(format.arg(fmtadr(cur.pc),fmtis(cur.ir),fmtu(),RHS));
-    //}
-    else
-    {
-        if(cur.ir>=36 && cur.ir<=37)
-        {
-            out.append(stackFramepu.arg(fhnum(cur.pc),fhnum(cur.sp),QString::number(cur.callDepth)));
-        }
-        else if(cur.ir>=20 && cur.ir <=35)
-        {
-            RHS = "NZVCS="+QString::number(cur.nzvcs,2).leftJustified(5,'0');
-        }
-        out.append(format.arg(fmtadr(cur.pc),fmtis(cur.ir),fmtn(cur.OS,cur.ir),RHS));
-    }
-    //if(1); //If call, ret, trp, rettr generate generateSF
-    //return out;
-//}*/

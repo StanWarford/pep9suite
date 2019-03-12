@@ -1,28 +1,19 @@
-#ifndef FULLMICROCODEMEMOIZER_H
-#define FULLMICROCODEMEMOIZER_H
-
-#include <QString>
+#ifndef ISACPUMEMOIZER_H
+#define ISACPUMEMOIZER_H
+#include <QtCore>
 #include "enu.h"
-class CPUControlSection;
 
-struct callStack
+class IsaCpu;
+class IsaCpuMemoizer
 {
-    quint16 greatest_SP = 0, least_SP = 0;
-};
-
-struct CPUState
-{
-    QVector<quint32> instructionsCalled = QVector<quint32>(256, 0);
-  //QVector<callStack> call_tracer;
-};
-
-
-class FullMicrocodedCPU;
-class FullMicrocodedMemoizer
-{
+    struct CPUState
+    {
+        QVector<quint32> instructionsCalled = QVector<quint32>(256, 0);
+      //QVector<callStack> call_tracer;
+    };
 public:
-    explicit FullMicrocodedMemoizer(FullMicrocodedCPU& item);
-
+    explicit IsaCpuMemoizer(IsaCpu& cpu);
+    ~IsaCpuMemoizer();
     void clear();
     void storeStateInstrEnd();
     void storeStateInstrStart();
@@ -30,7 +21,7 @@ public:
     QString finalStatistics();
 
 private:
-    FullMicrocodedCPU& cpu;
+    IsaCpu& cpu;
     CPUState state;
 
     QMultiMap<quint16, QString> OSSymTable;
@@ -50,4 +41,4 @@ private:
     void loadSymbols();
 };
 
-#endif // FULLMICROCODEMEMOIZER_H
+#endif // ISACPUMEMOIZER_H

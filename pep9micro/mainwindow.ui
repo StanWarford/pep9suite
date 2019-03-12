@@ -325,28 +325,11 @@
     <addaction name="actionDebug_Remove_All_Assembly_Breakpoints"/>
     <addaction name="actionDebug_Remove_All_Microcode_Breakpoints"/>
    </widget>
-   <widget class="QMenu" name="menuStatistics">
-    <property name="title">
-     <string>Statistics</string>
-    </property>
-    <widget class="QMenu" name="menuDebug_Level">
-     <property name="title">
-      <string>Debug Level</string>
-     </property>
-     <addaction name="separator"/>
-     <addaction name="separator"/>
-     <addaction name="actionStatistics_Level_All"/>
-     <addaction name="actionStatistics_Level_Minimal"/>
-     <addaction name="actionStatistics_Level_None"/>
-    </widget>
-    <addaction name="menuDebug_Level"/>
-   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuBuild"/>
    <addaction name="menuDebug_2"/>
    <addaction name="menuSystem"/>
-   <addaction name="menuStatistics"/>
    <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -1009,30 +992,6 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
-   </property>
-  </action>
-  <action name="actionStatistics_Level_All">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>All</string>
-   </property>
-  </action>
-  <action name="actionStatistics_Level_Minimal">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Minimal</string>
-   </property>
-  </action>
-  <action name="actionStatistics_Level_None">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>None</string>
    </property>
   </action>
   <action name="actionDebug_Remove_All_Assembly_Breakpoints">

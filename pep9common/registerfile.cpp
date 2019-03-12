@@ -58,6 +58,12 @@ void RegisterFile::writeStatusBit(Enu::EStatusBit bit, bool val)
     statusBitsCurrent = static_cast<quint8>((statusBitsCurrent & ~mask) | ((val ? 1 : 0) * mask));
 }
 
+void RegisterFile::writeStatusBits(quint8 bits)
+{
+    // Only keep SNZVC positions
+    this->statusBitsCurrent = bits & 0b11111;
+}
+
 void RegisterFile::clearStatusBits()
 {
    statusBitsStart = 0;

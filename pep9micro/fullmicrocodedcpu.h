@@ -30,8 +30,6 @@ public:
     bool stoppedForBreakpoint() const noexcept override;
     QString getErrorMessage() const noexcept override;
     bool hadErrorOnStep() const noexcept override;
-    Enu::DebugLevels getDebugLevel() const noexcept override;
-    void setDebugLevel(Enu::DebugLevels level) override;
 
     // InterfaceMCCPU interface
     void setCPUType(Enu::CPUType type)  override;

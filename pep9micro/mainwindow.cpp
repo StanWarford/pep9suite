@@ -65,6 +65,7 @@
 #include "microobjectcodepane.h"
 #include "updatechecker.h"
 #include "redefinemnemonicsdialog.h"
+#include "registerfile.h"
 
 //WIP include
 #include "fullmicrocodedcpu.h"
@@ -79,7 +80,7 @@ MainWindow::MainWindow(QWidget *parent) :
     updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
     memDevice(new MainMemory(this)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), memDevice)),
     dataSection(controlSection->getDataSection()), programManager(AsmProgramManager::getInstance()),
-    statisticsLevelsGroup(new QActionGroup(this)), inDarkMode(false)
+    inDarkMode(false)
 {
     // Initialize all global maps.
     Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, true);
@@ -107,12 +108,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->microObjectCodePane->init(controlSection, true);
     ui->asmCpuPane->init(controlSection);
     redefineMnemonicsDialog->init(false);
-
-    // Create button group to hold statistics items
-    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_All);
-    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_Minimal);
-    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_None);
-    statisticsLevelsGroup->setExclusive(true);
 
     // Create & connect all dialogs.
     helpDialog = new HelpDialog(this);
@@ -439,10 +434,6 @@ void MainWindow::readSettings()
     bool tempDarkMode = settings.value("inDarkMode", false).toBool();
     ui->actionDark_Mode->setChecked(tempDarkMode);
     on_actionDark_Mode_triggered();
-    quint16 debuggerLevel = settings.value("debugLevel", 1).toInt();
-    if(debuggerLevel >= static_cast<quint16>(Enu::DebugLevels::END)) debuggerLevel = static_cast<int>(Enu::DebugLevels::DEFAULT);
-    controlSection->setDebugLevel(static_cast<Enu::DebugLevels>(debuggerLevel));
-    setCheckedFromDebugLevel(static_cast<Enu::DebugLevels>(debuggerLevel));
 
     // Restore last used split in assembly code pane
     val = settings.beginReadArray("codePaneSplit");
@@ -469,7 +460,6 @@ void MainWindow::writeSettings()
     settings.setValue("font", codeFont);
     settings.setValue("filePath", curPath);
     settings.setValue("inDarkMode", inDarkMode);
-    settings.setValue("debugLevel", (int)controlSection->getDebugLevel());
     settings.beginWriteArray("codePaneSplit", 3);
     QList<int> temp = ui->codeSplitter->sizes();
     for(int it = 0; it < 3; it++) {
@@ -624,6 +614,7 @@ void MainWindow::loadFile(const QString &fileName, Enu::EPane which)
         ui->microcodeWidget->setMicrocode(in.readAll());
         ui->microcodeWidget->setModifiedFalse();
         break;
+
     default:
         // Provided a default - even though it should never occur -
         // to silence compiler warnings.
@@ -731,10 +722,10 @@ bool MainWindow::saveAsFile(Enu::EPane which)
     const QString *usingTitle;
 
     // Patterns for source code files.
-    static const QString sourceTypes = "Pep9 Source (*.pep *.txt)";
-    static const QString objectTypes = "Pep9 Object (*.pepo *.txt)";
-    static const QString listingTypes = "Pep9 Listing (*.pepl)";
-    static const QString microTypes = "Pep9 Microcode (*.pepcpu *.txt)";
+    static const QString sourceTypes = "Pep/9 Source (*.pep *.txt)";
+    static const QString objectTypes = "Pep/9 Object (*.pepo *.txt)";
+    static const QString listingTypes = "Pep/9 Listing (*.pepl)";
+    static const QString microTypes = "Pep/9 Microcode (*.pepcpu *.txt)";
     const QString *usingTypes;
 
     /*
@@ -978,8 +969,8 @@ void MainWindow::set_Obj_Listing_filenames_from_Source()
     // Otherwise, set the filenames to empty.
     QFileInfo fileInfo(ui->AsmSourceCodeWidgetPane->getCurrentFile());
     QString object, listing;
+    // If there is no file name, then empty file name of listing and object code panes.
     if(fileInfo.fileName().isEmpty()){
-#pragma message("TODO: Determine title of object and listing panes")
         object = "";
         listing = "";
     }
@@ -1070,11 +1061,6 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionDebug_Step_Out_Assembler->setEnabled(which & DebugButtons::STEP_OUT_ASM);
     ui->actionDebug_Single_Step_Microcode->setEnabled(which & DebugButtons::SINGLE_STEP_MICRO);
 
-    // Statistics Actions
-    ui->actionStatistics_Level_All->setEnabled(which & DebugButtons::STATS_LEVELS);
-    ui->actionStatistics_Level_Minimal->setEnabled(which & DebugButtons::STATS_LEVELS);
-    ui->actionStatistics_Level_None->setEnabled(which & DebugButtons::STATS_LEVELS);
-
     // File open & new actions
     ui->actionFile_New_Asm->setEnabled(which & DebugButtons::OPEN_NEW);
     ui->actionFile_New_Microcode->setEnabled(which & DebugButtons::OPEN_NEW);
@@ -1144,22 +1130,6 @@ bool MainWindow::initializeSimulation()
     ui->ioWidget->batchInputToBuffer();
     // No longer emits simulationStarted(), as this could trigger extra screen painting that is unwanted.
     return true;
-}
-
-void MainWindow::setCheckedFromDebugLevel(Enu::DebugLevels level)
-{
-    switch(level)
-    {
-    case Enu::DebugLevels::ALL:
-        ui->actionStatistics_Level_All->setChecked(true);
-        break;
-    case Enu::DebugLevels::MINIMAL:
-        ui->actionStatistics_Level_Minimal->setChecked(true);
-        break;
-    case Enu::DebugLevels::NONE:
-        ui->actionStatistics_Level_None->setChecked(true);
-        break;
-    }
 }
 
 void MainWindow::onUpdateCheck(int val)
@@ -1339,6 +1309,9 @@ void MainWindow::on_actionEdit_Copy_triggered()
     else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
         ui->AsmObjectCodeWidgetPane->copy();
     }
+    else if(ui->AsmListingWidgetPane->hasFocus()) {
+        ui->AsmListingWidgetPane->copy();
+    }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->ioWidget->copy();
     }
@@ -1432,14 +1405,12 @@ bool MainWindow::on_ActionBuild_Assemble_triggered()
 {
     loadOperatingSystem();
     if(ui->AsmSourceCodeWidgetPane->assemble()){
-#pragma message ("TODO: cancel run on burn and reset prog state")
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
         ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
                                                       ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
         ui->asmListingTracePane->onRemoveAllBreakpoints();
         controlSection->breakpointsRemoveAll();
         ui->asmListingTracePane->setProgram(ui->AsmSourceCodeWidgetPane->getAsmProgram());
-        //ui->memoryTracePane->setMemoryTrace();
         set_Obj_Listing_filenames_from_Source();
         loadObjectCodeProgram();
         ui->statusBar->showMessage("Assembly succeeded", 4000);
@@ -1529,7 +1500,7 @@ void MainWindow::handleDebugButtons()
     {
     case DebugState::DISABLED:
         enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
-        enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO | DebugButtons::STATS_LEVELS;
+        enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO;
         enabledButtons |= DebugButtons::OPEN_NEW | DebugButtons::INSTALL_OS;
         break;
     case DebugState::RUN:
@@ -1561,6 +1532,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_triggered()
     if(!on_ActionBuild_Assemble_triggered()) return false;
     loadObjectCodeProgram();
     loadOperatingSystem();
+
     return on_actionDebug_Start_Debugging_Object_triggered();
 
 }
@@ -1594,8 +1566,22 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
 
 bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
 {
-#pragma message("TODO: Implement 'Start Debugging Loader' once the operating system is implemented")
-    return false;
+    if(!on_ActionBuild_Assemble_triggered()) return false;
+    memDevice->clearMemory();
+    loadOperatingSystem();
+    // Copy object code to batch input pane and make it the active input pane
+    ui->ioWidget->setBatchInput(ui->AsmObjectCodeWidgetPane->toPlainText());
+    ui->ioWidget->setActivePane(Enu::EPane::EBatchIO);
+    if(!on_actionDebug_Start_Debugging_Object_triggered()) return false;
+    quint16 sp, pc;
+    memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 9, sp);
+    memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 3, pc);
+    // Write SP, PC to simulator
+    controlSection->getDataSection()->getRegisterBank().writePCStart(pc);
+    controlSection->getDataSection()->getRegisterBank().writeRegisterWord(Enu::CPURegisters::PC, pc);
+    controlSection->getDataSection()->getRegisterBank().writeRegisterWord(Enu::CPURegisters::SP, sp);
+    emit simulationUpdate();
+    return true;
 }
 
 void MainWindow::on_actionDebug_Stop_Debugging_triggered()
@@ -1771,21 +1757,6 @@ void MainWindow::redefine_Mnemonics_closed()
     ui->AsmSourceCodeWidgetPane->rebuildHighlightingRules();
     ui->asmListingTracePane->rebuildHighlightingRules();
     ui->AsmListingWidgetPane->rebuildHighlightingRules();
-}
-
-void MainWindow::on_actionStatistics_Level_All_triggered()
-{
-    if(ui->actionStatistics_Level_All->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::ALL);
-}
-
-void MainWindow::on_actionStatistics_Level_Minimal_triggered()
-{
-    if(ui->actionStatistics_Level_Minimal->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::MINIMAL);
-}
-
-void MainWindow::on_actionStatistics_Level_None_triggered()
-{
-    if(ui->actionStatistics_Level_None->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::NONE);
 }
 
 void MainWindow::onSimulationFinished()
@@ -1974,6 +1945,8 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
         ui->AsmListingWidgetPane->highlightOnFocus();
     else if(ui->asmListingTracePane->isAncestorOf(oldFocus))
         ui->asmListingTracePane->highlightOnFocus();
+    else if(ui->asmCpuPane->isAncestorOf(oldFocus))
+        ui->asmCpuPane->highlightOnFocus();
 
     int which = 0;
     if (ui->microcodeWidget->hasFocus()) {
@@ -1988,6 +1961,10 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     else if (ui->cpuWidget->hasFocus()) {
         which = 0;
         ui->cpuWidget->highlightOnFocus();
+    }
+    else if (ui->asmCpuPane->hasFocus()) {
+        which = 0;
+        ui->asmCpuPane->highlightOnFocus();
     }
     else if (ui->microObjectCodePane->hasFocus()) {
         which = Enu::EditButton::COPY;
@@ -2044,6 +2021,9 @@ void MainWindow::setUndoability(bool b)
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->actionEdit_Undo->setEnabled(b);
     }
+    else if (ui->asmCpuPane->hasFocus()) {
+        ui->actionEdit_Undo->setEnabled(false);
+    }
 }
 
 void MainWindow::setRedoability(bool b)
@@ -2068,6 +2048,9 @@ void MainWindow::setRedoability(bool b)
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->actionEdit_Redo->setEnabled(b);
+    }
+    else if (ui->asmCpuPane->hasFocus()) {
+        ui->actionEdit_Redo->setEnabled(false);
     }
 }
 

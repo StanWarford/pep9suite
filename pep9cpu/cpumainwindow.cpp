@@ -62,7 +62,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow), debugState(DebugState::DISABLED), updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
     memDevice(new MainMemory(this)), controlSection(new PartialMicrocodedCPU(Enu::CPUType::OneByteDataBus, memDevice)),
     dataSection(controlSection->getDataSection()),
-    statisticsLevelsGroup(new QActionGroup(this)), cpuModesGroup(new QActionGroup(this)), inDarkMode(false)
+    cpuModesGroup(new QActionGroup(this)), inDarkMode(false)
 {
     // Initialize all global maps.
     Pep::initMicroEnumMnemonMaps(Enu::CPUType::OneByteDataBus, false);
@@ -85,12 +85,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
     ui->microcodeWidget->init(controlSection, dataSection, memDevice, false);
     ui->microobjectWidget->init(controlSection, false);
-
-    // Create button group to hold statistics items
-    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_All);
-    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_Minimal);
-    statisticsLevelsGroup->addAction(ui->actionStatistics_Level_None);
-    statisticsLevelsGroup->setExclusive(true);
 
     // Create button group to hold CPU types
     cpuModesGroup->addAction(ui->actionSystem_One_Byte);
@@ -325,10 +319,6 @@ void MainWindow::readSettings()
     ui->actionDark_Mode->setChecked(tempDarkMode);
     on_actionDark_Mode_triggered();
     quint16 debuggerLevel = settings.value("debugLevel", 1).toInt();
-    if(debuggerLevel >= static_cast<quint16>(Enu::DebugLevels::END)) debuggerLevel = static_cast<int>(Enu::DebugLevels::DEFAULT);
-    controlSection->setDebugLevel(static_cast<Enu::DebugLevels>(debuggerLevel));
-    setCheckedFromDebugLevel(static_cast<Enu::DebugLevels>(debuggerLevel));
-
 
     settings.endGroup();
 
@@ -344,7 +334,6 @@ void MainWindow::writeSettings()
     settings.setValue("font", codeFont);
     settings.setValue("filePath", curPath);
     settings.setValue("inDarkMode", inDarkMode);
-    settings.setValue("debugLevel", (int)controlSection->getDebugLevel());
     settings.endGroup();
     //Handle writing for all children
     ui->microcodeWidget->writeSettings(settings);
@@ -450,7 +439,7 @@ bool MainWindow::saveAsFile()
 
 
     // Patterns for source code files.
-    static const QString microTypes = "Pep9 Microcode (*.pepcpu *.txt)";
+    static const QString microTypes = "Pep/9 Microcode (*.pepcpu *.txt)";
 
     // Pick the filename
     if(ui->microcodeWidget->getCurrentFile().fileName().isEmpty()) {
@@ -536,11 +525,6 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionSystem_One_Byte->setEnabled(which & DebugButtons::SWITCH_BUSES);
     ui->actionSystem_Two_Byte->setEnabled(which & DebugButtons::SWITCH_BUSES);
 
-    // Statistics Actions
-    ui->actionStatistics_Level_All->setEnabled(which & DebugButtons::STATS_LEVELS);
-    ui->actionStatistics_Level_Minimal->setEnabled(which & DebugButtons::STATS_LEVELS);
-    ui->actionStatistics_Level_None->setEnabled(which & DebugButtons::STATS_LEVELS);
-
     //File open & new actions
     ui->actionFile_New_Microcode->setEnabled(which & DebugButtons::OPEN_NEW);
     ui->actionFile_Open->setEnabled(which & DebugButtons::OPEN_NEW);
@@ -593,22 +577,6 @@ bool MainWindow::initializeSimulation()
     // Don't allow the microcode pane to be edited while the program is running
     ui->microcodeWidget->setReadOnly(true);
     return true;
-}
-
-void MainWindow::setCheckedFromDebugLevel(Enu::DebugLevels level)
-{
-    switch(level)
-    {
-    case Enu::DebugLevels::ALL:
-        ui->actionStatistics_Level_All->setChecked(true);
-        break;
-    case Enu::DebugLevels::MINIMAL:
-        ui->actionStatistics_Level_Minimal->setChecked(true);
-        break;
-    case Enu::DebugLevels::NONE:
-        ui->actionStatistics_Level_None->setChecked(true);
-        break;
-    }
 }
 
 void MainWindow::onUpdateCheck(int val)
@@ -791,7 +759,7 @@ void MainWindow::handleDebugButtons()
     {
     case DebugState::DISABLED:
         enabledButtons = DebugButtons::RUN| DebugButtons::DEBUG;
-        enabledButtons |= DebugButtons::BUILD_MICRO | DebugButtons::STATS_LEVELS;
+        enabledButtons |= DebugButtons::BUILD_MICRO;
         enabledButtons |= DebugButtons::OPEN_NEW | DebugButtons::SWITCH_BUSES;
         break;
     case DebugState::RUN:
@@ -910,21 +878,6 @@ void MainWindow::on_actionSystem_Two_Byte_triggered()
     ui->microobjectWidget->initCPUModelState();
     ui->microcodeWidget->onCPUTypeChanged(Enu::TwoByteDataBus);
     ui->cpuWidget->onCPUTypeChanged();
-}
-
-void MainWindow::on_actionStatistics_Level_All_triggered()
-{
-    if(ui->actionStatistics_Level_All->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::ALL);
-}
-
-void MainWindow::on_actionStatistics_Level_Minimal_triggered()
-{
-    if(ui->actionStatistics_Level_Minimal->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::MINIMAL);
-}
-
-void MainWindow::on_actionStatistics_Level_None_triggered()
-{
-    if(ui->actionStatistics_Level_None->isEnabled()) controlSection->setDebugLevel(Enu::DebugLevels::NONE);
 }
 
 void MainWindow::onSimulationFinished()

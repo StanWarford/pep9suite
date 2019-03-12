@@ -1,9 +1,10 @@
 // File: amemorychip.h
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
 
-    Copyright (C) 2018  Matthew McRaven, Pepperdine University
+    Copyright (C) 2018  J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,11 +54,12 @@ public:
  * AMemoryChip represents a memory chip containing a number of bytes that is located in main memory.
  *
  * Each chip is inserted at a memory location starting at baseAddress, and represents a
- * contiguous block of memory up to baseAddress+size-1.
+ * contiguous block of memory up to baseAddress + size - 1.
  *
  * Each chip is capable of input, output, input-output, or nothing.
  * If an illegal operation is performed (e.g. writing to a ROM chip) a bad_chip_operation is thrown
- * If an out of bounds access occurs, a range_error is thrown
+ * If an out of bounds access occurs (e.g. writing to an offset of 0x80 on a
+ * chip of length 0x60), a range_error is thrown.
  *
  * To access a value at an address, calculate the offset of the target address from the base address,
  * and pass this offset to the target read/write function. An example:
@@ -81,6 +83,7 @@ public:
     };
 
     // Kinds of IO allowed by the chip
+    // A chip return's a selection of these these or'ed together.
     enum IOFunctions: int {
         NONE = 0, READ = 1<<0, WRITE = 1<<1, MEMORY_MAPPED = 1<<2
     };

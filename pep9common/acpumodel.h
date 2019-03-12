@@ -1,8 +1,10 @@
+// File: acpumodel.h
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
 
-    Copyright (C) 2018  Matthew McRaven, Pepperdine University
+    Copyright (C) 2018  J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,9 +47,16 @@ public:
     // Returns a #non-owning# pointer to the memory device being used by the CPU
     AMemoryDevice* getMemoryDevice() noexcept;
     const AMemoryDevice* getMemoryDevice() const noexcept;
+    // Change the memory device used by the simulator. Will be useful in switching between
+    // a cache-augmented CPU.
     void setMemoryDevice(QSharedPointer<AMemoryDevice> newDevice);
+    // Returns if the simulation has stopped executing, either due to termination of the user program
+    // or due to an error in execution.
     bool getExecutionFinished() const noexcept;
+    // Returns if the simulator is currently running.
     bool getInSimulation() const noexcept;
+    // Returns if the simulator is currently running & was started in debug mode (that is,
+    // the simulator is capable of hitting breakpoints).
     bool getInDebug() const noexcept;
 
     // Return the depth of the call stack (#calls+#traps-#ret-#rettr)
@@ -64,16 +73,15 @@ public:
      */
     virtual quint8 getCPURegByteCurrent(Enu::CPURegisters reg) const = 0;
     virtual quint16 getCPURegWordCurrent(Enu::CPURegisters reg) const = 0;
-    // Return the value of a register at the start of an instruction
+    // Return the value of a register at the start of an instruction.
     virtual quint8 getCPURegByteStart(Enu::CPURegisters reg) const = 0;
     virtual quint16 getCPURegWordStart(Enu::CPURegisters reg) const = 0;
-    // CPU can be debugged with multiple levels of diagnostic information
-    virtual Enu::DebugLevels getDebugLevel() const noexcept = 0;
-    virtual void setDebugLevel(Enu::DebugLevels level) = 0;
     // Did any part of the CPU simulation cause an error?
     virtual QString getErrorMessage() const noexcept = 0;
     virtual bool hadErrorOnStep() const noexcept = 0;
 
+    // Return if the simulation's execution is currently halted
+    // because of a breakpoint.
     virtual bool stoppedForBreakpoint() const noexcept = 0;
 
 public slots:
@@ -92,6 +100,7 @@ public slots:
     virtual bool onRun() = 0;
     // Wipe all registers & memory, but KEEP loaded microprograms & breakpoints.
     virtual void onResetCPU() = 0;
+    // Wipe all values stored in the memory device backing the CPU.
     virtual void onClearMemory();
 
 signals:
@@ -105,6 +114,7 @@ protected:
     int callDepth;
     bool inDebug, inSimulation, executionFinished;
     mutable bool controlError;
+    //
     mutable QString errorMessage;
 };
 

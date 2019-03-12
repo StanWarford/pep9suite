@@ -91,7 +91,7 @@ private:
     HelpDialog *helpDialog;
     AboutPep *aboutPepDialog;
 
-    QActionGroup* statisticsLevelsGroup, *cpuModesGroup;
+    QActionGroup *cpuModesGroup;
 
     // Disconnect or reconnect events that notify views of changes in model,
     // Disconnecting these events allow for faster execution when running or continuing.
@@ -125,7 +125,7 @@ private:
         static const int RUN = 1<<0, DEBUG = 1<<1,
         INTERRUPT = 1<<2, CONTINUE = 1<<3, RESTART = 1<<4, STOP = 1<<5,
         SINGLE_STEP_MICRO = 1<<6, BUILD_MICRO = 1<<7,
-        STATS_LEVELS = 1<<8, OPEN_NEW = 1<<9, SWITCH_BUSES = 1<<10;
+        OPEN_NEW = 1<<9, SWITCH_BUSES = 1<<10;
     };
 
     // Which debug buttons to enable, based on integer cracking of the above struct. It is not strongly typed with an enum, because all of the casting
@@ -139,8 +139,6 @@ private:
     // Update the views and initialize the models in a way that can be used for debugging or running.
     bool initializeSimulation();
 
-    // Set the appropriate checkboxes in teh statistics tab based on a debug level
-    void setCheckedFromDebugLevel(Enu::DebugLevels level);
 private slots:
     // Update Check
     void onUpdateCheck(int val);
@@ -189,11 +187,6 @@ private slots:
     void on_actionSystem_Clear_Memory_triggered();
     void on_actionSystem_One_Byte_triggered();
     void on_actionSystem_Two_Byte_triggered();
-
-    // Statistics Events
-    void on_actionStatistics_Level_All_triggered();
-    void on_actionStatistics_Level_Minimal_triggered();
-    void on_actionStatistics_Level_None_triggered();
 
     // View
     void on_actionDark_Mode_triggered();

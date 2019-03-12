@@ -18,7 +18,6 @@ FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPo
     memoizer = new FullMicrocodedMemoizer(*this);
     data = new NewCPUDataSection(Enu::CPUType::TwoByteDataBus, memoryDev, parent);
     dataShared = QSharedPointer<NewCPUDataSection>(data);
-    setDebugLevel(Enu::DebugLevels::ALL);
 }
 
 FullMicrocodedCPU::~FullMicrocodedCPU()
@@ -74,7 +73,6 @@ void FullMicrocodedCPU::initCPU()
     #pragma message("BAD ACCESS??")
     data->onSetRegisterByte(4,0xFB);
     data->onSetRegisterByte(5,0x82);
-#pragma message("TODO: Make sure this where registers should be flattened")
     data->getRegisterBank().flattenFile();
 }
 
@@ -94,16 +92,6 @@ QString FullMicrocodedCPU::getErrorMessage() const noexcept
 bool FullMicrocodedCPU::hadErrorOnStep() const noexcept
 {
     return controlError || data->hadErrorOnStep() || memory->hadError();
-}
-
-Enu::DebugLevels FullMicrocodedCPU::getDebugLevel() const noexcept
-{
-    return memoizer->getDebugLevel();
-}
-
-void FullMicrocodedCPU::setDebugLevel(Enu::DebugLevels level)
-{
-    memoizer->setDebugLevel(level);
 }
 
 void FullMicrocodedCPU::setCPUType(Enu::CPUType)
@@ -291,9 +279,7 @@ void FullMicrocodedCPU::onMCStep()
         updateAtInstructionEnd();
         emit asmInstructionFinished();
         asmInstructionCounter++;
-        /*if(memoizer->getDebugLevel() != Enu::DebugLevels::NONE) {
-            qDebug().noquote().nospace() << memoizer->memoize();
-        }*/
+        qDebug().noquote().nospace() << memoizer->memoize();
         data->getRegisterBank().flattenFile();
         // If execution finished on this instruction, then restore original starting program counter,
         // as the instruction at the current program counter will not be executed.

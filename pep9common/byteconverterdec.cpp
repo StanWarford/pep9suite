@@ -1,7 +1,8 @@
 // File: byteconverterdec.cpp
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
 
     Copyright (C) 2010  J. Stanley Warford, Pepperdine University
 
