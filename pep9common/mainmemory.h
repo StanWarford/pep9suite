@@ -22,15 +22,26 @@
 #ifndef MAINMEMORY_H
 #define MAINMEMORY_H
 
-#include "amemorydevice.h"
-
 #include <QMap>
 #include <QObject>
 #include <QSharedPointer>
 #include <QVector>
 
+#include "amemorychip.h"
+#include "amemorydevice.h"
 class AMemoryChip;
 class NilChip;
+
+/*
+ * Structure that specifies the locatiocation & size
+ * of a chip to be inserted into main memory.
+ */
+struct MemoryChipSpec {
+    AMemoryChip::ChipTypes type;
+    quint16 startAddr;
+    quint32 size;
+};
+
 class MainMemory : public AMemoryDevice
 {
     Q_OBJECT
@@ -49,6 +60,7 @@ class MainMemory : public AMemoryDevice
     QMap<AMemoryChip*, QSharedPointer<AMemoryChip>> ptrLookup;
     // Buffer input for particular addresses (needed for batch character input).
     mutable QMap<quint16, QByteArray> inputBuffer;
+
 public:
     explicit MainMemory(QObject* parent = nullptr) noexcept;
     virtual ~MainMemory() override;
@@ -56,18 +68,38 @@ public:
     // AMemoryDevice interface
     quint32 size() const noexcept override;
     void insertChip(QSharedPointer<AMemoryChip> chip, quint16 address);
+    // Return the chip containing address. Will return nullptr
+    // if the address is out-of-range of the current memory space (e.g. address
+    // 0xff16 when only 0x8000 bytes of memory are installed).
     QSharedPointer<AMemoryChip> chipAt(quint16 address) noexcept;
     QSharedPointer<const AMemoryChip> chipAt(quint16 address) const noexcept;
-    // Remove the chip containing address and return it.
+
+
+    // Configure this memory device as described by the specifications in the
+    // specList. Will attempt to reuse the currently installed memory chips,
+    // and will only allocate new chips if absolutely necessary.
+    // Currently installed chips that are not re-used will be eligible for
+    // automatic garbage collection (via refrence counting in shared pointers).
+    void constructMemoryDevice(QList<MemoryChipSpec> specList);
+
+    // Remove the chip containing address and return it. Will return nullptr
+    // if the address is out-of-range of the current memory space (e.g. address
+    // 0xff16 when only 0x8000 bytes of memory are installed).
     QSharedPointer<AMemoryChip> removeChip(quint16 address);
+    // Uninstall all chips from memory, and return them as a vector.
+    // This will leave memory with no readable or writable addresses.
     QVector<QSharedPointer<AMemoryChip>> removeAllChips();
-    // If multiple chip insertions / deletions will be performed, it is possible to prevent
-    // the address cache from being updated spuriously for improved performance.
+
+    // If multiple chip insertions / deletions will be performed, it is possible
+    // to prevent the address cache from being updated spuriously for improved
+    // performance.
     void autoUpdateMemoryMap(bool update) noexcept;
     void loadValues(quint16 address, QVector<quint8> values) noexcept;
 
 public slots:
+    // Set the values in all memory chips to 0, clear all outstanding IO operations.
     void clearMemory() override;
+
     // Main memory doesn't need to provide dynamic aging of any memory contents,
     // so these methods do nothing.
     void onCycleStarted() override;

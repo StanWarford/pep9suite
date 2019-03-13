@@ -131,6 +131,16 @@ InputChip::~InputChip()
 
 }
 
+void InputChip::resize(quint32 newSize) noexcept
+{
+    this->size = newSize;
+    memory.resize(static_cast<qint32>(size));
+    waiting.resize(static_cast<qint32>(size));
+    requestCanceled.resize(static_cast<qint32>(size));
+    requestAborted.resize(static_cast<qint32>(size));
+    clear(); // Reset all values to false / 0.
+}
+
 AMemoryChip::IOFunctions InputChip::getIOFunctions() const noexcept
 {
     return static_cast<AMemoryChip::IOFunctions>(  static_cast<int>(AMemoryChip::READ)
@@ -233,6 +243,13 @@ OutputChip::~OutputChip()
 
 }
 
+void OutputChip::resize(quint32 newSize) noexcept
+{
+    this->size = newSize;
+    memory.resize(static_cast<qint32>(size));
+    clear(); // Reset all values to false / 0.
+}
+
 AMemoryChip::IOFunctions OutputChip::getIOFunctions() const noexcept
 {
         return static_cast<AMemoryChip::IOFunctions>(  static_cast<int>(AMemoryChip::READ)
@@ -299,6 +316,13 @@ RAMChip::~RAMChip()
 
 }
 
+void RAMChip::resize(quint32 newSize) noexcept
+{
+    this->size = newSize;
+    memory.resize(static_cast<qint32>(size));
+    clear(); // Reset all values to false / 0.
+}
+
 AMemoryChip::IOFunctions RAMChip::getIOFunctions() const noexcept
 {
     return static_cast<AMemoryChip::IOFunctions>(  static_cast<int>(AMemoryChip::READ)
@@ -356,6 +380,13 @@ ROMChip::~ROMChip()
 
 }
 
+void ROMChip::resize(quint32 newSize) noexcept
+{
+    this->size = newSize;
+    memory.resize(static_cast<qint32>(size));
+    clear(); // Reset all values to false / 0.
+}
+
 AMemoryChip::IOFunctions ROMChip::getIOFunctions() const noexcept
 {
     return static_cast<AMemoryChip::IOFunctions>(static_cast<int>(AMemoryChip::READ));
@@ -402,3 +433,4 @@ bool ROMChip::setByte(quint16 offsetFromBase, quint8 value)
     memory[offsetFromBase] = value;
     return true;
 }
+

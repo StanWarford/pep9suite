@@ -41,6 +41,11 @@ quint32 AMemoryChip::getSize() const noexcept
     return size;
 }
 
+void AMemoryChip::resize(quint32 newSize) noexcept
+{
+    this->size = newSize;
+}
+
 quint16 AMemoryChip::getBaseAddress() const noexcept
 {
     return baseAddress;
