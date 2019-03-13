@@ -11,7 +11,6 @@ FORMS += \
     byteconverterhex.ui \
     byteconverterinstr.ui \
     inputpane.ui \
-#   iodialog.ui \ #This widget has yet to be implemented
     iowidget.ui \
     memorydumppane.ui \
     outputpane.ui \
