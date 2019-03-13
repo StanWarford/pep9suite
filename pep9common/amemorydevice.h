@@ -4,7 +4,7 @@
     simulators for the Pep/9 virtual machine, and allow users to
     create, simulate, and debug across various levels of abstraction.
 
-    Copyright (C) 2018  J. Stanley Warford & Matthew McRaven, Pepperdine University
+    Copyright (C) 2018 J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 
 #include <QObject>
 #include <QSet>
+
 /*
  * This class provides a unified interface for memory devices (like RAM, or a cache).
  * It provides concrete methods for singaling errors & error messages,
@@ -60,8 +61,8 @@ public:
     // If there was an error, return the diagnostic message.
     QString getErrorMessage() const noexcept;
     // Return the number of bytes of memory this unit has access to.
-    // Is larger that used a 32 size so that no cleverness is needed to
-    // representa range of 0 to 2^16 bytes of memory.
+    // The Pep/9 memory model should at most be 2^16 bytes, but provide
+    // for potential expansion in the future.
     virtual quint32 size() const noexcept = 0;
 
     // Remove any pending errors in the memory device.
@@ -80,6 +81,8 @@ public:
 public slots:
     // Clear the contents of memory. All addresses from 0 to size will be set to 0.
     virtual void clearMemory() = 0;
+    // Methods (currently unused) that are useful for implementing a cache
+    // replacmenet policy using dynamic aging.
     virtual void onCycleStarted() = 0;
     virtual void onCycleFinished() = 0;
 

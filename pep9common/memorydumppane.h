@@ -1,7 +1,8 @@
 // File: memorydumppane.h
 /*
-    Pep9 is a virtual machine for writing machine language and assembly
-    language programs.
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
     
     Copyright (C) 2018  J. Stanley Warford, Pepperdine University
 
@@ -22,11 +23,11 @@
 #ifndef MEMORYDUMPPANE_H
 #define MEMORYDUMPPANE_H
 
-#include <QWidget>
 #include <QScrollBar>
 #include <QSet>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
+#include <QWidget>
 #include "colors.h"
 namespace Ui {
     class MemoryDumpPane;

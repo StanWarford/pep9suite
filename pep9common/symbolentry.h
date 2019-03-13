@@ -1,8 +1,10 @@
+// File: symbolentry.h
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
 
-    Copyright (C) 2018  Matthew McRaven, Pepperdine University
+    Copyright (C) 2018 J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,10 +19,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
-#include "symboltable.h"
+#ifndef SYMBOLENTRY_H
+#define SYMBOLENTRY_H
+
 #include <qstring.h>
+
 #include "enu.h"
+#include "symboltable.h"
+
 /*
  * A symbol can either be:
  *  1) Undefined: A symbol is not defined, and referenced 1+ times.
@@ -37,6 +43,7 @@ struct SymbolFormat
     Enu::ESymbolFormat spec = Enu::ESymbolFormat::F_NONE;
     quint8 size = 0;
 };
+
 /*
  * A symbol entry represents one named symbol from a microprogram.
  * Symbols have multiple definition states that allow the microassembler to error if symbols are defined incorrectly.
@@ -52,15 +59,14 @@ struct SymbolFormat
 class SymbolEntry
 {
 private:
-    //Unique identifier describing this symbol
+    // Unique identifier describing this symbol
     SymbolTable::SymbolID symbolID;
-    //Unique string name of symbol as appearing in the sources
+    // Unique string name of symbol as appearing in the sources
     QString name;
     SymbolTable::AbstractSymbolValuePtr symbolValue;
     DefStates definedState;
     // Non-owning pointer to parent. DO NOT DELETE.
     SymbolTable* parent;
-    SymbolFormat _format;
 public:
     //Default constructor, assumes value is SymbolEmpty
     SymbolEntry(SymbolTable* parent, SymbolTable::SymbolID symbolID, QString name);
@@ -86,3 +92,5 @@ QDebug operator<<(QDebug os, SymbolEntry&);
 QDebug operator<<(QDebug os, const SymbolEntry&);
 QDebug operator<<(QDebug os, const QSharedPointer<SymbolEntry>&);
 QDebug operator<<(QDebug os, const QSharedPointer<const SymbolEntry>&);
+
+#endif // SYMBOLENTRY_H

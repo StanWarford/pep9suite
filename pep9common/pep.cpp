@@ -1,7 +1,8 @@
 // File: pep.cpp
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
 
     Copyright (C) 2010  J. Stanley Warford, Pepperdine University
 
@@ -22,8 +23,10 @@
 #include <QFile>
 #include <QString>
 #include <QStringList>
-#include "pep.h"
 #include <QtCore>
+
+#include "pep.h"
+
 using namespace Enu;
 
 // Fonts
@@ -39,27 +42,25 @@ const QString Pep::cpuFont = getSystem() == "Windows" ? "Verdana" : (getSystem()
 const int Pep::cpuFontSize = getSystem() == "Windows" ? 8 : (getSystem() == "Mac" ? 11 : 8);
 
 QString Pep::getSystem() {
+
     #ifdef Q_WS_X11
     return QString("Linux");
-    #endif
-
-    #ifdef Q_OS_OSX
+    s
+    #elif defined Q_OS_OSX
     return QString("Mac");
-    #endif
 
-    #ifdef Q_WS_QWS
+    #elif defined Q_WS_QWS
     return QString("Embedded Linux");
-    #endif
 
-    #ifdef Q_OS_WIN32
+    #elif defined Q_OS_WIN32
     return QString("Windows");
-    #endif
 
-    #ifdef Q_WS_WIN
+    #elif defined Q_WS_WIN
     return QString("Windows");
-    #endif
 
+    #else
     return QString("No system");
+    #endif
 }
 
 QString Pep::resToString(QString fileName) {
@@ -206,13 +207,13 @@ void Pep::initMicroEnumMnemonMaps(CPUType cpuType, bool fullCtrlSection)
 
 quint8 Pep::numControlSignals()
 {
-#pragma message("Calculate the number of signals")
+#pragma message("If the number of control signals in Pep9 CPU is changed, this must be updated")
     return 22;
 }
 
 quint8 Pep::numClockSignals()
 {
-#pragma message("Calculate the number of signals")
+    #pragma message("If the number of clocks in Pep9 CPU is changed, this must be updated")
     return 12;
 }
 

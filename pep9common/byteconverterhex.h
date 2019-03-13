@@ -23,8 +23,8 @@
 #ifndef BYTECONVERTERHEX_H
 #define BYTECONVERTERHEX_H
 
-#include <QWidget>
 #include <QRegExpValidator>
+#include <QWidget>
 
 namespace Ui {
     class ByteConverterHex;

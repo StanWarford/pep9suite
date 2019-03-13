@@ -1,7 +1,8 @@
 // File: memorydumppane.cpp
 /*
-    Pep9 is a virtual machine for writing machine language and assembly
-    language programs.
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
     
     Copyright (C) 2018  J. Stanley Warford, Pepperdine University
 
@@ -18,17 +19,19 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <QFontDialog>
-#include <QTextCharFormat>
 #include <QAbstractTextDocumentLayout>
-#include "memorydumppane.h"
-#include "ui_memorydumppane.h"
-#include "pep.h"
-#include "enu.h"
+#include <QFontDialog>
 #include <QStyle>
-#include "mainmemory.h"
+#include <QTextCharFormat>
+
 #include "acpumodel.h"
 #include "colors.h"
+#include "enu.h"
+#include "mainmemory.h"
+#include "memorydumppane.h"
+#include "pep.h"
+#include "ui_memorydumppane.h"
+
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     QWidget(parent), ui(new Ui::MemoryDumpPane), data(new QStandardItemModel(this)), lineSize(500), memDevice(nullptr),
     cpu(nullptr), delegate(nullptr), colors(&PepColors::lightMode), highlightedData(), modifiedBytes(), lastModifiedBytes(),
@@ -87,11 +90,14 @@ MemoryDumpPane::~MemoryDumpPane()
 
 void MemoryDumpPane::refreshMemory()
 {
+    // Refreshing memory is equivilant to refreshing all memory addresses.
     refreshMemoryLines(0, 65535);
 }
 
 void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
 {
+    // There are 8 bytes per line, so divide the byte numbers by 8 to
+    // get the line number.
     quint16 firstLine = firstByte / 8;
     quint16 lastLine = lastByte / 8;
     quint8 tempData;
@@ -105,12 +111,13 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
         memoryDumpLine.clear();
         for(int col = 0; col < 8; col++) {
             // Use the data in the memory section to set the value in the model.
-            memDevice->getByte(static_cast<quint16>(row*8 + col), tempData);
+            memDevice->getByte(static_cast<quint16>(row * 8 + col), tempData);
             data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')));
             ch = QChar(tempData);
             if (ch.isPrint()) {
                 memoryDumpLine.append(ch);
-            } else {
+            }
+            else {
                 memoryDumpLine.append(".");
             }
         }
@@ -181,7 +188,6 @@ void MemoryDumpPane::highlight()
 
 void MemoryDumpPane::updateMemory()
 {
-#pragma message("TODO: Handle when bytes are modified without notifying the UI")
     QList<quint16> list;
     QSet<quint16> linesToBeUpdated;
     // Don't clear the memDevice's written / set bytes, since other UI components might
@@ -199,8 +205,8 @@ void MemoryDumpPane::updateMemory()
     qSort(list.begin(), list.end());
 
     for(auto x: list) {
-        //Multiply by 8 to convert from line # to address of first byte on a line.
-        refreshMemoryLines(x*8, x*8);
+        // Multiply by 8 to convert from line # to address of first byte on a line.
+        refreshMemoryLines(x * 8, x * 8);
     }
 
 }
@@ -299,7 +305,7 @@ void MemoryDumpPane::scrollToPC()
 {
     quint16 value = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
     // Separate 0x from rest of string, so that the x does not get capitalized.
-    QString str = "0x"+QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper();
+    QString str = "0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper();
     ui->scrollToLineEdit->setText(str);
     scrollToAddress(str);
 }
@@ -308,7 +314,7 @@ void MemoryDumpPane::scrollToSP()
 {
     quint16 value = cpu->getCPURegWordCurrent(Enu::CPURegisters::SP);
     // Separate 0x from rest of string, so that the x does not get capitalized.
-    QString str = "0x"+QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper();
+    QString str = "0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper();
     ui->scrollToLineEdit->setText(str);
     scrollToAddress(str);
 }
@@ -343,7 +349,7 @@ void MemoryDumpPane::scrollToLine(int /*scrollBarValue*/)
     // table data, and returns the index of the topmost visible row.
     // Each row contains 8 bytes, so 8*index gives first byte of row
     // Also, separate 0x from rest of string, so that the x does not get capitalized.
-   QString str = "0x"+QString("%1").arg(ui->tableView->rowAt(0)*8, 4, 16, QLatin1Char('0')).toUpper();
+   QString str = "0x" + QString("%1").arg(ui->tableView->rowAt(0) * 8, 4, 16, QLatin1Char('0')).toUpper();
     ui->scrollToLineEdit->setText(str);
 }
 
@@ -361,7 +367,7 @@ MemoryDumpDelegate::~MemoryDumpDelegate()
 QWidget *MemoryDumpDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     // The first and last columns are not user editable, so do not create an editor.
-    if(index.column() == 0 || index.column() == 1+8 || !canEdit) return nullptr;
+    if(index.column() == 0 || index.column() == 1 + 8 || !canEdit) return nullptr;
     // Otherwise, defer to QStyledItemDelegate's implementation, which returns a LineEdit
     QLineEdit *line = qobject_cast<QLineEdit*>(QStyledItemDelegate::createEditor(parent, option, index));
     // Apply a validator, so that a user cannot input anything other than a one byte hexadecimal constant
@@ -373,8 +379,8 @@ void MemoryDumpDelegate::setEditorData(QWidget *editor, const QModelIndex &index
 {
     // The default value in the line edit should be the text currently in that cell.
     QString value = index.model()->data(index, Qt::EditRole).toString();
-        QLineEdit *line = static_cast<QLineEdit*>(editor);
-        line->setText(value);
+    QLineEdit *line = static_cast<QLineEdit*>(editor);
+    line->setText(value);
 }
 
 void MemoryDumpDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &) const
@@ -385,12 +391,12 @@ void MemoryDumpDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptio
 
 void MemoryDumpDelegate::setModelData(QWidget *editor, QAbstractItemModel *, const QModelIndex &index) const
 {
-    // Get text from editor and convert it to a integer
+    // Get text from editor and convert it to a integer.
     QLineEdit *line = static_cast<QLineEdit*>(editor);
     QString strValue = line->text();
     bool ok;
     quint64 intValue = static_cast<quint64>(strValue.toInt(&ok, 16));
-    // Use column-1 since the first column is the address
+    // Use column-1 since the first column is the address.
     quint16 addr = static_cast<quint16>(index.row()*8 + index.column() - 1);
     // Even though there is a regexp validator in place, validate data again.
     if(ok && intValue< 1<<16) {

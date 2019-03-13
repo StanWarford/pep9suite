@@ -1,22 +1,53 @@
+// File: mainmemory.h
+/*
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
+
+    Copyright (C) 2018  J. Stanley Warford & Matthew McRaven, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef MAINMEMORY_H
 #define MAINMEMORY_H
+
+#include "amemorydevice.h"
 
 #include <QMap>
 #include <QObject>
 #include <QSharedPointer>
 #include <QVector>
 
-#include "amemorydevice.h"
 class AMemoryChip;
 class NilChip;
 class MainMemory : public AMemoryDevice
 {
     Q_OBJECT
+    // Store whether or not the addressToChipLookupTable should be updated with
+    // each insertion or removal.
     bool updateMemMap;
+    // Pointer to the chip that will be used to "blank out" memory addresses
+    // past the end alloacted memory (i.e. memory address after the argument
+    // of a .BURN).
     QSharedPointer<NilChip> endChip;
-    QVector<AMemoryChip*> addressToChip;
+    // For all 2^16 addresses in machine, create a look-up table that speeds up
+    // translation of an address to the memory chip that contains it.
+    QVector<AMemoryChip*> addressToChipLookupTable;
+    // Starting address of each chip inserted into the memory system.
     QMap<quint16, QSharedPointer<AMemoryChip>> memoryChipMap;
     QMap<AMemoryChip*, QSharedPointer<AMemoryChip>> ptrLookup;
+    // Buffer input for particular addresses (needed for batch character input).
     mutable QMap<quint16, QByteArray> inputBuffer;
 public:
     explicit MainMemory(QObject* parent = nullptr) noexcept;
@@ -27,16 +58,18 @@ public:
     void insertChip(QSharedPointer<AMemoryChip> chip, quint16 address);
     QSharedPointer<AMemoryChip> chipAt(quint16 address) noexcept;
     QSharedPointer<const AMemoryChip> chipAt(quint16 address) const noexcept;
-    // Remove the chip containing address and return it
+    // Remove the chip containing address and return it.
     QSharedPointer<AMemoryChip> removeChip(quint16 address);
     QVector<QSharedPointer<AMemoryChip>> removeAllChips();
     // If multiple chip insertions / deletions will be performed, it is possible to prevent
-    // the address cache from being updated spuriously for improved performance
+    // the address cache from being updated spuriously for improved performance.
     void autoUpdateMemoryMap(bool update) noexcept;
     void loadValues(quint16 address, QVector<quint8> values) noexcept;
 
 public slots:
     void clearMemory() override;
+    // Main memory doesn't need to provide dynamic aging of any memory contents,
+    // so these methods do nothing.
     void onCycleStarted() override;
     void onCycleFinished() override;
 
@@ -45,7 +78,7 @@ public slots:
     bool getByte(quint16 address, quint8 &output) const override;
     bool setByte(quint16 address, quint8 value) override;
 
-    // Clear any saved input, and cancel any oustanding IO requests
+    // Clear any saved input, and cancel any outstanding IO requests.
     void clearIO();
 
     void onInputReceived(quint16 address, quint8 input);

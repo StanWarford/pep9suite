@@ -1,8 +1,10 @@
+// File: symbolvalue.h
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
 
-    Copyright (C) 2018  Matthew McRaven, Pepperdine University
+    Copyright (C) 2018 J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,12 +19,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
+#ifndef SYMBOLVALUE_H
+#define SYMBOLVALUE_H
+
 #include <QtCore>
 #include <QSharedPointer>
+
 #include "enu.h"
 
 class SymbolEntry;
+
 /*
  * A symbol's value type can be EMPTY (i.e the symbol is undefined), or an address (i.e. the symbol is singly defined, so it describes a ADDRESS in a program).
  * A symbol's value type is not meaninful in the case of a multiply defined symbol, so no special type is required for it.
@@ -67,7 +73,7 @@ public:
 class SymbolValueNumeric :
 public AbstractSymbolValue
 {
-    quint16 _value;
+    quint16 value;
 public:
     explicit SymbolValueNumeric(quint16 value);
     virtual ~SymbolValueNumeric() override;
@@ -79,15 +85,18 @@ public:
 
 /*
  * A symbol value representing an address of a line of code.
+ * The effective address (and thus the value) is base + offset.
+ *
+ * Having a seperate offset parameter allows for easy relocation of programs,
+ * which is necessary when compiling the Pep9OS.
  */
 class SymbolValueLocation :
 public AbstractSymbolValue
 {
-    quint16 _base, _offset;
+    quint16 base, offset;
 public:
     explicit SymbolValueLocation(quint16 value);
-    virtual ~SymbolValueLocation() override;
-    //Updates the base value
+    virtual ~SymbolValueLocation() override; 
     void setBase(quint16 value);
     void setOffset(quint16 value);
     // Inherited via AbstractSymbolValue
@@ -98,3 +107,4 @@ public:
     quint16 getBase() const;
 };
 
+#endif // SYMBOLVALUE_H
