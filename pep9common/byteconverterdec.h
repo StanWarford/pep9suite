@@ -23,8 +23,8 @@
 #ifndef BYTECONVERTERDEC_H
 #define BYTECONVERTERDEC_H
 
-#include <QWidget>
 #include <QRegExpValidator>
+#include <QWidget>
 
 namespace Ui {
     class ByteConverterDec;

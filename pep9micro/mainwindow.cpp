@@ -169,6 +169,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Clear IOWidget every time a simulation is started.
     connect(this, &MainWindow::simulationStarted, ui->ioWidget, &IOWidget::onClear);
+    connect(this, &MainWindow::simulationStarted, ui->ioWidget, &IOWidget::onSimulationStart);
+
     connect(this, &MainWindow::simulationStarted, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationStarted);
     connect(this, &MainWindow::simulationFinished, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationFinished);
     connect(this, &MainWindow::simulationFinished, controlSection.get(), &FullMicrocodedCPU::onSimulationFinished);
@@ -2124,7 +2126,7 @@ void MainWindow::helpCopyToSourceClicked()
 
 void MainWindow::onOutputReceived(quint16 address, quint8 value)
 {
-    ui->ioWidget->onDataReceived(address, value);
+    ui->ioWidget->onOutputReceived(address, value);
 }
 
 void MainWindow::onInputRequested(quint16 address)

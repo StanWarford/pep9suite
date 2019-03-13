@@ -24,6 +24,7 @@
 #include <QVector>
 
 #include "amemorychip.h"
+
 /*
  * Memory Chip that is hardwired to 0. Useful as a filler.
  */

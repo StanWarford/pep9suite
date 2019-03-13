@@ -1,12 +1,35 @@
-#include "iowidget.h"
-#include "ui_iowidget.h"
-#include <QString>
+// File: iowidget.cpp
+/*
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
+
+    Copyright (C) 2018  J. Stanley Warford & Matthew McRaven, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include <QDebug>
+#include <QString>
+
 #include "enu.h"
+#include "iowidget.h"
 #include "mainmemory.h"
+#include "ui_iowidget.h"
+
 IOWidget::IOWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::IOWidget), iChipAddr(0), oChipAddr(0)
+    ui(new Ui::IOWidget), charInAddr(0), charOutAddr(0), activePane(1)
 {
     ui->setupUi(this);
     ui->batchInput->setFocusProxy(this);
@@ -52,12 +75,12 @@ void IOWidget::cancelWaiting()
 
 void IOWidget::setInputChipAddress(quint16 address)
 {
-    iChipAddr = address;
+    charInAddr = address;
 }
 
 void IOWidget::setOutputChipAddress(quint16 address)
 {
-    oChipAddr = address;
+    charOutAddr = address;
 }
 
 void IOWidget::bindToMemorySection(MainMemory *memory)
@@ -65,18 +88,17 @@ void IOWidget::bindToMemorySection(MainMemory *memory)
     connect(ui->terminalIO, &TerminalPane::inputReady, this, &IOWidget::onInputReady);
     // Multiple versions of this slot exist, so the following function cast must be used to select the correct one
     connect(this, &IOWidget::inputReady, memory,  static_cast<void (MainMemory::*)(quint16, quint8)>(&MainMemory::onInputReceived));
-    //connect(memory, &MainMemory::inputRequested, this, &IOWidget::onDataRequested);
-    //connect(memory, &MainMemory::outputWritten, this, &IOWidget::onDataReceived);
     this->memory = memory;
 }
 
 void IOWidget::batchInputToBuffer()
 {
-    if(ui->tabWidget->currentIndex() == 0)
-    {
+    // Don't use activePane, which is set after the simulation start,
+    // since this may be called before onSimulationStart().
+    if(ui->tabWidget->currentIndex() == 0) {
         // Make sure no additional IO is waiting before queueing more
         memory->clearIO();
-        memory->onInputReceived(iChipAddr, ui->batchInput->toPlainText().append('\n'));
+        memory->onInputReceived(charInAddr, ui->batchInput->toPlainText().append('\n'));
     }
 }
 
@@ -213,19 +235,19 @@ void IOWidget::onSetUndoability(bool b)
 void IOWidget::onInputReady(QString value)
 {
     for(QChar ch : value) {
-        emit inputReady(iChipAddr, static_cast<quint8>(ch.toLatin1()));
+        emit inputReady(charInAddr, static_cast<quint8>(ch.toLatin1()));
     }
 }
 
-void IOWidget::onDataReceived(quint16 address, QChar data)
+void IOWidget::onOutputReceived(quint16 address, QChar data)
 {
-    // If the memory mapped output is not coming from terminal output chip, ignore the event
-    if(address != oChipAddr) {
+    // IOWidget only keeps track of output concerning charOut. If the address is
+    // something other than charOut, then it is not to be displayed.
+    if(address != charOutAddr) {
         return;
     }
-    QString oData = QString::number(static_cast<quint8>(data.toLatin1()), 16).leftJustified(2,'0')+" ";
-    //qDebug()<<called++;
-    switch(ui->tabWidget->currentIndex())
+
+    switch(activePane)
     {
     case 0:
         ui->batchOutput->appendOutput(QString(data));
@@ -238,14 +260,19 @@ void IOWidget::onDataReceived(quint16 address, QChar data)
     }
 }
 
-void IOWidget::onDataRequested(quint16 /*address*/)
+void IOWidget::onDataRequested(quint16 address)
 {
-    switch(ui->tabWidget->currentIndex())
+    // If the memory mapped output is not coming from terminal output chip, ignore the event
+    // since this widget is only concerned with I/O.
+    if(address != charInAddr) {
+        return;
+    }
+    switch(activePane)
     {
     case 0:
         //If there's no input for the memory, there never will be.
         //So, let the simulation begin to error and unwind.
-        memory->onInputCanceled(iChipAddr);
+        memory->onInputCanceled(charInAddr);
         break;
     case 1:
         ui->terminalIO->waitingForInput();
@@ -255,17 +282,18 @@ void IOWidget::onDataRequested(quint16 /*address*/)
     }
 }
 
-
 void IOWidget::onSimulationStart()
 {
-    switch(ui->tabWidget->currentIndex())
+    // Cache whether batch or terminal IO was selected when the simulation started,
+    // to avoid bugs where the user switches tabs mid simulation.
+    activePane = ui->tabWidget->currentIndex();
+    switch(activePane)
     {
     case 0:
         //When the simulation starts, pass all needed input to memory's input buffer
-        memory->onInputReceived(iChipAddr, ui->batchInput->toPlainText().append('\n'));
+        memory->onInputReceived(charInAddr, ui->batchInput->toPlainText().append('\n'));
         break;
     default:
         break;
     }
 }
-

@@ -18,11 +18,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include <QFontDialog>
 #include <QScrollBar>
+
+#include "pep.h"
 #include "terminalpane.h"
 #include "ui_terminalpane.h"
-#include "pep.h"
 
 TerminalPane::TerminalPane(QWidget *parent) :
     QWidget(parent),
@@ -32,8 +34,8 @@ TerminalPane::TerminalPane(QWidget *parent) :
 
     waiting = false;
 
-    connect(ui->plainTextEdit, SIGNAL(undoAvailable(bool)), this, SIGNAL(undoAvailable(bool)));
-    connect(ui->plainTextEdit, SIGNAL(redoAvailable(bool)), this, SIGNAL(redoAvailable(bool)));
+    connect(ui->plainTextEdit, &QPlainTextEdit::undoAvailable, this, &TerminalPane::undoAvailable);
+    connect(ui->plainTextEdit, &QPlainTextEdit::redoAvailable, this, &TerminalPane::redoAvailable);
 
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
     ui->plainTextEdit->setFont(QFont(Pep::codeFont, Pep::ioFontSize));
@@ -94,7 +96,6 @@ bool TerminalPane::hasFocus()
 
 bool TerminalPane::isUndoable() const
 {
-#pragma message("TODO: Terminal pane isUndoable/redoable")
     return false;
 }
 
@@ -103,12 +104,11 @@ bool TerminalPane::isRedoable() const
     return false;
 }
 
-
-
 void TerminalPane::onFontChanged(QFont font)
 {
     ui->plainTextEdit->setFont(font);
 }
+
 void TerminalPane::copy() const
 {
     ui->plainTextEdit->copy();
@@ -116,27 +116,27 @@ void TerminalPane::copy() const
 
 void TerminalPane::cut()
 {
-#pragma message("TODO: Terminal pane cut")
+    ui->plainTextEdit->cut();
 }
 
 void TerminalPane::paste()
 {
-#pragma message("TODO: Terminal pane paste")
+    ui->plainTextEdit->paste();
 }
 
 void TerminalPane::undo()
 {
-#pragma message("TODO: Terminal pane undo / redo")
+    // No undo.
 }
 
 void TerminalPane::redo()
 {
-
+    // No redo.
 }
 
 void TerminalPane::displayTerminal()
 {
-    if (waiting) {
+    if(waiting) {
         ui->plainTextEdit->setPlainText(strokeString + retString + QString("_"));
     }
     else {

@@ -23,8 +23,8 @@
 #ifndef BYTECONVERTERBIN_H
 #define BYTECONVERTERBIN_H
 
-#include <QWidget>
 #include <QRegExpValidator>
+#include <QWidget>
 
 namespace Ui {
     class ByteConverterBin;

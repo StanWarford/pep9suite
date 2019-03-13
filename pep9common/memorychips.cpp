@@ -1,5 +1,7 @@
-#include "memorychips.h"
 #include <QApplication>
+
+#include "memorychips.h"
+
 ConstChip::ConstChip(quint32 size, quint16 baseAddress, QObject *parent):
     AMemoryChip (size, baseAddress, parent)
 {
@@ -28,6 +30,7 @@ void ConstChip::clear() noexcept
 
 bool ConstChip::readByte(quint16 offsetFromBase, quint8& output) const
 {
+    // If the read would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = 0;
     return true;
@@ -35,6 +38,7 @@ bool ConstChip::readByte(quint16 offsetFromBase, quint8& output) const
 
 bool ConstChip::writeByte(quint16 offsetFromBase, quint8 value)
 {
+    // If the write would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     // Constant device's state cannot be changed from 0.
     return true;
@@ -42,6 +46,7 @@ bool ConstChip::writeByte(quint16 offsetFromBase, quint8 value)
 
 bool ConstChip::getByte(quint16 offsetFromBase, quint8 &output) const
 {
+    // If the get would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = 0;
     return true;
@@ -49,6 +54,7 @@ bool ConstChip::getByte(quint16 offsetFromBase, quint8 &output) const
 
 bool ConstChip::setByte(quint16 offsetFromBase, quint8 value)
 {
+    // If the set would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     // Zero device's state cannot be changed.
     return true;
@@ -78,7 +84,7 @@ AMemoryChip::ChipTypes NilChip::getChipType() const noexcept
 
 void NilChip::clear() noexcept
 {
-    // A "dsiabled" chip can't be cleared
+    // A "disabled" chip can't be cleared
 }
 
 bool NilChip::isCachable() const noexcept
@@ -113,8 +119,9 @@ bool NilChip::setByte(quint16 offsetFromBase, quint8)
 
 
 InputChip::InputChip(quint32 size, quint16 baseAddress, QObject *parent):
-    AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0)), waiting(QVector<bool>(size, false)),
-    requestCanceled(QVector<bool>(size, false)), requestAborted(QVector<bool>(size, false))
+    AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(static_cast<qint32>(size), 0)),
+    waiting(QVector<bool>(static_cast<qint32>(size), false)), requestCanceled(QVector<bool>(static_cast<qint32>(size), false)),
+    requestAborted(QVector<bool>(static_cast<qint32>(size), false))
 {
 
 }
@@ -137,11 +144,11 @@ AMemoryChip::ChipTypes InputChip::getChipType() const noexcept
 
 void InputChip::clear() noexcept
 {
-    for (unsigned int it = 0; it < size; it++) {
-        memory[it] = 0;
-        waiting[it] = false;
-        requestCanceled[it] = false;
-        requestAborted[it] = false;
+    for (quint32 it = 0; it < size; it++) {
+        memory[static_cast<qint32>(it)] = 0;
+        waiting[static_cast<qint32>(it)] = false;
+        requestCanceled[static_cast<qint32>(it)] = false;
+        requestAborted[static_cast<qint32>(it)] = false;
     }
 }
 
@@ -152,7 +159,7 @@ bool InputChip::isCachable() const noexcept
 
 bool InputChip::readByte(quint16 offsetFromBase, quint8 &output) const
 {
-
+    // If the read would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);   
     waiting[offsetFromBase] = true;
     requestCanceled[offsetFromBase] = false;
@@ -176,6 +183,7 @@ bool InputChip::writeByte(quint16, quint8)
 
 bool InputChip::getByte(quint16 offsetFromBase, quint8 &output) const
 {
+    // If the get would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = memory[offsetFromBase];
     return true;
@@ -183,6 +191,7 @@ bool InputChip::getByte(quint16 offsetFromBase, quint8 &output) const
 
 bool InputChip::setByte(quint16 offsetFromBase, quint8 value)
 {
+    // If the set would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     memory[offsetFromBase] = value;
     return true;
@@ -213,7 +222,8 @@ void InputChip::onInputAborted(quint16 offsetFromBase)
 }
 
 
-OutputChip::OutputChip(quint32 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0))
+OutputChip::OutputChip(quint32 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent),
+    memory(QVector<quint8>(static_cast<qint32>(size), 0))
 {
 
 }
@@ -237,8 +247,8 @@ AMemoryChip::ChipTypes OutputChip::getChipType() const noexcept
 
 void OutputChip::clear() noexcept
 {
-    for (unsigned int it = 0; it < size; it++) {
-        memory[it] = 0;
+    for (quint32 it = 0; it < size; it++) {
+        memory[static_cast<qint32>(it)] = 0;
     }
 }
 
@@ -254,14 +264,17 @@ bool OutputChip::readByte(quint16 offsetFromBase, quint8 &output) const
 
 bool OutputChip::writeByte(quint16 offsetFromBase, quint8 value)
 {
+    // If the write would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     memory[offsetFromBase] = value;
-    emit this->outputGenerated(offsetFromBase+baseAddress, value);
+    // Generate an I/O event.
+    emit this->outputGenerated(offsetFromBase + baseAddress, value);
     return true;
 }
 
 bool OutputChip::getByte(quint16 offsetFromBase, quint8 &output) const
 {
+    // If the get would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = memory[offsetFromBase];
     return true;
@@ -269,14 +282,14 @@ bool OutputChip::getByte(quint16 offsetFromBase, quint8 &output) const
 
 bool OutputChip::setByte(quint16 offsetFromBase, quint8 value)
 {
+    // If the set would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     memory[offsetFromBase] = value;
     return true;
 }
 
-
-
-RAMChip::RAMChip(quint32 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0))
+RAMChip::RAMChip(quint32 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent),
+    memory(QVector<quint8>(static_cast<qint32>(size), 0))
 {
 
 }
@@ -299,8 +312,8 @@ AMemoryChip::ChipTypes RAMChip::getChipType() const noexcept
 
 void RAMChip::clear() noexcept
 {
-    for (unsigned int it = 0; it < size; it++) {
-        memory[it] = 0;
+    for (quint32 it = 0; it < size; it++) {
+        memory[static_cast<qint32>(it)] = 0;
     }
 }
 
@@ -316,6 +329,7 @@ bool RAMChip::writeByte(quint16 offsetFromBase, quint8 value)
 
 bool RAMChip::getByte(quint16 offsetFromBase, quint8 &output) const
 {
+    // If the get would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = memory[offsetFromBase];
     return true;
@@ -323,6 +337,7 @@ bool RAMChip::getByte(quint16 offsetFromBase, quint8 &output) const
 
 bool RAMChip::setByte(quint16 offsetFromBase, quint8 value)
 {
+    // If the set would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     memory[offsetFromBase] = value;
     return true;
@@ -330,7 +345,8 @@ bool RAMChip::setByte(quint16 offsetFromBase, quint8 value)
 
 
 
-ROMChip::ROMChip(quint32 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent), memory(QVector<quint8>(size, 0))
+ROMChip::ROMChip(quint32 size, quint16 baseAddress, QObject *parent): AMemoryChip (size, baseAddress, parent),
+    memory(QVector<quint8>(static_cast<qint32>(size), 0))
 {
 
 }
@@ -352,8 +368,8 @@ AMemoryChip::ChipTypes ROMChip::getChipType() const noexcept
 
 void ROMChip::clear() noexcept
 {
-    for (unsigned int it = 0; it < size; it++) {
-        memory[it] = 0;
+    for (quint32 it = 0; it < size; it++) {
+        memory[static_cast<qint32>(it)] = 0;
     }
 }
 
@@ -373,6 +389,7 @@ bool ROMChip::writeByte(quint16 offsetFromBase, quint8)
 
 bool ROMChip::getByte(quint16 offsetFromBase, quint8 &output) const
 {
+    // If the get would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsReadHelper(offsetFromBase);
     output = memory[offsetFromBase];
     return true;
@@ -380,6 +397,7 @@ bool ROMChip::getByte(quint16 offsetFromBase, quint8 &output) const
 
 bool ROMChip::setByte(quint16 offsetFromBase, quint8 value)
 {
+    // If the set would be out of bounds, throw an error.
     if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
     memory[offsetFromBase] = value;
     return true;

@@ -23,8 +23,8 @@
 #ifndef BYTECONVERTERCHAR_H
 #define BYTECONVERTERCHAR_H
 
-#include <QWidget>
 #include <QRegExpValidator>
+#include <QWidget>
 
 namespace Ui {
     class ByteConverterChar;

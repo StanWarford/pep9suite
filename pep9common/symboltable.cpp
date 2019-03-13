@@ -1,17 +1,41 @@
+// File: symboltable.cpp
+/*
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
+
+    Copyright (C) 2018 J. Stanley Warford & Matthew McRaven, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "symboltable.h"
 #include "symbolentry.h"
 #include "symbolvalue.h"
+
 typedef QAtomicInt SymbolID;
 typedef QSharedPointer<SymbolEntry> SymbolEntryPtr;
 typedef QSharedPointer<AbstractSymbolValue> AbstractSymbolValuePtr;
 SymbolID SymbolTable::nextUserSymbolID = 0;
+
 SymbolID SymbolTable::getNextUserSymbolID()
 {
     QAtomicInt newSymbolID = ++nextUserSymbolID;
 	return newSymbolID;
 }
 
-SymbolTable::SymbolTable():_symbolDictionary(), _symbolLookup()
+SymbolTable::SymbolTable():symbolDictionary(), symbolLookup()
 {
 }
 
@@ -22,32 +46,33 @@ SymbolTable::~SymbolTable()
 SymbolEntryPtr SymbolTable::getValue(SymbolID symbolID) const
 {
 
-    auto index = _symbolDictionary.find(symbolID);
-    if(index == _symbolDictionary.end()) return QSharedPointer<SymbolEntry>();
+    auto index = symbolDictionary.find(symbolID);
+    if(index == symbolDictionary.end()) return QSharedPointer<SymbolEntry>();
     return index.value();
 }
 
 SymbolEntryPtr SymbolTable::getValue(const QString & symbolName) const
 {
-    auto index = _symbolLookup.find(symbolName);
-    if(index == _symbolLookup.end())  return nullptr;
+    auto index = symbolLookup.find(symbolName);
+    if(index == symbolLookup.end())  return nullptr;
     return getValue(index.value());
 }
 
 SymbolEntryPtr SymbolTable::insertSymbol(const QString & symbolName)
 {
-    //Multiple definitions handled by assembler, not symbol table
+    // We don't want multiple symbols to exists in the same table with the same name.
+    if(exists(symbolName)) return getValue(symbolName);
 	SymbolID id = SymbolTable::getNextUserSymbolID();
-	_symbolLookup.insert(symbolName, id);
-    auto val = _symbolDictionary.insert(id, QSharedPointer<SymbolEntry>::create(this, id, symbolName));
+    symbolLookup.insert(symbolName, id);
+    auto val = symbolDictionary.insert(id, QSharedPointer<SymbolEntry>::create(this, id, symbolName));
 	return val.value();
 }
 
 SymbolEntryPtr SymbolTable::setValue(SymbolID symbolID, AbstractSymbolValuePtr value)
 {
-    SymbolEntryPtr rval = _symbolDictionary[symbolID];
-    if(rval->isDefined())
-    {
+    SymbolEntryPtr rval = symbolDictionary[symbolID];
+    // If the symbol has already been defined, this function vall constitutes a redefinition.
+    if(rval->isDefined()) {
         rval->setMultiplyDefined();
     }
     rval->setValue(value);
@@ -56,25 +81,26 @@ SymbolEntryPtr SymbolTable::setValue(SymbolID symbolID, AbstractSymbolValuePtr v
 
 SymbolEntryPtr SymbolTable::setValue(const QString & symbolName, AbstractSymbolValuePtr value)
 {
+    // If the table doesn't contain a symbol, create it first.
     if(!exists(symbolName)) insertSymbol(symbolName);
-	return setValue(_symbolLookup.find(symbolName).value(), value);
+    return setValue(symbolLookup.find(symbolName).value(), value);
 }
 
 bool SymbolTable::exists(const QString& symbolName) const
 {
-	return _symbolLookup.find(symbolName)!= _symbolLookup.end();
+    return symbolLookup.find(symbolName) != symbolLookup.end();
 }
 
 bool SymbolTable::exists(SymbolID symbolID) const
 {
-	return _symbolDictionary.find(symbolID) != _symbolDictionary.end();
+    return symbolDictionary.find(symbolID) != symbolDictionary.end();
 }
 
 quint32 SymbolTable::numMultiplyDefinedSymbols() const
 {
     quint32 count = 0;
-    for(SymbolTable::SymbolEntryPtr ptr :this->_symbolDictionary) {
-        count += ptr->isMultiplyDefined(); // Automatically upcast bool to int
+    for(SymbolTable::SymbolEntryPtr ptr : this->symbolDictionary) {
+        count += ptr->isMultiplyDefined() ? 1 : 0;
     }
     return count;
 }
@@ -82,15 +108,15 @@ quint32 SymbolTable::numMultiplyDefinedSymbols() const
 quint32 SymbolTable::numUndefinedSymbols() const
 {
     quint32 count = 0;
-    for(SymbolTable::SymbolEntryPtr ptr :this->_symbolDictionary) {
-        count += ptr->isUndefined(); // Automatically upcast bool to int
+    for(SymbolTable::SymbolEntryPtr ptr : this->symbolDictionary) {
+        count += ptr->isUndefined() ? 1 : 0;
     }
     return count;
 }
 
 void SymbolTable::setOffset(quint16 value, quint16 threshhold)
 {
-    for(SymbolEntryPtr ptr:this->_symbolDictionary) {
+    for(SymbolEntryPtr ptr:this->symbolDictionary) {
         if(ptr->getRawValue()->getSymbolType() == SymbolType::ADDRESS && ptr->getValue() >= threshhold) {
             static_cast<SymbolValueLocation*>(ptr->getRawValue().data())->setOffset(value);
         }
@@ -105,5 +131,5 @@ void SymbolTable::clearOffset()
 
 QList<SymbolEntryPtr> SymbolTable::getSymbolEntries() const
 {
-	return _symbolDictionary.values();
+    return symbolDictionary.values();
 }

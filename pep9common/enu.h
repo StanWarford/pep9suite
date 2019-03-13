@@ -1,7 +1,8 @@
 // File: enu.h
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
+    The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
+    simulators for the Pep/9 virtual machine, and allow users to
+    create, simulate, and debug across various levels of abstraction.
 
     Copyright (C) 2010  J. Stanley Warford, Pepperdine University
 
@@ -20,6 +21,7 @@
 */
 #ifndef ENU_H
 #define ENU_H
+
 #include <QtCore>
 
 namespace Enu {
@@ -74,10 +76,6 @@ namespace Enu {
     };
     Q_ENUM_NS(EPane);
 
-    enum class DebugLevels: quint16
-    {  DEFAULT = 1,
-       NONE = 0, MINIMAL = 1, ALL = 2, END
-    };
 
     /*
      * Enumerations for Pep9
@@ -136,7 +134,9 @@ namespace Enu {
     /*
      * Enumerations for Pep9CPU
      */
-    enum EMask // For ALU function 15
+    // For ALU function 15, and used to mask status bits |'ed
+    // together in a single integer.
+    enum EMask
     {
         SMask = 0x10,
         NMask = 0x08,
@@ -155,20 +155,6 @@ namespace Enu {
         MemWriteReady,
     };
     Q_ENUM_NS(MainBusState);
-
-    enum EBranchFunctions{
-        Unconditional = 0,
-        uBRGT = 1, uBRGE = 2, uBREQ = 3, uBRLE = 4, uBRLT = 5,
-        uBRNE = 6, uBRV = 7, uBRC = 8, uBRS = 9,
-        IsPrefetchValid = 10,
-        IsUnary = 11,
-        IsPCEven = 12,
-        AddressingModeDecoder = 13, // Adressing modes jump table
-        InstructionSpecifierDecoder = 14, // Instruction jump table
-        Stop = 15,
-        Assembler_Assigned = 16
-    };
-    Q_ENUM_NS(EBranchFunctions);
 
     // Instruction mnemonics
     enum EControlSignals
@@ -220,7 +206,6 @@ namespace Enu {
     enum CPUType {
         OneByteDataBus,
         TwoByteDataBus,
-        NoMicroCPU
     };
 
     // For our drawing/shapes classes:
@@ -230,8 +215,23 @@ namespace Enu {
         Left,
         Right,
     };
+
+
     /*
      * Enumerations for Pep9Micro
      */
+    enum EBranchFunctions{
+        Unconditional = 0,
+        uBRGT = 1, uBRGE = 2, uBREQ = 3, uBRLE = 4, uBRLT = 5,
+        uBRNE = 6, uBRV = 7, uBRC = 8, uBRS = 9,
+        IsPrefetchValid = 10,
+        IsUnary = 11,
+        IsPCEven = 12,
+        AddressingModeDecoder = 13, // Adressing modes jump table
+        InstructionSpecifierDecoder = 14, // Instruction jump table
+        Stop = 15,
+        Assembler_Assigned = 16
+    };
+    Q_ENUM_NS(EBranchFunctions);
 }
 #endif

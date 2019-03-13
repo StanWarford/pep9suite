@@ -4,7 +4,7 @@
     simulators for the Pep/9 virtual machine, and allow users to
     create, simulate, and debug across various levels of abstraction.
 
-    Copyright (C) 2018  J. Stanley Warford & Matthew McRaven, Pepperdine University
+    Copyright (C) 2018 J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
 #ifndef AMEMORYCHIP_H
 #define AMEMORYCHIP_H
 
-#include <QObject>
 #include <exception>
+#include <QObject>
 
 /*
  * Error thrown when a user attempts to write to readonly memory chips or
