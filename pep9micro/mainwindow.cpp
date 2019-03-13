@@ -932,31 +932,25 @@ void MainWindow::loadOperatingSystem()
     quint16 startAddress;
     values = programManager->getOperatingSystem()->getObjectCode();
     startAddress = programManager->getOperatingSystem()->getBurnAddress();
-    // memDevice->autoUpdateMemoryMap(false);
-    // auto memChips = memDevice->removeAllChips();
     // Get addresses for I/O chips
+    auto osSymTable = programManager->getOperatingSystem()->getSymbolTable();
     quint16 charIn, charOut;
-    charIn = programManager->getOperatingSystem()->getSymbolTable()->getValue("charIn")->getValue();
-    charOut = programManager->getOperatingSystem()->getSymbolTable()->getValue("charOut")->getValue();
-    // Re-insert RAM chip
-    QList<MemoryChipSpec> list;
-    /*QSharedPointer<AMemoryChip> *ram = std::find_if(memChips.begin(),memChips.end(),
-                                       [](QSharedPointer<AMemoryChip> chip) { return (chip)->getChipType() == AMemoryChip::ChipTypes::RAM; });
-    if(ram != memChips.end()) memDevice->insertChip(*ram, 0);*/
+    charIn = static_cast<quint16>(osSymTable->getValue("charIn")->getValue());
+    charOut = static_cast<quint16>(osSymTable->getValue("charOut")->getValue());
+    ui->ioWidget->setInputChipAddress(charIn);
+    ui->ioWidget->setOutputChipAddress(charOut);
 
+    // Construct main memory according to the current configuration of the operating system.
+    QList<MemoryChipSpec> list;
+    // Make sure RAM will fill any accidental gaps in the memory map by making it go
+    // right up to the start of the operating system.
     list.append({AMemoryChip::ChipTypes::RAM, 0, startAddress});
     list.append({AMemoryChip::ChipTypes::ROM, startAddress, static_cast<quint32>(values.length())});
+    // Character input / output ports are only 1 byte wide by design.
     list.append({AMemoryChip::ChipTypes::IDEV, charIn, 1});
     list.append({AMemoryChip::ChipTypes::ODEV, charOut, 1});
     memDevice->constructMemoryDevice(list);
-    //#pragma message ("TODO: Don't create a new ROM module each time")
-    // Insert a ROM chip
-    // memDevice->insertChip(QSharedPointer<ROMChip>::create(values.length(), startAddress, memDevice.get()), startAddress);
-    // Create I/O chips now that we have the address for such chips
-    // memDevice->insertChip(QSharedPointer<InputChip>::create(1, charIn, memDevice.get()), charIn);
-    // memDevice->insertChip(QSharedPointer<OutputChip>::create(1, charOut, memDevice.get()), charOut);
-    ui->ioWidget->setInputChipAddress(charIn);
-    ui->ioWidget->setOutputChipAddress(charOut);
+
     memDevice->autoUpdateMemoryMap(true);
     memDevice->loadValues(programManager->getOperatingSystem()->getBurnAddress(), values);
 }
