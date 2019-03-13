@@ -279,6 +279,9 @@ MainWindow::MainWindow(QWidget *parent) :
         QTextStream in(&file);
         ui->microcodeWidget->setMicrocode(in.readAll());
         ui->microcodeWidget->setModifiedFalse();
+        if(ui->microcodeWidget->microAssemble()) {
+            ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
+        }
     }
 
     // Initialize debug menu
@@ -911,7 +914,7 @@ void MainWindow::assembleDefaultOperatingSystem()
     }
 }
 
-//Helper function that turns hexadecimal object code into a vector of unsigned characters, which is easier to copy into memory.
+// Helper function that turns hexadecimal object code into a vector of unsigned characters, which is easier to copy into memory.
 QVector<quint8> convertObjectCodeToIntArray(QString line)
 {
     bool ok = false;
@@ -1140,7 +1143,7 @@ bool MainWindow::initializeSimulation()
 void MainWindow::onUpdateCheck(int val)
 {
     val = (int)val; //Ugly way to get rid of unused paramter warning without actually modifying the parameter.
-    //Dummy to handle update checking code
+    // Dummy to handle update checking code
 }
 
 // File MainWindow triggers
@@ -1422,7 +1425,6 @@ bool MainWindow::on_ActionBuild_Assemble_triggered()
         return true;
     }
     else {
-#pragma message ("TODO: fix current file title if problematic")
         ui->AsmObjectCodeWidgetPane->clearObjectCode();
         ui->AsmListingWidgetPane->clearAssemblerListing();
         ui->asmListingTracePane->clearSourceCode();
@@ -1725,7 +1727,7 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
 
 void MainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
 {
-    if(ui->AsmSourceCodeWidgetPane->assembleOS(true)){
+    if(ui->AsmSourceCodeWidgetPane->assembleOS(true)) {
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
         ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
                                                       ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
@@ -2029,6 +2031,9 @@ void MainWindow::setUndoability(bool b)
     else if (ui->asmCpuPane->hasFocus()) {
         ui->actionEdit_Undo->setEnabled(false);
     }
+    else if (ui->memoryTracePane->hasFocus()) {
+        ui->actionEdit_Undo->setEnabled(false);
+    }
 }
 
 void MainWindow::setRedoability(bool b)
@@ -2055,6 +2060,9 @@ void MainWindow::setRedoability(bool b)
         ui->actionEdit_Redo->setEnabled(b);
     }
     else if (ui->asmCpuPane->hasFocus()) {
+        ui->actionEdit_Redo->setEnabled(false);
+    }
+    else if (ui->memoryTracePane->hasFocus()) {
         ui->actionEdit_Redo->setEnabled(false);
     }
 }
@@ -2102,6 +2110,7 @@ void MainWindow::helpCopyToSourceClicked()
                     ui->microcodeWidget->setCurrentFile("");
                     ui->microcodeWidget->setMicrocode(code);
                     ui->microcodeWidget->setModifiedFalse();
+                    on_actionBuild_Microcode_triggered();
                     statusBar()->showMessage("Copied to microcode", 4000);
                 }
                 break;
