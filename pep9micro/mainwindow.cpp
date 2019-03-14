@@ -1411,7 +1411,6 @@ void MainWindow::on_actionBuild_Microcode_triggered()
 //Build Events
 bool MainWindow::on_ActionBuild_Assemble_triggered()
 {
-    loadOperatingSystem();
     if(ui->AsmSourceCodeWidgetPane->assemble()){
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
         ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
@@ -1420,7 +1419,6 @@ bool MainWindow::on_ActionBuild_Assemble_triggered()
         controlSection->breakpointsRemoveAll();
         ui->asmListingTracePane->setProgram(ui->AsmSourceCodeWidgetPane->getAsmProgram());
         set_Obj_Listing_filenames_from_Source();
-        loadObjectCodeProgram();
         ui->statusBar->showMessage("Assembly succeeded", 4000);
         return true;
     }
@@ -1465,6 +1463,8 @@ void MainWindow::on_actionBuild_Run_Object_triggered()
 void MainWindow::on_actionBuild_Run_triggered()
 {
     if(!on_ActionBuild_Assemble_triggered()) return;
+    loadOperatingSystem();
+    loadObjectCodeProgram();
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
         disconnectViewUpdate();
@@ -1537,8 +1537,8 @@ void MainWindow::handleDebugButtons()
 bool MainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
     if(!on_ActionBuild_Assemble_triggered()) return false;
-    loadObjectCodeProgram();
     loadOperatingSystem();
+    loadObjectCodeProgram();
 
     return on_actionDebug_Start_Debugging_Object_triggered();
 
@@ -1577,7 +1577,10 @@ bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     memDevice->clearMemory();
     loadOperatingSystem();
     // Copy object code to batch input pane and make it the active input pane
-    ui->ioWidget->setBatchInput(ui->AsmObjectCodeWidgetPane->toPlainText());
+    QString objcode = ui->AsmObjectCodeWidgetPane->toPlainText();
+    // Replace all new line characters with spaces
+    objcode = objcode.replace('\n', ' ');
+    ui->ioWidget->setBatchInput(objcode);
     ui->ioWidget->setActivePane(Enu::EPane::EBatchIO);
     if(!on_actionDebug_Start_Debugging_Object_triggered()) return false;
     quint16 sp, pc;
