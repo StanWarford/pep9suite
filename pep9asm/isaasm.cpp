@@ -102,15 +102,23 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
     if(!symTable->exists("charIn") || symTable->getValue("charIn")->isUndefined()) {
         // According to the OS memory map vector, the location of chicharIn is
         // stored in the 6th and 7th bytes from the end of the operating system.
-        quint16 chinOffset = manager.getOperatingSystem()->getBurnValue() - 0x7;
-        memDevice->getWord(chinOffset, chin);
+        // quint16 chinOffset = manager.getOperatingSystem()->getBurnValue() - 0x7;
+        // memDevice->getWord(chinOffset, chin);
+        // No longer use above approach, as it requires the operating system be
+        // loaded in memory. Instead, diretly querry the operating system's symbol
+        // table for the value of the symbol.
+        chin = manager.getOperatingSystem()->getSymbolTable()->getValue("charIn")->getValue();
         symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(chin));
     }
     if(!symTable->exists("charOut") || symTable->getValue("charOut")->isUndefined()) {
         // According to the OS memory map vector, the location of charOut is
         // stored in the 4th and 5th bytes from the end of the operating system.
-        quint16 choutOffset = manager.getOperatingSystem()->getBurnValue() - 0x5;
-        memDevice->getWord(choutOffset, chout);
+        // quint16 choutOffset = manager.getOperatingSystem()->getBurnValue() - 0x5;
+        // memDevice->getWord(choutOffset, chout);
+        // No longer use above approach, as it requires the operating system be
+        // loaded in memory. Instead, diretly querry the operating system's symbol
+        // table for the value of the symbol.
+        chout = manager.getOperatingSystem()->getSymbolTable()->getValue("charOut")->getValue();
         symTable->setValue("charOut", QSharedPointer<SymbolValueNumeric>::create(chout));
     }
 

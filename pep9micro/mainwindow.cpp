@@ -1409,8 +1409,6 @@ void MainWindow::on_actionBuild_Microcode_triggered()
 //Build Events
 bool MainWindow::on_ActionBuild_Assemble_triggered()
 {
-    // Must load operating system in order for charIn, charOut to be well-defined.
-    loadOperatingSystem();
     if(ui->AsmSourceCodeWidgetPane->assemble()){
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
         ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
