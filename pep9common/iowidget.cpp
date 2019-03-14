@@ -63,7 +63,7 @@ void IOWidget::setActivePane(Enu::EPane pane)
 
 void IOWidget::cancelWaiting()
 {
-    switch(ui->tabWidget->currentIndex())
+    switch(activePane)
     {
     case 1:
         ui->terminalIO->cancelWaiting();
@@ -89,17 +89,6 @@ void IOWidget::bindToMemorySection(MainMemory *memory)
     // Multiple versions of this slot exist, so the following function cast must be used to select the correct one
     connect(this, &IOWidget::inputReady, memory,  static_cast<void (MainMemory::*)(quint16, quint8)>(&MainMemory::onInputReceived));
     this->memory = memory;
-}
-
-void IOWidget::batchInputToBuffer()
-{
-    // Don't use activePane, which is set after the simulation start,
-    // since this may be called before onSimulationStart().
-    if(ui->tabWidget->currentIndex() == 0) {
-        // Make sure no additional IO is waiting before queueing more
-        memory->clearIO();
-        memory->onInputReceived(charInAddr, ui->batchInput->toPlainText().append('\n'));
-    }
 }
 
 bool IOWidget::isUndoable() const
@@ -272,7 +261,7 @@ void IOWidget::onDataRequested(quint16 address)
     case 0:
         //If there's no input for the memory, there never will be.
         //So, let the simulation begin to error and unwind.
-        memory->onInputCanceled(charInAddr);
+        memory->onInputAborted(charInAddr);
         break;
     case 1:
         ui->terminalIO->waitingForInput();
@@ -290,7 +279,8 @@ void IOWidget::onSimulationStart()
     switch(activePane)
     {
     case 0:
-        //When the simulation starts, pass all needed input to memory's input buffer
+        // When the simulation starts, pass all needed input to memory's input buffer.
+        // Append \n as an input terminator
         memory->onInputReceived(charInAddr, ui->batchInput->toPlainText().append('\n'));
         break;
     default:

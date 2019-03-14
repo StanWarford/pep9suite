@@ -51,8 +51,6 @@ public:
     // Connect to needed signals/slots of passed memory device.
     void bindToMemorySection(MainMemory* memory);
 
-    // If the batch input pane is selected, move the batch input to the bound memory device.
-    void batchInputToBuffer();
     // Does the currently selected widget have any undo states?
     bool isUndoable() const;
     // Does the currently selected widget have any redo states?
@@ -73,7 +71,8 @@ public slots:
     // Called whenever memory-mapped IO requests input.
     void onDataRequested(quint16 address);
     // Inform the widget that a simulation has begun, so that needed
-    // state may be cached.
+    // state may be cached. Also moves batch input to input buffer if
+    // needed.
     void onSimulationStart();
     // Clear the contents of terminal, batch input/output panes.
     void onClear();

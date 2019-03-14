@@ -1134,8 +1134,6 @@ bool MainWindow::initializeSimulation()
     // Don't allow the microcode pane to be edited while the program is running
     ui->microcodeWidget->setReadOnly(true);
 
-    // If there is batch input, move input to  input buffer in the MemorySection
-    ui->ioWidget->batchInputToBuffer();
     // No longer emits simulationStarted(), as this could trigger extra screen painting that is unwanted.
     return true;
 }
@@ -1411,6 +1409,8 @@ void MainWindow::on_actionBuild_Microcode_triggered()
 //Build Events
 bool MainWindow::on_ActionBuild_Assemble_triggered()
 {
+    // Must load operating system in order for charIn, charOut to be well-defined.
+    loadOperatingSystem();
     if(ui->AsmSourceCodeWidgetPane->assemble()){
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
         ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
@@ -1499,7 +1499,7 @@ void MainWindow::handleDebugButtons()
             && !programManager->getOperatingSystem()->getSymbolTable()->getValue("charIn").isNull();
     if(waiting_io) {
        quint16 address = programManager->getOperatingSystem()->getSymbolTable()->getValue("charIn")->getValue();
-       InputChip* chip = (InputChip*)memDevice->chipAt(address).get();
+       InputChip* chip = static_cast<InputChip*>(memDevice->chipAt(address).get());
        waiting_io &= chip->waitingForInput(address-chip->getBaseAddress());
     }
     int enabledButtons = 0;
@@ -1778,8 +1778,8 @@ void MainWindow::onSimulationFinished()
     bool hadPostTest = false;
     for (AMicroCode* x : prog) {
         if(x->hasUnitPost()) hadPostTest = true;
-        if (x->hasUnitPost()&&!((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString)) {
-             ((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString);
+        if (x->hasUnitPost() && !static_cast<UnitPostCode*>(x)->testPostcondition(dataSection.get(), errorString)) {
+             static_cast<UnitPostCode*>(x)->testPostcondition(dataSection.get(), errorString);
              ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
              QMessageBox::warning(this, "Pep/9 Micro", "Failed unit test");
              ui->statusBar->showMessage("Failed unit test", 4000);
@@ -2117,6 +2117,9 @@ void MainWindow::helpCopyToSourceClicked()
                     statusBar()->showMessage("Copied to microcode", 4000);
                 }
                 break;
+            default:
+                // No other panes allow copying help into them.
+                return;
 
         }
     }
@@ -2134,9 +2137,6 @@ void MainWindow::helpCopyToSourceClicked()
     default:
         break;
     }
-    //statusBar()->showMessage("Copied to microcode", 4000);
-    //ui->microcodeWidget->microAssemble();
-    //ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
 }
 
 void MainWindow::onOutputReceived(quint16 address, quint8 value)

@@ -298,7 +298,11 @@ void MainMemory::clearIO()
             in->onInputCanceled(key);
         }
     }
+    for(auto address : waitingOnInput) {
+        onInputCanceled(address);
+    }
     inputBuffer.clear();
+    waitingOnInput.clear();
 }
 
 void MainMemory::onInputReceived(quint16 address, quint8 input)
@@ -313,6 +317,7 @@ void MainMemory::onInputReceived(quint16 address, QChar input)
 
 void MainMemory::onInputReceived(quint16 address, QString input)
 {
+    if(input.isEmpty()) return;
     QSharedPointer<AMemoryChip> temp = chipAt(address);
     InputChip* chip;
     if(temp->getChipType() != AMemoryChip::ChipTypes::IDEV) {
@@ -327,6 +332,8 @@ void MainMemory::onInputReceived(quint16 address, QString input)
         QByteArray rest = input.mid(1,-1).toLatin1();
         inputBuffer.insert(address, rest);
         chip->onInputReceived(offsetFromBase, first);
+        // Now that the address has been served IO, it is not waiting anymore.
+        waitingOnInput.remove(address);
     } else if(inputBuffer.contains(address)) {
         inputBuffer[address].append(input.toLatin1());
     } else {
@@ -368,6 +375,7 @@ void MainMemory::onChipInputRequested(quint16 address)
         dynamic_cast<InputChip*>(chipAt(address).get())->onInputReceived(offsetFromBase, first);
     }
     else {
+        waitingOnInput.insert(address);
         emit inputRequested(address);
         // Make sure the signal is handled by the UI immediately
         QApplication::processEvents();

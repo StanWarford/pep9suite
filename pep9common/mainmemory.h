@@ -60,6 +60,8 @@ class MainMemory : public AMemoryDevice
     QMap<AMemoryChip*, QSharedPointer<AMemoryChip>> ptrLookup;
     // Buffer input for particular addresses (needed for batch character input).
     mutable QMap<quint16, QByteArray> inputBuffer;
+    // A list of all memory locations that have a pending input request.
+    mutable QSet<quint16> waitingOnInput;
 
 public:
     explicit MainMemory(QObject* parent = nullptr) noexcept;
