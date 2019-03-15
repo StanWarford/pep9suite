@@ -120,8 +120,8 @@ void PartialMicrocodedCPU::onDebuggingFinished()
 
 void PartialMicrocodedCPU::onCancelExecution()
 {
-    #pragma message("TODO: Cancel execution")
-    throw -1;
+    executionFinished = true;
+    inDebug = false;
 }
 
 bool PartialMicrocodedCPU::onRun()
@@ -190,7 +190,6 @@ void PartialMicrocodedCPU::onResetCPU()
 void PartialMicrocodedCPU::onMCStep()
 {
 
-#pragma message("TODO: make micro program counter loop point variable")
     if(microprogramCounter == 0) {
         // Store PC at the start of the cycle, so that we know where the instruction started from.
         // Also store any other values needed for detailed statistics
@@ -252,6 +251,9 @@ void PartialMicrocodedCPU::branchHandler()
 {
     if(sharedProgram->getCodeLine(microprogramCounter)->getBranchFunction() == Enu::EBranchFunctions::Stop) {
         executionFinished = true;
+    }
+    else if(executionFinished) {
+        return;
     }
     else {
         microprogramCounter++;

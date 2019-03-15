@@ -136,8 +136,8 @@ void FullMicrocodedCPU::onDebuggingFinished()
 
 void FullMicrocodedCPU::onCancelExecution()
 {
-    #pragma message("TODO: Cancel execution")
-    throw -1;
+    executionFinished = true;
+    inDebug = false;
 }
 
 bool FullMicrocodedCPU::onRun()
@@ -388,6 +388,8 @@ void FullMicrocodedCPU::stepOut()
 
 void FullMicrocodedCPU::branchHandler()
 {
+    // If execution is already finished, then nothing to update.
+    if(executionFinished) return;
     const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
     int temp = microprogramCounter;
     quint8 byte = 0;
