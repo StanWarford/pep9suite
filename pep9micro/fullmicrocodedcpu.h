@@ -89,6 +89,7 @@ private:
     // any of the Pep:: addressing mode maps while the simulator
     // is running, else a microprogram might fail unexpectedly.
     std::array<decoder_entry, 256> addrModeJT;
+    quint16 startLine = 0;
 };
 
 #endif // FULLMICROCODEDCPU_H

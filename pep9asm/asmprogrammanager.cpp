@@ -2,6 +2,7 @@
 #include "asmprogram.h"
 #include <QSharedPointer>
 #include "asmcode.h"
+#include "symbolentry.h"
 AsmProgramManager* AsmProgramManager::instance = nullptr;
 AsmProgramManager::AsmProgramManager(QObject *parent): QObject(parent), operatingSystem(nullptr), userProgram(nullptr)
 {
@@ -37,6 +38,22 @@ QSharedPointer<const AsmProgram> AsmProgramManager::getUserProgram() const
 void AsmProgramManager::setOperatingSystem(QSharedPointer<AsmProgram> prog)
 {
     operatingSystem = prog;
+}
+
+quint16 AsmProgramManager::getMemoryVectorValue(MemoryVectors vector) const
+{
+    quint16 baseAddress = operatingSystem->getBurnValue();
+    quint16 offset = getMemoryVectorOffset(vector);
+    quint16 actual = baseAddress-offset;
+    auto asmCode = operatingSystem->memAddressToCode(actual);
+    if(dynamic_cast<const DotAddrss*>(asmCode) != nullptr) {
+        const DotAddrss* dAddr = static_cast<const DotAddrss*>(asmCode);
+        // The value of a .ADDRSS is the value of it's symbolic operand
+        return static_cast<quint16>(dAddr->getSymbolicOperand()->getValue());
+    }
+    // If the location at a memory vector is not a .ADDRSS command, then the value
+    // is malformed, so return a distinct value that will be easy to spot.
+    return 0xDEAD;
 }
 
 void AsmProgramManager::setUserProgram(QSharedPointer<AsmProgram>prog)
@@ -109,4 +126,22 @@ void AsmProgramManager::onRemoveAllBreakpoints()
 {
 #pragma message("TODO: Respond to all breakpoints being removed")
     emit removeAllBreakpoints();
+}
+
+quint16 AsmProgramManager::getMemoryVectorOffset(MemoryVectors which)
+{
+    switch(which) {
+    case UserStack:;
+        return 11;
+    case SystemStack:;
+        return 9;
+    case CharIn:;
+        return 7;
+    case CharOut:;
+        return 5;
+    case Loader:;
+        return 3;
+    case Trap:;
+        return 1;
+    }
 }

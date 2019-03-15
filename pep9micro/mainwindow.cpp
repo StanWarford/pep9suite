@@ -1095,7 +1095,7 @@ void MainWindow::highlightActiveLines(bool forceISA)
     ui->microcodeWidget->updateSimulationView();
     ui->microObjectCodePane->highlightCurrentInstruction();
     //If the µPC is 0, if a breakpoint has been reached, or if the microcode has a breakpoint, rehighlight the ASM views.
-    if(controlSection->getMicrocodeLineNumber() == 0 || forceISA || controlSection->stoppedForBreakpoint()) {
+    if(controlSection->atMicroprogramStart() || forceISA || controlSection->stoppedForBreakpoint()) {
         ui->memoryWidget->clearHighlight();
         ui->memoryWidget->highlight();
         ui->asmListingTracePane->updateSimulationView();
@@ -2147,6 +2147,7 @@ void MainWindow::onInputRequested(quint16 address)
     handleDebugButtons();
     ui->microcodeWidget->setEnabled(false);
     ui->cpuWidget->setEnabled(false);
+    statusBar()->showMessage("Input requested", 4000);
     ui->ioWidget->onDataRequested(address);
     handleDebugButtons();
     reenableUIAfterInput();

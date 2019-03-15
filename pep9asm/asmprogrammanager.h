@@ -27,6 +27,7 @@
 #include <QSet>
 class AsmProgram;
 class SymbolTable;
+
 /*
  * A class to manage the lifetime of user programs & the operating system.
  * Also helps communicate changes in breakpoints between assembler source &
@@ -37,12 +38,24 @@ class AsmProgramManager: public QObject
 {
     Q_OBJECT
 public:
+    /*
+     * The Pep/9 virtual machine specifies multiple address at the bottom of memory
+     * that contain useful addresses.
+     */
+    enum MemoryVectors{
+        UserStack, SystemStack, CharIn, CharOut, Loader, Trap
+    };
+    /* Number of bytes to subtract from the end of memory to get a particular memory
+     * vector.
+     */
+    static quint16 getMemoryVectorOffset(MemoryVectors which);
 
     static AsmProgramManager* getInstance();
     // Get or set operating system code
     QSharedPointer<AsmProgram> getOperatingSystem();
     QSharedPointer<const AsmProgram> getOperatingSystem() const;
     void setOperatingSystem(QSharedPointer<AsmProgram> prog);
+    quint16 getMemoryVectorValue(MemoryVectors vector) const;
 
     // Get or set user program
     QSharedPointer<AsmProgram> getUserProgram();
@@ -71,6 +84,7 @@ private:
     static AsmProgramManager* instance;
     QSharedPointer<AsmProgram> operatingSystem;
     QSharedPointer<AsmProgram> userProgram;
+
 };
 
 #endif // ASMPROGRAMMANAGER_H
