@@ -624,15 +624,16 @@ EOMux=0, AMux=0, ALU=0, CMux=1, C=4, PValid=0; LoadCk, PValidCk; goto start //Mo
 
 
 //trap instructions
-nop1: goto trap
-nop: goto trap
-deci: goto trap
-deco: goto trap
-hexo: goto trap
-stro: goto trap
-//T4 <- Mem[0xFFF6]. Registers T1, T3,T4  are in use.
-trap: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk
-MemRead
+// For each of the following trap instructions, start the fetch
+// T4 <- Mem[0xFFF6]. Registers T1, T3,T4  are in use.
+opcode27: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+opcode28: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+opcode30: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+opcode38: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+opcode40: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+opcode48: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+
+trap: MemRead
 MemRead
 MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 EOMux=0, AMux=0, ALU=0, CMux=1, C=16; LoadCk
