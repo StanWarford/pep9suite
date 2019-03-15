@@ -310,10 +310,26 @@ void FullMicrocodedCPU::onClock()
 
 void FullMicrocodedCPU::onISAStep()
 {
-    // Execute steps until the microprogram counter comes back to 0 OR there is an error on step OR a breakpoint is hit.
-    do {
-        onMCStep();
-    } while(!hadErrorOnStep() && !executionFinished && microprogramCounter != startLine && !microBreakpointHit);
+    auto continueExecute = [this](){return !hadErrorOnStep()
+                && !executionFinished
+                && !microBreakpointHit;};
+    // If microprogram counter is 0, and the start of the von-neuman cycle
+    // is not 0, execute microcode until "start" is hit. This is to prevent
+    if(microprogramCounter < startLine && startLine != 0) {
+        do {
+            onMCStep();
+        } while(continueExecute() && microprogramCounter != startLine);
+    }
+
+    // If prelude hit an error or breakpoint, do not continue executing.
+    if(continueExecute()) {
+        // Execute steps until the microprogram counter comes back to start
+        // OR there is an error on step OR a breakpoint is hit.
+        do {
+            onMCStep();
+        } while(continueExecute() && microprogramCounter != startLine);
+    }
+
     if(hadErrorOnStep()) {
         if(memory->hadError()) {
             qDebug() << "Memory section reporting an error";

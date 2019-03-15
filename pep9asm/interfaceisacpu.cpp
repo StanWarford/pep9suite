@@ -74,7 +74,6 @@ void InterfaceISACPU::calculateStackChangeStart(quint8 instr)
 
 void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc, quint16 acc)
 {
-#pragma message("TODO: stack checks")
     /*
      * Following sanity checks must be performed:
      *  x - Have static trace tag errors corrupted the stack (one time check)?
@@ -83,14 +82,14 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
      *  x - Do the tags listed in comments match in length to the argument?
      *  x - Should trace tags be tracked? Or does the program lack tags?
      *  x - What if some lines have trace tags but others don't?
-     *  Is alloc or free being called?
-     *      How do we handle alloc?
+     *  x - Is malloc being called?
      *
      * **StackTrace**
      *  x - After push / pop in StackTrace, verify that it returns true.
      *      x - If it returns false, we have a corrupt stack.
      *  x - If CallStack is ever exhausted before size is hit, return false.
      */
+
     if(!memTrace->activeStack->isStackIntact() || this->manager->getProgramAt(pc) == nullptr) return;
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[instr];
     quint16 size = 0;
@@ -118,7 +117,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             if(mallocPreError == true) {
                 memTrace->heapTrace.setCanAddNew(false);
                 #pragma message("TODO: Add heap error messages")
-                memTrace->heapTrace.setErrorMessage("Heap corrupted");
+                memTrace->heapTrace.setErrorMessage("Heap corrupted.");
                 return;
             }
             // A call with no symbol traces listed is ignored.
@@ -129,8 +128,13 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
                     primList.append(item->toPrimitives());
                 }
                 memTrace->heapTrace.pushHeap(heapPtr, primList);
+                heapPtr += acc;
             }
-            heapPtr += acc;
+            else {
+                memTrace->heapTrace.setCanAddNew(false);
+                memTrace->heapTrace.setErrorMessage("Added object to heap with no trace tags.");
+            }
+
 
         }
         //qDebug() << "Called!" ;
@@ -211,7 +215,11 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
             memTrace->activeStack->setErrorMessage("ERROR: Executed ADDSP, but no items are eligible to be popped.");
             memTrace->activeStack->setStackIntact(false);
         }
-        else break;
+        else {
+            memTrace->activeStack->setErrorMessage("ERROR: Executed ADDSP, but no trace info was available.");
+            memTrace->activeStack->setStackIntact(false);
+            break;
+        }
         switch(activeActions->pop()) {
         case stackAction::locals:
             if(memTrace->activeStack->popLocals(size)) {
