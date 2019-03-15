@@ -70,21 +70,6 @@ quint16 FullMicrocodedCPU::getCPURegWordStart(Enu::CPURegisters reg) const
 
 void FullMicrocodedCPU::initCPU()
 {
-    // Initialize CPU with proper stack pointer value in SP register.
-
-    // If there is no operating system, then the stack pointer should default to 0.
-    if(manager->getOperatingSystem().isNull()) {
-        data->onSetRegisterByte(4, 0);
-        data->onSetRegisterByte(5, 0);
-    }
-    else {
-        // Go to the memory vector
-        quint16 addr = manager->getMemoryVectorValue(AsmProgramManager::UserStack);
-        data->onSetRegisterByte(4, addr >> 8);
-        data->onSetRegisterByte(5, addr &0xff);
-    }
-    data->getRegisterBank();
-
     data->getRegisterBank().flattenFile();
 }
 
@@ -116,7 +101,6 @@ void FullMicrocodedCPU::onSimulationStarted()
     inDebug = false;
     inSimulation = false;
     executionFinished = false;
-#pragma message("TODO: Make start symbol variable")
     if(sharedProgram->getSymTable()->exists("start")) {
         startLine = sharedProgram->getSymTable()->getValue("start")->getValue();
     } else {
@@ -283,7 +267,7 @@ void FullMicrocodedCPU::onMCStep()
     data->onStep();
     branchHandler();
     microCycleCounter++;
-    //qDebug().nospace().noquote() << prog->getSourceCode();
+    // qDebug().nospace().noquote() << prog->getSourceCode();
 
     if(microprogramCounter == startLine || executionFinished) {
         quint16 progCounter = getCPURegWordStart(Enu::CPURegisters::PC);
