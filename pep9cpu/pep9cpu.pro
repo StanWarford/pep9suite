@@ -65,7 +65,7 @@ include(pep9cpu-common.pro)
 
 #Add this include to the bottom of your project to enable automated installer creation
 #Include the definitions file that sets all variables needed for the InstallerConfig Script
-include("ProjectDefs.pri")
+include("installer-config.pri")
 
 #Lastly, include and run the installer config script
-include("../Installer/InstallerConfig.pri")
+include("../installer/installer-creator.pri")

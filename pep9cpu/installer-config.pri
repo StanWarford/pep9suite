@@ -14,7 +14,8 @@ MAC_USE_DMG_INSTALLER = "true"
 PATH_PREFIX = $$PWD
 #Each of the following variables should be a space separated list
 UNIVERSAL_ICONS = ""
-MAC_ICONS = "images/icon.icns" "images/Pep9micro-icon.png"
+WINDOWS_ICONS = "images/icon.ico" "images/Pep9cpu-icon.png"
+MAC_ICONS = "images/icon.icns" "images/Pep9cpu-icon.png"
 LINUX_ICONS = "" #No implementation for Linux
 
 #One of your target packages must always be $$TARGET
@@ -29,8 +30,8 @@ MAIN_PACKAGE.DATA_ITEMS += "$$PWD/../LICENSE"
 TARGET_PACKAGES += MAIN_PACKAGE
 
 DISTFILES += \
-    $$PWD/../installer/packages/pep9micro/install.js \
-    $$PWD/../installer/packages/pep9micro/package.xml \
-    $$PWD/../installer/packages/pep9micro/configlinux.xml \
-    $$PWD/../installer/packages/pep9micro/configwin32.xml \
-    $$PWD/../installer/packages/pep9micro/configmacx.xml
+    $$PWD/../installer/packages/pep9cpu/install.js \
+    $$PWD/../installer/packages/pep9cpu/package.xml \
+    $$PWD/../installer/packages/pep9cpu/configlinux.xml \
+    $$PWD/../installer/packages/pep9cpu/configwin32.xml \
+    $$PWD/../installer/packages/pep9cpu/configmacx.xml

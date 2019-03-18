@@ -7,14 +7,15 @@ OUTPUT_INSTALLER_NAME=$$TARGET"-Installer-"$$PEPVER
 VERSION_NUMBER = "1_0"
 #If you want to use a DMG based installer for Mac, put anything in this field
 #If you want to use a QT Installer Framework Base Installer, set the field to ""
-MAC_USE_DMG_INSTALLER = ""
+MAC_USE_DMG_INSTALLER = "true"
 
 #Data Configuration
 #Look for all files below starting in this directory
 PATH_PREFIX = $$PWD
 #Each of the following variables should be a space separated list
 UNIVERSAL_ICONS = ""
-MAC_ICONS = "images/icon.icns" "images/Pep9cpu-icon.png"
+WINDOWS_ICONS = "images/icon.ico" "images/Pep9micro-icon.png"
+MAC_ICONS = "images/icon.icns" "images/Pep9micro-icon.png"
 LINUX_ICONS = "" #No implementation for Linux
 
 #One of your target packages must always be $$TARGET
@@ -26,12 +27,11 @@ MAIN_PACKAGE.META_ITEMS += $$PWD/../installer/common/ShortcutPage.ui \
     $$PWD/../installer/packages/$$TARGET/package.xml
 MAIN_PACKAGE.DATA_ITEMS += "$$PWD/../LICENSE"
 
-
 TARGET_PACKAGES += MAIN_PACKAGE
 
 DISTFILES += \
-    $$PWD/../installer/packages/pep9cpu/install.js \
-    $$PWD/../installer/packages/pep9cpu/package.xml \
-    $$PWD/../installer/packages/pep9cpu/configwin32.xml \
-    $$PWD/../installer/packages/pep9cpu/configlinux.xml \
-    $$PWD/../installer/packages/pep9cpu/configmacx.xml
+    $$PWD/../installer/packages/pep9micro/install.js \
+    $$PWD/../installer/packages/pep9micro/package.xml \
+    $$PWD/../installer/packages/pep9micro/configlinux.xml \
+    $$PWD/../installer/packages/pep9micro/configwin32.xml \
+    $$PWD/../installer/packages/pep9micro/configmacx.xml
