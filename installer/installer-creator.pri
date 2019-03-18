@@ -33,16 +33,15 @@ repoDir=""
 PLATFORM_ICONS=""
 PLATFORM_DATA=""
 INSTALLER_CONFIG_FILE=""
-CONFIG+= repogen installer
 DO_REPOGEN=""
 DO_INSTALLER=""
 DO_PACKAGE_COPY=""
-CONFIG(repogen) {
+contains(BUILD_OPT, repogen):CONFIG(release) {
     DO_REPOGEN = "true"
     DO_PACKAGE_COPY = "true"
 
 }
-CONFIG(installer) {
+contains(BUILD_OPT, installer):CONFIG(release) {
     DO_INSTALLER = "true"
     DO_PACKAGE_COPY = "true"
 }
