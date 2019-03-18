@@ -149,6 +149,8 @@ else:linux{
         for(name, WINDOWS_ICONS){
             QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$PATH_PREFIX/$$name) $$cpq($$OUT_PWD/Installer/config) $$psc
         }
+        #Copy over script that installs application with registry.
+QMAKE_POST_LINK +=  $${QMAKE_COPY} $$cpq($$PWD/../installer/common/regSetUninst.bat) $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data) $$psc
         #Copy over executable to data directory
         QMAKE_POST_LINK +=  $${QMAKE_COPY} $$cpq($$OUT_PWD/$$TARGET$$TARGET_EXT) $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data) $$psc
         #Execute windeployqt to copy needed binaries (dlls, etc).

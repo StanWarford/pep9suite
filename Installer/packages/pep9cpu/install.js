@@ -32,6 +32,7 @@ Component.prototype.createOperations = function()
 		if (installer.value("os") === "win") {
 			//win -> add startmenu shortcuts
 			component.addOperation("CreateShortcut", "@RunProgram@.exe", "@StartMenuDir@/@Name@.lnk");
+            component.addOperation("Execute", "@TargetDir@\\vcredist_x64.exe","/install","/passive", "/norestart","/quiet");
 			if(installer.isOfflineOnly())
 				component.addOperation("CreateShortcut", "@TargetDir@/@MaintenanceToolName@.exe", "@StartMenuDir@/Uninstall.lnk");
 			else {
