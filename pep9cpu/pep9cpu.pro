@@ -62,3 +62,10 @@ VPATH += $$PWD/../pep9common
 
 include(../pep9common/pep9common.pro)
 include(pep9cpu-common.pro)
+
+#Add this include to the bottom of your project to enable automated installer creation
+#Include the definitions file that sets all variables needed for the InstallerConfig Script
+include("ProjectDefs.pri")
+
+#Lastly, include and run the installer config script
+include("../Installer/InstallerConfig.pri")

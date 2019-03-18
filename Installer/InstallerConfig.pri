@@ -24,7 +24,6 @@ macx{
 #This interferes with the deployment script, and makes debugging hard since Qt attempts to debug the optimized program.
 CONFIG -= debug_and_release \
     debug_and_release_target
-QMAKE_MAC_SDK = macosx10.13
 
 QtDir = $$clean_path($$[QT_INSTALL_LIBS]/..)
 QtInstallerBin=$$clean_path($$QtDir/../../tools/Qtinstallerframework/3.0/bin)
@@ -33,6 +32,7 @@ repoDir=""
 PLATFORM_ICONS=""
 PLATFORM_DATA=""
 INSTALLER_CONFIG_FILE=""
+
 !CONFIG(debug,debug|release):macx:!isEmpty(MAC_USE_DMG_INSTALLER){
     #For some reason, the release flag is set in both debug and release.
     #So, the above Config(...) makes it so a disk image is only built in release mode.
@@ -64,7 +64,7 @@ INSTALLER_CONFIG_FILE=""
     #Use the method described in "Adding Custom Targets" on http://doc.qt.io/qt-5/qmake-advanced-usage.html.
     #Our deployment tool will be called anytime the application is sucessfully linked in release mode.
 }
-else:!CONFIG(debug,debug|release):macx:isEmpty(MAC_USE_DMG_INSTALLER){
+else:!CONFIG(debug,debug|release):macx:isEmpty(MAC_USE_DMG_INSTALLER) {
     !exists($$QtInstallerBin/Repogen){ #No tool to create new binary, so quit
         warning("Aborting installer creations, since QT Installer Framework 3.0 is not installed.")
         warning("Please run the QT maintence tool and install QT Installer Framework 3.0.")
@@ -74,7 +74,7 @@ else:!CONFIG(debug,debug|release):macx:isEmpty(MAC_USE_DMG_INSTALLER){
         EXECUTE_QTIFW="true"
         PLATFORM_DATA=MAC_DATA
         PLATFORM_ICONS=MAC_ICONS
-        INSTALLER_CONFIG_FILE=$$cpq($$PWD/config/configmacx.xml)
+        INSTALLER_CONFIG_FILE=$$cpq($$PWD/../installer/packages/$$TARGET/configmacx.xml)
         DEPLOY_ARGS = ""
     }
 }
@@ -91,7 +91,7 @@ else:!CONFIG(debug,debug|release):win32{
     EXECUTE_QTIFW="true"
     PLATFORM_DATA = WINDOWS_DATA
     PLATFORM_ICONS = WINDOWS_ICONS
-    INSTALLER_CONFIG_FILE = $$cpq($$PWD/config/configwin32.xml)
+    INSTALLER_CONFIG_FILE = $$cpq($$PWD/../installer/packages/$$TARGET/configwin32.xml)
     DEPLOY_ARGS = "--no-translations --no-system-d3d-compiler"
 }
 
@@ -124,10 +124,19 @@ else:linux{
 
     #Copy over files needed to create installer
     QMAKE_POST_LINK += $${QMAKE_COPY} $$INSTALLER_CONFIG_FILE $$cpq($$OUT_PWD/Installer/config/config.xml) $$psc \ #Copy Platform dependant config file
-        $${QMAKE_COPY} $$cpq($$PWD/config/control.js) $$cpq($$OUT_PWD/Installer/config) $$psc #Copy over installer control script
-    for(PACKAGE,TARGET_PACKAGES.PACKAGES){
+        $${QMAKE_COPY} $$cpq($$PWD/../installer/common/control.js) $$cpq($$OUT_PWD/Installer/config) $$psc #Copy over installer control script
+
+    for(PACKAGE, TARGET_PACKAGES) {
         #For each target package, copy it over into the installer
-        QMAKE_POST_LINK += $${QMAKE_COPY_DIR} $$cpq($$PWD/packages/$$PACKAGE) $$cpq($$OUT_PWD/Installer/packages/$$PACKAGE/meta) $$psc
+        NAME = $$eval($$PACKAGE"."NAME)
+        meta_items = $$eval($$PACKAGE"."META_ITEMS)
+        data_items = $$eval($$PACKAGE"."DATA_ITEMS)
+        for(ITEM, meta_items) {
+            QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$ITEM) $$cpq($$OUT_PWD/Installer/packages/$$NAME/meta/) $$psc
+        }
+        for(ITEM, data_items) {
+            QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$ITEM) $$cpq($$OUT_PWD/Installer/packages/$$NAME/data/) $$psc
+        }
     }
 
 
@@ -135,32 +144,30 @@ else:linux{
     for(name,UNIVERSAL_ICONS){
         QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$PATH_PREFIX/$$name) $$cpq($$OUT_PWD/Installer/config) $$psc
     }
-    for(name,WINDOWS_ICONS){
-        QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$PATH_PREFIX/$$name) $$cpq($$OUT_PWD/Installer/config) $$psc
-    }
-    #Copy over additional data specified in defs file
-    for(name,UNIVERSAL_DATA){
-        QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$PATH_PREFIX/$$name) $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data) $$psc
-    }
-    for(name,WINDOWS_DATA){
-        QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$PATH_PREFIX/$$name) $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data) $$psc
-    }
 
-    #Copy over extra data packages
-    for(extraTarget,TARGET_PACKAGES.EXTRA_DATA){
-        QMAKE_POST_LINK += $${QMAKE_MKDIR} $$cpq($$OUT_PWD/Installer/packages/$$eval($$extraTarget"."PACKAGE_NAME)/data) $$psc
-        for(datItem,$$eval(extraTarget).DATA){
-            message($$datItem)
-            QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$PATH_PREFIX/$$datItem) $$cpq($$OUT_PWD/Installer/packages/$$eval($$extraTarget"."PACKAGE_NAME)/data) $$psc
+    win32:{
+        for(name, WINDOWS_ICONS){
+            QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$PATH_PREFIX/$$name) $$cpq($$OUT_PWD/Installer/config) $$psc
         }
+        #Copy over executable to data directory
+        QMAKE_POST_LINK +=  $${QMAKE_COPY} $$cpq($$OUT_PWD/$$TARGET$$TARGET_EXT) $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data) $$psc
+        #Execute windeployqt to copy needed binaries (dlls, etc).
+        #See documentation here:
+        #http://doc.qt.io/qt-5/windows-deployment.html
+        QMAKE_POST_LINK += $$cpq($$QtDir/bin/windeployqt) $$DEPLOY_ARGS $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data/$$TARGET$$TARGET_EXT) $$psc
     }
 
-    #Copy over executable to data directory
-    QMAKE_POST_LINK +=  $${QMAKE_COPY} $$cpq($$OUT_PWD/$$TARGET$$TARGET_EXT) $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data) $$psc
-    #Execute windeployqt to copy needed binaries (dlls, etc).
-    #See documentation here:
-    #http://doc.qt.io/qt-5/windows-deployment.html
-    QMAKE_POST_LINK += $$cpq($$QtDir/bin/windeployqt) $$DEPLOY_ARGS $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data/$$TARGET$$TARGET_EXT) $$psc
+    else:macx{
+        for(name, MAC_ICONS){
+            QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$PATH_PREFIX/$$name) $$cpq($$OUT_PWD/Installer/config) $$psc
+        }
+        #Copy over executable to data directory
+        QMAKE_POST_LINK +=  $${QMAKE_COPY_DIR} $$cpq($$OUT_PWD/$$TARGET$$TARGET_EXT) $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data) $$psc
+        #Execute macdeployqt to copy needed binaries (dlls, etc).
+        #See documentation here:
+        #http://doc.qt.io/qt-5/windows-deployment.html
+        QMAKE_POST_LINK += $$cpq($$QtDir/bin/macdeployqt) $$DEPLOY_ARGS $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data/$$TARGET$$TARGET_EXT) $$psc
+    }
 
 
     #The following two lines invoke QT Installer Framework executables. See the following link
@@ -174,3 +181,16 @@ else:linux{
     QMAKE_POST_LINK += $$cpq($$QtInstallerBin/binarycreator) -c $$cpq($$OUT_PWD/Installer/config/config.xml) -p $$cpq($$OUT_PWD/Installer/packages) \
     $$cpq($$OUT_PWD/Installer/$$OUTPUT_INSTALLER_NAME) $$psc
 }
+
+DISTFILES += \
+    $$PWD/config/control.js \
+    $$PWD/config/configlinux.xml \
+    $$PWD/config/configwin32.xml \
+    $$PWD/config/configmacx.xml \
+    $$PWD/../installer/common/control.js \
+    $$PWD/../installer/common/License.txt \
+    $$PWD/../installer/common/regSetUninst.bat
+
+FORMS += \
+    $$PWD/../installer/common/ShortcutPage.ui \
+    $$PWD/../installer/common/UserPage.ui
