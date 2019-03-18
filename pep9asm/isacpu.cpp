@@ -266,8 +266,8 @@ void IsaCpu::onDebuggingFinished()
 
 void IsaCpu::onCancelExecution()
 {
-    #pragma message("TODO")
-    throw -1;
+    executionFinished = true;
+    inDebug = false;
 }
 
 bool IsaCpu::onRun()

@@ -43,6 +43,7 @@ public:
     bool writeByte(quint16 offsetFromBase, quint8 value) override;
     bool getByte(quint16 offsetFromBase, quint8 &output) const override;
     bool setByte(quint16 offsetFromBase, quint8 value) override;
+
 };
 
 /*
@@ -78,6 +79,7 @@ public:
     virtual ~InputChip() override;
 
     // AMemoryChip interface
+    void resize(quint32) noexcept override;
     IOFunctions getIOFunctions() const noexcept override;
     ChipTypes getChipType() const noexcept override;
     void clear() noexcept override;
@@ -112,6 +114,7 @@ public:
     virtual ~OutputChip() override;
 
     // AMemoryChip interface
+    void resize(quint32 newSize) noexcept override;
     IOFunctions getIOFunctions() const noexcept override;
     ChipTypes getChipType() const noexcept override;
     void clear() noexcept override;
@@ -137,6 +140,7 @@ public:
     virtual ~RAMChip() override;
 
     // AMemoryChip interface
+    void resize(quint32 newSize) noexcept override;
     IOFunctions getIOFunctions() const noexcept override;
     ChipTypes getChipType() const noexcept override;
     void clear() noexcept override;
@@ -158,6 +162,7 @@ public:
     virtual ~ROMChip() override;
 
     // AMemoryChip interface
+    void resize(quint32 newSize) noexcept override;
     IOFunctions getIOFunctions() const noexcept override;
     ChipTypes getChipType() const noexcept override;
     void clear() noexcept override;

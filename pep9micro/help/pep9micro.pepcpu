@@ -1,5 +1,26 @@
 //*****************
 //
+// Before starting program execution, load the correct
+// value of SP from Mem[0xFFF4-0xFFF5]
+//
+//*****************
+
+// No static register has a value of F4, so construct
+// it from F6 - 2.
+A=29, B=24, AMux=1, ALU=3, CMux=1, C=21; LoadCk
+// Initiate fetch from Mem[0xFFF4-0xFFF5]
+A=31, B=21, MARMux=1; MARCk
+MemRead
+MemRead
+// MDREven <- Mem[0xFFF4], MDROdd <- Mem[0xFFF5].
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+// SP<hi> <- MDREven.
+EOMux=0, AMux=0, ALU=0, CMux=1, C=4; LoadCk
+// SP<lo> <- MDROdd.
+EOMux=1, AMux=0, ALU=0, CMux=1, C=5; LoadCk; goto start
+
+//*****************
+//
 // Instruction Specifier & Operand Specifier Fetch
 //
 //*****************
@@ -603,15 +624,16 @@ EOMux=0, AMux=0, ALU=0, CMux=1, C=4, PValid=0; LoadCk, PValidCk; goto start //Mo
 
 
 //trap instructions
-nop1: goto trap
-nop: goto trap
-deci: goto trap
-deco: goto trap
-hexo: goto trap
-stro: goto trap
-//T4 <- Mem[0xFFF6]. Registers T1, T3,T4  are in use.
-trap: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk
-MemRead
+// For each of the following trap instructions, start the fetch
+// T4 <- Mem[0xFFF6]. Registers T1, T3,T4  are in use.
+opcode27: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+opcode28: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+opcode30: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+opcode38: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+opcode40: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+opcode48: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
+
+trap: MemRead
 MemRead
 MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 EOMux=0, AMux=0, ALU=0, CMux=1, C=16; LoadCk
@@ -638,7 +660,7 @@ MemWrite, A=8, AMux=1, ALU=13, CMux=1, C=21; LoadCk
 
 //Mem[T-5] <- PC
 //NZVC bits go to T5<lo>
-A=14, B=15, MARMux=1, CMux=0, C=19; MARCk, LoadCk
+A=14, B=15, MARMux=1, CMux=0, C=19; MARCk, LoadCk; goto trap_wrtpc
 
 //Calculate lo order of T-7
 trap_wrtpc: A=15, B=24, AMux=1, ALU=3, CMux=1, C=17; SCk, LoadCk

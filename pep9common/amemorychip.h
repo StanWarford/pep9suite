@@ -95,6 +95,9 @@ public:
     void setBaseAddress(quint16 newAddress);
     // Number of bytes contained by this chip
     quint32 getSize() const noexcept;
+    // Change the size of the chip at runtime, to avoid creating and deleting
+    // an excessive number of chip instances.
+    virtual void resize(quint32 newSize) noexcept;
     // Location in main memory where this chip is inserted
     quint16 getBaseAddress() const noexcept;
     // Returns the abilities of the chip |'ed together.
@@ -124,7 +127,7 @@ public:
 protected:
     quint32 size;
     quint16 baseAddress;
-    //Helpers that throw a stylized error message for an out of bounds error message.
+    // Helpers that throw a stylized error message for an out of bounds error message.
     [[noreturn]] void outOfBoundsReadHelper(quint16 offsetFromBase) const;
     [[noreturn]] void outOfBoundsWriteHelper(quint16 offsetFromBase, quint8 value);
     [[noreturn]] void outOfBoundsWriteHelper(quint16 offsetFromBase, quint16 value);

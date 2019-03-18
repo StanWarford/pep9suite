@@ -495,6 +495,7 @@ void NewCPUDataSection::stepOneByte() noexcept
     }
     quint16 address;
     quint8 value;
+
     //MDRCk
     if(clockSignals[Enu::MDRCk]) {
         switch(controlSignals[Enu::MDRMux]) {
@@ -643,6 +644,7 @@ void NewCPUDataSection::stepTwoByte() noexcept
                 memSigError = memDevice->readByte(address, temp);
                 if(!memSigError) {
                     #pragma message("TODO: Handle case where memory errors more gracefully")
+                    return;
                 }
                 onSetMemoryRegister(Enu::MEM_MDRE, temp);
             }
@@ -682,6 +684,7 @@ void NewCPUDataSection::stepTwoByte() noexcept
                 memSigError = memDevice->readByte(address, temp);
                 if(!memSigError) {
                     #pragma message("TODO: Handle case where memory errors more gracefully")
+                    return;
                 }
                 onSetMemoryRegister(Enu::MEM_MDRO, temp);
             }

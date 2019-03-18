@@ -7,6 +7,7 @@
 #include "enu.h"
 class AType;
 class AMemoryDevice;
+
 struct MemTag
 {
     quint16 addr;
@@ -151,7 +152,6 @@ public:
 class MemoryTrace
 {
     bool traceWarnings;
-    // Temporary, just to test out
 public:
     explicit MemoryTrace();
     void clear();

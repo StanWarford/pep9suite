@@ -4,6 +4,7 @@
 #include <QTimer>
 
 #include "amemorydevice.h"
+#include "asmprogrammanager.h"
 #include "microcode.h"
 #include "microcodeprogram.h"
 #include "pep.h"
@@ -33,7 +34,8 @@ QSharedPointer<NewCPUDataSection> FullMicrocodedCPU::getDataSection()
 
 bool FullMicrocodedCPU::atMicroprogramStart() const noexcept
 {
-    return microprogramCounter == 0;
+    bool rVal = microprogramCounter == startLine || microprogramCounter == 0;
+    return rVal;
 }
 
 bool FullMicrocodedCPU::getStatusBitCurrent(Enu::EStatusBit bit) const
@@ -68,11 +70,6 @@ quint16 FullMicrocodedCPU::getCPURegWordStart(Enu::CPURegisters reg) const
 
 void FullMicrocodedCPU::initCPU()
 {
-    // Initialize CPU with proper stack pointer value in SP register.
-#pragma message ("TODO: Init cpu with proper SP when not burned in at 0xffff")
-    #pragma message("BAD ACCESS??")
-    data->onSetRegisterByte(4,0xFB);
-    data->onSetRegisterByte(5,0x82);
     data->getRegisterBank().flattenFile();
 }
 
@@ -104,6 +101,11 @@ void FullMicrocodedCPU::onSimulationStarted()
     inDebug = false;
     inSimulation = false;
     executionFinished = false;
+    if(sharedProgram->getSymTable()->exists("start")) {
+        startLine = sharedProgram->getSymTable()->getValue("start")->getValue();
+    } else {
+        startLine = 0;
+    }
     memoizer->clear();
     calculateInstrJT();
     calculateAddrJT();
@@ -134,8 +136,8 @@ void FullMicrocodedCPU::onDebuggingFinished()
 
 void FullMicrocodedCPU::onCancelExecution()
 {
-    #pragma message("TODO: Cancel execution")
-    throw -1;
+    executionFinished = true;
+    inDebug = false;
 }
 
 bool FullMicrocodedCPU::onRun()
@@ -150,7 +152,7 @@ bool FullMicrocodedCPU::onRun()
             if(microCycleCounter % 5000 == 0) {
                 QApplication::processEvents();
             }
-            else if(microprogramCounter == 0) {
+            else if(microprogramCounter == startLine) {
                 // Clear at start, so as to preserve highlighting AFTER finshing a write.
                 // When running in debug, clear written bytes after every instruction,
                 // otherwise too many writes may queue up.
@@ -165,7 +167,7 @@ bool FullMicrocodedCPU::onRun()
             if(microCycleCounter % 5000 == 0) {
                 QApplication::processEvents();
             }
-            else if(microprogramCounter == 0) {
+            else if(microprogramCounter == startLine) {
                 // Clear at start, so as to preserve highlighting AFTER finshing a write.
                 // When running in debug, clear written bytes after every instruction,
                 // otherwise too many writes may queue up.
@@ -232,8 +234,7 @@ void FullMicrocodedCPU::onResetCPU()
 void FullMicrocodedCPU::onMCStep()
 {
 
-#pragma message("TODO: make micro program counter loop point variable")
-    if(microprogramCounter == 0) {
+    if(microprogramCounter == startLine) {
         // Store PC at the start of the cycle, so that we know where the instruction started from.
         // Also store any other values needed for detailed statistics
         memoizer->storeStateInstrStart();
@@ -266,9 +267,9 @@ void FullMicrocodedCPU::onMCStep()
     data->onStep();
     branchHandler();
     microCycleCounter++;
-    //qDebug().nospace().noquote() << prog->getSourceCode();
+    // qDebug().nospace().noquote() << prog->getSourceCode();
 
-    if(microprogramCounter == 0 || executionFinished) {
+    if(microprogramCounter == startLine || executionFinished) {
         quint16 progCounter = getCPURegWordStart(Enu::CPURegisters::PC);
         InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteCurrent(Enu::CPURegisters::IS),
                                                  this->getCPURegWordCurrent(Enu::CPURegisters::OS),
@@ -279,7 +280,7 @@ void FullMicrocodedCPU::onMCStep()
         updateAtInstructionEnd();
         emit asmInstructionFinished();
         asmInstructionCounter++;
-        qDebug().noquote().nospace() << memoizer->memoize();
+        // qDebug().noquote().nospace() << memoizer->memoize();
         data->getRegisterBank().flattenFile();
         // If execution finished on this instruction, then restore original starting program counter,
         // as the instruction at the current program counter will not be executed.
@@ -309,10 +310,26 @@ void FullMicrocodedCPU::onClock()
 
 void FullMicrocodedCPU::onISAStep()
 {
-    // Execute steps until the microprogram counter comes back to 0 OR there is an error on step OR a breakpoint is hit.
-    do {
-        onMCStep();
-    } while(!hadErrorOnStep() && !executionFinished && microprogramCounter != 0 && !microBreakpointHit);
+    auto continueExecute = [this](){return !hadErrorOnStep()
+                && !executionFinished
+                && !microBreakpointHit;};
+    // If microprogram counter is 0, and the start of the von-neuman cycle
+    // is not 0, execute microcode until "start" is hit. This is to prevent
+    if(microprogramCounter < startLine && startLine != 0) {
+        do {
+            onMCStep();
+        } while(continueExecute() && microprogramCounter != startLine);
+    }
+
+    // If prelude hit an error or breakpoint, do not continue executing.
+    if(continueExecute()) {
+        // Execute steps until the microprogram counter comes back to start
+        // OR there is an error on step OR a breakpoint is hit.
+        do {
+            onMCStep();
+        } while(continueExecute() && microprogramCounter != startLine);
+    }
+
     if(hadErrorOnStep()) {
         if(memory->hadError()) {
             qDebug() << "Memory section reporting an error";
@@ -371,6 +388,8 @@ void FullMicrocodedCPU::stepOut()
 
 void FullMicrocodedCPU::branchHandler()
 {
+    // If execution is already finished, then nothing to update.
+    if(executionFinished) return;
     const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
     int temp = microprogramCounter;
     quint8 byte = 0;
@@ -619,8 +638,7 @@ void FullMicrocodedCPU::breakpointHandler()
     // If the CPU is not being debugged, breakpoints make no sense. Abort.
     if(!inDebug) return;
     // Only trap assembly breakpoints once on the first line of microcode.
-    if((microprogramCounter == 0) && breakpointsISA.contains(data->getRegisterBankWord(Enu::CPURegisters::PC))) {
-        #pragma message("TODO: make micro program counter loop point variable")
+    if((microprogramCounter == startLine) && breakpointsISA.contains(data->getRegisterBankWord(Enu::CPURegisters::PC))) {
         asmBreakpointHit = true;
         emit hitBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
         return;

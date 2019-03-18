@@ -44,6 +44,7 @@
 #include "mainmemory.h"
 
 #include "aboutpep.h"
+#include "amemorychip.h"
 #include "asmargument.h"
 #include "asmcode.h"
 #include "asmprogram.h"
@@ -278,6 +279,9 @@ MainWindow::MainWindow(QWidget *parent) :
         QTextStream in(&file);
         ui->microcodeWidget->setMicrocode(in.readAll());
         ui->microcodeWidget->setModifiedFalse();
+        if(ui->microcodeWidget->microAssemble()) {
+            ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
+        }
     }
 
     // Initialize debug menu
@@ -294,6 +298,8 @@ MainWindow::MainWindow(QWidget *parent) :
     double io = geometry().height() * ui->ioDockWidget->sizePolicy().verticalStretch() / static_cast<double>(scaleTotal);
     resizeDocks({ui->memoryDockWdget, ui->ioDockWidget}, {static_cast<int>(memory),
                                                           static_cast<int>(io)}, Qt::Vertical);
+    // Create a new ASM file so that the dialog always has a file name in it
+    on_actionFile_New_Asm_triggered();
 }
 
 MainWindow::~MainWindow()
@@ -908,7 +914,7 @@ void MainWindow::assembleDefaultOperatingSystem()
     }
 }
 
-//Helper function that turns hexadecimal object code into a vector of unsigned characters, which is easier to copy into memory.
+// Helper function that turns hexadecimal object code into a vector of unsigned characters, which is easier to copy into memory.
 QVector<quint8> convertObjectCodeToIntArray(QString line)
 {
     bool ok = false;
@@ -929,25 +935,25 @@ void MainWindow::loadOperatingSystem()
     quint16 startAddress;
     values = programManager->getOperatingSystem()->getObjectCode();
     startAddress = programManager->getOperatingSystem()->getBurnAddress();
-    memDevice->autoUpdateMemoryMap(false);
-    auto memChips = memDevice->removeAllChips();
-    // Re-insert RAM chip
-    QSharedPointer<AMemoryChip> *ram = std::find_if(memChips.begin(),memChips.end(),
-                                       [](QSharedPointer<AMemoryChip> chip) { return (chip)->getChipType() == AMemoryChip::ChipTypes::RAM; });
-    if(ram != memChips.end()) memDevice->insertChip(*ram, 0);
-
-#pragma message ("TODO: Don't create a new ROM module each time")
-    // Insert a ROM chip
-    memDevice->insertChip(QSharedPointer<ROMChip>::create(values.length(), startAddress, memDevice.get()), startAddress);
     // Get addresses for I/O chips
+    auto osSymTable = programManager->getOperatingSystem()->getSymbolTable();
     quint16 charIn, charOut;
-    charIn = programManager->getOperatingSystem()->getSymbolTable()->getValue("charIn")->getValue();
-    charOut = programManager->getOperatingSystem()->getSymbolTable()->getValue("charOut")->getValue();
-    // Create I/O chips now that we have the address for such chips
-    memDevice->insertChip(QSharedPointer<InputChip>::create(1, charIn, memDevice.get()), charIn);
-    memDevice->insertChip(QSharedPointer<OutputChip>::create(1, charOut, memDevice.get()), charOut);
+    charIn = static_cast<quint16>(osSymTable->getValue("charIn")->getValue());
+    charOut = static_cast<quint16>(osSymTable->getValue("charOut")->getValue());
     ui->ioWidget->setInputChipAddress(charIn);
     ui->ioWidget->setOutputChipAddress(charOut);
+
+    // Construct main memory according to the current configuration of the operating system.
+    QList<MemoryChipSpec> list;
+    // Make sure RAM will fill any accidental gaps in the memory map by making it go
+    // right up to the start of the operating system.
+    list.append({AMemoryChip::ChipTypes::RAM, 0, startAddress});
+    list.append({AMemoryChip::ChipTypes::ROM, startAddress, static_cast<quint32>(values.length())});
+    // Character input / output ports are only 1 byte wide by design.
+    list.append({AMemoryChip::ChipTypes::IDEV, charIn, 1});
+    list.append({AMemoryChip::ChipTypes::ODEV, charOut, 1});
+    memDevice->constructMemoryDevice(list);
+
     memDevice->autoUpdateMemoryMap(true);
     memDevice->loadValues(programManager->getOperatingSystem()->getBurnAddress(), values);
 }
@@ -1089,7 +1095,7 @@ void MainWindow::highlightActiveLines(bool forceISA)
     ui->microcodeWidget->updateSimulationView();
     ui->microObjectCodePane->highlightCurrentInstruction();
     //If the µPC is 0, if a breakpoint has been reached, or if the microcode has a breakpoint, rehighlight the ASM views.
-    if(controlSection->getMicrocodeLineNumber() == 0 || forceISA || controlSection->stoppedForBreakpoint()) {
+    if(controlSection->atMicroprogramStart() || forceISA || controlSection->stoppedForBreakpoint()) {
         ui->memoryWidget->clearHighlight();
         ui->memoryWidget->highlight();
         ui->asmListingTracePane->updateSimulationView();
@@ -1128,8 +1134,6 @@ bool MainWindow::initializeSimulation()
     // Don't allow the microcode pane to be edited while the program is running
     ui->microcodeWidget->setReadOnly(true);
 
-    // If there is batch input, move input to  input buffer in the MemorySection
-    ui->ioWidget->batchInputToBuffer();
     // No longer emits simulationStarted(), as this could trigger extra screen painting that is unwanted.
     return true;
 }
@@ -1137,7 +1141,7 @@ bool MainWindow::initializeSimulation()
 void MainWindow::onUpdateCheck(int val)
 {
     val = (int)val; //Ugly way to get rid of unused paramter warning without actually modifying the parameter.
-    //Dummy to handle update checking code
+    // Dummy to handle update checking code
 }
 
 // File MainWindow triggers
@@ -1405,7 +1409,6 @@ void MainWindow::on_actionBuild_Microcode_triggered()
 //Build Events
 bool MainWindow::on_ActionBuild_Assemble_triggered()
 {
-    loadOperatingSystem();
     if(ui->AsmSourceCodeWidgetPane->assemble()){
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
         ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
@@ -1414,12 +1417,10 @@ bool MainWindow::on_ActionBuild_Assemble_triggered()
         controlSection->breakpointsRemoveAll();
         ui->asmListingTracePane->setProgram(ui->AsmSourceCodeWidgetPane->getAsmProgram());
         set_Obj_Listing_filenames_from_Source();
-        loadObjectCodeProgram();
         ui->statusBar->showMessage("Assembly succeeded", 4000);
         return true;
     }
     else {
-#pragma message ("TODO: fix current file title if problematic")
         ui->AsmObjectCodeWidgetPane->clearObjectCode();
         ui->AsmListingWidgetPane->clearAssemblerListing();
         ui->asmListingTracePane->clearSourceCode();
@@ -1460,6 +1461,8 @@ void MainWindow::on_actionBuild_Run_Object_triggered()
 void MainWindow::on_actionBuild_Run_triggered()
 {
     if(!on_ActionBuild_Assemble_triggered()) return;
+    loadOperatingSystem();
+    loadObjectCodeProgram();
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
         disconnectViewUpdate();
@@ -1494,7 +1497,7 @@ void MainWindow::handleDebugButtons()
             && !programManager->getOperatingSystem()->getSymbolTable()->getValue("charIn").isNull();
     if(waiting_io) {
        quint16 address = programManager->getOperatingSystem()->getSymbolTable()->getValue("charIn")->getValue();
-       InputChip* chip = (InputChip*)memDevice->chipAt(address).get();
+       InputChip* chip = static_cast<InputChip*>(memDevice->chipAt(address).get());
        waiting_io &= chip->waitingForInput(address-chip->getBaseAddress());
     }
     int enabledButtons = 0;
@@ -1532,8 +1535,8 @@ void MainWindow::handleDebugButtons()
 bool MainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
     if(!on_ActionBuild_Assemble_triggered()) return false;
-    loadObjectCodeProgram();
     loadOperatingSystem();
+    loadObjectCodeProgram();
 
     return on_actionDebug_Start_Debugging_Object_triggered();
 
@@ -1572,7 +1575,10 @@ bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     memDevice->clearMemory();
     loadOperatingSystem();
     // Copy object code to batch input pane and make it the active input pane
-    ui->ioWidget->setBatchInput(ui->AsmObjectCodeWidgetPane->toPlainText());
+    QString objcode = ui->AsmObjectCodeWidgetPane->toPlainText();
+    // Replace all new line characters with spaces
+    objcode = objcode.replace('\n', ' ');
+    ui->ioWidget->setBatchInput(objcode);
     ui->ioWidget->setActivePane(Enu::EPane::EBatchIO);
     if(!on_actionDebug_Start_Debugging_Object_triggered()) return false;
     quint16 sp, pc;
@@ -1722,7 +1728,7 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
 
 void MainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
 {
-    if(ui->AsmSourceCodeWidgetPane->assembleOS(true)){
+    if(ui->AsmSourceCodeWidgetPane->assembleOS(true)) {
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
         ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
                                                       ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
@@ -1770,8 +1776,8 @@ void MainWindow::onSimulationFinished()
     bool hadPostTest = false;
     for (AMicroCode* x : prog) {
         if(x->hasUnitPost()) hadPostTest = true;
-        if (x->hasUnitPost()&&!((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString)) {
-             ((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString);
+        if (x->hasUnitPost() && !static_cast<UnitPostCode*>(x)->testPostcondition(dataSection.get(), errorString)) {
+             static_cast<UnitPostCode*>(x)->testPostcondition(dataSection.get(), errorString);
              ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
              QMessageBox::warning(this, "Pep/9 Micro", "Failed unit test");
              ui->statusBar->showMessage("Failed unit test", 4000);
@@ -2026,6 +2032,9 @@ void MainWindow::setUndoability(bool b)
     else if (ui->asmCpuPane->hasFocus()) {
         ui->actionEdit_Undo->setEnabled(false);
     }
+    else if (ui->memoryTracePane->hasFocus()) {
+        ui->actionEdit_Undo->setEnabled(false);
+    }
 }
 
 void MainWindow::setRedoability(bool b)
@@ -2052,6 +2061,9 @@ void MainWindow::setRedoability(bool b)
         ui->actionEdit_Redo->setEnabled(b);
     }
     else if (ui->asmCpuPane->hasFocus()) {
+        ui->actionEdit_Redo->setEnabled(false);
+    }
+    else if (ui->memoryTracePane->hasFocus()) {
         ui->actionEdit_Redo->setEnabled(false);
     }
 }
@@ -2099,9 +2111,13 @@ void MainWindow::helpCopyToSourceClicked()
                     ui->microcodeWidget->setCurrentFile("");
                     ui->microcodeWidget->setMicrocode(code);
                     ui->microcodeWidget->setModifiedFalse();
+                    on_actionBuild_Microcode_triggered();
                     statusBar()->showMessage("Copied to microcode", 4000);
                 }
                 break;
+            default:
+                // No other panes allow copying help into them.
+                return;
 
         }
     }
@@ -2119,9 +2135,6 @@ void MainWindow::helpCopyToSourceClicked()
     default:
         break;
     }
-    //statusBar()->showMessage("Copied to microcode", 4000);
-    //ui->microcodeWidget->microAssemble();
-    //ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
 }
 
 void MainWindow::onOutputReceived(quint16 address, quint8 value)
@@ -2134,6 +2147,7 @@ void MainWindow::onInputRequested(quint16 address)
     handleDebugButtons();
     ui->microcodeWidget->setEnabled(false);
     ui->cpuWidget->setEnabled(false);
+    statusBar()->showMessage("Input requested", 4000);
     ui->ioWidget->onDataRequested(address);
     handleDebugButtons();
     reenableUIAfterInput();

@@ -40,9 +40,9 @@ MainMemory::~MainMemory()
 
 quint32 MainMemory::size() const noexcept
 {
-    // Main memory is not sparse, so the size of main memory is
-    // the highest address seen (which is the address of the chip
-    // plus the size.
+    // The size of main memory is equal to the value of highest address + 1
+    // ( + 1 since addresses start at 0, not 1). The highest address in a chip
+    // is the address of the chip plus its size.
     quint32 maxAddrSeen = 0;
     for(auto it : memoryChipMap) {
         if(maxAddrSeen > it->getSize() + it->getBaseAddress()) continue;
@@ -50,7 +50,8 @@ quint32 MainMemory::size() const noexcept
             maxAddrSeen = it->getSize() + it->getBaseAddress();
         }
     }
-    return maxAddrSeen;
+    // Account for addresses starting at 0, not 1.
+    return maxAddrSeen + 1;
 }
 
 void MainMemory::insertChip(QSharedPointer<AMemoryChip> chip, quint16 address)
@@ -72,7 +73,6 @@ QSharedPointer<AMemoryChip> MainMemory::chipAt(quint16 address) noexcept
     if(addressToChipLookupTable[address] != nullptr) {
         return ptrLookup[addressToChipLookupTable[address]];
     }
-    // Otherwise return a nullptr.
     return QSharedPointer<AMemoryChip>();
 }
 
@@ -82,15 +82,74 @@ QSharedPointer<const AMemoryChip> MainMemory::chipAt(quint16 address) const noex
     if(addressToChipLookupTable[address] != nullptr) {
         return ptrLookup[addressToChipLookupTable[address]];
     }
-    // Otherwise return a nullptr.
     return QSharedPointer<AMemoryChip>();
+}
+
+void MainMemory::constructMemoryDevice(QList<MemoryChipSpec> specList)
+{
+    // Prevent interim memory map updates, as many chips will be inserted and removed.
+    autoUpdateMemoryMap(false);
+    // Cache all old memory chips and use them to construct new memory specification.
+    auto chipCache = removeAllChips();
+    for(auto spec : specList) {
+        QSharedPointer<AMemoryChip> targetItem = nullptr;
+        // Try to find a chip of the same type as requested by spec and assign it
+        // to targetItem. If an item is found, remove it from the chip cache.
+        for(int idx=0; idx < chipCache.size(); idx++) {
+            if(chipCache[idx]->getChipType() == spec.type) {
+                targetItem = chipCache[idx];
+                chipCache.remove(idx);
+                break;
+            }
+        }
+
+        // No chip matching the type of spec was found, a chip needs to be allocated.
+        if(targetItem == nullptr) {
+            switch(spec.type) {
+            case AMemoryChip::ChipTypes::RAM:
+                targetItem = QSharedPointer<RAMChip>::create(spec.size, spec.startAddr, this);
+                break;
+            case AMemoryChip::ChipTypes::ROM:
+                targetItem = QSharedPointer<ROMChip>::create(spec.size, spec.startAddr, this);
+                break;
+            case AMemoryChip::ChipTypes::IDEV:
+                targetItem = QSharedPointer<InputChip>::create(spec.size, spec.startAddr, this);
+                break;
+            case AMemoryChip::ChipTypes::ODEV:
+                targetItem = QSharedPointer<OutputChip>::create(spec.size, spec.startAddr, this);
+                break;
+            case AMemoryChip::ChipTypes::CONST:
+                targetItem = QSharedPointer<ConstChip>::create(spec.size, spec.startAddr, this);
+                break;
+            default:
+                targetItem = endChip;
+                return;
+            }
+        }
+
+        // If spec size doesn't match targets actual size, then the chip must
+        // be resized (shrunk or gorwn) to match the speciifcation. Failing
+        // to do this could cause odd behaviors when changing the effective size
+        // of memory by burning in a new OS.
+        if(targetItem->getSize() != spec.size) {
+            targetItem->resize(spec.size);
+        }
+        insertChip(targetItem, spec.startAddr);
+    }
+    // Create lookup tables with new chips
+    autoUpdateMemoryMap(true);
+    // All remaining chips in oldChipVec will automatically be deleted
+    // when the last reference to them is destroyed.
 }
 
 QSharedPointer<AMemoryChip> MainMemory::removeChip(quint16 address)
 {
     QSharedPointer<AMemoryChip> retVal = chipAt(address);
+    // If the user requested out internal "end chip" that blanks out unused
+    // addresses, just return a nullptr.
     if(retVal == endChip) return QSharedPointer<AMemoryChip>(nullptr);
     if(updateMemMap) calculateAddressToChip();
+    // Remove chip from lookup tables.
     addressToChipLookupTable.remove(retVal->getBaseAddress());
     ptrLookup.remove(retVal.get());
     return retVal;
@@ -124,8 +183,9 @@ void MainMemory::autoUpdateMemoryMap(bool update) noexcept
 
 void MainMemory::loadValues(quint16 address, QVector<quint8> values) noexcept
 {
+    // For ever value in the values array that falls in range of the memory module.
     for(quint16 idx = 0;idx < values.length()
-        && idx + address <= static_cast<int>(size()); idx++) {
+        && idx + address <= static_cast<qint32>(size()); idx++) {
         bytesSet.insert(idx + address);
         setByte(idx + address, values[idx]);
     }
@@ -238,7 +298,11 @@ void MainMemory::clearIO()
             in->onInputCanceled(key);
         }
     }
+    for(auto address : waitingOnInput) {
+        onInputCanceled(address);
+    }
     inputBuffer.clear();
+    waitingOnInput.clear();
 }
 
 void MainMemory::onInputReceived(quint16 address, quint8 input)
@@ -253,6 +317,7 @@ void MainMemory::onInputReceived(quint16 address, QChar input)
 
 void MainMemory::onInputReceived(quint16 address, QString input)
 {
+    if(input.isEmpty()) return;
     QSharedPointer<AMemoryChip> temp = chipAt(address);
     InputChip* chip;
     if(temp->getChipType() != AMemoryChip::ChipTypes::IDEV) {
@@ -267,6 +332,8 @@ void MainMemory::onInputReceived(quint16 address, QString input)
         QByteArray rest = input.mid(1,-1).toLatin1();
         inputBuffer.insert(address, rest);
         chip->onInputReceived(offsetFromBase, first);
+        // Now that the address has been served IO, it is not waiting anymore.
+        waitingOnInput.remove(address);
     } else if(inputBuffer.contains(address)) {
         inputBuffer[address].append(input.toLatin1());
     } else {
@@ -308,6 +375,7 @@ void MainMemory::onChipInputRequested(quint16 address)
         dynamic_cast<InputChip*>(chipAt(address).get())->onInputReceived(offsetFromBase, first);
     }
     else {
+        waitingOnInput.insert(address);
         emit inputRequested(address);
         // Make sure the signal is handled by the UI immediately
         QApplication::processEvents();

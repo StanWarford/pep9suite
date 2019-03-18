@@ -1134,6 +1134,7 @@ void MainWindow::onCopyToMicrocodeClicked()
     helpDialog->hide();
     if(code.isEmpty()) return;
     ui->microcodeWidget->setMicrocode(code);
+    on_actionBuild_Microcode_triggered();
     statusBar()->showMessage("Copied to microcode", 4000);
     ui->microcodeWidget->microAssemble();
     ui->microobjectWidget->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);

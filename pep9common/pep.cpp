@@ -578,13 +578,13 @@ void Pep::initMicroDecoderTables()
         enumToMicrocodeInstrSymbol.insert(tempi, tempqs);
     }
 
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::NOP, defaultNonUnaryMnemonic0);
     enumToMicrocodeInstrSymbol.insert(EMnemonic::NOP0, defaultUnaryMnemonic0);
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::NOP1, defaultUnaryMnemonic1);
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::DECI, defaultNonUnaryMnemonic1);
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::DECO, defaultNonUnaryMnemonic2);
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::HEXO, defaultNonUnaryMnemonic3);
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::STRO, defaultNonUnaryMnemonic4);
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::NOP1, "opcode27");
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::NOP,  "opcode28");
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::DECI, "opcode30");
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::DECO, "opcode38");
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::HEXO, "opcode40");
+    enumToMicrocodeInstrSymbol.insert(EMnemonic::STRO, "opcode48");
 
     // Initialize symbols for addressing modes
     enumToMicrocodeAddrSymbol.clear();

@@ -33,12 +33,13 @@
 #include "colors.h"
 
 NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent), colors(&PepColors::lightMode),
-    ui(new Ui::MemoryTracePane), globalLocation(QPointF(0, 0)), stackLocation(QPointF(200, 0)),
-    heapLocation (QPointF(400, 0 - MemoryCellGraphicsItem::boxHeight))
+    ui(new Ui::MemoryTracePane), globalLocation(QPointF(0, 0)), stackLocation(QPointF(150, 0)),
+    heapLocation (QPointF(300, 0/* - MemoryCellGraphicsItem::boxHeight*/))
 {
     ui->setupUi(this);
 
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
+    ui->warningLabel->setWordWrap(true);
     ui->graphicsView->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
 
     connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(zoomFactorChanged(int)));
@@ -68,7 +69,13 @@ void NewMemoryTracePane::updateTrace()
     updateGlobals();
     // Only render stack / heap if they are still intact.
     if(trace->activeStack->isStackIntact()) updateStack();
+    else {
+        ui->warningLabel->setText(trace->activeStack->getErrorMessage());
+    }
     if(trace->heapTrace.heapIntact()) updateHeap();
+    else {
+        ui->warningLabel->setText(trace->heapTrace.getErrorMessage());
+    }
     // Using main memory device, update
     for(quint16 address : memorySection->getBytesWritten()) {
         if(addressToItems.contains(address)) {
@@ -81,6 +88,15 @@ void NewMemoryTracePane::updateTrace()
     if (!runtimeStack.isEmpty() && ui->graphicsView->viewport()->height() < scene->height()) {
         ui->graphicsView->centerOn(runtimeStack.top());
     }
+
+    // This is time-consuming, but worthwhile to ensure scrollbars aren't going off into
+    // oblivion after items are removed.
+    // From the documentation for the 'itemsBoundingRect()' function:
+    // Calculates and returns the bounding rect of all items on the scene.
+    // This function works by iterating over all items, and because if this,
+    // it can be slow for large scenes. It is unlikely that this scene become very large
+    // (as in the 30,000 chips example), so this should remain performant.
+    scene->setSceneRect(scene->itemsBoundingRect());
 
     scene->invalidate();
 
@@ -122,10 +138,16 @@ void NewMemoryTracePane::onSimulationStarted()
     scene->clear();
     MemoryCellGraphicsItem* ptr = nullptr;
     qreal globaly = globalLocation.y();
-
+    ui->warningLabel->clear();
     // Don't attempt to render items if there are trace tag warnings.
-    if(trace->hasTraceWarnings()) return;
+    if(trace->hasTraceWarnings()) {
+        ui->warningLabel->setText("Can't render trace due to trace tag errors.");
+        return;
+    }
+
     // Add global symbols
+    quint16 num = trace->globalTrace.getMemTags().size();
+    globaly -= num * MemoryCellGraphicsItem::boxHeight;
     for(auto tag : trace->globalTrace.getMemTags()) {
         ptr = new MemoryCellGraphicsItem(memorySection.get(),
                                          tag.addr, tag.type.second,
@@ -138,17 +160,9 @@ void NewMemoryTracePane::onSimulationStarted()
         if(ptr->getNumBytes() == 2) {
             addressToItems.insert((tag.addr + 1) % memorySection->size(), ptr);
         }
-        globaly += globalLocation.y() + MemoryCellGraphicsItem::boxHeight;
+        globaly += MemoryCellGraphicsItem::boxHeight;
     }
 
-    // This is time-consuming, but worthwhile to ensure scrollbars aren't going off into
-    // oblivion after items are removed.
-    // From the documentation for the 'itemsBoundingRect()' function:
-    // Calculates and returns the bounding rect of all items on the scene.
-    // This function works by iterating over all items, and because if this,
-    //it can be slow for large scenes. It is unlikely that this scene become very large
-    // (as in the 30,000 chips example), so this should remain performant.
-    scene->setSceneRect(scene->itemsBoundingRect());
     updateStatics();
     scene->invalidate(); // redraw the scene!
 
