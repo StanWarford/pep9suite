@@ -1,3 +1,6 @@
 <RCC>
-    <qresource prefix="/"/>
+    <qresource prefix="/">
+        <file>images/Pep9-icon-about.png</file>
+        <file>images/Pep9-icon.png</file>
+    </qresource>
 </RCC>
