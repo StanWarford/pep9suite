@@ -133,3 +133,8 @@ QList<SymbolEntryPtr> SymbolTable::getSymbolEntries() const
 {
     return symbolDictionary.values();
 }
+
+const QMap<SymbolTable::SymbolID, SymbolTable::SymbolEntryPtr> SymbolTable::getSymbolMap() const
+{
+    return symbolDictionary;
+}

@@ -1,6 +1,8 @@
 #include "isacpumemoizer.h"
 #include "isacpu.h"
 #include "pep.h"
+#include "asmprogram.h"
+#include "asmprogrammanager.h"
 #include "amemorydevice.h"
 #include "registerfile.h"
 #include <assert.h>
@@ -9,7 +11,7 @@
 #include <QDebug>
 #include <QStack>
 
-IsaCpuMemoizer::IsaCpuMemoizer(IsaCpu &cpu): cpu(cpu), state(IsaCpuMemoizer::CPUState()), OSSymTable()
+IsaCpuMemoizer::IsaCpuMemoizer(IsaCpu &cpu): cpu(cpu), state(CPUState())
 {
 
 }
@@ -18,14 +20,6 @@ IsaCpuMemoizer::~IsaCpuMemoizer()
 {
 
 }
-
-const QString stackFrameEnter("%1\n===CALL===\n");
-const QString stackFrameLeave("%1\n===RET====\n");
-const QString trapEnter("%1\n===TRAP===\n");
-const QString trapLeave("%1\n===RETR===\n");
-static quint8 max_symLen=0;
-static quint8 inst_size=6;
-static quint8 oper_addr_size=12;
 
 void IsaCpuMemoizer::clear()
 {
@@ -49,6 +43,11 @@ void IsaCpuMemoizer::storeStateInstrStart()
 QString IsaCpuMemoizer::memoize()
 {
     const RegisterFile& file = cpu.registerBank;
+    SymbolTable* symTable = nullptr;
+    if(cpu.manager->getProgramAt(file.readRegisterWordStart(Enu::CPURegisters::PC)) != nullptr) {
+        symTable = cpu.manager->getProgramAt(file.readRegisterWordStart(Enu::CPURegisters::PC))
+                ->getSymbolTable().get();
+    }
     quint8 ir = 0;
     QString build, AX, NZVC;
     AX = QString(" A=%1, X=%2, SP=%3")
@@ -57,8 +56,10 @@ QString IsaCpuMemoizer::memoize()
                  formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::X)),
                  formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::SP)));
     NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(file.readStatusBitsCurrent(), 2), 5, '0');
-    build = (attempSymAddrReplace(file.readRegisterWordStart(Enu::CPURegisters::PC)) + QString(":")).leftJustified(10) %
-            formatInstr(file.getIRCache(), file.readRegisterWordCurrent(Enu::CPURegisters::OS));
+    build = (attemptAddrReplace(symTable, file.readRegisterWordStart(Enu::CPURegisters::PC)) + QString(":")).leftJustified(10) %
+            formatInstr(symTable, file.getIRCache(), file.readRegisterWordCurrent(Enu::CPURegisters::OS));
+    build += "  " + AX;
+    build += NZVC;
     build += "  " + AX;
     build += NZVC;
     ir = file.getIRCache();
@@ -105,120 +106,3 @@ QString IsaCpuMemoizer::finalStatistics()
     return output;
 }
 
-// Properly formats a number as a 4 char hex
-QString IsaCpuMemoizer::formatNum(quint16 number)
-{
-    return QString("%1").arg(QString::number(number,16),4,'0').toUpper();
-}
-
-// Properly format a number as 2 char hex
-QString IsaCpuMemoizer::formatNum(quint8 number)
-{
-    return QString("%1").arg(QString::number(number,16),2,'0').toUpper();
-}
-
-// Properly format a 16 bit address
-QString IsaCpuMemoizer::formatAddress(quint16 address)
-{
-    return "0x"+formatNum(address);
-}
-
-// Convert a mnemonic into it's string
-QString IsaCpuMemoizer::mnemonDecode(quint8 instrSpec)
-{
-    static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
-    return QString(metaenum.valueToKey((int)Pep::decodeMnemonic[instrSpec])).toLower();
-}
-
-// Convert a mnemonic into its string
-QString IsaCpuMemoizer::mnemonDecode(Enu::EMnemonic instrSpec)
-{
-    static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
-    return QString(metaenum.valueToKey((int)instrSpec)).toLower();
-}
-
-QString IsaCpuMemoizer::formatIS(quint8 instrSpec)
-{
-    return QString(mnemonDecode(instrSpec)).leftJustified(inst_size,' ');
-}
-
-QString IsaCpuMemoizer::formatUnary(quint8 instrSpec)
-{
-    return formatIS(instrSpec).leftJustified(inst_size+max_symLen+2+4);
-}
-
-QString IsaCpuMemoizer::formatNonUnary(quint8 instrSpec,quint16 oprSpec)
-{
-    return formatIS(instrSpec).leftJustified(inst_size) %
-            QString(attempSymOprReplace(oprSpec)).rightJustified(max_symLen) %
-            ", " % Pep::intToAddrMode(Pep::decodeAddrMode[instrSpec]).leftJustified(4,' ');
-}
-
-QString IsaCpuMemoizer::formatInstr(quint8 instrSpec,quint16 oprSpec)
-{
-    if(Pep::isUnaryMap[Pep::decodeMnemonic[instrSpec]])
-    {
-        return formatUnary(instrSpec);
-    }
-    else
-    {
-        return formatNonUnary(instrSpec,oprSpec);
-    }
-}
-
-QString IsaCpuMemoizer::generateStackFrame(CPUState&, bool enter)
-{
-    return "";
-    if(enter) {
-        //return stackFrameEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
-    }
-    else {
-        //return stackFrameLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
-    }
-}
-
-QString IsaCpuMemoizer::generateTrapFrame(CPUState&, bool enter)
-{
-    return "";
-    if(enter) {
-        //return trapEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
-    }
-    else {
-        //return trapLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
-    }
-}
-
-QString IsaCpuMemoizer::attempSymOprReplace(quint16 number)
-{
-    if(OSSymTable.count(number) == 1) return OSSymTable.find(number).value();
-    else return formatNum(number);
-}
-
-QString IsaCpuMemoizer::attempSymAddrReplace(quint16 number)
-{
-    if(OSSymTable.count(number) == 1) return OSSymTable.find(number).value();
-    else return formatAddress(number);
-}
-
-void IsaCpuMemoizer::loadSymbols()
-{
-    QString  osFileString;
-    //In the future, have a switch between loading the aligned and unaligned code
-    if(true) osFileString = (":/help/osunalignedsymbols.txt");
-    else osFileString = ("nope");
-    QFile osFile(osFileString);
-    quint8 msylen=  0;
-    if(osFile.open(QFile::ReadOnly)) {
-        bool temp = 0;
-        QTextStream file(&osFile);
-        while(!file.atEnd()) {
-            QString text = file.readLine();
-            QList<QString> parts =text.split(' ',QString::SplitBehavior::SkipEmptyParts );
-            quint16 key = parts[1].toUShort(&temp,16);
-            OSSymTable.insert(key,parts[0]);
-            msylen = msylen<parts[0].length() ? parts[0].length() : msylen;
-        }
-    }
-    oper_addr_size = msylen+3;
-    max_symLen = msylen;
-}

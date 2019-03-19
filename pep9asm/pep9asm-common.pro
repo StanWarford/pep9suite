@@ -34,7 +34,8 @@ HEADERS += \
     redefinemnemonicsdialog.h \
     asmcpupane.h \
     isacpu.h \
-    isacpumemoizer.h
+    isacpumemoizer.h \
+    memoizerhelper.h
 
 SOURCES += \
     asmargument.cpp \
@@ -56,4 +57,5 @@ SOURCES += \
     redefinemnemonicsdialog.cpp \
     asmcpupane.cpp \
     isacpu.cpp \
-    isacpumemoizer.cpp
+    isacpumemoizer.cpp \
+    memoizerhelper.cpp

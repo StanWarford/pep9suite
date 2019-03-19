@@ -280,7 +280,7 @@ void FullMicrocodedCPU::onMCStep()
         updateAtInstructionEnd();
         emit asmInstructionFinished();
         asmInstructionCounter++;
-        // qDebug().noquote().nospace() << memoizer->memoize();
+        qDebug().noquote().nospace() << memoizer->memoize();
         data->getRegisterBank().flattenFile();
         // If execution finished on this instruction, then restore original starting program counter,
         // as the instruction at the current program counter will not be executed.

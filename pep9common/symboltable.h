@@ -77,6 +77,9 @@ public:
     // Set the offset of all relocatable symbols to 0.
     void clearOffset();
     QList<SymbolEntryPtr> getSymbolEntries() const;
+    // Return the map of all symbolic definitions. Used to provide access to iterators
+    // to perform custom operations and comparisions over all symbols.
+    const QMap<SymbolID, SymbolEntryPtr> getSymbolMap() const;
 };
 
 #endif // SYMBOLTABLE_H
