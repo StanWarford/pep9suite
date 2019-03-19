@@ -96,11 +96,11 @@ public:
 
     void setReadOnly(bool b);
     // Post: the text edit's read only attribute is set to b
+
 public slots:
     void onFontChanged(QFont);
 private:
     Ui::ObjectCodePane *ui;
-
     QFile currentFile;
 
     void mouseReleaseEvent(QMouseEvent *);

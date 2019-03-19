@@ -24,6 +24,7 @@
 #include <QActionGroup>
 #include <QApplication>
 #include <QtConcurrent>
+#include <QtCore>
 #include <QDebug>
 #include <QDesktopServices>
 #include <QDesktopWidget>
@@ -139,7 +140,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(byteConverterDec, &ByteConverterDec::textEdited, this, &MainWindow::slotByteConverterDecEdited);
     connect(byteConverterHex, &ByteConverterHex::textEdited, this, &MainWindow::slotByteConverterHexEdited);
 
-    connect((QApplication*)QApplication::instance(), &QApplication::focusChanged, this, &MainWindow::focusChanged);
+    connect(qApp, &QApplication::focusChanged, this, &MainWindow::focusChanged);
 
     // Connect IOWidget to memory
     ui->ioWidget->bindToMemorySection(memDevice.get());
@@ -357,10 +358,11 @@ bool MainWindow::eventFilter(QObject *, QEvent *event)
                     return true;
                 }
             }
-            else if (ui->actionDebug_Stop_Debugging->isEnabled() &&
+            /*else if (ui->actionDebug_Stop_Debugging->isEnabled() &&
                      (ui->microcodeWidget->hasFocus() || ui->microObjectCodePane->hasFocus())) {
                 ui->cpuWidget->giveFocus();
-            }
+
+            }*/
         }
         else if(keyEvent->key() == Qt::Key_Tab) {
             if(ui->AsmSourceCodeWidgetPane->hasFocus()) {
@@ -1935,26 +1937,35 @@ void MainWindow::slotByteConverterHexEdited(const QString &str)
 }
 
 // Focus Coloring. Activates and deactivates undo/redo/cut/copy/paste actions contextually
-void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
+void MainWindow::focusChanged(QWidget *oldFocus, QWidget *newFocus)
 {
-    if(ui->microcodeWidget->isAncestorOf(oldFocus))
+    if(ui->microcodeWidget->isAncestorOf(oldFocus)) {
         ui->microcodeWidget->highlightOnFocus();
-    else if(ui->microObjectCodePane->isAncestorOf(oldFocus))
+    }
+    else if(ui->microObjectCodePane->isAncestorOf(oldFocus)) {
         ui->microObjectCodePane->highlightOnFocus();
-    else if(ui->memoryWidget->isAncestorOf(oldFocus))
+    }
+    else if(ui->memoryWidget->isAncestorOf(oldFocus)) {
         ui->memoryWidget->highlightOnFocus();
-    else if(ui->cpuWidget->isAncestorOf(oldFocus))
+    }
+    else if(ui->cpuWidget->isAncestorOf(oldFocus)) {
         ui->cpuWidget->highlightOnFocus();
-    else if(ui->AsmSourceCodeWidgetPane->isAncestorOf(oldFocus))
+    }
+    else if(ui->AsmSourceCodeWidgetPane->isAncestorOf(oldFocus)) {
         ui->AsmSourceCodeWidgetPane->highlightOnFocus();
-    else if(ui->AsmObjectCodeWidgetPane->isAncestorOf(oldFocus))
+    }
+    else if(ui->AsmObjectCodeWidgetPane->isAncestorOf(oldFocus)) {
         ui->AsmObjectCodeWidgetPane->highlightOnFocus();
-    else if(ui->AsmListingWidgetPane->isAncestorOf(oldFocus))
+    }
+    else if(ui->AsmListingWidgetPane->isAncestorOf(oldFocus)) {
         ui->AsmListingWidgetPane->highlightOnFocus();
-    else if(ui->asmListingTracePane->isAncestorOf(oldFocus))
+    }
+    else if(ui->asmListingTracePane->isAncestorOf(oldFocus)) {
         ui->asmListingTracePane->highlightOnFocus();
-    else if(ui->asmCpuPane->isAncestorOf(oldFocus))
+    }
+    else if(ui->asmCpuPane->isAncestorOf(oldFocus)) {
         ui->asmCpuPane->highlightOnFocus();
+    }
 
     int which = 0;
     if (ui->microcodeWidget->hasFocus()) {
@@ -1996,6 +2007,7 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
         which = ui->ioWidget->editActions();
     }
     else if (ui->asmListingTracePane->hasFocus()) {
+        ui->asmListingTracePane->highlightOnFocus();
         which = 0;
     }
 

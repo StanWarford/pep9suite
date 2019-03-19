@@ -14,7 +14,16 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout">
-   <property name="margin">
+   <property name="leftMargin">
+    <number>1</number>
+   </property>
+   <property name="topMargin">
+    <number>1</number>
+   </property>
+   <property name="rightMargin">
+    <number>1</number>
+   </property>
+   <property name="bottomMargin">
     <number>1</number>
    </property>
    <item>
@@ -106,7 +115,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QTextEdit" name="textEdit">
+      <widget class="QPlainTextEdit" name="plainTextEdit">
        <property name="font">
         <font>
          <family>Courier</family>
@@ -120,12 +129,6 @@
        </property>
        <property name="horizontalScrollBarPolicy">
         <enum>Qt::ScrollBarAsNeeded</enum>
-       </property>
-       <property name="tabChangesFocus">
-        <bool>true</bool>
-       </property>
-       <property name="lineWrapMode">
-        <enum>QTextEdit::NoWrap</enum>
        </property>
       </widget>
      </item>

@@ -58,7 +58,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
         // A symbol is an text from the start of the line up to, but not including a ':'
         // Selects most accented unicode characters, based on answer:
         // https://stackoverflow.com/a/26900132
-        rule.pattern = QRegExp("^([A-zÀ-ÖØ-öø-ÿ][0-9A-zÀ-ÖØ-öø-ÿ]+)(?=:)\\b");
+        rule.pattern = QRegExp("^([A-zÀ-ÖØ-öø-ÿ][0-9A-zÀ-ÖØ-öø-ÿ]*)(?=:)\\b");
         rule.format = symbolFormat;
         highlightingRulesOne.append(rule);
         highlightingRulesTwo.append(rule);

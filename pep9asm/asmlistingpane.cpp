@@ -36,10 +36,10 @@ AsmListingPane::AsmListingPane(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->textEdit->document());
+    pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->plainTextEdit->document());
 
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
-    ui->textEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    ui->plainTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
 }
 
 AsmListingPane::~AsmListingPane()
@@ -49,20 +49,20 @@ AsmListingPane::~AsmListingPane()
 
 void AsmListingPane::setAssemblerListing(QStringList assemblerListingList, QSharedPointer<SymbolTable> symTable) {
     clearAssemblerListing();
-    ui->textEdit->append("-------------------------------------------------------------------------------");
-    ui->textEdit->append("      Object");
-    ui->textEdit->append("Addr  code   Symbol   Mnemon  Operand     Comment");
-    ui->textEdit->append("-------------------------------------------------------------------------------");
-    ui->textEdit->append(assemblerListingList.join("\n"));
-    ui->textEdit->append("-------------------------------------------------------------------------------");
+    ui->plainTextEdit->appendPlainText("-------------------------------------------------------------------------------");
+    ui->plainTextEdit->appendPlainText("      Object");
+    ui->plainTextEdit->appendPlainText("Addr  code   Symbol   Mnemon  Operand     Comment");
+    ui->plainTextEdit->appendPlainText("-------------------------------------------------------------------------------");
+    ui->plainTextEdit->appendPlainText(assemblerListingList.join("\n"));
+    ui->plainTextEdit->appendPlainText("-------------------------------------------------------------------------------");
     QList<QSharedPointer<SymbolEntry>> list = symTable->getSymbolEntries();
     if (list.size() > 0) {
-        ui->textEdit->append("");
-        ui->textEdit->append("");
-        ui->textEdit->append("Symbol table");
-        ui->textEdit->append("--------------------------------------");
-        ui->textEdit->append("Symbol    Value        Symbol    Value");
-        ui->textEdit->append("--------------------------------------");
+        ui->plainTextEdit->appendPlainText("");
+        ui->plainTextEdit->appendPlainText("");
+        ui->plainTextEdit->appendPlainText("Symbol table");
+        ui->plainTextEdit->appendPlainText("--------------------------------------");
+        ui->plainTextEdit->appendPlainText("Symbol    Value        Symbol    Value");
+        ui->plainTextEdit->appendPlainText("--------------------------------------");
         QString symbolTableLine = "";
         QString hexString;
         for(QSharedPointer<SymbolEntry> item : list) {
@@ -72,31 +72,31 @@ void AsmListingPane::setAssemblerListing(QStringList assemblerListingList, QShar
             }
             else {
                 symbolTableLine.append(QString("%1%2").arg(item->getName(), -10).arg(hexString, -4));
-                ui->textEdit->append(symbolTableLine);
+                ui->plainTextEdit->appendPlainText(symbolTableLine);
                 symbolTableLine = "";
             }
         }
         if (symbolTableLine.length() > 0) {
-            ui->textEdit->append(symbolTableLine);
+            ui->plainTextEdit->appendPlainText(symbolTableLine);
         }
-        ui->textEdit->append("--------------------------------------");
+        ui->plainTextEdit->appendPlainText("--------------------------------------");
     }
-    ui->textEdit->verticalScrollBar()->setValue(ui->textEdit->verticalScrollBar()->minimum());
+    ui->plainTextEdit->verticalScrollBar()->setValue(ui->plainTextEdit->verticalScrollBar()->minimum());
 }
 
 void AsmListingPane::clearAssemblerListing()
 {
-    ui->textEdit->clear();
+    ui->plainTextEdit->clear();
 }
 
 bool AsmListingPane::isModified()
 {
-    return ui->textEdit->document()->isModified();
+    return ui->plainTextEdit->document()->isModified();
 }
 
 QString AsmListingPane::toPlainText()
 {
-    return ui->textEdit->toPlainText();
+    return ui->plainTextEdit->toPlainText();
 }
 
 void AsmListingPane::setCurrentFile(QString string)
@@ -118,7 +118,7 @@ const QFile &AsmListingPane::getCurrentFile() const
 
 void AsmListingPane::highlightOnFocus()
 {
-    if (ui->textEdit->hasFocus()) {
+    if (ui->plainTextEdit->hasFocus()) {
         ui->label->setAutoFillBackground(true);
     }
     else {
@@ -128,22 +128,22 @@ void AsmListingPane::highlightOnFocus()
 
 bool AsmListingPane::hasFocus()
 {
-    return ui->textEdit->hasFocus();
+    return ui->plainTextEdit->hasFocus();
 }
 
 void AsmListingPane::copy()
 {
-    ui->textEdit->copy();
+    ui->plainTextEdit->copy();
 }
 
 void AsmListingPane::setFocus()
 {
-    ui->textEdit->setFocus();
+    ui->plainTextEdit->setFocus();
 }
 
 bool AsmListingPane::isEmpty()
 {
-    return ui->textEdit->toPlainText() == "";
+    return ui->plainTextEdit->toPlainText() == "";
 }
 
 void AsmListingPane::rebuildHighlightingRules()
@@ -155,7 +155,7 @@ void AsmListingPane::rebuildHighlightingRules()
 
 void AsmListingPane::onFontChanged(QFont font)
 {
-    ui->textEdit->setFont(font);
+    ui->plainTextEdit->setFont(font);
 }
 
 void AsmListingPane::onDarkModeChanged(bool darkMode)
@@ -168,7 +168,7 @@ void AsmListingPane::onDarkModeChanged(bool darkMode)
 
 void AsmListingPane::mouseReleaseEvent(QMouseEvent *)
 {
-    ui->textEdit->setFocus();
+    ui->plainTextEdit->setFocus();
 }
 
 void AsmListingPane::mouseDoubleClickEvent(QMouseEvent *)

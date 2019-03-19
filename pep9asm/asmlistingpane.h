@@ -60,7 +60,6 @@ public:
     void copy();
     // Copies selected text to the clipboard
 
-    
     void setFocus();
     // Post: the text edit has focus
     
@@ -74,15 +73,12 @@ public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
 private:
-    bool inDarkMode;
     Ui::AsmListingPane *ui;
-
     PepASMHighlighter *pepHighlighter;
-
     QFile currentFile;
+    bool inDarkMode;
 
     void mouseReleaseEvent(QMouseEvent *);
-
     void mouseDoubleClickEvent(QMouseEvent *);
 
 signals:

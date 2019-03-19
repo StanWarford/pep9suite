@@ -67,7 +67,7 @@ void PepASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
     symbolFormat.setForeground(colors.rightOfExpression);
     // Selects most accented unicode characters, based on answer:
     // https://stackoverflow.com/a/26900132
-    rule.pattern = QRegExp("([A-zÀ-ÖØ-öø-ÿ_][0-9A-zÀ-ÖØ-öø-ÿ_]+)(?=:)");
+    rule.pattern = QRegExp("([A-zÀ-ÖØ-öø-ÿ_][0-9A-zÀ-ÖØ-öø-ÿ_]*)(?=:)");
     rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
     rule.format = symbolFormat;
     highlightingRules.append(rule);

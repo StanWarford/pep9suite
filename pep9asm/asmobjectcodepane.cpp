@@ -30,13 +30,13 @@ AsmObjectCodePane::AsmObjectCodePane(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->textEdit->document(), SIGNAL(modificationChanged(bool)), this, SLOT(setLabelToModified(bool)));
+    connect(ui->plainTextEdit->document(), SIGNAL(modificationChanged(bool)), this, SLOT(setLabelToModified(bool)));
 
-    connect(ui->textEdit, SIGNAL(undoAvailable(bool)), this, SIGNAL(undoAvailable(bool)));
-    connect(ui->textEdit, SIGNAL(redoAvailable(bool)), this, SIGNAL(redoAvailable(bool)));
+    connect(ui->plainTextEdit, SIGNAL(undoAvailable(bool)), this, SIGNAL(undoAvailable(bool)));
+    connect(ui->plainTextEdit, SIGNAL(redoAvailable(bool)), this, SIGNAL(redoAvailable(bool)));
 
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
-    ui->textEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    ui->plainTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
 }
 
 AsmObjectCodePane::~AsmObjectCodePane()
@@ -52,18 +52,18 @@ void AsmObjectCodePane::setObjectCode(QList<int> objectCode)
         objectCodeString.append((i % 16) == 15 ? '\n' : ' ');
     }
     objectCodeString.append("zz");
-    ui->textEdit->clear();
-    ui->textEdit->setText(objectCodeString);
+    ui->plainTextEdit->clear();
+    ui->plainTextEdit->setPlainText(objectCodeString);
 }
 
 void AsmObjectCodePane::setObjectCodePaneText(QString string)
 {
-        ui->textEdit->setText(string);
+        ui->plainTextEdit->setPlainText(string);
 }
 
 bool AsmObjectCodePane::getObjectCode(QList<int> &objectCodeList)
 {
-    QString objectString = ui->textEdit->toPlainText();
+    QString objectString = ui->plainTextEdit->toPlainText();
     while (objectString.length() > 0) {
         if (objectString.at(1) == QChar('z')) {
             return true;
@@ -84,22 +84,22 @@ bool AsmObjectCodePane::getObjectCode(QList<int> &objectCodeList)
 
 void AsmObjectCodePane::clearObjectCode()
 {
-    ui->textEdit->clear();
+    ui->plainTextEdit->clear();
 }
 
 bool AsmObjectCodePane::isModified()
 {
-    return ui->textEdit->document()->isModified();
+    return ui->plainTextEdit->document()->isModified();
 }
 
 void AsmObjectCodePane::setModifiedFalse()
 {
-    ui->textEdit->document()->setModified(false);
+    ui->plainTextEdit->document()->setModified(false);
 }
 
 QString AsmObjectCodePane::toPlainText()
 {
-    return ui->textEdit->toPlainText();
+    return ui->plainTextEdit->toPlainText();
 }
 
 void AsmObjectCodePane::setCurrentFile(QString string)
@@ -122,7 +122,7 @@ const QFile& AsmObjectCodePane::getCurrentFile() const
 
 void AsmObjectCodePane::highlightOnFocus()
 {
-    if (ui->textEdit->hasFocus()) {
+    if (ui->plainTextEdit->hasFocus()) {
         ui->label->setAutoFillBackground(true);
     }
     else {
@@ -132,57 +132,57 @@ void AsmObjectCodePane::highlightOnFocus()
 
 bool AsmObjectCodePane::hasFocus()
 {
-    return ui->textEdit->hasFocus();
+    return ui->plainTextEdit->hasFocus();
 }
 
 void AsmObjectCodePane::undo()
 {
-    ui->textEdit->undo();
+    ui->plainTextEdit->undo();
 }
 
 void AsmObjectCodePane::redo()
 {
-    ui->textEdit->redo();
+    ui->plainTextEdit->redo();
 }
 
 bool AsmObjectCodePane::isUndoable()
 {
-    return ui->textEdit->document()->isUndoAvailable();
+    return ui->plainTextEdit->document()->isUndoAvailable();
 }
 
 bool AsmObjectCodePane::isRedoable()
 {
-    return ui->textEdit->document()->isRedoAvailable();
+    return ui->plainTextEdit->document()->isRedoAvailable();
 }
 
 void AsmObjectCodePane::cut()
 {
-    ui->textEdit->cut();
+    ui->plainTextEdit->cut();
 }
 
 void AsmObjectCodePane::copy()
 {
-    ui->textEdit->copy();
+    ui->plainTextEdit->copy();
 }
 
 void AsmObjectCodePane::paste()
 {
-    ui->textEdit->paste();
+    ui->plainTextEdit->paste();
 }
 
 void AsmObjectCodePane::setReadOnly(bool b)
 {
-    ui->textEdit->setReadOnly(b);
+    ui->plainTextEdit->setReadOnly(b);
 }
 
 void AsmObjectCodePane::onFontChanged(QFont font)
 {
-    ui->textEdit->setFont(font);
+    ui->plainTextEdit->setFont(font);
 }
 
 void AsmObjectCodePane::mouseReleaseEvent(QMouseEvent *)
 {
-    ui->textEdit->setFocus();
+    ui->plainTextEdit->setFocus();
 }
 
 void AsmObjectCodePane::mouseDoubleClickEvent(QMouseEvent *)
