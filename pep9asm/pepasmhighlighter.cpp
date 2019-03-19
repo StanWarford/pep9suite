@@ -32,6 +32,9 @@ void PepASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
     colors = color;
     HighlightingRule rule;
 
+    // For all highlighting rules, set the case sensitivity now.
+    // Doing so in the highlighting function caused a huge perfomance
+    // hit for large blocks of highlighted text.
     oprndFormat.setForeground(colors.leftOfExpression);
     oprndFormat.setFontWeight(QFont::Bold);
     QStringList oprndPatterns;
@@ -42,6 +45,7 @@ void PepASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
 
     foreach (const QString &pattern, oprndPatterns) {
         rule.pattern = QRegExp(pattern);
+        rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
         rule.format = oprndFormat;
         highlightingRules.append(rule);
     }
@@ -54,6 +58,7 @@ void PepASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
             << "[\\.]\\bALIGN\\b" << "[\\.]\\bWORD\\b" << "[\\.]\\bADDRSS\\b";
     foreach (const QString &pattern, dotPatterns) {
         rule.pattern = QRegExp(pattern);
+        rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
         rule.format = dotFormat;
         highlightingRules.append(rule);
     }
@@ -63,42 +68,47 @@ void PepASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
     // Selects most accented unicode characters, based on answer:
     // https://stackoverflow.com/a/26900132
     rule.pattern = QRegExp("([A-zÀ-ÖØ-öø-ÿ_][0-9A-zÀ-ÖØ-öø-ÿ_]+)(?=:)");
+    rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
     rule.format = symbolFormat;
     highlightingRules.append(rule);
 
     singleLineCommentFormat.setForeground(colors.comment);
     rule.pattern = QRegExp(";.*");
+    rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
     rule.format = singleLineCommentFormat;
     highlightingRules.append(rule);
 
-    errorCommentFormat.setForeground(colors.altTextHighlight);
-    errorCommentFormat.setBackground(colors.errorHighlight);
-
     singleQuotationFormat.setForeground(colors.errorHighlight);
     rule.pattern = QRegExp("((\')(?![\'])(([^\'|\\\\]){1}|((\\\\)([\'|b|f|n|r|t|v|\"|\\\\]))|((\\\\)(([x|X])([0-9|A-F|a-f]{2}))))(\'))");
+    rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
     rule.format = singleQuotationFormat;
     highlightingRules.append(rule);
 
     doubleQuotationFormat.setForeground(colors.errorHighlight);
     rule.pattern = QRegExp("((\")((([^\"|\\\\])|((\\\\)([\'|b|f|n|r|t|v|\"|\\\\]))|((\\\\)(([x|X])([0-9|A-F|a-f]{2}))))*)(\"))");
+    rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
     rule.format = doubleQuotationFormat;
     highlightingRules.append(rule);
 
     warningFormat.setForeground(colors.altTextHighlight);
     warningFormat.setBackground(colors.warningHighlight);
     rule.pattern = QRegExp(";WARNING:[\\s].*$");
+    rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
     rule.format = warningFormat;
     highlightingRules.append(rule);
 
-    commentStartExpression = QRegExp(";ERROR:[\\s]");
-    commentEndExpression = QRegExp("$");
+    errorCommentFormat.setForeground(colors.altTextHighlight);
+    errorCommentFormat.setBackground(colors.errorHighlight);
+    rule.pattern = QRegExp(";ERROR:[\\s].*$");
+    rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
+    rule.format = errorCommentFormat;
+    highlightingRules.append(rule);
 }
 
 void PepASMHighlighter::highlightBlock(const QString &text)
 {
     foreach (const HighlightingRule &rule, highlightingRules) {
         QRegExp expression(rule.pattern);
-        expression.setCaseSensitivity(Qt::CaseInsensitive);
         int index = expression.indexIn(text);
         while (index >= 0) {
             int length = expression.matchedLength();
@@ -106,23 +116,5 @@ void PepASMHighlighter::highlightBlock(const QString &text)
             index = expression.indexIn(text, index + length);
         }
     }
-    setCurrentBlockState(0);
 
-    int startIndex = 0;
-    if (previousBlockState() != 1)
-        startIndex = commentStartExpression.indexIn(text);
-
-    while (startIndex >= 0) {
-        int endIndex = commentEndExpression.indexIn(text, startIndex);
-        int commentLength;
-        if (endIndex == -1) {
-            setCurrentBlockState(1);
-            commentLength = text.length() - startIndex;
-        } else {
-            commentLength = endIndex - startIndex
-                            + commentEndExpression.matchedLength();
-        }
-        setFormat(startIndex, commentLength, errorCommentFormat);
-        startIndex = commentStartExpression.indexIn(text, startIndex + commentLength);
-    }
 }

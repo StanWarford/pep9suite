@@ -48,9 +48,6 @@ private:
     PepColors::Colors colors;
     QVector<HighlightingRule> highlightingRules;
 
-    QRegExp commentStartExpression;
-    QRegExp commentEndExpression;
-
     QTextCharFormat oprndFormat;
     QTextCharFormat dotFormat;
     QTextCharFormat symbolFormat;
@@ -59,6 +56,7 @@ private:
     QTextCharFormat singleQuotationFormat;
     QTextCharFormat doubleQuotationFormat;
     QTextCharFormat warningFormat;
+    QTextCharFormat errorFormat;
 
 };
 
