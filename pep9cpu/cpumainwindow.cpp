@@ -797,7 +797,6 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     connectViewUpdate();
     highlightActiveLines();
     debugState = DebugState::DISABLED;
-    // Handle case of execution being canceled during IO
     ui->microcodeWidget->clearSimulationView();
     ui->microobjectWidget->clearSimulationView();
     ui->microcodeWidget->setReadOnly(false);

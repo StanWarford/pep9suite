@@ -1161,6 +1161,7 @@ void MainWindow::on_actionFile_New_Asm_triggered()
         ui->AsmListingWidgetPane->clearAssemblerListing();
         ui->AsmListingWidgetPane->setCurrentFile("");
         ui->asmListingTracePane->clearSourceCode();
+        programManager->setUserProgram(nullptr);
     }
 }
 
@@ -1467,6 +1468,7 @@ void MainWindow::on_actionBuild_Run_triggered()
     loadObjectCodeProgram();
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
+        ui->asmListingTracePane->startSimulationView();
         disconnectViewUpdate();
         memDevice->clearBytesSet();
         memDevice->clearBytesWritten();
@@ -1550,6 +1552,8 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
     debugState = DebugState::DEBUG_ISA;
     ui->asmListingTracePane->startSimulationView();
     if(initializeSimulation()) {
+        loadObjectCodeProgram();
+        loadOperatingSystem();
         emit simulationStarted();
         controlSection->onDebuggingStarted();
         controlSection->breakpointsSet(programManager->getBreakpoints());
@@ -1597,20 +1601,18 @@ bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
 void MainWindow::on_actionDebug_Stop_Debugging_triggered()
 {
     connectViewUpdate();
+    highlightActiveLines(true);
     debugState = DebugState::DISABLED;
+    ui->microcodeWidget->clearSimulationView();
+    ui->microObjectCodePane->clearSimulationView();
+    ui->microcodeWidget->setReadOnly(false);
     // Handle case of execution being canceled during IO
     memDevice->clearIO();
     reenableUIAfterInput();
     ui->ioWidget->cancelWaiting();
-    ui->microcodeWidget->clearSimulationView();
-    ui->microObjectCodePane->clearSimulationView();
-    ui->microcodeWidget->setReadOnly(false);
     ui->cpuWidget->stopDebugging();
     ui->asmListingTracePane->clearSimulationView();
     handleDebugButtons();
-    highlightActiveLines(true);
-    // ui->memoryWidget->updateMemory();
-    // ui->memoryTracePane->updateTrace();
     controlSection->onDebuggingFinished();
     emit simulationFinished();
 }
@@ -1937,7 +1939,7 @@ void MainWindow::slotByteConverterHexEdited(const QString &str)
 }
 
 // Focus Coloring. Activates and deactivates undo/redo/cut/copy/paste actions contextually
-void MainWindow::focusChanged(QWidget *oldFocus, QWidget *newFocus)
+void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
 {
     if(ui->microcodeWidget->isAncestorOf(oldFocus)) {
         ui->microcodeWidget->highlightOnFocus();
@@ -2157,12 +2159,27 @@ void MainWindow::onOutputReceived(quint16 address, quint8 value)
 void MainWindow::onInputRequested(quint16 address)
 {
     handleDebugButtons();
+    connectViewUpdate();
+    ui->tabWidget->setCurrentWidget(ui->debuggerTab);
+    // Must highlight lines with both the assembler and microcode debugger visible.
+    // This is because of a bug in centerCursor() which doesn't center the cursor
+    // iff the widget has never been visible.
+    auto cw = ui->debuggerTabWidget->currentWidget();
+    ui->debuggerTabWidget->setCurrentWidget(ui->assemblerDebuggerTab);
+    highlightActiveLines(true);
+    ui->debuggerTabWidget->setCurrentWidget(ui->microcodeDebuggerTab);
+    highlightActiveLines(true);
+    ui->debuggerTabWidget->setCurrentWidget(cw);
+    // End fix for centerCursor()
+
+    emit simulationUpdate();
     ui->microcodeWidget->setEnabled(false);
     ui->cpuWidget->setEnabled(false);
     statusBar()->showMessage("Input requested", 4000);
     ui->ioWidget->onDataRequested(address);
     handleDebugButtons();
     reenableUIAfterInput();
+    disconnectViewUpdate();
 }
 
 void MainWindow::onBreakpointHit(Enu::BreakpointTypes type)

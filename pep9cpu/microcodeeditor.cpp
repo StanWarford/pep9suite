@@ -26,6 +26,7 @@
 #include "microcodeprogram.h"
 #include <limits.h>
 #include "interfacemccpu.h"
+#include <QScrollBar>
 
 MicrocodeEditor::MicrocodeEditor(bool highlightCurrentLine, bool isReadOnly, QWidget *parent): QPlainTextEdit(parent), cpu(nullptr), colors(&PepColors::lightMode)
 {
@@ -43,6 +44,7 @@ MicrocodeEditor::MicrocodeEditor(bool highlightCurrentLine, bool isReadOnly, QWi
     connect(this, SIGNAL(cursorPositionChanged()), lineNumberArea, SLOT(update()));
 
     updateLineNumberAreaWidth(0);
+
 }
 
 void MicrocodeEditor::init(QSharedPointer<InterfaceMCCPU> cpu)
@@ -139,7 +141,6 @@ void MicrocodeEditor::onTextChanged()
 void MicrocodeEditor::highlightSimulatedLine()
 {
     QList<QTextEdit::ExtraSelection> extraSelections;
-
     if (isReadOnly()) {
         QTextEdit::ExtraSelection selection;
 
@@ -158,15 +159,10 @@ void MicrocodeEditor::highlightSimulatedLine()
         cursor.movePosition(QTextCursor::NextBlock, QTextCursor::MoveAnchor, activeBlockNum);
         cursor.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor);
         this->setTextCursor(cursor);
-        // Since the cursor (potentially) spans multiple lines, center it, since
-        // ensureCursorVisible() might only show the bottom
-        // line of a multi-row selection.
         centerCursor();
-        selection.cursor = cursor;
         extraSelections.append(selection);
 
     }
-
     setExtraSelections(extraSelections);
 }
 

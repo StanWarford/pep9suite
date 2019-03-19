@@ -103,6 +103,7 @@ void AsmTracePane::updateSimulationView()
     }
     ui->tracePaneTextEdit->setActiveAddress(pc);
     ui->tracePaneTextEdit->highlightActiveLine();
+    ui->tracePaneTextEdit->centerCursor();
 }
 
 void AsmTracePane::clearSimulationView()
@@ -301,10 +302,10 @@ void AsmTraceTextEdit::highlightActiveLine()
         // Since the cursor (potentially) spans multiple lines, center it, since
         // ensureCursorVisible() might only show the bottom
         // line of a multi-row selection.
-        centerCursor();
         selection.cursor = cursor;
         extraSelections.append(selection);
     }
+    centerCursor();
     setExtraSelections(extraSelections);
 }
 

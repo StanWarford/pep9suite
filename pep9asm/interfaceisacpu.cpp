@@ -298,8 +298,13 @@ void InterfaceISACPU::reset() noexcept
     memTrace->clear();
     // Only trace the stack if trace tags are present, and no assembly time
     // errors occured.
-    bool hadWarnings = !this->manager->getUserProgram()->getTraceInfo()->hadTraceTags
-            || manager->getUserProgram()->getTraceInfo()->staticTraceError;
+    bool hadWarnings =  false;
+    // If debugging an object code program, there is no user program
+    // so don't bother rendering stack.
+    if(!this->manager->getUserProgram().isNull() ){
+        hadWarnings = !this->manager->getUserProgram()->getTraceInfo()->hadTraceTags
+        || manager->getUserProgram()->getTraceInfo()->staticTraceError;
+    }
     memTrace->setHasTraceWarnings(hadWarnings);
     memTrace->userStack.setStackIntact(!hadWarnings);
 
