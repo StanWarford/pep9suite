@@ -1044,16 +1044,20 @@ void MainWindow::doubleClickedCodeLabel(Enu::EPane which)
 
 void MainWindow::debugButtonEnableHelper(const int which)
 {
+    // Only allow formatting of code if there exists a user-built program
+    // to format from.
+    bool formatAssembler = !ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull();
+    bool formatMicrocode = !ui->microcodeWidget->getMicrocodeProgram().isNull();
     // Crack the parameter using DebugButtons to properly enable
     // and disable all buttons related to debugging and running.
     // Build Actions
     ui->ActionBuild_Assemble->setEnabled(which & DebugButtons::BUILD_ASM);
     ui->actionEdit_Remove_Error_Assembler->setEnabled(which & DebugButtons::BUILD_ASM);
-    ui->actionEdit_Format_Assembler->setEnabled(which & DebugButtons::BUILD_ASM);
+    ui->actionEdit_Format_Assembler->setEnabled((which & DebugButtons::BUILD_ASM) && formatAssembler);
     ui->actionBuild_Load_Object->setEnabled(which & DebugButtons::BUILD_ASM);
     ui->actionBuild_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
     ui->actionEdit_Remove_Error_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
-    ui->actionEdit_Format_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
+    ui->actionEdit_Format_Microcode->setEnabled((which & DebugButtons::BUILD_MICRO) &&  formatMicrocode);
 
     // Debug & Run Actions
     ui->actionBuild_Run->setEnabled(which & DebugButtons::RUN);
@@ -1162,6 +1166,7 @@ void MainWindow::on_actionFile_New_Asm_triggered()
         ui->AsmListingWidgetPane->setCurrentFile("");
         ui->asmListingTracePane->clearSourceCode();
         programManager->setUserProgram(nullptr);
+        handleDebugButtons();
     }
 }
 
@@ -1349,14 +1354,12 @@ void MainWindow::on_actionEdit_UnComment_Line_triggered()
     if (!ui->actionDebug_Stop_Debugging->isEnabled()) { // we are not debugging
         ui->microcodeWidget->unCommentSelection();
     }
-    else if(ui->AsmSourceCodeWidgetPane->hasFocus()) {
-#pragma message("TODO: Add commenting features to AsmSourceCodeWidget")
-        //ui->AsmSourceCodeWidgetPane->
-    }
 }
 
 void MainWindow::on_actionEdit_Format_Assembler_triggered()
 {
+    qDebug() << "called";
+    if(ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull()) return;
     QStringList assemblerListingList = ui->AsmSourceCodeWidgetPane->getAssemblerListingList();
     assemblerListingList.replaceInStrings(QRegExp("^............."), "");
     assemblerListingList.removeAll("");
@@ -1421,6 +1424,7 @@ bool MainWindow::on_ActionBuild_Assemble_triggered()
         ui->asmListingTracePane->setProgram(ui->AsmSourceCodeWidgetPane->getAsmProgram());
         set_Obj_Listing_filenames_from_Source();
         ui->statusBar->showMessage("Assembly succeeded", 4000);
+        handleDebugButtons();
         return true;
     }
     else {

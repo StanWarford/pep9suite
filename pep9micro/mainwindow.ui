@@ -780,7 +780,7 @@
   </action>
   <action name="actionEdit_UnComment_Line">
    <property name="text">
-    <string>Un/Comment Line</string>
+    <string>Un/Comment Microcode Line</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+/</string>
