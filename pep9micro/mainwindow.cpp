@@ -425,7 +425,7 @@ void MainWindow::disconnectViewUpdate()
 
 void MainWindow::readSettings()
 {
-    QSettings settings("cslab.pepperdine","PEP9Micro");
+    QSettings settings("cslab.pepperdine","Pep9Micro");
 
     settings.beginGroup("MainWindow");
 
@@ -464,7 +464,7 @@ void MainWindow::readSettings()
 
 void MainWindow::writeSettings()
 {
-    QSettings settings("cslab.pepperdine","PEP9Micro");
+    QSettings settings("cslab.pepperdine","Pep9Micro");
     settings.beginGroup("MainWindow");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("font", codeFont);
