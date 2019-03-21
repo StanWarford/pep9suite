@@ -75,7 +75,7 @@ private:
     QString lightStyle, darkStyle;
     QFont codeFont;
     UpdateChecker *updateChecker;
-    bool inDarkMode;
+    bool isInDarkMode;
 
     // Byte converter
     ByteConverterBin *byteConverterBin;

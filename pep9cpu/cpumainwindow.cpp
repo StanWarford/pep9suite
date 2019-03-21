@@ -44,6 +44,7 @@
 #include "byteconverterhex.h"
 #include "cpupane.h"
 #include "cpuhelpdialog.h"
+#include "darkhelper.h"
 #include "memorydumppane.h"
 #include "microcode.h"
 #include "microcodepane.h"
@@ -62,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow), debugState(DebugState::DISABLED), updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
     memDevice(new MainMemory(this)), controlSection(new PartialMicrocodedCPU(Enu::CPUType::OneByteDataBus, memDevice)),
     dataSection(controlSection->getDataSection()),
-    cpuModesGroup(new QActionGroup(this)), inDarkMode(false)
+    cpuModesGroup(new QActionGroup(this)), isInDarkMode(false)
 {
     // Initialize all global maps.
     Pep::initMicroEnumMnemonMaps(Enu::CPUType::OneByteDataBus, false);
@@ -333,7 +334,7 @@ void MainWindow::writeSettings()
     settings.setValue("geometry", saveGeometry());
     settings.setValue("font", codeFont);
     settings.setValue("filePath", curPath);
-    settings.setValue("inDarkMode", inDarkMode);
+    settings.setValue("inDarkMode", isInDarkMode);
     settings.endGroup();
     //Handle writing for all children
     ui->microcodeWidget->writeSettings(settings);
@@ -912,14 +913,8 @@ void MainWindow::onSimulationFinished()
 
 void MainWindow::on_actionDark_Mode_triggered()
 {
-    inDarkMode = ui->actionDark_Mode->isChecked();
-    if(inDarkMode) {
-        this->setStyleSheet(darkStyle);
-    }
-    else {
-        this->setStyleSheet(lightStyle);
-    }
-    emit darkModeChanged(inDarkMode, styleSheet());
+    isInDarkMode = inDarkMode();
+    emit darkModeChanged(isInDarkMode, styleSheet());
 }
 
 // help:

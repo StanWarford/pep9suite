@@ -26,7 +26,6 @@
 #include <qvector.h>
 #endif
 #include <iostream>
-
 int main(int argc, char *argv[])
 {
 #ifdef WIN32 //Always inject -platform windows:dpiawareness=0 flag to disable hi-dpi support.

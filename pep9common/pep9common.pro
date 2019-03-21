@@ -40,7 +40,8 @@ HEADERS += \
     symbolvalue.h \
     terminalpane.h \
     updatechecker.h \
-    registerfile.h
+    registerfile.h \
+    darkhelper.h \
 
 
 SOURCES += \
@@ -68,6 +69,15 @@ SOURCES += \
     updatechecker.cpp \
     enu.cpp \
     registerfile.cpp
+
+macx{
+    QT += macextras
+    LIBS += -framework Foundation -framework AppKit
+    OBJECTIVE_SOURCES = darkhelper_mac.mm
+}
+else {
+    SOURCE += darkhelper_other.cpp
+}
 
 
 

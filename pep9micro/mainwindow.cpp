@@ -39,6 +39,7 @@
 #include <QTextCodec>
 #include <QUrl>
 
+
 // For switching to new model
 #include "fullmicrocodedcpu.h"
 #include "memorychips.h"
@@ -58,6 +59,7 @@
 #include "byteconverterhex.h"
 #include "byteconverterinstr.h"
 #include "cpupane.h"
+#include "darkhelper.h"
 #include "helpdialog.h"
 #include "isaasm.h"
 #include "memorydumppane.h"
@@ -82,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent) :
     updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
     memDevice(new MainMemory(this)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), memDevice)),
     dataSection(controlSection->getDataSection()), programManager(AsmProgramManager::getInstance()),
-    inDarkMode(false)
+    isInDarkMode(false)
 {
     // Initialize all global maps.
     Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, true);
@@ -199,6 +201,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::fontChanged, ui->asmListingTracePane, &AsmTracePane::onFontChanged);
 
     // Connect dark mode events.
+    connect(qApp, &QGuiApplication::paletteChanged, this, &MainWindow::onPaletteChanged);
     connect(this, &MainWindow::darkModeChanged, ui->microcodeWidget, &MicrocodePane::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, helpDialog, &HelpDialog::onDarkModeChanged);
     connect(this, &MainWindow::darkModeChanged, ui->microObjectCodePane, &MicroObjectCodePane::onDarkModeChanged);
@@ -469,7 +472,7 @@ void MainWindow::writeSettings()
     settings.setValue("geometry", saveGeometry());
     settings.setValue("font", codeFont);
     settings.setValue("filePath", curPath);
-    settings.setValue("inDarkMode", inDarkMode);
+    settings.setValue("inDarkMode", isInDarkMode);
     settings.beginWriteArray("codePaneSplit", 3);
     QList<int> temp = ui->codeSplitter->sizes();
     for(int it = 0; it < 3; it++) {
@@ -1720,6 +1723,12 @@ void MainWindow::onASMBreakpointHit()
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
 }
 
+void MainWindow::onPaletteChanged(const QPalette &palette)
+{
+    qDebug() << "I am loved!!";
+    on_actionDark_Mode_triggered();
+}
+
 // System MainWindow triggers
 void MainWindow::on_actionSystem_Clear_CPU_triggered()
 {
@@ -1806,14 +1815,8 @@ void MainWindow::onSimulationFinished()
 
 void MainWindow::on_actionDark_Mode_triggered()
 {
-    inDarkMode = ui->actionDark_Mode->isChecked();
-    if(inDarkMode) {
-        this->setStyleSheet(darkStyle);
-    }
-    else {
-        this->setStyleSheet(lightStyle);
-    }
-    emit darkModeChanged(inDarkMode, styleSheet());
+    isInDarkMode = inDarkMode();
+    emit darkModeChanged(isInDarkMode, styleSheet());
 }
 
 // help:

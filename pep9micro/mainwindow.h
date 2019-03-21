@@ -78,7 +78,7 @@ private:
     QString lightStyle, darkStyle;
     QFont codeFont;
     UpdateChecker *updateChecker;
-    bool inDarkMode;
+    bool isInDarkMode;
 
     // Byte converter
     ByteConverterBin *byteConverterBin;
@@ -278,6 +278,7 @@ private:
     // Helpers to seperate breakpoint logic
     void onMicroBreakpointHit();
     void onASMBreakpointHit();
+    void onPaletteChanged(const QPalette &palette);
 signals:
     void beginUpdateCheck();
     // Emitted once when a simulation is begun
