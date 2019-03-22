@@ -17,6 +17,8 @@ void RotatedHeaderView::paintSection(QPainter *painter, const QRect &rect, int l
     QRect nRect = QRect(newx, newy, rect.height(), rect.width());
     painter->rotate(angle);
     painter->setFont(QFont(Pep::codeFont,Pep::codeFontSize));
+    // Ask parent for brush to color text.
+    painter->setBrush(QBrush(parentWidget()->palette().foreground()));
     painter->drawText(nRect, this->model()->headerData(logicalIndex, Qt::Horizontal).toString());
     painter->restore();
 }
