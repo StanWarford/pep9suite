@@ -41,12 +41,12 @@ class ByteConverterInstr : public QWidget {
 
 public:
     ByteConverterInstr(QWidget *parent = nullptr);
-    ~ByteConverterInstr();
+    ~ByteConverterInstr() override;
 
     void setValue(int data);
 
 protected:
-    void changeEvent(QEvent *e);
+    void changeEvent(QEvent *e) override;
 
 private:
     Ui::ByteConverterInstr *ui;

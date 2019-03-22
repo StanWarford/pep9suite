@@ -72,7 +72,6 @@ private:
     Ui::MainWindow *ui;
     DebugState debugState;
     QString curPath;
-    QString lightStyle, darkStyle;
     QFont codeFont;
     UpdateChecker *updateChecker;
     bool isInDarkMode;

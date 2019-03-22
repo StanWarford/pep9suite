@@ -127,15 +127,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(redefineMnemonicsDialog, &RedefineMnemonicsDialog::closed, this, &MainWindow::redefine_Mnemonics_closed);
     // Byte converter setup.
-    byteConverterDec = new ByteConverterDec();
+    byteConverterDec = new ByteConverterDec(this);
     ui->byteConverterToolBar->addWidget(byteConverterDec);
-    byteConverterHex = new ByteConverterHex();
+    byteConverterHex = new ByteConverterHex(this);
     ui->byteConverterToolBar->addWidget(byteConverterHex);
-    byteConverterBin = new ByteConverterBin();
+    byteConverterBin = new ByteConverterBin(this);
     ui->byteConverterToolBar->addWidget(byteConverterBin);
-    byteConverterChar = new ByteConverterChar();
+    byteConverterChar = new ByteConverterChar(this);
     ui->byteConverterToolBar->addWidget(byteConverterChar);
-    byteConverterInstr = new ByteConverterInstr();
+    byteConverterInstr = new ByteConverterInstr(this);
     ui->byteConverterToolBar->addWidget(byteConverterInstr);
     connect(byteConverterBin, &ByteConverterBin::textEdited, this, &MainWindow::slotByteConverterBinEdited);
     connect(byteConverterChar, &ByteConverterChar::textEdited, this, &MainWindow::slotByteConverterCharEdited);
@@ -255,18 +255,6 @@ MainWindow::MainWindow(QWidget *parent) :
             [&](QSet<quint16> addresses){controlSection->breakpointsSet(addresses);});
     connect(programManager, &AsmProgramManager::removeAllBreakpoints,
             [&](){controlSection->breakpointsRemoveAll();});
-
-    // Load dark mode style sheet.
-    QFile fDark(":/dark.qss");
-    fDark.open(QFile::ReadOnly | QFile::Text);
-    QTextStream tsDark(&fDark);
-    darkStyle = tsDark.readAll();
-    // Load light mode style sheet
-    QFile fLight(":/light.qss");
-    fLight.open(QFile::ReadOnly | QFile::Text);
-    QTextStream tsLight(&fLight);
-    lightStyle = tsLight.readAll();
-
 
     //Pre-render memory & fix maximum widget size.
     int maxSize = ui->memoryWidget->memoryDumpWidth();
@@ -444,8 +432,6 @@ void MainWindow::readSettings()
     //Restore last used file path
     curPath = settings.value("filePath", QDir::homePath()).toString();
     // Restore dark mode state
-    bool tempDarkMode = settings.value("inDarkMode", false).toBool();
-    ui->actionDark_Mode->setChecked(tempDarkMode);
     on_actionDark_Mode_triggered();
 
     // Restore last used split in assembly code pane
@@ -472,7 +458,6 @@ void MainWindow::writeSettings()
     settings.setValue("geometry", saveGeometry());
     settings.setValue("font", codeFont);
     settings.setValue("filePath", curPath);
-    settings.setValue("inDarkMode", isInDarkMode);
     settings.beginWriteArray("codePaneSplit", 3);
     QList<int> temp = ui->codeSplitter->sizes();
     for(int it = 0; it < 3; it++) {

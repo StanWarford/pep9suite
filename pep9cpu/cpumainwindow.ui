@@ -132,7 +132,6 @@
     <property name="title">
      <string>View</string>
     </property>
-    <addaction name="actionDark_Mode"/>
    </widget>
    <widget class="QMenu" name="menuBuild">
     <property name="title">
@@ -538,14 +537,6 @@
     <string>Reset Font to Default</string>
    </property>
   </action>
-  <action name="actionDark_Mode">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Dark Mode</string>
-   </property>
-  </action>
   <action name="actionBuild_Microcode">
    <property name="icon">
     <iconset resource="../pep9common/pep9common-resources.qrc">
@@ -696,8 +687,8 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="pep9cpu-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
+  <include location="pep9cpu-resources.qrc"/>
  </resources>
  <connections>
   <connection>

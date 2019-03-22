@@ -175,19 +175,6 @@ MainWindow::MainWindow(QWidget *parent) :
     // Connect events for breakpoints
     connect(ui->actionDebug_Remove_All_Microcode_Breakpoints, &QAction::triggered, ui->microcodeWidget, &MicrocodePane::onRemoveAllBreakpoints);
 
-    // Load dark mode style sheet.
-    QFile fDark(":/dark.qss");
-    fDark.open(QFile::ReadOnly | QFile::Text);
-    QTextStream tsDark(&fDark);
-    darkStyle = tsDark.readAll();
-    // Load light mode style sheet
-    QFile fLight(":/light.qss");
-    fLight.open(QFile::ReadOnly | QFile::Text);
-    QTextStream tsLight(&fLight);
-    lightStyle = tsLight.readAll();
-
-
-
     //Pre-render memory & fix maximum widget size.
     int maxSize = ui->memoryWidget->memoryDumpWidth();
     ui->memoryWidget->setMinimumWidth(maxSize);
@@ -316,8 +303,6 @@ void MainWindow::readSettings()
     //Restore last used file path
     curPath = settings.value("filePath", QDir::homePath()).toString();
     // Restore dark mode state
-    bool tempDarkMode = settings.value("inDarkMode", false).toBool();
-    ui->actionDark_Mode->setChecked(tempDarkMode);
     on_actionDark_Mode_triggered();
     quint16 debuggerLevel = settings.value("debugLevel", 1).toInt();
 

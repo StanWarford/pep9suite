@@ -30,6 +30,19 @@ ByteConverterInstr::ByteConverterInstr(QWidget *parent) :
     ui(new Ui::ByteConverterInstr)
 {
     ui->setupUi(this);
+    // The label is really a text editor.
+    // However, nested QLabels aren't picking up on style changes in parent classes,
+    // so they do not render text correctly in Mac OS dark mode.
+    // By making a read-only transparent QLineEdit, we should get the correct
+    // text styling with minimal extra effort on our part.
+    QPalette pal = ui->label->palette();
+    pal.setColor(QPalette::Background, QColor(0,0,0,0));
+    pal.setColor(QPalette::Window, QColor(0,0,0,0));
+    pal.setColor(QPalette::Base, QColor(0,0,0,0));
+    pal.setColor(QPalette::Background, QColor(0,0,0,0));
+    ui->label->setPalette(pal);
+    ui->label->setFrame(false);
+    ui->label->setAttribute(Qt::WA_TranslucentBackground);
 }
 
 ByteConverterInstr::~ByteConverterInstr()
@@ -54,3 +67,4 @@ void ByteConverterInstr::changeEvent(QEvent *e)
         break;
     }
 }
+
