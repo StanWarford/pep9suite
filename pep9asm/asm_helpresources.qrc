@@ -81,5 +81,13 @@
         <file>help/figures_asm/fig0648.c</file>
         <file>help/figures_asm/fig0648.pep</file>
         <file>help/figures_asm/pep9os.pep</file>
+        <file>help/figures_asm/prob0832.pep</file>
+        <file>help/figures_asm/prob0826.pep</file>
+        <file>help/figures_asm/prob0827.pep</file>
+        <file>help/figures_asm/prob0828.pep</file>
+        <file>help/figures_asm/prob0829.pep</file>
+        <file>help/figures_asm/prob0830.pep</file>
+        <file>help/figures_asm/prob0831.pep</file>
+        <file>help/figures_asm/exer0804.pep</file>
     </qresource>
 </RCC>

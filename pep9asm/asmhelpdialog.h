@@ -65,7 +65,7 @@ private:
     PepASMHighlighter *leftHighlighter;
     CppHighlighter *rightCppHighlighter;
     PepASMHighlighter *rightPepHighlighter;
-
+    static const int defaultHelpTreeWidth;
     enum Row {
         eWRITING = 0,
         eDEBUGGING = 1,

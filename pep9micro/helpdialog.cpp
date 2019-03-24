@@ -218,15 +218,13 @@ void HelpDialog::onFontChanged(QFont font)
 
 void HelpDialog::onDarkModeChanged(bool darkMode)
 {
-    if(darkMode)
-    {
+    if(darkMode) {
         leftMicroHighlighter->rebuildHighlightingRules(PepColors::darkMode);
         leftPepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
         rightPepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
         rightCppHighlighter->rebuildHighlightingRules(PepColors::darkMode);
     }
-    else
-    {
+    else {
         leftMicroHighlighter->rebuildHighlightingRules(PepColors::lightMode);
         leftPepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
         rightPepHighlighter->rebuildHighlightingRules(PepColors::lightMode);

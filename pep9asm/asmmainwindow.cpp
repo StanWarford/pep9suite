@@ -1811,38 +1811,38 @@ void MainWindow::appendMicrocodeLine(QString line)
 void MainWindow::helpCopyToSourceClicked()
 {
     helpDialog->hide();
-        Enu::EPane destPane, inputPane;
-        QString input;
-        QString code = helpDialog->getCode(destPane, inputPane, input);
-        if(code.isEmpty()) return;
-        else {
-            switch(destPane)
-            {
-            case Enu::EPane::ESource:
-                if(maybeSave(Enu::EPane::ESource)) {
-                    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-                    ui->AsmSourceCodeWidgetPane->setFocus();
-                    ui->AsmSourceCodeWidgetPane->setCurrentFile("");
-                    ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
-                    ui->AsmSourceCodeWidgetPane->setModifiedFalse();
-                    statusBar()->showMessage("Copied to assembler source code", 4000);
-                }
-                break;
-            case Enu::EPane::EObject:
-                if(maybeSave(Enu::EPane::EObject)) {
-                    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-                    ui->AsmObjectCodeWidgetPane->setFocus();
-                    ui->AsmObjectCodeWidgetPane->setCurrentFile("");
-                    ui->AsmObjectCodeWidgetPane->setObjectCodePaneText(code);
-                    ui->AsmObjectCodeWidgetPane->setModifiedFalse();
-                    statusBar()->showMessage("Copied to assembler object code", 4000);
-                }
-                break;
-            default:
-                // No other panes allow copying help into them.
-                return;
+    Enu::EPane destPane, inputPane;
+    QString input;
+    QString code = helpDialog->getCode(destPane, inputPane, input);
+    if(code.isEmpty()) return;
+    else {
+        switch(destPane)
+        {
+        case Enu::EPane::ESource:
+            if(maybeSave(Enu::EPane::ESource)) {
+                ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
+                ui->AsmSourceCodeWidgetPane->setFocus();
+                ui->AsmSourceCodeWidgetPane->setCurrentFile("");
+                ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
+                ui->AsmSourceCodeWidgetPane->setModifiedFalse();
+                statusBar()->showMessage("Copied to assembler source code", 4000);
+            }
+            break;
+        case Enu::EPane::EObject:
+            if(maybeSave(Enu::EPane::EObject)) {
+                ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
+                ui->AsmObjectCodeWidgetPane->setFocus();
+                ui->AsmObjectCodeWidgetPane->setCurrentFile("");
+                ui->AsmObjectCodeWidgetPane->setObjectCodePaneText(code);
+                ui->AsmObjectCodeWidgetPane->setModifiedFalse();
+                statusBar()->showMessage("Copied to assembler object code", 4000);
+            }
+            break;
+        default:
+            // No other panes allow copying help into them.
+            return;
 
-        }
+    }
     }
 
     switch(inputPane)
