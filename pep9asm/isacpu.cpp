@@ -71,6 +71,16 @@ bool IsaCpu::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint
     return operandByteValueHelper(operand, addrMode, &AMemoryDevice::getByte, opVal);
 }
 
+RegisterFile &IsaCpu::getRegisterBank()
+{
+    return registerBank;
+}
+
+const RegisterFile &IsaCpu::getRegisterBank() const
+{
+    return registerBank;
+}
+
 void IsaCpu::onISAStep()
 {
     // Store PC at the start of the cycle, so that we know where the instruction started from.

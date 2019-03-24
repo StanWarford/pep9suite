@@ -28,6 +28,24 @@ QMAKE_MAC_SDK = macosx10.14
 #Windows RC file for icon:
 RC_FILE = pep9resources.rc
 
+FORMS += \
+    asmmainwindow.ui \
+    asmhelpdialog.ui \
+
+HEADERS += \
+    asmmainwindow.h \
+    asmhelpdialog.h
+
+SOURCES += \
+    asmmainwindow.cpp \
+    asmhelpdialog.cpp \
+    main.cpp
+
+RESOURCES += \
+    ../pep9common/pep9common-resources.qrc\
+    ../pep9asm/asm_helpresources.qrc \
+    ../pep9asm/pep9asm-resources.qrc
+
 INCLUDEPATH += $$PWD/../pep9common
 
 #Include own directory in VPATH, otherwise qmake might accidentally import files with

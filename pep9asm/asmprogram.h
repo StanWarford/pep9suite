@@ -3,7 +3,7 @@
     Pep9 is a virtual machine for writing machine language and assembly
     language programs.
 
-    Copyright (C) 2018 Matthew McRaven, Pepperdine University
+    Copyright (C) 2018  J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,10 +21,12 @@
 
 #ifndef ASMPROGRAM_H
 #define ASMPROGRAM_H
+
+#include <ostream>
 #include <QtCore>
 #include <QSharedPointer>
+
 #include "enu.h"
-#include <ostream>
 class AType;
 class AsmCode;
 class SymbolEntry;
