@@ -55,6 +55,7 @@ DISTFILES += \
     pep9resources.rc
 
 INCLUDEPATH += $$PWD/../pep9common
+
 VPATH += $$PWD
 VPATH += $$PWD/../pep9common
 

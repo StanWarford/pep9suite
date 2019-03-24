@@ -114,20 +114,21 @@ void Pep::initMicroEnumMnemonMaps(CPUType cpuType, bool fullCtrlSection)
 {
     branchFuncToMnemonMap.clear(); mnemonToBranchFuncMap.clear();
     if(fullCtrlSection) {
-        mnemonToBranchFuncMap.insert("BRGT",uBRGT); branchFuncToMnemonMap.insert(uBRGT,"BRGT");
-        mnemonToBranchFuncMap.insert("BRGE",uBRGE); branchFuncToMnemonMap.insert(uBRGE,"BRGE");
-        mnemonToBranchFuncMap.insert("BREQ",uBREQ); branchFuncToMnemonMap.insert(uBREQ,"BREQ");
-        mnemonToBranchFuncMap.insert("BRNE",uBRNE); branchFuncToMnemonMap.insert(uBRNE,"BRNE");
-        mnemonToBranchFuncMap.insert("BRLE",uBRLE); branchFuncToMnemonMap.insert(uBRLE,"BRLE");
-        mnemonToBranchFuncMap.insert("BRLT",uBRLT); branchFuncToMnemonMap.insert(uBRLT,"BRLT");
-        mnemonToBranchFuncMap.insert("BRV",uBRV); branchFuncToMnemonMap.insert(uBRV,"BRV");
-        mnemonToBranchFuncMap.insert("BRC",uBRC); branchFuncToMnemonMap.insert(uBRC,"BRC");
-        mnemonToBranchFuncMap.insert("BRS",uBRS); branchFuncToMnemonMap.insert(uBRS,"BRS");
-        mnemonToBranchFuncMap.insert("ISPREFETCHVALID",IsPrefetchValid); branchFuncToMnemonMap.insert(IsPrefetchValid,"ISPREFETCHVALID");
-        mnemonToBranchFuncMap.insert("ISUNARY",IsUnary); branchFuncToMnemonMap.insert(IsUnary,"ISUNARY");
-        mnemonToBranchFuncMap.insert("ISPCE",IsPCEven); branchFuncToMnemonMap.insert(IsPCEven,"ISPCE");
-        mnemonToBranchFuncMap.insert("AMD",AddressingModeDecoder); branchFuncToMnemonMap.insert(AddressingModeDecoder,"AMD");
-        mnemonToBranchFuncMap.insert("ISD",InstructionSpecifierDecoder); branchFuncToMnemonMap.insert(InstructionSpecifierDecoder,"ISD");
+        mnemonToBranchFuncMap.insert("GT",uBRGT); branchFuncToMnemonMap.insert(uBRGT,"GT");
+        mnemonToBranchFuncMap.insert("GE",uBRGE); branchFuncToMnemonMap.insert(uBRGE,"GE");
+        mnemonToBranchFuncMap.insert("EQ",uBREQ); branchFuncToMnemonMap.insert(uBREQ,"EQ");
+        mnemonToBranchFuncMap.insert("NE",uBRNE); branchFuncToMnemonMap.insert(uBRNE,"NE");
+        mnemonToBranchFuncMap.insert("LE",uBRLE); branchFuncToMnemonMap.insert(uBRLE,"LE");
+        mnemonToBranchFuncMap.insert("LT",uBRLT); branchFuncToMnemonMap.insert(uBRLT,"LT");
+        mnemonToBranchFuncMap.insert("VBIT",uBRV); branchFuncToMnemonMap.insert(uBRV,"VBit");
+        mnemonToBranchFuncMap.insert("CBIT",uBRC); branchFuncToMnemonMap.insert(uBRC,"CBit");
+        mnemonToBranchFuncMap.insert("SBIT",uBRS); branchFuncToMnemonMap.insert(uBRS,"SBIt");
+        mnemonToBranchFuncMap.insert("HASPREFETCH",IsPrefetchValid); branchFuncToMnemonMap.insert(IsPrefetchValid,"HasPrefetch");
+        mnemonToBranchFuncMap.insert("ISUNARY",IsUnary); branchFuncToMnemonMap.insert(IsUnary,"IsUnary");
+        mnemonToBranchFuncMap.insert("ISPCEVEN",IsPCEven); branchFuncToMnemonMap.insert(IsPCEven,"IsPCEven");
+        mnemonToBranchFuncMap.insert("DECODEADDRSPEC",AddressingModeDecoder); branchFuncToMnemonMap.insert(AddressingModeDecoder,"DecodeAddrMode");
+        mnemonToBranchFuncMap.insert("DECODEINSTRSPEC",InstructionSpecifierDecoder); branchFuncToMnemonMap.insert(InstructionSpecifierDecoder,"DecodeInstrSpec");
+        mnemonToBranchFuncMap.insert("STOPCPU",Stop); branchFuncToMnemonMap.insert(Stop,"StopCPU");
     }
     mnemonToDecControlMap.clear();  decControlToMnemonMap.clear();
     mnemonToDecControlMap.insert("C", C); decControlToMnemonMap.insert(C,"C");

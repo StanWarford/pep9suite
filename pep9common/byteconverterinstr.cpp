@@ -43,6 +43,7 @@ ByteConverterInstr::ByteConverterInstr(QWidget *parent) :
     ui->label->setPalette(pal);
     ui->label->setFrame(false);
     ui->label->setAttribute(Qt::WA_TranslucentBackground);
+    ui->label->setReadOnly(true);
 }
 
 ByteConverterInstr::~ByteConverterInstr()

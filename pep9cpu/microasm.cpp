@@ -132,7 +132,7 @@ bool MicroAsm::getToken(QString &sourceLine, ELexicalToken &token, QString &toke
         else if(tokenString.compare("goto", Qt::CaseInsensitive) == 0) {
             token = LTE_GOTO;
         }
-        else if(tokenString.compare("stop", Qt::CaseInsensitive) == 0) {
+        else if(tokenString.compare(Pep::branchFuncToMnemonMap[Enu::Stop], Qt::CaseInsensitive) == 0) {
             token = LTE_STOP;
         }
         else if(tokenString.compare(Pep::branchFuncToMnemonMap[Enu::AddressingModeDecoder], Qt::CaseInsensitive) == 0) {

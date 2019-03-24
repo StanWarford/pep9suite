@@ -55,8 +55,7 @@ private:
     QVector<HighlightingRule> highlightingRulesOne;
     QVector<HighlightingRule> highlightingRulesTwo;
     QVector<HighlightingRule> highlightingRulesAll;
-    QRegExp commentStartExpression;
-    QRegExp commentEndExpression;
+
     QTextCharFormat oprndFormat;
     QTextCharFormat numFormat;
     QTextCharFormat singleLineCommentFormat;

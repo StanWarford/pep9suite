@@ -216,10 +216,10 @@ QString MicroCode::getSourceCode() const
         }
         else {
             if(str.isEmpty()) {
-                str.append("goto "+trueTargetAddr->getName());
+                str.append("goto " + trueTargetAddr->getName());
             }
             else {
-               str.append("; goto "+trueTargetAddr->getName());
+               str.append("; goto " + trueTargetAddr->getName());
             }
         }
     }
@@ -230,10 +230,10 @@ QString MicroCode::getSourceCode() const
 
     else if (branchFunc == Enu::Stop) {
         if(str.isEmpty()){
-            str.append("stop");
+            str.append("stopCPU");
         }
         else{
-           str.append("; stop");
+           str.append("; stopCPU");
         }
     }
 

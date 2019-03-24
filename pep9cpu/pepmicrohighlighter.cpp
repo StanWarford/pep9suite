@@ -143,13 +143,15 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
     highlightingRulesOne.append(rule);
     highlightingRulesTwo.append(rule);
 
-    highlightingRulesAll.append(highlightingRulesOne);
-    highlightingRulesAll.append(highlightingRulesTwo);
     errorCommentFormat.setForeground(color.altTextHighlight);
     errorCommentFormat.setBackground(color.errorHighlight);
+    rule.pattern = QRegExp("//\\sERROR:[\\s].*");
+    rule.format = errorCommentFormat;
+    highlightingRulesOne.append(rule);
+    highlightingRulesTwo.append(rule);
 
-    commentStartExpression = QRegExp("//\\sERROR:[\\s]");
-    commentEndExpression = QRegExp("$");
+    highlightingRulesAll.append(highlightingRulesOne);
+    highlightingRulesAll.append(highlightingRulesTwo);
 }
 
 void PepMicroHighlighter::setCPUType(Enu::CPUType type)
@@ -178,8 +180,8 @@ void PepMicroHighlighter::highlightBlock(const QString &text)
             index = expression.indexIn(text, index + length);
         }
     }
+    /*
     setCurrentBlockState(0);
-
     int startIndex = 0;
     if (previousBlockState() != 1)
         startIndex = commentStartExpression.indexIn(text);
@@ -197,6 +199,7 @@ void PepMicroHighlighter::highlightBlock(const QString &text)
         setFormat(startIndex, commentLength, errorCommentFormat);
         startIndex = commentStartExpression.indexIn(text, startIndex + commentLength);
     }
+    */
 }
 
 /*void PepMicroHighlighter::onStyleChange()
