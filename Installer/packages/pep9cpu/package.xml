@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package>
-    <DisplayName>Pep9Micro</DisplayName>
-    <Description>This is the Pep9 Micro</Description>
+    <DisplayName>Pep9CPU</DisplayName>
+    <Description>This is the Pep9CPU</Description>
     <Version>9.2.0</Version>
     <ReleaseDate>2018-02-18</ReleaseDate>
     <UserInterfaces>
