@@ -135,7 +135,7 @@ private:
     {
         static const int RUN = 1<<0, RUN_OBJECT = 1<<1, DEBUG = 1<<2, DEBUG_OBJECT = 1<<3, DEBUG_LOADER = 1<<4,
         INTERRUPT = 1<<5, CONTINUE = 1<<6, RESTART = 1<<7, STOP = 1<<8, STEP_OVER_ASM = 1<<9, STEP_INTO_ASM = 1<<10,
-        STEP_OUT_ASM = 1<<11, SINGLE_STEP_MICRO = 1<<12/*, SINGLE_STEP_ASM = 1<<13*/, BUILD_ASM = 1<<14, BUILD_MICRO = 1<<15,
+        STEP_OUT_ASM = 1<<11,/*, SINGLE_STEP_ASM = 1<<13*/ BUILD_ASM = 1<<14,
         OPEN_NEW = 1<<17, INSTALL_OS = 1<<18;
     };
 
@@ -158,21 +158,17 @@ private slots:
     void onUpdateCheck(int val);
     // File
     void on_actionFile_New_Asm_triggered();
-    void on_actionFile_New_Microcode_triggered();
     void on_actionFile_Open_triggered();
 
-    bool on_actionFile_Save_Microcode_triggered();
     bool on_actionFile_Save_Asm_triggered();
 
     bool on_actionFile_Save_Asm_Source_As_triggered();
     bool on_actionFile_Save_Object_Code_As_triggered();
     bool on_actionFile_Save_Assembler_Listing_As_triggered();
-    bool on_actionFile_Save_Microcode_As_triggered();
 
     void on_actionFile_Print_Assembler_Source_triggered();
     void on_actionFile_Print_Object_Code_triggered();
     void on_actionFile_Print_Assembler_Listing_triggered();
-    void on_actionFile_Print_Microcode_triggered();
 
     // Edit
     void on_actionEdit_Undo_triggered();
@@ -180,16 +176,12 @@ private slots:
     void on_actionEdit_Cut_triggered();
     void on_actionEdit_Copy_triggered();
     void on_actionEdit_Paste_triggered();
-    void on_actionEdit_UnComment_Line_triggered();
     void on_actionEdit_Format_Assembler_triggered();
-    void on_actionEdit_Format_Microcode_triggered();
     void on_actionEdit_Remove_Error_Assembler_triggered();
-    void on_actionEdit_Remove_Error_Microcode_triggered();
     void on_actionEdit_Font_triggered();
     void on_actionEdit_Reset_font_to_Default_triggered();
 
     // Build
-    void on_actionBuild_Microcode_triggered();
     bool on_ActionBuild_Assemble_triggered(); //Returns true if assembly succeded.
     void on_actionBuild_Load_Object_triggered();
     void on_actionBuild_Run_Object_triggered();
@@ -214,8 +206,6 @@ private slots:
     void on_actionDebug_Step_Into_Assembler_triggered();
     // Executes the next ISA instructions until the call depth is decreased by 1.
     void on_actionDebug_Step_Out_Assembler_triggered();
-    // Executes a single line of microcode, which is the behavior of Pep/9CPU
-    void on_actionDebug_Single_Step_Microcode_triggered();
 
     // System
     void on_actionSystem_Clear_CPU_triggered();
@@ -233,7 +223,6 @@ private slots:
     // Help
     void on_actionHelp_UsingPep9CPU_triggered();
     void on_actionHelp_InteractiveUse_triggered();
-    void on_actionHelp_MicrocodeUse_triggered();
     void on_actionHelp_DebuggingUse_triggered();
     void on_actionHelp_Pep9Reference_triggered();
     void on_actionHelp_Examples_triggered();
@@ -272,7 +261,6 @@ private:
     // with no other side effects.
     void reenableUIAfterInput();
     // Helpers to seperate breakpoint logic
-    void onMicroBreakpointHit();
     void onASMBreakpointHit();
     void onPaletteChanged(const QPalette &palette);
 signals:

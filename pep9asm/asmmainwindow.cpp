@@ -1003,11 +1003,6 @@ void MainWindow::on_actionFile_New_Asm_triggered()
     }
 }
 
-void MainWindow::on_actionFile_New_Microcode_triggered()
-{
-
-}
-
 void MainWindow::on_actionFile_Open_triggered()
 {
     QString fileName = QFileDialog::getOpenFileName(
@@ -1035,11 +1030,6 @@ bool MainWindow::on_actionFile_Save_Asm_triggered()
     return save(Enu::EPane::ESource);
 }
 
-bool MainWindow::on_actionFile_Save_Microcode_triggered()
-{
-    return save(Enu::EPane::EMicrocode);
-}
-
 bool MainWindow::on_actionFile_Save_Asm_Source_As_triggered()
 {
     return saveAsFile(Enu::EPane::ESource);
@@ -1055,11 +1045,6 @@ bool MainWindow::on_actionFile_Save_Assembler_Listing_As_triggered()
     return saveAsFile(Enu::EPane::EListing);
 }
 
-bool MainWindow::on_actionFile_Save_Microcode_As_triggered()
-{
-    return saveAsFile(Enu::EPane::EMicrocode);
-}
-
 void MainWindow::on_actionFile_Print_Assembler_Source_triggered()
 {
     print(Enu::EPane::ESource);
@@ -1073,11 +1058,6 @@ void MainWindow::on_actionFile_Print_Object_Code_triggered()
 void MainWindow::on_actionFile_Print_Assembler_Listing_triggered()
 {
     print(Enu::EPane::EListing);
-}
-
-void MainWindow::on_actionFile_Print_Microcode_triggered()
-{
-    print(Enu::EPane::EMicrocode);
 }
 
 // Edit MainWindow triggers
@@ -1155,11 +1135,6 @@ void MainWindow::on_actionEdit_Paste_triggered()
     // other panes should not be able to paste
 }
 
-void MainWindow::on_actionEdit_UnComment_Line_triggered()
-{
-
-}
-
 void MainWindow::on_actionEdit_Format_Assembler_triggered()
 {
     qDebug() << "called";
@@ -1172,19 +1147,9 @@ void MainWindow::on_actionEdit_Format_Assembler_triggered()
     }
 }
 
-void MainWindow::on_actionEdit_Format_Microcode_triggered()
-{
-
-}
-
 void MainWindow::on_actionEdit_Remove_Error_Assembler_triggered()
 {
     ui->AsmSourceCodeWidgetPane->removeErrorMessages();
-}
-
-void MainWindow::on_actionEdit_Remove_Error_Microcode_triggered()
-{
-
 }
 
 void MainWindow::on_actionEdit_Font_triggered()
@@ -1201,11 +1166,6 @@ void MainWindow::on_actionEdit_Reset_font_to_Default_triggered()
 {
     codeFont = QFont(Pep::codeFont, Pep::codeFontSize);
     emit fontChanged(codeFont);
-}
-
-void MainWindow::on_actionBuild_Microcode_triggered()
-{
-
 }
 
 //Build Events
@@ -1309,7 +1269,7 @@ void MainWindow::handleDebugButtons()
     {
     case DebugState::DISABLED:
         enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
-        enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO;
+        enabledButtons |= DebugButtons::BUILD_ASM;
         enabledButtons |= DebugButtons::OPEN_NEW | DebugButtons::INSTALL_OS;
         break;
     case DebugState::RUN:
@@ -1318,7 +1278,7 @@ void MainWindow::handleDebugButtons()
     case DebugState::DEBUG_ISA:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_OUT_ASM*(!waiting_io);
-        enabledButtons |= DebugButtons::STEP_OVER_ASM*(!waiting_io) | DebugButtons::SINGLE_STEP_MICRO*(!waiting_io);
+        enabledButtons |= DebugButtons::STEP_OVER_ASM*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_INTO_ASM*(enable_into * !waiting_io);
         break;
     case DebugState::DEBUG_RESUMED:
@@ -1479,16 +1439,6 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
     emit simulationUpdate();
 }
 
-void MainWindow::on_actionDebug_Single_Step_Microcode_triggered()
-{
-
-}
-
-void MainWindow::onMicroBreakpointHit()
-{
-
-}
-
 void MainWindow::onASMBreakpointHit()
 {
     debugState = DebugState::DEBUG_ISA;
@@ -1588,12 +1538,6 @@ void MainWindow::on_actionHelp_InteractiveUse_triggered()
 {
     helpDialog->show();
     helpDialog->selectItem("Interactive Use");
-}
-
-void MainWindow::on_actionHelp_MicrocodeUse_triggered()
-{
-    helpDialog->show();
-    helpDialog->selectItem("Microcode Use");
 }
 
 void MainWindow::on_actionHelp_DebuggingUse_triggered()
