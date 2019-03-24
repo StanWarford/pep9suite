@@ -1,4 +1,4 @@
-// File: code.cpp
+// File: asmcode.cpp
 /*
     Pep9 is a virtual machine for writing machine language and assembly
     language programs.
@@ -18,15 +18,18 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#include <QRegExp>
+#include <QSharedPointer>
+
 #include "asmcode.h"
 #include "asmargument.h"
-#include "pep.h"
 #include "isaasm.h"
-#include <QRegExp>
+#include "pep.h"
 #include "symbolvalue.h"
 #include "symbolentry.h"
-#include <QSharedPointer>
 #include "symboltable.h"
+
 #pragma message("TODO: The functions requesting object code must manuall check for burn count & memaddress of burn")
 // appendObjectCode
 
@@ -58,6 +61,9 @@ QString AsmCode::getComment() const
 
 void AsmCode::adjustMemAddress(int addressDelta)
 {
+    // Memory addresses less than 0 are invalid or don't
+    // have a real address (like comments), so they can't
+    // be relocated.
     if(memAddress >=0) memAddress += addressDelta;
 }
 
@@ -159,164 +165,6 @@ void DotBlock::appendSourceLine(QStringList &assemblerListingList) const
 {
     assemblerListingList.append(getAssemblerListing().split("\n"));
 }
-
-/*bool DotBlock::processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing)  {
-    if (symbolEntry.isNull()) {
-        return true;
-    }
-    int pos = IsaAsm::rxFormatTag.indexIn(comment);
-    if (pos > -1) {
-        QString formatTag = IsaAsm::rxFormatTag.cap(0);
-        Enu::ESymbolFormat tagType = IsaAsm::formatTagType(formatTag);
-        int multiplier = IsaAsm::formatMultiplier(formatTag);
-        if (argument->getArgumentValue() != IsaAsm::tagNumBytes(tagType) * multiplier) {
-            errorString = ";WARNING: Format tag does not match number of bytes allocated by .BLOCK.";
-            sourceLine = sourceCodeLine;
-            return false;
-        }
-        SymbolFormat format;
-        format.size = multiplier;
-        format.spec = tagType;
-        symbolEntry->setSymbolFormat(format);
-        symbolListing.blockSymbols.insert(symbolEntry->getName());
-    }
-    return true;
-}
-
-bool DotEquate::processFormatTraceTags(int &, QString &, SymbolListings & symbolListing) {
-    if (symbolEntry.isNull()) {
-        return true;
-    }
-    int pos = IsaAsm::rxFormatTag.indexIn(comment);
-    if (pos > -1) {
-        QString formatTag = IsaAsm::rxFormatTag.cap(0);
-        SymbolFormat format;
-        format.size = IsaAsm::formatMultiplier(formatTag);
-        format.spec = IsaAsm::formatTagType(formatTag);
-        symbolEntry->setSymbolFormat(format);
-        symbolListing.equateSymbols.insert(symbolEntry->getName());
-    }
-    return true;
-}
-
-bool DotBlock::processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) {
-    // For global structs.
-    if (symbolEntry.isNull()) {
-        return true;
-    }
-    if (symbolListing.blockSymbols.contains(symbolEntry->getName())) {
-        return true; // Pre-existing format tag takes precedence over symbol tag.
-    }
-
-    int numBytesAllocated = argument->getArgumentValue();
-    QString symbol;
-    QStringList list;
-    int numBytesListed = 0;
-    int pos = 0;
-    while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
-        symbol = IsaAsm::rxSymbolTag.cap(1);
-        if (symbolListing.equateSymbols.contains(symbolEntry->getName())) {
-            errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
-            sourceLine = sourceCodeLine;
-            return false;
-        }
-        numBytesListed += IsaAsm::tagNumBytes(Pep::symbolFormat.value(symbol)) * Pep::symbolFormatMultiplier.value(symbol);
-        list.append(symbol);
-        pos += IsaAsm::rxSymbolTag.matchedLength();
-    }
-    if (numBytesAllocated != numBytesListed && numBytesListed > 0) {
-        errorString = ";WARNING: Number of bytes allocated (" + QString("%1").arg(numBytesAllocated) +
-                      ") not equal to number of bytes listed in trace tag (" + QString("%1").arg(numBytesListed) + ").";
-        sourceLine = sourceCodeLine;
-        return false;
-    }
-    symbolListing.blockSymbols.insert(symbolEntry->getName());
-    symbolListing.blockGlobals.insert(symbolEntry->getName(), list);
-    return true;
-}
-
-bool NonUnaryInstruction::processFormatTraceTags(int &, QString &, SymbolListings & symbolListing) {
-    if (mnemonic == Enu::EMnemonic::CALL && argument->getArgumentString() == "malloc") {
-        int pos = IsaAsm::rxFormatTag.indexIn(comment);
-        if (pos > -1) {
-            QStringList list;
-            QString formatTag = IsaAsm::rxFormatTag.cap(0);
-            Enu::ESymbolFormat tagType = IsaAsm::formatTagType(formatTag);
-            int multiplier = IsaAsm::formatMultiplier(formatTag);
-            QString symbolDef = QString("%1").arg(memAddress); // Dummy symbol for format tag in malloc
-            if (symbolListing.equateSymbols.contains(symbolDef)){
-                // Limitation: only one dummy format per program
-                symbolListing.equateSymbols.insert(symbolDef);
-            }
-            Pep::symbolFormat.insert(symbolDef, tagType); // Any duplicates have value replaced
-            Pep::symbolFormatMultiplier.insert(symbolDef, multiplier);
-            list.append(symbolDef);
-            //Pep::symbolTraceList.insert(memAddress, list);
-        }
-    }
-    return true;
-}
-
-bool NonUnaryInstruction::processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings& symbolListing) {
-    if (mnemonic == Enu::EMnemonic::ADDSP || mnemonic == Enu::EMnemonic::SUBSP) {
-        int numBytesAllocated;
-        if (addressingMode != Enu::EAddrMode::I) {
-            errorString = ";WARNING: Stack trace not possible unless immediate addressing is specified.";
-            sourceLine = sourceCodeLine;
-            return false;
-        }
-        numBytesAllocated = argument->getArgumentValue();
-        QString symbol;
-        QStringList list;
-        int numBytesListed = 0;
-        int pos = 0;
-        while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
-            symbol = IsaAsm::rxSymbolTag.cap(1);
-            if (!symbolListing.equateSymbols.contains(symbol)) {
-                errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
-                sourceLine = sourceCodeLine;
-                return false;
-            }
-            numBytesListed += IsaAsm::tagNumBytes(Pep::symbolFormat.value(symbol)) * Pep::symbolFormatMultiplier.value(symbol);
-            list.append(symbol);
-            pos += IsaAsm::rxSymbolTag.matchedLength();
-        }
-        if (numBytesAllocated != numBytesListed) {
-            QString message = (mnemonic == Enu::EMnemonic::ADDSP) ? "deallocated" : "allocated";
-            errorString = ";WARNING: Number of bytes " + message + " (" + QString("%1").arg(numBytesAllocated) +
-                          ") not equal to number of bytes listed in trace tag (" + QString("%1").arg(numBytesListed) + ").";
-            sourceLine = sourceCodeLine;
-            return false;
-        }
-#pragma message ("Unsure as of use of symbol trace list")
-        //symbolListing.symbolTraceList.insert(memAddress, list);
-        return true;
-    }
-    else if (mnemonic == Enu::EMnemonic::CALL && argument->getArgumentString() == "malloc") {
-        int pos = 0;
-        QString symbol;
-        QStringList list;
-        while ((pos = IsaAsm::rxSymbolTag.indexIn(comment, pos)) != -1) {
-            symbol = IsaAsm::rxSymbolTag.cap(1);
-            if (!symbolListing.equateSymbols.contains(symbol) && !symbolListing.blockSymbols.contains(symbol)) {
-                errorString = ";WARNING: " + symbol + " not specified in .EQUATE.";
-                sourceLine = sourceCodeLine;
-                return false;
-            }
-            list.append(symbol);
-            pos += IsaAsm::rxSymbolTag.matchedLength();
-        }
-
-        if (!list.isEmpty()) {
-            //Pep::symbolTraceList.insert(memAddress, list);
-        }
-        return true;
-    }
-    else {
-        return true;
-    }
-    return true;
-}*/
 
 bool UnaryInstruction::hasBreakpoint() const
 {
@@ -698,14 +546,14 @@ bool DotAddrss::hasSymbolicOperand() const
 
 QSharedPointer<const SymbolEntry> DotAddrss::getSymbolicOperand() const
 {
-    // The value of a .addrss instruction is always the value of anotehr symbol
+    // The value of a .addrss instruction is always the value of another symbol.
     return static_cast<SymbolRefArgument*>(argument)->getSymbolValue();
 }
 
 quint16 DotAlign::objectCodeLength() const
 {
     if(emitObjectCode) {
-        return numBytesGenerated->getArgumentValue();
+        return static_cast<quint16>(numBytesGenerated->getArgumentValue());
     }
     else {
         return 0;
@@ -714,16 +562,15 @@ quint16 DotAlign::objectCodeLength() const
 
 quint16 DotAscii::objectCodeLength() const
 {
-    // Subtract 2 to account for left and right quotation marks
     QList<int> num;
     appendObjectCode(num);
-    return num.length();
+    return static_cast<quint16>(num.length());
 }
 
 quint16 DotBlock::objectCodeLength() const
 {
     if(emitObjectCode) {
-        return argument->getArgumentValue();
+        return static_cast<quint16>(argument->getArgumentValue());
     }
     else {
         return 0;

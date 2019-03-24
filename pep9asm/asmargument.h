@@ -1,4 +1,4 @@
-// File: argument.h
+// File: asmargument.h
 /*
     Pep9 is a virtual machine for writing machine language and assembly
     language programs.
@@ -22,19 +22,21 @@
 #ifndef ARGUMENT_H
 #define ARGUMENT_H
 
+#include <QSharedPointer>
+
 #include "isaasm.h"
 #include "pep.h"
-#include <QSharedPointer>
 #include "symbolentry.h"
 #include "symboltable.h"
 #include "symbolvalue.h"
+
 class SymbolEntry;
 // Abstract Argument class
 class AsmArgument
 {
     friend class IsaAsm;
 public:
-    virtual ~AsmArgument() { }
+    virtual ~AsmArgument();
     virtual int getArgumentValue() const = 0;
     virtual QString getArgumentString() const = 0;
 };
