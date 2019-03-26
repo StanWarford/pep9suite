@@ -12,6 +12,7 @@ AsmTracePane::AsmTracePane(QWidget *parent) :
     ui(new Ui::AsmTracePane), inDarkMode(false)
 {
     ui->setupUi(this);
+    ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
     pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->tracePaneTextEdit->document());
     ui->tracePaneTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
     connect(((AsmTraceTextEdit*)ui->tracePaneTextEdit), &AsmTraceTextEdit::breakpointAdded, this, &AsmTracePane::onBreakpointAddedProp);
@@ -29,6 +30,11 @@ AsmTracePane::~AsmTracePane()
     delete ui;
 }
 
+void AsmTracePane::showTitleLabel(bool showLabel)
+{
+    ui->label->setVisible(showLabel);
+}
+
 void AsmTracePane::clearSourceCode()
 {
     ui->tracePaneTextEdit->clear();
@@ -38,10 +44,10 @@ void AsmTracePane::clearSourceCode()
 void AsmTracePane::highlightOnFocus()
 {
     if (ui->tracePaneTextEdit->hasFocus()) {
-        ui->tracePaneTextEdit->setAutoFillBackground(true);
+        ui->label->setAutoFillBackground(true);
     }
     else {
-        ui->tracePaneTextEdit->setAutoFillBackground(false);
+        ui->label->setAutoFillBackground(false);
     }
 }
 
@@ -377,4 +383,9 @@ void AsmTraceTextEdit::resizeEvent(QResizeEvent *evt)
 
     QRect cr = contentsRect();
     breakpointArea->setGeometry(QRect(cr.left(), cr.top(), breakpointAreaWidth(), cr.height()));
+}
+
+AsmTraceBreakpointArea::~AsmTraceBreakpointArea()
+{
+
 }

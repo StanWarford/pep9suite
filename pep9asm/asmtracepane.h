@@ -36,53 +36,9 @@ class AsmCode;
 class PepASMHighlighter;
 class AsmProgram;
 class AsmProgramManager;
-/*
- * The breakpointable text editor must be a sublass of QPlainTextEdit because it must subclass resizeEvent to function properly.
- * So, this functionality cannot be implemented in the AsmSourceCodePane.
- */
-class AsmTraceTextEdit : public QPlainTextEdit {
-    Q_OBJECT
-public:
-    explicit AsmTraceTextEdit(QWidget *parent = nullptr);
-    virtual ~AsmTraceTextEdit() override;
-    void breakpointAreaPaintEvent(QPaintEvent *event);
-    int breakpointAreaWidth();
-    void breakpointAreaMousePress(QMouseEvent* event);
-    const QSet<quint16> getBreakpoints() const;
-    void setTextFromCode(QSharedPointer<AsmProgram> program);
-    void setBreakpoints(QSet<quint16> memAddresses);
 
-    void highlightActiveLine();
-    void startSimulationView();
-    void setActiveAddress(quint16 address);
-    void clearSimulationView();
-public slots:
-    void onRemoveAllBreakpoints();
-    void onBreakpointAdded(quint16 address);
-    void onBreakpointRemoved(quint16 line);
-    void onDarkModeChanged(bool darkMode);
-
-private slots:
-    void updateBreakpointAreaWidth(int newBlockCount);
-    void updateBreakpointArea(const QRect &, int);
-    void resizeEvent(QResizeEvent *evt) override;
-
-signals:
-    void breakpointAdded(quint16 line);
-    void breakpointRemoved(quint16 line);
-
-private:
-    PepColors::Colors colors;
-    AsmTraceBreakpointArea* breakpointArea;
-    // Breakpoints are stored as line numbers, not memory addresses.
-    QSet<quint16> breakpoints;
-    QMap<quint16, quint16> lineToAddr, addrToLine;
-    QMap<quint16, quint16> lineToIndex;
-    QSharedPointer<AsmProgram> activeProgram;
-    int activeAddress;
-    bool updateHighlight;
-};
 class ACPUModel;
+class AsmTraceTextEdit;
 class AsmTracePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmTracePane)
@@ -90,6 +46,11 @@ public:
     explicit AsmTracePane(QWidget *parent = nullptr);
     void init(QSharedPointer<const ACPUModel> controlSection, AsmProgramManager* programManager);
     virtual ~AsmTracePane();
+
+    // Optionally, add a label to the top of the memory dump pane displaying the
+    // widget's name.
+    // By default, this title is visible.
+    void showTitleLabel(bool showLabel = true);
 
     void clearSourceCode();
     // Post: Clears the source code pane
@@ -144,14 +105,62 @@ private slots:
     void onBreakpointRemovedProp(quint16 address); // Propogate breakpointRemoved(quint16) from AsmSourceTextEdit
 };
 
+/*
+ * The breakpointable text editor must be a sublass of QPlainTextEdit because it must subclass resizeEvent to function properly.
+ * So, this functionality cannot be implemented in the AsmSourceCodePane.
+ */
+class AsmTraceTextEdit : public QPlainTextEdit {
+    Q_OBJECT
+public:
+    explicit AsmTraceTextEdit(QWidget *parent = nullptr);
+    virtual ~AsmTraceTextEdit() override;
+    void breakpointAreaPaintEvent(QPaintEvent *event);
+    int breakpointAreaWidth();
+    void breakpointAreaMousePress(QMouseEvent* event);
+    const QSet<quint16> getBreakpoints() const;
+    void setTextFromCode(QSharedPointer<AsmProgram> program);
+    void setBreakpoints(QSet<quint16> memAddresses);
+
+    void highlightActiveLine();
+    void startSimulationView();
+    void setActiveAddress(quint16 address);
+    void clearSimulationView();
+public slots:
+    void onRemoveAllBreakpoints();
+    void onBreakpointAdded(quint16 address);
+    void onBreakpointRemoved(quint16 line);
+    void onDarkModeChanged(bool darkMode);
+
+private slots:
+    void updateBreakpointAreaWidth(int newBlockCount);
+    void updateBreakpointArea(const QRect &, int);
+    void resizeEvent(QResizeEvent *evt) override;
+
+signals:
+    void breakpointAdded(quint16 line);
+    void breakpointRemoved(quint16 line);
+
+private:
+    PepColors::Colors colors;
+    AsmTraceBreakpointArea* breakpointArea;
+    // Breakpoints are stored as line numbers, not memory addresses.
+    QSet<quint16> breakpoints;
+    QMap<quint16, quint16> lineToAddr, addrToLine;
+    QMap<quint16, quint16> lineToIndex;
+    QSharedPointer<AsmProgram> activeProgram;
+    int activeAddress;
+    bool updateHighlight;
+};
+
 class AsmTraceBreakpointArea : public QWidget
 {
+private:
+    AsmTraceTextEdit *editor;
 public:
     AsmTraceBreakpointArea(AsmTraceTextEdit *editor) : QWidget(editor) {
         this->editor = editor;
     }
-
-    virtual ~AsmTraceBreakpointArea() override {}
+    virtual ~AsmTraceBreakpointArea() override;
 
     QSize sizeHint() const override {
         return QSize(editor->breakpointAreaWidth(), 0);
@@ -165,10 +174,5 @@ protected:
     void mousePressEvent(QMouseEvent *event) override{
         editor->breakpointAreaMousePress(event);
     }
-
-private:
-    AsmTraceTextEdit *editor;
 };
-
-
 #endif // ASMTRACEPANE_H

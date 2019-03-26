@@ -40,18 +40,23 @@ class MemoryDumpPane : public QWidget {
     Q_DISABLE_COPY(MemoryDumpPane)
 public:
     explicit MemoryDumpPane(QWidget *parent = nullptr);
+
     // Needs to be called after construction but before this class can be used, otherwise the class is in an incomplete state.
     void init(QSharedPointer<MainMemory> memory, QSharedPointer<ACPUModel> cpu);
+
     // Optionally disable the highlighting of the PC.
     // By default, the PC is highlighted
     void setHighlightPC(bool highlightPC);
+
     // Optionally, hide the jump to PC button.
     // By default, the jump to PC button is visible
     void showJumpToPC(bool jumpToPC = true);
+
     // Optionally, add a label to the top of the memory dump pane displaying the
     // widget's name.
     // By default, this title is visible.
     void showTitleLabel(bool showLabel = true);
+
     virtual ~MemoryDumpPane() override;
 
     void refreshMemory();
