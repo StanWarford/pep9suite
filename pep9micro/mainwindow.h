@@ -246,7 +246,7 @@ private slots:
     void on_actionHelp_Pep9_Operating_System_triggered();
     void on_actionHelp_Pep9_Microcode_Implementation_triggered();
 
-    void on_actionHelp_About_Pep9CPU_triggered();
+    void on_actionHelp_About_Pep9Micro_triggered();
     void on_actionHelp_About_Qt_triggered();
 
     //Run events

@@ -1528,22 +1528,29 @@ void MainWindow::on_actionDark_Mode_triggered()
 }
 
 // help:
-void MainWindow::on_actionHelp_UsingPep9CPU_triggered()
+
+void MainWindow::on_actionHelp_Machine_Language_triggered()
 {
     helpDialog->show();
-    helpDialog->selectItem("Using Pep/9 CPU");
+    helpDialog->selectItem("Machine Language");
 }
 
-void MainWindow::on_actionHelp_InteractiveUse_triggered()
+void MainWindow::on_actionHelp_Assembly_Language_triggered()
 {
     helpDialog->show();
-    helpDialog->selectItem("Interactive Use");
+    helpDialog->selectItem("Assembly Language");
 }
 
-void MainWindow::on_actionHelp_DebuggingUse_triggered()
+void MainWindow::on_actionHelp_Debugging_Assembly_triggered()
 {
     helpDialog->show();
-    helpDialog->selectItem("Debugging Use");
+    helpDialog->selectItem("Debugging Programs");
+}
+
+void MainWindow::on_actionHelp_Writing_Trap_Handlers_triggered()
+{
+    helpDialog->show();
+    helpDialog->selectItem("Writing Trap Handlers");
 }
 
 void MainWindow::on_actionHelp_Pep9Reference_triggered()
@@ -1558,19 +1565,12 @@ void MainWindow::on_actionHelp_Examples_triggered()
     helpDialog->selectItem("Examples");
 }
 
-void MainWindow::on_actionHelp_triggered()
+void MainWindow::on_actionHelp_Pep9_Operating_System_triggered()
 {
-    if (!helpDialog->isHidden()) {
-        // give it focus again:
-        helpDialog->hide();
-        helpDialog->show();
-    }
-    else {
-        helpDialog->show();
-    }
+    helpDialog->show();
+    helpDialog->selectItem("Pep/9 Operating System");
 }
-
-void MainWindow::on_actionHelp_About_Pep9CPU_triggered()
+void MainWindow::on_actionHelp_About_Pep9_triggered()
 {
     aboutPepDialog->show();
 }

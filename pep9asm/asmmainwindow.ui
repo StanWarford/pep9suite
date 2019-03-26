@@ -225,13 +225,21 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionHelp_UsingPep9CPU"/>
-    <addaction name="actionHelp_InteractiveUse"/>
-    <addaction name="actionHelp_DebuggingUse"/>
+    <widget class="QMenu" name="menuWriting_Programs">
+     <property name="title">
+      <string>Writing Programs</string>
+     </property>
+     <addaction name="actionHelp_Machine_Language"/>
+     <addaction name="actionHelp_Assembly_Language"/>
+    </widget>
+    <addaction name="menuWriting_Programs"/>
+    <addaction name="actionHelp_Debugging_Assembly"/>
+    <addaction name="actionHelp_Writing_Trap_Handlers"/>
     <addaction name="actionHelp_Pep9Reference"/>
     <addaction name="actionHelp_Examples"/>
+    <addaction name="actionHelp_Pep9_Operating_System"/>
     <addaction name="separator"/>
-    <addaction name="actionHelp_About_Pep9CPU"/>
+    <addaction name="actionHelp_About_Pep9"/>
     <addaction name="actionHelp_About_Qt"/>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -518,21 +526,9 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="actionHelp_UsingPep9CPU">
-   <property name="icon">
-    <iconset resource="../pep9common/pep9common-resources.qrc">
-     <normaloff>:/images/help.png</normaloff>:/images/help.png</iconset>
-   </property>
+  <action name="actionHelp_Debugging_Assembly">
    <property name="text">
-    <string>Using Pep/9 CPU</string>
-   </property>
-   <property name="iconVisibleInMenu">
-    <bool>false</bool>
-   </property>
-  </action>
-  <action name="actionHelp_InteractiveUse">
-   <property name="text">
-    <string>Interactive Use</string>
+    <string>Debugging Programs</string>
    </property>
    <property name="iconVisibleInMenu">
     <bool>false</bool>
@@ -608,7 +604,7 @@
     <string>Print Object Code...</string>
    </property>
   </action>
-  <action name="actionHelp_About_Pep9CPU">
+  <action name="actionHelp_About_Pep9">
    <property name="text">
     <string>About Pep9CPU</string>
    </property>
@@ -629,9 +625,9 @@
     <string>Ctrl+/</string>
    </property>
   </action>
-  <action name="actionHelp_DebuggingUse">
+  <action name="actionHelp_Writing_Trap_Handlers">
    <property name="text">
-    <string>Debugging Use</string>
+    <string>Writing Trap Handlers</string>
    </property>
   </action>
   <action name="actionHelp_Pep9Reference">
@@ -799,6 +795,21 @@
   <action name="actionSystem_Reinstall_Default_OS">
    <property name="text">
     <string>Reinstall Default OS</string>
+   </property>
+  </action>
+  <action name="actionHelp_Machine_Language">
+   <property name="text">
+    <string>Machine Language</string>
+   </property>
+  </action>
+  <action name="actionHelp_Assembly_Language">
+   <property name="text">
+    <string>Assembly Language</string>
+   </property>
+  </action>
+  <action name="actionHelp_Pep9_Operating_System">
+   <property name="text">
+    <string>Pep/9 Operating System</string>
    </property>
   </action>
  </widget>

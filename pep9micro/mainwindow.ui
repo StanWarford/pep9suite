@@ -300,7 +300,7 @@
     <addaction name="actionHelp_Pep9_Operating_System"/>
     <addaction name="actionHelp_Pep9_Microcode_Implementation"/>
     <addaction name="separator"/>
-    <addaction name="actionHelp_About_Pep9CPU"/>
+    <addaction name="actionHelp_About_Pep9Micro"/>
     <addaction name="actionHelp_About_Qt"/>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -761,12 +761,12 @@
     <string>Print Object Code...</string>
    </property>
   </action>
-  <action name="actionHelp_About_Pep9CPU">
+  <action name="actionHelp_About_Pep9Micro">
    <property name="text">
-    <string>About Pep9CPU</string>
+    <string>About Pep9Micro</string>
    </property>
    <property name="toolTip">
-    <string>About Pep9CPU</string>
+    <string>About Pep9Micro</string>
    </property>
   </action>
   <action name="actionHelp_About_Qt">

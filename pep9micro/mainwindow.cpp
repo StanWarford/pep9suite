@@ -1873,7 +1873,7 @@ void MainWindow::on_actionHelp_Pep9_Microcode_Implementation_triggered()
     helpDialog->selectItem("Pep/9 Microcode Implementation");
 }
 
-void MainWindow::on_actionHelp_About_Pep9CPU_triggered()
+void MainWindow::on_actionHelp_About_Pep9Micro_triggered()
 {
     aboutPepDialog->show();
 }

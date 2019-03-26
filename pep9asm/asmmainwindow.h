@@ -221,13 +221,14 @@ private slots:
     void on_actionDark_Mode_triggered();
 
     // Help
-    void on_actionHelp_UsingPep9CPU_triggered();
-    void on_actionHelp_InteractiveUse_triggered();
-    void on_actionHelp_DebuggingUse_triggered();
+    void on_actionHelp_Machine_Language_triggered();
+    void on_actionHelp_Assembly_Language_triggered();
+    void on_actionHelp_Debugging_Assembly_triggered();
+    void on_actionHelp_Writing_Trap_Handlers_triggered();
     void on_actionHelp_Pep9Reference_triggered();
     void on_actionHelp_Examples_triggered();
-    void on_actionHelp_triggered();
-    void on_actionHelp_About_Pep9CPU_triggered();
+    void on_actionHelp_Pep9_Operating_System_triggered();
+    void on_actionHelp_About_Pep9_triggered();
     void on_actionHelp_About_Qt_triggered();
 
     //Run events
