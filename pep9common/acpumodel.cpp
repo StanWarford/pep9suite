@@ -22,7 +22,7 @@
 
 #include "acpumodel.h"
 #include "amemorydevice.h"
-
+#include <QSharedPointer>
 ACPUModel::ACPUModel(QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: QObject(parent), memory(memoryDev), callDepth(0), inDebug(false), inSimulation(false),
     executionFinished(false), controlError(false), errorMessage("")
 {

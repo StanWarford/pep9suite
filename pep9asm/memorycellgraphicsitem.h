@@ -49,6 +49,7 @@ public:
     static const int bufferWidth;
 
     // QColor boxColor;
+#pragma message("Why does this return a color??")
     QColor setBackgroundColor(QColor color);
     // QColor textColor;
     // QColor boxTextColor;

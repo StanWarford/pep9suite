@@ -4,6 +4,7 @@
 #include "interfacemccpu.h"
 #include "interfaceisacpu.h"
 #include <QElapsedTimer>
+#include <array>
 class NewCPUDataSection;
 class FullMicrocodedMemoizer;
 class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public InterfaceISACPU

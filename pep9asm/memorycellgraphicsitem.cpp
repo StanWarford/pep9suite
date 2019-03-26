@@ -100,6 +100,7 @@ void MemoryCellGraphicsItem::setColorTheme(const PepColors::Colors &newColors)
 QColor MemoryCellGraphicsItem::setBackgroundColor(QColor color)
 {
     backgroundColor = color;
+    return color;
 }
 
 quint16 MemoryCellGraphicsItem::getValue() const

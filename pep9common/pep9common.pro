@@ -76,7 +76,7 @@ macx{
     OBJECTIVE_SOURCES = darkhelper_mac.mm
 }
 else {
-    SOURCE += darkhelper_other.cpp
+    SOURCES += darkhelper_other.cpp
 }
 
 
