@@ -29,8 +29,8 @@ function Controller()
 		//find the default location, for admin and user for each os
 		var targetBase = installer.value("TargetDir");
 		if (installer.value("os") === "win") {
-			installer.setValue("UserTargetDir", "@HomeDir@/AppData/Local/" + targetBase);
-			installer.setValue("AdminTargetDir", "@ApplicationsDir@/" + targetBase);
+			installer.setValue("UserTargetDir", "@ApplicationsDirX64@/" + targetBase);
+			installer.setValue("AdminTargetDir", "@ApplicationsDirX64@/" + targetBase);
 		} else if(installer.value("os") === "mac") {
 			installer.setValue("UserTargetDir", "@HomeDir@/Applications/" + targetBase + ".app");
 			installer.setValue("AdminTargetDir", "@ApplicationsDir@/" + targetBase + ".app");

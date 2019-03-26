@@ -1,15 +1,15 @@
 function Component()
-{
-	//save the binary name
-	installer.setValue("BinaryName", installer.value("RunProgram"));
+{	
 
+	//save the binary name
+	installer.setValue("BinaryName", installer.value("ProductName"));
 	//check if architecture is supported
     //if(!testArch())
         //return;
 
 	//add custom pages (installer only)
 	if(installer.isInstaller()) {
-		installer.addWizardPage(component, "UserPage", QInstaller.TargetDirectory);
+		//installer.addWizardPage(component, "UserPage", QInstaller.TargetDirectory);
 		if (installer.value("os") === "win")// only windows -> desktop shortcut
 			installer.addWizardPage(component, "ShortcutPage", QInstaller.ReadyForInstallation);
 	}
@@ -17,22 +17,22 @@ function Component()
 
 Component.prototype.createOperations = function()
 {
-	//update RunProgram, depending on the os
-	if (installer.value("os") === "win") {
-		installer.setValue("RunProgram", "@TargetDir@/@BinaryName@");
-	} else if(installer.value("os") === "mac") {
-		installer.setValue("RunProgram", "@TargetDir@/Contents/MacOS/@BinaryName@");
-	} else if(installer.value("os") === "x11") {
-		installer.setValue("RunProgram", "@TargetDir@/@BinaryName@");
-	}
+
 
 	try {
 		component.createOperations();
-
+		//update RunProgram, depending on the os
+		if (installer.value("os") === "win") {
+			installer.setValue("RunProgram", "@TargetDir@/@ProductName@.exe");
+		} else if(installer.value("os") === "mac") {
+			installer.setValue("RunProgram", "@TargetDir@/Contents/MacOS/@ProductName@");
+		} else if(installer.value("os") === "x11") {
+			installer.setValue("RunProgram", "@TargetDir@/@ProductName@");
+		}
 		if (installer.value("os") === "win") {
 			//win -> add startmenu shortcuts
-			component.addOperation("CreateShortcut", "@RunProgram@.exe", "@StartMenuDir@/@Name@.lnk");
-            component.addOperation("Execute", "@TargetDir@\\vcredist_x64.exe","/install","/passive", "/norestart","/quiet");
+			component.addOperation("CreateShortcut", "@TargetDir@/@ProductName@.exe", "@StartMenuDir@/@Name@.lnk");
+            component.addOperation("Execute", "@TargetDir@\\vc_redist.x64.exe","/install","/passive", "/norestart","/quiet");
 			if(installer.isOfflineOnly())
 				component.addOperation("CreateShortcut", "@TargetDir@/@MaintenanceToolName@.exe", "@StartMenuDir@/Uninstall.lnk");
 			else {
@@ -45,7 +45,7 @@ Component.prototype.createOperations = function()
 			//... and desktop shortcut (if requested)
 			var pageWidget = gui.pageWidgetByObjectName("DynamicShortcutPage");
 			if (pageWidget !== null && pageWidget.shortcutCheckBox.checked)
-				component.addOperation("CreateShortcut", "@RunProgram@.exe", "@DesktopDir@/@Name@.lnk");
+				component.addOperation("CreateShortcut", "@TargetDir@/@ProductName@.exe", "@DesktopDir@/@Name@.lnk");
 		} else if (installer.value("os") === "x11") {
 			//x11 -> create .desktop file
 			component.addOperation("CreateDesktopEntry",
