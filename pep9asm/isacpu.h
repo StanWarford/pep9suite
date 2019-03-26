@@ -9,13 +9,13 @@
  * non-unary instructions fail due to junk in the high order byte of the index
  * register. This flag enables or disables this behavior.
  */
-#define performTrapFix false
+#define performTrapFix true
 
 /* Though not part of the specification, the trap mechanism  must
  * increment the program counter by 2 in Pep/9 for the operating system
  * to function correctly. This flag enables or disables this behvaior
  */
-#define hardwarePCIncr false
+#define hardwarePCIncr true
 class NewCPUDataSection;
 class IsaCpuMemoizer;
 class IsaCpu: public ACPUModel, public InterfaceISACPU

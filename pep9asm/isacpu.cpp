@@ -142,6 +142,19 @@ void IsaCpu::onISAStep()
 
 void IsaCpu::updateAtInstructionEnd()
 {
+    // Handle changing of call stack depth if the executed instruction affects the call stack.
+    if(Pep::decodeMnemonic[getRegisterBank().readRegisterByteCurrent(Enu::CPURegisters::IS)] == Enu::EMnemonic::CALL){
+        callDepth++;
+    }
+    else if(Pep::isTrapMap[Pep::decodeMnemonic[getRegisterBank().readRegisterByteCurrent(Enu::CPURegisters::IS)]]){
+        callDepth++;
+    }
+    else if(Pep::decodeMnemonic[getRegisterBank().readRegisterByteCurrent(Enu::CPURegisters::IS)] == Enu::EMnemonic::RET){
+        callDepth--;
+    }
+    else if(Pep::decodeMnemonic[getRegisterBank().readRegisterByteCurrent(Enu::CPURegisters::IS)] == Enu::EMnemonic::RETTR){
+        callDepth--;
+    }
 
 }
 
@@ -231,7 +244,6 @@ quint16 IsaCpu::getCPURegWordStart(Enu::CPURegisters reg) const
 QString IsaCpu::getErrorMessage() const noexcept
 {
     if(memory->hadError()) return memory->getErrorMessage();
-    // else if(data->hadErrorOnStep()) return data->getErrorMessage();
     else if(hadErrorOnStep()) return errorMessage;
     else return "";
 }
