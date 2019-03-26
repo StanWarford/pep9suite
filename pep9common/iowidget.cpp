@@ -129,7 +129,11 @@ int IOWidget::editActions() const
 
 void IOWidget::highlightOnFocus()
 {
-
+    // We don't know which widget is gaining or losing focus,
+    // so just re-highlight all of them.
+    ui->batchInput->highlightOnFocus();
+    ui->batchOutput->highlightOnFocus();
+    ui->terminalIO->highlightOnFocus();
 }
 
 void IOWidget::onClear()

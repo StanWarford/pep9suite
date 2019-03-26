@@ -1650,6 +1650,7 @@ void MainWindow::slotByteConverterHexEdited(const QString &str)
 // Focus Coloring. Activates and deactivates undo/redo/cut/copy/paste actions contextually
 void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
 {
+    // Unhighlight the old widget.
     if(ui->memoryWidget->isAncestorOf(oldFocus)) {
         ui->memoryWidget->highlightOnFocus();
     }
@@ -1668,7 +1669,11 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     else if(ui->asmCpuPane->isAncestorOf(oldFocus)) {
         ui->asmCpuPane->highlightOnFocus();
     }
+    else if (ui->ioWidget->isAncestorOf(oldFocus)) {
+        ui->ioWidget->highlightOnFocus();
+    }
 
+    // Highlight the newly focused widget.
     int which = 0;
     if (ui->asmCpuPane->hasFocus()) {
         which = 0;
@@ -1694,6 +1699,7 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         which = ui->ioWidget->editActions();
+        ui->ioWidget->highlightOnFocus();
     }
     else if (ui->asmListingTracePane->hasFocus()) {
         ui->asmListingTracePane->highlightOnFocus();

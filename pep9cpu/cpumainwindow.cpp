@@ -1026,15 +1026,21 @@ void MainWindow::slotByteConverterHexEdited(const QString &str)
 // Focus Coloring. Activates and deactivates undo/redo/cut/copy/paste actions contextually
 void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
 {
-    if(ui->microcodeWidget->isAncestorOf(oldFocus))
+    // Unhighlight the old widget.
+    if(ui->microcodeWidget->isAncestorOf(oldFocus)) {
         ui->microcodeWidget->highlightOnFocus();
-    else if(ui->microobjectWidget->isAncestorOf(oldFocus))
+    }
+    else if(ui->microobjectWidget->isAncestorOf(oldFocus)) {
         ui->microobjectWidget->highlightOnFocus();
-    else if(ui->memoryWidget->isAncestorOf(oldFocus))
+    }
+    else if(ui->memoryWidget->isAncestorOf(oldFocus)) {
         ui->memoryWidget->highlightOnFocus();
-    else if(ui->cpuWidget->isAncestorOf(oldFocus))
+    }
+    else if(ui->cpuWidget->isAncestorOf(oldFocus)) {
         ui->cpuWidget->highlightOnFocus();
+    }
 
+    // Highlight the newly focused widget.
     int which = 0;
     if (ui->microcodeWidget->hasFocus()) {
         which = Enu::EditButton::COPY | Enu::EditButton::CUT | Enu::EditButton::PASTE;
