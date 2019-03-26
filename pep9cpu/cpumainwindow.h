@@ -196,7 +196,8 @@ private slots:
     void on_actionHelp_MicrocodeUse_triggered();
     void on_actionHelp_DebuggingUse_triggered();
     void on_actionHelp_Pep9Reference_triggered();
-    void on_actionHelp_Examples_triggered();
+    void on_actionHelp_One_Byte_Examples_triggered();
+    void on_actionHelp_Two_Byte_Examples_triggered();
     void on_actionHelp_triggered();
     void on_actionHelp_About_Pep9CPU_triggered();
     void on_actionHelp_About_Qt_triggered();

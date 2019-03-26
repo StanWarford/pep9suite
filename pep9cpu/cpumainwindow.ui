@@ -123,7 +123,8 @@
     <addaction name="actionHelp_MicrocodeUse"/>
     <addaction name="actionHelp_DebuggingUse"/>
     <addaction name="actionHelp_Pep9Reference"/>
-    <addaction name="actionHelp_Examples"/>
+    <addaction name="actionHelp_One_Byte_Examples"/>
+    <addaction name="actionHelp_Two_Byte_Examples"/>
     <addaction name="separator"/>
     <addaction name="actionHelp_About_Pep9CPU"/>
     <addaction name="actionHelp_About_Qt"/>
@@ -524,9 +525,9 @@
     <string>Pep/9 Reference</string>
    </property>
   </action>
-  <action name="actionHelp_Examples">
+  <action name="actionHelp_One_Byte_Examples">
    <property name="text">
-    <string>Examples</string>
+    <string>One-Byte Examples</string>
    </property>
   </action>
   <action name="actionEdit_Reset_font_to_Default">
@@ -658,6 +659,11 @@
     <string>Format Microcode</string>
    </property>
   </action>
+  <action name="actionHelp_Two_Byte_Examples">
+   <property name="text">
+    <string>Two-Byte Examples</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -687,8 +693,8 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9cpu-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
  </resources>
  <connections>
   <connection>

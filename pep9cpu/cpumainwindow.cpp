@@ -933,11 +933,18 @@ void MainWindow::on_actionHelp_Pep9Reference_triggered()
     helpDialog->selectItem("Pep/9 Reference");
 }
 
-void MainWindow::on_actionHelp_Examples_triggered()
+void MainWindow::on_actionHelp_One_Byte_Examples_triggered()
 {
     helpDialog->show();
-    helpDialog->selectItem("Examples");
+    helpDialog->selectItem("One-byte Bus Examples");
 }
+
+void MainWindow::on_actionHelp_Two_Byte_Examples_triggered()
+{
+    helpDialog->show();
+    helpDialog->selectItem("Two-byte Bus Examples");
+}
+
 
 void MainWindow::on_actionHelp_triggered()
 {
