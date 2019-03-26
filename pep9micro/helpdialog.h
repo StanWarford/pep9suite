@@ -66,6 +66,7 @@ private:
         // Top level menu
         eWRITINGASM = 0,
         eDEBUGGINGASM,
+        eTRAPS,
         eUSINGPEP9CPU,
         ePEP9REFERENCE,
         eASMEXAMPLES,

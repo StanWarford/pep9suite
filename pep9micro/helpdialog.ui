@@ -133,6 +133,11 @@
       </item>
       <item>
        <property name="text">
+        <string>Writing Trap Handlers</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>Using Pep/9 CPU</string>
        </property>
        <item>

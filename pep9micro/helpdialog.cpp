@@ -284,11 +284,11 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
             ui->helpTopWebView->show();
             ui->helpTopWebView->load(QUrl("qrc:/help-cpu/debugging.html"));
         }
-    /*else if (!isHelpSubCat && row == eTRAP) {  // Writing Trap Handlers
+    else if (!isHelpSubCat && row == eTRAPS) {  // Writing Trap Handlers
         ui->helpSplitter->widget(1)->hide();
         ui->helpTopWebView->show();
-        ui->helpTopWebView->load(QUrl("qrc:/help/writingtraphandlers.html"));
-    }*/
+        ui->helpTopWebView->load(QUrl("qrc:/help-asm/writingtraphandlers.html"));
+    }
     else if ((!isHelpSubCat && row == ePEP9REFERENCE)) {
         ui->helpSplitter->widget(1)->hide();
         ui->helpTopWebView->show();

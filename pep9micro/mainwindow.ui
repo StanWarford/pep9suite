@@ -276,12 +276,29 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionHelp_UsingPep9CPU"/>
-    <addaction name="actionHelp_InteractiveUse"/>
-    <addaction name="actionHelp_MicrocodeUse"/>
-    <addaction name="actionHelp_DebuggingUse"/>
+    <widget class="QMenu" name="menuHelp_Using_Pep9_CPU">
+     <property name="title">
+      <string>Using Pep/9 CPU</string>
+     </property>
+     <addaction name="actionHelp_Interactive_Use"/>
+     <addaction name="actionHelp_Microcode_Use"/>
+     <addaction name="actionHelp_Debugging_Use"/>
+    </widget>
+    <widget class="QMenu" name="menuWriting_Assembly_Programs">
+     <property name="title">
+      <string>Writing Assembly Programs</string>
+     </property>
+     <addaction name="actionHelp_Machine_Language"/>
+     <addaction name="actionHelp_Assembly_Language"/>
+    </widget>
+    <addaction name="menuWriting_Assembly_Programs"/>
+    <addaction name="actionHelp_Debugging_Assembly"/>
+    <addaction name="actionHelp_Writing_Trap_Handlers"/>
+    <addaction name="menuHelp_Using_Pep9_CPU"/>
     <addaction name="actionHelp_Pep9Reference"/>
     <addaction name="actionHelp_Examples"/>
+    <addaction name="actionHelp_Pep9_Operating_System"/>
+    <addaction name="actionHelp_Pep9_Microcode_Implementation"/>
     <addaction name="separator"/>
     <addaction name="actionHelp_About_Pep9CPU"/>
     <addaction name="actionHelp_About_Qt"/>
@@ -674,26 +691,6 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="actionHelp_UsingPep9CPU">
-   <property name="icon">
-    <iconset resource="../pep9common/pep9common-resources.qrc">
-     <normaloff>:/images/help.png</normaloff>:/images/help.png</iconset>
-   </property>
-   <property name="text">
-    <string>Using Pep/9 CPU</string>
-   </property>
-   <property name="iconVisibleInMenu">
-    <bool>false</bool>
-   </property>
-  </action>
-  <action name="actionHelp_InteractiveUse">
-   <property name="text">
-    <string>Interactive Use</string>
-   </property>
-   <property name="iconVisibleInMenu">
-    <bool>false</bool>
-   </property>
-  </action>
   <action name="actionBuild_Run">
    <property name="icon">
     <iconset resource="../pep9common/pep9common-resources.qrc">
@@ -783,16 +780,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+/</string>
-   </property>
-  </action>
-  <action name="actionHelp_MicrocodeUse">
-   <property name="text">
-    <string>Microcode Use</string>
-   </property>
-  </action>
-  <action name="actionHelp_DebuggingUse">
-   <property name="text">
-    <string>Debugging Use</string>
    </property>
   </action>
   <action name="actionHelp_Pep9Reference">
@@ -1039,6 +1026,51 @@
   <action name="actionSystem_Reinstall_Default_OS">
    <property name="text">
     <string>Reinstall Default OS</string>
+   </property>
+  </action>
+  <action name="actionHelp_Microcode_Use">
+   <property name="text">
+    <string>Microcode Use</string>
+   </property>
+  </action>
+  <action name="actionHelp_Debugging_Use">
+   <property name="text">
+    <string>Debugging Use</string>
+   </property>
+  </action>
+  <action name="actionHelp_Interactive_Use">
+   <property name="text">
+    <string>Interactive Use</string>
+   </property>
+  </action>
+  <action name="actionHelp_Pep9_Operating_System">
+   <property name="text">
+    <string>Pep/9 Operating System</string>
+   </property>
+  </action>
+  <action name="actionHelp_Pep9_Microcode_Implementation">
+   <property name="text">
+    <string>Pep/9 Microcode Implementation</string>
+   </property>
+  </action>
+  <action name="actionHelp_Debugging_Assembly">
+   <property name="text">
+    <string>Debugging Assembly</string>
+   </property>
+  </action>
+  <action name="actionHelp_Writing_Trap_Handlers">
+   <property name="text">
+    <string>Writing Trap Handlers</string>
+   </property>
+  </action>
+  <action name="actionHelp_Machine_Language">
+   <property name="text">
+    <string>Machine Language</string>
+   </property>
+  </action>
+  <action name="actionHelp_Assembly_Language">
+   <property name="text">
+    <string>Assembly Language</string>
    </property>
   </action>
  </widget>
