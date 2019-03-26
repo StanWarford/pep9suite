@@ -41,8 +41,7 @@ AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPoint
 {
     programByteLength = 0;
     int start = -1;
-    for(int it = 0; it < programList.length(); it++)
-    {
+    for(int it = 0; it < programList.length(); it++) {
         if(start == -1 && programList[it]->getMemoryAddress() >= 0) start = static_cast<quint16>(programList[it]->getMemoryAddress());
         indexToMemAddress.insert(it, static_cast<quint16>(programList[it]->getMemoryAddress()));
         memAddressToIndex.insert(static_cast<quint16>(programList[it]->getMemoryAddress()), it);
@@ -54,16 +53,11 @@ AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPoint
 AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable, QSharedPointer<const StaticTraceInfo> traceInfo, quint16 burnAddress, quint16 burnValue) : program(programList),
     indexToMemAddress(), memAddressToIndex(), symTable(symbolTable), burn(true), traceInfo(traceInfo), burnAddress(burnAddress), burnValue(burnValue)
 {
-    programByteLength = 0;
-    int start = -1;
-    for(int it = 0; it < programList.length(); it++)
-    {
-        if(start == -1 && programList[it]->getMemoryAddress() >= 0) start = static_cast<quint16>(programList[it]->getMemoryAddress());
-        indexToMemAddress.insert(it, static_cast<quint16>(programList[it]->getMemoryAddress()));
-        memAddressToIndex.insert(static_cast<quint16>(programList[it]->getMemoryAddress()), it);
-        programByteLength += programList[it]->objectCodeLength();
-    }
-    programBounds = {static_cast<quint16>(start), static_cast<quint16>(start-1+programByteLength)};
+    programByteLength = burnValue - burnAddress;
+
+    // We are given program bounds by the burn address and burn val, so no need
+    // to calculate like above constructor.
+    programBounds = {static_cast<quint16>(burnAddress), static_cast<quint16>(burnValue)};
 }
 
 AsmProgram::~AsmProgram()
