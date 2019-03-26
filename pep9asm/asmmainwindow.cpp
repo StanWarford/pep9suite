@@ -271,6 +271,9 @@ void MainWindow::changeEvent(QEvent *e)
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (maybeSave()) {
+        // Must explicitly close dialog, otherwise it might keep
+        // the entire application alive.
+        helpDialog->close();
         writeSettings();
         event->accept();
     }
