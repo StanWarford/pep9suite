@@ -340,6 +340,8 @@ void FullMicrocodedCPU::onISAStep()
         else {
             qDebug() << "Control section reporting an error";
         }
+        controlError = true;
+        return;
     }
     // If there was an error, execution is finished.
     // if(executionFinished) emit simulationFinished();
@@ -390,6 +392,7 @@ void FullMicrocodedCPU::branchHandler()
 {
     // If execution is already finished, then nothing to update.
     if(executionFinished) return;
+    else if(hadErrorOnStep()) executionFinished = true;
     const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
     int temp = microprogramCounter;
     quint8 byte = 0;
