@@ -5,9 +5,9 @@ The Pep/9 computer is a 16-bit complex instruction set computer (CISC). It is de
 # Pep9Suite
 Pep9Suite is a suite of software for the Pep/9 virtual machine.
 It consists of three applications:
-* Pep9
-* Pep9CPU
-* Pep9Micro
+* [Pep9](#pep9)
+* [Pep9CPU](#pep9cpu)
+* [Pep9Micro](#pep9micro)
 
 ## Pep9
 Pep9 is simulator allowing users to interact with the Pep/9 virtual machine at the assembly code & operating system levels.
@@ -16,14 +16,14 @@ The Pep9 assembler features an integrated text editor, error messages in red typ
 
 The simulator features simulated ROM that is not altered by store instructions, a small operating system burned into simulated ROM that includes a loader and a trap handler system, an integrated debugger that allows for break points, single and multi step execution, CPU tracing, and memory tracing, the option to trace an application, the loader, or the operating system, the ability to recover from endless loops, and the ability to modify the operating system by designing new trap handlers for the unimplemented opcodes.
 
-# Pep9CPU
+## Pep9CPU
 The Pep9CPU application allows users to interact with the hardware driving the Pep/9 machine.
 
 It contains two versions of the Pep/9 CPU data section - one with a one byte wide data bus and another with a two byte wide data bus. Students are able to graphical modify and evolve the state of the CPU. Alternatively, the Microcode IDE allows users to practice writing microprogram snippets to perform useful computations. Users may write preconditions and unit tests for a program to verify correct behavior of arbitrary microprograms.
 
 While debugging a microprogram fragment, the CPU simulator will perform graphical tracing of data paths through both versions of the CPU. Through use of breakpoints, students may skip over previously debugged microstatments and resume debugging at a later point in the program.
 
-# Pep9Micro
+## Pep9Micro
 Pep9Micro is a fully microcoded implementation of the Pep/9 virtual machine.
 In addition to supporting all of assembly programming features of the Pep9 application and graphical CPU interaction of Pep9CPU, it also supports:
 
@@ -43,4 +43,4 @@ If you do not have a copy of Qt installed, it can be downloaded from [the Qt web
 After making a local clone of the repository, navigate to the pep9micro/pep9micro directory, and open the project in Qt Creator. All that's left to do is build and enjoy.
 
 # Help Documentation
-The program comes packaged with help documentation to describe the nature and function of the Pep/9 virtual machine including walkthroughs on Pep/9 assembly language programming and debugging tools/tips. It also has a collection of sample assembly programs from the text _Computer Systems_, J. Stanley Warford, 5th edition, on which Pep/9 is based.
+The program comes packaged with help documentation to describe the nature and function of the Pep/9 virtual machine including walkthroughs on Pep/9 assembly language programming and debugging tools/tips. It also has a collection of sample assembly programs from the text [_Computer Systems_, J. Stanley Warford, 5th edition](http://computersystemsbook.com/5th-edition/), on which Pep/9 is based.
