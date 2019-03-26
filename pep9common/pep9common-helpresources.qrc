@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>help/pep9reference.html</file>
+    </qresource>
+</RCC>

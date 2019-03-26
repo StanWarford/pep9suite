@@ -118,7 +118,7 @@ MainWindow::MainWindow(QWidget *parent) :
     helpDialog = new HelpDialog(this);
     connect(helpDialog, &HelpDialog::copyToSourceClicked, this, &MainWindow::helpCopyToSourceClicked);
     // Load the about text and create the about dialog
-    QFile aboutFile(":/help/about.html");
+    QFile aboutFile(":/help-micro/about.html");
     QString text = "";
     if(aboutFile.open(QFile::ReadOnly)) {
         text = QString(aboutFile.readAll());
@@ -267,7 +267,7 @@ MainWindow::MainWindow(QWidget *parent) :
     assembleDefaultOperatingSystem();
 
     // Initialize Microcode panes
-    QFile file("://help/pep9micro.pepcpu");
+    QFile file("://help-micro/pep9micro.pepcpu");
     if(file.open(QFile::ReadOnly | QFile::Text)){
         QTextStream in(&file);
         ui->microcodeWidget->setMicrocode(in.readAll());
@@ -889,7 +889,7 @@ void MainWindow::print(Enu::EPane which)
 
 void MainWindow::assembleDefaultOperatingSystem()
 {
-    QString defaultOSText = Pep::resToString(":/help/pep9os/alignedIO-OS.pep");
+    QString defaultOSText = Pep::resToString(":/help-micro/alignedIO-OS.pep");
     if(!defaultOSText.isEmpty()) {
         IsaAsm assembler(memDevice, *programManager);
         auto elist = QList<QPair<int, QString>>();

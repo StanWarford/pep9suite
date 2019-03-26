@@ -96,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent) :
     helpDialog = new HelpDialog(this);
     connect(helpDialog, &HelpDialog::copyToMicrocodeClicked, this, &MainWindow::onCopyToMicrocodeClicked);
     // Load the about text and create the about dialog
-    QFile aboutFile(":/help/about.html");
+    QFile aboutFile(":/help-cpu/about.html");
     QString text = "";
     if(aboutFile.open(QFile::ReadOnly)) {
         text = QString(aboutFile.readAll());
@@ -911,8 +911,8 @@ void MainWindow::on_actionHelp_UsingPep9CPU_triggered()
 
 void MainWindow::on_actionHelp_InteractiveUse_triggered()
 {
-    //helpDialog->show();
-    //helpDialog->selectItem("Interactive Use");
+    helpDialog->show();
+    helpDialog->selectItem("Interactive Use");
 }
 
 void MainWindow::on_actionHelp_MicrocodeUse_triggered()

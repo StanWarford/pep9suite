@@ -43,7 +43,7 @@ Simply set the control signals for the statement with the input widgets in the C
 and then click the Copy to Microcode button.
 For example, suppose you are at the following point writing your program.
 <p>
-<img src="qrc:/help/images/copycode1.png" alt="copycode1" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/copycode1.png" alt="copycode1" hspace=10 vspace=10>
 <p>
 You could enter this text on the keyboard
 <pre>
@@ -56,63 +56,63 @@ check box.
 The user can see that data is on the ABus and BBus because they are colored solid red, and that data from them will be clocked into the MAR because the
 line from the MARCk checkbox is solid black instead of gray.
 <p>
-<img src="qrc:/help/images/copycode2.png" alt="copycode2" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/copycode2.png" alt="copycode2" hspace=10 vspace=10>
 <p>
 At this point, the user clicks the Copy to Microcode button.
 <p>
-<img src="qrc:/help/images/copycode3.png" alt="copycode3" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/copycode3.png" alt="copycode3" hspace=10 vspace=10>
 <p>
 The effect is that the microcode text corresponding to the settings in the CPU pane is generated and inserted
 in the microcode pane as the following figure shows.
 <p>
-<img src="qrc:/help/images/copycode4.png" alt="copycode4" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/copycode4.png" alt="copycode4" hspace=10 vspace=10>
 <p>
 <h4>Automatic un/commenting</h4>
 The automatic un/commenting feature allows you comment and uncomment a group of contiguous lines of code.
 For example, suppose you have entered the follwing lines of code in the Microcode pane.
 <p>
-<img src="qrc:/help/images/comment1.png" alt="comment1" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/comment1.png" alt="comment1" hspace=10 vspace=10>
 <p>
 To comment the first two lines of code, first select them with the editor.
 Any line that is partially selected will be affected by the operation.
 In the following figure, the first line is completely selected and the second line is partially selected.
 The second line will also be affected by the automatic comment operation.
 <p>
-<img src="qrc:/help/images/comment2.png" alt="comment2" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/comment2.png" alt="comment2" hspace=10 vspace=10>
 <p>
 Now, select Edit->Un/Comment from the main menu, or press the equivalent keyboard shortcut for your platform.
 <p>
-<img src="qrc:/help/images/comment3.png" alt="comment3" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/comment3.png" alt="comment3" hspace=10 vspace=10>
 <p>
 Any selected lines that are uncommented will be commented, and any selected lines that are commented will be uncommented.
 <p>
-<img src="qrc:/help/images/comment4.png" alt="comment4" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/comment4.png" alt="comment4" hspace=10 vspace=10>
 <p>
 A handy feature of this tool is when a microprogram has more than one unit test.
 In such cases, the first unit test is usually uncommented and the remaining tests are commented.
 You can comment the first unit test and uncomment the second unit test in one operation by selecting <i>both</i> tests.
 <p>
-<img src="qrc:/help/images/comment5.png" alt="comment5" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/comment5.png" alt="comment5" hspace=10 vspace=10>
 <p>
 When you perform the operation, the first test is commented and the second test is uncommented.
 <p>
-<img src="qrc:/help/images/comment6.png" alt="comment6" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/comment6.png" alt="comment6" hspace=10 vspace=10>
 <p>
 <h4>Automatic formatting</h4>
 Once you run your program so that an object code listing appears in the Object Code pane,
 you can format your code with a standard formatting style.
 For example, suppose you write the following microcode program in the editor.
 <p>
-<img src="qrc:/help/images/formatfromobject2.png" alt="formatfromobject2" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/formatfromobject2.png" alt="formatfromobject2" hspace=10 vspace=10>
 <p>
 After you run the program and determine that it is correct, the binary object code is stored inside the app.
 Now, select Edit->Format From Object Code from the menu.
 <p>
-<img src="qrc:/help/images/formatfromobject.png" alt="formatfromobject" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/formatfromobject.png" alt="formatfromobject" hspace=10 vspace=10>
 <p>
 Your source code will be replaced with standard formatted source code extracted from the object code.
 <p>
-<img src="qrc:/help/images/formatfromobject4.png" alt="formatfromobject4" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/formatfromobject4.png" alt="formatfromobject4" hspace=10 vspace=10>
 <p>
 <a href="#Topics">Scroll to topics</a>.
 <p>
@@ -126,7 +126,7 @@ The <code>UnitPost</code> statement tests whether a memory cell or CPU register 
 after the last microcode statement executes.
 If a unit test fails, an error message is displayed in the Microcode pane, as in the following figure.
 <p>
-<img src="qrc:/help/images/postconditionerror.png" alt="postconditionerror" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/postconditionerror.png" alt="postconditionerror" hspace=10 vspace=10>
 <p>
 There can be as many <code>UnitPre</code> and <code>UnitPost</code> statements as you like placed anywhere in the microprogram
 listing without affecting the unit test.
@@ -185,19 +185,19 @@ See the section Debugging Use for how to debug your microprogram.
 <h4>Running a program</h4>
 The first way to execute a program is to select System->Run from the menu or click the corresponding Run icon on the toolbar.
 <p>
-<img src="qrc:/help/images/runmenu.png" alt="runmenu" hspace=10 vspace=10>
-<img src="qrc:/help/images/runicon.png" alt="runicon" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/runmenu.png" alt="runmenu" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/runicon.png" alt="runicon" hspace=10 vspace=10>
 <p>
 Pep/9 CPU will attempt to microassemble your microcode program.
 If there are errors, they will appear in red in the Microcode pane.
 The following figure shows the error message that appears when a comma is omitted after the first control signal.
 <p>
-<img src="qrc:/help/images/errormessage.png" alt="errormessage" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/errormessage.png" alt="errormessage" hspace=10 vspace=10>
 <p>
 If you would like, you can select Edit->Remove Error Messages from the menu to delete the error message.
 Then, you can correct your error and try to run your program again.
 <p>
-<img src="qrc:/help/images/removeerrormessages.png" alt="removeerrormessages" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/removeerrormessages.png" alt="removeerrormessages" hspace=10 vspace=10>
 <p>
 It is not necessary to remove the error message before correcting your program, as error messages
 are automatically removed when you rerun your program.

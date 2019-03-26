@@ -51,26 +51,15 @@ SOURCES += \
     fullmicrocodedcpu.cpp \
     fullmicrocodedmemoizer.cpp \
 
-OTHER_FILES += help/images/registeraddresssignals.png \
-    help/figures/exer1204.pepcpu \
-    help/figures/exer1206.pepcpu \
-    help/usingpep9cpu.html \
-    help/pep9reference.html \
-    help/pep9os.txt \
-    help/microcode.html \
-    help/exercises.html \
-    help/examples.html \
-    help/debugging.html \
-    help/cpu.html
-
 RESOURCES += \
     ../pep9common/pep9common-resources.qrc\
+    ../pep9common/pep9common-helpresources.qrc\
     pep9micro-resources.qrc \
-    micro_helpresources.qrc \
-    ../pep9cpu/cpu_helpresources.qrc \
     ../pep9cpu/pep9cpu-resources.qrc \
-    ../pep9asm/asm_helpresources.qrc \
-    ../pep9asm/pep9asm-resources.qrc
+    ../pep9asm/pep9asm-resources.qrc \
+    pep9micro-helpresources.qrc \
+    ../pep9cpu/pep9cpu-helpresources.qrc \
+    ../pep9asm/pep9asm-helpresources.qrc
 
 DISTFILES += \
     ..\package/package.xml \
@@ -84,8 +73,6 @@ DISTFILES += \
     ..\config/control.js \
     ..\packages/pep9cpu/installscript.js \
     ..\rc/License.md \
-    ProjectDefs.pri \
-    help/osunalignedsymbols.txt \
 
 INCLUDEPATH += $$PWD/../pep9common
 INCLUDEPATH += $$PWD/../pep9asm

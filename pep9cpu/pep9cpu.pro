@@ -47,9 +47,10 @@ SOURCES += \
     partialmicrocodedmemoizer.cpp
 
 RESOURCES += \
-    cpu_helpresources.qrc \
     pep9cpu-resources.qrc \
-    ../pep9common/pep9common-resources.qrc
+    pep9cpu-helpresources.qrc \
+    ../pep9common/pep9common-resources.qrc \
+    ../pep9common/pep9common-helpresources.qrc
 
 DISTFILES += \
     pep9resources.rc

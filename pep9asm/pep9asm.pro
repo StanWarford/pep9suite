@@ -42,9 +42,10 @@ SOURCES += \
     main.cpp
 
 RESOURCES += \
-    ../pep9common/pep9common-resources.qrc\
-    ../pep9asm/asm_helpresources.qrc \
-    ../pep9asm/pep9asm-resources.qrc
+    ../pep9asm/pep9asm-helpresources.qrc \
+    ../pep9asm/pep9asm-resources.qrc \
+    ../pep9common/pep9common-resources.qrc \
+    ../pep9common/pep9common-helpresources.qrc
 
 INCLUDEPATH += $$PWD/../pep9common
 

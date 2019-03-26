@@ -49,40 +49,40 @@ in the input field at the bottom of the pane.
 Click the SP button to scroll to the run-time stack.
 Click the PC button to scroll to the region of memory pointed to by the program counter.
 <p>
-<img src="qrc:/help/images/scrollto.png" alt="fig0434" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/scrollto.png" alt="fig0434" hspace=10 vspace=10>
 
 <h4>Switching to debug mode</h4>
 To use the Memory Dump pane you must first switch to the debug mode.
 If you are debugging a machine language program that you wrote, the first step is to enter the program in hexadecimal in the Object Code pane.
 The following figure shows the object program from Figure 4.35 of the text.
 <p>
-<img src="qrc:/help/images/fig0435.png" alt="fig0435" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0435.png" alt="fig0435" hspace=10 vspace=10>
 <p>
  Then select Build->Start Debugging Object from the menu, which puts you in the debugging mode.
 <p>
-<img src="qrc:/help/images/startdebuggingobject.png" alt="startdebuggingobject" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/startdebuggingobject.png" alt="startdebuggingobject" hspace=10 vspace=10>
 <p>
 If you are debugging an assembly language program that you wrote, enter the program in the Source Code pane.
 Assemble it by selecting Build->Assemble from the menu or clicking on the hammer icon in the tool bar.
 <p>
-<img src="qrc:/help/images/assemble.png" alt="assemble" hspace=10 vspace=10>
-<img src="qrc:/help/images/assembleicon.png" alt="assembleicon" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/assemble.png" alt="assemble" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/assembleicon.png" alt="assembleicon" hspace=10 vspace=10>
 <p>
  Then select Build->Start Debugging Source from the menu, or click on the icon with the bug in the toolbar, which puts you in the debugging mode.
 <p>
-<img src="qrc:/help/images/startdebuggingsource.png" alt="startdebuggingsource" hspace=10 vspace=10>
-<img src="qrc:/help/images/startdebuggingicon.png" alt="startdebuggingicon" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/startdebuggingsource.png" alt="startdebuggingsource" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/startdebuggingicon.png" alt="startdebuggingicon" hspace=10 vspace=10>
 <p>
 <h4>Tracing in debug mode</h4>
 While you are in the debugging mode, you can click the Single Step button in the CPU pane,
 which will execute one von Neumann cycle of the CPU.
 <p>
-<img src="qrc:/help/images/singlestep.png" alt="singlestep" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/singlestep.png" alt="singlestep" hspace=10 vspace=10>
 <p>
  The CPU pane shows you the values of the NZVC bits and of each register in the CPU.
  The following screenshot shows the CPU pane after one click of the Single Step button for the object program from Figure 4.35.
 <p>
-<img src="qrc:/help/images/fig0435cpu.png" alt="fig0435cpupane" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0435cpu.png" alt="fig0435cpupane" hspace=10 vspace=10>
 <p>
 The CPU pane displays the content of the accumulator, index register, stack pointer, and program counter first in hexadecimal and
 then in decimal.
@@ -95,7 +95,7 @@ However, for the convenience of the programmer, the CPU pane computes the value 
 and displays it as well.
 The Operand field in the CPU pane is enclosed in parentheses to emphasize the fact that it is <i>not</i> part of the CPU.
 <p>
-<img src="qrc:/help/images/operand.png" alt="operand" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/operand.png" alt="operand" hspace=10 vspace=10>
 <p>
  The values in the CPU pane are the values <i>after</i> the instruction in the instruction specifier has executed.
  For example, the values in the above screenshots are the values after the first <code>LDBA</code> executes.
@@ -108,7 +108,7 @@ The Operand field in the CPU pane is enclosed in parentheses to emphasize the fa
  and highlights in blue the bytes of the instruction as specified by the program counter.
  The following screenshot shows the Memory Dump pane after the second click of the Single Step button.
 <p>
-<img src="qrc:/help/images/fig0435memorydump.png" alt="fig0435memorydump" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0435memorydump.png" alt="fig0435memorydump" hspace=10 vspace=10>
 <p>
 Each line of the Memory Dump pane displays eight bytes, each byte represented as two hexadecimal digits.
 The address in the first column is the address of the first byte.
@@ -123,19 +123,19 @@ and those bytes are the instruction that will execute <i>next</i>.
 The Memory Dump pane also highlights the top byte of the stack in magenta.
 The following screenshots from Figure 6.1 show the stack starting at address FB8E just before the <code>ADDSP</code> executes.
 <p>
-<img src="qrc:/help/images/fig0601.png" alt="fig0601" hspace=10 vspace=10>
-<img src="qrc:/help/images/fig0601dump.png" alt="fig0601dump" hspace=10 vspace=10><p>
+<img src="qrc:/help-asm/images/fig0601.png" alt="fig0601" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0601dump.png" alt="fig0601dump" hspace=10 vspace=10><p>
  <h4>Switching out of debug mode</h4>
  If you want the program to run to completion, click the Resume button.
  The program will run to completion and exit the debug mode.
 <p>
-<img src="qrc:/help/images/resume.png" alt="resume" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/resume.png" alt="resume" hspace=10 vspace=10>
 <p>
  If you want to terminate the debugging session without running the program to completion, select Build->Stop Debugging
  from the menu or click the stop sign icon in the menu bar.
 <p>
-<img src="qrc:/help/images/stopdebugging.png" alt="stopdebugging" hspace=10 vspace=10>
-<img src="qrc:/help/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/stopdebugging.png" alt="stopdebugging" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
 <p>
 <a href="#Topics">Scroll to topics</a>.
 <p>
@@ -144,7 +144,7 @@ To use break points for an assembly language program enter the debugging mode as
 Pep/9 will switch from the Code pane to the Trace pane and display the source program for tracing.
 The following screenshot shows the Trace pane for the program in Figure 5.15 of the text.
 <p>
-<img src="qrc:/help/images/fig0515listingtrace.png" alt="fig0515listingtrace" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0515listingtrace.png" alt="fig0515listingtrace" hspace=10 vspace=10>
 <p>
 As you single step through the program, the CPU shows the content of the registers as described in the previous section.
 Remember that the CPU pane shows the values of the registers <i>after</i> the instruction in the instruction specifier
@@ -154,8 +154,8 @@ to be executed.
 The following screenshot shows the Trace pane after five clicks of the Single Step button.
 The <code>LDWA</code> instruction has just executed, and the <code>ADDA</code> instruction will execute next.
 <p>
-<img src="qrc:/help/images/fig0515listingadda.png" alt="fig0515listingadda" hspace=10 vspace=10>
-<img src="qrc:/help/images/fig0515cpu.png" alt="fig0515cpu" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0515listingadda.png" alt="fig0515listingadda" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0515cpu.png" alt="fig0515cpu" hspace=10 vspace=10>
 
 <p>
 <h4>Setting break points</h4>
@@ -163,33 +163,33 @@ The <code>LDWA</code> instruction has just executed, and the <code>ADDA</code> i
  The following screenshot shows the Trace pane for the program in Figure 5.15 before any statement has been executed.
  The programmer has set a breakpoint at the <code>STWA</code> instruction.
 <p>
-<img src="qrc:/help/images/fig0515breakpoint.png" alt="fig0515breakpoint" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0515breakpoint.png" alt="fig0515breakpoint" hspace=10 vspace=10>
 <p>
  When the programmer clicks the Resume button, the program resumes executing until it gets to an instruction with a breakpoint
  or until completion if no breakpoint is encountered.
  The following screenshots show what happens when the Resume button is clicked.
  Note that the <code>STWA</code> instruction will execute next if the programmer clicks the Single Step button at this point.
  <p>
-<img src="qrc:/help/images/resume.png" alt="resume" hspace=10 vspace=10>
-<img src="qrc:/help/images/fig0515resumed.png" alt="fig0515resumed" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/resume.png" alt="resume" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0515resumed.png" alt="fig0515resumed" hspace=10 vspace=10>
 <p>
 <h4>Tracing traps</h4>
  If you want to trace the operating system's execution of a trap instruction, click the Trace Traps checkbox in the CPU pane before
  entering the debugging mode.
  <p>
-<img src="qrc:/help/images/tracetraps.png" alt="tracetraps" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/tracetraps.png" alt="tracetraps" hspace=10 vspace=10>
 <p>
 As you single step through your program, if you execute a trap instruction the Trace pane will show the individual instructions
 in the trap handler of the operating system.
 The following screenshot shows the <code>DECI</code> instruction about to be executed.
 <p>
-<img src="qrc:/help/images/fig0515deci.png" alt="fig0515deci" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0515deci.png" alt="fig0515deci" hspace=10 vspace=10>
 <p>
 Clicking the Single Step button at this point causes the Trace pane to switch to the trap handler in the operating system.
 The screenshot below shows the Trace pane after clicking the Single Step button.
 It highlights the first instruction in the trap handler of the operating system.
 <p>
-<img src="qrc:/help/images/fig0515trap.png" alt="fig0515trap" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0515trap.png" alt="fig0515trap" hspace=10 vspace=10>
 <p>
 When you are tracing an operating system trap, you can set breakpoints and click Single Step or Resume as you would
 with the source program.
@@ -212,7 +212,7 @@ If it does include trace tags, but errors are detected in the tags, a blue warni
 You can still run your program and use the debugger, but the memory trace pane will not be visible.
 The screenshot below shows what happens if you make an error in one of the trace tags in the program from Figure 5.27.
 <p>
-<img src="qrc:/help/images/fig0527tracetagwarning.png" alt="fig0527tracetagwarning" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0527tracetagwarning.png" alt="fig0527tracetagwarning" hspace=10 vspace=10>
 <p>
 If your program does include trace tags and they have no errors, the memory trace will automatically become visible
 below the listing trace pane.
@@ -222,7 +222,7 @@ Here is a screenshot of the memory trace pane from the program in Figure 6.21.
 The memory cell for <code>k</code> on top of the run-time stack is colored red because the <code>STA</code>
 instruction has just changed its value.
 <p>
-<img src="qrc:/help/images/memorytrace.png" alt="memorytrace" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/memorytrace.png" alt="memorytrace" hspace=10 vspace=10>
 <p>
  The sybolic trace feature displays global variables allocated with the <code>.BLOCK</code> dot command,
  parameters and local variables allocated with the <code>SUBSP</code> instruction, the fields of a global <code>struct</code>,
@@ -238,7 +238,7 @@ The four input fields represent the value of a single byte as displayed from lef
 Simply enter any value in any input field and the other fields will show the same value in the corresponding format.
 Here is the result of entering the letter <code>P</code> in the ASCII field.
  <p>
-<img src="qrc:/help/images/byteconverter.png" alt="byteconverter" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/byteconverter.png" alt="byteconverter" hspace=10 vspace=10>
 <p>
 An instruction specifier decoder is to the right of the four input fields.
 It displays the instruction mnemonic and possibly the addressing mode assuming you interpret the byte value as an instruction specifier.

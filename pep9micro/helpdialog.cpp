@@ -85,21 +85,21 @@ QString HelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString
     if (parentRow == eASMEXAMPLES) {
         if (row == eFIG433) {
             destPane = Enu::EPane::EObject;
-            return Pep::resToString(":/help/figures_asm/fig0433.pepo");
+            return Pep::resToString(":/help-asm/figures/fig0433.pepo");
         }
         else if (row == eFIG435) {
             destPane = Enu::EPane::EObject;
             input = "up";
             inputDest = Enu::EPane::EBatchIO;
-            return Pep::resToString(":/help/figures_asm/fig0435.pepo");
+            return Pep::resToString(":/help-asm/figures/fig0435.pepo");
         }
         else if (row == eFIG436) {
             destPane = Enu::EPane::EObject;
-            return Pep::resToString(":/help/figures_asm/fig0436.pepo");
+            return Pep::resToString(":/help-asm/figures/fig0436.pepo");
         }
         else if (row == eFIG437) {
             destPane = Enu::EPane::EObject;
-            return Pep::resToString(":/help/figures_asm/fig0437.pepo");
+            return Pep::resToString(":/help-asm/figures/fig0437.pepo");
         }
         else if (row == eFIG506) {
             input = "up";
@@ -176,7 +176,7 @@ QString HelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString
     else if(parentRow == eMICROIMPL || row == eMICROIMPL) {
         destPane = Enu::EPane::EMicrocode;
         #pragma message ("TODO: fix microcode path")
-        return Pep::resToString(":/help/pep9micro.pepcpu");
+        return Pep::resToString(":/help-micro/pep9micro.pepcpu");
     }
     destPane = Enu::EPane::ESource;
     return ui->leftPepTextEdit->toPlainText();
@@ -250,34 +250,39 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->helpSplitter->widget(1)->hide();
         ui->helpTopWebView->show();
         if (!isHelpSubCat) {                  // Writing Programs
-            ui->helpTopWebView->load(QUrl("qrc:/help/writingprograms.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-asm/writingprograms.html"));
         }
         else if (row == eMACHINELANG) {           // Writing Programs > Machine Language
-            ui->helpTopWebView->load(QUrl("qrc:/help/machinelanguage.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-asm/machinelanguage.html"));
         }
         else if (row == EASMLANG) {          // Writing Programs > Assembly Language
-            ui->helpTopWebView->load(QUrl("qrc:/help/assemblylanguage.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-asm/assemblylanguage.html"));
         }
     }
     else if (!isHelpSubCat && row == eDEBUGGINGASM) {
         ui->helpSplitter->widget(1)->hide();
         ui->helpTopWebView->show();
-        ui->helpTopWebView->load(QUrl("qrc:/help/debuggingprograms.html"));
+        ui->helpTopWebView->load(QUrl("qrc:/help-asm/debuggingprograms.html"));
+    }
+    if (!isHelpSubCat && row == eUSINGPEP9CPU) { // Using Pep/9 CPU
+        ui->helpSplitter->widget(1)->hide();
+        ui->helpTopWebView->show();
+        ui->helpTopWebView->load(QUrl("qrc:/help-cpu/usingpep9cpu.html"));
     }
     else if (isHelpSubCat && parentRow == eUSINGPEP9CPU && row == eCPU) { // Interactive use
             ui->helpSplitter->widget(1)->hide();
             ui->helpTopWebView->show();
-            ui->helpTopWebView->load(QUrl("qrc:/help/cpu.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-cpu/cpu.html"));
         }
-        else if (isHelpSubCat && parentRow == eUSINGPEP9CPU && row == eMICROCODE) { // Microcode use
+    else if (isHelpSubCat && parentRow == eUSINGPEP9CPU && row == eMICROCODE) { // Microcode use
             ui->helpSplitter->widget(1)->hide();
             ui->helpTopWebView->show();
-            ui->helpTopWebView->load(QUrl("qrc:/help/microcode.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-cpu/microcode.html"));
         }
-        else if (isHelpSubCat && parentRow == eUSINGPEP9CPU && row == eDEBUGGINGMICRO) { // Debugging use
+    else if (isHelpSubCat && parentRow == eUSINGPEP9CPU && row == eDEBUGGINGMICRO) { // Debugging use
             ui->helpSplitter->widget(1)->hide();
             ui->helpTopWebView->show();
-            ui->helpTopWebView->load(QUrl("qrc:/help/debugging.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-cpu/debugging.html"));
         }
     /*else if (!isHelpSubCat && row == eTRAP) {  // Writing Trap Handlers
         ui->helpSplitter->widget(1)->hide();
@@ -293,7 +298,7 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         if (!isHelpSubCat) {
             ui->helpSplitter->widget(1)->hide();
             ui->helpTopWebView->show();
-            ui->helpTopWebView->load(QUrl("qrc:/help/examples.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-asm/examples.html"));
         }
         else {
             ui->microTextEdit->hide();
@@ -301,8 +306,8 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
             ui->helpSplitter->widget(1)->show();
             ui->copyToSourceButton->setText("Copy to Source");
             if (row == eFIG433) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0433.peph"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0433.pepb"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0433.peph"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0433.pepb"));
                 ui->helpFigureLabel->setText("<b>Figure 4.33</b><code>  </code> A machine language program to output the characters <code>Hi</code>.");
                 ui->rightPepTextEdit->show();
                 ui->rightCppTextEdit->hide();
@@ -310,275 +315,275 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
 
             }
             else if (row == eFIG435) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0435.peph"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0435.pepb"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0435.peph"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0435.pepb"));
                 ui->helpFigureLabel->setText("<b>Figure 4.35</b><code>  </code> A machine language program to input two characters and output them in reverse order.");
                 ui->rightPepTextEdit->show();
                 ui->rightCppTextEdit->hide();
                 ui->copyToSourceButton->setText("Copy to Object");
             }
             else if (row == eFIG436) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0436.peph"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0436.pepb"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0436.peph"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0436.pepb"));
                 ui->helpFigureLabel->setText("<b>Figure 4.36</b><code>  </code> A machine language program to add 5 and 3 and output the single-character result.");
                 ui->rightPepTextEdit->show();
                 ui->rightCppTextEdit->hide();
                 ui->copyToSourceButton->setText("Copy to Object");
             }
             else if (row == eFIG437) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0437.peph"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0437.pepb"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0437.peph"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0437.pepb"));
                 ui->helpFigureLabel->setText("<b>Figure 4.37</b><code>  </code> A machine language program that modifies itself. The add accumulator instruction changes to a subtract instruction.");
                 ui->rightPepTextEdit->show();
                 ui->rightCppTextEdit->hide();
                 ui->copyToSourceButton->setText("Copy to Object");
             }
             else if (row == eFIG503) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0503.pep"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0433.peph"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0503.pep"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0433.peph"));
                 ui->helpFigureLabel->setText("<b>Figure 5.3</b><code>  </code> An assembly-language program to output <code>Hi</code>. It is the assembly-language version of Figure 4.33.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->show();
             }
             else if (row == eFIG506) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0506.pep"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0435.peph"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0506.pep"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0435.peph"));
                 ui->helpFigureLabel->setText("<b>Figure 5.6</b><code>  </code> An assembly language program to input two characters and output them in reverse order. It is the assembly language version of Figure 4.35.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->show();
             }
             else if (row == eFIG507) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0507.pep"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0436.peph"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0507.pep"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0436.peph"));
                 ui->helpFigureLabel->setText("<b>Figure 5.7</b><code>  </code> An assembly language program to add 3 and 5 and output the single-character result. It is the assembly language version of Figure 4.36.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->show();
             }
             else if (row == eFIG510) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0510.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0510.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.10</b><code>  </code> A program to output <code>Hi</code> using immediate addressing.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG511) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0511.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0511.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.11</b><code>  </code> A program to input a decimal value, add 1 to it, and output the sum.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG512) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0512.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0512.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.12</b><code>  </code> A program identical to that of Figure 5.11 but with the <code>STRO</code> instruction.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG513) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0513.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0513.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.13</b><code>  </code> A nonsense program to illustrate the interpretation of bit patterns.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG514a) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0514a.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0514a.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.14(a)</b><code>  </code> Two different source programs that produce the same object program and, therefore, the same output.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG514b) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0514b.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0514b.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.14(b)</b><code>  </code> Two different source programs that produce the same object program and, therefore, the same output.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG515) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0515.pep"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0512.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0515.pep"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0512.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.15</b><code>  </code> A program that adds 1 to a decimal value. It is identical to Figure 5.12 except that it uses symbols.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->show();
             }
             else if (row == eFIG516) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0516.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0516.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.16</b><code>  </code> A nonsense program that illustrates the underlying von Neumann nature of the machine.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG519) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0519.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0519.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0519.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0519.c"));
                 ui->helpFigureLabel->setText("<b>Figure 5.19</b><code>  </code> The <code>printf()</code> function.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG522) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0522.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0522.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0522.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0522.c"));
                 ui->helpFigureLabel->setText("<b>Figure 5.22</b><code>  </code> The assignment statement with global variables.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG527) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0527.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0527.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0527.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0527.c"));
                 ui->helpFigureLabel->setText("<b>Figure 5.27</b><code>  </code> C constants.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG601) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0601.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0601.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 6.1</b><code>  </code> Stack-relative addressing.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG604) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0604.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0604.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0604.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0604.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.4</b><code>  </code> Local variables.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG606) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0606.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0606.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0606.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0606.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.6</b><code>  </code> The <code>if</code> statement.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG608) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0608.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0608.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0608.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0608.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.8</b><code>  </code> The <code>if</code>/<code>else</code> statement.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG610) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0610.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0610.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0610.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0610.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.10</b><code>  </code> The <code>while</code> statement.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG612) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0612.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0612.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0612.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0612.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.12</b><code>  </code> The <code>do</code> statement.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG614) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0614.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0614.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0614.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0614.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.14</b><code>  </code> The <code>for</code> statement.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG616) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0616.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0616.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 6.16</b><code>  </code> A mystery program.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG618) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0618.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0618.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0618.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0618.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.18</b><code>  </code> A procedure call with no parameters.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG621) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0621.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0621.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0621.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0621.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.21</b><code>  </code> Call-by-value parameters with global variables.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG623) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0623.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0623.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0623.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0623.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.23</b><code>  </code> Call-by-value parameters with local variables.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG625) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0625.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0625.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0625.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0625.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.25</b><code>  </code> A recursive nonvoid function.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG627) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0627.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0627.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0627.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0627.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.27</b><code>  </code> Call-by-reference parameters with global variables.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG629) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0629.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0629.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0629.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0629.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.29</b><code>  </code> Call-by-reference parameters with local variables.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG632) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0632.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0632.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0632.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0632.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.32</b><code>  </code> Translation of a boolean type.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG634) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0634.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0634.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0634.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0634.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.32</b><code>  </code> A global array.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG636) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0636.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0636.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0636.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0636.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.36</b><code>  </code> A local array.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG638) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0638.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0638.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0638.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0638.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.38</b><code>  </code> Passing a local array as a parameter.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG640) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0640.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0640.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0640.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0640.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.40</b><code>  </code> Translation of a <code>switch</code> statement.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG642) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0642.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0642.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0642.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0642.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.42</b><code>  </code> Translation of global pointers.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG644) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0644.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0644.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0644.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0644.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.44</b><code>  </code> Translation of local pointers.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG646) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0646.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0646.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0646.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0646.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.46</b><code>  </code> Translation of a structure.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG648) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0648.pep"));
-                ui->rightCppTextEdit->setText(Pep::resToString(":/help/figures_asm/fig0648.c"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0648.pep"));
+                ui->rightCppTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0648.c"));
                 ui->helpFigureLabel->setText("<b>Figure 6.48</b><code>  </code> Translation of a linked list.");
                 ui->rightCppTextEdit->show();
                 ui->rightPepTextEdit->hide();
@@ -589,7 +594,7 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->copyToSourceButton->setText("Copy to Source");
         ui->helpSplitter->widget(0)->hide();
         ui->helpSplitter->widget(1)->show();
-        ui->leftPepTextEdit->setText(Pep::resToString(":/help/pep9os/alignedIO-OS.pep"));
+        ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/alignedIO-OS.pep"));
         ui->leftPepTextEdit->show();
         ui->rightCppTextEdit->hide();
         ui->rightPepTextEdit->hide();
@@ -605,7 +610,7 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->rightCppTextEdit->hide();
         ui->rightPepTextEdit->hide();
 #pragma message ("TODO: fix microcode path")
-        ui->microTextEdit->setText(Pep::resToString(":/help/pep9micro.pepcpu"));
+        ui->microTextEdit->setText(Pep::resToString(":/help-micro/pep9micro.pepcpu"));
         ui->microTextEdit->show();
         ui->helpFigureLabel->setText("Microcoded implementation of the <i>Pep/9</i> instruction set.");
     }

@@ -4,5 +4,6 @@
         <file>images/Pep9-icon.png</file>
         <file>images/icon.ico</file>
         <file>images/icon.icns</file>
+        <file>help-asm/about.html</file>
     </qresource>
 </RCC>

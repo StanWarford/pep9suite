@@ -43,30 +43,30 @@ Select the menu option System->Redefine Mnemonics to change the mnemonics of one
 The dialog box requires you to enter a mnemonic and its allowed addressing modes if it is nonunary.
 For example, change the mnemonic for the unary instruction <code>NOP0</code> to <code>ECHO</code>.
 <p>
-<img src="qrc:/help/images/redefinemnemonics.png" alt="redefinemnemonics" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/redefinemnemonics.png" alt="redefinemnemonics" hspace=10 vspace=10>
 <p>
 <h4>Step 2.</h4>
 In this Help system in the pane on the left, select Pep/9 Operating System, and then click the Copy to Source button.
 The default operating system will be copied to the Source Code pane.
 <p>
-<img src="qrc:/help/images/pep9oshelpsystem.png" alt="pep9oshelpsystem" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/pep9oshelpsystem.png" alt="pep9oshelpsystem" hspace=10 vspace=10>
 <p>
 <h4>Step 3.</h4>
 Modify the trap handler part of the operating system to implement your new instruction.
 As an example, here is the original NOP0 trap handler.
 <p>
-<img src="qrc:/help/images/nop0.png" alt="nop0" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/nop0.png" alt="nop0" hspace=10 vspace=10>
 <p>
 And here is how you would modify it to implement the new <code>ECHO</code> instruction in place of <code>NOP0</code>.
 <p>
-<img src="qrc:/help/images/echo.png" alt="echo" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/echo.png" alt="echo" hspace=10 vspace=10>
 <p>
 CAUTION: You cannot use any trap instructions in your trap handler.
 <p>
 <h4>Step 4.</h4>
 Select System->Assemble/Install New OS to assemble and install the reprogrammed operating system.
 <p>
-<img src="qrc:/help/images/assembleinstallnewos.png" alt="assembleinstallnewos" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/assembleinstallnewos.png" alt="assembleinstallnewos" hspace=10 vspace=10>
 <p>
 You can save your modified operating system as a <code>.pep</code> file as you would any other Pep/9 assembly language program.
 <p>
@@ -75,13 +75,13 @@ Write an assembly language program to test your new instruction with the new mne
 The assembler should recognize the new mnemonic and generate the appropriate object code.
 For example, your test program might be the following.
 <p>
-<img src="qrc:/help/images/echoprogram.png" alt="echoprogram" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/echoprogram.png" alt="echoprogram" hspace=10 vspace=10>
 <p>
 <h4>Step 6.</h4>
 Load and execute your program assembled in step 5.
 In this example, whatever character is placed in the Input pane should be echoed in the output pane.
 <p>
-<img src="qrc:/help/images/pecho.png" alt="pecho" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/pecho.png" alt="pecho" hspace=10 vspace=10>
 <p>
 <a href="#Topics">Scroll to topics</a>.
 
@@ -101,7 +101,7 @@ Simply change the burn directive in the operating system to a smaller value.
 For example, you can change the burn directive to <code>.BURN 0x7FFF</code>, assemble and install the new OS,
 and the system will install only 32 KiB of memory instead of 64 KiB.
 <p>
-<img src="qrc:/help/images/modifieddotburn.png" alt="modifieddotburn" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/modifieddotburn.png" alt="modifieddotburn" hspace=10 vspace=10>
 <p>
 The trap handlers all run correctly, which you can trace in the Memory Dump pane.
 Following is the memory dump after the execution of a <code>DECI</code> trap instruction.
@@ -109,7 +109,7 @@ A trap stores the ten bytes of the process control block on the system stack, in
 Note that 31, the instruction specifier for <code>DECI</code>, at the bottom of the stack is at address 7C0E.
 With 64 KiB of memory installed, it would be at address FC0E.
 <p>
-<img src="qrc:/help/images/relocatedos.png" alt="relocatedos" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/relocatedos.png" alt="relocatedos" hspace=10 vspace=10>
 <p>
 <a href="#Topics">Scroll to topics</a>.
 <p>

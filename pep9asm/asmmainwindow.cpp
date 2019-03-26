@@ -108,12 +108,12 @@ MainWindow::MainWindow(QWidget *parent) :
     helpDialog = new HelpDialog(this);
     connect(helpDialog, &HelpDialog::copyToSourceClicked, this, &MainWindow::helpCopyToSourceClicked);
     // Load the about text and create the about dialog
-    QFile aboutFile(":/help/about.html");
+    QFile aboutFile(":/help-asm/about.html");
     QString text = "";
     if(aboutFile.open(QFile::ReadOnly)) {
         text = QString(aboutFile.readAll());
     }
-    QPixmap pixmap("://images/Pep9micro-icon.png");
+    QPixmap pixmap("://images/Pep9-icon.png");
     aboutPepDialog = new AboutPep(text, pixmap, this);
 
     connect(redefineMnemonicsDialog, &RedefineMnemonicsDialog::closed, this, &MainWindow::redefine_Mnemonics_closed);
@@ -765,7 +765,7 @@ void MainWindow::print(Enu::EPane which)
 
 void MainWindow::assembleDefaultOperatingSystem()
 {
-    QString defaultOSText = Pep::resToString(":/help/figures_asm/pep9os.pep");
+    QString defaultOSText = Pep::resToString(":/help-asm/figures/pep9os.pep");
     if(!defaultOSText.isEmpty()) {
         IsaAsm assembler(memDevice, *programManager);
         auto elist = QList<QPair<int, QString>>();
