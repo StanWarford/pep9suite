@@ -55,7 +55,6 @@ protected:
 private:
     Ui::HelpDialog *ui;
 
-    MicrocodeEditor *microcodeEditor;
     PepMicroHighlighter *leftHighlighter;
 
     enum Row {

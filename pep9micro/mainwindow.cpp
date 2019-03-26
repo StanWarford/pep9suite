@@ -1811,6 +1811,19 @@ void MainWindow::on_actionDark_Mode_triggered()
     emit darkModeChanged(isInDarkMode, styleSheet());
 }
 
+// help:
+void MainWindow::on_actionHelp_triggered()
+{
+    if (!helpDialog->isHidden()) {
+        // give it focus again:
+        helpDialog->hide();
+        helpDialog->show();
+    }
+    else {
+        helpDialog->show();
+    }
+}
+
 void MainWindow::on_actionHelp_Machine_Language_triggered()
 {
     helpDialog->show();

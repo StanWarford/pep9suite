@@ -1528,6 +1528,17 @@ void MainWindow::on_actionDark_Mode_triggered()
 }
 
 // help:
+void MainWindow::on_actionHelp_triggered()
+{
+    if (!helpDialog->isHidden()) {
+        // give it focus again:
+        helpDialog->hide();
+        helpDialog->show();
+    }
+    else {
+        helpDialog->show();
+    }
+}
 
 void MainWindow::on_actionHelp_Machine_Language_triggered()
 {
@@ -1570,6 +1581,7 @@ void MainWindow::on_actionHelp_Pep9_Operating_System_triggered()
     helpDialog->show();
     helpDialog->selectItem("Pep/9 Operating System");
 }
+
 void MainWindow::on_actionHelp_About_Pep9_triggered()
 {
     aboutPepDialog->show();

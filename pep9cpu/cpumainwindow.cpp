@@ -909,6 +909,18 @@ void MainWindow::on_actionDark_Mode_triggered()
 }
 
 // help:
+void MainWindow::on_actionHelp_triggered()
+{
+    if (!helpDialog->isHidden()) {
+        // give it focus again:
+        helpDialog->hide();
+        helpDialog->show();
+    }
+    else {
+        helpDialog->show();
+    }
+}
+
 void MainWindow::on_actionHelp_UsingPep9CPU_triggered()
 {
     helpDialog->show();
@@ -949,19 +961,6 @@ void MainWindow::on_actionHelp_Two_Byte_Examples_triggered()
 {
     helpDialog->show();
     helpDialog->selectItem("Two-byte Bus Examples");
-}
-
-
-void MainWindow::on_actionHelp_triggered()
-{
-    if (!helpDialog->isHidden()) {
-        // give it focus again:
-        helpDialog->hide();
-        helpDialog->show();
-    }
-    else {
-        helpDialog->show();
-    }
 }
 
 void MainWindow::on_actionHelp_About_Pep9CPU_triggered()
