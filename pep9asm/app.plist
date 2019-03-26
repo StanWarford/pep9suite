@@ -30,11 +30,9 @@
 	<key>CFBundleIconFile</key>
 	<string>icon.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.pepcsdept.pep9</string>
+	<string>edu.cslab.pep9</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
-	<key>CFBundleSignature</key>
-	<string>PEP9</string>
 	<key>CFBundleVersion</key>
 	<string>47</string>
 	<key>UTExportedTypeDeclarations</key>
@@ -48,7 +46,7 @@
 			<key>UTTypeDescription</key>
 			<string>Pep9 Document</string>
 			<key>UTTypeIdentifier</key>
-			<string>org.pepcsdept.pep9</string>
+			<string>edu.cslab.pep9</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>com.apple.ostype</key>
