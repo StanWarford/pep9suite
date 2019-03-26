@@ -99,6 +99,7 @@ bool MicrocodePane::microAssemble()
     QStringList sourceCodeList;
     AMicroCode *code;
     int lineNum = 0;
+
     if(isModified() == false && program != nullptr) {
         return true;
     }
@@ -147,6 +148,16 @@ bool MicrocodePane::microAssemble()
         program->getCodeLine(line - 1)->setBreakpoint(true);
     }
     return true;
+}
+
+void MicrocodePane::clearProgram()
+{
+    // If an invalid program is saved, it might be incorrectly "run"
+    // due to caching in microcode pane. Clearing the cached microprogram
+    // will work around this bug. Also clear symbol table as it is associated
+    // with a microcode program.
+    program.clear();
+    symbolTable.clear();
 }
 
 QSharedPointer<MicrocodeProgram> MicrocodePane::getMicrocodeProgram() {

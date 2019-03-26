@@ -49,6 +49,10 @@ public:
     // Post: If the program assembles correctly, true is returned, and codeList is populated
     // with the code structs. Otherwise false is returned and codeList is partially populated.
 
+    void clearProgram();
+    // Post: internal program is set to nullptr. This is needed to remove
+    // a cached microcode program upon saving.
+
     QSharedPointer<MicrocodeProgram> getMicrocodeProgram();
 
     void removeErrorMessages();

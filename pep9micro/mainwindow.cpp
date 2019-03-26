@@ -503,7 +503,13 @@ bool MainWindow::save(Enu::EPane which)
             retVal = saveAsFile(Enu::EPane::EMicrocode);
         }
         else retVal = saveFile(ui->microcodeWidget->getCurrentFile().fileName(),Enu::EPane::EMicrocode);
-        if(retVal) ui->microcodeWidget->setModifiedFalse();
+        if(retVal) {
+            // If an invalid program is saved, it might be incorrectly "run"
+            // due to caching in microcode pane. Clearing the cached microprogram
+            // will work around this bug.
+            ui->microcodeWidget->clearProgram();
+            ui->microcodeWidget->setModifiedFalse();
+        }
         break;
     default:
         // Provided a default - even though it should never occur -

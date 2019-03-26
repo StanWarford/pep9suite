@@ -337,7 +337,13 @@ bool MainWindow::save()
         retVal = saveAsFile();
     }
     else retVal = saveFile(ui->microcodeWidget->getCurrentFile().fileName());
-    if(retVal) ui->microcodeWidget->setModifiedFalse();
+    if(retVal) {
+        // If an invalid program is saved, it might be incorrectly "run"
+        // due to caching in microcode pane. Clearing the cached microprogram
+        // will work around this bug.
+        ui->microcodeWidget->clearProgram();
+        ui->microcodeWidget->setModifiedFalse();
+    }
     return retVal;
 }
 
