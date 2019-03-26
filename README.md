@@ -1,3 +1,7 @@
+# What is Pep/9?
+
+The Pep/9 computer is a 16-bit complex instruction set computer (CISC). It is designed to teach computer architecture, assembly language programming, and computer organization principles. Its instructions are based on an expanding opcode and are either unary (one byte) or nonunary (three bytes). The eight addressing modes and eight dot commands are designed for straightforward translation between C/C++ and assembly language.
+
 # Pep9Suite
 Pep9Suite is a suite of software for the Pep/9 virtual machine.
 It consists of three applications:
@@ -5,15 +9,19 @@ It consists of three applications:
 * Pep9CPU
 * Pep9Micro
 
-# Pep9
+## Pep9
+Pep9 is simulator allowing users to interact with the Pep/9 virtual machine at the assembly code & operating system levels.
 
-The Pep/9 computer is a 16-bit complex instruction set computer (CISC). It is designed to teach computer architecture and assembly language programming principles. Its instructions are based on an expanding opcode and are either unary (one byte) or nonunary (three bytes). The eight addressing modes and eight dot commands are designed for straightforward translation between C/C++ and assembly language.
+The Pep9 assembler features an integrated text editor, error messages in red type that are inserted within the source code at the place where the error is detected, student-friendly machine language object code in hexadecimal format, the ability to code directly in machine language, bypassing the assembler, and the ability to redefine the mnemonics for the unimplemented opcodes that trigger synchronous traps.
 
-The assembler features an integrated text editor, error messages in red type that are inserted within the source code at the place where the error is detected, student-friendly machine language object code in hexadecimal format, the ability to code directly in machine language, bypassing the assembler, and the ability to redefine the mnemonics for the unimplemented opcodes that trigger synchronous traps.
-
-The simulator features simulated ROM that is not altered by store instructions, a small operating system burned into simulated ROM that includes a loader and a trap handler system, an integrated debugger that allows for break points, single step execution, CPU tracing, and memory tracing, the option to trace an application, the loader, or the operating system, the ability to recover from endless loops, and the ability to modify the operating system by designing new trap handlers for the unimplemented opcodes.
+The simulator features simulated ROM that is not altered by store instructions, a small operating system burned into simulated ROM that includes a loader and a trap handler system, an integrated debugger that allows for break points, single and multi step execution, CPU tracing, and memory tracing, the option to trace an application, the loader, or the operating system, the ability to recover from endless loops, and the ability to modify the operating system by designing new trap handlers for the unimplemented opcodes.
 
 # Pep9CPU
+The Pep9CPU application allows users to interact with the hardware driving the Pep/9 machine.
+
+It contains two versions of the Pep/9 CPU data section - one with a one byte wide data bus and another with a two byte wide data bus. Students are able to graphical modify and evolve the state of the CPU. Alternatively, the Microcode IDE allows users to practice writing microprogram snippets to perform useful computations. Users may write preconditions and unit tests for a program to verify correct behavior of arbitrary microprograms.
+
+While debugging a microprogram fragment, the CPU simulator will perform graphical tracing of data paths through both versions of the CPU. Through use of breakpoints, students may skip over previously debugged microstatments and resume debugging at a later point in the program.
 
 # Pep9Micro
 Pep9Micro is a fully microcoded implementation of the Pep/9 virtual machine.
