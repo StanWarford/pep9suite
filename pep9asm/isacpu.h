@@ -31,7 +31,7 @@ public:
     void stepInto() override;
     void stepOut() override;
     bool getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16& opVal);
-    bool getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint8& opVal);
+    bool getOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quint8& opVal);
     RegisterFile& getRegisterBank();
     const RegisterFile& getRegisterBank() const;
 

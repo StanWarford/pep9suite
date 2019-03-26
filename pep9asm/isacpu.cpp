@@ -66,7 +66,7 @@ bool IsaCpu::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint
     return operandWordValueHelper(operand, addrMode, &AMemoryDevice::getWord, opVal);
 }
 
-bool IsaCpu::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint8 &opVal)
+bool IsaCpu::getOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quint8 &opVal)
 {
     return operandByteValueHelper(operand, addrMode, &AMemoryDevice::getByte, opVal);
 }
@@ -115,6 +115,11 @@ void IsaCpu::onISAStep()
         executeNonunary(mnemon, opSpec, addrMode);
     }
 
+    if(!okay) {
+        controlError = true;
+        errorMessage = "Error: Failed to perform memory access.";
+    }
+
     // Post instruction execution cleanup
     InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteCurrent(Enu::CPURegisters::IS),
                                              this->getCPURegWordCurrent(Enu::CPURegisters::OS),
@@ -154,6 +159,9 @@ void IsaCpu::updateAtInstructionEnd()
     }
     else if(Pep::decodeMnemonic[getRegisterBank().readRegisterByteCurrent(Enu::CPURegisters::IS)] == Enu::EMnemonic::RETTR){
         callDepth--;
+    }
+    if(hadErrorOnStep()) {
+        executionFinished = true;
     }
 
 }
@@ -264,6 +272,7 @@ void IsaCpu::onSimulationStarted()
     inSimulation = false;
     executionFinished = false;
     memoizer->clear();
+    memory->clearErrors();
 }
 
 void IsaCpu::onSimulationFinished()
@@ -346,7 +355,17 @@ bool IsaCpu::onRun()
 
 void IsaCpu::onResetCPU()
 {
+    // Reset all internal state, but keep loaded micropgoram & breakpoints
+    ACPUModel::memory->clearErrors();
+    memoizer->clear();
     InterfaceISACPU::reset();
+    inSimulation = false;
+    inDebug = false;
+    callDepth = 0;
+    controlError = false;
+    executionFinished = false;
+    errorMessage = "";
+    asmBreakpointHit = false;
     registerBank.clearRegisters();
     registerBank.clearStatusBits();
 }
@@ -759,45 +778,46 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
     a = registerBank.readRegisterWordCurrent(Enu::CPURegisters::A);
     x = registerBank.readRegisterWordCurrent(Enu::CPURegisters::X);
     sp = registerBank.readRegisterWordCurrent(Enu::CPURegisters::SP);
+    bool memSuccess = true;
     switch(mnemon) {
 
     case Enu::EMnemonic::BR:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         break;
 
     case Enu::EMnemonic::BRLE:
         if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N) ||
                 registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
-            readOperandWordValue(opSpec, addrMode, tempWord);
+            memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRLT:
         if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N)) {
-            readOperandWordValue(opSpec, addrMode, tempWord);
+            memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BREQ:
         if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
-            readOperandWordValue(opSpec, addrMode, tempWord);
+            memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRNE:
         if(!registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
-            readOperandWordValue(opSpec, addrMode, tempWord);
+            memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRGE:
         if(!registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N)) {
-            readOperandWordValue(opSpec, addrMode, tempWord);
+            memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
@@ -805,46 +825,46 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
     case Enu::EMnemonic::BRGT:
         if(!registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N) &&
                 !registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
-            readOperandWordValue(opSpec, addrMode, tempWord);
+            memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRV:
         if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_V)) {
-            readOperandWordValue(opSpec, addrMode, tempWord);
+            memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRC:
         if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_C)) {
-            readOperandWordValue(opSpec, addrMode, tempWord);
+            memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         }
         break;
 
     case Enu::EMnemonic::CALL:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         sp -= 2;
-        memory->writeWord(sp, registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC));
+        memSuccess &= memory->writeWord(sp, registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC));
         registerBank.writeRegisterWord(Enu::CPURegisters::PC, tempWord);
         registerBank.writeRegisterWord(Enu::CPURegisters::SP, sp);
         break;
 
     case Enu::EMnemonic::ADDSP:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(Enu::CPURegisters::SP, sp + tempWord);
         break;
 
     case Enu::EMnemonic::SUBSP:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(Enu::CPURegisters::SP, sp - tempWord);
         break;
 
 #pragma message ("first to fix")
     case Enu::EMnemonic::ADDA:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier plus the accumulator
         result = a + tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
@@ -861,7 +881,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::ADDX:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier plus the index reg.
         result = x + tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
@@ -878,7 +898,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::SUBA:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier minus the accumulator.
         result = a - tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
@@ -895,7 +915,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::SUBX:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier minus the index reg.
         result = x - tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
@@ -912,7 +932,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::ANDA:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier bitwise and'ed with the accumulator.
         result = a & tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
@@ -923,7 +943,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::ANDX:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier bitwise and'ed the index reg.
         result = x & tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
@@ -934,7 +954,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::ORA:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier bitwise or'ed with the accumulator.
         result = a | tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
@@ -944,7 +964,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
         break;
     case Enu::EMnemonic::ORX:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier bitwise or'ed the index reg.
         result = x | tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
@@ -955,7 +975,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::CPWA:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier minus the index reg.
         result = a - tempWord;
         // Is negative if high order bit is 1.
@@ -974,7 +994,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::CPWX:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decode operand specifier minus the index reg.
         result = x - tempWord;
         // Is negative if high order bit is 1.
@@ -993,7 +1013,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::LDWA:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(Enu::CPURegisters::A, tempWord);
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, tempWord & 0x8000);
@@ -1002,7 +1022,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::LDWX:
-        readOperandWordValue(opSpec, addrMode, tempWord);
+        memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(Enu::CPURegisters::X, tempWord);
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, tempWord & 0x8000);
@@ -1012,17 +1032,17 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
     case Enu::EMnemonic::STWA:
         tempWord = registerBank.readRegisterWordCurrent(Enu::CPURegisters::A);
-        writeOperandWord(opSpec, tempWord, addrMode);
+        memSuccess = writeOperandWord(opSpec, tempWord, addrMode);
         break;
 
     case Enu::EMnemonic::STWX:
         tempWord = registerBank.readRegisterWordCurrent(Enu::CPURegisters::X);
-        writeOperandWord(opSpec, tempWord, addrMode);
+        memSuccess = writeOperandWord(opSpec, tempWord, addrMode);
         break;
 
     // Single byte instructions
     case Enu::EMnemonic::CPBA:
-        readOperandByteValue(opSpec, addrMode, tempByte);
+        memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         // The result is the decode operand specifier minus the accumulator.
         // Narrow a and operand to 1 byte before widening to 2 bytes.
         result = (a & 0xff) - (tempByte & 0xff);
@@ -1036,7 +1056,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::CPBX:
-        readOperandByteValue(opSpec, addrMode, tempByte);
+        memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         // The result is the decode operand specifier minus the index reg.
         // Narrow a and operand to 1 byte before widening to 2 bytes.
         result = (x & 0xff) - (tempByte & 0xff);
@@ -1050,7 +1070,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::LDBA:
-        readOperandByteValue(opSpec, addrMode, tempByte);
+        memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         tempWord = a & 0xff00;
         tempWord |= tempByte;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, tempWord);
@@ -1061,7 +1081,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::LDBX:
-        readOperandByteValue(opSpec, addrMode, tempByte);
+        memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         tempWord = x & 0xff00;
         tempWord |= tempByte;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, tempWord);
@@ -1072,13 +1092,17 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
     case Enu::EMnemonic::STBA:
         tempByte = static_cast<quint8>(0xff & registerBank.readRegisterWordCurrent(Enu::CPURegisters::A));
-        writeOperandByte(opSpec, tempByte, addrMode);
+        memSuccess = writeOperandByte(opSpec, tempByte, addrMode);
         break;
 
     case Enu::EMnemonic::STBX:
         tempByte = static_cast<quint8>(0xff & registerBank.readRegisterWordCurrent(Enu::CPURegisters::X));
-        writeOperandByte(opSpec, tempByte, addrMode);
+        memSuccess = writeOperandByte(opSpec, tempByte, addrMode);
         break;
+    }
+    if(!memSuccess){
+        controlError = true;
+        errorMessage = "Error: Failed to perform memory access.";
     }
 }
 
@@ -1089,6 +1113,7 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
     quint16 tempAddr, temp = manager->getOperatingSystem()->getBurnValue() - 9;
     memory->readWord(temp, tempAddr);
     quint16 pcAddr = manager->getOperatingSystem()->getBurnValue() - 1;
+    bool memSuccess = true;
     switch(mnemon) {
     // Non-unary traps
     case Enu::EMnemonic::NOP:;
@@ -1112,18 +1137,18 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
         [[fallthrough]];
     case Enu::EMnemonic::NOP1:;
         // Writes to mem[T-1].
-        memory->writeByte(tempAddr - 1, registerBank.readRegisterByteCurrent(Enu::CPURegisters::IS) /*IS*/);
+        memSuccess &= memory->writeByte(tempAddr - 1, registerBank.readRegisterByteCurrent(Enu::CPURegisters::IS) /*IS*/);
         // Writes to mem[T-2], mem[T-3].
-        memory->writeWord(tempAddr - 3, registerBank.readRegisterWordCurrent(Enu::CPURegisters::SP) /*SP*/);
+        memSuccess &= memory->writeWord(tempAddr - 3, registerBank.readRegisterWordCurrent(Enu::CPURegisters::SP) /*SP*/);
         // Writes to mem[T-4], mem[T-5].
-        memory->writeWord(tempAddr - 5, registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC) /*PC*/);
+        memSuccess &= memory->writeWord(tempAddr - 5, registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC) /*PC*/);
         // Writes to mem[T-6], mem[T-7].
-        memory->writeWord(tempAddr - 7, registerBank.readRegisterWordCurrent(Enu::CPURegisters::X) /*X*/);
+        memSuccess &= memory->writeWord(tempAddr - 7, registerBank.readRegisterWordCurrent(Enu::CPURegisters::X) /*X*/);
         // Writes to mem[T-8], mem[T-9].
-        memory->writeWord(tempAddr - 9, registerBank.readRegisterWordCurrent(Enu::CPURegisters::A) /*A*/);
+        memSuccess &= memory->writeWord(tempAddr - 9, registerBank.readRegisterWordCurrent(Enu::CPURegisters::A) /*A*/);
         // Writes to mem[T-10].
-        memory->writeByte(tempAddr - 10, registerBank.readStatusBitsCurrent() /*NZVC*/);
-        memory->readWord(pcAddr, pc);
+        memSuccess &= memory->writeByte(tempAddr - 10, registerBank.readStatusBitsCurrent() /*NZVC*/);
+        memSuccess &= memory->readWord(pcAddr, pc);
         registerBank.writeRegisterWord(Enu::CPURegisters::SP, tempAddr - 10);
         registerBank.writeRegisterWord(Enu::CPURegisters::PC, pc);
 #if performTrapFix
@@ -1133,6 +1158,10 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
         // so we have to fix it here.
         registerBank.writeRegisterWord(Enu::CPURegisters::X, 0);
 #endif
+    }
+    if(!memSuccess){
+        controlError = true;
+        errorMessage = "Error: Failed to perform memory access.";
     }
 }
 
