@@ -111,7 +111,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->asmListingTracePane->init(controlSection, programManager);
     ui->microcodeWidget->init(controlSection, dataSection, memDevice, true);
     ui->microObjectCodePane->init(controlSection, true);
-    ui->asmCpuPane->init(controlSection);
     redefineMnemonicsDialog->init(false);
 
     // Create & connect all dialogs.
@@ -165,7 +164,6 @@ MainWindow::MainWindow(QWidget *parent) :
     // Events that fire on simulationUpdate should be UniqueConnections, as they will be repeatedly connected and disconnected
     // via connectMicroDraw() and disconnectMicroDraw().
     connect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
-    connect(this, &MainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->memoryTracePane, &NewMemoryTracePane::updateTrace, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationStarted, ui->memoryWidget, &MemoryDumpPane::onSimulationStarted);
@@ -392,7 +390,6 @@ void MainWindow::connectViewUpdate()
     connect(dataSection.get(), &NewCPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged, Qt::ConnectionType::UniqueConnection);
     connect(dataSection.get(), &NewCPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged, Qt::ConnectionType::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
-    connect(this, &MainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationUpdate, this, static_cast<void(MainWindow::*)()>(&MainWindow::highlightActiveLines), Qt::UniqueConnection);
@@ -410,7 +407,6 @@ void MainWindow::disconnectViewUpdate()
     disconnect(dataSection.get(), &NewCPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged);
     disconnect(dataSection.get(), &NewCPUDataSection::memoryRegisterChanged, ui->cpuWidget, &CpuPane::onMemoryRegisterChanged);
     disconnect(this, &MainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory);
-    disconnect(this, &MainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate);
     disconnect(this, &MainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate);
     disconnect(this, &MainWindow::simulationUpdate, this, &MainWindow::handleDebugButtons);
     disconnect(this, &MainWindow::simulationUpdate, this, static_cast<void(MainWindow::*)()>(&MainWindow::highlightActiveLines));
@@ -888,6 +884,7 @@ void MainWindow::print(Enu::EPane which)
         // and fit the entire document on a single page.
         document.setPageSize(printer.paperSize(QPrinter::Point));
         // qDebug() << document.pageCount();
+
         document.print(&printer);
     }
     dialog->deleteLater();
@@ -1133,7 +1130,6 @@ bool MainWindow::initializeSimulation()
     controlSection->onResetCPU();
     controlSection->initCPU();
     ui->cpuWidget->clearCpu();
-    ui->asmCpuPane->clearCpu();
 
     // Don't allow the microcode pane to be edited while the program is running
     ui->microcodeWidget->setReadOnly(true);
@@ -1729,7 +1725,6 @@ void MainWindow::on_actionSystem_Clear_CPU_triggered()
 {
     controlSection->onResetCPU();
     ui->cpuWidget->clearCpu();
-    ui->asmCpuPane->clearCpu();
 }
 
 void MainWindow::on_actionSystem_Clear_Memory_triggered()
@@ -2000,9 +1995,6 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     else if(ui->asmListingTracePane->isAncestorOf(oldFocus)) {
         ui->asmListingTracePane->highlightOnFocus();
     }
-    else if(ui->asmCpuPane->isAncestorOf(oldFocus)) {
-        ui->asmCpuPane->highlightOnFocus();
-    }
     else if (ui->ioWidget->isAncestorOf(oldFocus)) {
         ui->ioWidget->highlightOnFocus();
     }
@@ -2021,10 +2013,6 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     else if (ui->cpuWidget->hasFocus()) {
         which = 0;
         ui->cpuWidget->highlightOnFocus();
-    }
-    else if (ui->asmCpuPane->hasFocus()) {
-        which = 0;
-        ui->asmCpuPane->highlightOnFocus();
     }
     else if (ui->microObjectCodePane->hasFocus()) {
         which = Enu::EditButton::COPY;
@@ -2083,9 +2071,6 @@ void MainWindow::setUndoability(bool b)
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->actionEdit_Undo->setEnabled(b);
     }
-    else if (ui->asmCpuPane->hasFocus()) {
-        ui->actionEdit_Undo->setEnabled(false);
-    }
     else if (ui->memoryTracePane->hasFocus()) {
         ui->actionEdit_Undo->setEnabled(false);
     }
@@ -2113,9 +2098,6 @@ void MainWindow::setRedoability(bool b)
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->actionEdit_Redo->setEnabled(b);
-    }
-    else if (ui->asmCpuPane->hasFocus()) {
-        ui->actionEdit_Redo->setEnabled(false);
     }
     else if (ui->memoryTracePane->hasFocus()) {
         ui->actionEdit_Redo->setEnabled(false);
