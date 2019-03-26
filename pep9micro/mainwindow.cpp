@@ -432,7 +432,7 @@ void MainWindow::readSettings()
     //Restore last used file path
     curPath = settings.value("filePath", QDir::homePath()).toString();
     // Restore dark mode state
-    on_actionDark_Mode_triggered();
+    onDarkModeChanged();
 
     // Restore last used split in assembly code pane
     val = settings.beginReadArray("codePaneSplit");
@@ -1717,7 +1717,7 @@ void MainWindow::onASMBreakpointHit()
 void MainWindow::onPaletteChanged(const QPalette &palette)
 {
     qDebug() << "I am loved!!";
-    on_actionDark_Mode_triggered();
+    onDarkModeChanged();
 }
 
 // System MainWindow triggers
@@ -1803,7 +1803,7 @@ void MainWindow::onSimulationFinished()
 
 }
 
-void MainWindow::on_actionDark_Mode_triggered()
+void MainWindow::onDarkModeChanged()
 {
     isInDarkMode = inDarkMode();
     emit darkModeChanged(isInDarkMode, styleSheet());

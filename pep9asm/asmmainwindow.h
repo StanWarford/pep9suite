@@ -218,7 +218,7 @@ private slots:
     void redefine_Mnemonics_closed();
 
     // View
-    void on_actionDark_Mode_triggered();
+    void onDarkModeChanged();
 
     // Help
     void on_actionHelp_triggered();

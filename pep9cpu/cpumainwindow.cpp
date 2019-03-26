@@ -306,7 +306,7 @@ void MainWindow::readSettings()
     //Restore last used file path
     curPath = settings.value("filePath", QDir::homePath()).toString();
     // Restore dark mode state
-    on_actionDark_Mode_triggered();
+    onDarkModeChanged();
     quint16 debuggerLevel = settings.value("debugLevel", 1).toInt();
 
     settings.endGroup();
@@ -905,7 +905,7 @@ void MainWindow::onSimulationFinished()
     else ui->statusBar->showMessage("Execution Finished", 4000);
 }
 
-void MainWindow::on_actionDark_Mode_triggered()
+void MainWindow::onDarkModeChanged()
 {
     isInDarkMode = inDarkMode();
     emit darkModeChanged(isInDarkMode, styleSheet());

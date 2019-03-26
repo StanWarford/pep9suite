@@ -188,7 +188,7 @@ private slots:
     void on_actionSystem_Two_Byte_triggered();
 
     // View
-    void on_actionDark_Mode_triggered();
+    void onDarkModeChanged();
 
     // Help
     void on_actionHelp_UsingPep9CPU_triggered();
