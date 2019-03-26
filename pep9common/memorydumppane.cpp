@@ -38,6 +38,8 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     delayLastStepClear(false), inSimulation(false), highlightPC(true)
 {
     ui->setupUi(this);
+    ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
+
     // Insert 1 column for address, 8 for memory bytes, and 1 for character dump
     data->insertColumns(0, 1+8+1);
     // Insert enough rows to hold 64k of memory
@@ -79,6 +81,11 @@ void MemoryDumpPane::showJumpToPC(bool jumpToPC)
 {
     ui->pcPushButton->setEnabled(jumpToPC);
     ui->pcPushButton->setVisible(jumpToPC);
+}
+
+void MemoryDumpPane::showTitleLabel(bool showLabel)
+{
+    ui->label->setVisible(showLabel);
 }
 
 MemoryDumpPane::~MemoryDumpPane()
@@ -218,7 +225,12 @@ void MemoryDumpPane::scrollToTop()
 
 void MemoryDumpPane::highlightOnFocus()
 {
-
+    if (hasFocus()) {
+        ui->label->setAutoFillBackground(true);
+    }
+    else {
+        ui->label->setAutoFillBackground(false);
+    }
 }
 
 bool MemoryDumpPane::hasFocus()

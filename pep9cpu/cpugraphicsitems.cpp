@@ -2515,7 +2515,8 @@ void CpuGraphicsItems::CPUTypeChanged(Enu::CPUType newType)
         EOMuxTristateLabel->setVisible(true);
 
         // Move things from one byte position to two byte position
-        ALUPoly->moveBy(TwoByteShapes::controlOffsetX, TwoByteShapes::aluOffsetY);
+
+        ALUPoly->setPolygon(OneByteShapes::ALUPoly.translated(TwoByteShapes::controlOffsetX, TwoByteShapes::aluOffsetY));
         MARALabel->setGeometry(TwoByteShapes::MARALabel);
         MARBLabel->setGeometry(TwoByteShapes::MARBLabel);
         loadCk->setGeometry(TwoByteShapes::loadCkCheckbox);
@@ -2578,7 +2579,7 @@ void CpuGraphicsItems::CPUTypeChanged(Enu::CPUType newType)
         MDRLabel->setVisible(true);
 
         // Move things from two byte position to one byte position
-        ALUPoly->moveBy(-TwoByteShapes::controlOffsetX, -TwoByteShapes::aluOffsetY);
+        ALUPoly->setPolygon(OneByteShapes::ALUPoly);
         MARALabel->setGeometry(OneByteShapes::MARALabel);
         MARBLabel->setGeometry(OneByteShapes::MARBLabel);
         loadCk->setGeometry(OneByteShapes::loadCkCheckbox);

@@ -1674,6 +1674,10 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
         which = 0;
         ui->asmCpuPane->highlightOnFocus();
     }
+    else if (ui->memoryWidget->hasFocus()) {
+        which = 0;
+        ui->memoryWidget->highlightOnFocus();
+    }
     else if (ui->AsmSourceCodeWidgetPane->hasFocus()) {
         which = Enu::EditButton::COPY | Enu::EditButton::CUT | Enu::EditButton::PASTE;
         which |= Enu::EditButton::UNDO * ui->AsmSourceCodeWidgetPane->isUndoable() | Enu::EditButton::REDO * ui->AsmSourceCodeWidgetPane->isRedoable();

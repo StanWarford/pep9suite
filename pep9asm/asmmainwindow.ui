@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Pep/9 Micro</string>
+   <string>Pep/9</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -359,7 +359,7 @@
   </widget>
   <action name="actionFile_New_Asm">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
    </property>
    <property name="text">
@@ -374,7 +374,7 @@
   </action>
   <action name="actionFile_Open">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
    </property>
    <property name="text">
@@ -389,7 +389,7 @@
   </action>
   <action name="actionFile_Save_Asm">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
    </property>
    <property name="text">
@@ -418,7 +418,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/undo.png</normaloff>:/images/undo.png</iconset>
    </property>
    <property name="text">
@@ -436,7 +436,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/redo.png</normaloff>:/images/redo.png</iconset>
    </property>
    <property name="text">
@@ -451,7 +451,7 @@
   </action>
   <action name="actionEdit_Cut">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/cut.png</normaloff>:/images/cut.png</iconset>
    </property>
    <property name="text">
@@ -466,7 +466,7 @@
   </action>
   <action name="actionEdit_Copy">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/copy.png</normaloff>:/images/copy.png</iconset>
    </property>
    <property name="text">
@@ -481,7 +481,7 @@
   </action>
   <action name="actionEdit_Paste">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/paste.png</normaloff>:/images/paste.png</iconset>
    </property>
    <property name="text">
@@ -520,7 +520,7 @@
   </action>
   <action name="actionHelp_UsingPep9CPU">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/help.png</normaloff>:/images/help.png</iconset>
    </property>
    <property name="text">
@@ -540,7 +540,7 @@
   </action>
   <action name="actionBuild_Run">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/run.png</normaloff>:/images/run.png</iconset>
    </property>
    <property name="text">
@@ -555,7 +555,7 @@
   </action>
   <action name="actionDebug_Start_Debugging">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/debugger_start.png</normaloff>:/images/debugger_start.png</iconset>
    </property>
    <property name="text">
@@ -573,7 +573,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/stop.png</normaloff>:/images/stop.png</iconset>
    </property>
    <property name="text">
@@ -588,7 +588,7 @@
   </action>
   <action name="actionHelp">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/help.png</normaloff>:/images/help.png</iconset>
    </property>
    <property name="text">
@@ -664,7 +664,7 @@
   </action>
   <action name="ActionBuild_Assemble">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/assemble.png</normaloff>:/images/assemble.png</iconset>
    </property>
    <property name="text">
@@ -673,7 +673,7 @@
   </action>
   <action name="actionBuild_Load_Object">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/load-source.png</normaloff>:/images/load-source.png</iconset>
    </property>
    <property name="text">
@@ -690,7 +690,7 @@
   </action>
   <action name="actionDebug_Step_Over_Assembler">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/debugger_step_over.png</normaloff>:/images/debugger_step_over.png</iconset>
    </property>
    <property name="text">
@@ -699,7 +699,7 @@
   </action>
   <action name="actionDebug_Step_Into_Assembler">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/debugger_step_into.png</normaloff>:/images/debugger_step_into.png</iconset>
    </property>
    <property name="text">
@@ -708,7 +708,7 @@
   </action>
   <action name="actionDebug_Step_Out_Assembler">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/debugger_step_out.png</normaloff>:/images/debugger_step_out.png</iconset>
    </property>
    <property name="text">
@@ -722,7 +722,7 @@
   </action>
   <action name="actionDebug_Continue">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/debugger_continue.png</normaloff>:/images/debugger_continue.png</iconset>
    </property>
    <property name="text">
@@ -776,7 +776,7 @@
   </action>
   <action name="actionDebug_Single_Step_Assembler">
    <property name="icon">
-    <iconset>
+    <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/debug_single_step_asm.png</normaloff>:/images/debug_single_step_asm.png</iconset>
    </property>
    <property name="text">
@@ -853,7 +853,9 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../pep9common/pep9common-resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionExit</sender>

@@ -48,6 +48,10 @@ public:
     // Optionally, hide the jump to PC button.
     // By default, the jump to PC button is visible
     void showJumpToPC(bool jumpToPC = true);
+    // Optionally, add a label to the top of the memory dump pane displaying the
+    // widget's name.
+    // By default, this title is visible.
+    void showTitleLabel(bool showLabel = true);
     virtual ~MemoryDumpPane() override;
 
     void refreshMemory();

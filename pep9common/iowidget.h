@@ -59,6 +59,8 @@ public:
     // the currently selected widget?
     int editActions() const;
 
+    void highlightOnFocus();
+
 signals:
     void dataEntered(const QString &data);
     void undoAvailable(bool b);

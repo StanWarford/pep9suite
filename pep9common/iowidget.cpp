@@ -127,6 +127,11 @@ int IOWidget::editActions() const
     return ret;
 }
 
+void IOWidget::highlightOnFocus()
+{
+
+}
+
 void IOWidget::onClear()
 {
     ui->batchOutput->clearText();

@@ -104,6 +104,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qApp->installEventFilter(this);
 
     ui->memoryWidget->init(memDevice, controlSection);
+    ui->memoryWidget->showTitleLabel(false);
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
     ui->memoryTracePane->init(memDevice, controlSection->getMemoryTrace());
     ui->AsmSourceCodeWidgetPane->init(memDevice, programManager);
