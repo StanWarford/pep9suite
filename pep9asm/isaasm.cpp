@@ -54,8 +54,7 @@ const QString noEquate(";WARNING: Looked for existing symbol not defined in .EQU
 const QString noSymbol(";WARNING: Trace tag with no symbol declaration");
 const QString illegalAddrMode(";WARNING: Stack trace not possible unless immediate addressing is specified.");
 
-IsaAsm::IsaAsm(QSharedPointer<MainMemory> memDevice, AsmProgramManager &manager): memDevice(memDevice),
-manager(manager)
+IsaAsm::IsaAsm(AsmProgramManager &manager): manager(manager)
 {
 
 }
@@ -156,7 +155,9 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
     handleTraceTags(*symTable.get(), *traceInfo.get(), programList, errList);
     progOut = QSharedPointer<AsmProgram>::create(programList, symTable, traceInfo);
 
-    manager.setUserProgram(progOut);
+    if(success) {
+        manager.setUserProgram(progOut);
+    }
     return success;
 }
 

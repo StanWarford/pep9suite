@@ -96,6 +96,8 @@ public:
     // to prevent the address cache from being updated spuriously for improved
     // performance.
     void autoUpdateMemoryMap(bool update) noexcept;
+
+    // Copies the bytes from values into main memory starting at address.
     void loadValues(quint16 address, QVector<quint8> values) noexcept;
 
 public slots:
@@ -115,9 +117,12 @@ public slots:
     // Clear any saved input, and cancel any outstanding IO requests.
     void clearIO();
 
+    // If no input is currently requested for the address, it will be
+    // buffered internally for future usage.
     void onInputReceived(quint16 address, quint8 input);
     void onInputReceived(quint16 address, QChar input);
     void onInputReceived(quint16 address, QString input);
+
     void onInputCanceled(quint16 address);
     void onInputAborted(quint16 address);
 

@@ -897,11 +897,10 @@ void MainWindow::assembleDefaultOperatingSystem()
 {
     QString defaultOSText = Pep::resToString(":/help-micro/alignedIO-OS.pep");
     if(!defaultOSText.isEmpty()) {
-        IsaAsm assembler(memDevice, *programManager);
+        IsaAsm assembler(*programManager);
         auto elist = QList<QPair<int, QString>>();
         QSharedPointer<AsmProgram> prog;
         if(assembler.assembleOperatingSystem(defaultOSText, true, prog, elist)) {
-            IsaAsm myAsm(memDevice, *programManager);
             programManager->setOperatingSystem(prog);
             this->on_actionSystem_Clear_Memory_triggered();
         }

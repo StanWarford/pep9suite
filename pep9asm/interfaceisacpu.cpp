@@ -90,7 +90,9 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
      *  x - If CallStack is ever exhausted before size is hit, return false.
      */
 
-    if(!memTrace->activeStack->isStackIntact() || this->manager->getProgramAt(pc) == nullptr) return;
+    if(!memTrace->activeStack->isStackIntact() || this->manager->getProgramAt(pc) == nullptr
+            // For now, only allow tracing of user programs
+            || this->manager->getUserProgram() != this->manager->getProgramAt(pc)) return;
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[instr];
     quint16 size = 0;
     bool mallocPreError = false;
@@ -301,7 +303,10 @@ void InterfaceISACPU::reset() noexcept
     bool hadWarnings =  false;
     // If debugging an object code program, there is no user program
     // so don't bother rendering stack.
-    if(!this->manager->getUserProgram().isNull() ){
+    if(this->manager->getUserProgram().isNull()) {
+        return;
+    }
+    else if(!this->manager->getUserProgram().isNull() ){
         hadWarnings = !this->manager->getUserProgram()->getTraceInfo()->hadTraceTags
         || manager->getUserProgram()->getTraceInfo()->staticTraceError;
     }

@@ -82,7 +82,7 @@ bool AsmSourceCodePane::assemble()
     addressToIndex.clear();
 
     QString sourceCode = ui->textEdit->toPlainText();
-    IsaAsm myAsm(memDevice, *programManager);
+    IsaAsm myAsm(*programManager);
     // List of errors and warnings and the lines on which they occured
     auto elist = QList<QPair<int, QString> >();
     bool success = myAsm.assembleUserProgram(sourceCode, currentProgram, elist);
@@ -126,7 +126,7 @@ bool AsmSourceCodePane::assembleOS(bool forceBurnAt0xFFFF)
 {
     removeErrorMessages();
     QSharedPointer<AsmProgram> prog;
-    IsaAsm myAsm(memDevice, *programManager);
+    IsaAsm myAsm(*programManager);
     // List of errors and warnings and the lines on which they occured
     auto elist = QList<QPair<int, QString>>();
     QString sourceCode = ui->textEdit->toPlainText();

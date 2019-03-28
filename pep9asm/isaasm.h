@@ -99,16 +99,22 @@ namespace IsaParserHelper
 class StructType;
 class IsaAsm
 {
-    QSharedPointer<MainMemory> memDevice;
     AsmProgramManager& manager;
 public:
-    IsaAsm(QSharedPointer<MainMemory> memDevice, AsmProgramManager& manager);
+    IsaAsm(AsmProgramManager& manager);
     ~IsaAsm();
 
     bool assembleUserProgram(const QString& progText, QSharedPointer<AsmProgram> &progOut,
                              QList<QPair<int, QString>> &errList);
     // Pre: Operating system has been succesfully assembled, and
     // is already burned into memory.
+    // Post: Returns if a program was successfully assembled.
+    // Post: If returned true, progOut is non-null, otherwise undefined.
+    // Post: errList contains a list of (line numbers, error messages) that occured during assembly,
+    // and will be non-empty if returned false.
+    // Assembly can be successful (ret true) and still have errors. This happens when there are
+    // warnings regarding trace tags/
+
 
 
     bool assembleOperatingSystem(const QString& progText, bool forceBurnAt0xFFFF,
@@ -117,6 +123,10 @@ public:
     // The flag forceBurnAt0xFFFF requires the the argument of the .BURN have a value of 0xFFFF.
     // this is needed in Pep9Micro, as there is not enough flexibility in the static registers
     // to allow a relocatable operating system.
+    // Post: Returns if operating system was successfully assembled.
+    // Post: If returned true, progOut is non-null, otherwise undefined.
+    // Post: errList contains a list of (line numbers, error messages) that occured during assembly,
+    // and will be non-empty if returned false.
 
 private:
 

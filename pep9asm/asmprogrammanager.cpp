@@ -6,7 +6,8 @@
 AsmProgramManager* AsmProgramManager::instance = nullptr;
 AsmProgramManager::AsmProgramManager(QObject *parent): QObject(parent), operatingSystem(nullptr), userProgram(nullptr)
 {
-
+    userProgram.clear();
+    operatingSystem.clear();
 }
 
 AsmProgramManager *AsmProgramManager::getInstance()

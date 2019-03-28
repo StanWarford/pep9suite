@@ -81,12 +81,10 @@ MainWindow::MainWindow(QWidget *parent) :
     isInDarkMode(false)
 {
     // Initialize all global maps.
-    Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, true);
     Pep::initEnumMnemonMaps();
     Pep::initMnemonicMaps();
     Pep::initAddrModesMap();
     Pep::initDecoderTables();
-    Pep::initMicroDecoderTables();
     // Initialize the memory subsystem
     QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memDevice.get()));
     memDevice->insertChip(ramChip, 0);
@@ -770,11 +768,10 @@ void MainWindow::assembleDefaultOperatingSystem()
 {
     QString defaultOSText = Pep::resToString(":/help-asm/figures/pep9os.pep");
     if(!defaultOSText.isEmpty()) {
-        IsaAsm assembler(memDevice, *programManager);
+        IsaAsm assembler(*programManager);
         auto elist = QList<QPair<int, QString>>();
         QSharedPointer<AsmProgram> prog;
         if(assembler.assembleOperatingSystem(defaultOSText, true, prog, elist)) {
-            IsaAsm myAsm(memDevice, *programManager);
             programManager->setOperatingSystem(prog);
             this->on_actionSystem_Clear_Memory_triggered();
         }
