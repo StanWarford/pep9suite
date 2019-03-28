@@ -976,8 +976,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
     case Enu::EMnemonic::CPWA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
-        // The result is the decode operand specifier minus the index reg.
-        result = a - tempWord;
+        // The result is the two's complement of the decoded operand specifier plus a.
+        tempWord = ~tempWord + 1;
+        result = a + tempWord;
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
@@ -985,8 +986,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (~(a ^ tempWord) & (a ^ result)) >> 15);
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (~(a ^  tempWord) & (a ^ result)) >> 15);
         // Carry out iff result is unsigned less than register or operand.
+#pragma message("Check C")
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, result < a  || result < tempWord);
         // If there was a signed overflow, selectively invert N bit.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N)
@@ -995,8 +997,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
     case Enu::EMnemonic::CPWX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
-        // The result is the decode operand specifier minus the index reg.
-        result = x - tempWord;
+        // The result is the two's complement of the decoded operand specifier plus x.
+        tempWord = ~tempWord + 1;
+        result = x + tempWord;
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
@@ -1043,11 +1046,12 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
     // Single byte instructions
     case Enu::EMnemonic::CPBA:
         memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
-        // The result is the decode operand specifier minus the accumulator.
+        // The result is the two's complement of the decoded operand specifier plus a.
         // Narrow a and operand to 1 byte before widening to 2 bytes.
-        result = (a & 0xff) - (tempByte & 0xff);
+        tempByte = ~tempByte + 1;
+        result = (a & 0xff) + (tempByte & 0xff);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x80);
          // Is zero if all bits are 0's.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
         // RTL specifies zeroing out V, C bits.
@@ -1057,11 +1061,12 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
     case Enu::EMnemonic::CPBX:
         memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
-        // The result is the decode operand specifier minus the index reg.
+        // The result is the two's complement of the decoded operand specifier plus x.
         // Narrow a and operand to 1 byte before widening to 2 bytes.
-        result = (x & 0xff) - (tempByte & 0xff);
+        tempByte = ~tempByte + 1;
+        result = (x & 0xff) + (tempByte & 0xff);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x80);
          // Is zero if all bits are 0's.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
         // RTL specifies zeroing out V, C bits.

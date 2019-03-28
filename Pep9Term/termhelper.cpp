@@ -43,6 +43,7 @@ QVector<quint8> convertObjectCodeToIntArray(QString program)
     bool ok = false;
     quint8 temp;
     QVector<quint8> output;
+    program.replace(QRegExp("\n")," ");
     for(QString byte : program.split(" ")) {
         // toShort(...) should never throw any errors, so there should be no concerns if byte is not a hex constant.
         temp = static_cast<quint8>(byte.toShort(&ok, 16));
@@ -147,6 +148,7 @@ void RunHelper::onOutputReceived(quint16 address, quint8 value)
 
 void RunHelper::runProgram()
 {
+
     // Buffer input file into memory mapped input if possible.
     QFile input(programInput.absoluteFilePath());
     if(!input.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -157,6 +159,8 @@ void RunHelper::runProgram()
         input.close();
     }
 
+    Pep::isTrapMap;
+    Pep::addrModesMap;
     // Open up program output file if possible.
     // If output can't be opened up, abort.
     QFile output(programOutput.absoluteFilePath());
@@ -168,6 +172,7 @@ void RunHelper::runProgram()
         QSharedPointer<QTextStream> outputStream( new QTextStream(&output));
         outputs[charOut] = outputStream;
     }
+    cpu->onSimulationStarted();
     if(!cpu->onRun()) {
         qDebug().noquote() << "The CPU failed for the following reason: "<<cpu->getErrorMessage();
 #pragma message("Should this be written to a separate error file?")
