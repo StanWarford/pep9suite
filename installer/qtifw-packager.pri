@@ -52,6 +52,8 @@ else:macx{
     #Execute macdeployqt to copy needed binaries (dlls, etc).
     #See documentation here:
     #http://doc.qt.io/qt-5/windows-deployment.html
-    QMAKE_POST_LINK += $$cpq($$QtDir/bin/macdeployqt) $$DEPLOY_ARGS $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data/$$TARGET$$TARGET_EXT) $$psc
+    CONFIG(app_bundle){
+        QMAKE_POST_LINK += $$cpq($$QtDir/bin/macdeployqt) $$DEPLOY_ARGS $$cpq($$OUT_PWD/Installer/packages/$$TARGET/data/$$TARGET$$TARGET_EXT) $$psc
+    }
 }
 

@@ -16,9 +16,14 @@ win32{
     psc="&"
     TARGET_EXT=".exe"
 }
-macx|linux{
+macx|linux {
     psc=";"
-    TARGET_EXT=".app"
+    CONFIG(app_bundle){
+        TARGET_EXT=".app"
+    }
+    else{
+        TARGET_EXT=""
+    }
 }
 
 #Prevent Windows from trying to parse the project three times per build.

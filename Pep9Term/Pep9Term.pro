@@ -30,7 +30,7 @@ win32{
 }
 
 # Mac icon/plist
-ICON = images/icon.icns
+ICON = ../Pep9asm/images/icon.icns
 QMAKE_INFO_PLIST = app.plist
 QMAKE_MAC_SDK = macosx10.14
 
@@ -40,7 +40,7 @@ QMAKE_MAC_SDK = macosx10.14
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        main.cpp \
+    main.cpp \
     termhelper.cpp
 
 # Default rules for deployment.
@@ -70,7 +70,7 @@ include(../pep9asm/pep9asm-common.pro)
 
 #Add this include to the bottom of your project to enable automated installer creation
 #Include the definitions file that sets all variables needed for the InstallerConfig Script
-#include("installer-config.pri")
+include("installer-config.pri")
 
 #Lastly, include and run the installer config script
-#include("../installer/installer-creator.pri")
+include("../installer/installer-creator.pri")
