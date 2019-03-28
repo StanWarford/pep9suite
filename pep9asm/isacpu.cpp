@@ -1049,7 +1049,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         // The result is the two's complement of the decoded operand specifier plus a.
         // Narrow a and operand to 1 byte before widening to 2 bytes.
         tempByte = ~tempByte + 1;
-        result = (a & 0xff) + (tempByte & 0xff);
+        result = ((a & 0xff) + (tempByte & 0xff)) & 0xff;
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x80);
          // Is zero if all bits are 0's.
@@ -1064,7 +1064,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         // The result is the two's complement of the decoded operand specifier plus x.
         // Narrow a and operand to 1 byte before widening to 2 bytes.
         tempByte = ~tempByte + 1;
-        result = (x & 0xff) + (tempByte & 0xff);
+        result = ((x & 0xff) + (tempByte & 0xff)) & 0xff;
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x80);
          // Is zero if all bits are 0's.

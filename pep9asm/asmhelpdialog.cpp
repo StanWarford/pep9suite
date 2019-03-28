@@ -543,6 +543,7 @@ QString HelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString
         }
         else if (row == eFIG435) {
             destPane = Enu::EPane::EObject;
+            inputDest = Enu::EPane::EBatchIO;
             input = "up";
             return Pep::resToString(":/help-asm/figures/fig0435.pepo");
         }
@@ -556,77 +557,101 @@ QString HelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString
         }
         else if (row == eFIG506) {
             input = "up";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG511) {
             input = "-479";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG512) {
             input = "-479";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG515) {
             input = "-479";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG522) {
             input = "M 419";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG527 || row == eFIG604) {
             input = "68 84";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG606) {
             input = "-25";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG608) {
             input = "75";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG610) {
             input = "Hello, world!*";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG616) {
             input = "3 -15 25";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG621 || row == eFIG623) {
             input = "12  3 13 17 34 27 23 25 29 16 10 0 2";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG632) {
             input = "25";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG634) {
             input = "60 70 80 90";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG636) {
             input = "2 26 -3 9";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG638) {
             input = "5  40 50 60 70 80";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG646) {
             input = "bj 32 m";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG648) {
             input = "10 20 30 40 -9999";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == eFIG627 || row == eFIG629 || row == eFIG640) {
             inputDest = Enu::EPane::ETerminal;
         }
+
     }
     if (parentRow == ePROBLEMS) {
         if (row == eEXER804) {
             input = "37";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == ePROB826) {
             input = "7";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == ePROB827) {
             input = "7 3";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == ePROB828) {
             input = "5 9";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == ePROB831) {
             input = "12 7";
+            inputDest = Enu::EPane::EBatchIO;
         }
         else if (row == ePROB832) {
             input = "32773 6";
+            inputDest = Enu::EPane::EBatchIO;
         }
     }
     destPane = Enu::EPane::ESource;
