@@ -90,7 +90,7 @@ RunHelper::RunHelper(const QString objectCodeString, QFileInfo programOutput,
     programOutput(programOutput), programInput(programInput),manager(manager),
     // Explicitly initialize both simulation objects to nullptr,
     // so that it is clear to that neither object has been allocated
-    memory(nullptr), cpu(nullptr)
+    memory(nullptr), cpu(nullptr), outputs()
 
 {
 
@@ -155,7 +155,7 @@ void RunHelper::runProgram()
     if(!programInput.exists()) {
         memory->onInputReceived(charIn, "\n");
     }
-    if(programInput.exists() && !input.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    else if(!input.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug().noquote() << errLogOpenErr.arg(input.fileName());
     } else {
         QTextStream inputStream(&input);
@@ -178,9 +178,12 @@ void RunHelper::runProgram()
     if(!cpu->onRun()) {
         qDebug().noquote() << "The CPU failed for the following reason: "<<cpu->getErrorMessage();
         *(outputs[charOut].get()) << "[[" << cpu->getErrorMessage() << "]]";
+    } else{
+        output.close();
+        outputs[charOut].clear();
     }
-    outputs[charOut].clear();
-    output.close();
+    QCoreApplication::processEvents();
+
 
 }
 
