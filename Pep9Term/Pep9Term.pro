@@ -9,7 +9,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # Console application specific configuration.
 QT -= gui
 CONFIG += c++17 console
-CONFIG -= app_bundle
 
 TARGET = pep9term
 #Prevent Windows from trying to parse the project three times per build.

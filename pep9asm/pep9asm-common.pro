@@ -1,7 +1,7 @@
 #TEMPLATE = lib
 #TARGET = Pep9Common
 #CONFIG += staticlib
-QT += webenginewidgets widgets printsupport concurrent
+QT += widgets printsupport concurrent
 INCLUDEPATH += $$PWD\..\pep9common
 VPATH += $$PWD\..\pep9common
 
