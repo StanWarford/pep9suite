@@ -297,7 +297,7 @@ bool BuildHelper::buildProgram()
         }
         else {
             QTextStream listingStream(&listingFile);
-            for (auto line :program->getProgram()) {
+            for (auto line : program->getProgram()) {
                 listingStream << line->getAssemblerListing() << endl;
             }
             listingFile.close();

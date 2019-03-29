@@ -11,6 +11,7 @@
 #include <QCommandLineParser>
 QString asmInputFileText = "Input Pep/9 source program for assembler";
 QString asmOutputFileText = "Output object code generated from source.";
+
 int main(int argc, char *argv[])
 {
     // Construct an application so that we have a Qt main event loop.
@@ -43,7 +44,7 @@ Run pep9term 'mode' --help for more options.");
     if (command == "asm") {
         parser.clearPositionalArguments();
         parser.addPositionalArgument("asm", "Assemble a Pep/9 source code program", "pep9term asm -i source.pep -o assembled.pepo");
-        parser.addOption(QCommandLineOption("i", asmInputFileText, "source_file"));
+        parser.addOption(QCommandLineOption("s", asmInputFileText, "source_file"));
         parser.addOption(QCommandLineOption("o", asmOutputFileText, "object_file"));
     }
     else if (command == "run") {
@@ -79,27 +80,27 @@ Run pep9term 'mode' --help for more options.");
 
     if (command == "asm") {
         // Needs both an input and output source to be a well-defined command.
-        if(!parser.isSet("i") || !parser.isSet("o")) {
+        if(!parser.isSet("s") || !parser.isSet("o")) {
             qDebug() << "Invalid option combination";
             parser.showHelp(-1);
         }
 
         // File names associated with cli parameters.
-        QString inputFileString = parser.value("i");
-        QString outputFileString = parser.value("o");
+        QString sourceFileString = parser.value("s");
+        QString objectFileString = parser.value("o");
 
-        QFile inputFile(inputFileString);
-        QString inputText;
-        if(!inputFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            qDebug().noquote() << errLogOpenErr.arg(inputFile.fileName());
+        QFile sourceFile(sourceFileString);
+        QString sourceText;
+        if(!sourceFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qDebug().noquote() << errLogOpenErr.arg(sourceFile.fileName());
             parser.showHelp(-1);
         }
         else {
-            QTextStream inputStream(&inputFile);
-            inputText = inputStream.readAll();
-            inputFile.close();
+            QTextStream sourceStream(&sourceFile);
+            sourceText = sourceStream.readAll();
+            sourceFile.close();
 
-            BuildHelper *helper = new BuildHelper(inputText, outputFileString, *AsmProgramManager::getInstance());
+            BuildHelper *helper = new BuildHelper(sourceText, objectFileString, *AsmProgramManager::getInstance());
             QObject::connect(helper, &BuildHelper::finished, quitLambda);
 
             run = helper;
@@ -123,8 +124,8 @@ Run pep9term 'mode' --help for more options.");
             parser.showHelp(-1);
         }
 
-        QTextStream inputStream(&objFile);
-        QString objText = inputStream.readAll();
+        QTextStream objStream(&objFile);
+        QString objText = objStream.readAll();
         objFile.close();
 
         RunHelper *helper = new RunHelper(objText, textOutputFileName, textInputFileName,
