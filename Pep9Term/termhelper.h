@@ -74,7 +74,8 @@ class RunHelper: public QObject, public QRunnable {
     // Load the object code of the operating system into memory from manager.
     void loadOperatingSystem();
 public:
-    // Pass
+    // Program input may be an empty file. If it is empty or does not
+    // exist, then it will be ignored.
     explicit RunHelper(const QString objectCodeString, QFileInfo programOutput,
                        QFileInfo programInput, AsmProgramManager& manager,
                        QObject *parent = nullptr);

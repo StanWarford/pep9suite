@@ -150,16 +150,19 @@ void RunHelper::runProgram()
 
     // Buffer input file into memory mapped input if possible.
     QFile input(programInput.absoluteFilePath());
-    if(!input.open(QIODevice::ReadOnly | QIODevice::Text)) {
+
+    // If there is not input, append a newline so that there is a least one character buffered.
+    if(!programInput.exists()) {
+        memory->onInputReceived(charIn, "\n");
+    }
+    if(programInput.exists() && !input.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug().noquote() << errLogOpenErr.arg(input.fileName());
     } else {
         QTextStream inputStream(&input);
-        memory->onInputReceived(charIn, inputStream.readAll()%"\n");
+        memory->onInputReceived(charIn, inputStream.readAll() % "\n");
         input.close();
     }
 
-    Pep::isTrapMap;
-    Pep::addrModesMap;
     // Open up program output file if possible.
     // If output can't be opened up, abort.
     QFile output(programOutput.absoluteFilePath());
@@ -174,7 +177,6 @@ void RunHelper::runProgram()
     cpu->onSimulationStarted();
     if(!cpu->onRun()) {
         qDebug().noquote() << "The CPU failed for the following reason: "<<cpu->getErrorMessage();
-#pragma message("Should this be written to a separate error file?")
         *(outputs[charOut].get()) << "[[" << cpu->getErrorMessage() << "]]";
     }
     outputs[charOut].clear();
@@ -215,7 +217,7 @@ void RunHelper::run()
 
 BuildHelper::BuildHelper(const QString source, QFileInfo objFileInfo,
                          AsmProgramManager &manager, QObject *parent): QObject(parent),
-    QRunnable (), source(source), objFileInfo(objFileInfo), manager(manager)
+    QRunnable(), source(source), objFileInfo(objFileInfo), manager(manager)
 {
 
 }

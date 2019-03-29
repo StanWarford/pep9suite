@@ -131,7 +131,7 @@ void IsaCpu::onISAStep()
     emit asmInstructionFinished();
     asmInstructionCounter++;
 
-    qDebug().noquote().nospace() << memoizer->memoize();
+    // qDebug().noquote().nospace() << memoizer->memoize();
 
     registerBank.flattenFile();
 
@@ -902,7 +902,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         // The result is the two's complement of the decoded operand specifier plus a.
         tempWord = ~tempWord + 1;
         // The result is the decoded operand specifier plus the accumulator.
-        result = a - tempWord;
+        result = a + tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
