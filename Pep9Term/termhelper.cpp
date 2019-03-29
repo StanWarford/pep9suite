@@ -285,12 +285,13 @@ bool BuildHelper::buildProgram()
             }
             objectCodeString.append("zz");
             QTextStream objStream(&objectFile);
-            objStream << objectCodeString;
+            objStream << objectCodeString << "\n";
             objectFile.close();
         }
 
         // Also attempt to generate listing file from assembled program as well.
-        QFile listingFile(objectFile.fileName().replace(QRegExp("\\.pepo"),".pepl"));
+        QFile listingFile(QFileInfo(objectFile).absoluteDir().absoluteFilePath(
+                              QFileInfo(objectFile).baseName() + ".pepl"));
         if(!listingFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
             qDebug().noquote() << errLogOpenErr.arg(listingFile.fileName());
         }

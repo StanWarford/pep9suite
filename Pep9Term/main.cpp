@@ -42,14 +42,14 @@ Run pep9term 'mode' --help for more options.");
     // Reconstruct the parser options based on the application's mode.
     if (command == "asm") {
         parser.clearPositionalArguments();
-        parser.addPositionalArgument("asm", "Assembly a Pep/9 source code program", "pep9term asm -i source.pep -o assembled.pepo");
+        parser.addPositionalArgument("asm", "Assemble a Pep/9 source code program", "pep9term asm -i source.pep -o assembled.pepo");
         parser.addOption(QCommandLineOption("i", asmInputFileText, "source_file"));
         parser.addOption(QCommandLineOption("o", asmOutputFileText, "object_file"));
     }
     else if (command == "run") {
         parser.clearPositionalArguments();
-        parser.addPositionalArgument("run", "Resize the object to a new size.",
-                                     "pep9term run -s asm.o -i charInInput.txt, -o charOut.txt");
+        parser.addPositionalArgument("run", "Run an object code program.",
+                                     "pep9term run -s asm.pepo -i charInInput.txt, -o charOut.txt");
         parser.addOption(QCommandLineOption("s", asmInputFileText, "object_files"));
         // Batch input that will be loaded into charIn.
         parser.addOption(QCommandLineOption("i", asmOutputFileText, "text_input"));

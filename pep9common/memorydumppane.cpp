@@ -31,6 +31,9 @@
 #include "memorydumppane.h"
 #include "pep.h"
 #include "ui_memorydumppane.h"
+#include <QtAlgorithms>
+#include <QtCore>
+#include <Qt>
 
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     QWidget(parent), ui(new Ui::MemoryDumpPane), data(new QStandardItemModel(this)), lineSize(500), memDevice(nullptr),
@@ -209,7 +212,7 @@ void MemoryDumpPane::updateMemory()
         linesToBeUpdated.insert(list.takeFirst() / 8);
     }
     list = linesToBeUpdated.toList();
-    qSort(list.begin(), list.end());
+    std::sort(list.begin(), list.end());
 
     for(auto x: list) {
         // Multiply by 8 to convert from line # to address of first byte on a line.

@@ -120,7 +120,7 @@ public:
  * If objFile doesn't exist at the end of the execution of this script, then
  * the file failed to assemble, and as such there must be an error log.
  *
- * When the assembler finishes running, or is terminated,finished() will be emitted
+ * When the assembler finishes running, or is terminated, finished() will be emitted
  * so that the application may shut down safely.
  */
 class BuildHelper: public QObject, public QRunnable {

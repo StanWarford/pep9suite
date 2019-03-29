@@ -865,7 +865,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 #pragma message ("first to fix")
     case Enu::EMnemonic::ADDA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
-        // The result is the decode operand specifier plus the accumulator
+        // The result is the decoded operand specifier plus the accumulator
         result = a + tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
         // Is negative if high order bit is 1.
@@ -882,7 +882,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
     case Enu::EMnemonic::ADDX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
-        // The result is the decode operand specifier plus the index reg.
+        // The result is the decoded operand specifier plus the index reg.
         result = x + tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
         // Is negative if high order bit is 1.
@@ -899,7 +899,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
     case Enu::EMnemonic::SUBA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
-        // The result is the decode operand specifier minus the accumulator.
+        // The result is the two's complement of the decoded operand specifier plus a.
+        tempWord = ~tempWord + 1;
+        // The result is the decoded operand specifier plus the accumulator.
         result = a - tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
         // Is negative if high order bit is 1.
@@ -916,8 +918,10 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
     case Enu::EMnemonic::SUBX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
-        // The result is the decode operand specifier minus the index reg.
-        result = x - tempWord;
+        // The result is the two's complement of the decoded operand specifier plus a.
+        tempWord = ~tempWord + 1;
+        // The result is the decoded operand specifier plus the index reg.
+        result = x + tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
@@ -933,7 +937,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
     case Enu::EMnemonic::ANDA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
-        // The result is the decode operand specifier bitwise and'ed with the accumulator.
+        // The result is the decoded operand specifier bitwise and'ed with the accumulator.
         result = a & tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
         // Is negative if high order bit is 1.
@@ -944,7 +948,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
     case Enu::EMnemonic::ANDX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
-        // The result is the decode operand specifier bitwise and'ed the index reg.
+        // The result is the decoded operand specifier bitwise and'ed the index reg.
         result = x & tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
         // Is negative if high order bit is 1.
@@ -955,7 +959,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
     case Enu::EMnemonic::ORA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
-        // The result is the decode operand specifier bitwise or'ed with the accumulator.
+        // The result is the decoded operand specifier bitwise or'ed with the accumulator.
         result = a | tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::A, result);
         // Is negative if high order bit is 1.
@@ -965,7 +969,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
     case Enu::EMnemonic::ORX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
-        // The result is the decode operand specifier bitwise or'ed the index reg.
+        // The result is the decoded operand specifier bitwise or'ed the index reg.
         result = x | tempWord;
         registerBank.writeRegisterWord(Enu::CPURegisters::X, result);
         // Is negative if high order bit is 1.
@@ -1047,9 +1051,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
     case Enu::EMnemonic::CPBA:
         memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         // The result is the two's complement of the decoded operand specifier plus a.
-        // Narrow a and operand to 1 byte before widening to 2 bytes.
+        // Narrow a and operand to 1 byte before widening to 2 bytes for result.
         tempByte = ~tempByte + 1;
-        result = ((a & 0xff) + (tempByte & 0xff)) & 0xff;
+        result = (a + tempByte) & 0xff;
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x80);
          // Is zero if all bits are 0's.
@@ -1062,9 +1066,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
     case Enu::EMnemonic::CPBX:
         memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         // The result is the two's complement of the decoded operand specifier plus x.
-        // Narrow a and operand to 1 byte before widening to 2 bytes.
+        // Narrow a and operand to 1 byte before widening to 2 bytes for result.
         tempByte = ~tempByte + 1;
-        result = ((x & 0xff) + (tempByte & 0xff)) & 0xff;
+        result = (x + tempByte) & 0xff;
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x80);
          // Is zero if all bits are 0's.

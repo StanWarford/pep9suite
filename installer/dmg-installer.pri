@@ -9,7 +9,9 @@ CONFIG(app_bundle){
 QMAKE_POST_LINK += hdiutil create -volname $$TARGET -srcfolder $$cpq($$OUT_PWD/Installer/dmg-installer) -attach -ov -format UDRW $$OUT_PWD/Installer/$$TARGET"Temp.dmg"$$psc
 #Link from the read/write image to the machine's Applications folder
 QMAKE_POST_LINK += ln -s /Applications /Volumes/$$TARGET/Applications$$psc
-
+#For small files, there seems to be an issue where commands will execute out of order.
+#A short pauses seems to prevent the bug of not copying over data items & making links.
+QMAKE_POST_LINK += sleep 1 $$psc
 #Write all data files to image
 for(PACKAGE, TARGET_PACKAGES) {
     #For each target package, copy it over into the installer
@@ -19,8 +21,9 @@ for(PACKAGE, TARGET_PACKAGES) {
         QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$ITEM) $$cpq(/Volumes/$$TARGET/) $$psc
     }
 }
+#Needed longer pause before detaching, otherwise files not copied succesfully.
+QMAKE_POST_LINK += sleep 3 $$psc
 #Unmount the image, and create a new compressed, readonly image.
-QMAKE_POST_LINK += sleep 1 $$psc
 QMAKE_POST_LINK += hdiutil detach /Volumes/$$TARGET$$psc
 QMAKE_POST_LINK += sleep 1 $$psc
 QMAKE_POST_LINK += $${QMAKE_COPY} $$cpq($$OUT_PWD/Installer/$$TARGET"Temp".dmg) $$cpq($$OUT_PWD/Installer/$$TARGET"Temp2".dmg)$$psc
