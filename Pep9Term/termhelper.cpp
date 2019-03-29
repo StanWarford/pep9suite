@@ -63,7 +63,6 @@ void buildDefaultOperatingSystem(AsmProgramManager &manager)
         auto elist = QList<QPair<int, QString>>();
         IsaAsm assembler(manager);
         if(assembler.assembleOperatingSystem(defaultOSText, true, prog, elist)) {
-            qDebug() << "OS assembled successfully.";
             manager.setOperatingSystem(prog);
         }
         // If the operating system failed to assembly, we can't progress any further.
@@ -260,8 +259,8 @@ bool BuildHelper::buildProgram()
             qDebug().noquote() << hadErr.arg(objectFile.fileName());
             QTextStream errAsStream(&errorLog);
             auto textList = source.split("\n");
+            qDebug() << "Program assembly failed, see error log.";
             for(auto errorPair : elist) {
-                qDebug().noquote() << textList[errorPair.first] << errorPair.second << endl;
                 errAsStream << textList[errorPair.first] << errorPair.second << endl;
             }
             // Error log should be flushed automatically.
@@ -270,7 +269,7 @@ bool BuildHelper::buildProgram()
     }
     // Only open & write object code file if assembly was successful.
     if(success) {
-        qDebug() << "Program assembled successfully.";
+        qDebug() << "Program assembly successfully.";
         // Attempt to open object code file. Write error to standard out if it fails.
         if(!objectFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
             qDebug().noquote() << errLogOpenErr.arg(objectFile.fileName());

@@ -50,12 +50,12 @@ Run pep9term 'mode' --help for more options.");
     else if (command == "run") {
         parser.clearPositionalArguments();
         parser.addPositionalArgument("run", "Run an object code program.",
-                                     "pep9term run -s asm.pepo -i charInInput.txt, -o charOut.txt");
-        parser.addOption(QCommandLineOption("s", asmInputFileText, "object_files"));
+                                     "pep9term run -s asm.pepo -i charIn.txt, -o charOut.txt");
+        parser.addOption(QCommandLineOption("s", asmInputFileText, "object_source_file"));
         // Batch input that will be loaded into charIn.
-        parser.addOption(QCommandLineOption("i", asmOutputFileText, "text_input"));
+        parser.addOption(QCommandLineOption("i", asmOutputFileText, "char_input"));
         // File where values written to charOut will be stored.
-        parser.addOption(QCommandLineOption("o", asmOutputFileText, "text_output"));
+        parser.addOption(QCommandLineOption("o", asmOutputFileText, "char_output"));
     }
     // Otherwise it's an invalid mode, return an error and have the help
     // documentation appear
@@ -108,7 +108,7 @@ Run pep9term 'mode' --help for more options.");
     }
     else if(command == "run") {
         // Needs both an source program, input & output to be a well-defined command.
-        if(!parser.isSet("s") || !parser.isSet("i") || !parser.isSet("o")) {
+        if(!parser.isSet("s") || !parser.isSet("o")) {
             qDebug() << "Invalid option combination";
             parser.showHelp(-1);
         }
