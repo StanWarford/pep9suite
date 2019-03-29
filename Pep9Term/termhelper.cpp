@@ -256,10 +256,8 @@ bool BuildHelper::buildProgram()
             qDebug().noquote() << errLogOpenErr.arg(errorLog.fileName());
         }
         else {
-            qDebug().noquote() << hadErr.arg(objectFile.fileName());
             QTextStream errAsStream(&errorLog);
             auto textList = source.split("\n");
-            qDebug() << "Program assembly failed, see error log.";
             for(auto errorPair : elist) {
                 errAsStream << textList[errorPair.first] << errorPair.second << endl;
             }
@@ -267,9 +265,17 @@ bool BuildHelper::buildProgram()
             errorLog.close();
         }
     }
+
     // Only open & write object code file if assembly was successful.
     if(success) {
-        qDebug() << "Program assembly successfully.";
+        // Program assembly can succeed despite the presence of errors in the
+        // case of trace tag warnings. Must gaurd against this.
+        if(elist.isEmpty()) {
+            qDebug() << "Program assembled successfully.";
+        }
+        else {
+            qDebug() << "Warning(s) generated. See error log.";
+        }
         // Attempt to open object code file. Write error to standard out if it fails.
         if(!objectFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
             qDebug().noquote() << errLogOpenErr.arg(objectFile.fileName());
@@ -301,6 +307,9 @@ bool BuildHelper::buildProgram()
             }
             listingFile.close();
         }
+    }
+    else {
+        qDebug() << "Error(s) generated. See error log.";
     }
     return success;
 }
