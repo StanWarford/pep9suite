@@ -346,10 +346,10 @@ bool IsaCpu::onRun()
     }
 
     auto value = timer.elapsed();
-    qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
-    qDebug().nospace().noquote() << "Executed "<< asmInstructionCounter << " instructions.";
-    qDebug().nospace().noquote() << "Execution time (ms): " << value;
-    qDebug().nospace().noquote() << "Instructions per second: " << asmInstructionCounter / (((float)value/1000));
+    // qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
+    // qDebug().nospace().noquote() << "Executed "<< asmInstructionCounter << " instructions.";
+    // qDebug().nospace().noquote() << "Execution time (ms): " << value;
+    // qDebug().nospace().noquote() << "Instructions per second: " << asmInstructionCounter / (((float)value/1000));
     return true;
 }
 
