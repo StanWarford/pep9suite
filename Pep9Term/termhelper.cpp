@@ -243,7 +243,7 @@ bool BuildHelper::buildProgram()
     // Construct files that will be needed for assembly
     QFile objectFile(objFileInfo.absoluteFilePath());
     QFile errorLog(QFileInfo(objectFile).absoluteDir().absoluteFilePath(
-                       QFileInfo(objectFile).baseName() + "-errLog.txt"));
+                       QFileInfo(objectFile).baseName() + "_errLog.txt"));
     QSharedPointer<AsmProgram> program;
     auto elist = QList<QPair<int, QString> >();
     IsaAsm assmembler(manager);
