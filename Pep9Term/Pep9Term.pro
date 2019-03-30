@@ -44,6 +44,7 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs depr
 SOURCES += \
     main.cpp \
     termhelper.cpp \
+    boundexecisacpu.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -52,15 +53,20 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     termhelper.h \
+    boundexecisacpu.h
 
 RESOURCES += \
     ../pep9common/pep9common-helpresources.qrc\
     ../pep9asm/pep9asm-resources.qrc \
-    ../pep9asm/pep9asm-helpresources.qrc
+    ../pep9asm/pep9asm-helpresources.qrc \
+    pep9term-helpresources.qrc
+
+DISTFILES += \
+    help-term/about.txt
+
 
 INCLUDEPATH += $$PWD/../pep9common
 INCLUDEPATH += $$PWD/../pep9asm
-
 
 #Include own directory in VPATH, otherwise qmake might accidentally import files with
 #the same name from other directories.
@@ -76,3 +82,4 @@ include("installer-config.pri")
 
 #Lastly, include and run the installer config script
 include("../installer/installer-creator.pri")
+

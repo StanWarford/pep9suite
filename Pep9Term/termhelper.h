@@ -30,7 +30,7 @@ extern const QString assemble;
 
 class MainMemory;
 class AsmProgramManager;
-class IsaCpu;
+class BoundExecIsaCpu;
 
 // Assemble the default operating system for the help documentation,
 // and install it into the program manager.
@@ -59,12 +59,14 @@ class RunHelper: public QObject, public QRunnable {
     // Memory device used by simulation.
     QSharedPointer<MainMemory> memory;
     // The CPU simulator that will perform the computation
-    QSharedPointer<IsaCpu> cpu;
+    QSharedPointer<BoundExecIsaCpu> cpu;
 
     // Potentially multiple output sources, but don't take time to simulate now.
     QFile* outputFile;
     // Addresses of the character input / character output ports.
     quint16 charIn, charOut;
+    // Maximum number of steps the simulator should execute before force quitting.
+    quint64 maxSimSteps;
 
     // Helper method responsible for buffering input, opening output streams,
     // converting string object code to a byte list, and executing the object
@@ -76,8 +78,8 @@ class RunHelper: public QObject, public QRunnable {
 public:
     // Program input may be an empty file. If it is empty or does not
     // exist, then it will be ignored.
-    explicit RunHelper(const QString objectCodeString, QFileInfo programOutput,
-                       QFileInfo programInput, AsmProgramManager& manager,
+    explicit RunHelper(const QString objectCodeString, quint64 maxSimSteps,
+                       QFileInfo programOutput, QFileInfo programInput, AsmProgramManager& manager,
                        QObject *parent = nullptr);
     ~RunHelper() override;
 

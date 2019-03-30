@@ -31,6 +31,8 @@
 #include "memorychips.h"
 #include "amemorychip.h"
 #include "mainmemory.h"
+#include "boundexecisacpu.h"
+
 // Error messages potentially used in multiple places;
 const QString errLogOpenErr = "Could not open file: %1";
 const QString hadErr        = "Errors/warnings encountered while generating output for file: %1";
@@ -84,13 +86,14 @@ void buildDefaultOperatingSystem(AsmProgramManager &manager)
 
 }
 
-RunHelper::RunHelper(const QString objectCodeString, QFileInfo programOutput,
-                     QFileInfo programInput, AsmProgramManager &manager, QObject *parent):
+RunHelper::RunHelper(const QString objectCodeString,quint64 maxSimSteps,
+                     QFileInfo programOutput, QFileInfo programInput, AsmProgramManager &manager,
+                     QObject *parent):
     QObject(parent), QRunnable (), objectCodeString(objectCodeString),
     programOutput(programOutput), programInput(programInput) ,manager(manager),
     // Explicitly initialize both simulation objects to nullptr,
     // so that it is clear to that neither object has been allocated
-    memory(nullptr), cpu(nullptr), outputFile(nullptr)
+    memory(nullptr), cpu(nullptr), outputFile(nullptr), maxSimSteps(maxSimSteps)
 
 {
 
@@ -191,6 +194,7 @@ void RunHelper::runProgram()
         // If it could be opened, map charOut to the file.
         outputFile = output;
     }
+
     // Make sure to set up any last minute flags needed by CPU to perform simulation.
     cpu->onSimulationStarted();
     if(!cpu->onRun()) {
@@ -211,7 +215,7 @@ void RunHelper::run()
         QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memory.get()));
         memory->insertChip(ramChip, 0);
 
-        cpu = QSharedPointer<IsaCpu>::create(&manager, memory, nullptr);
+        cpu = QSharedPointer<BoundExecIsaCpu>::create(maxSimSteps, &manager, memory, nullptr);
 
         // Connect IO events
         connect(memory.get(), &MainMemory::inputRequested, this, &RunHelper::onInputRequested, Qt::QueuedConnection);

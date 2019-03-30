@@ -1,3 +1,23 @@
+// File: main.cpp
+/*
+    Pep9 is a virtual machine for writing machine language and assembly
+    language programs.
+
+    Copyright (C) 2019  J. Stanley Warford & Matthew McRaevn, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include <QCoreApplication>
 #include <QtCore>
 #include <QDebug>
@@ -9,8 +29,13 @@
 #include "pep.h"
 #include <QCommandLineOption>
 #include <QCommandLineParser>
-QString asmInputFileText = "Input Pep/9 source program for assembler";
-QString asmOutputFileText = "Output object code generated from source.";
+#include "boundexecisacpu.h"
+const QString asmInputFileText = "Input Pep/9 source program for assembler";
+const QString asmOutputFileText = "Output object code generated from source.";
+const QString objInputFileText = "Input Pep/9 object code program for simulator";
+const QString charinFileText = "File which will be buffered behind the charIn";
+const QString charoutFileText = "File which charOut will be written to.";
+const QString maxStepText = "The maximum number of steps executed before aborting. Defaults to %1";
 
 int main(int argc, char *argv[])
 {
@@ -34,6 +59,8 @@ int main(int argc, char *argv[])
     // the leading positional argument. However, the parser lacks this functionality.
     parser.addPositionalArgument("mode", "The mode Pep/ to be executed: Options are \"asm\" and \"run\".  \
 Run pep9term 'mode' --help for more options.");
+    parser.addOption(QCommandLineOption("about",
+                                        "Display information about Qt & developers."));
     parser.parse(QCoreApplication::arguments());
 
     // Fetch the positional argument list, the first of which is the "mode"
@@ -41,7 +68,14 @@ Run pep9term 'mode' --help for more options.");
     const QStringList args = parser.positionalArguments();
     const QString command = args.isEmpty() ? QString() : args.first();
     // Reconstruct the parser options based on the application's mode.
-    if (command == "asm") {
+    if(parser.isSet("about")) {
+        QFile aboutFile(":/help-term/about.txt");
+        aboutFile.open(QIODevice::ReadOnly | QIODevice::Text);
+        qDebug().noquote() << aboutFile.readAll();
+        aboutFile.close();
+        return 0;
+    }
+    else if (command == "asm") {
         parser.clearPositionalArguments();
         parser.addPositionalArgument("asm", "Assemble a Pep/9 source code program", "pep9term asm -i source.pep -o assembled.pepo");
         parser.addOption(QCommandLineOption("s", asmInputFileText, "source_file"));
@@ -51,11 +85,15 @@ Run pep9term 'mode' --help for more options.");
         parser.clearPositionalArguments();
         parser.addPositionalArgument("run", "Run an object code program.",
                                      "pep9term run -s asm.pepo -i charIn.txt, -o charOut.txt");
-        parser.addOption(QCommandLineOption("s", asmInputFileText, "object_source_file"));
+        parser.addOption(QCommandLineOption("s", objInputFileText, "object_source_file"));
         // Batch input that will be loaded into charIn.
-        parser.addOption(QCommandLineOption("i", asmOutputFileText, "char_input"));
+        parser.addOption(QCommandLineOption("i", charinFileText, "char_input"));
         // File where values written to charOut will be stored.
-        parser.addOption(QCommandLineOption("o", asmOutputFileText, "char_output"));
+        parser.addOption(QCommandLineOption("o", charoutFileText, "char_output"));
+        // Maximum number of steps.
+        parser.addOption(QCommandLineOption("m",
+                                            maxStepText.arg(BoundExecIsaCpu::getDefaultMaxSteps()),
+                                            "max_Steps"));
     }
     // Otherwise it's an invalid mode, return an error and have the help
     // documentation appear
@@ -113,7 +151,8 @@ Run pep9term 'mode' --help for more options.");
         QString objCodeFileName = parser.value("s");
         QString textInputFileName = parser.value("i");
         QString textOutputFileName = parser.value("o");
-
+        QString stepMaxValue = parser.value("m");
+        // Load object code string from file if possible, else print error log.
         QFile objFile(objCodeFileName);
         if(!objFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
             qDebug().noquote() << errLogOpenErr.arg(objFile.fileName());
@@ -124,8 +163,14 @@ Run pep9term 'mode' --help for more options.");
         QString objText = objStream.readAll();
         objFile.close();
 
-        RunHelper *helper = new RunHelper(objText, textOutputFileName, textInputFileName,
-                                          *AsmProgramManager::getInstance());
+        // Attempt to parse stepMax string as an integer.
+        bool stepConvWorked;
+        quint64 maxSimSteps = stepMaxValue.toULong(&stepConvWorked);
+        if(!stepConvWorked || maxSimSteps == 0) {
+            maxSimSteps = BoundExecIsaCpu::getDefaultMaxSteps();
+        }
+        RunHelper *helper = new RunHelper(objText,maxSimSteps, textOutputFileName,
+                                          textInputFileName, *AsmProgramManager::getInstance());
         QObject::connect(helper, &RunHelper::finished, &a, &QCoreApplication::quit);
 
         run = helper;

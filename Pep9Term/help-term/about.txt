@@ -1,0 +1,16 @@
+Pep/9 Terminal version 9.2
+
+Check for updates:
+       https://github.com/StanWarford/pep9suite/releases
+
+Authors
+       Matthew McRaven (Matthew.McRaven@pepperdine.edu)
+       J. Stanley Warford (Stan.Warford@pepperdine.edu)
+       Emily Dimpfl (Emily.Dimpfl@gmail.com)
+
+Licensing
+       Pep9term is distributed under an  Open  Source  license.   See  the
+       file "LICENSE"  in the github source distribution for information on
+       terms & conditions for accessing and otherwise using  Pep9term  and  for
+       a  DISCLAIMER OF ALL WARRANTIES.
+
