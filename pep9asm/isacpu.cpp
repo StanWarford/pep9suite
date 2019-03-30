@@ -179,9 +179,19 @@ bool IsaCpu::readOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quin
 void IsaCpu::initCPU()
 {
     // Initialize CPU with proper stack pointer value in SP register.
-    #pragma message ("TODO: Init cpu with proper SP when not burned in at 0xffff")
-    registerBank.writeRegisterWord(Enu::CPURegisters::SP, 0xFB82);
-    #pragma message("TODO: Make sure this where registers should be flattened")
+    if(manager->getOperatingSystem().isNull()) {
+        // If there is somehow no opeeating system, default to the correct SP.
+        registerBank.writeRegisterWord(Enu::CPURegisters::SP, 0xFBF8);
+    }
+    // Otherwise, get the correct value from the memory vectors.
+    else {
+        // Get the offset from the bottom of memory.
+        quint16 offset = manager->getMemoryVectorOffset(AsmProgramManager::MemoryVectors::UserStack);
+        quint16 value;
+        // The value starts at max address minus offset.
+        memory->getWord(memory->maxAddress() - offset,value);
+        registerBank.writeRegisterWord(Enu::CPURegisters::SP, value);
+    }
     registerBank.flattenFile();
 }
 

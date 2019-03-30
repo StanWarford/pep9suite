@@ -104,14 +104,14 @@ bool NilChip::writeByte(quint16 offsetFromBase, quint8 value)
 
 bool NilChip::getByte(quint16 offsetFromBase, quint8 &/*output*/) const
 {
-    std::string message = "Attempted to access nil chip at: " +
+    std::string message = "Attempted to read nil chip at: " +
             QString("0x%1.").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
     throw bad_chip_write(message);
 }
 
 bool NilChip::setByte(quint16 offsetFromBase, quint8)
 {
-    std::string message = "Attempted to access nil chip at: " +
+    std::string message = "Attempted to write nil chip at: " +
             QString("0x%1.").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
     throw bad_chip_write(message);
 }

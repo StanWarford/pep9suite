@@ -101,7 +101,8 @@ MemoryDumpPane::~MemoryDumpPane()
 void MemoryDumpPane::refreshMemory()
 {
     // Refreshing memory is equivilant to refreshing all memory addresses.
-    refreshMemoryLines(0, 65535);
+    qDebug() << memDevice->maxAddress();
+    refreshMemoryLines(0, memDevice->maxAddress());
 }
 
 void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)

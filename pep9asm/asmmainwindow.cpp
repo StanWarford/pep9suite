@@ -155,6 +155,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::simulationUpdate, ui->memoryTracePane, &NewMemoryTracePane::updateTrace, Qt::UniqueConnection);
     connect(this, &MainWindow::simulationStarted, ui->memoryWidget, &MemoryDumpPane::onSimulationStarted);
     connect(this, &MainWindow::simulationStarted, ui->memoryTracePane, &NewMemoryTracePane::onSimulationStarted);
+    connect(this, &MainWindow::simulationStarted, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(controlSection.get(), &IsaCpu::hitBreakpoint, this, &MainWindow::onBreakpointHit);
 
     // Clear IOWidget every time a simulation is started.
@@ -771,7 +772,7 @@ void MainWindow::assembleDefaultOperatingSystem()
         IsaAsm assembler(*programManager);
         auto elist = QList<QPair<int, QString>>();
         QSharedPointer<AsmProgram> prog;
-        if(assembler.assembleOperatingSystem(defaultOSText, true, prog, elist)) {
+        if(assembler.assembleOperatingSystem(defaultOSText, false, prog, elist)) {
             programManager->setOperatingSystem(prog);
             this->on_actionSystem_Clear_Memory_triggered();
         }
@@ -1261,7 +1262,7 @@ void MainWindow::handleDebugButtons()
             && !programManager->getOperatingSystem()->getSymbolTable()->getValue("charIn").isNull();
     if(waiting_io) {
        quint16 address = programManager->getOperatingSystem()->getSymbolTable()->getValue("charIn")->getValue();
-       InputChip* chip = static_cast<InputChip*>(memDevice->chipAt(address).get());
+       InputChip *chip = static_cast<InputChip*>(memDevice->chipAt(address));
        waiting_io &= chip->waitingForInput(address-chip->getBaseAddress());
     }
     int enabledButtons = 0;
@@ -1466,7 +1467,7 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
 
 void MainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
 {
-    if(ui->AsmSourceCodeWidgetPane->assembleOS(true)) {
+    if(ui->AsmSourceCodeWidgetPane->assembleOS(false)) {
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
         ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
                                                       ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());

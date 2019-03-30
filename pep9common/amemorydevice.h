@@ -63,7 +63,7 @@ public:
     // Return the number of bytes of memory this unit has access to.
     // The Pep/9 memory model should at most be 2^16 bytes, but provide
     // for potential expansion in the future.
-    virtual quint32 size() const noexcept = 0;
+    virtual quint32 maxAddress() const noexcept = 0;
 
     // Remove any pending errors in the memory device.
     void clearErrors();

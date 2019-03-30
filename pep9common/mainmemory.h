@@ -62,19 +62,21 @@ class MainMemory : public AMemoryDevice
     mutable QMap<quint16, QByteArray> inputBuffer;
     // A list of all memory locations that have a pending input request.
     mutable QSet<quint16> waitingOnInput;
+    // Highest accessible address in memory.
+    mutable quint32 maxAddr;
 
 public:
     explicit MainMemory(QObject* parent = nullptr) noexcept;
     virtual ~MainMemory() override;
 
     // AMemoryDevice interface
-    quint32 size() const noexcept override;
+    quint32 maxAddress() const noexcept override;
     void insertChip(QSharedPointer<AMemoryChip> chip, quint16 address);
     // Return the chip containing address. Will return nullptr
     // if the address is out-of-range of the current memory space (e.g. address
     // 0xff16 when only 0x8000 bytes of memory are installed).
-    QSharedPointer<AMemoryChip> chipAt(quint16 address) noexcept;
-    QSharedPointer<const AMemoryChip> chipAt(quint16 address) const noexcept;
+    AMemoryChip* chipAt(quint16 address) noexcept;
+    const AMemoryChip* chipAt(quint16 address) const noexcept;
 
 
     // Configure this memory device as described by the specifications in the

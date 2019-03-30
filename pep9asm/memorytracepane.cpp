@@ -158,7 +158,7 @@ void NewMemoryTracePane::onSimulationStarted()
         globalVars.push(ptr);
         addressToItems.insert(tag.addr, ptr);
         if(ptr->getNumBytes() == 2) {
-            addressToItems.insert((tag.addr + 1) % memorySection->size(), ptr);
+            addressToItems.insert((tag.addr + 1) % memorySection->maxAddress(), ptr);
         }
         globaly += MemoryCellGraphicsItem::boxHeight;
     }

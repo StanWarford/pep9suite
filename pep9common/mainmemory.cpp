@@ -28,7 +28,7 @@
 #include "mainmemory.h"
 
 MainMemory::MainMemory(QObject* parent) noexcept: AMemoryDevice (parent), updateMemMap(true),
-    endChip(new NilChip(0xffff, 0, this)), addressToChipLookupTable(1 << 16)
+    endChip(new NilChip(0xffff, 0, this)), addressToChipLookupTable(1 << 16), maxAddr(0)
 {
 
 }
@@ -38,20 +38,22 @@ MainMemory::~MainMemory()
 
 }
 
-quint32 MainMemory::size() const noexcept
+quint32 MainMemory::maxAddress() const noexcept
 {
     // The size of main memory is equal to the value of highest address + 1
     // ( + 1 since addresses start at 0, not 1). The highest address in a chip
     // is the address of the chip plus its size.
-    quint32 maxAddrSeen = 0;
+    maxAddr = 0;
     for(auto it : memoryChipMap) {
-        if(maxAddrSeen > it->getSize() + it->getBaseAddress()) continue;
+        if(it == endChip) continue;
+        if(maxAddr > it->getSize() + it->getBaseAddress()) continue;
         else {
-            maxAddrSeen = it->getSize() + it->getBaseAddress();
+            maxAddr = it->getSize() + it->getBaseAddress();
         }
     }
+    maxAddr -= 1;
     // Account for addresses starting at 0, not 1.
-    return maxAddrSeen + 1;
+    return maxAddr;
 }
 
 void MainMemory::insertChip(QSharedPointer<AMemoryChip> chip, quint16 address)
@@ -70,22 +72,22 @@ void MainMemory::insertChip(QSharedPointer<AMemoryChip> chip, quint16 address)
     if(updateMemMap) calculateAddressToChip();
 }
 
-QSharedPointer<AMemoryChip> MainMemory::chipAt(quint16 address) noexcept
+AMemoryChip* MainMemory::chipAt(quint16 address) noexcept
 {
     // If there exists a chip in the lookup map, return it.
     if(addressToChipLookupTable[address] != nullptr) {
-        return ptrLookup[addressToChipLookupTable[address]];
+        return addressToChipLookupTable[address];
     }
-    return QSharedPointer<AMemoryChip>();
+    return endChip.get();
 }
 
-QSharedPointer<const AMemoryChip> MainMemory::chipAt(quint16 address) const noexcept
+const AMemoryChip* MainMemory::chipAt(quint16 address) const noexcept
 {
     // If there exists a chip in the lookup map, return it.
     if(addressToChipLookupTable[address] != nullptr) {
-        return ptrLookup[addressToChipLookupTable[address]];
+        return addressToChipLookupTable[address];
     }
-    return QSharedPointer<AMemoryChip>();
+    return endChip.get();
 }
 
 void MainMemory::constructMemoryDevice(QList<MemoryChipSpec> specList)
@@ -125,7 +127,7 @@ void MainMemory::constructMemoryDevice(QList<MemoryChipSpec> specList)
                 targetItem = QSharedPointer<ConstChip>::create(spec.size, spec.startAddr, this);
                 break;
             default:
-                targetItem = endChip;
+                //targetItem = endChip;
                 return;
             }
         }
@@ -147,14 +149,15 @@ void MainMemory::constructMemoryDevice(QList<MemoryChipSpec> specList)
 
 QSharedPointer<AMemoryChip> MainMemory::removeChip(quint16 address)
 {
-    QSharedPointer<AMemoryChip> retVal = chipAt(address);
+    AMemoryChip* chip = chipAt(address);
     // If the user requested out internal "end chip" that blanks out unused
     // addresses, just return a nullptr.
-    if(retVal == endChip) return QSharedPointer<AMemoryChip>(nullptr);
-    if(updateMemMap) calculateAddressToChip();
+    if(chip == endChip.get()) return QSharedPointer<AMemoryChip>(nullptr);
     // Remove chip from lookup tables.
-    addressToChipLookupTable.remove(retVal->getBaseAddress());
-    ptrLookup.remove(retVal.get());
+    // addressToChipLookupTable.remove(retVal->getBaseAddress());
+    auto retVal = ptrLookup[chip];
+    ptrLookup.remove(chip);
+    if(updateMemMap) calculateAddressToChip();
     return retVal;
 }
 
@@ -170,6 +173,10 @@ QVector<QSharedPointer<AMemoryChip> > MainMemory::removeAllChips()
         else if(it->getChipType() == AMemoryChip::ChipTypes::ODEV) {
             disconnect(static_cast<OutputChip*>(it.get()), &OutputChip::outputGenerated, this,  &MainMemory::onChipOutputWritten);
         }
+    }
+    if(temp.contains(endChip)) {
+        auto isNilChip = [this](QSharedPointer<AMemoryChip> chip) {return chip == endChip;};
+        std::remove_if(temp.begin(),temp.begin(), isNilChip);
     }
     memoryChipMap.clear();
     ptrLookup.clear();
@@ -188,7 +195,7 @@ void MainMemory::loadValues(quint16 address, QVector<quint8> values) noexcept
 {
     // For ever value in the values array that falls in range of the memory module.
     for(quint16 idx = 0;idx < values.length()
-        && idx + address <= static_cast<qint32>(size()); idx++) {
+        && idx + address <= static_cast<qint32>(maxAddress()); idx++) {
         bytesSet.insert(idx + address);
         setByte(idx + address, values[idx]);
     }
@@ -220,7 +227,7 @@ void MainMemory::onCycleFinished()
 
 bool MainMemory::readByte(quint16 address, quint8 &output) const
 {
-    QSharedPointer<const AMemoryChip> chip = chipAt(address);
+    const AMemoryChip *chip = chipAt(address);
     // Since IO can fail, wrap it in a try-catch.
     try {
         bool retVal = chip->readByte(address - chip->getBaseAddress(), output);
@@ -241,7 +248,7 @@ bool MainMemory::readByte(quint16 address, quint8 &output) const
 
 bool MainMemory::writeByte(quint16 address, quint8 value)
 {
-    QSharedPointer<AMemoryChip> chip = chipAt(address);
+    AMemoryChip *chip = chipAt(address);
     try {
         bool retVal = chip->writeByte(address - chip->getBaseAddress(), value);
         bytesWritten.insert(address);
@@ -260,7 +267,7 @@ bool MainMemory::writeByte(quint16 address, quint8 value)
 
 bool MainMemory::getByte(quint16 address, quint8 &output) const
 {
-    QSharedPointer<const AMemoryChip> chip = chipAt(address);
+    const AMemoryChip *chip = chipAt(address);
     try {
         bool retVal = chip->getByte(address - chip->getBaseAddress(), output);
         return retVal;
@@ -273,7 +280,7 @@ bool MainMemory::getByte(quint16 address, quint8 &output) const
 
 bool MainMemory::setByte(quint16 address, quint8 value)
 {
-    QSharedPointer<AMemoryChip> chip = chipAt(address);
+    AMemoryChip *chip = chipAt(address);
     try {
         bool retVal = chip->setByte(address - chip->getBaseAddress(), value);
         bytesSet.insert(address);
@@ -295,7 +302,7 @@ void MainMemory::clearIO()
     for(auto key : inputBuffer.keys()) {
         // Only pay attention to bufferedValues if they are input devices.
         if(chipAt(key)->getChipType() != AMemoryChip::ChipTypes::IDEV) continue;
-        InputChip* in = dynamic_cast<InputChip*>(chipAt(key).get());
+        InputChip* in = dynamic_cast<InputChip*>(chipAt(key));
         quint16 offsetFromBase = key - in->getBaseAddress();
         if(in->waitingForInput(offsetFromBase)) {
             in->onInputCanceled(key);
@@ -321,13 +328,13 @@ void MainMemory::onInputReceived(quint16 address, QChar input)
 void MainMemory::onInputReceived(quint16 address, QString input)
 {
     if(input.isEmpty()) return;
-    QSharedPointer<AMemoryChip> temp = chipAt(address);
-    InputChip* chip;
+    AMemoryChip *temp = chipAt(address);
+    InputChip *chip;
     if(temp->getChipType() != AMemoryChip::ChipTypes::IDEV) {
         throw std::invalid_argument("Expected address of an InputChip, given address of other type.");
     }
     else {
-        chip = dynamic_cast<InputChip*>(temp.get());
+        chip = dynamic_cast<InputChip*>(temp);
     }
     quint16 offsetFromBase = address - chip->getBaseAddress();
     if(chip->waitingForInput(offsetFromBase)) {
@@ -346,23 +353,23 @@ void MainMemory::onInputReceived(quint16 address, QString input)
 
 void MainMemory::onInputCanceled(quint16 address)
 {
-    QSharedPointer<AMemoryChip> chip = chipAt(address);
+    AMemoryChip *chip = chipAt(address);
     if(chip->getChipType() != AMemoryChip::ChipTypes::IDEV) {
         throw std::invalid_argument("Expected address of an InputChip, given address of other type.");
     }
     else {
-        dynamic_cast<InputChip*>(chip.get())->onInputCanceled(address - chip->getBaseAddress());
+        dynamic_cast<InputChip*>(chip)->onInputCanceled(address - chip->getBaseAddress());
     }
 }
 
 void MainMemory::onInputAborted(quint16 address)
 {
-    QSharedPointer<AMemoryChip> chip = chipAt(address);
+    AMemoryChip *chip = chipAt(address);
     if(chip->getChipType() != AMemoryChip::ChipTypes::IDEV) {
         throw std::invalid_argument("Expected address of an InputChip, given address of other type.");
     }
     else {
-        dynamic_cast<InputChip*>(chip.get())->onInputAborted(address - chip->getBaseAddress());
+        dynamic_cast<InputChip*>(chip)->onInputAborted(address - chip->getBaseAddress());
     }
 }
 
@@ -375,7 +382,7 @@ void MainMemory::onChipInputRequested(quint16 address)
         if(inputBuffer[address].length() == 0) {
             inputBuffer.remove(address);
         }
-        dynamic_cast<InputChip*>(chipAt(address).get())->onInputReceived(offsetFromBase, first);
+        dynamic_cast<InputChip*>(chipAt(address))->onInputReceived(offsetFromBase, first);
     }
     else {
         waitingOnInput.insert(address);
@@ -392,12 +399,15 @@ void MainMemory::onChipOutputWritten(quint16 address, quint8 value)
 
 void MainMemory::calculateAddressToChip() noexcept
 {
-    for (int it = 0; it <= 0xffff; it++) {
+    for (int it = 0; it < addressToChipLookupTable.size(); it++) {
         addressToChipLookupTable[it] = nullptr;
     }
+    ptrLookup[endChip.get()] = endChip;
     for(auto chip : memoryChipMap) {
+        ptrLookup[chip.get()] = chip;
         for(quint32 it = chip->getBaseAddress(); it < chip->getBaseAddress() + chip->getSize(); it++) {
             addressToChipLookupTable[static_cast<int>(it)] = chip.get();
         }
     }
+    maxAddress();
 }

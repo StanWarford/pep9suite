@@ -1498,7 +1498,7 @@ void MainWindow::handleDebugButtons()
             && !programManager->getOperatingSystem()->getSymbolTable()->getValue("charIn").isNull();
     if(waiting_io) {
        quint16 address = programManager->getOperatingSystem()->getSymbolTable()->getValue("charIn")->getValue();
-       InputChip* chip = static_cast<InputChip*>(memDevice->chipAt(address).get());
+       InputChip *chip = static_cast<InputChip*>(memDevice->chipAt(address));
        waiting_io &= chip->waitingForInput(address-chip->getBaseAddress());
     }
     int enabledButtons = 0;
