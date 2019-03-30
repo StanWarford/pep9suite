@@ -1011,7 +1011,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (~(a ^ tempWord) & (a ^ result)) >> 15);
+        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (~(x ^ tempWord) & (x ^ result)) >> 15);
         // Carry out iff result is unsigned less than register or operand.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, result < a  || result < tempWord);
         // If there was a signed overflow, selectively invert N bit.
