@@ -74,10 +74,6 @@ Run pep9term 'mode' --help for more options.");
     // no worker threads have to check for the presence of an operating system.
     buildDefaultOperatingSystem(*AsmProgramManager::getInstance());
 
-    // Make sure when the task finishes that the application quits.
-    // This can be bound as the receiver of a signal from the worker threads.
-    auto quitLambda = [&](){a.quit();};
-
     if (command == "asm") {
         // Needs both an input and output source to be a well-defined command.
         if(!parser.isSet("s") || !parser.isSet("o")) {
@@ -101,7 +97,7 @@ Run pep9term 'mode' --help for more options.");
             sourceFile.close();
 
             BuildHelper *helper = new BuildHelper(sourceText, objectFileString, *AsmProgramManager::getInstance());
-            QObject::connect(helper, &BuildHelper::finished, quitLambda);
+            QObject::connect(helper, &BuildHelper::finished, &a, &QCoreApplication::quit);
 
             run = helper;
         }
@@ -130,7 +126,7 @@ Run pep9term 'mode' --help for more options.");
 
         RunHelper *helper = new RunHelper(objText, textOutputFileName, textInputFileName,
                                           *AsmProgramManager::getInstance());
-        QObject::connect(helper, &RunHelper::finished, quitLambda);
+        QObject::connect(helper, &RunHelper::finished, &a, &QCoreApplication::quit);
 
         run = helper;
 

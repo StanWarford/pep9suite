@@ -86,11 +86,11 @@ void buildDefaultOperatingSystem(AsmProgramManager &manager)
 
 RunHelper::RunHelper(const QString objectCodeString, QFileInfo programOutput,
                      QFileInfo programInput, AsmProgramManager &manager, QObject *parent):
-    QObject(parent), QRunnable (),objectCodeString(objectCodeString),
-    programOutput(programOutput), programInput(programInput),manager(manager),
+    QObject(parent), QRunnable (), objectCodeString(objectCodeString),
+    programOutput(programOutput), programInput(programInput) ,manager(manager),
     // Explicitly initialize both simulation objects to nullptr,
     // so that it is clear to that neither object has been allocated
-    memory(nullptr), cpu(nullptr), outputs()
+    memory(nullptr), cpu(nullptr), outputFile(nullptr)
 
 {
 
@@ -98,8 +98,15 @@ RunHelper::RunHelper(const QString objectCodeString, QFileInfo programOutput,
 
 RunHelper::~RunHelper()
 {
-    // All of our memory is owned by sharedpointers, so we
-    // should not attempt to delete anything ourselves.
+    // All of our memory is owned by sharedpointers, so we should not attempt
+    // to delete anything ourselves.
+    if(outputFile != nullptr) {
+        outputFile->flush();
+        // It might seem like we should close the file here, but it causes read / write violations to do so.
+        // Instead, delete it later under the assumption that the operating system will handle that for us.
+        // Schedule the output file for deletion via the event loop.
+        outputFile->deleteLater();
+    }
 }
 
 void RunHelper::loadOperatingSystem()
@@ -138,11 +145,21 @@ void RunHelper::onInputRequested(quint16 address)
 
 void RunHelper::onOutputReceived(quint16 address, quint8 value)
 {
-    // We only care about the output if it happens to be an output port that we
-    // are tracking in out outputs map.
-    if(outputs.contains(address)) {
-        *(outputs[address].get()) << QChar(value);
+    if(address != charOut) return;
+    if(outputFile != nullptr) {
+        // Use a temporary (anonymous) text stream to make writing easy.
+        QTextStream (&*outputFile) << QChar(value);
+        // Try to block and make sure the IO actually completes.
+        outputFile->waitForBytesWritten(300);
     }
+}
+
+void RunHelper::onSimulationFinished()
+{
+    // There migh be outstanding IO events. Give them a chance to finish
+    // before initiating shutdown.
+    QCoreApplication::processEvents();
+    emit finished();
 }
 
 void RunHelper::runProgram()
@@ -157,6 +174,7 @@ void RunHelper::runProgram()
     }
     else if(!input.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug().noquote() << errLogOpenErr.arg(input.fileName());
+        throw std::logic_error("Can't open input file.");
     } else {
         QTextStream inputStream(&input);
         memory->onInputReceived(charIn, inputStream.readAll() % "\n");
@@ -165,25 +183,20 @@ void RunHelper::runProgram()
 
     // Open up program output file if possible.
     // If output can't be opened up, abort.
-    QFile output(programOutput.absoluteFilePath());
-    if(!output.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-        qDebug().noquote() << errLogOpenErr.arg(output.fileName());
+    QFile *output = new QFile(programOutput.absoluteFilePath());
+    if(!output->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+        qDebug().noquote() << errLogOpenErr.arg(output->fileName());
         throw std::logic_error("Can't open output file.");
     } else {
         // If it could be opened, map charOut to the file.
-        QSharedPointer<QTextStream> outputStream( new QTextStream(&output));
-        outputs[charOut] = outputStream;
+        outputFile = output;
     }
+    // Make sure to set up any last minute flags needed by CPU to perform simulation.
     cpu->onSimulationStarted();
     if(!cpu->onRun()) {
         qDebug().noquote() << "The CPU failed for the following reason: "<<cpu->getErrorMessage();
-        *(outputs[charOut].get()) << "[[" << cpu->getErrorMessage() << "]]";
-    } else{
-        output.close();
-        outputs[charOut].clear();
+        QTextStream (&*outputFile) << "[[" << cpu->getErrorMessage() << "]]";
     }
-    QCoreApplication::processEvents();
-
 
 }
 
@@ -213,9 +226,18 @@ void RunHelper::run()
     // Clear & initialize all values in CPU before starting simulation.
     cpu->reset();
     cpu->initCPU();
+
+    // Instead of directly allowing run() to kill itself, uses events to "schedule"
+    // shutting down the application. This should ensure all IO completes. We were
+    // having an error where closing IO streams directly after simulation completion would
+    // cause a race condition with IO pending for the file. The overhead of the simulation events
+    // seems to "serialize" writes / closing.
+    connect(cpu.get(), &IsaCpu::simulationFinished, this, &RunHelper::onSimulationFinished, Qt::QueuedConnection);
     runProgram();
-    // Application will live forever if we don't signal it to die.
-    emit finished();
+
+    // Wait forever for the simulation's events to be processed. After all sim events have been processed
+    // and all IO has been completed, then the application will be shut down.
+    QCoreApplication::processEvents();
 }
 
 BuildHelper::BuildHelper(const QString source, QFileInfo objFileInfo,

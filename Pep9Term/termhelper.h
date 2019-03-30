@@ -61,9 +61,9 @@ class RunHelper: public QObject, public QRunnable {
     // The CPU simulator that will perform the computation
     QSharedPointer<IsaCpu> cpu;
 
-    // Potentially multiple output sources, so
-    QMap<quint16, QSharedPointer<QTextStream>> outputs;
-    // Addresses of the character input / character output ports
+    // Potentially multiple output sources, but don't take time to simulate now.
+    QFile* outputFile;
+    // Addresses of the character input / character output ports.
     quint16 charIn, charOut;
 
     // Helper method responsible for buffering input, opening output streams,
@@ -94,8 +94,11 @@ signals:
     // or the simulation terminates due to exceeding the maximum number of allowed steps.
     void finished();
 
-    // QRunnable interface
 public:
+    void onSimulationFinished();
+    // Pre: All computations an outstanding processing events have been finished.
+    // Post:The main thread has been signaled to shutdown.
+
     void run() override;
     // Pre: The operating system has been built and installed.
     // Pre: The Pep9 mnemonic maps have been initizialized correctly.
