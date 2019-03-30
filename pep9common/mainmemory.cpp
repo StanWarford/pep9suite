@@ -58,6 +58,9 @@ void MainMemory::insertChip(QSharedPointer<AMemoryChip> chip, quint16 address)
 {
     memoryChipMap.insert(address, chip);
     ptrLookup.insert(chip.get(), chip);
+    // Chip being passed in might be re-used from previous executions,
+    // so make sure to explicitly reset its address to prevent mapping errors.
+    chip->setBaseAddress(address);
     if(chip->getChipType() == AMemoryChip::ChipTypes::IDEV) {
         connect(static_cast<InputChip*>(chip.get()), &InputChip::inputRequested, this,  &MainMemory::onChipInputRequested);
     }
@@ -321,7 +324,7 @@ void MainMemory::onInputReceived(quint16 address, QString input)
     QSharedPointer<AMemoryChip> temp = chipAt(address);
     InputChip* chip;
     if(temp->getChipType() != AMemoryChip::ChipTypes::IDEV) {
-        throw std::invalid_argument("Expected address of an InputChip, given address of other type");
+        throw std::invalid_argument("Expected address of an InputChip, given address of other type.");
     }
     else {
         chip = dynamic_cast<InputChip*>(temp.get());
