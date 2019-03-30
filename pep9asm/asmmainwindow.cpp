@@ -1294,8 +1294,6 @@ void MainWindow::handleDebugButtons()
 bool MainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
     if(!on_ActionBuild_Assemble_triggered()) return false;
-    loadOperatingSystem();
-    loadObjectCodeProgram();
 
     return on_actionDebug_Start_Debugging_Object_triggered();
 
@@ -1484,6 +1482,7 @@ void MainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
         ui->statusBar->showMessage("Assembly failed, previous OS left", 4000);
     }
     loadOperatingSystem();
+    ui->memoryWidget->refreshMemory();
 }
 
 void MainWindow::on_actionSystem_Reinstall_Default_OS_triggered()
@@ -1491,6 +1490,7 @@ void MainWindow::on_actionSystem_Reinstall_Default_OS_triggered()
     qDebug() << "Reinstalled default OS";
     assembleDefaultOperatingSystem();
     loadOperatingSystem();
+    ui->memoryWidget->refreshMemory();
 }
 
 void MainWindow::on_actionSystem_Redefine_Mnemonics_triggered()

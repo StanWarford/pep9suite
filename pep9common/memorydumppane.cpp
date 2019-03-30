@@ -101,8 +101,9 @@ MemoryDumpPane::~MemoryDumpPane()
 void MemoryDumpPane::refreshMemory()
 {
     // Refreshing memory is equivilant to refreshing all memory addresses.
-    qDebug() << memDevice->maxAddress();
-    refreshMemoryLines(0, memDevice->maxAddress());
+    // Since refreshMemoryLines(quint16,quint16) is deffensive, just refresh the maximum
+    // number of lines that could ever be had.
+    refreshMemoryLines(0, 0xffff);
 }
 
 void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
@@ -121,17 +122,28 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
     for(int row = firstLine; row <= lastLine; row++) {
         memoryDumpLine.clear();
         for(int col = 0; col < 8; col++) {
-            // Use the data in the memory section to set the value in the model.
-            memDevice->getByte(static_cast<quint16>(row * 8 + col), tempData);
-            data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')));
-            ch = QChar(tempData);
-            if (ch.isPrint()) {
-                memoryDumpLine.append(ch);
+            // Only access memory if it is in range
+            if(row * 8 + col <= memDevice->maxAddress()) {
+                // Use the data in the memory section to set the value in the model.
+                memDevice->getByte(static_cast<quint16>(row * 8 + col), tempData);
+                data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')));
+                ch = QChar(tempData);
+                if (ch.isPrint()) {
+                    memoryDumpLine.append(ch);
+                }
+                else {
+                    memoryDumpLine.append(".");
+                }
             }
+            // Otherwise place a sentinel character to denote the address being inacessible.
             else {
+                data->setData(data->index(row, col + 1), "zz");
                 memoryDumpLine.append(".");
             }
+
+
         }
+
         data->setData(data->index(row, 1+8), memoryDumpLine);
     }
     lineSize = 0;
