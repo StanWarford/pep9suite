@@ -420,7 +420,7 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         if (!isHelpSubCat) {
             ui->helpSplitter->widget(1)->hide();
             ui->webView->show();
-            ui->webView->load(QUrl("qrc:/help/problems.html"));
+            ui->webView->load(QUrl("qrc:/help-asm/problems.html"));
         }
         else {
             ui->helpSplitter->widget(0)->hide();
