@@ -146,6 +146,7 @@ void RunHelper::onInputRequested(quint16 address)
     memory->onInputAborted(address);
 }
 
+static QDebug* dbg = new QDebug(QtDebugMsg);
 void RunHelper::onOutputReceived(quint16 address, quint8 value)
 {
     if(address != charOut) return;
@@ -154,6 +155,7 @@ void RunHelper::onOutputReceived(quint16 address, quint8 value)
         QTextStream (&*outputFile) << QChar(value);
         // Try to block and make sure the IO actually completes.
         outputFile->waitForBytesWritten(300);
+        dbg->noquote().nospace() << QChar(value);
     }
 }
 
@@ -217,9 +219,11 @@ void RunHelper::run()
 
         cpu = QSharedPointer<BoundExecIsaCpu>::create(maxSimSteps, &manager, memory, nullptr);
 
-        // Connect IO events
-        connect(memory.get(), &MainMemory::inputRequested, this, &RunHelper::onInputRequested, Qt::QueuedConnection);
-        connect(memory.get(), &MainMemory::outputWritten, this, &RunHelper::onOutputReceived, Qt::QueuedConnection);
+        // Connect IO events. IO *MUST* complete before execution moves forward.
+        // Use a blocking connection to serialize IO. Use asynchronous connection
+        // so that memory and helper don't need to reside in the same thread.
+        connect(memory.get(), &MainMemory::inputRequested, this, &RunHelper::onInputRequested, Qt::BlockingQueuedConnection);
+        connect(memory.get(), &MainMemory::outputWritten, this, &RunHelper::onOutputReceived, Qt::BlockingQueuedConnection);
     }
 
     // Load operating system & user program into memory.
@@ -236,11 +240,10 @@ void RunHelper::run()
     // having an error where closing IO streams directly after simulation completion would
     // cause a race condition with IO pending for the file. The overhead of the simulation events
     // seems to "serialize" writes / closing.
-    connect(cpu.get(), &IsaCpu::simulationFinished, this, &RunHelper::onSimulationFinished, Qt::QueuedConnection);
+    connect(cpu.get(), &IsaCpu::simulationFinished, this, &RunHelper::onSimulationFinished);
     runProgram();
 
-    // Wait forever for the simulation's events to be processed. After all sim events have been processed
-    // and all IO has been completed, then the application will be shut down.
+    // Make sure any outstanding events are handled.
     QCoreApplication::processEvents();
 }
 
