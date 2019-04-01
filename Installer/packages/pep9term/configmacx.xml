@@ -18,7 +18,7 @@
     <ControlScript>control.js</ControlScript>
         <!--Icon in the top left corner of the installer window.
         It is assumed to be in the PNG format, so don't append the extension-->
-    <InstallerWindowIcon>Pep9-icon</InstallerWindowIcon>
+    <InstallerWindowIcon>Pep9Term-icon</InstallerWindowIcon>
         <!--Icon displayed in file explorer and taskbar. This can be the same as InstallerWindowIcon
         The actual file is looked up by attaching a '.icns' (OS X), '.ico' (Windows). No functionality on Unix.-->
     <InstallerApplicationIcon>icon</InstallerApplicationIcon>

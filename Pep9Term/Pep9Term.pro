@@ -10,7 +10,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 QT -= gui
 CONFIG += c++17 console
 
-TARGET = pep9term
+TARGET = Pep9Term
 #Prevent Windows from trying to parse the project three times per build.
 CONFIG -= debug_and_release \
     debug_and_release_target
@@ -29,7 +29,7 @@ win32{
 }
 
 # Mac icon/plist
-ICON = ../Pep9asm/images/icon.icns
+ICON = images/icon.icns
 QMAKE_INFO_PLIST = app.plist
 QMAKE_MAC_SDK = macosx10.14
 
@@ -59,7 +59,8 @@ RESOURCES += \
     ../pep9common/pep9common-helpresources.qrc\
     ../pep9asm/pep9asm-resources.qrc \
     ../pep9asm/pep9asm-helpresources.qrc \
-    pep9term-helpresources.qrc
+    pep9term-helpresources.qrc \
+    pep9term-resources.qrc
 
 DISTFILES += \
     help-term/about.txt
