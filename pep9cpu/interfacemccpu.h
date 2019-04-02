@@ -59,6 +59,8 @@ public:
     virtual void setCPUType(Enu::CPUType type) = 0;
     // Perform a single hardware cycle (instruction).
     virtual void onMCStep() = 0;
+    // Execute multiple microcode cycles while condition() is true.
+    virtual void doMCStepWhile(std::function<bool(void)> condition);
     // Execute the control signals that have been set, clear the signals, and perform no µbranch.
     virtual void onClock() = 0;
 

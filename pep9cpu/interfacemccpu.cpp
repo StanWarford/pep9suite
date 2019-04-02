@@ -48,3 +48,10 @@ void InterfaceMCCPU::reset() noexcept
     microCycleCounter = 0;
     microBreakpointHit = false;
 }
+
+void InterfaceMCCPU::doMCStepWhile(std::function<bool ()> condition)
+{
+    do{
+        onMCStep();
+    } while(condition());
+}

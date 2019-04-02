@@ -957,16 +957,11 @@ void MainWindow::debugButtonEnableHelper(const int which)
     }
 }
 
-void MainWindow::highlightActiveLines(bool forceISA)
+void MainWindow::highlightActiveLines()
 {
     ui->memoryWidget->clearHighlight();
     ui->memoryWidget->highlight();
     ui->asmListingTracePane->updateSimulationView();
-}
-
-void MainWindow::highlightActiveLines()
-{
-    return highlightActiveLines(false);
 }
 
 bool MainWindow::initializeSimulation()
@@ -1217,7 +1212,18 @@ void MainWindow::on_actionBuild_Run_Object_triggered()
     else {
         debugState = DebugState::DISABLED;
     }
-    emit simulationFinished();
+    // If the simulator finished, then propogate that information to connect components.
+    if(controlSection->getExecutionFinished()) {
+        debugState = DebugState::DISABLED;
+        onSimulationFinished();
+        emit simulationFinished();
+    }
+    // Otherwise, the simulator paused execution, so don't explicitly terminate
+    // the simulator.
+    else {
+        handleDebugButtons();
+        emit simulationUpdate();
+    }
 }
 
 void MainWindow::on_actionBuild_Run_triggered()
@@ -1242,7 +1248,18 @@ void MainWindow::on_actionBuild_Run_triggered()
     else {
         debugState = DebugState::DISABLED;
     }
-   if(debugState != DebugState::DISABLED) onSimulationFinished();
+    // If the simulator finished, then propogate that information to connect components.
+    if(controlSection->getExecutionFinished()) {
+        debugState = DebugState::DISABLED;
+        onSimulationFinished();
+        emit simulationFinished();
+    }
+    // Otherwise, the simulator paused execution, so don't explicitly terminate
+    // the simulator.
+    else {
+        handleDebugButtons();
+        emit simulationUpdate();
+    }
 }
 
 // Debug slots
@@ -1306,7 +1323,8 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
     ui->asmListingTracePane->startSimulationView();
     if(initializeSimulation()) {
         emit simulationStarted();
-        controlSection->onDebuggingStarted();
+        controlSection->onSimulationStarted();
+        controlSection->enableDebugging();
         controlSection->breakpointsSet(programManager->getBreakpoints());
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
         memDevice->clearBytesSet();
@@ -1316,7 +1334,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         // from remaining highlighted. Otherwise, if the last program
         // was "run", then every byte that it modified will be highlighted
         // upon starting the simulation.
-        highlightActiveLines(true);
+        highlightActiveLines();
         ui->memoryTracePane->updateTrace();
         ui->asmListingTracePane->setFocus();
         return true;
@@ -1350,7 +1368,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
 void MainWindow::on_actionDebug_Stop_Debugging_triggered()
 {
     connectViewUpdate();
-    highlightActiveLines(true);
+    highlightActiveLines();
     debugState = DebugState::DISABLED;
     // Handle case of execution being canceled during IO
     memDevice->clearIO();
@@ -1358,7 +1376,7 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     ui->ioWidget->cancelWaiting();
     ui->asmListingTracePane->clearSimulationView();
     handleDebugButtons();
-    controlSection->onDebuggingFinished();
+    controlSection->onSimulationFinished();
     emit simulationFinished();
 }
 
@@ -1396,7 +1414,7 @@ void MainWindow::on_actionDebug_Continue_triggered()
     if(controlSection->stoppedForBreakpoint()) {
         emit simulationUpdate();
         QApplication::processEvents();
-        highlightActiveLines(true);
+        highlightActiveLines();
     }
 }
 
@@ -1841,9 +1859,9 @@ void MainWindow::onInputRequested(quint16 address)
     // iff the widget has never been visible.
     auto cw = ui->tabWidget->currentWidget();
     ui->tabWidget->setCurrentWidget(ui->assemblerTab);
-    highlightActiveLines(true);
+    highlightActiveLines();
     ui->tabWidget->setCurrentWidget(ui->debuggerTab);
-    highlightActiveLines(true);
+    highlightActiveLines();
     ui->tabWidget->setCurrentWidget(cw);
     // End fix for centerCursor()
 

@@ -59,6 +59,13 @@ void InterfaceISACPU::setDebugBreakpoints(bool doDebug) noexcept
     this->doDebug = doDebug;
 }
 
+void InterfaceISACPU::doISAStepWhile(std::function<bool ()> condition)
+{
+    do{
+        onISAStep();
+    } while(condition());
+}
+
 void InterfaceISACPU::calculateStackChangeStart(quint8 instr)
 {
     if(Pep::isTrapMap[Pep::decodeMnemonic[instr]]) {

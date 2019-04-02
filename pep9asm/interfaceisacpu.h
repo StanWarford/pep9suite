@@ -71,6 +71,8 @@ public:
 protected:
     // Execute a single ISA instruction.
     virtual void onISAStep() = 0;
+    // Execute multiple ISA steps while condition() is true.
+    virtual void doISAStepWhile(std::function<bool(void)> condition);
     // Update simulation state at the start of a assembly level instruction
     virtual void updateAtInstructionEnd() = 0;
     void calculateStackChangeStart(quint8 instr);

@@ -1449,7 +1449,18 @@ void MainWindow::on_actionBuild_Run_Object_triggered()
     else {
         debugState = DebugState::DISABLED;
     }
-    emit simulationFinished();
+    // If the simulator finished, then propogate that information to connect components.
+    if(controlSection->getExecutionFinished()) {
+        debugState = DebugState::DISABLED;
+        onSimulationFinished();
+        emit simulationFinished();
+    }
+    // Otherwise, the simulator paused execution, so don't explicitly terminate
+    // the simulator.
+    else {
+        handleDebugButtons();
+        emit simulationUpdate();
+    }
 }
 
 void MainWindow::on_actionBuild_Run_triggered()
@@ -1473,8 +1484,19 @@ void MainWindow::on_actionBuild_Run_triggered()
     }
     else {
         debugState = DebugState::DISABLED;
+   }
+    // If the simulator finished, then propogate that information to connect components.
+    if(controlSection->getExecutionFinished()) {
+        debugState = DebugState::DISABLED;
+        onSimulationFinished();
+        emit simulationFinished();
     }
-   if(debugState != DebugState::DISABLED) onSimulationFinished();
+    // Otherwise, the simulator paused execution, so don't explicitly terminate
+    // the simulator.
+    else {
+        handleDebugButtons();
+        emit simulationUpdate();
+    }
 }
 
 // Debug slots
@@ -1544,7 +1566,8 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
     ui->asmListingTracePane->startSimulationView();
     if(initializeSimulation()) {
         emit simulationStarted();
-        controlSection->onDebuggingStarted();
+        controlSection->onSimulationStarted();
+        controlSection->enableDebugging();
         controlSection->breakpointsSet(programManager->getBreakpoints());
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
         ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
@@ -1604,7 +1627,7 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     ui->cpuWidget->stopDebugging();
     ui->asmListingTracePane->clearSimulationView();
     handleDebugButtons();
-    controlSection->onDebuggingFinished();
+    controlSection->onSimulationFinished();
     emit simulationFinished();
 }
 

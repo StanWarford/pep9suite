@@ -144,10 +144,7 @@ private:
     // To enable only the run and stop buttons one would call "buttonEnableHelper(DebugButtons::RUN | DebugButtons::STOP)".
     void debugButtonEnableHelper(const int which);
 
-    // Coordinates higlighting of memory, microcode pane, micro object code pane, and assembler listings.
-    // Parameter forces re-highlight at the ISA level
-    void highlightActiveLines(bool forceISA = false);
-    // Overload for signal-slot connections. Calls highlightActiveLines(false).
+    // Coordinates higlighting of memory, CPU pane, and assembler listings.
     void highlightActiveLines();
 
     // Update the views and initialize the models in a way that can be used for debugging or running.
