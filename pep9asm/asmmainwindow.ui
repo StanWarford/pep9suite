@@ -223,11 +223,6 @@
     <addaction name="actionHelp_About_Pep9"/>
     <addaction name="actionHelp_About_Qt"/>
    </widget>
-   <widget class="QMenu" name="menuView">
-    <property name="title">
-     <string>View</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuBuild">
     <property name="title">
      <string>Build</string>
@@ -263,7 +258,6 @@
    <addaction name="menuBuild"/>
    <addaction name="menuDebug_2"/>
    <addaction name="menuSystem"/>
-   <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">

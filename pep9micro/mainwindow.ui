@@ -299,11 +299,6 @@
     <addaction name="actionHelp_About_Pep9Micro"/>
     <addaction name="actionHelp_About_Qt"/>
    </widget>
-   <widget class="QMenu" name="menuView">
-    <property name="title">
-     <string>View</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuBuild">
     <property name="title">
      <string>Build</string>
@@ -342,7 +337,6 @@
    <addaction name="menuBuild"/>
    <addaction name="menuDebug_2"/>
    <addaction name="menuSystem"/>
-   <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -729,7 +723,7 @@
     <string>Stop Debugging</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+.</string>
+    <string>Ctrl+E</string>
    </property>
    <property name="iconVisibleInMenu">
     <bool>false</bool>
@@ -750,6 +744,9 @@
   <action name="actionFile_Print_Microcode">
    <property name="text">
     <string>Print Microcode...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+P</string>
    </property>
   </action>
   <action name="actionFile_Print_Object_Code">
@@ -800,10 +797,16 @@
    <property name="text">
     <string>Assembler Source</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
   </action>
   <action name="actionEdit_Format_Microcode">
    <property name="text">
     <string>Microcode Source</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+L</string>
    </property>
   </action>
   <action name="actionEdit_Remove_Error_Assembler">
@@ -824,6 +827,9 @@
    <property name="text">
     <string>Assemble</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+A</string>
+   </property>
   </action>
   <action name="actionBuild_Load_Object">
    <property name="icon">
@@ -832,6 +838,9 @@
    </property>
    <property name="text">
     <string>Load Object Code</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
    </property>
   </action>
   <action name="actionBuild_Microcode">
@@ -845,6 +854,9 @@
    <property name="toolTip">
     <string>Build Microcode</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+M</string>
+   </property>
   </action>
   <action name="actionDebug_Interupt_Execution">
    <property name="enabled">
@@ -852,6 +864,9 @@
    </property>
    <property name="text">
     <string>Interupt Execution</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+.</string>
    </property>
   </action>
   <action name="actionDebug_Step_Over_Assembler">
@@ -911,10 +926,16 @@
    <property name="text">
     <string>Run Object</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+R</string>
+   </property>
   </action>
   <action name="actionDebug_Start_Debugging_Object">
    <property name="text">
     <string>Start Debugging Object</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+D</string>
    </property>
   </action>
   <action name="actionDebug_Start_Debugging_Loader">
@@ -925,6 +946,9 @@
   <action name="actionFile_Print_Assembler_Source">
    <property name="text">
     <string>Print Assembler Source...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
   <action name="actionFile_Print_Assembler_Listing">
@@ -953,6 +977,9 @@
   <action name="actionFile_New_Microcode">
    <property name="text">
     <string>New Microcode Program</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+N</string>
    </property>
   </action>
   <action name="actionFile_Save_Microcode">
@@ -1007,6 +1034,9 @@
    </property>
    <property name="toolTip">
     <string>Single Step - Assembler</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Return</string>
    </property>
   </action>
   <action name="actionSystem_Redefine_Mnemonics">
@@ -1079,6 +1109,24 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>MicrocodePane</class>
+   <extends>QWidget</extends>
+   <header>microcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MicroObjectCodePane</class>
+   <extends>QWidget</extends>
+   <header>microobjectcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CpuPane</class>
+   <extends>QWidget</extends>
+   <header>cpupane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>IOWidget</class>
    <extends>QWidget</extends>
    <header>iowidget.h</header>
@@ -1114,28 +1162,12 @@
    <header>memorytracepane.h</header>
    <container>1</container>
   </customwidget>
-  <customwidget>
-   <class>MicrocodePane</class>
-   <extends>QWidget</extends>
-   <header>microcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MicroObjectCodePane</class>
-   <extends>QWidget</extends>
-   <header>microobjectcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CpuPane</class>
-   <extends>QWidget</extends>
-   <header>cpupane.h</header>
-   <container>1</container>
-  </customwidget>
  </customwidgets>
  <resources>
   <include location="../pep9common/pep9common-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9micro-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
  </resources>
  <connections>
   <connection>
