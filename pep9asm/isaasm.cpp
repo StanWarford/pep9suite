@@ -1255,13 +1255,29 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
     }
     QString comment = code->getComment(), tag = extractTypeTags(comment);
 
-    if(hasArrayType(tag)) {
+    // If the line of code is a nonunary instruction, but not a stack modifying instruction,
+    // then don't attempt any further parsing.
+    if(auto nui = dynamic_cast<NonUnaryInstruction*>(code); nui == nullptr || (
+            nui->mnemonic != Enu::EMnemonic::CALL &&
+            nui->mnemonic != Enu::EMnemonic::SUBSP &&
+            nui->mnemonic != Enu::EMnemonic::ADDSP)) {
+
+    }
+    // If the line of code is not of a type that supports trace tags, don't
+    // attempt any further parsing.
+    else if (dynamic_cast<DotBlock*>(code) == nullptr &&
+             dynamic_cast<DotWord*>(code) == nullptr &&
+             dynamic_cast<DotEquate*>(code) == nullptr &&
+             dynamic_cast<DotByte*>(code) == nullptr){
+
+    }
+    else if(hasArrayType(tag)) {
         traceInfo.hadTraceTags = true;
         auto aTag = arrayType(tag);
         if(!code->hasSymbolEntry()) {
             errorString = ";WARNING: given trace tag, but no symbol";
             traceInfo.staticTraceError = true;
-            return false;
+            return true;
         }
         auto item = QSharedPointer<ArrayType>::create(code->getSymbolEntry(), aTag.second, aTag.first);
 
@@ -1290,7 +1306,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
         if(!code->hasSymbolEntry()) {
             errorString = ";WARNING: given trace tag, but no symbol";
             traceInfo.staticTraceError = true;
-            return false;
+            return true;
         }
         auto item = QSharedPointer<PrimitiveType>::create(code->getSymbolEntry(), pTag);
 
