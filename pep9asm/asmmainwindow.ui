@@ -103,7 +103,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="AsmCpuPane" name="asmCpuPane" native="true"/>
@@ -169,7 +169,6 @@
     <addaction name="actionFile_Print_Assembler_Source"/>
     <addaction name="actionFile_Print_Object_Code"/>
     <addaction name="actionFile_Print_Assembler_Listing"/>
-    <addaction name="actionFile_Print_Microcode"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -177,18 +176,6 @@
     <property name="title">
      <string>Edit</string>
     </property>
-    <widget class="QMenu" name="menuFormat">
-     <property name="title">
-      <string>Format from Listing...</string>
-     </property>
-     <addaction name="actionEdit_Format_Assembler"/>
-    </widget>
-    <widget class="QMenu" name="menuRemove_Error_Messages">
-     <property name="title">
-      <string>Remove Error Messages</string>
-     </property>
-     <addaction name="actionEdit_Remove_Error_Assembler"/>
-    </widget>
     <addaction name="actionEdit_Undo"/>
     <addaction name="actionEdit_Redo"/>
     <addaction name="separator"/>
@@ -196,9 +183,8 @@
     <addaction name="actionEdit_Copy"/>
     <addaction name="actionEdit_Paste"/>
     <addaction name="separator"/>
-    <addaction name="actionEdit_UnComment_Line"/>
-    <addaction name="menuFormat"/>
-    <addaction name="menuRemove_Error_Messages"/>
+    <addaction name="actionEdit_Format_Assembler"/>
+    <addaction name="actionEdit_Remove_Error_Assembler"/>
     <addaction name="separator"/>
     <addaction name="actionEdit_Font"/>
     <addaction name="actionEdit_Reset_font_to_Default"/>
@@ -535,7 +521,7 @@
      <normaloff>:/images/run.png</normaloff>:/images/run.png</iconset>
    </property>
    <property name="text">
-    <string>Run</string>
+    <string>Run Source</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
@@ -571,7 +557,7 @@
     <string>Stop Debugging</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+.</string>
+    <string>Ctrl+E</string>
    </property>
    <property name="iconVisibleInMenu">
     <bool>false</bool>
@@ -589,14 +575,12 @@
     <string>F1</string>
    </property>
   </action>
-  <action name="actionFile_Print_Microcode">
-   <property name="text">
-    <string>Print Microcode...</string>
-   </property>
-  </action>
   <action name="actionFile_Print_Object_Code">
    <property name="text">
     <string>Print Object Code...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
   <action name="actionHelp_About_Pep9">
@@ -610,14 +594,6 @@
   <action name="actionHelp_About_Qt">
    <property name="text">
     <string>About Qt</string>
-   </property>
-  </action>
-  <action name="actionEdit_UnComment_Line">
-   <property name="text">
-    <string>Un/Comment Microcode Line</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+/</string>
    </property>
   </action>
   <action name="actionHelp_Writing_Trap_Handlers">
@@ -645,12 +621,15 @@
   </action>
   <action name="actionEdit_Format_Assembler">
    <property name="text">
-    <string>Assembler Source</string>
+    <string>Format From Listing</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="actionEdit_Remove_Error_Assembler">
    <property name="text">
-    <string>Assembler Source</string>
+    <string>Remove Error Messages</string>
    </property>
   </action>
   <action name="ActionBuild_Assemble">
@@ -661,6 +640,9 @@
    <property name="text">
     <string>Assemble</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+A</string>
+   </property>
   </action>
   <action name="actionBuild_Load_Object">
    <property name="icon">
@@ -670,6 +652,9 @@
    <property name="text">
     <string>Load Object Code</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
+   </property>
   </action>
   <action name="actionDebug_Interupt_Execution">
    <property name="enabled">
@@ -677,6 +662,9 @@
    </property>
    <property name="text">
     <string>Interupt Execution</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+.</string>
    </property>
   </action>
   <action name="actionDebug_Step_Over_Assembler">
@@ -724,10 +712,16 @@
    <property name="text">
     <string>Run Object</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+R</string>
+   </property>
   </action>
   <action name="actionDebug_Start_Debugging_Object">
    <property name="text">
     <string>Start Debugging Object</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+D</string>
    </property>
   </action>
   <action name="actionDebug_Start_Debugging_Loader">

@@ -98,9 +98,9 @@
     </property>
     <addaction name="actionFile_New_Microcode"/>
     <addaction name="actionFile_Open"/>
-    <addaction name="separator"/>
     <addaction name="actionFile_Save_Microcode"/>
     <addaction name="actionFile_Save_Microcode_As"/>
+    <addaction name="separator"/>
     <addaction name="separator"/>
     <addaction name="actionFile_Print_Microcode"/>
     <addaction name="separator"/>
@@ -149,26 +149,20 @@
     <addaction name="actionHelp_About_Pep9CPU"/>
     <addaction name="actionHelp_About_Qt"/>
    </widget>
-   <widget class="QMenu" name="menuView">
-    <property name="title">
-     <string>View</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuBuild">
     <property name="title">
      <string>Build</string>
     </property>
     <addaction name="actionBuild_Microcode"/>
     <addaction name="separator"/>
-    <addaction name="actionBuild_Run"/>
    </widget>
    <widget class="QMenu" name="menuDebug_2">
     <property name="title">
      <string>Debug</string>
     </property>
+    <addaction name="actionBuild_Run"/>
     <addaction name="actionDebug_Start_Debugging"/>
     <addaction name="separator"/>
-    <addaction name="actionDebug_Interupt_Execution"/>
     <addaction name="actionDebug_Continue"/>
     <addaction name="actionDebug_Restart_Debugging"/>
     <addaction name="actionDebug_Stop_Debugging"/>
@@ -182,7 +176,6 @@
    <addaction name="menuBuild"/>
    <addaction name="menuDebug_2"/>
    <addaction name="menuSystem"/>
-   <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -465,6 +458,9 @@
    <property name="text">
     <string>Print Microcode...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
   </action>
   <action name="actionHelp_About_Pep9CPU">
    <property name="text">
@@ -527,14 +523,6 @@
     <string>Build Microcode</string>
    </property>
   </action>
-  <action name="actionDebug_Interupt_Execution">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Interupt Execution</string>
-   </property>
-  </action>
   <action name="actionDebug_Single_Step_Microcode">
    <property name="icon">
     <iconset resource="../pep9common/pep9common-resources.qrc">
@@ -569,6 +557,9 @@
    <property name="text">
     <string>Save Microcode As..</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
   </action>
   <action name="actionFile_New_Microcode">
    <property name="icon">
@@ -578,6 +569,9 @@
    <property name="text">
     <string>New Microcode Program</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
   </action>
   <action name="actionFile_Save_Microcode">
    <property name="icon">
@@ -586,6 +580,9 @@
    </property>
    <property name="text">
     <string>Save Microcode</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionExit">
@@ -634,6 +631,9 @@
   <action name="actionEdit_Format_Microcode">
    <property name="text">
     <string>Format Microcode</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="actionHelp_Two_Byte_Examples">
