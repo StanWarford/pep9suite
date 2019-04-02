@@ -74,6 +74,9 @@ class InputChip : public AMemoryChip {
     Q_OBJECT
     mutable QVector<quint8> memory;
     mutable QVector<bool> waiting, requestCanceled, requestAborted;
+    // If IO is aborted, which character shall be returned. Defaults to
+    // 0x04 (EndOfTransmission).
+    static constexpr quint8 errorChar = 0x04;
 public:
     explicit InputChip(quint32 size, quint16 baseAddress, QObject *parent = nullptr);
     virtual ~InputChip() override;

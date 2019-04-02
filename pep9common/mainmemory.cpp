@@ -235,12 +235,20 @@ bool MainMemory::readByte(quint16 address, quint8 &output) const
     }
     // Did the memory access fall out of range?
     catch (std::range_error &e) {
-        throw e;
+        this->error = true;
+        this->errorMessage = e.what();
+        return false;
     }
     // Input was requested, but it was aborted in an error-inducing way.
     catch(io_aborted &e) {
         this->error = true;
         this->errorMessage = e.what();
+        return false;
+    }
+    // An invalid chip (such as the nil chip) was read from.
+    catch (bad_chip_write& e){
+        error = true;
+        errorMessage = e.what();
         return false;
     }
 
@@ -272,9 +280,13 @@ bool MainMemory::getByte(quint16 address, quint8 &output) const
         bool retVal = chip->getByte(address - chip->getBaseAddress(), output);
         return retVal;
     } catch (std::range_error& e) {
-        throw e;
+        error = true;
+        errorMessage = e.what();
+        return false;
     } catch (bad_chip_write& e){
-        throw e;
+        error = true;
+        errorMessage = e.what();
+        return false;
     }
 }
 

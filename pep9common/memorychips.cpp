@@ -104,14 +104,14 @@ bool NilChip::writeByte(quint16 offsetFromBase, quint8 value)
 
 bool NilChip::getByte(quint16 offsetFromBase, quint8 &/*output*/) const
 {
-    std::string message = "Attempted to read nil chip at: " +
+    std::string message = "Attempted to read from memory not installed in computer at: " +
             QString("0x%1.").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
     throw bad_chip_write(message);
 }
 
 bool NilChip::setByte(quint16 offsetFromBase, quint8)
 {
-    std::string message = "Attempted to write nil chip at: " +
+    std::string message = "Attempted to write to memory not installed in computer at: " +
             QString("0x%1.").arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).toStdString();
     throw bad_chip_write(message);
 }
@@ -179,16 +179,18 @@ bool InputChip::readByte(quint16 offsetFromBase, quint8 &output) const
     QApplication::processEvents();
     if(requestCanceled[offsetFromBase]) return false;
     else if(requestAborted[offsetFromBase]) {
-        throw io_aborted("Requested input that was not received.");
+        memory[offsetFromBase] = errorChar;
     }
     output = memory[offsetFromBase];
     return true;
 }
 
-bool InputChip::writeByte(quint16, quint8)
+bool InputChip::writeByte(quint16 offsetFromBase, quint8 value)
 {
-    std::string const str("Attempted to write to read only memory.");
-    throw bad_chip_write(str);
+    // If the set would be out of bounds, throw an error.
+    if(offsetFromBase >= size) outOfBoundsWriteHelper(offsetFromBase, value);
+    memory[offsetFromBase] = value;
+    return true;
 }
 
 bool InputChip::getByte(quint16 offsetFromBase, quint8 &output) const
@@ -411,11 +413,13 @@ bool ROMChip::readByte(quint16 offsetFromBase, quint8 &output) const
 
 bool ROMChip::writeByte(quint16 offsetFromBase, quint8)
 {
-    QString format("Attempted to write to read only memory at: 0x%1.");
+    // Don't allow users to change (write to) read only memory.
+    return true;
+    /*QString format("Attempted to write to read only memory at: 0x%1.");
     std::string message = format.
             arg(offsetFromBase + baseAddress, 4, 16, QLatin1Char('0')).
             toStdString();
-    throw bad_chip_write(message);
+    throw bad_chip_write(message);*/
 }
 
 bool ROMChip::getByte(quint16 offsetFromBase, quint8 &output) const
