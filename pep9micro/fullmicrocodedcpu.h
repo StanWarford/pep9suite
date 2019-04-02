@@ -19,6 +19,10 @@ public:
     // Returns true if the microprogram counter is at the
     // start of the von neumann cycle.
     bool atMicroprogramStart() const noexcept;
+    // Set the microprogram counter to whatever the value of "start" is.
+    // This can be used to skip the initialization steps at the top
+    // of a microcode program.
+    void setMicroPCToStart() noexcept;
 
     // ACPUModel interface
     bool getStatusBitCurrent(Enu::EStatusBit) const override;

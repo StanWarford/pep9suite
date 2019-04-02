@@ -38,6 +38,11 @@ bool FullMicrocodedCPU::atMicroprogramStart() const noexcept
     return rVal;
 }
 
+void FullMicrocodedCPU::setMicroPCToStart() noexcept
+{
+    microprogramCounter = startLine;
+}
+
 bool FullMicrocodedCPU::getStatusBitCurrent(Enu::EStatusBit bit) const
 {
     return data->getRegisterBank().readStatusBitCurrent(bit);

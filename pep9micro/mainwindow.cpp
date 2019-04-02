@@ -1576,6 +1576,8 @@ bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     ui->ioWidget->setBatchInput(objcode);
     ui->ioWidget->setActivePane(Enu::EPane::EBatchIO);
     if(!on_actionDebug_Start_Debugging_Object_triggered()) return false;
+    // Skip over any initialization code in the microprogram.
+    controlSection->setMicroPCToStart();
     quint16 sp, pc;
     memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 9, sp);
     memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 3, pc);

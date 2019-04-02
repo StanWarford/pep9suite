@@ -514,7 +514,6 @@ void MainWindow::debugButtonEnableHelper(const int which)
     // Debug & Run Actions
     ui->actionBuild_Run->setEnabled(which & DebugButtons::RUN);
     ui->actionDebug_Start_Debugging->setEnabled(which & DebugButtons::DEBUG);
-    ui->actionDebug_Interupt_Execution->setEnabled(which&DebugButtons::INTERRUPT);
     ui->actionDebug_Continue->setEnabled(which & DebugButtons::CONTINUE);
     ui->actionDebug_Restart_Debugging->setEnabled(which & DebugButtons::RESTART);
     ui->actionDebug_Stop_Debugging->setEnabled(which & DebugButtons::STOP);
