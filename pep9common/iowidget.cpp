@@ -26,7 +26,7 @@
 #include "iowidget.h"
 #include "mainmemory.h"
 #include "ui_iowidget.h"
-
+#include <QSplitter>
 IOWidget::IOWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::IOWidget), charInAddr(0), charOutAddr(0), activePane(1)
@@ -39,6 +39,11 @@ IOWidget::IOWidget(QWidget *parent) :
     connect(ui->batchInput, &InputPane::redoAvailable, this, &IOWidget::onSetRedoability);
     connect(ui->terminalIO, &TerminalPane::undoAvailable, this, &IOWidget::onSetUndoability);
     connect(ui->terminalIO, &TerminalPane::redoAvailable, this, &IOWidget::onSetRedoability);
+    QSplitter *split = new QSplitter(nullptr);
+    split->setOrientation(Qt::Vertical);
+    split->addWidget(ui->batchInput);
+    split->addWidget(ui->batchOutput);
+    ui->gridLayout_1->addWidget(split);
 }
 
 IOWidget::~IOWidget()

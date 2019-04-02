@@ -19,22 +19,15 @@
      <item row="0" column="0">
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="batchIOTab">
         <attribute name="title">
          <string>Batch I/O</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
-            <widget class="InputPane" name="batchInput" native="true"/>
-           </item>
-           <item>
-            <widget class="OutputPane" name="batchOutput" native="true"/>
-           </item>
-          </layout>
+        <layout class="QGridLayout" name="gridLayout_7">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout_1"/>
          </item>
         </layout>
        </widget>
@@ -59,6 +52,12 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="1" column="0">
+    <widget class="InputPane" name="batchInput" native="true"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="OutputPane" name="batchOutput" native="true"/>
    </item>
   </layout>
  </widget>
