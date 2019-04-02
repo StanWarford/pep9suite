@@ -387,6 +387,7 @@ void MainWindow::loadFile(const QString &fileName)
     curPath = QFileInfo(file).dir().absolutePath();
     statusBar()->showMessage(tr("File loaded"), 4000);
     QApplication::restoreOverrideCursor();
+    emit ui->actionDebug_Remove_All_Microcode_Breakpoints->trigger();
 }
 
 bool MainWindow::saveFile()
@@ -593,6 +594,7 @@ void MainWindow::on_actionFile_New_Microcode_triggered()
         ui->microcodeWidget->setMicrocode("");
         ui->microcodeWidget->setCurrentFile("");
         ui->microobjectWidget->setObjectCode();
+        emit ui->actionDebug_Remove_All_Microcode_Breakpoints->trigger();
     }
 }
 
@@ -1136,6 +1138,7 @@ void MainWindow::onCopyToMicrocodeClicked()
     QString code = helpDialog->getExampleText();
     helpDialog->hide();
     if(code.isEmpty()) return;
+    emit ui->actionDebug_Remove_All_Microcode_Breakpoints->trigger();
     ui->microcodeWidget->setMicrocode(code);
     on_actionBuild_Microcode_triggered();
     statusBar()->showMessage("Copied to microcode", 4000);

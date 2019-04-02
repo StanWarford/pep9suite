@@ -602,6 +602,7 @@ void MainWindow::loadFile(const QString &fileName, Enu::EPane which)
         ui->AsmSourceCodeWidgetPane->setCurrentFile(fileName);
         ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(in.readAll());
         ui->AsmSourceCodeWidgetPane->setModifiedFalse();
+        emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
         break;
     case Enu::EPane::EObject:
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
@@ -617,6 +618,7 @@ void MainWindow::loadFile(const QString &fileName, Enu::EPane which)
         ui->microcodeWidget->setCurrentFile(fileName);
         ui->microcodeWidget->setMicrocode(in.readAll());
         ui->microcodeWidget->setModifiedFalse();
+        emit ui->actionDebug_Remove_All_Microcode_Breakpoints->trigger();
         break;
 
     default:
@@ -1154,6 +1156,7 @@ void MainWindow::on_actionFile_New_Asm_triggered()
         ui->AsmListingWidgetPane->setCurrentFile("");
         ui->asmListingTracePane->clearSourceCode();
         programManager->setUserProgram(nullptr);
+        emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
         handleDebugButtons();
     }
 }
@@ -1168,6 +1171,7 @@ void MainWindow::on_actionFile_New_Microcode_triggered()
         ui->microcodeWidget->setMicrocode("");
         ui->microcodeWidget->setCurrentFile("");
         ui->microObjectCodePane->setObjectCode();
+        emit ui->actionDebug_Remove_All_Microcode_Breakpoints->trigger();
     }
 }
 
@@ -2108,7 +2112,7 @@ void MainWindow::helpCopyToSourceClicked()
         QString input;
         QString code = helpDialog->getCode(destPane, inputPane, input);
         if(code.isEmpty()) return;
-        else {
+        else {           
             switch(destPane)
             {
             case Enu::EPane::ESource:
@@ -2119,6 +2123,7 @@ void MainWindow::helpCopyToSourceClicked()
                     ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
                     ui->AsmSourceCodeWidgetPane->setModifiedFalse();
                     statusBar()->showMessage("Copied to assembler source code", 4000);
+                    emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
                 }
                 break;
             case Enu::EPane::EObject:
@@ -2140,6 +2145,8 @@ void MainWindow::helpCopyToSourceClicked()
                     ui->microcodeWidget->setMicrocode(code);
                     ui->microcodeWidget->setModifiedFalse();
                     on_actionBuild_Microcode_triggered();
+
+                    emit ui->actionDebug_Remove_All_Microcode_Breakpoints->trigger();
                     statusBar()->showMessage("Copied to microcode", 4000);
                 }
                 break;

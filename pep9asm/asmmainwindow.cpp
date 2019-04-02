@@ -513,6 +513,7 @@ void MainWindow::loadFile(const QString &fileName, Enu::EPane which)
         ui->AsmSourceCodeWidgetPane->setCurrentFile(fileName);
         ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(in.readAll());
         ui->AsmSourceCodeWidgetPane->setModifiedFalse();
+        emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
         break;
     case Enu::EPane::EObject:
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
@@ -1001,6 +1002,7 @@ void MainWindow::on_actionFile_New_Asm_triggered()
         ui->AsmListingWidgetPane->setCurrentFile("");
         ui->asmListingTracePane->clearSourceCode();
         programManager->setUserProgram(nullptr);
+        emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
         handleDebugButtons();
     }
 }
@@ -1788,6 +1790,7 @@ void MainWindow::helpCopyToSourceClicked()
                 ui->AsmSourceCodeWidgetPane->setCurrentFile("");
                 ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
                 ui->AsmSourceCodeWidgetPane->setModifiedFalse();
+                emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
                 statusBar()->showMessage("Copied to assembler source code", 4000);
             }
             break;
