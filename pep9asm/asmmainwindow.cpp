@@ -165,6 +165,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::simulationFinished, controlSection.get(), &IsaCpu::onSimulationFinished);
     connect(this, &MainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished);
     connect(this, &MainWindow::simulationFinished, ui->memoryTracePane, &NewMemoryTracePane::onSimulationFinished);
+    connect(this, &MainWindow::simulationFinished, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
     // Connect MainWindow so that it can propogate simulationFinished event and clean up when execution is finished.
     connect(controlSection.get(), &IsaCpu::simulationFinished, this, &MainWindow::onSimulationFinished);
 

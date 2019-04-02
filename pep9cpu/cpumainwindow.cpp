@@ -187,7 +187,7 @@ MainWindow::MainWindow(QWidget *parent) :
     readSettings();
 
     // Resize docking widgets because QT does a poor job of it
-    ui->memoryDockWdget->raise();
+    // ui->memoryDockWdget->raise();
 
 }
 

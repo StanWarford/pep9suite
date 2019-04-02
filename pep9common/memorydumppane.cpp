@@ -263,7 +263,7 @@ void MemoryDumpPane::copy()
 int MemoryDumpPane::memoryDumpWidth()
 {
     int tableSize = static_cast<int>(lineSize);
-    int extraPad = 35;
+    int extraPad = 15;
     return tableSize + extraPad;
 }
 
