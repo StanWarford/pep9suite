@@ -344,8 +344,15 @@ void initMnemMapHelper(EMnemonic mnemon,int start,bool unary,bool addrModeReq,bo
     Pep::addrModeRequiredMap.insert(mnemon, addrModeReq); Pep::isTrapMap.insert(mnemon, isTrap);
 }
 
-void Pep::initMnemonicMaps()
+void Pep::initMnemonicMaps(bool NOP0IsTrap)
 {
+    if(NOP0IsTrap) {
+        initMnemMapHelper(EMnemonic::NOP0, 38, true, false, true);
+    }
+    else {
+        initMnemMapHelper(EMnemonic::NOP0, 38, true, false, false);
+    }
+
     initMnemMapHelper(EMnemonic::ADDA, 96, false, true, false);
     initMnemMapHelper(EMnemonic::ADDX, 104, false, true, false);
     initMnemMapHelper(EMnemonic::ADDSP, 80, false, true, false);
@@ -392,7 +399,6 @@ void Pep::initMnemonicMaps()
     initMnemMapHelper(EMnemonic::NEGA, 8, true, false, false);
     initMnemMapHelper(EMnemonic::NEGX, 9, true, false, false);
     initMnemMapHelper(EMnemonic::NOP, 40, false, true, true);
-    initMnemMapHelper(EMnemonic::NOP0, 38, true, false, false);
     initMnemMapHelper(EMnemonic::NOP1, 39, true, false, true);
     initMnemMapHelper(EMnemonic::NOTA, 6, true, false, false);
     initMnemMapHelper(EMnemonic::NOTX, 7, true, false, false);

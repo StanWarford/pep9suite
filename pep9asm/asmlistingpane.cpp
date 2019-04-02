@@ -26,6 +26,7 @@
 #include "pep.h"
 #include "pepasmhighlighter.h"
 #include <QMouseEvent>
+#include "asmprogram.h"
 #include "colors.h"
 #include "symbolentry.h"
 #include "symboltable.h"
@@ -40,6 +41,7 @@ AsmListingPane::AsmListingPane(QWidget *parent) :
 
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
     ui->plainTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    ui->plainTextEdit->setReadOnly(true);
 }
 
 AsmListingPane::~AsmListingPane()
@@ -47,39 +49,11 @@ AsmListingPane::~AsmListingPane()
     delete ui;
 }
 
-void AsmListingPane::setAssemblerListing(QStringList assemblerListingList, QSharedPointer<SymbolTable> symTable) {
+void AsmListingPane::setAssemblerListing(QSharedPointer<AsmProgram> program, QSharedPointer<SymbolTable> symTable) {
     clearAssemblerListing();
-    ui->plainTextEdit->appendPlainText("-------------------------------------------------------------------------------");
-    ui->plainTextEdit->appendPlainText("      Object");
-    ui->plainTextEdit->appendPlainText("Addr  code   Symbol   Mnemon  Operand     Comment");
-    ui->plainTextEdit->appendPlainText("-------------------------------------------------------------------------------");
-    ui->plainTextEdit->appendPlainText(assemblerListingList.join("\n"));
-    ui->plainTextEdit->appendPlainText("-------------------------------------------------------------------------------");
-    QList<QSharedPointer<SymbolEntry>> list = symTable->getSymbolEntries();
-    if (list.size() > 0) {
-        ui->plainTextEdit->appendPlainText("");
-        ui->plainTextEdit->appendPlainText("");
-        ui->plainTextEdit->appendPlainText("Symbol table");
-        ui->plainTextEdit->appendPlainText("--------------------------------------");
-        ui->plainTextEdit->appendPlainText("Symbol    Value        Symbol    Value");
-        ui->plainTextEdit->appendPlainText("--------------------------------------");
-        QString symbolTableLine = "";
-        QString hexString;
-        for(QSharedPointer<SymbolEntry> item : list) {
-            hexString = QString("%1").arg(item->getValue(), 4, 16, QLatin1Char('0')).toUpper();
-            if (symbolTableLine.length() == 0) {
-                symbolTableLine = QString("%1%2").arg(item->getName(), -10).arg(hexString, -13);
-            }
-            else {
-                symbolTableLine.append(QString("%1%2").arg(item->getName(), -10).arg(hexString, -4));
-                ui->plainTextEdit->appendPlainText(symbolTableLine);
-                symbolTableLine = "";
-            }
-        }
-        if (symbolTableLine.length() > 0) {
-            ui->plainTextEdit->appendPlainText(symbolTableLine);
-        }
-        ui->plainTextEdit->appendPlainText("--------------------------------------");
+    ui->plainTextEdit->appendPlainText(program->getProgramListing());
+    if(!symTable->getSymbolMap().isEmpty()) {
+        ui->plainTextEdit->appendPlainText(symTable->getSymbolTableListing());
     }
     ui->plainTextEdit->verticalScrollBar()->setValue(ui->plainTextEdit->verticalScrollBar()->minimum());
 }

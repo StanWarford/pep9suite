@@ -148,3 +148,30 @@ QSharedPointer<const StaticTraceInfo> AsmProgram::getTraceInfo() const
 {
     return traceInfo;
 }
+
+QString AsmProgram::getFormattedSourceCode() const
+{
+    QStringList retVal;
+    for (auto codeLine : program) {
+        retVal.append(codeLine->getAssemblerSource());
+    }
+    // Make sure the last line ends in "\n", so concat a newline
+    return retVal.join("\n")%"\n";
+}
+
+QString AsmProgram::getProgramListingCode() const
+{
+    QStringList retVal;
+    for (auto codeLine : program) {
+        retVal.append(codeLine->getAssemblerListing());
+    }
+        // Make sure the last line ends in "\n", so concat a newline
+    return retVal.join("\n")%"\n";
+}
+
+QString AsmProgram::getProgramListing() const
+{
+    QString line = "-------------------------------------------------------------------------------\n";
+    QString header = "      Object\nAddr  code   Symbol   Mnemon  Operand     Comment\n";
+    return line % header % line % getProgramListingCode() % line % "\n";
+}

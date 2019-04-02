@@ -107,7 +107,7 @@ public:
     static QMap<Enu::EMnemonic, bool> isUnaryMap;
     static QMap<Enu::EMnemonic, bool> addrModeRequiredMap;
     static QMap<Enu::EMnemonic, bool> isTrapMap;
-    static void initMnemonicMaps();
+    static void initMnemonicMaps(bool NOP0IsTrap);
 
     // Map to specify legal addressing modes for each instruction
     static QMap<Enu::EMnemonic, int> addrModesMap;

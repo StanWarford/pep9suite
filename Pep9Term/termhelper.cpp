@@ -336,9 +336,9 @@ bool BuildHelper::buildProgram()
         }
         else {
             QTextStream listingStream(&listingFile);
-            for (auto line : program->getProgram()) {
-                listingStream << line->getAssemblerListing() << endl;
-            }
+            listingStream << program->getProgramListing();
+            listingStream << "\n";
+            listingStream << program->getSymbolTable()->getSymbolTableListing();
             listingFile.close();
         }
     }

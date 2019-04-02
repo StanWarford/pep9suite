@@ -79,6 +79,15 @@ public:
     QPair<quint16, quint16> getProgramBounds() const;
     QSharedPointer<const StaticTraceInfo> getTraceInfo() const;
 
+
+    // Get code properly formatted for the source code pane
+    QString getFormattedSourceCode() const;
+    // Get formatted code of the style as used in the listing.
+    QString getProgramListingCode() const;
+    // Return the program listing including header + footer.
+    QString getProgramListing() const;
+
+
 private:
     QPair<quint16, quint16> programBounds;
     QList<QSharedPointer<AsmCode>> program;

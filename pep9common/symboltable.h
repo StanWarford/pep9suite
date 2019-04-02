@@ -80,6 +80,8 @@ public:
     // Return the map of all symbolic definitions. Used to provide access to iterators
     // to perform custom operations and comparisions over all symbols.
     const QMap<SymbolID, SymbolEntryPtr> getSymbolMap() const;
+
+    QString getSymbolTableListing() const;
 };
 
 #endif // SYMBOLTABLE_H

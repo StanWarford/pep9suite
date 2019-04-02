@@ -217,14 +217,23 @@ QString UnaryInstruction::getAssemblerListing() const
     else {
         codeStr = "  ";
     }
+
+    QString lineStr = QString("%1%2%3")
+                      .arg(memStr, -6, QLatin1Char(' '))
+                      .arg(codeStr, -7, QLatin1Char(' '))
+                      .arg(getAssemblerSource());
+    return lineStr;
+}
+
+
+QString UnaryInstruction::getAssemblerSource() const
+{
     QString symbolStr;
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
     }
     QString mnemonStr = Pep::enumToMnemonMap.value(mnemonic);
-    QString lineStr = QString("%1%2%3%4%5")
-                      .arg(memStr, -6, QLatin1Char(' '))
-                      .arg(codeStr, -7, QLatin1Char(' '))
+    QString lineStr = QString("%1%2%3")
                       .arg(symbolStr, -9, QLatin1Char(' '))
                       .arg(mnemonStr, -8, QLatin1Char(' '))
                       .arg("            " + comment);
@@ -248,6 +257,16 @@ QString NonUnaryInstruction::getAssemblerListing() const
         oprndNumStr = " ";
     }
 
+    QString lineStr = QString("%1%2%3%4")
+                      .arg(memStr, -6, QLatin1Char(' '))
+                      .arg(codeStr, -2)
+                      .arg(oprndNumStr, -5, QLatin1Char(' '))
+                      .arg(getAssemblerSource(), -29);
+    return lineStr;
+}
+
+QString NonUnaryInstruction::getAssemblerSource() const
+{
     QString symbolStr;
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
@@ -260,10 +279,7 @@ QString NonUnaryInstruction::getAssemblerListing() const
     else if (addressingMode == Enu::EAddrMode::X) {
         oprndStr.append("," + Pep::intToAddrMode(addressingMode));
     }
-    QString lineStr = QString("%1%2%3%4%5%6%7")
-                      .arg(memStr, -6, QLatin1Char(' '))
-                      .arg(codeStr, -2)
-                      .arg(oprndNumStr, -5, QLatin1Char(' '))
+    QString lineStr = QString("%1%2%3%4")
                       .arg(symbolStr, -9, QLatin1Char(' '))
                       .arg(mnemonStr, -8, QLatin1Char(' '))
                       .arg(oprndStr, -12)
@@ -285,15 +301,22 @@ QString DotAddrss::getAssemblerListing() const
         codeStr = "";
     }
 
+    QString lineStr = QString("%1%2%3")
+                      .arg(memStr, -6, QLatin1Char(' '))
+                      .arg(codeStr, -7, QLatin1Char(' '))
+                      .arg(getAssemblerSource());
+    return lineStr;
+}
+
+QString DotAddrss::getAssemblerSource() const
+{
     QString symbolStr;
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".ADDRSS";
     QString oprndStr = argument->getArgumentString();
-    QString lineStr = QString("%1%2%3%4%5%6")
-                      .arg(memStr, -6, QLatin1Char(' '))
-                      .arg(codeStr, -7, QLatin1Char(' '))
+    QString lineStr = QString("%1%2%3%4")
                       .arg(symbolStr, -9, QLatin1Char(' '))
                       .arg(dotStr, -8, QLatin1Char(' '))
                       .arg(oprndStr, -12)
@@ -335,6 +358,22 @@ QString DotAlign::getAssemblerListing() const
     return lineStr;
 }
 
+QString DotAlign::getAssemblerSource() const
+{
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
+    }
+    QString dotStr = ".ALIGN";
+    QString oprndStr = argument->getArgumentString();
+    QString lineStr = QString("%1%2%3%4")
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(oprndStr, -12)
+            .arg(comment);
+    return lineStr;
+}
+
 QString DotAscii::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
@@ -373,6 +412,22 @@ QString DotAscii::getAssemblerListing() const
     return lineStr;
 }
 
+QString DotAscii::getAssemblerSource() const
+{
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
+    }
+    QString dotStr = ".ASCII";
+    QString oprndStr = argument->getArgumentString();
+    QString lineStr = QString("%1%2%3%4\n")
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(oprndStr, -12)
+            .arg(comment);
+    return lineStr;
+}
+
 QString DotBlock::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
@@ -407,6 +462,22 @@ QString DotBlock::getAssemblerListing() const
     return lineStr;
 }
 
+QString DotBlock::getAssemblerSource() const
+{
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
+    }
+    QString dotStr = ".BLOCK";
+    QString oprndStr = argument->getArgumentString();
+    QString lineStr = QString("%1%2%3%4")
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(oprndStr, -12)
+            .arg(comment);
+    return lineStr;
+}
+
 QString DotBurn::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
@@ -425,6 +496,22 @@ QString DotBurn::getAssemblerListing() const
     return lineStr;
 }
 
+QString DotBurn::getAssemblerSource() const
+{
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
+    }
+    QString dotStr = ".BURN";
+    QString oprndStr = argument->getArgumentString();
+    QString lineStr = QString("%1%2%3%4")
+            .arg(symbolStr, -9, QLatin1Char(' '))
+            .arg(dotStr, -8, QLatin1Char(' '))
+            .arg(oprndStr, -12)
+            .arg(comment);
+    return lineStr;
+}
+
 QString DotByte::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
@@ -436,6 +523,15 @@ QString DotByte::getAssemblerListing() const
     else {
         codeStr = "";
     }
+    QString lineStr = QString("%1%2%3%4%5%6")
+            .arg(memStr, -6, QLatin1Char(' '))
+            .arg(codeStr, -7, QLatin1Char(' '))
+            .arg(getAssemblerSource());
+    return lineStr;
+}
+
+QString DotByte::getAssemblerSource() const
+{
     QString symbolStr;
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
@@ -445,9 +541,7 @@ QString DotByte::getAssemblerListing() const
     if (oprndStr.startsWith("0x")) {
         oprndStr.remove(2, 2); // Display only the last two hex characters
     }
-    QString lineStr = QString("%1%2%3%4%5%6")
-            .arg(memStr, -6, QLatin1Char(' '))
-            .arg(codeStr, -7, QLatin1Char(' '))
+    QString lineStr = QString("%1%2%3%4")
             .arg(symbolStr, -9, QLatin1Char(' '))
             .arg(dotStr, -8, QLatin1Char(' '))
             .arg(oprndStr, -12)
@@ -463,8 +557,20 @@ QString DotEnd::getAssemblerListing() const
         symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".END";
-    QString lineStr = QString("%1       %2%3              %4")
+    QString lineStr = QString("%1       %2")
             .arg(memStr, -6, QLatin1Char(' '))
+            .arg(getAssemblerSource());
+    return lineStr;
+}
+
+QString DotEnd::getAssemblerSource() const
+{
+    QString symbolStr;
+    if (!symbolEntry.isNull()) {
+        symbolStr = symbolEntry->getName()+":";
+    }
+    QString dotStr = ".END";
+    QString lineStr = QString("%1%2              %3")
             .arg(symbolStr, -9, QLatin1Char(' '))
             .arg(dotStr, -8, QLatin1Char(' '))
             .arg(comment);
@@ -473,13 +579,18 @@ QString DotEnd::getAssemblerListing() const
 
 QString DotEquate::getAssemblerListing() const
 {
+    return "             " + getAssemblerSource();
+}
+
+QString DotEquate::getAssemblerSource() const
+{
     QString symbolStr;
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".EQUATE";
     QString oprndStr = argument->getArgumentString();
-    QString lineStr = QString("             %1%2%3%4")
+    QString lineStr = QString("%1%2%3%4")
             .arg(symbolStr, -9, QLatin1Char(' '))
             .arg(dotStr, -8, QLatin1Char(' '))
             .arg(oprndStr, -12)
@@ -498,15 +609,25 @@ QString DotWord::getAssemblerListing() const
     else {
         codeStr = "";
     }
+
+    QString dotStr = ".WORD";
+    QString oprndStr = argument->getArgumentString();
+    QString lineStr = QString("%1%2%3")
+            .arg(memStr, -6, QLatin1Char(' '))
+            .arg(codeStr, -7, QLatin1Char(' '))
+            .arg(getAssemblerSource());
+    return lineStr;
+}
+
+QString DotWord::getAssemblerSource() const
+{
     QString symbolStr;
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
     }
     QString dotStr = ".WORD";
     QString oprndStr = argument->getArgumentString();
-    QString lineStr = QString("%1%2%3%4%5%6")
-            .arg(memStr, -6, QLatin1Char(' '))
-            .arg(codeStr, -7, QLatin1Char(' '))
+    QString lineStr = QString("%1%2%3%4")
             .arg(symbolStr, -9, QLatin1Char(' '))
             .arg(dotStr, -8, QLatin1Char(' '))
             .arg(oprndStr, -12)
@@ -516,10 +637,20 @@ QString DotWord::getAssemblerListing() const
 
 QString CommentOnly::getAssemblerListing() const
 {
-    return "             " + comment;
+    return "             " + getAssemblerSource();
+}
+
+QString CommentOnly::getAssemblerSource() const
+{
+    return comment;
 }
 
 QString BlankLine::getAssemblerListing() const
+{
+    return "";
+}
+
+QString BlankLine::getAssemblerSource() const
 {
     return "";
 }
@@ -596,3 +727,4 @@ quint16 DotWord::objectCodeLength() const
         return 0;
     }
 }
+

@@ -55,8 +55,10 @@ public:
     //virtual bool processFormatTraceTags(int &, QString &, SymbolListings &) { return true; }
     //virtual bool processSymbolTraceTags(int &, QString &, SymbolListings &) { return true; }
     virtual int getMemoryAddress() const {return memAddress; }
+    // Get the assembler listing, which is memaddress + object code + sourceLine.
     virtual QString getAssemblerListing() const = 0;
-    virtual QString getAssemblerTrace() const { return getAssemblerListing(); }
+    // Returns the properly formatted source line.
+    virtual QString getAssemblerSource() const = 0;
     virtual quint16 objectCodeLength() const {return 0;}
     virtual bool hasBreakpoint() const { return false;}
     virtual void setBreakpoint(bool) {}
@@ -84,9 +86,11 @@ public:
 
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
     virtual quint16 objectCodeLength() const override;
     virtual bool hasBreakpoint() const override;
     virtual void setBreakpoint(bool b) override;
+
 };
 
 class NonUnaryInstruction: public AsmCode
@@ -101,11 +105,10 @@ public:
     // ~NonUnaryInstruction() { delete argument; }
     virtual void appendObjectCode(QList<int> &objectCode) const override;
     virtual void appendSourceLine(QStringList &assemblerListingList) const override;
-    //virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
-    //virtual bool processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
 
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
     virtual quint16 objectCodeLength() const override;
     virtual bool hasBreakpoint() const override;
     virtual void setBreakpoint(bool b) override;
@@ -125,6 +128,7 @@ public:
 
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
     virtual quint16 objectCodeLength() const override;
     bool hasSymbolicOperand() const override;
     QSharedPointer<const SymbolEntry> getSymbolicOperand() const override;
@@ -142,6 +146,7 @@ public:
 
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
     virtual quint16 objectCodeLength() const override;
 
 };
@@ -157,6 +162,7 @@ public:
 
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
     virtual quint16 objectCodeLength() const override;
 };
 
@@ -168,11 +174,9 @@ private:
 public:
     virtual void appendObjectCode(QList<int> &objectCode) const override;
     virtual void appendSourceLine(QStringList &assemblerListingList) const override;
-    //virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
-    //virtual bool processSymbolTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
-
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
     virtual quint16 objectCodeLength() const override;
 };
 
@@ -185,6 +189,7 @@ private:
 public:
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
 };
 
 class DotByte: public AsmCode
@@ -195,8 +200,10 @@ private:
 
 public:
     virtual void appendObjectCode(QList<int> &objectCode) const override;
+
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
     virtual quint16 objectCodeLength() const override;
 };
 
@@ -207,6 +214,7 @@ class DotEnd: public AsmCode
 public:
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
 };
 
 class DotEquate: public AsmCode
@@ -215,9 +223,10 @@ class DotEquate: public AsmCode
 private:
     AsmArgument *argument = nullptr;
 public:
-    //virtual bool processFormatTraceTags(int &sourceLine, QString &errorString, SymbolListings & symbolListing) override;
+
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
 };
 
 class DotWord: public AsmCode
@@ -229,6 +238,7 @@ public:
     virtual void appendObjectCode(QList<int> &objectCode) const override;
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
     virtual quint16 objectCodeLength() const override;
 };
 
@@ -239,6 +249,7 @@ class CommentOnly: public AsmCode
 public:
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
 };
 
 class BlankLine: public AsmCode
@@ -248,6 +259,7 @@ class BlankLine: public AsmCode
 public:
     // AsmCode interface
     virtual QString getAssemblerListing() const override;
+    virtual QString getAssemblerSource() const override;
 };
 
 #endif // CODE_H

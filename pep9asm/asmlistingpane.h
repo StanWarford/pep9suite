@@ -30,13 +30,14 @@ namespace Ui {
     class AsmListingPane;
 }
 class SymbolTable;
+class AsmProgram;
 class AsmListingPane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmListingPane)
 public:
     explicit AsmListingPane(QWidget *parent = nullptr);
     virtual ~AsmListingPane();
-    void setAssemblerListing(QStringList assemblerListingList, QSharedPointer<SymbolTable> symTable);
+    void setAssemblerListing(QSharedPointer<AsmProgram> assemblerListingList, QSharedPointer<SymbolTable> symTable);
     void clearAssemblerListing();
 
     bool isModified();

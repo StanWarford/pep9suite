@@ -138,3 +138,26 @@ const QMap<SymbolTable::SymbolID, SymbolTable::SymbolEntryPtr> SymbolTable::getS
 {
     return symbolDictionary;
 }
+
+QString SymbolTable::getSymbolTableListing() const
+{
+    static const QString line = "--------------------------------------\n";
+    static const QString symTableStr = "Symbol table\n";
+    static const QString headerStr = "Symbol    Value        Symbol    Value\n";
+    QString build;
+    QList<QSharedPointer<SymbolEntry>> list = getSymbolEntries();
+    for(auto it = list.begin(); it != list.end(); ++it) {
+        if(it + 1 ==list.end()) {
+            QString hexString = QString("%1").arg((*it)->getValue(), 4, 16, QLatin1Char('0')).toUpper();
+            build.append(QString("%1%2\n").arg((*it)->getName(), -10).arg(hexString, -13));
+        }
+        else {
+            QString hexString = QString("%1").arg((*it)->getValue(), 4, 16, QLatin1Char('0')).toUpper();
+            build.append(QString("%1%2").arg((*it)->getName(), -10).arg(hexString, -13));
+            ++it;
+            hexString = QString("%1").arg((*it)->getValue(), 4, 16, QLatin1Char('0')).toUpper();
+            build.append(QString("%1%2\n").arg((*it)->getName(), -10).arg(hexString, -13));
+        }
+    }
+    return symTableStr % line % headerStr %line % build % line;
+}

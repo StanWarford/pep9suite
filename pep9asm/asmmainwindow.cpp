@@ -82,7 +82,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     // Initialize all global maps.
     Pep::initEnumMnemonMaps();
-    Pep::initMnemonicMaps();
+    Pep::initMnemonicMaps(true);
     Pep::initAddrModesMap();
     Pep::initDecoderTables();
     // Initialize the memory subsystem
@@ -1138,14 +1138,9 @@ void MainWindow::on_actionEdit_Paste_triggered()
 
 void MainWindow::on_actionEdit_Format_Assembler_triggered()
 {
-    qDebug() << "called";
     if(ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull()) return;
-    QStringList assemblerListingList = ui->AsmSourceCodeWidgetPane->getAssemblerListingList();
-    assemblerListingList.replaceInStrings(QRegExp("^............."), "");
-    assemblerListingList.removeAll("");
-    if (!assemblerListingList.isEmpty()) {
-        ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(assemblerListingList.join("\n"));
-    }
+    QString code =ui->AsmSourceCodeWidgetPane->getAsmProgram()->getFormattedSourceCode();
+    ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
 }
 
 void MainWindow::on_actionEdit_Remove_Error_Assembler_triggered()
@@ -1174,7 +1169,7 @@ bool MainWindow::on_ActionBuild_Assemble_triggered()
 {
     if(ui->AsmSourceCodeWidgetPane->assemble()){
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
-        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
+        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAsmProgram(),
                                                       ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
         ui->asmListingTracePane->onRemoveAllBreakpoints();
         controlSection->breakpointsRemoveAll();
@@ -1294,6 +1289,8 @@ void MainWindow::handleDebugButtons()
 bool MainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
     if(!on_ActionBuild_Assemble_triggered()) return false;
+    loadOperatingSystem();
+    loadObjectCodeProgram();
 
     return on_actionDebug_Start_Debugging_Object_triggered();
 
@@ -1305,8 +1302,6 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
     debugState = DebugState::DEBUG_ISA;
     ui->asmListingTracePane->startSimulationView();
     if(initializeSimulation()) {
-        loadObjectCodeProgram();
-        loadOperatingSystem();
         emit simulationStarted();
         controlSection->onDebuggingStarted();
         controlSection->breakpointsSet(programManager->getBreakpoints());
@@ -1467,7 +1462,7 @@ void MainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
 {
     if(ui->AsmSourceCodeWidgetPane->assembleOS(false)) {
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
-        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
+        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAsmProgram(),
                                                       ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
         ui->asmListingTracePane->onRemoveAllBreakpoints();
         controlSection->breakpointsRemoveAll();

@@ -267,7 +267,7 @@ void AsmTraceTextEdit::setTextFromCode(QSharedPointer<AsmProgram> code)
     for(int it = 0; it < code->numberOfLines(); it++)
     {
         codePtr = code->getCodeAtIndex(it);
-        traceList = codePtr->getAssemblerTrace().split("\n");
+        traceList = codePtr->getAssemblerListing().split("\n");
         if(dynamic_cast<const UnaryInstruction*>(codePtr) != nullptr ||
                 dynamic_cast<const NonUnaryInstruction*>(codePtr) != nullptr)
         {
@@ -331,7 +331,6 @@ void AsmTraceTextEdit::clearSimulationView()
     QList<QTextEdit::ExtraSelection> extraSelections;
     setExtraSelections(extraSelections);
 }
-
 
 void AsmTraceTextEdit::onRemoveAllBreakpoints()
 {

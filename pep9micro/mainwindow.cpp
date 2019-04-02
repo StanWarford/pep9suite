@@ -89,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Initialize all global maps.
     Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, true);
     Pep::initEnumMnemonMaps();
-    Pep::initMnemonicMaps();
+    Pep::initMnemonicMaps(false);
     Pep::initAddrModesMap();
     Pep::initDecoderTables();
     Pep::initMicroDecoderTables();
@@ -1089,22 +1089,17 @@ void MainWindow::debugButtonEnableHelper(const int which)
     }
 }
 
-void MainWindow::highlightActiveLines(bool forceISA)
+void MainWindow::highlightActiveLines()
 {
     //always highlight the current microinstruction
     ui->microcodeWidget->updateSimulationView();
     ui->microObjectCodePane->highlightCurrentInstruction();
     //If the µPC is 0, if a breakpoint has been reached, or if the microcode has a breakpoint, rehighlight the ASM views.
-    if(controlSection->atMicroprogramStart() || forceISA || controlSection->stoppedForBreakpoint()) {
-        ui->memoryWidget->clearHighlight();
-        ui->memoryWidget->highlight();
+    ui->memoryWidget->clearHighlight();
+    ui->memoryWidget->highlight();
+    if(controlSection->atMicroprogramStart() || controlSection->stoppedForBreakpoint()) {
         ui->asmListingTracePane->updateSimulationView();
     }
-}
-
-void MainWindow::highlightActiveLines()
-{
-    return highlightActiveLines(false);
 }
 
 bool MainWindow::initializeSimulation()
@@ -1351,14 +1346,9 @@ void MainWindow::on_actionEdit_UnComment_Line_triggered()
 
 void MainWindow::on_actionEdit_Format_Assembler_triggered()
 {
-    qDebug() << "called";
     if(ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull()) return;
-    QStringList assemblerListingList = ui->AsmSourceCodeWidgetPane->getAssemblerListingList();
-    assemblerListingList.replaceInStrings(QRegExp("^............."), "");
-    assemblerListingList.removeAll("");
-    if (!assemblerListingList.isEmpty()) {
-        ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(assemblerListingList.join("\n"));
-    }
+    QString code =ui->AsmSourceCodeWidgetPane->getAsmProgram()->getFormattedSourceCode();
+    ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
 }
 
 void MainWindow::on_actionEdit_Format_Microcode_triggered()
@@ -1410,7 +1400,7 @@ bool MainWindow::on_ActionBuild_Assemble_triggered()
 {
     if(ui->AsmSourceCodeWidgetPane->assemble()){
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
-        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
+        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAsmProgram(),
                                                       ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
         ui->asmListingTracePane->onRemoveAllBreakpoints();
         controlSection->breakpointsRemoveAll();
@@ -1536,6 +1526,8 @@ void MainWindow::handleDebugButtons()
 bool MainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
     if(!on_ActionBuild_Assemble_triggered()) return false;
+    loadOperatingSystem();
+    loadObjectCodeProgram();
 
     return on_actionDebug_Start_Debugging_Object_triggered();
 
@@ -1547,8 +1539,6 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
     debugState = DebugState::DEBUG_ISA;
     ui->asmListingTracePane->startSimulationView();
     if(initializeSimulation()) {
-        loadObjectCodeProgram();
-        loadOperatingSystem();
         emit simulationStarted();
         controlSection->onDebuggingStarted();
         controlSection->breakpointsSet(programManager->getBreakpoints());
@@ -1557,12 +1547,12 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         memDevice->clearBytesSet();
         memDevice->clearBytesWritten();
         ui->cpuWidget->startDebugging();
-        ui->memoryWidget->updateMemory();
+        ui->memoryWidget->refreshMemory();
         // Force re-highlighting on memory to prevent last run's data
         // from remaining highlighted. Otherwise, if the last program
         // was "run", then every byte that it modified will be highlighted
         // upon starting the simulation.
-        highlightActiveLines(true);
+        highlightActiveLines();
         ui->memoryTracePane->updateTrace();
         ui->asmListingTracePane->setFocus();
         return true;
@@ -1596,7 +1586,7 @@ bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
 void MainWindow::on_actionDebug_Stop_Debugging_triggered()
 {
     connectViewUpdate();
-    highlightActiveLines(true);
+    highlightActiveLines();
     debugState = DebugState::DISABLED;
     ui->microcodeWidget->clearSimulationView();
     ui->microObjectCodePane->clearSimulationView();
@@ -1630,7 +1620,10 @@ void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
 
 void MainWindow::on_actionDebug_Interupt_Execution_triggered()
 {
-    on_actionDebug_Stop_Debugging_triggered();
+    connectViewUpdate();
+    debugState = DebugState::DEBUG_ISA;
+    highlightActiveLines();
+    handleDebugButtons();
 }
 
 void MainWindow::on_actionDebug_Continue_triggered()
@@ -1646,7 +1639,7 @@ void MainWindow::on_actionDebug_Continue_triggered()
     if(controlSection->stoppedForBreakpoint()) {
         emit simulationUpdate();
         QApplication::processEvents();
-        highlightActiveLines(true);
+        highlightActiveLines();
     }
 }
 
@@ -1734,7 +1727,7 @@ void MainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
 {
     if(ui->AsmSourceCodeWidgetPane->assembleOS(true)) {
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
-        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAssemblerListingList(),
+        ui->AsmListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAsmProgram(),
                                                       ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
         ui->asmListingTracePane->onRemoveAllBreakpoints();
         controlSection->breakpointsRemoveAll();
@@ -2187,9 +2180,9 @@ void MainWindow::onInputRequested(quint16 address)
     // iff the widget has never been visible.
     auto cw = ui->debuggerTabWidget->currentWidget();
     ui->debuggerTabWidget->setCurrentWidget(ui->assemblerDebuggerTab);
-    highlightActiveLines(true);
+    highlightActiveLines();
     ui->debuggerTabWidget->setCurrentWidget(ui->microcodeDebuggerTab);
-    highlightActiveLines(true);
+    highlightActiveLines();
     ui->debuggerTabWidget->setCurrentWidget(cw);
     // End fix for centerCursor()
 
