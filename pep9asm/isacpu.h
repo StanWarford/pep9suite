@@ -58,8 +58,8 @@ public:
 public slots:
     void onSimulationStarted() override;
     void onSimulationFinished() override;
-    void onDebuggingStarted() override;
-    void onDebuggingFinished() override;
+    void enableDebugging() override;
+    void forceBreakpoint(Enu::BreakpointTypes) override;
     void onCancelExecution() override;
     bool onRun() override;
     void onResetCPU() override;
@@ -79,8 +79,6 @@ private:
     void executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode);
     void executeTrap(Enu::EMnemonic mnemon);
     void breakpointHandler();
-
-
 };
 
 #endif // ISACPU_H

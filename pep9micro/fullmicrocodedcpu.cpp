@@ -106,6 +106,8 @@ void FullMicrocodedCPU::onSimulationStarted()
     inDebug = false;
     inSimulation = false;
     executionFinished = false;
+    microBreakpointHit = false;
+    asmBreakpointHit = false;
     if(sharedProgram->getSymTable()->exists("start")) {
         startLine = sharedProgram->getSymTable()->getValue("start")->getValue();
     } else {
@@ -125,18 +127,21 @@ void FullMicrocodedCPU::onSimulationFinished()
 #pragma message("TODO: Inform memory that execution is finished")
 }
 
-void FullMicrocodedCPU::onDebuggingStarted()
+void FullMicrocodedCPU::enableDebugging()
 {
-    onSimulationStarted();
     inDebug = true;
-    microBreakpointHit = false;
-    asmBreakpointHit = false;
 }
 
-void FullMicrocodedCPU::onDebuggingFinished()
+void FullMicrocodedCPU::forceBreakpoint(Enu::BreakpointTypes breakpoint)
 {
-    onSimulationFinished();
-    inDebug = false;
+    switch(breakpoint){
+    case Enu::BreakpointTypes::ASSEMBLER:
+        asmBreakpointHit = true;
+        break;
+    case Enu::BreakpointTypes::MICROCODE:
+        microBreakpointHit = true;
+        break;
+    }
 }
 
 void FullMicrocodedCPU::onCancelExecution()
@@ -148,39 +153,21 @@ void FullMicrocodedCPU::onCancelExecution()
 bool FullMicrocodedCPU::onRun()
 {
     timer.start();
-    // If debugging, there is the potential to hit breakpoints, so a different main loop is needed.
-    // Partially, this is to handle breakpoints gracefully, and partially to prevent "run" mode from being slowed down by debug features.
-    if(inDebug) {
-        // Always execute at least once, otherwise cannot progress past breakpoints
-        do {
-            // Since the sim runs at about 5Mhz, do not process events every single cycle to increase performance.
-            if(microCycleCounter % 5000 == 0) {
-                QApplication::processEvents();
-            }
-            else if(microprogramCounter == startLine) {
-                // Clear at start, so as to preserve highlighting AFTER finshing a write.
-                // When running in debug, clear written bytes after every instruction,
-                // otherwise too many writes may queue up.
-                memory->clearBytesWritten();
-            }
-            onMCStep();
-        } while(!hadErrorOnStep() && !executionFinished && !(microBreakpointHit || asmBreakpointHit));
-    }
-    else {
-        while(!hadErrorOnStep() && !executionFinished) {
-            // Since the sim runs at about 5Mhz, do not process events every single cycle to increase performance.
-            if(microCycleCounter % 5000 == 0) {
-                QApplication::processEvents();
-            }
-            else if(microprogramCounter == startLine) {
-                // Clear at start, so as to preserve highlighting AFTER finshing a write.
-                // When running in debug, clear written bytes after every instruction,
-                // otherwise too many writes may queue up.
-                memory->clearBytesWritten();
-            }
-            onMCStep();
+
+    std::function<bool(void)> cond = [this] () {
+        bool rVal = !hadErrorOnStep() && !executionFinished && !(inDebug && (microBreakpointHit || asmBreakpointHit));
+        // If execution would be finished this cycle, don't clear the last written bytes
+        // so that the bytes modified by the last instruction are displayed.
+        if(rVal && microprogramCounter == startLine) {
+            // Clear at start, so as to preserve highlighting AFTER finshing a write.
+            // When running in debug, clear written bytes after every instruction,
+            // otherwise too many writes may queue up.
+            memory->clearBytesWritten();
         }
-    }
+        return rVal;
+    };
+    // Execute multiple steps until the condition function is false.
+    doMCStepWhile(cond);
 
     //If there was an error on the control flow
     if(hadErrorOnStep()) {
@@ -207,12 +194,12 @@ bool FullMicrocodedCPU::onRun()
     }
 
     auto value = timer.elapsed();
-    //qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
+    // qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
     qDebug().nospace().noquote() << "Executed "<< asmInstructionCounter << " instructions in "<<microCycleCounter<< " cycles.";
     qDebug().nospace().noquote() << "Averaging " << microCycleCounter / asmInstructionCounter << " cycles per instruction.";
     qDebug().nospace().noquote() << "Execution time (ms): " << value;
     qDebug().nospace().noquote() << "Cycles per second: " << microCycleCounter / (((float)value/1000));
-    qDebug().nospace().noquote() << "Instructions per second: " << asmInstructionCounter / (((float)value/1000));
+    qDebug().nospace().noquote() << "Instructions per second: " << asmInstructionCounter / (((float)value/1000)) << "\n";
     //emit simulationFinished();
     return true;
 }
@@ -238,7 +225,6 @@ void FullMicrocodedCPU::onResetCPU()
 
 void FullMicrocodedCPU::onMCStep()
 {
-
     if(microprogramCounter == startLine) {
         // Store PC at the start of the cycle, so that we know where the instruction started from.
         // Also store any other values needed for detailed statistics
@@ -248,7 +234,6 @@ void FullMicrocodedCPU::onMCStep()
     }
 
     // Do step logic
-
     const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
 
     this->setSignalsFromMicrocode(prog);
@@ -269,11 +254,13 @@ void FullMicrocodedCPU::onMCStep()
         return;
     }
 
+    // Step inside the data section, then hnalde updating microprogram counter.
     data->onStep();
     branchHandler();
     microCycleCounter++;
-    // qDebug().nospace().noquote() << prog->getSourceCode();
 
+    // If we just finished an entire ISA level instruction, perform additional
+    // simulation logic needed to mantain ISA level state.
     if(microprogramCounter == startLine || executionFinished) {
         quint16 progCounter = getCPURegWordStart(Enu::CPURegisters::PC);
         InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteCurrent(Enu::CPURegisters::IS),
@@ -285,7 +272,7 @@ void FullMicrocodedCPU::onMCStep()
         updateAtInstructionEnd();
         emit asmInstructionFinished();
         asmInstructionCounter++;
-        qDebug().noquote().nospace() << memoizer->memoize();
+        // qDebug().noquote().nospace() << memoizer->memoize();
         data->getRegisterBank().flattenFile();
         // If execution finished on this instruction, then restore original starting program counter,
         // as the instruction at the current program counter will not be executed.
@@ -295,6 +282,20 @@ void FullMicrocodedCPU::onMCStep()
         }
 
     }
+
+    // Modulus must be greater than 1, or there will be no gaurentee of forward progress.
+    // If modulus were 1, then debug debug breakpoints that were signaled externally
+    // during process events would never be cleared by branch handler.
+    if(microCycleCounter % 5000 == 0) {
+        QApplication::processEvents();
+        if(inDebug && (microBreakpointHit || asmBreakpointHit)) {
+            // If a breakpoint was forced on us by the processEvents(), react to it now.
+            // Clear breakpoint flags, otherwise we might get stuck
+            // reacting to this breakpoint forever.
+            return;
+        }
+    }
+
     // Upon entering an instruction that is going to trap
     // If running in debug mode, first check if this line has any microcode breakpoints.
     if(inDebug) {
@@ -315,54 +316,42 @@ void FullMicrocodedCPU::onClock()
 
 void FullMicrocodedCPU::onISAStep()
 {
-    auto continueExecute = [this](){return !hadErrorOnStep()
+    // Execute steps until the microprogram counter comes back to start
+    // OR there is an error on step OR a breakpoint is hit OR the program is
+    // otherwise terminated.
+    std::function<bool(void)> func = [this](){return !hadErrorOnStep()
                 && !executionFinished
-                && !microBreakpointHit;};
+                && !microBreakpointHit
+                && microprogramCounter != startLine;};
+
     // If microprogram counter is 0, and the start of the von-neuman cycle
     // is not 0, execute microcode until "start" is hit. This is to prevent
+    // the user from needing to hit "step" twice to execute the first ISA
+    // level instruction.
     if(microprogramCounter < startLine && startLine != 0) {
-        do {
-            onMCStep();
-        } while(continueExecute() && microprogramCounter != startLine);
+        doMCStepWhile(func);
     }
 
-    // If prelude hit an error or breakpoint, do not continue executing.
-    if(continueExecute()) {
-        // Execute steps until the microprogram counter comes back to start
-        // OR there is an error on step OR a breakpoint is hit.
-        do {
-            onMCStep();
-        } while(continueExecute() && microprogramCounter != startLine);
+    // If prelude hit an error OR a breakpoint OR stopped for some other reason,
+    // do not continue executing.
+    if(!hadErrorOnStep() && !executionFinished && !microBreakpointHit) {
+        doMCStepWhile(func);
     }
 
-    if(hadErrorOnStep()) {
-        if(memory->hadError()) {
-            qDebug() << "Memory section reporting an error";
-        }
-        else if(data->hadErrorOnStep()) {
-            qDebug() << "Data section reporting an error";
-        }
-        else {
-            qDebug() << "Control section reporting an error";
-        }
-        controlError = true;
-        return;
-    }
-    // If there was an error, execution is finished.
-    // if(executionFinished) emit simulationFinished();
 }
 
 void FullMicrocodedCPU::stepOver()
 {
+
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
     int localCallDepth = getCallDepth();
-    do{
-        onISAStep();
-    } while(localCallDepth < getCallDepth()
+    // Execute instructions until there is an error, or one is at the same depth of the call stack as prior to execution.
+    std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth < getCallDepth()
             && !getExecutionFinished()
             && !stoppedForBreakpoint()
-            && !hadErrorOnStep());
+            && !hadErrorOnStep();};
+    doISAStepWhile(cond);
 }
 
 bool FullMicrocodedCPU::canStepInto() const
@@ -377,6 +366,7 @@ void FullMicrocodedCPU::stepInto()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
+    // Step into is jus texecuting a single step, as a single step would enter the trap / call.
     onISAStep();
 }
 
@@ -385,12 +375,12 @@ void FullMicrocodedCPU::stepOut()
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
     int localCallDepth = getCallDepth();
-    do{
-        onISAStep();
-    } while(localCallDepth <= getCallDepth()
+    // Execute instructions until there is an error, or one is at a higher depth of the call stack as prior to execution.
+    std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth <= getCallDepth()
             && !getExecutionFinished()
             && !stoppedForBreakpoint()
-            && !hadErrorOnStep());
+            && !hadErrorOnStep();};
+    doISAStepWhile(cond);
 }
 
 void FullMicrocodedCPU::branchHandler()
@@ -643,7 +633,7 @@ void FullMicrocodedCPU::calculateAddrJT()
 
 void FullMicrocodedCPU::breakpointHandler()
 {
-    // If the CPU is not being debugged, breakpoints make no sense. Abort.
+    // If the CPU is not being debugged, breakpoints make no sense. Stop.
     if(!inDebug) return;
     // Only trap assembly breakpoints once on the first line of microcode.
     if((microprogramCounter == startLine) && breakpointsISA.contains(data->getRegisterBankWord(Enu::CPURegisters::PC))) {

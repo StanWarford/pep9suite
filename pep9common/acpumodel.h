@@ -90,10 +90,11 @@ public slots:
     virtual void onSimulationStarted() = 0;
     // Clean up CPU after simulation.
     virtual void onSimulationFinished() = 0;
-    // Prepare CPU for being stepped through.
-    virtual void onDebuggingStarted() = 0;
-    // Clean up CPU after debugging.
-    virtual void onDebuggingFinished() = 0;
+    // Enable debugging facilities of CPU. May be enabled after a simulation begins. This
+    // late enabling of debugging might occur when "interupt execution" is executed.
+    virtual void enableDebugging() = 0;
+    // Force the CPU to undergo a "one shot" breakpoint. Useful for interupting an infinite loop.
+    virtual void forceBreakpoint(Enu::BreakpointTypes) = 0;
     // Cancel execution (and clean up) without raising any warnings.
     virtual void onCancelExecution() = 0;
 

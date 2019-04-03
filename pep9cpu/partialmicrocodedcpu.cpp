@@ -62,7 +62,7 @@ quint16 PartialMicrocodedCPU::getCPURegWordStart(Enu::CPURegisters reg) const
 
 void PartialMicrocodedCPU::initCPU()
 {
-#pragma message ("Should there be any init done here?")
+    // No init needs to be performed on CPU.
 }
 
 bool PartialMicrocodedCPU::stoppedForBreakpoint() const noexcept
@@ -94,7 +94,9 @@ void PartialMicrocodedCPU::onSimulationStarted()
     inDebug = false;
     inSimulation = false;
     executionFinished = false;
+    microBreakpointHit = false;
     memoizer->clear();
+    memory->clearErrors();
 }
 
 void PartialMicrocodedCPU::onSimulationFinished()
@@ -105,17 +107,19 @@ void PartialMicrocodedCPU::onSimulationFinished()
     inDebug = false;
 }
 
-void PartialMicrocodedCPU::onDebuggingStarted()
+void PartialMicrocodedCPU::enableDebugging()
 {
-    onSimulationStarted();
     inDebug = true;
-    microBreakpointHit = false;
 }
 
-void PartialMicrocodedCPU::onDebuggingFinished()
+void PartialMicrocodedCPU::forceBreakpoint(Enu::BreakpointTypes breakpoint)
 {
-    onSimulationFinished();
-    inDebug = false;
+    switch(breakpoint){
+    case Enu::BreakpointTypes::MICROCODE:
+        microBreakpointHit = true;
+        break;
+    }
+
 }
 
 void PartialMicrocodedCPU::onCancelExecution()
@@ -126,40 +130,31 @@ void PartialMicrocodedCPU::onCancelExecution()
 
 bool PartialMicrocodedCPU::onRun()
 {
-    // If debugging, there is the potential to hit breakpoints, so a different main loop is needed.
-    // Partially, this is to handle breakpoints gracefully, and partially to prevent "run" mode from being slowed down by debug features.
-    if(inDebug) {
-        // Always execute at least once, otherwise cannot progress past breakpoints
-        do {
-            // Since the sim runs at about 5Mhz, do not process events every single cycle to increase performance.
-            if(microCycleCounter % 5000 == 0) {
-                QApplication::processEvents();
-            }
-            onMCStep();
-        } while(!hadErrorOnStep() && !executionFinished && !(microBreakpointHit));
-    }
-    else {
-        while(!hadErrorOnStep() && !executionFinished) {
-            // Since the sim runs at about 5Mhz, do not process events every single cycle to increase performance.
-            if(microCycleCounter % 5000 == 0) {
-                QApplication::processEvents();
-            }
-            onMCStep();
-        }
-    }
+    std::function<bool(void)> cond = [this] () {
+        bool rVal = !hadErrorOnStep() && !executionFinished && !(inDebug && (microBreakpointHit));
+        // Don't clear written bytes on last cycle, so that the user may see what
+        // the last instruction modified.
+        if(rVal) memory->clearBytesWritten();
+        return rVal;
+    };
+    // Execute microcode steps until the condition function is false.
+    doMCStepWhile(cond);
 
     //If there was an error on the control flow
     if(hadErrorOnStep()) {
         if(memory->hadError()) {
             qDebug() << "Memory section reporting an error";
+            //emit simulationFinished();
             return false;
         }
         else if(data->hadErrorOnStep()) {
             qDebug() << "Data section reporting an error";
+            //emit simulationFinished();
             return false;
         }
         else {
             qDebug() << "Control section reporting an error";
+            //emit simulationFinished();
             return false;
         }
     }

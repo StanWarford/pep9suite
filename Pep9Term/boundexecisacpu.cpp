@@ -42,17 +42,16 @@ quint64 BoundExecIsaCpu::getDefaultMaxSteps()
 
 bool BoundExecIsaCpu::onRun()
 {
-    while(!hadErrorOnStep() && !executionFinished) {
-        // Since the sim runs at about 5Mhz, do not process events every single cycle to increase performance.
-        if(asmInstructionCounter % 500 == 0) {
-            QCoreApplication::processEvents();
-        }
-        else if(maxSteps <= asmInstructionCounter) {
+    std::function<bool(void)> cond = [this](){ if(maxSteps <=asmInstructionCounter) {
             controlError = true;
             errorMessage = "Possible endless loop detected.";
+            // Make sure to explicitly terminate simulation, else will be stuck in infinite loop.
+            emit simulationFinished();
+            return false;
         }
-        onISAStep();
-    }
+        return !hadErrorOnStep() && !executionFinished;
+    };
+    doISAStepWhile(cond);
 
     //If there was an error on the control flow
     if(hadErrorOnStep()) {

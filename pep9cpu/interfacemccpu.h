@@ -57,10 +57,19 @@ public:
     // This can raise an exception if a cpu implementation doesn't support multiple
     // modes, so callers
     virtual void setCPUType(Enu::CPUType type) = 0;
+
     // Perform a single hardware cycle (instruction).
     virtual void onMCStep() = 0;
     // Execute multiple microcode cycles while condition() is true.
+    // There seems to be a stigma with std::function as "too slow" compared to function pointers.
+    // In our use case, it came with a neglible perfomance penalty (<5%), as the only
+    // cost associated with a function object is the additional memory allocated to
+    // mantain function state and one extra indirection upon calling (which would be the same overhead of a function pointer).
+    // As these functions are only created once per run / step, the overhead of allocating them is
+    // amortized across many cycles, making the perfomance overhead is irrelevant. The background activity
+    // of the host machine has a far greater effect on performance than these function wrappers wever will.
     virtual void doMCStepWhile(std::function<bool(void)> condition);
+
     // Execute the control signals that have been set, clear the signals, and perform no µbranch.
     virtual void onClock() = 0;
 

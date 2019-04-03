@@ -784,9 +784,17 @@ bool MainWindow::on_actionDebug_Start_Debugging_triggered()
     else {
         debugState = DebugState::DEBUG_MICRO;
         emit simulationStarted();
-        controlSection->onDebuggingStarted();
+        controlSection->onSimulationStarted();
+        memDevice->clearBytesSet();
+        memDevice->clearBytesWritten();
+        controlSection->enableDebugging();
         ui->cpuWidget->startDebugging();
         ui->memoryWidget->updateMemory();
+        // Force re-highlighting on memory to prevent last run's data
+        // from remaining highlighted. Otherwise, if the last program
+        // was "run", then every byte that it modified will be highlighted
+        // upon starting the simulation.
+        highlightActiveLines();
         return true;
     }
 }
@@ -802,7 +810,7 @@ void MainWindow::on_actionDebug_Stop_Debugging_triggered()
     ui->cpuWidget->stopDebugging();
     handleDebugButtons();
     ui->memoryWidget->updateMemory();
-    controlSection->onDebuggingFinished();
+    controlSection->onSimulationFinished();
     emit simulationFinished();
 }
 

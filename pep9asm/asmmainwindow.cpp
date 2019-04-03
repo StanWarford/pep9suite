@@ -1361,6 +1361,8 @@ bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     controlSection->getRegisterBank().writePCStart(pc);
     controlSection->getRegisterBank().writeRegisterWord(Enu::CPURegisters::PC, pc);
     controlSection->getRegisterBank().writeRegisterWord(Enu::CPURegisters::SP, sp);
+    // Memory has been cleared, but will not display as such unless explicitly refreshed.
+    ui->memoryWidget->refreshMemory();
     emit simulationUpdate();
     return true;
 }
@@ -1398,7 +1400,15 @@ void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
 
 void MainWindow::on_actionDebug_Interupt_Execution_triggered()
 {
-    on_actionDebug_Stop_Debugging_triggered();
+    // Enable debugging in CPU and then temporarily pause execution.
+    controlSection->enableDebugging();
+    controlSection->forceBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
+    connectViewUpdate();
+    debugState = DebugState::DEBUG_ISA;
+    highlightActiveLines();
+    handleDebugButtons();
+    // Switch to debugger tab if it is not already visibile.
+    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
 }
 
 void MainWindow::on_actionDebug_Continue_triggered()

@@ -24,13 +24,12 @@ void IsaCpu::stepOver()
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
     int localCallDepth = getCallDepth();
-    do{
-        onISAStep();
-    } while(localCallDepth < getCallDepth()
+    // Execute instructions until there is an error, or one is at the same depth of the call stack as prior to execution.
+    std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth < getCallDepth()
             && !getExecutionFinished()
             && !stoppedForBreakpoint()
-            && !hadErrorOnStep());
-
+            && !hadErrorOnStep();};
+    doISAStepWhile(cond);
 }
 
 bool IsaCpu::canStepInto() const
@@ -38,6 +37,7 @@ bool IsaCpu::canStepInto() const
     quint8 byte;
     memory->getByte(getCPURegWordStart(Enu::CPURegisters::PC), byte);
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[byte];
+    // Can only step into calls, trap instructions.
     return (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
 }
 
@@ -45,6 +45,7 @@ void IsaCpu::stepInto()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
+    // Step into is jus texecuting a single step, as a single step would enter the trap / call.
     onISAStep();
 }
 
@@ -53,12 +54,12 @@ void IsaCpu::stepOut()
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
     int localCallDepth = getCallDepth();
-    do{
-        onISAStep();
-    } while(localCallDepth <= getCallDepth()
+    // Execute instructions until there is an error, or one is at a higher depth of the call stack as prior to execution.
+    std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth <= getCallDepth()
             && !getExecutionFinished()
             && !stoppedForBreakpoint()
-            && !hadErrorOnStep());
+            && !hadErrorOnStep();};
+    doISAStepWhile(cond);
 }
 
 bool IsaCpu::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
@@ -89,9 +90,11 @@ void IsaCpu::onISAStep()
     memory->onCycleStarted();
     InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Enu::CPURegisters::IS));
 
+    // Load PC from register bank, allocate space for operand if it exists.
     quint16 opSpec, pc = registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC);
     quint16 startPC = pc;
     quint8 is;
+
     bool okay = memory->readByte(pc, is);
 
     registerBank.writeRegisterByte(Enu::CPURegisters::IS, is);
@@ -135,6 +138,18 @@ void IsaCpu::onISAStep()
 
     registerBank.flattenFile();
 
+    // Modulus must be greater than 1, or there will be no gaurentee of forward progress.
+    // If modulus were 1, then debug debug breakpoints that were signaled externally
+    // during process events would never be cleared by branch handler.
+    if(asmInstructionCounter % 500 == 0) {
+        QApplication::processEvents();
+        if(inDebug && asmBreakpointHit) {
+            // If a breakpoint was forced on us by the processEvents(), react to it now.
+            // Clear breakpoint flags, otherwise we might get stuck
+            // reacting to this breakpoint forever.
+            return;
+        }
+    }
     // If execution finished on this instruction, then restore original starting program counter,
     // as the instruction at the current program counter will not be executed.
     if(executionFinished || hadErrorOnStep()) {
@@ -281,6 +296,7 @@ void IsaCpu::onSimulationStarted()
     inDebug = false;
     inSimulation = false;
     executionFinished = false;
+    asmBreakpointHit = false;
     memoizer->clear();
     memory->clearErrors();
 }
@@ -292,17 +308,18 @@ void IsaCpu::onSimulationFinished()
     #pragma message("TODO: Inform memory that execution is finished")
 }
 
-void IsaCpu::onDebuggingStarted()
+void IsaCpu::enableDebugging()
 {
-    onSimulationStarted();
     inDebug = true;
-    asmBreakpointHit = false;
 }
 
-void IsaCpu::onDebuggingFinished()
+void IsaCpu::forceBreakpoint(Enu::BreakpointTypes breakpoint)
 {
-    onSimulationFinished();
-    inDebug = false;
+    switch(breakpoint){
+    case Enu::BreakpointTypes::ASSEMBLER:
+        asmBreakpointHit = true;
+        break;
+    }
 }
 
 void IsaCpu::onCancelExecution()
@@ -314,44 +331,14 @@ void IsaCpu::onCancelExecution()
 bool IsaCpu::onRun()
 {
     timer.start();
-    // If debugging, there is the potential to hit breakpoints, so a different main loop is needed.
-    // Partially, this is to handle breakpoints gracefully, and partially to prevent "run" mode from being slowed down by debug features.
-    if(inDebug) {
-        // Always execute at least once, otherwise cannot progress past breakpoints
-        do {
-            // Since the sim runs at about 5Mhz, do not process events every single cycle to increase performance.
-            if(asmInstructionCounter % 500 == 0) {
-                QApplication::processEvents();
-            }
-            onISAStep();
-        } while(!hadErrorOnStep() && !executionFinished && !(asmBreakpointHit));
-    }
-    else {
-        while(!hadErrorOnStep() && !executionFinished) {
-            // Since the sim runs at about 5Mhz, do not process events every single cycle to increase performance.
-            if(asmInstructionCounter % 500 == 0) {
-                QApplication::processEvents();
-            }
-            onISAStep();
-        }
-    }
+    std::function<bool(void)> func = [this]() {
+        return !hadErrorOnStep() && !executionFinished && !(inDebug && asmBreakpointHit);};
+    // Always execute at least once, otherwise cannot progress past breakpoints
+    doISAStepWhile(func);
 
-    //If there was an error on the control flow
-    if(hadErrorOnStep()) {
-        if(memory->hadError()) {
-            qDebug() << "Memory section reporting an error";
-            //emit simulationFinished();
-            return false;
-        }
-        else {
-            qDebug() << "Control section reporting an error";
-            //emit simulationFinished();
-            return false;
-        }
-    }
-
-    // If a breakpoint was reached, return before final statistics are computed or the simulation is finished.
-    if(asmBreakpointHit) {
+    // If a breakpoint was reached, or if there was an error on the control flow.
+    // return before final statistics are computed or the simulation is finished.
+    if(asmBreakpointHit || hadErrorOnStep()) {
         return false;
     }
 
@@ -1186,7 +1173,7 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
 
 void IsaCpu::breakpointHandler()
 {
-    // If the CPU is not being debugged, breakpoints make no sense. Abort.
+    // If the CPU is not being debugged, breakpoints make no sense. Stop.
     if(!inDebug) return;
     else if(breakpointsISA.contains(registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC))) {
         asmBreakpointHit = true;

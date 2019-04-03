@@ -72,7 +72,15 @@ protected:
     // Execute a single ISA instruction.
     virtual void onISAStep() = 0;
     // Execute multiple ISA steps while condition() is true.
+    // There seems to be a stigma with std::function as "too slow" compared to function pointers.
+    // In our use case, it came with a neglible perfomance penalty (<5%), as the only
+    // cost associated with a function object is the additional memory allocated to
+    // mantain function state and one extra indirection upon calling (which would be the same overhead of a function pointer).
+    // As these functions are only created once per run / step, the overhead of allocating them is
+    // amortized across many cycles, making the perfomance overhead is irrelevant. The background activity
+    // of the host machine has a far greater effect on performance than these function wrappers wever will.
     virtual void doISAStepWhile(std::function<bool(void)> condition);
+
     // Update simulation state at the start of a assembly level instruction
     virtual void updateAtInstructionEnd() = 0;
     void calculateStackChangeStart(quint8 instr);

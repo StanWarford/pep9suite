@@ -1608,6 +1608,8 @@ bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     controlSection->getDataSection()->getRegisterBank().writePCStart(pc);
     controlSection->getDataSection()->getRegisterBank().writeRegisterWord(Enu::CPURegisters::PC, pc);
     controlSection->getDataSection()->getRegisterBank().writeRegisterWord(Enu::CPURegisters::SP, sp);
+    // Memory has been cleared, but will not display as such unless explicitly refreshed.
+    ui->memoryWidget->refreshMemory();
     emit simulationUpdate();
     return true;
 }
@@ -1649,10 +1651,16 @@ void MainWindow::on_actionDebug_Single_Step_Assembler_triggered()
 
 void MainWindow::on_actionDebug_Interupt_Execution_triggered()
 {
+    // Enable debugging in CPU and then temporarily pause execution.
+    controlSection->enableDebugging();
+    controlSection->forceBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
     connectViewUpdate();
     debugState = DebugState::DEBUG_ISA;
     highlightActiveLines();
     handleDebugButtons();
+    // Interupt should activate the assembler debugger tab, as this is the level where it makes the most sense.
+    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
+    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
 }
 
 void MainWindow::on_actionDebug_Continue_triggered()
