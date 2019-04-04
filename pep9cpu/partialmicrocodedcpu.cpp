@@ -118,6 +118,9 @@ void PartialMicrocodedCPU::forceBreakpoint(Enu::BreakpointTypes breakpoint)
     case Enu::BreakpointTypes::MICROCODE:
         microBreakpointHit = true;
         break;
+    default:
+        // Don't handle other kinds of breakpoints if they are generated.
+        return;
     }
 
 }

@@ -33,7 +33,7 @@
 #include "symbolvalue.h"
 AsmListingPane::AsmListingPane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::AsmListingPane), inDarkMode(false), currentFile()
+        ui(new Ui::AsmListingPane), currentFile(), inDarkMode(false)
 {
     ui->setupUi(this);
 

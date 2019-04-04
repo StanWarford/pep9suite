@@ -46,8 +46,9 @@
 #include "symbolvalue.h"
 #include "mainmemory.h"
 AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
-        QWidget(parent),
-        ui(new Ui::SourceCodePane), inDarkMode(false), currentFile(), currentProgram(nullptr), addressToIndex(), memDevice(nullptr)
+        QWidget(parent), ui(new Ui::SourceCodePane), inDarkMode(false), memDevice(nullptr),
+        programManager(nullptr), currentProgram(nullptr), objectCode(), assemblerListingList(),
+        addressToIndex(), currentFile()
 {
     ui->setupUi(this);
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this, &AsmSourceCodePane::setLabelToModified);

@@ -175,7 +175,6 @@ QString HelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString
     }
     else if(parentRow == eMICROIMPL || row == eMICROIMPL) {
         destPane = Enu::EPane::EMicrocode;
-        #pragma message ("TODO: fix microcode path")
         return Pep::resToString(":/help-micro/pep9micro.pepcpu");
     }
     destPane = Enu::EPane::ESource;

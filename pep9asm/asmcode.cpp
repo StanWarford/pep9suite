@@ -30,9 +30,6 @@
 #include "symbolentry.h"
 #include "symboltable.h"
 
-#pragma message("TODO: The functions requesting object code must manuall check for burn count & memaddress of burn")
-// appendObjectCode
-
 AsmCode::AsmCode(): sourceCodeLine(0), memAddress(0), symbolEntry(QSharedPointer<SymbolEntry>()), comment(),
     emitObjectCode(true), hasCom(false)
 {

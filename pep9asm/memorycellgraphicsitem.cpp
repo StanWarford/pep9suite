@@ -33,13 +33,18 @@ const int MemoryCellGraphicsItem::bufferWidth = 14;
 
 MemoryCellGraphicsItem::MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int addr, QString sym,
                                                Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc): memDevice(memDevice), x(xLoc), y(yLoc),
-    address(addr), eSymbolFormat(eSymFrmt), colors(&PepColors::lightMode), isModified(false)
+    address(quint16(addr)), eSymbolFormat(eSymFrmt), colors(&PepColors::lightMode), isModified(false)
 {
     if (sym.length() > 0 && sym.at(0).isDigit()) {
         sym = "";
     }
     symbol = sym;
     setColorTheme(*colors);
+}
+
+MemoryCellGraphicsItem::~MemoryCellGraphicsItem()
+{
+    // We do not own the memory device, so we should not delete it.
 }
 
 QRectF MemoryCellGraphicsItem::boundingRect() const
@@ -51,7 +56,7 @@ QRectF MemoryCellGraphicsItem::boundingRect() const
 
 void MemoryCellGraphicsItem::updateContents(int newAddr, QString newSymbol, Enu::ESymbolFormat newFmt, int newY)
 {
-    this->address = newAddr;
+    this->address = quint16(newAddr);
     if (newSymbol.length() > 0 && newSymbol.at(0).isDigit()) {
         newSymbol = "";
     }
@@ -97,10 +102,9 @@ void MemoryCellGraphicsItem::setColorTheme(const PepColors::Colors &newColors)
     backgroundColor = colors->backgroundFill;
 }
 
-QColor MemoryCellGraphicsItem::setBackgroundColor(QColor color)
+void MemoryCellGraphicsItem::setBackgroundColor(QColor color)
 {
     backgroundColor = color;
-    return color;
 }
 
 quint16 MemoryCellGraphicsItem::getValue() const
@@ -125,7 +129,7 @@ void MemoryCellGraphicsItem::updateValue()
         break;
     case Enu::ESymbolFormat::F_2D:
         memDevice->getWord(address, word);
-        value = QString("%1").arg((qint16) word);
+        value = QString("%1").arg(word);
         iValue = word;
         break;
     case Enu::ESymbolFormat::F_1H:
@@ -156,7 +160,7 @@ quint16 MemoryCellGraphicsItem::getNumBytes() const
     return cellSize(eSymbolFormat);
 }
 
-int cellSize(Enu::ESymbolFormat symbolFormat)
+quint16 cellSize(Enu::ESymbolFormat symbolFormat)
 {
     switch (symbolFormat) {
     case Enu::ESymbolFormat::F_1C:

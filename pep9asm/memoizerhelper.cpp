@@ -9,7 +9,7 @@ const QString trapEnter("%1\n===TRAP===\n");
 const QString trapLeave("%1\n===RETR===\n");
 static quint8 max_symLen = 0;
 static quint8 inst_size = 6;
-static quint8 oper_addr_size = 12;
+// static quint8 oper_addr_size = 12;
 
 // Properly formats a number as a 4 char hex
 QString formatNum(quint16 number)

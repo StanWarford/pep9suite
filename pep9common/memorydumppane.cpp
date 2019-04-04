@@ -123,7 +123,7 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
         memoryDumpLine.clear();
         for(int col = 0; col < 8; col++) {
             // Only access memory if it is in range
-            if(row * 8 + col <= memDevice->maxAddress()) {
+            if(quint32(row * 8 + col) <= memDevice->maxAddress()) {
                 // Use the data in the memory section to set the value in the model.
                 memDevice->getByte(static_cast<quint16>(row * 8 + col), tempData);
                 data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')));

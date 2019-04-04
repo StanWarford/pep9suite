@@ -166,7 +166,8 @@ void AsmTracePane::onBreakpointRemovedProp(quint16 address)
     emit breakpointRemoved(address);
 }
 
-AsmTraceTextEdit::AsmTraceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode), updateHighlight(false), activeProgram()
+AsmTraceTextEdit::AsmTraceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode),
+    activeProgram(), updateHighlight(false)
 {
     breakpointArea = new AsmTraceBreakpointArea(this);
     connect(this, &QPlainTextEdit::blockCountChanged, this, &AsmTraceTextEdit::updateBreakpointAreaWidth);

@@ -109,7 +109,7 @@ void FullMicrocodedCPU::onSimulationStarted()
     microBreakpointHit = false;
     asmBreakpointHit = false;
     if(sharedProgram->getSymTable()->exists("start")) {
-        startLine = sharedProgram->getSymTable()->getValue("start")->getValue();
+        startLine = static_cast<quint16>(sharedProgram->getSymTable()->getValue("start")->getValue());
     } else {
         startLine = 0;
     }

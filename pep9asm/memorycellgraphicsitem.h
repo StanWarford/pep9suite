@@ -27,18 +27,19 @@
 #include "colors.h"
 class AMemoryDevice;
 
-int cellSize(Enu::ESymbolFormat symbolFormat);
+quint16 cellSize(Enu::ESymbolFormat symbolFormat);
 // This is used exclusively in the memoryTracePane/memoryCellGraphicsItem
 class MemoryCellGraphicsItem : public QGraphicsItem
 {
 public:
+    // Take a non-owning pointer to a memory device.
     MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int addr, QString sym, Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc);
-    ~MemoryCellGraphicsItem() { }
+    ~MemoryCellGraphicsItem() override;
 
-    QRectF boundingRect() const;
+    QRectF boundingRect() const override;
 
     void updateContents(int newAddr, QString newSymbol, Enu::ESymbolFormat newFmt, int newY);
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
     // Cell changes background color if it has been modified.
     void setModified(bool value);
     void setColorTheme(const PepColors::Colors &newColors);
@@ -49,8 +50,7 @@ public:
     static const int bufferWidth;
 
     // QColor boxColor;
-#pragma message("Why does this return a color??")
-    QColor setBackgroundColor(QColor color);
+    void setBackgroundColor(QColor color);
     // QColor textColor;
     // QColor boxTextColor;
     void updateValue();

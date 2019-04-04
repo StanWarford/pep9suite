@@ -516,6 +516,9 @@ bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
         effectiveAddress += getCPURegWordCurrent(Enu::CPURegisters::X);
         rVal &= memory->writeWord(effectiveAddress, value);
         break;
+    default:
+        rVal = false;
+        break;
     }
     return rVal;
 }
@@ -561,6 +564,9 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
         rVal = memory->readWord(effectiveAddress, effectiveAddress);
         effectiveAddress += getCPURegWordCurrent(Enu::CPURegisters::X);
         rVal &= memory->writeByte(effectiveAddress, value);
+        break;
+    default:
+        rVal = false;
         break;
     }
     return rVal;
@@ -756,14 +762,14 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         if(Pep::isTrapMap[Enu::EMnemonic::NOP0]) {
             controlError = true;
             executionFinished = true;
-            errorMessage = "NOP0 is not a unary instruction.";
+            errorMessage = "Error: NOP0 is not a unary instruction.";
         }
         break;
     default:
         // Should never occur, but gaurd against to make compiler happy.
         controlError = true;
         executionFinished = true;
-        errorMessage = "Attempt to execute invalid unary instruction";
+        errorMessage = "Error: Attempedt to execute invalid unary instruction.";
         return;
     }
 }
@@ -1105,6 +1111,11 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         tempByte = static_cast<quint8>(0xff & registerBank.readRegisterWordCurrent(Enu::CPURegisters::X));
         memSuccess = writeOperandByte(opSpec, tempByte, addrMode);
         break;
+    default:
+        controlError = true;
+        executionFinished = true;
+        errorMessage = "Error: Attempted to execute invalid nonunary instruction";
+        break;
     }
     if(!memSuccess){
         controlError = true;
@@ -1164,6 +1175,12 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
         // so we have to fix it here.
         registerBank.writeRegisterWord(Enu::CPURegisters::X, 0);
 #endif
+        break;
+    default:
+        controlError = true;
+        executionFinished = true;
+        errorMessage = "Error: Attempted to execute invalid trap instruction";
+        break;
     }
     if(!memSuccess){
         controlError = true;

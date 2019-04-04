@@ -643,7 +643,8 @@ void NewCPUDataSection::stepTwoByte() noexcept
             else {
                 memSigError = memDevice->readByte(address, temp);
                 if(!memSigError) {
-                    #pragma message("TODO: Handle case where memory errors more gracefully")
+                    hadDataError = true;
+                    errorMessage = "Unable to read from memory into MDRE.";
                     return;
                 }
                 onSetMemoryRegister(Enu::MEM_MDRE, temp);
@@ -683,7 +684,8 @@ void NewCPUDataSection::stepTwoByte() noexcept
             else {
                 memSigError = memDevice->readByte(address, temp);
                 if(!memSigError) {
-                    #pragma message("TODO: Handle case where memory errors more gracefully")
+                    hadDataError = true;
+                    errorMessage = "Unable to read from memory into MDRE.";
                     return;
                 }
                 onSetMemoryRegister(Enu::MEM_MDRO, temp);

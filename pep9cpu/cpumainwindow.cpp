@@ -60,10 +60,11 @@
 #include "symboltable.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
+    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
+    updateChecker(new UpdateChecker()),  isInDarkMode(false),
     memDevice(new MainMemory(nullptr)), controlSection(new PartialMicrocodedCPU(Enu::CPUType::OneByteDataBus, memDevice)),
     dataSection(controlSection->getDataSection()),
-    cpuModesGroup(new QActionGroup(this)), isInDarkMode(false)
+    cpuModesGroup(new QActionGroup(this))
 {
     // Initialize all global maps.
     Pep::initMicroEnumMnemonMaps(Enu::CPUType::OneByteDataBus, false);
@@ -307,7 +308,6 @@ void MainWindow::readSettings()
     curPath = settings.value("filePath", QDir::homePath()).toString();
     // Restore dark mode state
     onDarkModeChanged();
-    quint16 debuggerLevel = settings.value("debugLevel", 1).toInt();
 
     settings.endGroup();
 
@@ -750,9 +750,7 @@ void MainWindow::handleDebugButtons()
 {
     quint8 byte;
     memDevice->getByte(controlSection->getCPURegWordStart(Enu::CPURegisters::PC), byte);
-    Enu::EMnemonic mnemon = Pep::decodeMnemonic[byte];
-    bool enable_into = (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
-    // Disable button stepping if waiting on IO
+
     int enabledButtons = 0;
     switch(debugState)
     {
@@ -1159,5 +1157,8 @@ void MainWindow::onBreakpointHit(Enu::BreakpointTypes type)
     case Enu::BreakpointTypes::MICROCODE:
         onMicroBreakpointHit();
         break;
+    default:
+        // Don't handle other kinds of breakpoints if they are generated.
+        return;
     }
 }

@@ -88,7 +88,7 @@ protected:
 
     const AsmProgramManager* manager;
     QSet<quint16> breakpointsISA;
-    int asmInstructionCounter;
+    quint64 asmInstructionCounter;
     bool asmBreakpointHit, doDebug;
 
     bool firstLineAfterCall, isTrapped;

@@ -74,11 +74,11 @@
 #include "asmcpupane.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),
-    updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
+    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
+    updateChecker(new UpdateChecker()), isInDarkMode(false),
     memDevice(new MainMemory(nullptr)), controlSection(new IsaCpu(AsmProgramManager::getInstance(), memDevice)),
-    programManager(AsmProgramManager::getInstance()),
-    isInDarkMode(false)
+    redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),programManager(AsmProgramManager::getInstance())
+
 {
     // Initialize all global maps.
     Pep::initEnumMnemonMaps();
@@ -1470,9 +1470,8 @@ void MainWindow::onASMBreakpointHit()
     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
 }
 
-void MainWindow::onPaletteChanged(const QPalette &palette)
+void MainWindow::onPaletteChanged(const QPalette &)
 {
-    qDebug() << "I am loved!!";
     onDarkModeChanged();
 }
 
@@ -1796,11 +1795,6 @@ void MainWindow::setRedoability(bool b)
     }
 }
 
-void MainWindow::appendMicrocodeLine(QString line)
-{
-
-}
-
 void MainWindow::helpCopyToSourceClicked()
 {
     helpDialog->hide();
@@ -1889,6 +1883,9 @@ void MainWindow::onBreakpointHit(Enu::BreakpointTypes type)
     case Enu::BreakpointTypes::ASSEMBLER:
         onASMBreakpointHit();
         break;
+    default:
+        // Don't handle other kinds of breakpoints if they are generated.
+        return;
     }
 }
 

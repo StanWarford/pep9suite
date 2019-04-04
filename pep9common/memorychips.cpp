@@ -411,7 +411,7 @@ bool ROMChip::readByte(quint16 offsetFromBase, quint8 &output) const
     return getByte(offsetFromBase, output);
 }
 
-bool ROMChip::writeByte(quint16 offsetFromBase, quint8)
+bool ROMChip::writeByte(quint16 /*offsetFromBase*/, quint8)
 {
     // Don't allow users to change (write to) read only memory.
     return true;

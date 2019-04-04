@@ -80,11 +80,12 @@
 #include "asmcpupane.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),
-    updateChecker(new UpdateChecker()), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
+    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
+    updateChecker(new UpdateChecker()), isInDarkMode(false),
     memDevice(new MainMemory(nullptr)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), memDevice)),
-    dataSection(controlSection->getDataSection()), programManager(AsmProgramManager::getInstance()),
-    isInDarkMode(false)
+    dataSection(controlSection->getDataSection()), redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),
+    programManager(AsmProgramManager::getInstance())
+
 {
     // Initialize all global maps.
     Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, true);
@@ -1741,9 +1742,8 @@ void MainWindow::onASMBreakpointHit()
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
 }
 
-void MainWindow::onPaletteChanged(const QPalette &palette)
+void MainWindow::onPaletteChanged(const QPalette &)
 {
-    qDebug() << "I am loved!!";
     onDarkModeChanged();
 }
 

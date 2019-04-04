@@ -45,10 +45,10 @@ class QActionGroup;
 class PartialMicrocodedCPU;
 class NewCPUDataSection;
 class MainMemory;
-#pragma message("TODO: Type up debugger FSM")
+
 /*
  * The set of possible states for the debugger.
- * For the transitions between debug states, see docs/debuggerFSM
+ * For the transitions between debug states, see docs/debugger-fsm-cpu
  */
 enum class DebugState
 {

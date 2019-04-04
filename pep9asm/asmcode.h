@@ -44,6 +44,9 @@ public:
     // Before attempting to use the value return by this function, check if the symbol is null.
     // Dereferencing an empty shared pointer causes memory access violatations that are hard to debug.
     QSharedPointer<const SymbolEntry> getSymbolEntry() const {return symbolEntry;}
+    // Set if object code should be generated for this code line. If an instruction is before
+    // a .BURN directive, then this should be set to false. If this is false, object code
+    // length should be 0.
     void setEmitObjectCode(bool emitObject);
     bool getEmitObjectCode() const;
     virtual bool hasComment() const;

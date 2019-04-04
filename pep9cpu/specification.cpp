@@ -182,7 +182,6 @@ bool RegSpecification::testUnitPost(const NewCPUDataSection *data, QString &erro
 
     if(data->getRegisterBankWord(static_cast<quint8>(reg)) == regValue)return true;
     switch (regAddress) {
-#pragma message("TODO: Standardize error messages punctuation")
     case Enu::Acc: errorString = "// ERROR: Unit test failed for register A."; return false;
     case Enu::X: errorString = "// ERROR: Unit test failed for register X."; return false;
     case Enu::SP: errorString = "// ERROR: Unit test failed for register SP."; return false;

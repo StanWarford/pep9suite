@@ -9,8 +9,8 @@
 #include "asmcode.h"
 InterfaceISACPU::InterfaceISACPU(const AMemoryDevice* dev, const AsmProgramManager* manager) noexcept: manager(manager),
     breakpointsISA(), asmInstructionCounter(0), asmBreakpointHit(false), doDebug(false),
-    firstLineAfterCall(false), isTrapped(false),userActions(), osActions(), activeActions(&userActions),
-    memTrace(QSharedPointer<MemoryTrace>::create())
+    firstLineAfterCall(false), isTrapped(false), memTrace(QSharedPointer<MemoryTrace>::create()),
+    userActions(), osActions(), activeActions(&userActions)
 {
     memTrace->activeStack = &memTrace->userStack;
 }

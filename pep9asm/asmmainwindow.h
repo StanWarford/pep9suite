@@ -46,10 +46,10 @@ class RedefineMnemonicsDialog;
 //WIP classes
 class IsaCpu;
 class MainMemory;
-#pragma message("TODO: Type up debugger FSM")
+
 /*
  * The set of possible states for the debugger.
- * For the transitions between debug states, see docs/debuggerFSM
+ * For the transitions between debug states, see docs/debugger-fsm-asm
  */
 enum class DebugState
 {
@@ -243,8 +243,6 @@ private slots:
     void setUndoability(bool b);
     void setRedoability(bool b);
 
-    void appendMicrocodeLine(QString string);
-
     void helpCopyToSourceClicked();
 
     //Disable UI elements for IO
@@ -262,6 +260,7 @@ private:
     // Helpers to seperate breakpoint logic
     void onASMBreakpointHit();
     void onPaletteChanged(const QPalette &palette);
+
 signals:
     void beginUpdateCheck();
     // Emitted once when a simulation is begun

@@ -39,7 +39,7 @@ using namespace Enu;
 CpuPane::CpuPane( QWidget *parent) :
         QWidget(parent),
         cpu(nullptr), dataSection(nullptr),
-        ui(new Ui::CpuPane), cpuPaneItems(nullptr)
+        cpuPaneItems(nullptr), ui(new Ui::CpuPane)
 {
     ui->setupUi(this);
     connect(ui->spinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CpuPane::zoomFactorChanged);

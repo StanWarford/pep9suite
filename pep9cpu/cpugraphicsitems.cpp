@@ -122,11 +122,17 @@ void addCheckToScene(QCheckBox** checkLoc, QVector<QCheckBox*> &checkVector, QGr
 CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection *dataSection, QWidget *widgetParent,
                                                    QGraphicsItem *itemParent,
                                                    QGraphicsScene *scene)
-    : QGraphicsItem(itemParent), labelVec(), dataSection(dataSection), editorVector(),
-      parent(widgetParent), parentScene(scene),
-      colorScheme(&PepColors::lightMode), type(type)
+    : QGraphicsItem(itemParent),parent(widgetParent), parentScene(scene), dataSection(dataSection),
+      type(type),colorScheme(&PepColors::lightMode), checkVector(), framedVector(),
+      labelVec(), editorVector()
+
 {    
     // http://colrd.com/image-dna/23448/
+    // Silence compiler warnings about unused variables.
+    // We don't need them at this moment, but they were needed in earlier
+    // versions of PepCPU, and I don't want to forget that we used to capture them.
+    static_cast<void>(parent);
+    static_cast<void>(parentScene);
 
     // ************************************
     // one  byte exclusive items
@@ -566,7 +572,7 @@ void CpuGraphicsItems::drawDiagramFreeText(QPainter *painter)
     painter->save();
     painter->rotate(-90);
     auto font= painter->font();
-    font.setPointSize(font.pointSize()*1.3);
+    font.setPointSize(static_cast<int>(font.pointSize()*1.3));
     painter->setFont(font);
     painter->drawText(-260, 35, "System Bus");
     painter->restore();
@@ -1641,7 +1647,7 @@ void CpuGraphicsItems::repaintALUSelectOneByte(QPainter *painter)
     painter->drawEllipse(QPoint(416,446), 2, 2); //437+9
 }
 
-void CpuGraphicsItems::repaintMemCommonOneByte(QPainter *painter)
+void CpuGraphicsItems::repaintMemCommonOneByte(QPainter */*painter*/)
 {
     // Has not been split into common parts of read / write
 }

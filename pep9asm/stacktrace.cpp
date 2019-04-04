@@ -438,7 +438,7 @@ HeapTrace::const_reverse_iterator HeapTrace::crend() const
     return const_reverse_iterator(*this, -1);
 }
 
-HeapTrace::HeapTrace(): intact(true), addNew(true), isInMalloc(false), itToAddresses(), heap()
+HeapTrace::HeapTrace():  itToAddresses(), heap(), intact(true), addNew(true), isInMalloc(false)
 {
 
 }
