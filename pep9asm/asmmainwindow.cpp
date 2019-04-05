@@ -1628,6 +1628,49 @@ void MainWindow::on_actionHelp_About_Qt_triggered()
     QDesktopServices::openUrl(QUrl("http://www.qt.io/"));
 }
 
+//Hnalde hiding and showing of different sections of the application.
+void MainWindow::on_actionView_Code_Only_triggered()
+{
+    ui->horizontalSplitter->widget(0)->show();
+    ui->horizontalSplitter->widget(1)->hide();
+    ui->horizontalSplitter->widget(2)->hide();
+    ui->actionView_Code_Only->setDisabled(true);
+    ui->actionView_Code_CPU->setDisabled(false);
+    ui->actionView_Code_CPU_Memory->setDisabled(false);
+}
+
+void MainWindow::on_actionView_Code_CPU_triggered()
+{
+    ui->horizontalSplitter->widget(0)->show();
+    ui->horizontalSplitter->widget(1)->show();
+    ui->horizontalSplitter->widget(2)->hide();
+    ui->actionView_Code_Only->setDisabled(false);
+    ui->actionView_Code_CPU->setDisabled(true);
+    ui->actionView_Code_CPU_Memory->setDisabled(false);
+    QList<int> list;
+    list.append(3000);
+    list.append(1);
+    list.append(1);
+    ui->horizontalSplitter->setSizes(list);
+}
+
+void MainWindow::on_actionView_Code_CPU_Memory_triggered()
+{
+    ui->memoryWidget->refreshMemory();
+    ui->horizontalSplitter->widget(0)->show();
+    ui->horizontalSplitter->widget(1)->show();
+    ui->horizontalSplitter->widget(2)->show();
+    ui->actionView_Code_Only->setDisabled(false);
+    ui->actionView_Code_CPU->setDisabled(false);
+    ui->actionView_Code_CPU_Memory->setDisabled(true);
+    QList<int> list;
+    list.append(3000);
+    list.append(1);
+    list.append(3000);
+    ui->horizontalSplitter->setSizes(list);
+
+}
+
 // Byte Converter slots
 
 void MainWindow::slotByteConverterBinEdited(const QString &str)

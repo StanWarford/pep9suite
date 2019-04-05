@@ -5,5 +5,8 @@
         <file>images/icon.ico</file>
         <file>images/icon.icns</file>
         <file>help-asm/about.html</file>
+        <file>images/codeCPU.png</file>
+        <file>images/codeCPUMem.png</file>
+        <file>images/codeOnly.png</file>
     </qresource>
 </RCC>

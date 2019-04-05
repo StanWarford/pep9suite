@@ -230,6 +230,11 @@ private slots:
     void on_actionHelp_About_Pep9_triggered();
     void on_actionHelp_About_Qt_triggered();
 
+    //Pane hiding events
+    void on_actionView_Code_Only_triggered();
+    void on_actionView_Code_CPU_triggered();
+    void on_actionView_Code_CPU_Memory_triggered();
+
     //Run events
     void onSimulationFinished();
 

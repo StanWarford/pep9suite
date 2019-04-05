@@ -29,7 +29,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="QSplitter" name="splitter">
+     <widget class="QSplitter" name="horizontalSplitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -290,9 +290,9 @@
    <addaction name="actionBuild_Run"/>
    <addaction name="actionDebug_Start_Debugging"/>
   </widget>
-  <widget class="QToolBar" name="byteConverterToolBar">
+  <widget class="QToolBar" name="debuggerActionToolBar">
    <property name="windowTitle">
-    <string>Byte Converter</string>
+    <string>Debug Actions</string>
    </property>
    <property name="movable">
     <bool>false</bool>
@@ -312,21 +312,38 @@
    <addaction name="actionDebug_Step_Over_Assembler"/>
    <addaction name="actionDebug_Step_Into_Assembler"/>
    <addaction name="actionDebug_Step_Out_Assembler"/>
-   <addaction name="separator"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QToolBar" name="debugToolBar">
+  <widget class="QToolBar" name="hidePanesToolBar">
    <property name="windowTitle">
-    <string>Debug Tools</string>
+    <string>Hide Components</string>
    </property>
    <property name="movable">
     <bool>false</bool>
    </property>
-   <property name="iconSize">
-    <size>
-     <width>32</width>
-     <height>32</height>
-    </size>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="separator"/>
+   <addaction name="actionView_Code_Only"/>
+   <addaction name="actionView_Code_CPU"/>
+   <addaction name="actionView_Code_CPU_Memory"/>
+   <addaction name="separator"/>
+  </widget>
+  <widget class="QToolBar" name="byteConverterToolBar">
+   <property name="windowTitle">
+    <string>Byte Converter</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -335,6 +352,7 @@
     <bool>false</bool>
    </attribute>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionFile_New_Asm">
    <property name="icon">
     <iconset resource="../pep9common/pep9common-resources.qrc">
@@ -795,6 +813,42 @@
     <string>Writing Programs</string>
    </property>
   </action>
+  <action name="actionView_Code_Only">
+   <property name="icon">
+    <iconset resource="pep9asm-resources.qrc">
+     <normaloff>:/images/codeOnly.png</normaloff>:/images/codeOnly.png</iconset>
+   </property>
+   <property name="text">
+    <string>View Code Only</string>
+   </property>
+   <property name="toolTip">
+    <string>View Code Only</string>
+   </property>
+  </action>
+  <action name="actionView_Code_CPU">
+   <property name="icon">
+    <iconset resource="pep9asm-resources.qrc">
+     <normaloff>:/images/codeCPU.png</normaloff>:/images/codeCPU.png</iconset>
+   </property>
+   <property name="text">
+    <string>View Code / CPU</string>
+   </property>
+   <property name="toolTip">
+    <string>View Code / CPU</string>
+   </property>
+  </action>
+  <action name="actionView_Code_CPU_Memory">
+   <property name="icon">
+    <iconset resource="pep9asm-resources.qrc">
+     <normaloff>:/images/codeCPUMem.png</normaloff>:/images/codeCPUMem.png</iconset>
+   </property>
+   <property name="text">
+    <string>View Code / CPU / Memory</string>
+   </property>
+   <property name="toolTip">
+    <string>View Code / CPU / Memory</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -848,10 +902,13 @@
   </customwidget>
  </customwidgets>
  <resources>
+  <include location="pep9asm-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="../pep9micro/pep9micro-resources.qrc"/>
+  <include location="pep9asm-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
+  <include location="pep9asm-resources.qrc"/>
  </resources>
  <connections>
   <connection>
