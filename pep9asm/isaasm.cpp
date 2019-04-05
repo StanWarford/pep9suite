@@ -1257,18 +1257,15 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
     // If the line of code is a nonunary instruction, but not a stack modifying instruction,
     // then don't attempt any further parsing.
-    if(auto nui = dynamic_cast<NonUnaryInstruction*>(code); nui == nullptr || (
+    auto nui = dynamic_cast<NonUnaryInstruction*>(code);
+    if(     dynamic_cast<DotBlock*>(code) == nullptr &&
+            dynamic_cast<DotWord*>(code) == nullptr &&
+            dynamic_cast<DotEquate*>(code) == nullptr &&
+            dynamic_cast<DotByte*>(code) == nullptr &&
+            (nui == nullptr || (
             nui->mnemonic != Enu::EMnemonic::CALL &&
             nui->mnemonic != Enu::EMnemonic::SUBSP &&
-            nui->mnemonic != Enu::EMnemonic::ADDSP)) {
-
-    }
-    // If the line of code is not of a type that supports trace tags, don't
-    // attempt any further parsing.
-    else if (dynamic_cast<DotBlock*>(code) == nullptr &&
-             dynamic_cast<DotWord*>(code) == nullptr &&
-             dynamic_cast<DotEquate*>(code) == nullptr &&
-             dynamic_cast<DotByte*>(code) == nullptr){
+            nui->mnemonic != Enu::EMnemonic::ADDSP))) {
 
     }
     else if(hasArrayType(tag)) {

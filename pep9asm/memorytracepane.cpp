@@ -68,7 +68,7 @@ NewMemoryTracePane::~NewMemoryTracePane()
 void NewMemoryTracePane::updateTrace()
 {
     // If there were trace warnings, then the stack view won't be meaningful.
-    if(trace == nullptr || trace->hasTraceWarnings()) return;
+    if(trace == nullptr || trace->hasTraceWarnings() || !isVisible()) return;
     updateGlobals();
     // Only render stack / heap if they are still intact.
     if(trace->activeStack->isStackIntact()) updateStack();
@@ -147,7 +147,6 @@ void NewMemoryTracePane::onSimulationStarted()
         ui->warningLabel->setText("Can't render trace due to trace tag errors.");
         return;
     }
-
     // Add global symbols
     quint16 num = trace->globalTrace.getMemTags().size();
     globaly -= num * MemoryCellGraphicsItem::boxHeight;
@@ -167,6 +166,7 @@ void NewMemoryTracePane::onSimulationStarted()
     }
 
     updateStatics();
+    updateTrace();
     scene->invalidate(); // redraw the scene!
 
 }
