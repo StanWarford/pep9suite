@@ -159,12 +159,13 @@ void NewMemoryTracePane::onSimulationStarted()
         return;
     }
     // Add global symbols
-    quint16 num = trace->globalTrace.getMemTags().size();
+    quint16 num = static_cast<quint16>(trace->globalTrace.getMemTags().size());
     globaly -= num * MemoryCellGraphicsItem::boxHeight;
     for(auto tag : trace->globalTrace.getMemTags()) {
         ptr = new MemoryCellGraphicsItem(memorySection.get(),
                                          tag.addr, tag.type.second,
-                                         tag.type.first, globalLocation.x(),
+                                         tag.type.first,
+                                         static_cast<int>(globalLocation.x()),
                                          static_cast<int>(globaly));
         ptr->updateValue();
         scene->addItem(ptr);
@@ -232,7 +233,7 @@ void NewMemoryTracePane::updateHeap()
     QPen pen(colors->textColor);
     pen.setWidth(4);
     // Y location where bold outline should be drawn.
-    int frameBase = heapLocation.y();
+    int frameBase = static_cast<int>(heapLocation.y());
     // Number of bytes allocated by the current call to malloc, or 0 otherwise.
     quint16 frameItemCount = 0;
     // Since we want to allocate any previously missed frames,
@@ -241,7 +242,7 @@ void NewMemoryTracePane::updateHeap()
     for(auto stackFrame = trace->heapTrace.begin();
         stackFrame != trace->heapTrace.end(); ++stackFrame) {
         // Reset starting y location for each iteration, or multiple frames may be allocated on top of each other
-        int yLoc = heapLocation.y() - MemoryCellGraphicsItem::boxHeight;
+        int yLoc = static_cast<int>(heapLocation.y()) - MemoryCellGraphicsItem::boxHeight;
         // Number of cells in current frame.
         frameItemCount = stackFrame->numItems();
         // If a frame has 0 items, it is already allocated (or doesn't matter), otherwise, it might not be allocated.
@@ -270,7 +271,8 @@ void NewMemoryTracePane::updateHeap()
                 memTag != stackFrame->end(); ++memTag) {
                 MemoryCellGraphicsItem* item = new MemoryCellGraphicsItem(memorySection.get(), memTag->addr,
                                                   memTag->type.second, memTag->type.first,
-                                                  heapLocation.x(), yLoc);
+                                                  static_cast<int>(heapLocation.x()),
+                                                                          yLoc);
                 item->setColorTheme(*colors);
                 addressToItems.insert(item->getAddress(), item);
                 if(item->getNumBytes() == 2) addressToItems.insert(item->getAddress() + 1, item);
@@ -321,7 +323,7 @@ void NewMemoryTracePane::updateStack()
     QStack<MemoryCellGraphicsItem *>::iterator rtit = runtimeStack.begin();
     // Iterator to traverse the unused graphics items that are lying around.
     QList<MemoryCellGraphicsItem *>::iterator exit = extraItems.begin();
-    int yLoc = stackLocation.y() - MemoryCellGraphicsItem::boxHeight;
+    int yLoc = static_cast<int>(stackLocation.y()) - MemoryCellGraphicsItem::boxHeight;
     int frameBase;
     for(auto stackFrame = trace->activeStack->cbegin();
         stackFrame != trace->activeStack->cend(); ++stackFrame) {
@@ -372,7 +374,7 @@ void NewMemoryTracePane::updateStack()
                 // No cached items, so must allocate some via new.
                 item = new MemoryCellGraphicsItem(memorySection.get(), memTag->addr,
                                                   memTag->type.second, memTag->type.first,
-                                                  stackLocation.x(), yLoc);
+                                                  static_cast<int>(stackLocation.x()), yLoc);
                 item->setColorTheme(*colors);
                 // Add updated cell to address lookup map.
                 addressToItems.insert(item->getAddress(), item);

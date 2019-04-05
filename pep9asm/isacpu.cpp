@@ -319,6 +319,9 @@ void IsaCpu::forceBreakpoint(Enu::BreakpointTypes breakpoint)
     case Enu::BreakpointTypes::ASSEMBLER:
         asmBreakpointHit = true;
         break;
+    default:
+        //Ignore any other breakpoint types
+        break;
     }
 }
 
@@ -342,7 +345,7 @@ bool IsaCpu::onRun()
         return false;
     }
 
-    auto value = timer.elapsed();
+    // auto value = timer.elapsed();
     // qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
     // qDebug().nospace().noquote() << "Executed "<< asmInstructionCounter << " instructions.";
     // qDebug().nospace().noquote() << "Execution time (ms): " << value;
