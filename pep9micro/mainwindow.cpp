@@ -1850,7 +1850,11 @@ void MainWindow::on_actionHelp_triggered()
         helpDialog->show();
     }
 }
-
+void MainWindow::on_actionHelp_Writing_Assembly_Programs_triggered()
+{
+    helpDialog->show();
+    helpDialog->selectItem("Writing Assembly Language Programs");
+}
 void MainWindow::on_actionHelp_Machine_Language_triggered()
 {
     helpDialog->show();
@@ -1873,6 +1877,12 @@ void MainWindow::on_actionHelp_Writing_Trap_Handlers_triggered()
 {
     helpDialog->show();
     helpDialog->selectItem("Writing Trap Handlers");
+}
+
+void MainWindow::on_actionHelp_Using_Pep_9_CPU_triggered()
+{
+    helpDialog->show();
+    helpDialog->selectItem("Using Pep/9 Micro");
 }
 
 void MainWindow::on_actionHelp_Interactive_Use_triggered()

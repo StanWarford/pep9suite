@@ -30,7 +30,7 @@
 #include "pepasmhighlighter.h"
 #include "cpphighlighter.h"
 
-const int HelpDialog::defaultHelpTreeWidth = 200;
+const int HelpDialog::defaultHelpTreeWidth = 225;
 
 HelpDialog::HelpDialog(QWidget *parent) :
     QDialog(parent),

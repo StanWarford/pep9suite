@@ -61,7 +61,7 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>170</width>
+        <width>225</width>
         <height>0</height>
        </size>
       </property>
@@ -138,7 +138,7 @@
       </item>
       <item>
        <property name="text">
-        <string>Using Pep/9 CPU</string>
+        <string>Using Pep/9 Micro</string>
        </property>
        <item>
         <property name="text">

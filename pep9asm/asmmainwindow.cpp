@@ -1566,6 +1566,11 @@ void MainWindow::on_actionHelp_triggered()
     }
 }
 
+void MainWindow::on_actionHelp_Writing_Programs_triggered()
+{
+    helpDialog->show();
+    helpDialog->selectItem("Writing Programs");
+}\
 void MainWindow::on_actionHelp_Machine_Language_triggered()
 {
     helpDialog->show();

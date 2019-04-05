@@ -206,14 +206,9 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <widget class="QMenu" name="menuWriting_Programs">
-     <property name="title">
-      <string>Writing Programs</string>
-     </property>
-     <addaction name="actionHelp_Machine_Language"/>
-     <addaction name="actionHelp_Assembly_Language"/>
-    </widget>
-    <addaction name="menuWriting_Programs"/>
+    <addaction name="actionHelp_Writing_Programs"/>
+    <addaction name="actionHelp_Assembly_Language"/>
+    <addaction name="actionHelp_Machine_Language"/>
     <addaction name="actionHelp_Debugging_Assembly"/>
     <addaction name="actionHelp_Writing_Trap_Handlers"/>
     <addaction name="actionHelp_Pep9Reference"/>
@@ -579,7 +574,7 @@
   </action>
   <action name="actionHelp_About_Pep9">
    <property name="text">
-    <string>About Pep9CPU</string>
+    <string>About Pep9</string>
    </property>
    <property name="toolTip">
     <string>About Pep9CPU</string>
@@ -793,6 +788,11 @@
   <action name="actionHelp_Pep9_Operating_System">
    <property name="text">
     <string>Pep/9 Operating System</string>
+   </property>
+  </action>
+  <action name="actionHelp_Writing_Programs">
+   <property name="text">
+    <string>Writing Programs</string>
    </property>
   </action>
  </widget>

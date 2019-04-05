@@ -219,6 +219,7 @@ private slots:
 
     // Help
     void on_actionHelp_triggered();
+    void on_actionHelp_Writing_Programs_triggered();
     void on_actionHelp_Machine_Language_triggered();
     void on_actionHelp_Assembly_Language_triggered();
     void on_actionHelp_Debugging_Assembly_triggered();
