@@ -96,7 +96,10 @@ MainWindow::MainWindow(QWidget *parent) :
     qApp->installEventFilter(this);
 
     ui->memoryWidget->init(memDevice, controlSection);
-    ui->memoryTracePane->init(memDevice, controlSection->getMemoryTrace());
+    ui->memoryTracePane->init(programManager, controlSection, memDevice, controlSection->getMemoryTrace());
+    // Start with the memory trace pane being invisible, as it is not needed unless
+    // a program with a valid stack trace is being debugged.
+    ui->memoryTracePane->setVisible(false);
     ui->AsmSourceCodeWidgetPane->init(memDevice, programManager);
     ui->asmListingTracePane->init(controlSection, programManager);
     ui->asmCpuPane->init(controlSection);

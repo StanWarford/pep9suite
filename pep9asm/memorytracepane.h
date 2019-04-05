@@ -34,13 +34,16 @@ namespace Ui {
 }
 class MainMemory;
 class MemoryTrace;
+class AsmProgramManager;
+class ACPUModel;
 class NewMemoryTracePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(NewMemoryTracePane)
 public:
     explicit NewMemoryTracePane(QWidget *parent = nullptr);
     // Must be called after construction but before the component is used.
-    void init(QSharedPointer<const MainMemory> memorySection, QSharedPointer<const MemoryTrace> trace);
+    void init(const AsmProgramManager *manager, QSharedPointer<const ACPUModel> CPU,
+              QSharedPointer<const MainMemory> memorySection, QSharedPointer<const MemoryTrace> trace);
     virtual ~NewMemoryTracePane() override;
     void updateTrace();
 
@@ -68,6 +71,8 @@ private:
 
     Ui::MemoryTracePane *ui;
     const PepColors::Colors *colors;
+    const AsmProgramManager *manager;
+    QSharedPointer<const ACPUModel> cpu;
     QSharedPointer<const MainMemory> memorySection;
     QSharedPointer<const MemoryTrace> trace;
     QGraphicsScene *scene;

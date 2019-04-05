@@ -31,6 +31,9 @@
 #include "mainmemory.h"
 #include "stacktrace.h"
 #include "colors.h"
+#include "asmprogrammanager.h"
+#include "asmprogram.h"
+#include "acpumodel.h"
 
 NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent), ui(new Ui::MemoryTracePane),
     colors(&PepColors::lightMode), globalVars(), runtimeStack(), heap(), extraItems(),
@@ -52,12 +55,13 @@ NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent), ui(ne
     ui->graphicsView->setBackgroundBrush(QBrush(colors->backgroundFill));
 }
 
-void NewMemoryTracePane::init(QSharedPointer<const MainMemory> memorySection,
-                              QSharedPointer<const MemoryTrace> trace)
+void NewMemoryTracePane::init(const AsmProgramManager *manager, QSharedPointer<const ACPUModel> CPU,
+                              QSharedPointer<const MainMemory> memorySection, QSharedPointer<const MemoryTrace> trace)
 {
+    this->manager = manager;
+    this->cpu = CPU;
     this->memorySection = memorySection;
     this->trace = trace;
-
 }
 
 NewMemoryTracePane::~NewMemoryTracePane()
@@ -143,6 +147,13 @@ void NewMemoryTracePane::onSimulationStarted()
     qreal globaly = globalLocation.y();
     ui->warningLabel->clear();
     // Don't attempt to render items if there are trace tag warnings.
+    if(manager->getUserProgram().isNull() || !manager->getUserProgram()->getTraceInfo()->hadTraceTags) {
+        setVisible(false);
+        return;
+    }
+    else{
+        setVisible(true);
+    }
     if(trace->hasTraceWarnings()) {
         ui->warningLabel->setText("Can't render trace due to trace tag errors.");
         return;

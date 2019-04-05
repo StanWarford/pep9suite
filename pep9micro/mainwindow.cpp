@@ -107,7 +107,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->memoryWidget->init(memDevice, controlSection);
     ui->memoryWidget->showTitleLabel(false);
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
-    ui->memoryTracePane->init(memDevice, controlSection->getMemoryTrace());
+    ui->memoryTracePane->init(programManager, controlSection, memDevice, controlSection->getMemoryTrace());
     ui->AsmSourceCodeWidgetPane->init(memDevice, programManager);
     ui->asmListingTracePane->init(controlSection, programManager);
     ui->microcodeWidget->init(controlSection, dataSection, memDevice, true);
