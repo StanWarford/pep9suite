@@ -106,7 +106,8 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
         // No longer use above approach, as it requires the operating system be
         // loaded in memory. Instead, diretly querry the operating system's symbol
         // table for the value of the symbol.
-        chin = manager.getOperatingSystem()->getSymbolTable()->getValue("charIn")->getValue();
+        chin = static_cast<quint16>(
+                    manager.getOperatingSystem()->getSymbolTable()->getValue("charIn")->getValue());
         symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(chin));
     }
     if(!symTable->exists("charOut") || symTable->getValue("charOut")->isUndefined()) {
@@ -117,7 +118,8 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
         // No longer use above approach, as it requires the operating system be
         // loaded in memory. Instead, diretly querry the operating system's symbol
         // table for the value of the symbol.
-        chout = manager.getOperatingSystem()->getSymbolTable()->getValue("charOut")->getValue();
+        chout = static_cast<quint16>(
+                    manager.getOperatingSystem()->getSymbolTable()->getValue("charOut")->getValue());
         symTable->setValue("charOut", QSharedPointer<SymbolValueNumeric>::create(chout));
     }
 
@@ -235,7 +237,7 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0x
     }
 
     // Adjust for .BURN.
-    int addressDelta = info.burnValue - byteCount + 1;
+    quint16 addressDelta = static_cast<quint16>(info.burnValue - byteCount + 1);
     info.startROMAddress = info.burnValue - (byteCount - info.burnAddress) +1;
     relocateCode(programList, addressDelta);
     symTable->setOffset(addressDelta);
@@ -335,7 +337,11 @@ QPair<QSharedPointer<StructType>,QString> IsaAsm::parseStruct(const SymbolTable&
         return {QSharedPointer<StructType>::create(namePtr, structList),""};
     }
 }
+template<typename T>
+bool instanceof (AsmCode* inst) {
+    return dynamic_cast<T*>(inst) != nullptr;
 
+}
 void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& traceInfo,
                              QList<QSharedPointer<AsmCode>>& programList, QList<QPair<int, QString>> &errList)
 {
@@ -361,10 +367,15 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
         // If a line doesn't have a comment or a #, it can't be a trace tag.
         if(!line->hasComment() || !hasSymbolTag(line->getComment()));
         else {
-            // If a line has symbol tags and is *NOT* a non-unary instruction,
-            // then it must be an attempt at a symbol declaration.
+            // If a line has symbol tags and allocates storage
+            // (local or global) for a struct.
             if(hasSymbolTag(line->getComment())
-                    && dynamic_cast<NonUnaryInstruction*>(line.get()) == nullptr) {
+                    && (instanceof<DotBlock>(line.get()) ||
+                        instanceof<DotEquate>(line.get()) ||
+                        instanceof<DotByte>(line.get()) ||
+                        instanceof<DotWord>(line.get())
+                        )
+                    ) {
                 structs.append({lineIt, line});
             }
         }
@@ -482,6 +493,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
             if(forceContinue) continue;
             // Calculate the number of bytes listed in the trace tags.
             quint16 size  = 0;
+            quint16 address = static_cast<quint16>(instr->getMemoryAddress());
             for(auto tag : lineTypes) {
                 size += tag->size();
             }
@@ -499,7 +511,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                     errList.append({line.first, bytesAllocMismatch.arg(instr->argument->getArgumentValue()).arg(size)});
                 }
                 else {
-                    traceInfo.instrToSymlist[static_cast<quint16>(instr->getMemoryAddress())] = lineTypes;
+                    traceInfo.instrToSymlist[address] = lineTypes;
                 }
                 break;
             case Enu::EMnemonic::SUBSP:
@@ -508,13 +520,13 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                     errList.append({line.first, bytesAllocMismatch.arg(instr->argument->getArgumentValue()).arg(size)});
                 }
                 else {
-                    traceInfo.instrToSymlist[instr->getMemoryAddress()] = lineTypes;
+                    traceInfo.instrToSymlist[address] = lineTypes;
                 }
                 break;
             case Enu::EMnemonic::CALL:
                 if(instr->hasSymbolicOperand()
                         && instr->getSymbolicOperand()->getName() == "malloc") {
-                    traceInfo.instrToSymlist[instr->getMemoryAddress()] = lineTypes;
+                    traceInfo.instrToSymlist[address] = lineTypes;
                 }
                 break;
             default:
@@ -1266,7 +1278,6 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
             nui->mnemonic != Enu::EMnemonic::CALL &&
             nui->mnemonic != Enu::EMnemonic::SUBSP &&
             nui->mnemonic != Enu::EMnemonic::ADDSP))) {
-
     }
     else if(hasArrayType(tag)) {
         traceInfo.hadTraceTags = true;
