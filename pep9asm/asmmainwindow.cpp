@@ -248,6 +248,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Create a new ASM file so that the dialog always has a file name in it
     on_actionFile_New_Asm_triggered();
+
+    // Correctly show correct panes & set up buttons.
+    on_actionView_Code_CPU_triggered();
 }
 
 MainWindow::~MainWindow()
@@ -1628,7 +1631,7 @@ void MainWindow::on_actionHelp_About_Qt_triggered()
     QDesktopServices::openUrl(QUrl("http://www.qt.io/"));
 }
 
-//Hnalde hiding and showing of different sections of the application.
+//Handle hiding and showing of different sections of the application.
 void MainWindow::on_actionView_Code_Only_triggered()
 {
     ui->horizontalSplitter->widget(0)->show();

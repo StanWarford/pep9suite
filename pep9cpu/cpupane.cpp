@@ -457,6 +457,18 @@ void CpuPane::clock()
     clockButtonPushed();
 }
 
+QSize CpuPane::sizeHint() const
+{
+    qint32 width;
+    if(cpuPaneItems == nullptr) {
+        width = QWidget::sizeHint().width();
+    }else {
+        width = 10 +  static_cast<qint32>(cpuPaneItems->boundingRect().width());
+    }
+    qint32 height = QWidget::sizeHint().height();
+    return QSize(width,height);
+}
+
 void CpuPane::changeEvent(QEvent *e)
 {
     QWidget::changeEvent(e);

@@ -187,8 +187,8 @@ MainWindow::MainWindow(QWidget *parent) :
     //Lastly, read in settings
     readSettings();
 
-    // Resize docking widgets because QT does a poor job of it
-    // ui->memoryDockWdget->raise();
+    // Correctly show correct panes & set up buttons.
+    on_actionView_CPU_Code_Memory_triggered();
 
 }
 
@@ -981,6 +981,37 @@ void MainWindow::on_actionHelp_About_Pep9CPU_triggered()
 void MainWindow::on_actionHelp_About_Qt_triggered()
 {
     QDesktopServices::openUrl(QUrl("http://www.qt.io/"));
+}
+
+void MainWindow::on_actionView_CPU_Code_triggered()
+{
+    ui->horizontalSplitter->widget(0)->hide();
+    ui->horizontalSplitter->widget(1)->show();
+    ui->horizontalSplitter->widget(2)->show();
+    ui->actionView_CPU_Code->setDisabled(true);
+    ui->actionView_CPU_Code_Memory->setDisabled(false);
+    QList<int> list;
+    list.append(1);
+    int widWidth = ui->cpuWidget->sizeHint().width();
+    list.append(widWidth);
+    list.append(this->size().width()-widWidth);
+    ui->horizontalSplitter->setSizes(list);
+}
+
+void MainWindow::on_actionView_CPU_Code_Memory_triggered()
+{
+    ui->memoryWidget->refreshMemory();
+    ui->horizontalSplitter->widget(0)->show();
+    ui->horizontalSplitter->widget(1)->show();
+    ui->horizontalSplitter->widget(2)->show();
+    ui->actionView_CPU_Code->setDisabled(false);
+    ui->actionView_CPU_Code_Memory->setDisabled(true);
+    QList<int> list;
+    list.append(3000);
+    list.append(3000);
+    list.append(3000);
+    ui->horizontalSplitter->setSizes(list);
+
 }
 
 // Byte Converter slots

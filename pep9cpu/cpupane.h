@@ -42,7 +42,7 @@ class CpuPane : public QWidget {
 public:
     explicit CpuPane(QWidget *parent = nullptr);
     void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> dataSection);
-    ~CpuPane();
+    ~CpuPane() override;
 
     void highlightOnFocus();
     bool hasFocus();
@@ -67,8 +67,10 @@ public:
     //  <enter> key to step.
     void clock();
 
+    QSize sizeHint() const override;
+
 protected:
-    void changeEvent(QEvent *e);
+    void changeEvent(QEvent *e) override;
     QSharedPointer<InterfaceMCCPU> cpu;
     QSharedPointer<NewCPUDataSection> dataSection;
     QGraphicsScene *scene;

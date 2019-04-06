@@ -6,5 +6,7 @@
         <file>images/Pep9cpu-icon.png</file>
         <file>images/Pep9cpu-icon-about.png</file>
         <file>help-cpu/about.html</file>
+        <file>images/microcodeCPUOnly.png</file>
+        <file>images/microcodeCPUMem.png</file>
     </qresource>
 </RCC>

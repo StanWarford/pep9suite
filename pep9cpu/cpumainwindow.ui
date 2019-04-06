@@ -31,7 +31,7 @@
     <item row="1" column="1">
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
-       <widget class="QSplitter" name="splitter_2">
+       <widget class="QSplitter" name="horizontalSplitter">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -215,6 +215,8 @@
    <addaction name="actionDebug_Continue"/>
    <addaction name="actionDebug_Stop_Debugging"/>
    <addaction name="actionDebug_Single_Step_Microcode"/>
+   <addaction name="actionView_CPU_Code"/>
+   <addaction name="actionView_CPU_Code_Memory"/>
   </widget>
   <widget class="QToolBar" name="byteConverterToolBar">
    <property name="windowTitle">
@@ -641,6 +643,30 @@
     <string>Two-Byte Examples</string>
    </property>
   </action>
+  <action name="actionView_CPU_Code">
+   <property name="icon">
+    <iconset resource="pep9cpu-resources.qrc">
+     <normaloff>:/images/microcodeCPUOnly.png</normaloff>:/images/microcodeCPUOnly.png</iconset>
+   </property>
+   <property name="text">
+    <string>View CPU / Code</string>
+   </property>
+   <property name="toolTip">
+    <string>View CPU / MicroCode</string>
+   </property>
+  </action>
+  <action name="actionView_CPU_Code_Memory">
+   <property name="icon">
+    <iconset resource="pep9cpu-resources.qrc">
+     <normaloff>:/images/microcodeCPUMem.png</normaloff>:/images/microcodeCPUMem.png</iconset>
+   </property>
+   <property name="text">
+    <string>View CPU / Code / Memory</string>
+   </property>
+   <property name="toolTip">
+    <string>View CPU / Microcode / Memory</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -671,8 +697,8 @@
  </customwidgets>
  <resources>
   <include location="../pep9common/pep9common-resources.qrc"/>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9cpu-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9cpu-resources.qrc"/>
  </resources>
