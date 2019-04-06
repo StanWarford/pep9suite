@@ -34,6 +34,7 @@
 #include <QtAlgorithms>
 #include <QtCore>
 #include <Qt>
+#include <QClipboard>
 
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     QWidget(parent), ui(new Ui::MemoryDumpPane), data(new QStandardItemModel(this)), lineSize(500), memDevice(nullptr),
@@ -256,8 +257,24 @@ bool MemoryDumpPane::hasFocus()
 
 void MemoryDumpPane::copy()
 {
-#pragma message("TODO: Copy mechanics on memory pane")
-    //ui->textEdit->copy();
+    auto sModel = ui->tableView->selectionModel();
+    auto indices = sModel->selectedIndexes();
+    QMap<int, QStringList> map;
+    // Find all selected items, and associate them with the row from which the came.
+    for(auto index : indices) {
+        // Allow any text to be copied, even though copying the address
+        // or text representation seems like a useless feature.
+        if(!map.contains(index.row())) map[index.row()] = QStringList();
+        map[index.row()].append(index.data().toString());
+
+    }
+    // Turn the text of the selected rows into space delimited strings.
+    QStringList lines;
+    for(auto line : map) {
+        lines.append(line.join(" "));
+    }
+    // Join all selected rows into a newline delimited string.
+    QApplication::clipboard()->setText(lines.join("\n"));
 }
 
 int MemoryDumpPane::memoryDumpWidth()

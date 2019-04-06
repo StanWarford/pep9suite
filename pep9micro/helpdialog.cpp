@@ -598,7 +598,7 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->rightCppTextEdit->hide();
         ui->rightPepTextEdit->hide();
         ui->microTextEdit->hide();
-#pragma message ("TODO: Fix label text")
+#pragma message ("TODO: Fix label text after publishing manuscript")
         ui->helpFigureLabel->setText("<b>Figures 8.2, 8.3, 8.6, 8.8, 8.10, 8.11</b><code>  </code> The Pep/9 operating system.");
     }
     else if (!isHelpSubCat && row == eMICROIMPL) {
@@ -608,7 +608,6 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->leftPepTextEdit->hide();
         ui->rightCppTextEdit->hide();
         ui->rightPepTextEdit->hide();
-#pragma message ("TODO: fix microcode path")
         ui->microTextEdit->setText(Pep::resToString(":/help-micro/pep9micro.pepcpu"));
         ui->microTextEdit->show();
         ui->helpFigureLabel->setText("Microcoded implementation of the <i>Pep/9</i> instruction set.");

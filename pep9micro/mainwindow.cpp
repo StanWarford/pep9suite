@@ -1322,6 +1322,9 @@ void MainWindow::on_actionEdit_Copy_triggered()
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->ioWidget->copy();
     }
+    else if(ui->memoryWidget->hasFocus()) {
+        ui->memoryWidget->copy();
+    }
     // other panes should not be able to copy
 }
 
@@ -2046,7 +2049,7 @@ void MainWindow::focusChanged(QWidget *oldFocus, QWidget *)
         ui->microcodeWidget->highlightOnFocus();
     }
     else if (ui->memoryWidget->hasFocus()) {
-        which = 0;
+        which = Enu::EditButton::COPY;
         ui->memoryWidget->highlightOnFocus();
     }
     else if (ui->cpuWidget->hasFocus()) {
