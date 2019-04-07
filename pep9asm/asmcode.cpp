@@ -520,7 +520,7 @@ QString DotByte::getAssemblerListing() const
     else {
         codeStr = "";
     }
-    QString lineStr = QString("%1%2%3%4%5%6")
+    QString lineStr = QString("%1%2%3")
             .arg(memStr, -6, QLatin1Char(' '))
             .arg(codeStr, -7, QLatin1Char(' '))
             .arg(getAssemblerSource());
