@@ -70,7 +70,7 @@ QString formatInstr(SymbolTable* symTable, quint8 instrSpec,quint16 oprSpec)
     }
 }
 
-QString generateStackFrame(CPUState&, bool enter)
+QString generateStackFrame(CPUState&, bool /*enter*/)
 {
     return "";
     /*if(enter) {
@@ -81,7 +81,7 @@ QString generateStackFrame(CPUState&, bool enter)
     }*/
 }
 
-QString generateTrapFrame(CPUState&, bool enter)
+QString generateTrapFrame(CPUState&, bool /*enter*/)
 {
     return "";
     /*if(enter) {

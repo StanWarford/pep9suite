@@ -777,18 +777,31 @@ void MainWindow::print(Enu::EPane which)
 
 void MainWindow::assembleDefaultOperatingSystem()
 {
+    // Need to assemble operating system.
     QString defaultOSText = Pep::resToString(":/help-asm/figures/pep9os.pep");
+    // If there is text, attempt to assemble it
     if(!defaultOSText.isEmpty()) {
-        IsaAsm assembler(*programManager);
-        auto elist = QList<QPair<int, QString>>();
         QSharedPointer<AsmProgram> prog;
-        if(assembler.assembleOperatingSystem(defaultOSText, false, prog, elist)) {
+        auto elist = QList<QPair<int, QString>>();
+        IsaAsm assembler(*programManager);
+        if(assembler.assembleOperatingSystem(defaultOSText, true, prog, elist)) {
             programManager->setOperatingSystem(prog);
-            this->on_actionSystem_Clear_Memory_triggered();
+        }
+        // If the operating system failed to assembly, we can't progress any further.
+        // All application functionality depends on the operating system being defined.
+        else {
+            qDebug() << "OS failed to assemble.";
+            auto textList = defaultOSText.split("\n");
+            for(auto errorPair : elist) {
+                qDebug() << textList[errorPair.first] << errorPair.second << endl;
+            }
+            throw std::logic_error("The default operating system failed to assemble.");
         }
     }
+    // If the operating system couldn't be found, we can't progress any further.
+    // All application functionality depends on the operating system being defined.
     else {
-        throw std::logic_error("The default operating system failed to assemble.");
+        throw std::logic_error("Could not find default operating system.");
     }
 }
 
