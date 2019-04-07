@@ -48,6 +48,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
     highlightingRulesAll.clear();
     numFormat.setForeground(color.rightOfExpression);
     rule.pattern = QRegExp("(0x)?[0-9a-fA-F]+(?=(,|;|(\\s)*$|\\]|(\\s)*//))");
+    rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
     rule.format = numFormat;
     highlightingRulesOne.append(rule);
     highlightingRulesTwo.append(rule);
@@ -59,6 +60,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
         // Selects most accented unicode characters, based on answer:
         // https://stackoverflow.com/a/26900132
         rule.pattern = QRegExp("^([A-zÀ-ÖØ-öø-ÿ][0-9A-zÀ-ÖØ-öø-ÿ]*)(?=:)\\b");
+        rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
         rule.format = symbolFormat;
         highlightingRulesOne.append(rule);
         highlightingRulesTwo.append(rule);
@@ -72,6 +74,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
                << ("goto \\w+");
         foreach (const QString &pattern, symLoc) {
             rule.pattern = QRegExp(pattern);
+            rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
             rule.format = identFormat;
             highlightingRulesOne.append(rule);
             highlightingRulesTwo.append(rule);
@@ -83,6 +86,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
         keywords << "if" << "else" << "goto" << "stop";
         foreach (const QString &pattern, keywords) {
             rule.pattern = QRegExp(pattern);
+            rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
             rule.format = conditionalFormat;
             highlightingRulesOne.append(rule);
             highlightingRulesTwo.append(rule);
@@ -93,6 +97,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
         for(QString function : Pep::branchFuncToMnemonMap.values())
         {
             rule.pattern = QRegExp(function,Qt::CaseInsensitive);
+            rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
             rule.format = branchFunctionFormat;
             highlightingRulesOne.append(rule);
             highlightingRulesTwo.append(rule);
@@ -114,6 +119,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
                 << "\\bT5\\b" << "\\bT6\\b" << "\\bMem\\b";
         foreach (const QString &pattern, oprndPatterns) {
             rule.pattern = QRegExp(pattern);
+            rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
             rule.format = oprndFormat;
             highlightingRulesOne.append(rule);
         }
@@ -132,6 +138,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
                 << "\\bPValid\\b"<< "\\bPValidCk\\b";
         foreach (const QString &pattern, oprndPatterns) {
             rule.pattern = QRegExp(pattern);
+            rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
             rule.format = oprndFormat;
             highlightingRulesTwo.append(rule);
         }
@@ -139,6 +146,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
 
     singleLineCommentFormat.setForeground(color.comment);
     rule.pattern = QRegExp("//.*");
+    rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
     rule.format = singleLineCommentFormat;
     highlightingRulesOne.append(rule);
     highlightingRulesTwo.append(rule);
@@ -146,6 +154,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
     errorCommentFormat.setForeground(color.altTextHighlight);
     errorCommentFormat.setBackground(color.errorHighlight);
     rule.pattern = QRegExp("//\\sERROR:[\\s].*");
+    rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
     rule.format = errorCommentFormat;
     highlightingRulesOne.append(rule);
     highlightingRulesTwo.append(rule);
@@ -171,8 +180,7 @@ void PepMicroHighlighter::highlightBlock(const QString &text)
     }
 
     foreach (const HighlightingRule &rule, highlightingRules) {
-        QRegExp expression(rule.pattern);
-        expression.setCaseSensitivity(Qt::CaseInsensitive);
+        QRegExp expression = rule.pattern;
         int index = expression.indexIn(text);
         while (index >= 0) {
             int length = expression.matchedLength();

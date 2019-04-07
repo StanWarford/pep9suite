@@ -108,9 +108,10 @@ void FullMicrocodedCPU::onSimulationStarted()
     executionFinished = false;
     microBreakpointHit = false;
     asmBreakpointHit = false;
-    if(sharedProgram->getSymTable()->exists("start")) {
-        startLine = static_cast<quint16>(sharedProgram->getSymTable()->getValue("start")->getValue());
+    if(sharedProgram->getSymTable()->exists(Pep::defaultStartSymbol)) {
+        startLine = static_cast<quint16>(sharedProgram->getSymTable()->getValue(Pep::defaultStartSymbol)->getValue());
     } else {
+        qDebug() << "Default start symbol did not exists: " << Pep::defaultStartSymbol;
         startLine = 0;
     }
     memoizer->clear();
@@ -506,7 +507,7 @@ void FullMicrocodedCPU::branchHandler()
             controlError = true;
             // Get the enumerated & string values of current instruction.
             Enu::EAddrMode addrMode = Pep::decodeAddrMode[data->getRegisterBankByte(8)];
-            tempString = Pep::enumToMicrocodeAddrSymbol[addrMode];
+            tempString = Pep::defaultEnumToMicrocodeAddrSymbol[addrMode];
             // Attempt to lookup the symbol associated with the instruction
             QSharedPointer<const SymbolTable> symTable = this->sharedProgram->getSymTable();
             val = symTable->getValue(tempString);
@@ -528,7 +529,7 @@ void FullMicrocodedCPU::branchHandler()
             controlError = true;
             // Get the enumerated & string values of current instruction.
             Enu::EMnemonic mnemon = Pep::decodeMnemonic[data->getRegisterBankByte(8)];
-            tempString = Pep::enumToMicrocodeInstrSymbol[mnemon];
+            tempString = Pep::defaultEnumToMicrocodeInstrSymbol[mnemon];
             // Attempt to lookup the symbol associated with the instruction
             QSharedPointer<const SymbolTable> symTable = this->sharedProgram->getSymTable();
             val = symTable->getValue(tempString);
@@ -590,7 +591,7 @@ void FullMicrocodedCPU::calculateInstrJT()
     QSharedPointer<SymbolEntry> val;
     FullMicrocodedCPU::decoder_entry entry;
     for(int it = 0; it <= 255; ++it) {
-        QString tempString = Pep::enumToMicrocodeInstrSymbol[Pep::decodeMnemonic[it]].toLower();
+        QString tempString = Pep::instSpecToMicrocodeInstrSymbol[it];
         val = symTable->getValue(tempString);
         // Instead of causing an error before execution starts,
         // flag the entry as invalid so that the error can be caught at runtime.
@@ -614,7 +615,7 @@ void FullMicrocodedCPU::calculateAddrJT()
     QSharedPointer<SymbolEntry> val;
     FullMicrocodedCPU::decoder_entry entry;
     for(int it = 0; it <= 255; ++it) {
-        QString tempString = Pep::enumToMicrocodeAddrSymbol[Pep::decodeAddrMode[it]];
+        QString tempString = Pep::instSpecToMicrocodeAddrSymbol[it];
         val = symTable->getValue(tempString);
         // Instead of causing an error before execution starts,
         // flag the entry as invalid so that the error can be caught at runtime.

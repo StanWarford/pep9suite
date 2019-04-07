@@ -569,13 +569,16 @@ void Pep::initDecoderTables()
     initDecoderTableAAAHelper(EMnemonic::STBX, 248);
 }
 
-QMap<Enu::EMnemonic, QString> Pep::enumToMicrocodeInstrSymbol;
-QMap<Enu::EAddrMode, QString> Pep::enumToMicrocodeAddrSymbol;
-
+QMap<Enu::EMnemonic, QString> Pep::defaultEnumToMicrocodeInstrSymbol;
+QMap<Enu::EAddrMode, QString> Pep::defaultEnumToMicrocodeAddrSymbol;
+QVector<QString> Pep::instSpecToMicrocodeInstrSymbol;
+QVector<QString> Pep::instSpecToMicrocodeAddrSymbol;
+QString Pep::defaultStartSymbol;
 void Pep::initMicroDecoderTables()
 {
+    defaultStartSymbol = "start";
     // Initialize insturction specifiers for microcode symbols
-    enumToMicrocodeInstrSymbol.clear();
+    defaultEnumToMicrocodeInstrSymbol.clear();
 
     QMetaObject meta = Enu::staticMetaObject;
     QMetaEnum metaEnum = meta.enumerator(meta.indexOfEnumerator("EMnemonic"));
@@ -584,24 +587,37 @@ void Pep::initMicroDecoderTables()
     {
         EMnemonic tempi = static_cast<EMnemonic>(metaEnum.value(it));
         tempqs = QString(metaEnum.key(it)).toUpper();
-        enumToMicrocodeInstrSymbol.insert(tempi, tempqs);
+        defaultEnumToMicrocodeInstrSymbol.insert(tempi, tempqs);
     }
 
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::NOP0, defaultUnaryMnemonic0);
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::NOP1, "opcode27");
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::NOP,  "opcode28");
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::DECI, "opcode30");
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::DECO, "opcode38");
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::HEXO, "opcode40");
-    enumToMicrocodeInstrSymbol.insert(EMnemonic::STRO, "opcode48");
+    defaultEnumToMicrocodeInstrSymbol.insert(EMnemonic::NOP0, defaultUnaryMnemonic0);
+    defaultEnumToMicrocodeInstrSymbol.insert(EMnemonic::NOP1, "opcode27");
+    defaultEnumToMicrocodeInstrSymbol.insert(EMnemonic::NOP,  "opcode28");
+    defaultEnumToMicrocodeInstrSymbol.insert(EMnemonic::DECI, "opcode30");
+    defaultEnumToMicrocodeInstrSymbol.insert(EMnemonic::DECO, "opcode38");
+    defaultEnumToMicrocodeInstrSymbol.insert(EMnemonic::HEXO, "opcode40");
+    defaultEnumToMicrocodeInstrSymbol.insert(EMnemonic::STRO, "opcode48");
 
     // Initialize symbols for addressing modes
-    enumToMicrocodeAddrSymbol.clear();
+    defaultEnumToMicrocodeAddrSymbol.clear();
     metaEnum = meta.enumerator(meta.indexOfEnumerator("EAddrMode"));
     for(int it = 0; it < metaEnum.keyCount(); it++)
     {
         EAddrMode tempi = static_cast<EAddrMode>(metaEnum.value(it));
-        tempqs = QString(metaEnum.key(it)).toLower()+"Addr";
-        enumToMicrocodeAddrSymbol.insert(tempi, tempqs);
+        if(tempi == Enu::EAddrMode::NONE) {
+            tempqs = Pep::enumToMnemonMap[Enu::EMnemonic::STOP].toLower();
+        }
+        else {
+            tempqs = QString(metaEnum.key(it)).toLower()+"Addr";
+        }
+
+        defaultEnumToMicrocodeAddrSymbol.insert(tempi, tempqs);
+    }
+
+    instSpecToMicrocodeInstrSymbol.resize(256);
+    instSpecToMicrocodeAddrSymbol.resize(256);
+    for(int it=0; it <= 255; it++) {
+        instSpecToMicrocodeInstrSymbol[it] = defaultEnumToMicrocodeInstrSymbol[Pep::decodeMnemonic[it]].toLower();
+        instSpecToMicrocodeAddrSymbol[it] = defaultEnumToMicrocodeAddrSymbol[Pep::decodeAddrMode[it]];
     }
 }

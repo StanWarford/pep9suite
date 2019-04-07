@@ -42,7 +42,16 @@ int main(int argc, char *argv[])
     argv = &new_argv.data()[0];
     argc+=2;
 #endif
+
+    // Initialize all global maps.
+    Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, true);
+    Pep::initEnumMnemonMaps();
+    Pep::initMnemonicMaps(false);
+    Pep::initAddrModesMap();
+    Pep::initDecoderTables();
+    Pep::initMicroDecoderTables();
     qInstallMessageHandler(nullptr);
+
     QApplication a(argc, argv);
 
     MainWindow w;

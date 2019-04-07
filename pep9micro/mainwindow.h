@@ -37,16 +37,15 @@ class ByteConverterDec;
 class ByteConverterHex;
 class ByteConverterInstr;
 class CpuPane;
+class DecoderTableDialog;
+class FullMicrocodedCPU;
 class HelpDialog;
+class MainMemory;
 class MicrocodePane;
 class MicroObjectCodePane;
+class NewCPUDataSection;
 class UpdateChecker;
 class RedefineMnemonicsDialog;
-
-//WIP classes
-class FullMicrocodedCPU;
-class NewCPUDataSection;
-class MainMemory;
 
 /*
  * The set of possible states for the debugger.
@@ -94,6 +93,7 @@ private:
     HelpDialog *helpDialog;
     AboutPep *aboutPepDialog;
     RedefineMnemonicsDialog *redefineMnemonicsDialog;
+    DecoderTableDialog *decoderTableDialog;
 
     AsmProgramManager* programManager;
 
@@ -223,6 +223,7 @@ private slots:
     void on_actionSystem_Assemble_Install_New_OS_triggered();
     void on_actionSystem_Reinstall_Default_OS_triggered();
     void on_actionSystem_Redefine_Mnemonics_triggered();
+    void on_actionSystem_Redefine_Decoder_Tables_triggered();
     // Allow main window to update highlighting rules after
     // changes to the mnemonics have been finished.
     void redefine_Mnemonics_closed();
@@ -274,6 +275,7 @@ private slots:
     // Handle a breakpoint in the model, and determine the correct handler based
     // on breakpoint type.
     void onBreakpointHit(Enu::BreakpointTypes type);
+
 private:
     // Helper function for onInputReceived(...) that
     // reenables any disabled window components after IO completion,
@@ -283,6 +285,7 @@ private:
     void onMicroBreakpointHit();
     void onASMBreakpointHit();
     void onPaletteChanged(const QPalette &palette);
+
 signals:
     void beginUpdateCheck();
     // Emitted once when a simulation is begun

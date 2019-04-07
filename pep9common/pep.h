@@ -120,9 +120,15 @@ public:
 
     // Microprogram decoder table
     // Map mnemonic to the symbol in microcode which implements that instruction.
-    static QMap<Enu::EMnemonic, QString> enumToMicrocodeInstrSymbol;
+    static QMap<Enu::EMnemonic, QString> defaultEnumToMicrocodeInstrSymbol;
     // Map mnemonic to the symbopl in microcode which implements that iunstruction.
-    static QMap<Enu::EAddrMode, QString> enumToMicrocodeAddrSymbol;
+    static QMap<Enu::EAddrMode, QString> defaultEnumToMicrocodeAddrSymbol;
+
+    static QVector<QString> instSpecToMicrocodeInstrSymbol;
+    static QVector<QString> instSpecToMicrocodeAddrSymbol;
+    // The default symbol to denote the start of the von-Neumann cycle
+    static QString defaultStartSymbol;
     static void initMicroDecoderTables();
+
 };
 #endif // PEP_H

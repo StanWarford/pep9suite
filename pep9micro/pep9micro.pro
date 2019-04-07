@@ -33,6 +33,7 @@ FORMS += \
     addrmodewidget.ui \
     helpdialog.ui \
     mainwindow.ui \
+    decodertabledialog.ui
 
 HEADERS += \
     addrmodedialog.h \
@@ -40,7 +41,8 @@ HEADERS += \
     helpdialog.h \
     mainwindow.h \
     fullmicrocodedcpu.h \
-    fullmicrocodedmemoizer.h
+    fullmicrocodedmemoizer.h \
+    decodertabledialog.h
 
 SOURCES += \
     addrmodedialog.cpp \
@@ -50,6 +52,7 @@ SOURCES += \
     mainwindow.cpp \
     fullmicrocodedcpu.cpp \
     fullmicrocodedmemoizer.cpp \
+    decodertabledialog.cpp
 
 RESOURCES += \
     ../pep9common/pep9common-resources.qrc\

@@ -60,6 +60,7 @@
 #include "byteconverterinstr.h"
 #include "cpupane.h"
 #include "darkhelper.h"
+#include "decodertabledialog.h"
 #include "helpdialog.h"
 #include "isaasm.h"
 #include "memorydumppane.h"
@@ -84,16 +85,9 @@ MainWindow::MainWindow(QWidget *parent) :
     updateChecker(new UpdateChecker()), isInDarkMode(false),
     memDevice(new MainMemory(nullptr)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), memDevice)),
     dataSection(controlSection->getDataSection()), redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),
-    programManager(AsmProgramManager::getInstance())
+    decoderTableDialog(new DecoderTableDialog(this)), programManager(AsmProgramManager::getInstance())
 
 {
-    // Initialize all global maps.
-    Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, true);
-    Pep::initEnumMnemonMaps();
-    Pep::initMnemonicMaps(false);
-    Pep::initAddrModesMap();
-    Pep::initDecoderTables();
-    Pep::initMicroDecoderTables();
     // Initialize the memory subsystem
     QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memDevice.get()));
     memDevice->insertChip(ramChip, 0);
@@ -1094,11 +1088,16 @@ void MainWindow::debugButtonEnableHelper(const int which)
     ui->actionSystem_Redefine_Mnemonics->setEnabled(which & DebugButtons::INSTALL_OS);
     ui->actionSystem_Reinstall_Default_OS->setEnabled(which & DebugButtons::INSTALL_OS);
     ui->actionSystem_Assemble_Install_New_OS->setEnabled(which & DebugButtons::INSTALL_OS);
+    ui->actionSystem_Redefine_Decoder_Tables->setEnabled(which & DebugButtons::INSTALL_OS);
 
     // If the user starts simulating while the redefine mnemonics dialog is open,
     // force it to close so that the user can't change any mnemonics at runtime.
     // Also explictly call redefine_Mnemonics_closed(), since QDialog::closed is
     // not emitted when QDialog::hide() is invoked.
+    if(!(which & DebugButtons::INSTALL_OS) && redefineMnemonicsDialog->isVisible()) {
+        redefineMnemonicsDialog->hide();
+        redefine_Mnemonics_closed();
+    }
     if(!(which & DebugButtons::INSTALL_OS) && redefineMnemonicsDialog->isVisible()) {
         redefineMnemonicsDialog->hide();
         redefine_Mnemonics_closed();
@@ -1811,6 +1810,11 @@ void MainWindow::on_actionSystem_Redefine_Mnemonics_triggered()
     redefineMnemonicsDialog->show();
 }
 
+void MainWindow::on_actionSystem_Redefine_Decoder_Tables_triggered()
+{
+    decoderTableDialog->show();
+}
+
 void MainWindow::redefine_Mnemonics_closed()
 {
     // Propogate ASM-level instruction definition changes across the application.
@@ -1866,11 +1870,13 @@ void MainWindow::on_actionHelp_triggered()
         helpDialog->show();
     }
 }
+
 void MainWindow::on_actionHelp_Writing_Assembly_Programs_triggered()
 {
     helpDialog->show();
     helpDialog->selectItem("Writing Assembly Language Programs");
 }
+
 void MainWindow::on_actionHelp_Machine_Language_triggered()
 {
     helpDialog->show();

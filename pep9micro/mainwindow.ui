@@ -267,6 +267,7 @@
     <addaction name="actionFragment_Simulator"/>
     <addaction name="actionComplete_Microcode_Mode"/>
     <addaction name="separator"/>
+    <addaction name="actionSystem_Redefine_Decoder_Tables"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1099,6 +1100,11 @@
   <action name="actionHelp_Writing_Assembly_Programs">
    <property name="text">
     <string>Writing Assembly Programs</string>
+   </property>
+  </action>
+  <action name="actionSystem_Redefine_Decoder_Tables">
+   <property name="text">
+    <string>Redefine Decoder Tables</string>
    </property>
   </action>
  </widget>
