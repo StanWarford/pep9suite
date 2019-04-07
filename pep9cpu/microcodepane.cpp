@@ -247,7 +247,12 @@ void MicrocodePane::setCurrentFile(QString fileName)
 {
     if (fileName.isEmpty()) {
         currentFile.setFileName("");
-        ui->label->setText("Microcode - untitled.pepcpu");
+        if(fullCtrlSection) {
+            ui->label->setText("Microcode - untitled.pepmicro");
+        }
+        else{
+            ui->label->setText("Microcode - untitled.pepcpu");
+        }
     }
     else {
         currentFile.setFileName(fileName);

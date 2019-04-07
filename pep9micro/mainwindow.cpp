@@ -266,7 +266,7 @@ MainWindow::MainWindow(QWidget *parent) :
     assembleDefaultOperatingSystem();
 
     // Initialize Microcode panes
-    QFile file("://help-micro/pep9micro.pepcpu");
+    QFile file("://help-micro/pep9micro.pepmicro");
     if(file.open(QFile::ReadOnly | QFile::Text)){
         QTextStream in(&file);
         ui->microcodeWidget->setMicrocode(in.readAll());
@@ -502,7 +502,7 @@ bool MainWindow::save(Enu::EPane which)
         if(QFileInfo(ui->microcodeWidget->getCurrentFile()).absoluteFilePath().isEmpty()) {
             retVal = saveAsFile(Enu::EPane::EMicrocode);
         }
-        else retVal = saveFile(ui->microcodeWidget->getCurrentFile().fileName(),Enu::EPane::EMicrocode);
+        else retVal = saveFile(ui->microcodeWidget->getCurrentFile().fileName(), Enu::EPane::EMicrocode);
         if(retVal) {
             // If an invalid program is saved, it might be incorrectly "run"
             // due to caching in microcode pane. Clearing the cached microprogram
@@ -717,7 +717,7 @@ bool MainWindow::saveAsFile(Enu::EPane which)
     static const QString defSourceFile = "untitled.pep";
     static const QString defObjectFile = "untitled.pepo";
     static const QString defListingFile = "untitled.pepl";
-    static const QString defMicroFile = "untitled.pepcpu";
+    static const QString defMicroFile = "untitled.pepmicro";
     QString usingFile;
 
     // Titles for each pane.
@@ -732,7 +732,7 @@ bool MainWindow::saveAsFile(Enu::EPane which)
     static const QString sourceTypes = "Pep/9 Source (*.pep *.txt)";
     static const QString objectTypes = "Pep/9 Object (*.pepo *.txt)";
     static const QString listingTypes = "Pep/9 Listing (*.pepl)";
-    static const QString microTypes = "Pep/9 Microcode (*.pepcpu *.txt)";
+    static const QString microTypes = "Pep/9 Microcode (*.pepmicro *.pepcpu  *.txt)";
     const QString *usingTypes;
 
     /*
@@ -1194,7 +1194,7 @@ void MainWindow::on_actionFile_Open_triggered()
                 this,
                 "Open text file",
                 curPath,
-                "Pep/9 files (*.pep *.pepo *.pepl *.pepcpu *.txt)");
+                "Pep/9 files (*.pep *.pepo *.pepl *.pepmicro *.pepcpu *.txt)");
     // If we don't recognize an extension, assume it is an assembler source document
     Enu::EPane which = Enu::EPane::ESource;
     // Depending on the file ending, change which pane will be loaded into.
@@ -1202,6 +1202,7 @@ void MainWindow::on_actionFile_Open_triggered()
         if(fileName.endsWith("pep", Qt::CaseInsensitive)) which = Enu::EPane::ESource;
         else if(fileName.endsWith("pepo", Qt::CaseInsensitive)) which = Enu::EPane::EObject;
         else if(fileName.endsWith("pepl", Qt::CaseInsensitive)) which = Enu::EPane::EListing;
+        else if(fileName.endsWith("pepmicro", Qt::CaseInsensitive)) which = Enu::EPane::EMicrocode;
         else if(fileName.endsWith("pepcpu", Qt::CaseInsensitive)) which = Enu::EPane::EMicrocode;
         if(maybeSave(which)) {
             loadFile(fileName, which);

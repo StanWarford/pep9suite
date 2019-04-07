@@ -2,5 +2,25 @@
     <qresource prefix="/">
         <file>images/Pep9micro-icon.png</file>
         <file>help-micro/about.html</file>
+        <file>help-micro/figures-asm/fig0435.pepb</file>
+        <file>help-micro/figures-asm/fig0437.peph</file>
+        <file>help-micro/figures-asm/fig0437.pepb</file>
+        <file>help-micro/figures-asm/fig0436.pepb</file>
+        <file>help-micro/figures-asm/fig0433.pepb</file>
+        <file>help-micro/figures-asm/fig0514b.pep</file>
+        <file>help-micro/figures-asm/fig0514a.pep</file>
+        <file>help-micro/figures-asm/fig0513.pep</file>
+        <file>help-micro/figures-asm/fig0511.pep</file>
+        <file>help-micro/figures-asm/fig0510.pep</file>
+        <file>help-micro/figures-asm/fig0507.pep</file>
+        <file>help-micro/figures-asm/fig0506.pep</file>
+        <file>help-micro/figures-asm/fig0503.pep</file>
+        <file>help-micro/figures-asm/fig0437.pepo</file>
+        <file>help-micro/figures-asm/fig0436.pepo</file>
+        <file>help-micro/figures-asm/fig0436.peph</file>
+        <file>help-micro/figures-asm/fig0435.pepo</file>
+        <file>help-micro/figures-asm/fig0435.peph</file>
+        <file>help-micro/figures-asm/fig0433.pepo</file>
+        <file>help-micro/figures-asm/fig0433.peph</file>
     </qresource>
 </RCC>

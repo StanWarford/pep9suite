@@ -618,7 +618,6 @@ bool MainWindow::saveAsFile(Enu::EPane which)
     static const QString defSourceFile = "untitled.pep";
     static const QString defObjectFile = "untitled.pepo";
     static const QString defListingFile = "untitled.pepl";
-    static const QString defMicroFile = "untitled.pepcpu";
     QString usingFile;
 
     // Titles for each pane.
@@ -626,14 +625,12 @@ bool MainWindow::saveAsFile(Enu::EPane which)
     static const QString sourceTitle = titleBase.arg("Assembler Source Code");
     static const QString objectTitle = titleBase.arg("Object Code");
     static const QString listingTitle = titleBase.arg("Assembler Listing");
-    static const QString microTitle = titleBase.arg("Microcode");
     const QString *usingTitle;
 
     // Patterns for source code files.
     static const QString sourceTypes = "Pep/9 Source (*.pep *.txt)";
     static const QString objectTypes = "Pep/9 Object (*.pepo *.txt)";
     static const QString listingTypes = "Pep/9 Listing (*.pepl)";
-    static const QString microTypes = "Pep/9 Microcode (*.pepcpu *.txt)";
     const QString *usingTypes;
 
     /*

@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>help-micro/pep9micro.pepcpu</file>
+        <file>help-micro/pep9micro.pepmicro</file>
         <file>help-micro/alignedIO-OS.pep</file>
         <file>help-micro/about.html</file>
     </qresource>

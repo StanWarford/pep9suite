@@ -85,21 +85,21 @@ QString HelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString
     if (parentRow == eASMEXAMPLES) {
         if (row == eFIG433) {
             destPane = Enu::EPane::EObject;
-            return Pep::resToString(":/help-asm/figures/fig0433.pepo");
+            return Pep::resToString(":/help-micro/figures-asm/fig0433.pepo");
         }
         else if (row == eFIG435) {
             destPane = Enu::EPane::EObject;
             input = "up";
             inputDest = Enu::EPane::EBatchIO;
-            return Pep::resToString(":/help-asm/figures/fig0435.pepo");
+            return Pep::resToString(":/help-micro/figures-asm/fig0435.pepo");
         }
         else if (row == eFIG436) {
             destPane = Enu::EPane::EObject;
-            return Pep::resToString(":/help-asm/figures/fig0436.pepo");
+            return Pep::resToString(":/help-micro/figures-asm/fig0436.pepo");
         }
         else if (row == eFIG437) {
             destPane = Enu::EPane::EObject;
-            return Pep::resToString(":/help-asm/figures/fig0437.pepo");
+            return Pep::resToString(":/help-micro/figures-asm/fig0437.pepo");
         }
         else if (row == eFIG506) {
             input = "up";
@@ -305,8 +305,8 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
             ui->helpSplitter->widget(1)->show();
             ui->copyToSourceButton->setText("Copy to Source");
             if (row == eFIG433) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0433.peph"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0433.pepb"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0433.peph"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0433.pepb"));
                 ui->helpFigureLabel->setText("<b>Figure 4.33</b><code>  </code> A machine language program to output the characters <code>Hi</code>.");
                 ui->rightPepTextEdit->show();
                 ui->rightCppTextEdit->hide();
@@ -314,58 +314,58 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
 
             }
             else if (row == eFIG435) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0435.peph"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0435.pepb"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0435.peph"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0435.pepb"));
                 ui->helpFigureLabel->setText("<b>Figure 4.35</b><code>  </code> A machine language program to input two characters and output them in reverse order.");
                 ui->rightPepTextEdit->show();
                 ui->rightCppTextEdit->hide();
                 ui->copyToSourceButton->setText("Copy to Object");
             }
             else if (row == eFIG436) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0436.peph"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0436.pepb"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0436.peph"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0436.pepb"));
                 ui->helpFigureLabel->setText("<b>Figure 4.36</b><code>  </code> A machine language program to add 5 and 3 and output the single-character result.");
                 ui->rightPepTextEdit->show();
                 ui->rightCppTextEdit->hide();
                 ui->copyToSourceButton->setText("Copy to Object");
             }
             else if (row == eFIG437) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0437.peph"));
-                ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0437.pepb"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0437.peph"));
+                ui->rightPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0437.pepb"));
                 ui->helpFigureLabel->setText("<b>Figure 4.37</b><code>  </code> A machine language program that modifies itself. The add accumulator instruction changes to a subtract instruction.");
                 ui->rightPepTextEdit->show();
                 ui->rightCppTextEdit->hide();
                 ui->copyToSourceButton->setText("Copy to Object");
             }
             else if (row == eFIG503) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0503.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0503.pep"));
                 ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0433.peph"));
                 ui->helpFigureLabel->setText("<b>Figure 5.3</b><code>  </code> An assembly-language program to output <code>Hi</code>. It is the assembly-language version of Figure 4.33.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->show();
             }
             else if (row == eFIG506) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0506.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0506.pep"));
                 ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0435.peph"));
                 ui->helpFigureLabel->setText("<b>Figure 5.6</b><code>  </code> An assembly language program to input two characters and output them in reverse order. It is the assembly language version of Figure 4.35.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->show();
             }
             else if (row == eFIG507) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0507.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0507.pep"));
                 ui->rightPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0436.peph"));
                 ui->helpFigureLabel->setText("<b>Figure 5.7</b><code>  </code> An assembly language program to add 3 and 5 and output the single-character result. It is the assembly language version of Figure 4.36.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->show();
             }
             else if (row == eFIG510) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0510.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0510.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.10</b><code>  </code> A program to output <code>Hi</code> using immediate addressing.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG511) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0511.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0511.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.11</b><code>  </code> A program to input a decimal value, add 1 to it, and output the sum.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
@@ -377,19 +377,19 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG513) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0513.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0513.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.13</b><code>  </code> A nonsense program to illustrate the interpretation of bit patterns.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG514a) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0514a.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0514a.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.14(a)</b><code>  </code> Two different source programs that produce the same object program and, therefore, the same output.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
             }
             else if (row == eFIG514b) {
-                ui->leftPepTextEdit->setText(Pep::resToString(":/help-asm/figures/fig0514b.pep"));
+                ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0514b.pep"));
                 ui->helpFigureLabel->setText("<b>Figure 5.14(b)</b><code>  </code> Two different source programs that produce the same object program and, therefore, the same output.");
                 ui->rightCppTextEdit->hide();
                 ui->rightPepTextEdit->hide();
@@ -608,7 +608,7 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->leftPepTextEdit->hide();
         ui->rightCppTextEdit->hide();
         ui->rightPepTextEdit->hide();
-        ui->microTextEdit->setText(Pep::resToString(":/help-micro/pep9micro.pepcpu"));
+        ui->microTextEdit->setText(Pep::resToString(":/help-micro/pep9micro.pepmicro"));
         ui->microTextEdit->show();
         ui->helpFigureLabel->setText("Microcoded implementation of the <i>Pep/9</i> instruction set.");
     }
