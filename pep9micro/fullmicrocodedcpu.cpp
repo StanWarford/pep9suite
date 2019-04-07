@@ -198,8 +198,8 @@ bool FullMicrocodedCPU::onRun()
     qDebug().nospace().noquote() << "Executed "<< asmInstructionCounter << " instructions in "<<microCycleCounter<< " cycles.";
     qDebug().nospace().noquote() << "Averaging " << microCycleCounter / asmInstructionCounter << " cycles per instruction.";
     qDebug().nospace().noquote() << "Execution time (ms): " << value;
-    qDebug().nospace().noquote() << "Cycles per second: " << microCycleCounter / (((float)value/1000));
-    qDebug().nospace().noquote() << "Instructions per second: " << asmInstructionCounter / (((float)value/1000)) << "\n";
+    qDebug().nospace().noquote() << "Cycles per second: " << microCycleCounter / (static_cast<double>(value)/1000);
+    qDebug().nospace().noquote() << "Instructions per second: " << asmInstructionCounter / ((static_cast<double>(value)/1000)) << "\n";
     //emit simulationFinished();
     return true;
 }
@@ -562,7 +562,7 @@ void FullMicrocodedCPU::branchHandler()
         errorMessage = "ERROR: µInstructions cannot branch to themselves";
     }
     else {
-        microprogramCounter = temp;
+        microprogramCounter = static_cast<quint16>(temp);
     }
 }
 
@@ -601,9 +601,9 @@ void FullMicrocodedCPU::calculateInstrJT()
         }
         else {
             entry.isValid = true;
-            entry.addr = val->getValue();
+            entry.addr = static_cast<quint16>(val->getValue());
         }
-        instrSpecJT[it] = entry;
+        instrSpecJT[static_cast<quint8>(it)] = entry;
     }
 }
 
@@ -625,9 +625,9 @@ void FullMicrocodedCPU::calculateAddrJT()
         }
         else {
             entry.isValid = true;
-            entry.addr = val->getValue();
+            entry.addr = static_cast<quint16>(val->getValue());
         }
-        addrModeJT[it] = entry;
+        addrModeJT[static_cast<quint8>(it)] = entry;
     }
 }
 

@@ -208,14 +208,16 @@ void Pep::initMicroEnumMnemonMaps(CPUType cpuType, bool fullCtrlSection)
 
 quint8 Pep::numControlSignals()
 {
-#pragma message("If the number of control signals in Pep9 CPU is changed, this must be updated")
-    return 22;
+    QMetaObject meta = Enu::staticMetaObject;
+    QMetaEnum metaEnum = meta.enumerator(meta.indexOfEnumerator("EControlSignals"));
+    return static_cast<quint8>(metaEnum.keyCount());
 }
 
 quint8 Pep::numClockSignals()
 {
-    #pragma message("If the number of clocks in Pep9 CPU is changed, this must be updated")
-    return 12;
+    QMetaObject meta = Enu::staticMetaObject;
+    QMetaEnum metaEnum = meta.enumerator(meta.indexOfEnumerator("EClockSignals"));
+    return static_cast<quint8>(metaEnum.keyCount());
 }
 
 /*

@@ -40,7 +40,7 @@ public:
     virtual ~DisableSelectionModel() override;
     void select(const QItemSelection &selection, QItemSelectionModel::SelectionFlags command) override;
     void select(const QModelIndex &index, SelectionFlags command) override;
-    void forceSelectRow(int row);
+    void forceSelectRow(uint row);
 public slots:
     void onDisableSelection();
     void onEnableSelection();

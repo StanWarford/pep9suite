@@ -73,23 +73,23 @@ QString formatInstr(SymbolTable* symTable, quint8 instrSpec,quint16 oprSpec)
 QString generateStackFrame(CPUState&, bool enter)
 {
     return "";
-    if(enter) {
+    /*if(enter) {
         //return stackFrameEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
     else {
         //return stackFrameLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
-    }
+    }*/
 }
 
 QString generateTrapFrame(CPUState&, bool enter)
 {
     return "";
-    if(enter) {
+    /*if(enter) {
         //return trapEnter.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
     }
     else {
         //return trapLeave.arg(" SP=%1").arg(formatAddress(registers.regState.reg_SP));
-    }
+    }*/
 }
 
 QString attemptOperSpecReplace(SymbolTable *symTable, quint16 number)

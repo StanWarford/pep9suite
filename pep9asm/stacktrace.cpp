@@ -167,7 +167,7 @@ bool StackTrace::popAndOrphan(quint16 size)
 
 quint16 StackTrace::callDepth() const
 {
-    return callStack.length();
+    return static_cast<quint16>(callStack.length());
 }
 
 const StackFrame &StackTrace::getTOS()
@@ -332,7 +332,7 @@ quint16 StackFrame::size() const
 
 quint16 StackFrame::numItems() const
 {
-    return stack.size();
+    return static_cast<quint16>(stack.size());
 }
 
 StackFrame::operator QString() const

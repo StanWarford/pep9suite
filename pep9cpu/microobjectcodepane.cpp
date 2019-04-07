@@ -114,7 +114,7 @@ void MicroObjectCodePane::setObjectCode(QSharedPointer<MicrocodeProgram> prog, Q
             model->insertRow(rowNum);
             for(auto col : controls)
             {
-                auto x = ((MicroCode*)row)->getControlSignal(col);
+                auto x = (static_cast<MicroCode*>(row))->getControlSignal(col);
                 if(x != Enu::signalDisabled) {
                     auto y = new QStandardItem(QString::number(x));
                     y->setTextAlignment(Qt::AlignCenter);
@@ -123,7 +123,7 @@ void MicroObjectCodePane::setObjectCode(QSharedPointer<MicrocodeProgram> prog, Q
                 colNum++;
             }
             for(auto col : clocks) {
-                auto x = ((MicroCode*)row)->getClockSignal(col);
+                auto x = (static_cast<MicroCode*>(row))->getClockSignal(col);
                 if( x != false) {
                     auto y = new QStandardItem(QString::number(x));
                     y->setTextAlignment(Qt::AlignCenter);
@@ -132,17 +132,17 @@ void MicroObjectCodePane::setObjectCode(QSharedPointer<MicrocodeProgram> prog, Q
                 colNum++;
             }
             if(showCtrlSectionSignals) {
-                auto y = new QStandardItem(QString::number(((MicroCode*)row)->getBranchFunction()));
+                auto y = new QStandardItem(QString::number((static_cast<MicroCode*>(row))->getBranchFunction()));
                 y->setTextAlignment(Qt::AlignCenter);
                 model->setItem(rowNum,colNum++,y);
                 // Increment row number by 1 to account for display rows starting at 1, not 0.
-                y = new QStandardItem(QString::number(((MicroCode*)row)->getTrueTarget()->getValue() + 1));
+                y = new QStandardItem(QString::number((static_cast<MicroCode*>(row))->getTrueTarget()->getValue() + 1));
                 y->setTextAlignment(Qt::AlignCenter);
                 model->setItem(rowNum,colNum++,y);
-                y = new QStandardItem(QString::number(((MicroCode*)row)->getFalseTarget()->getValue() + 1));
+                y = new QStandardItem(QString::number((static_cast<MicroCode*>(row))->getFalseTarget()->getValue() + 1));
                 y->setTextAlignment(Qt::AlignCenter);
                 model->setItem(rowNum,colNum++,y);
-                y = new QStandardItem(((MicroCode*)row)->getSymbol()->getName());
+                y = new QStandardItem((static_cast<MicroCode*>(row))->getSymbol()->getName());
                 y->setTextAlignment(Qt::AlignCenter);
                 model->setItem(rowNum,colNum++,y);
             }
@@ -162,7 +162,9 @@ void MicroObjectCodePane::highlightCurrentInstruction()
 {
     rowCount = cpu->getMicrocodeLineNumber();
     selectionModel->forceSelectRow(rowCount);
-    ui->codeTable->setCurrentIndex(model->index(rowCount,0));
+    // Row count interpeted as a signed 32 bit integer.
+    qint32 sRowCount = static_cast<int>(rowCount);
+    ui->codeTable->setCurrentIndex(model->index(sRowCount,0));
     inSimulation=true;
 }
 

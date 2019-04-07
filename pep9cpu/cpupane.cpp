@@ -348,7 +348,7 @@ void CpuPane::setRegisterByte(quint8 reg, quint8 value)
 void CpuPane::initRegisters()
 {
     //Set register bank
-    for(int it = 0 ;it < 22; it++) {
+    for(quint8 it = 0 ;it < 22; it++) {
         setRegisterByte(it, dataSection->getRegisterBankByte(it));
     }
 
@@ -533,49 +533,49 @@ void CpuPane::regTextFinishedEditing()
 
     //qDebug() << "reg val: " << regValue;
     if (lineEdit == cpuPaneItems->aRegLineEdit) {
-        emit registerChanged(0,(quint8)((regValue)/256));
-        emit registerChanged(1,(quint8)(regValue)%256);
+        emit registerChanged(0, static_cast<quint8>(regValue / 256));
+        emit registerChanged(1, static_cast<quint8>(regValue % 256));
     }
     else if (lineEdit == cpuPaneItems->xRegLineEdit) {
-        emit registerChanged(2,(quint8)((regValue)/256));
-        emit registerChanged(3,(quint8)(regValue)%256);
+        emit registerChanged(2, static_cast<quint8>(regValue / 256));
+        emit registerChanged(3, static_cast<quint8>(regValue % 256));
     }
     else if (lineEdit == cpuPaneItems->spRegLineEdit) {
-        emit registerChanged(4,(quint8)((regValue)/256));
-        emit registerChanged(5,(quint8)(regValue)%256);
+        emit registerChanged(4, static_cast<quint8>(regValue / 256));
+        emit registerChanged(5, static_cast<quint8>(regValue % 256));
     }
     else if (lineEdit == cpuPaneItems->pcRegLineEdit) {
-        emit registerChanged(6,(quint8)((regValue)/256));
-        emit registerChanged(7,(quint8)(regValue)%256);
+        emit registerChanged(6, static_cast<quint8>(regValue / 256));
+        emit registerChanged(7, static_cast<quint8>(regValue % 256));
     }
     else if (lineEdit == cpuPaneItems->irRegLineEdit) {
-        emit registerChanged(8,(quint8)((regValue)/65536));
-        emit registerChanged(9,(quint8)((regValue)/256));
-        emit registerChanged(10,(quint8)(regValue)%256);
+        emit registerChanged(8,static_cast<quint8>(regValue / 65536));
+        emit registerChanged(9, static_cast<quint8>(regValue / 256));
+        emit registerChanged(10,static_cast<quint8>(regValue % 256));
 
     }
     else if (lineEdit == cpuPaneItems->t1RegLineEdit) {
-        emit registerChanged(11,(quint8)(regValue)%256);
+        emit registerChanged(11, static_cast<quint8>(regValue % 256));
     }
     else if (lineEdit == cpuPaneItems->t2RegLineEdit) {
-        emit registerChanged(12,(quint8)((regValue)/256));
-        emit registerChanged(3,(quint8)(regValue)%256);
+        emit registerChanged(12, static_cast<quint8>(regValue / 256));
+        emit registerChanged(3, static_cast<quint8>(regValue % 256));
     }
     else if (lineEdit == cpuPaneItems->t3RegLineEdit) {
-        emit registerChanged(14,(quint8)((regValue)/256));
-        emit registerChanged(15,(quint8)(regValue)%256);
+        emit registerChanged(14, static_cast<quint8>(regValue / 256));
+        emit registerChanged(15, static_cast<quint8>(regValue % 256));
     }
     else if (lineEdit == cpuPaneItems->t4RegLineEdit) {
-        emit registerChanged(16,(quint8)((regValue)/256));
-        emit registerChanged(17,(quint8)(regValue)%256);
+        emit registerChanged(16, static_cast<quint8>(regValue / 256));
+        emit registerChanged(17, static_cast<quint8>(regValue % 256));
     }
     else if (lineEdit == cpuPaneItems->t5RegLineEdit) {
-        emit registerChanged(18,(quint8)((regValue)/256));
-        emit registerChanged(19,(quint8)(regValue)%256);
+        emit registerChanged(18, static_cast<quint8>(regValue / 256));
+        emit registerChanged(19, static_cast<quint8>(regValue % 256));
     }
     else if (lineEdit == cpuPaneItems->t6RegLineEdit) {
-        emit registerChanged(20,(quint8)((regValue)/256));
-        emit registerChanged(21,(quint8)(regValue)%256);
+        emit registerChanged(20, static_cast<quint8>(regValue / 256));
+        emit registerChanged(21, static_cast<quint8>(regValue % 256));
     }
     if (lineEdit == cpuPaneItems->irRegLineEdit) {
         lineEdit->setText(QString("0x%1").arg(regValue, 6, 16, QLatin1Char('0')).toUpper());
@@ -603,29 +603,37 @@ void CpuPane::labelClicked()
     label->toggle();
     QString temp="";
     quint8 tempVal=0;
-    Enu::EControlSignals control=(Enu::EControlSignals)128;
-    Enu::EStatusBit status = (Enu::EStatusBit)128;
+    bool hadCtrl = false, hadStatus = false;
+    // Must initialize the below values to 0, otherwise static analyzer
+    // becomes upset. This values will only be used if their associated
+    // boolean flag is true, but I can't pass this hint to the compiler.
+    Enu::EControlSignals control = Enu::EControlSignals::A;
+    Enu::EStatusBit status = Enu::EStatusBit::STATUS_C;
     if(label == cpuPaneItems->aMuxTristateLabel){
         temp = cpuPaneItems->aMuxTristateLabel->text();
-        control= Enu::AMux;
+        control = Enu::AMux;
+        hadCtrl = true;
     }
-
     else if(label == cpuPaneItems->cMuxTristateLabel) {
         temp = cpuPaneItems->cMuxTristateLabel->text();
         control= Enu::CMux;
+        hadCtrl = true;
     }
     else if(label == cpuPaneItems->CSMuxTristateLabel) {
         temp = cpuPaneItems->CSMuxTristateLabel->text();
-        control= Enu::CSMux;
+        control = Enu::CSMux;
+        hadCtrl = true;
     }
     else if(label == cpuPaneItems->AndZTristateLabel) {
         temp = cpuPaneItems->AndZTristateLabel->text();
-        control= Enu::AndZ;
+        control = Enu::AndZ;
+        hadCtrl = true;
     }
     else if(label == cpuPaneItems->MemWriteTristateLabel) {
         if(cpuPaneItems->MemReadTristateLabel->text().isEmpty()){
             temp = cpuPaneItems->MemWriteTristateLabel->text();
             control= Enu::MemWrite;
+            hadCtrl = true;
         }
         else {
             cpuPaneItems->MemWriteTristateLabel->setState(-1);
@@ -636,7 +644,8 @@ void CpuPane::labelClicked()
     else if(label == cpuPaneItems->MemReadTristateLabel) {
         if(cpuPaneItems->MemWriteTristateLabel->text().isEmpty()){
             temp = cpuPaneItems->MemReadTristateLabel->text();
-            control= Enu::MemRead;
+            control = Enu::MemRead;
+            hadCtrl = true;
         }
         else {
             cpuPaneItems->MemWriteTristateLabel->setState(-1);
@@ -645,45 +654,54 @@ void CpuPane::labelClicked()
     }
     else if(label == cpuPaneItems->MDRMuxTristateLabel) {
         temp = cpuPaneItems->MDRMuxTristateLabel->text();
-        control= Enu::MDRMux;
+        control = Enu::MDRMux;
+        hadCtrl = true;
     }
     else if(label == cpuPaneItems->MDREMuxTristateLabel) {
         temp = cpuPaneItems->MDREMuxTristateLabel->text();
-        control= Enu::MDREMux;
+        control = Enu::MDREMux;
+        hadCtrl = true;
     }
     else if(label == cpuPaneItems->MDROMuxTristateLabel) {
         temp = cpuPaneItems->MDROMuxTristateLabel->text();
-        control= Enu::MDROMux;
+        control = Enu::MDROMux;
+        hadCtrl = true;
     }
     else if(label == cpuPaneItems->EOMuxTristateLabel) {
         temp = cpuPaneItems->EOMuxTristateLabel->text();
-        control= Enu::EOMux;
+        control = Enu::EOMux;
+        hadCtrl = true;
     }
     else if(label == cpuPaneItems->nBitLabel) {
         status = Enu::STATUS_N;
         temp = cpuPaneItems->nBitLabel->text();
+        hadStatus = true;
     }
     else if(label == cpuPaneItems->zBitLabel) {
         status = Enu::STATUS_Z;
         temp = cpuPaneItems->zBitLabel->text();
+        hadStatus = true;
     }
     else if(label == cpuPaneItems->vBitLabel) {
         status = Enu::STATUS_V;
         temp = cpuPaneItems->vBitLabel->text();
+        hadStatus = true;
     }
     else if(label == cpuPaneItems->cBitLabel){
         status = Enu::STATUS_C;
         temp = cpuPaneItems->cBitLabel->text();
+        hadStatus = true;
     }
     else if(label == cpuPaneItems->sBitLabel) {
         status = Enu::STATUS_S;
         temp = cpuPaneItems->sBitLabel->text();
+        hadStatus = true;
     }
     if(temp == "0") tempVal = 0;
     else if(temp == "1") tempVal = 1;
     else tempVal = Enu::signalDisabled;
-    if(control!=(Enu::EControlSignals)128)dataSection->onSetControlSignal(control,tempVal);
-    else if(status!=(Enu::EStatusBit)128)dataSection->onSetStatusBit(status,tempVal);
+    if(hadCtrl)dataSection->onSetControlSignal(control,tempVal);
+    else if(hadStatus)dataSection->onSetStatusBit(status,tempVal);
 }
 
 void CpuPane::clockButtonPushed()
@@ -692,7 +710,7 @@ void CpuPane::clockButtonPushed()
     cpu->onClock();
     if (dataSection->hadErrorOnStep()) {
         // simulation had issues.
-        QMessageBox::warning(0, "Pep/9", dataSection->getErrorMessage());
+        QMessageBox::warning(nullptr, "Pep/9", dataSection->getErrorMessage());
         emit stopSimulation();
     }
     scene->invalidate();
@@ -706,46 +724,46 @@ void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
         code.setClockSingal(Enu::LoadCk, 1);
     }
     if (cpuPaneItems->cLineEdit->text() != "") {
-        code.setControlSignal(Enu::C, cpuPaneItems->cLineEdit->text().toInt());
+        code.setControlSignal(Enu::C, static_cast<quint8>(cpuPaneItems->cLineEdit->text().toInt()));
     }
     if (cpuPaneItems->bLineEdit->text() != "") {
-        code.setControlSignal(Enu::B, cpuPaneItems->bLineEdit->text().toInt());
+        code.setControlSignal(Enu::B, static_cast<quint8>(cpuPaneItems->bLineEdit->text().toInt()));
     }
     if (cpuPaneItems->aLineEdit->text() != "") {
-        code.setControlSignal(Enu::A, cpuPaneItems->aLineEdit->text().toInt());
+        code.setControlSignal(Enu::A, static_cast<quint8>(cpuPaneItems->aLineEdit->text().toInt()));
     }
     if (cpuPaneItems->MARCk->isChecked()) {
         code.setClockSingal(Enu::MARCk, 1);
     }
     if (cpuPaneItems->MARMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::MARMux, cpuPaneItems->MARMuxTristateLabel->text().toInt());
+        code.setControlSignal(Enu::MARMux, static_cast<quint8>(cpuPaneItems->MARMuxTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->aMuxTristateLabel->text() != "") {
-        code.setControlSignal(Enu::AMux, cpuPaneItems->aMuxTristateLabel->text().toInt());
+        code.setControlSignal(Enu::AMux, static_cast<quint8>(cpuPaneItems->aMuxTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->MDROCk->isChecked()) { // 2 byte bus
         code.setClockSingal(Enu::MDROCk, 1);
     }
     if (cpuPaneItems->MDROMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::MDROMux, cpuPaneItems->MDROMuxTristateLabel->text().toInt());
+        code.setControlSignal(Enu::MDROMux, static_cast<quint8>(cpuPaneItems->MDROMuxTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->MDRECk->isChecked()) { // 2 byte bus
         code.setClockSingal(Enu::MDRECk, 1);
     }
     if (cpuPaneItems->MDREMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::MDREMux, cpuPaneItems->MDREMuxTristateLabel->text().toInt());
+        code.setControlSignal(Enu::MDREMux, static_cast<quint8>(cpuPaneItems->MDREMuxTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->EOMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::EOMux, cpuPaneItems->EOMuxTristateLabel->text().toInt());
+        code.setControlSignal(Enu::EOMux, static_cast<quint8>(cpuPaneItems->EOMuxTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->cMuxTristateLabel->text() != "") {
-        code.setControlSignal(Enu::CMux, cpuPaneItems->cMuxTristateLabel->text().toInt());
+        code.setControlSignal(Enu::CMux, static_cast<quint8>(cpuPaneItems->cMuxTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->ALULineEdit->text() != "") {
-        code.setControlSignal(Enu::ALU, cpuPaneItems->ALULineEdit->text().toInt());
+        code.setControlSignal(Enu::ALU, static_cast<quint8>(cpuPaneItems->ALULineEdit->text().toInt()));
     }
     if (cpuPaneItems->CSMuxTristateLabel->text() != "") {
-        code.setControlSignal(Enu::CSMux, cpuPaneItems->CSMuxTristateLabel->text().toInt());
+        code.setControlSignal(Enu::CSMux, static_cast<quint8>(cpuPaneItems->CSMuxTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->SCkCheckBox->isChecked()) {
         code.setClockSingal(Enu::SCk, 1);
@@ -757,7 +775,7 @@ void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
         code.setClockSingal(Enu::VCk, 1);
     }
     if (cpuPaneItems->AndZTristateLabel->text() != "") {
-        code.setControlSignal(Enu::AndZ, cpuPaneItems->AndZTristateLabel->text().toInt());
+        code.setControlSignal(Enu::AndZ, static_cast<quint8>(cpuPaneItems->AndZTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->ZCkCheckBox->isChecked()) {
         code.setClockSingal(Enu::ZCk, 1);
@@ -766,10 +784,10 @@ void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
         code.setClockSingal(Enu::NCk, 1);
     }
     if (cpuPaneItems->MemReadTristateLabel->text() != "") {
-        code.setControlSignal(Enu::MemRead, cpuPaneItems->MemReadTristateLabel->text().toInt());
+        code.setControlSignal(Enu::MemRead, static_cast<quint8>(cpuPaneItems->MemReadTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->MemWriteTristateLabel->text() != "") {
-        code.setControlSignal(Enu::MemWrite, cpuPaneItems->MemWriteTristateLabel->text().toInt());
+        code.setControlSignal(Enu::MemWrite, static_cast<quint8>(cpuPaneItems->MemWriteTristateLabel->text().toInt()));
     }
     code.setBranchFunction(Enu::Assembler_Assigned);
     emit appendMicrocodeLine(code.getSourceCode());
@@ -782,7 +800,7 @@ void CpuPane::ALUTextEdited(QString str)
     }
     else {
         int num = str.toInt();
-        dataSection->onSetControlSignal(Enu::ALU,(Enu::EALUFunc)num);
+        dataSection->onSetControlSignal(Enu::ALU,static_cast<Enu::EALUFunc>(num));
         //
         switch (num) {
         case 0:
@@ -880,17 +898,17 @@ void CpuPane::onBusChanged()
     quint8 val;
     if(bus==cpuPaneItems->aLineEdit)
     {
-        val = cpuPaneItems->aLineEdit->text().toInt();
+        val = static_cast<quint8>(cpuPaneItems->aLineEdit->text().toInt());
         dataSection->onSetControlSignal(Enu::A,val);
     }
     else if(bus==cpuPaneItems->bLineEdit)
     {
-        val = cpuPaneItems->bLineEdit->text().toInt();
+        val = static_cast<quint8>(cpuPaneItems->bLineEdit->text().toInt());
         dataSection->onSetControlSignal(Enu::B,val);
     }
     else if(bus==cpuPaneItems->cLineEdit)
     {
-        val = cpuPaneItems->cLineEdit->text().toInt();
+        val = static_cast<quint8>(cpuPaneItems->cLineEdit->text().toInt());
         dataSection->onSetControlSignal(Enu::C,val);
     }
 }
@@ -957,7 +975,8 @@ void CpuPane::onSimulationUpdate()
     setRegister(Enu::X, dataSection->getRegisterBankWord(CPURegisters::X));
     setRegister(Enu::SP, dataSection->getRegisterBankWord(CPURegisters::SP));
     setRegister(Enu::PC, dataSection->getRegisterBankWord(CPURegisters::PC));
-    setRegister(Enu::IR, ((quint32)dataSection->getRegisterBankByte(CPURegisters::IS)<<16) + dataSection->getRegisterBankWord(CPURegisters::OS));
+    setRegister(Enu::IR, static_cast<int>(dataSection->getRegisterBankByte(CPURegisters::IS)<<16) +
+                dataSection->getRegisterBankWord(CPURegisters::OS));
     setRegister(Enu::T1, dataSection->getRegisterBankByte(CPURegisters::T1));
     setRegister(Enu::T2, dataSection->getRegisterBankWord(CPURegisters::T2));
     setRegister(Enu::T3, dataSection->getRegisterBankWord(CPURegisters::T3));

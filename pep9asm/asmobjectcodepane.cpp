@@ -109,7 +109,6 @@ void AsmObjectCodePane::setCurrentFile(QString string)
         ui->label->setText("Object Code - " + QFileInfo(currentFile).fileName());
     }
     else {
-        #pragma message ("Is this the proper initialization for an empty file?")
         currentFile.setFileName("");
         ui->label->setText("Object Code - untitled.pepo");
     }

@@ -111,6 +111,8 @@ bool NewCPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         carryIn = 1;
         [[fallthrough]];
     case Enu::ApnBpCin_func: // A plus ~B plus Cin
+        // Clang thinks this is a garbage value. It isn't.
+        // Lots of "errors" spawn from this, but this is well-defined behavior.
         b = ~b;
         [[fallthrough]];
     case Enu::ApBpCin_func: // A plus B plus Cin
@@ -500,7 +502,7 @@ void NewCPUDataSection::stepOneByte() noexcept
     if(clockSignals[Enu::MDRCk]) {
         switch(controlSignals[Enu::MDRMux]) {
         case 0: //Pick memory
-            address = (memoryRegisters[Enu::MEM_MARA]<<8) + memoryRegisters[Enu::MEM_MARB];
+            address = static_cast<quint16>(memoryRegisters[Enu::MEM_MARA]<<8) + memoryRegisters[Enu::MEM_MARB];
             if(mainBusState != Enu::MemReadReady) {
                 hadDataError = true;
                 errorMessage = "No value from data bus to write to MDR.";
@@ -539,7 +541,7 @@ void NewCPUDataSection::stepOneByte() noexcept
                 onSetStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
             }
             else if(controlSignals[Enu::AndZ] == 1) {
-                onSetStatusBit(Enu::STATUS_Z,(bool)(Enu::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z));
+                onSetStatusBit(Enu::STATUS_Z, static_cast<bool>((Enu::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z)));
             }
             else statusBitError = true;
         }
@@ -721,7 +723,7 @@ void NewCPUDataSection::stepTwoByte() noexcept
                 onSetStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
             }
             else if(controlSignals[Enu::AndZ] == 1) {
-                onSetStatusBit(Enu::STATUS_Z, (bool)(Enu::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z));
+                onSetStatusBit(Enu::STATUS_Z, static_cast<bool>((Enu::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z)));
             }
             else statusBitError = true;
         }

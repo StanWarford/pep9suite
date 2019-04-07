@@ -377,7 +377,6 @@ void AsmSourceCodePane::backTab()
         }
         else {
             // Starting position is 4 characters backwards
-            startPos = curLinePos - (curLinePos - 30) % 4;
             if((curLinePos - 30) % 4 == 0) {
                 startPos = curLinePos - 4;
             }

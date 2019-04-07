@@ -30,8 +30,9 @@ void DisableSelectionModel::select(const QModelIndex &index, QItemSelectionModel
     QItemSelectionModel::select(index,command);
 }
 
-void DisableSelectionModel::forceSelectRow(int row)
+void DisableSelectionModel::forceSelectRow(uint urow)
 {
+    int row = static_cast<int>(urow);
     auto start = this->model()->index(row,0);
     auto end = model()->index(row,model()->columnCount()-1);
     clearSelection();

@@ -121,7 +121,8 @@ bool MicrocodePane::microAssemble()
             QSharedPointer<MicrocodeProgram>::create(codeList, symbolTable);
             return false;
         }
-        if(code->isMicrocode() && ((MicroCode*)code)->hasControlSignal(Enu::EControlSignals::MemRead) && ((MicroCode*)code)->hasControlSignal(Enu::EControlSignals::MemWrite)) {
+        if(code->isMicrocode() && static_cast<MicroCode*>(code)->hasControlSignal(Enu::EControlSignals::MemRead) &&
+                static_cast<MicroCode*>(code)->hasControlSignal(Enu::EControlSignals::MemWrite)) {
             appendMessageInSourceCodePaneAt(lineNum, "\\ ERROR: Can't have memread and memwrite");
             // Create a dummy program that will delete all asm code entries
             QSharedPointer<MicrocodeProgram>::create(codeList, symbolTable);

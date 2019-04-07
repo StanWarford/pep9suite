@@ -159,7 +159,7 @@ namespace Enu {
     // Instruction mnemonics
     enum EControlSignals
     {
-        MemRead, MemWrite,
+        MemRead=0, MemWrite,
         A,B,EOMux, MARMux,MARA, MARB, AMux, ALU,CSMux, AndZ,
         CMux, C,
         MDRMux, MDROMux, MDREMux,MDR, MDRE, MDRO,
@@ -168,7 +168,8 @@ namespace Enu {
     Q_ENUM_NS(EControlSignals);
 
     enum EClockSignals{
-        NCk,ZCk,VCk,CCk,SCk,MARCk,LoadCk,MDRCk, MDROCk, MDRECk,
+        NCk=0,
+        ZCk,VCk,CCk,SCk,MARCk,LoadCk,MDRCk, MDROCk, MDRECk,
         PValidCk,
     };
     Q_ENUM_NS(EClockSignals);

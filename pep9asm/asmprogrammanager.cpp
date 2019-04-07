@@ -88,7 +88,10 @@ QSet<quint16> AsmProgramManager::getBreakpoints() const
     for(QSharedPointer<AsmProgram> prog : progsList) {
         for(QSharedPointer<AsmCode> code : prog->getProgram())
         {
-            if(code->hasBreakpoint()) breakpoints.insert(code->getMemoryAddress());
+            if(code->hasBreakpoint()) {
+                quint16 addr = static_cast<quint16>(code->getMemoryAddress());
+                breakpoints.insert(addr);
+            }
         }
     }
     return breakpoints;

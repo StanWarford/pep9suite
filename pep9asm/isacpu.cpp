@@ -204,7 +204,7 @@ void IsaCpu::initCPU()
         quint16 offset = manager->getMemoryVectorOffset(AsmProgramManager::MemoryVectors::UserStack);
         quint16 value;
         // The value starts at max address minus offset.
-        memory->getWord(memory->maxAddress() - offset,value);
+        memory->getWord(static_cast<quint16>(memory->maxAddress()) - offset,value);
         registerBank.writeRegisterWord(Enu::CPURegisters::SP, value);
     }
     registerBank.flattenFile();
@@ -452,22 +452,22 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
     case Enu::EAddrMode::N:
         effectiveAddress = operand;
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
-        effectiveAddress = tempByteHi << 8 | tempByteLo;
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
+        effectiveAddress = static_cast<quint16>(tempByteHi << 8 | tempByteLo);
         rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress , opVal);
         break;
     case Enu::EAddrMode::SF:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
-        effectiveAddress = tempByteHi << 8 | tempByteLo;
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
+        effectiveAddress = static_cast<quint16>(tempByteHi << 8 | tempByteLo);
         rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         break;
     case Enu::EAddrMode::SFX:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
-        effectiveAddress = tempByteHi << 8 | tempByteLo;
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
+        effectiveAddress = static_cast<quint16>(tempByteHi << 8 | tempByteLo);
         effectiveAddress += getCPURegWordCurrent(Enu::CPURegisters::X);
         rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         break;
@@ -597,7 +597,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
     case Enu::EMnemonic::RETTR:
         memory->readWord(sp, temp);
         // Function will automatically mask out bits that don't matter
-        registerBank.writeStatusBits(temp);
+        registerBank.writeStatusBits(static_cast<quint8>(temp));
         memory->readWord(sp + 1, temp);
         registerBank.writeRegisterWord(Enu::CPURegisters::A, temp);
         memory->readWord(sp + 3, temp);
@@ -784,6 +784,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
     a = registerBank.readRegisterWordCurrent(Enu::CPURegisters::A);
     x = registerBank.readRegisterWordCurrent(Enu::CPURegisters::X);
     sp = registerBank.readRegisterWordCurrent(Enu::CPURegisters::SP);
+    // I am confident that tempword will be initialized correctly by readOperandWordValue()
+    // but the static analyzer is not so sure. Default initialize it to supress this warning.
+    tempWord = 0;
     bool memSuccess = true;
     switch(mnemon) {
 
@@ -998,7 +1001,6 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (~(a ^  tempWord) & (a ^ result)) >> 15);
         // Carry out iff result is unsigned less than register or operand.
-#pragma message("Check C")
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, result < a  || result < tempWord);
         // If there was a signed overflow, selectively invert N bit.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N)
@@ -1058,8 +1060,8 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         // The result is the two's complement of the decoded operand specifier plus a.
         // Narrow a and operand to 1 byte before widening to 2 bytes for result.
-        tempByte = ~tempByte + 1;
-        result = (a + tempByte) & 0xff;
+        tempWord = ~tempByte + 1;
+        result = (a + tempWord) & 0xff;
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x80);
          // Is zero if all bits are 0's.
@@ -1073,8 +1075,8 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         // The result is the two's complement of the decoded operand specifier plus x.
         // Narrow a and operand to 1 byte before widening to 2 bytes for result.
-        tempByte = ~tempByte + 1;
-        result = (x + tempByte) & 0xff;
+        tempWord = ~tempByte + 1;
+        result = (x + tempWord) & 0xff;
         // Is negative if high order bit is 1.
         registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x80);
          // Is zero if all bits are 0's.
