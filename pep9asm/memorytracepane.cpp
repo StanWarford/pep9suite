@@ -72,7 +72,10 @@ NewMemoryTracePane::~NewMemoryTracePane()
 void NewMemoryTracePane::updateTrace()
 {
     // If there were trace warnings, then the stack view won't be meaningful.
-    if(trace == nullptr || trace->hasTraceWarnings() || !isVisible()) return;
+    // If the trace pane is not visible (the tab it is in is invisible), still render updates.
+    // If the pane is hidden (disabled & no way for the user to ever see it),
+    // then updates may be skipped.
+    if(trace == nullptr || trace->hasTraceWarnings() || isHidden()) return;
     updateGlobals();
     // Only render stack / heap if they are still intact.
     if(trace->activeStack->isStackIntact()) updateStack();
@@ -147,7 +150,9 @@ void NewMemoryTracePane::onSimulationStarted()
     qreal globaly = globalLocation.y();
     ui->warningLabel->clear();
     // Don't attempt to render items if there are trace tag warnings.
-    if(manager->getUserProgram().isNull() || !manager->getUserProgram()->getTraceInfo()->hadTraceTags) {
+    if(manager->getUserProgram().isNull() ||
+      !manager->getUserProgram()->getTraceInfo()->hadTraceTags ||
+       manager->getUserProgram()->getTraceInfo()->staticTraceError) {
         setVisible(false);
         return;
     }
