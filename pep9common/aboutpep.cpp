@@ -29,7 +29,10 @@ AboutPep::AboutPep(QString aboutText, QPixmap pixmap, QWidget *parent) :
     ui(new Ui::AboutPep), str(aboutText), icon(pixmap)
 {
     ui->setupUi(this);
-    ui->aboutLabel->setText(str);
+    QPalette p = ui->aboutText->palette();
+    p.setColor(QPalette::Base, QColor(0,0,0,0)); // r,g,b,A
+    ui->aboutText->setPalette(p);
+    ui->aboutText->setText(str);
     ui->label->setPixmap(pixmap);
     setMinimumHeight(460);
     this->resize(this->contentsRect().x(),450);
