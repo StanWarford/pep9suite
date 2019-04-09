@@ -199,14 +199,17 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection *dataSec
     QRegExp cbaRegExp("^((3[0-1])|([0-2][0-9])|([0-9]))$");
     addEditableRegister(&cLineEdit, framedVector, scene, "", cbaRegExp, OneByteShapes::cLineEdit, colorScheme);
     addLabelToScene(&cLabel, scene, "C", OneByteShapes::cLabel);
+    cLineEdit->setAlignment(Qt::AlignCenter);
 
     // B
     addEditableRegister(&bLineEdit,framedVector, scene, "", cbaRegExp, OneByteShapes::bLineEdit, colorScheme);
     addLabelToScene(&bLabel, scene, "B", OneByteShapes::bLabel);
+    bLineEdit->setAlignment(Qt::AlignCenter);
 
     // A
     addEditableRegister(&aLineEdit, framedVector, scene, "", cbaRegExp, OneByteShapes::aLineEdit, colorScheme);
     addLabelToScene(&aLabel, scene, "A", OneByteShapes::aLabel);
+    aLineEdit->setAlignment(Qt::AlignCenter);
 
     // MARCk
     addCheckToScene(&MARCk, checkVector, scene, "MARCk", OneByteShapes::MARCkCheckbox);
@@ -229,6 +232,7 @@ CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection *dataSec
                        QRegExp("^((1[0-5])|(0[0-9])|[0-9])$"), OneByteShapes::ALULineEdit, colorScheme);
     addLabelToScene(&ALULabel, scene, "ALU", OneByteShapes::ALULabel);
     addCenteredLabelToScene(&ALUFunctionLabel, scene, "", OneByteShapes::ALUFunctionLabel);
+    ALULineEdit->setAlignment(Qt::AlignCenter);
 
     // ALU shape
     ALUPoly = scene->addPolygon(OneByteShapes::ALUPoly,
