@@ -7,7 +7,8 @@
 #include "typetags.h"
 #include "symbolentry.h"
 #include "asmcode.h"
-InterfaceISACPU::InterfaceISACPU(const AMemoryDevice* dev, const AsmProgramManager* manager) noexcept: manager(manager),
+InterfaceISACPU::InterfaceISACPU(const AMemoryDevice* dev, const AsmProgramManager* manager) noexcept:
+    manager(manager), opValCache(0),
     breakpointsISA(), asmInstructionCounter(0), asmBreakpointHit(false), doDebug(false),
     firstLineAfterCall(false), isTrapped(false), memTrace(QSharedPointer<MemoryTrace>::create()),
     userActions(), osActions(), activeActions(&userActions)
@@ -52,6 +53,11 @@ void InterfaceISACPU::breakpointAdded(quint16 address) noexcept
 QSharedPointer<const MemoryTrace> InterfaceISACPU::getMemoryTrace() const
 {
     return memTrace;
+}
+
+quint16 InterfaceISACPU::getOperandValue() const
+{
+    return opValCache;
 }
 
 void InterfaceISACPU::setDebugBreakpoints(bool doDebug) noexcept

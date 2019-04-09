@@ -62,16 +62,6 @@ void IsaCpu::stepOut()
     doISAStepWhile(cond);
 }
 
-bool IsaCpu::getOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
-{
-    return operandWordValueHelper(operand, addrMode, &AMemoryDevice::getWord, opVal);
-}
-
-bool IsaCpu::getOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quint8 &opVal)
-{
-    return operandByteValueHelper(operand, addrMode, &AMemoryDevice::getByte, opVal);
-}
-
 RegisterFile &IsaCpu::getRegisterBank()
 {
     return registerBank;
@@ -183,12 +173,22 @@ void IsaCpu::updateAtInstructionEnd()
 
 bool IsaCpu::readOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
 {
-    return operandWordValueHelper(operand, addrMode, &AMemoryDevice::readWord, opVal);
+    bool rVal = operandWordValueHelper(operand, addrMode, &AMemoryDevice::readWord, opVal);
+    // For instructions that perform loads, cache the decoded operand value.
+    // This is in contrast to writes, where the operand value is the memory
+    // address of the location to be written.
+    InterfaceISACPU::opValCache = opVal;
+    return rVal;
 }
 
 bool IsaCpu::readOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quint8 &opVal)
 {
-    return operandByteValueHelper(operand, addrMode, &AMemoryDevice::readByte, opVal);
+    bool rVal = operandByteValueHelper(operand, addrMode, &AMemoryDevice::readByte, opVal);
+    // For instructions that perform loads, cache the decoded operand value.
+    // This is in contrast to writes, where the operand value is the memory
+    // address of the location to be written.
+    InterfaceISACPU::opValCache = opVal;
+    return rVal;
 }
 
 void IsaCpu::initCPU()
@@ -523,7 +523,14 @@ bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
         rVal = false;
         break;
     }
+
+    // For write instructions, the operand value is the address in memory
+    // where a value is to be written.
+    // This is in contrast to loads, where the decoded operand value is
+    // mem[write's operand value].
+    InterfaceISACPU::opValCache = effectiveAddress;
     return rVal;
+
 }
 
 bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addrMode)
@@ -572,6 +579,11 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
         rVal = false;
         break;
     }
+    // For write instructions, the operand value is the address in memory
+    // where a value is to be written.
+    // This is in contrast to loads, where the decoded operand value is
+    // mem[write's operand value].
+    InterfaceISACPU::opValCache = effectiveAddress;
     return rVal;
 }
 

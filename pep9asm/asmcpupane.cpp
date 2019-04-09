@@ -26,10 +26,11 @@
 #include "enu.h"
 #include <QtGlobal>
 #include "acpumodel.h"
+#include "interfaceisacpu.h"
 
 AsmCpuPane::AsmCpuPane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::AsmCpuPane), cpu(nullptr)
+        ui(new Ui::AsmCpuPane), acpu(nullptr)
 {
     ui->setupUi(this);
 
@@ -83,27 +84,28 @@ AsmCpuPane::~AsmCpuPane()
     delete ui;
 }
 
-void AsmCpuPane::init(QSharedPointer<ACPUModel> cpu)
+void AsmCpuPane::init(QSharedPointer<ACPUModel> cpu, QSharedPointer<InterfaceISACPU> isacpu)
 {
-    this->cpu = cpu;
+    this->acpu = cpu;
+    this->isacpu = isacpu;
 }
 
 void AsmCpuPane::updateCpu() {
-    Enu::EAddrMode addrMode = Pep::decodeAddrMode[cpu->getCPURegByteCurrent(Enu::CPURegisters::IS)];
+    Enu::EAddrMode addrMode = Pep::decodeAddrMode[acpu->getCPURegByteCurrent(Enu::CPURegisters::IS)];
 
-    ui->nLabel->setText(cpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_N) ? "1" : "0");
-    ui->zLabel->setText(cpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_Z) ? "1" : "0");
-    ui->vLabel->setText(cpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_V) ? "1" : "0");
-    ui->cLabel->setText(cpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_C) ? "1" : "0");
+    ui->nLabel->setText(acpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_N) ? "1" : "0");
+    ui->zLabel->setText(acpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_Z) ? "1" : "0");
+    ui->vLabel->setText(acpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_V) ? "1" : "0");
+    ui->cLabel->setText(acpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_C) ? "1" : "0");
 
     quint16 acc, idx, sp, pc, opsc;
     quint8 is;
-    acc = cpu->getCPURegWordCurrent(Enu::CPURegisters::A);
-    idx = cpu->getCPURegWordCurrent(Enu::CPURegisters::X);
-    sp = cpu->getCPURegWordCurrent(Enu::CPURegisters::SP);
-    pc = cpu->getCPURegWordCurrent(Enu::CPURegisters::PC);
-    opsc = cpu->getCPURegWordCurrent(Enu::CPURegisters::OS);
-    is = cpu->getCPURegByteCurrent(Enu::CPURegisters::IS);
+    acc = acpu->getCPURegWordCurrent(Enu::CPURegisters::A);
+    idx = acpu->getCPURegWordCurrent(Enu::CPURegisters::X);
+    sp = acpu->getCPURegWordCurrent(Enu::CPURegisters::SP);
+    pc = acpu->getCPURegWordCurrent(Enu::CPURegisters::PC);
+    opsc = acpu->getCPURegWordCurrent(Enu::CPURegisters::OS);
+    is = acpu->getCPURegByteCurrent(Enu::CPURegisters::IS);
     ui->accHexLabel->setText(QString("0x") + QString("%1").arg(acc, 4, 16, QLatin1Char('0')).toUpper());
     ui->accDecLabel->setText(QString("%1").arg(static_cast<qint16>(acc)));
 
@@ -128,15 +130,28 @@ void AsmCpuPane::updateCpu() {
         ui->oprndDecLabel->setText("");
     }*/
     //else {
-    ui->oprndSpecHexLabel->setText(QString("0x") + QString("%1").arg(opsc, 4,
-                                                                     16, QLatin1Char('0')).toUpper());
-    ui->oprndSpecDecLabel->setText(QString("%1").arg(static_cast<qint16>(opsc)));
-    ui->oprndHexLabel->setText(QString("0x") +
-                               QString("%1").arg(opsc,
-                                                 Pep::operandDisplayFieldWidth(Pep::decodeMnemonic[is]),
-                                                 16, QLatin1Char('0')).toUpper());
-    ui->oprndDecLabel->setText(QString("%1").arg(static_cast<qint16>(opsc)));
-    //}
+    if(Pep::isUnaryMap[Pep::decodeMnemonic[is]]) {
+        ui->oprndSpecHexLabel->setText("");
+        ui->oprndSpecDecLabel->setText("");
+        ui->oprndHexLabel->setText("");
+        ui->oprndDecLabel->setText("");
+    }
+    else {
+        ui->oprndSpecHexLabel->setText(QString("0x") + QString("%1").arg(opsc, 4,
+                                                                         16, QLatin1Char('0')).toUpper());
+        ui->oprndSpecDecLabel->setText(QString("%1").arg(static_cast<qint16>(opsc)));
+
+        quint16 opVal = isacpu->getOperandValue();
+
+        if(Pep::operandDisplayFieldWidth(Pep::decodeMnemonic[is]) == 2) {
+            opVal &= 0xff;
+        }
+
+        ui->oprndHexLabel->setText(QString("0x") + QString("%1").arg(opVal,
+                                                     Pep::operandDisplayFieldWidth(Pep::decodeMnemonic[is]),
+                                                     16, QLatin1Char('0')).toUpper());
+        ui->oprndDecLabel->setText(QString("%1").arg(static_cast<qint16>(opVal)));
+    }
 }
 
 void AsmCpuPane::clearCpu()

@@ -102,7 +102,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->memoryTracePane->setVisible(false);
     ui->AsmSourceCodeWidgetPane->init(memDevice, programManager);
     ui->asmListingTracePane->init(controlSection, programManager);
-    ui->asmCpuPane->init(controlSection);
+    ui->asmCpuPane->init(controlSection, controlSection);
     redefineMnemonicsDialog->init(false);
 
     // Create & connect all dialogs.

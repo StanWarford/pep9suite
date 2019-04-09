@@ -288,14 +288,12 @@ QString Pep::addrModeToCommaSpace(EAddrMode addressMode) {
 int Pep::operandDisplayFieldWidth(EMnemonic mnemon)
 {
     switch(mnemon) {
-    // All byte instructions only use 1 byte, which is 2 characters.
+    // All byte instructions that do not perform stores only need 1 byte
+    // wide operands, which is 2 characters. STBr's operand is a memory address,
+    // which still needs 2 bytes to be represented.
     case Enu::EMnemonic::LDBA:
         [[fallthrough]];
     case Enu::EMnemonic::LDBX:
-        [[fallthrough]];
-    case Enu::EMnemonic::STBA:
-        [[fallthrough]];
-    case Enu::EMnemonic::STBX:
         [[fallthrough]];
     case Enu::EMnemonic::CPBA:
         [[fallthrough]];
@@ -473,6 +471,15 @@ void Pep::initAddrModesMap()
     addrModesMap.insert(EMnemonic::DECO, defaultMnemon2AddrModes);
     addrModesMap.insert(EMnemonic::HEXO, defaultMnemon3AddrModes);
     addrModesMap.insert(EMnemonic::STRO, defaultMnemon4AddrModes);
+}
+
+bool Pep::isStoreMnemonic(EMnemonic mnemon)
+{
+    return mnemon == EMnemonic::STBA ||
+           mnemon == EMnemonic::STBX ||
+           mnemon == EMnemonic::STWA ||
+           mnemon == EMnemonic::STWX ||
+           mnemon == EMnemonic::DECI;
 }
 
 // Decoder tables

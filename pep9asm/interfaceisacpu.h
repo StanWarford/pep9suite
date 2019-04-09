@@ -36,6 +36,14 @@ enum class stackAction {
  * When inherited in combination with the data desciption of a CPU (ACPUModel), a
  * CPU at the ISA level is described.
  *
+ * In addition to implementing the methods as described, several other
+ * data members must be updated.
+ *
+ * 1) Upon starting a non-unary instruction, the decoded operand value
+ * must be pre-fetched (without modifying memory state) & decoded
+ * according to the incoming instruction specifier. It must then be stored
+ * in opValCache, which will cache the decoded operand for use by the UI.
+ *
  * It also contains convenience methods for handling assembler breakpoints.
  */
 class InterfaceISACPU
@@ -51,6 +59,8 @@ public:
     void breakpointRemoved(quint16 address) noexcept;
     void breakpointAdded(quint16 address) noexcept;
     QSharedPointer<const MemoryTrace> getMemoryTrace() const;
+    // Return the decoded value of the last executed
+    quint16 getOperandValue() const;
 
     // Clear program counters & breakpoint status
     void reset() noexcept;
@@ -87,10 +97,18 @@ protected:
     void calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc, quint16 acc);
 
     const AsmProgramManager* manager;
+    // Decoded operand value. The UI needs this value to render properly,
+    // but the act of simulating might modify the value after the fact.
+    // So cache the operand during decoding to prevent the UI from becoming out
+    // of sync with machine state.
+    quint16 opValCache;
+
+    //Breakpoint information
     QSet<quint16> breakpointsISA;
     quint64 asmInstructionCounter;
     bool asmBreakpointHit, doDebug;
 
+    //Stack tracing information
     bool firstLineAfterCall, isTrapped;
     QSharedPointer<MemoryTrace> memTrace;
     QStack<stackAction> userActions, osActions, *activeActions;

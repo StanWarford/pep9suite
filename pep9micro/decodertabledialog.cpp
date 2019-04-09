@@ -84,7 +84,7 @@ void DecoderTableDelegate::setEditorData(QWidget *editor, const QModelIndex &ind
     line->setText(value);
 }
 
-void DecoderTableDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void DecoderTableDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex& /*index*/) const
 {
     // Pass geometry information to the editor.
     editor->setGeometry(option.rect);

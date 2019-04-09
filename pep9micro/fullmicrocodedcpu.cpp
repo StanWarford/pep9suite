@@ -228,7 +228,9 @@ void FullMicrocodedCPU::onMCStep()
 {
     if(microprogramCounter == startLine) {
         // Store PC at the start of the cycle, so that we know where the instruction started from.
-        // Also store any other values needed for detailed statistics
+        // Also store any other values needed for detailed statistics.
+        // Also, must initialize InterfaceISACPU:opValCache here for FullMicrocoded CPU
+        // to fulfill its contract with InterfaceISACPU.
         memoizer->storeStateInstrStart();
         memory->onCycleStarted();
         InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Enu::CPURegisters::IS));

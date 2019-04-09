@@ -109,6 +109,7 @@ public:
     static QMap<Enu::EMnemonic, bool> isTrapMap;
     static void initMnemonicMaps(bool NOP0IsTrap);
 
+
     // Map to specify legal addressing modes for each instruction
     static QMap<Enu::EMnemonic, int> addrModesMap;
     static void initAddrModesMap();
@@ -116,6 +117,8 @@ public:
     // Decoder tables
     static QVector<Enu::EMnemonic> decodeMnemonic;
     static QVector<Enu::EAddrMode> decodeAddrMode;
+    // Does a particular instruction perform a store instead of a load?
+    static bool isStoreMnemonic(Enu::EMnemonic);
     static void initDecoderTables();
 
     // Microprogram decoder table
