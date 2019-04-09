@@ -524,6 +524,9 @@
    <property name="toolTip">
     <string>Build Microcode</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionDebug_Single_Step_Microcode">
    <property name="icon">
@@ -531,10 +534,13 @@
      <normaloff>:/images/debug_single_step_micro.png</normaloff>:/images/debug_single_step_micro.png</iconset>
    </property>
    <property name="text">
-    <string>Single Step - Microcode</string>
+    <string>Single Step</string>
    </property>
    <property name="shortcut">
     <string>Alt+Return</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionDebug_Restart_Debugging">
@@ -545,6 +551,9 @@
    <property name="text">
     <string>Restart Debugging</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionDebug_Continue">
    <property name="icon">
@@ -553,6 +562,9 @@
    </property>
    <property name="text">
     <string>Continue</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionFile_Save_Microcode_As">
@@ -594,7 +606,7 @@
   </action>
   <action name="actionDebug_Remove_All_Microcode_Breakpoints">
    <property name="text">
-    <string>Remove All Microcode Breakpoints</string>
+    <string>Remove All Breakpoints</string>
    </property>
   </action>
   <action name="actionSystem_One_Byte">
@@ -697,8 +709,8 @@
  </customwidgets>
  <resources>
   <include location="../pep9common/pep9common-resources.qrc"/>
-  <include location="pep9cpu-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
+  <include location="pep9cpu-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9cpu-resources.qrc"/>
  </resources>

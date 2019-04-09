@@ -200,7 +200,6 @@
     <addaction name="actionSystem_Reinstall_Default_OS"/>
     <addaction name="actionSystem_Redefine_Mnemonics"/>
     <addaction name="separator"/>
-    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -241,10 +240,10 @@
     <addaction name="actionDebug_Restart_Debugging"/>
     <addaction name="actionDebug_Stop_Debugging"/>
     <addaction name="separator"/>
+    <addaction name="actionDebug_Single_Step_Assembler"/>
     <addaction name="actionDebug_Step_Over_Assembler"/>
     <addaction name="actionDebug_Step_Into_Assembler"/>
     <addaction name="actionDebug_Step_Out_Assembler"/>
-    <addaction name="separator"/>
     <addaction name="separator"/>
     <addaction name="actionDebug_Remove_All_Assembly_Breakpoints"/>
    </widget>
@@ -549,7 +548,7 @@
     <string>Ctrl+D</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionDebug_Stop_Debugging">
@@ -567,6 +566,9 @@
     <string>Ctrl+E</string>
    </property>
    <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
     <bool>false</bool>
    </property>
   </action>
@@ -580,6 +582,9 @@
    </property>
    <property name="shortcut">
     <string>F1</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionFile_Print_Object_Code">
@@ -650,6 +655,9 @@
    <property name="shortcut">
     <string>Ctrl+Shift+A</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionBuild_Load_Object">
    <property name="icon">
@@ -661,6 +669,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+L</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionDebug_Interupt_Execution">
@@ -680,7 +691,13 @@
      <normaloff>:/images/debugger_step_over.png</normaloff>:/images/debugger_step_over.png</iconset>
    </property>
    <property name="text">
-    <string>Step Over - Assembler</string>
+    <string>Step Over</string>
+   </property>
+   <property name="toolTip">
+    <string>Step Over</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionDebug_Step_Into_Assembler">
@@ -689,7 +706,10 @@
      <normaloff>:/images/debugger_step_into.png</normaloff>:/images/debugger_step_into.png</iconset>
    </property>
    <property name="text">
-    <string>Step Into - Assembler</string>
+    <string>Step Into</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionDebug_Step_Out_Assembler">
@@ -698,12 +718,25 @@
      <normaloff>:/images/debugger_step_out.png</normaloff>:/images/debugger_step_out.png</iconset>
    </property>
    <property name="text">
-    <string>Step Out - Assembler</string>
+    <string>Step Out</string>
+   </property>
+   <property name="toolTip">
+    <string>Step Out</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionDebug_Restart_Debugging">
+   <property name="icon">
+    <iconset resource="../pep9common/pep9common-resources.qrc">
+     <normaloff>:/images/debugger_restart.png</normaloff>:/images/debugger_restart.png</iconset>
+   </property>
    <property name="text">
     <string>Restart Debugging</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionDebug_Continue">
@@ -713,6 +746,12 @@
    </property>
    <property name="text">
     <string>Continue</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionBuild_Run_Object">
@@ -763,7 +802,7 @@
   </action>
   <action name="actionDebug_Remove_All_Assembly_Breakpoints">
    <property name="text">
-    <string>Remove All Assembly Breakpoints</string>
+    <string>Remove All Breakpoints</string>
    </property>
   </action>
   <action name="actionDebug_Single_Step_Assembler">
@@ -772,10 +811,13 @@
      <normaloff>:/images/debug_single_step_asm.png</normaloff>:/images/debug_single_step_asm.png</iconset>
    </property>
    <property name="text">
-    <string>Single Step - Assembler</string>
+    <string>Single Step</string>
    </property>
    <property name="toolTip">
-    <string>Single Step - Assembler</string>
+    <string>Single Step</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionSystem_Redefine_Mnemonics">
@@ -902,12 +944,12 @@
   </customwidget>
  </customwidgets>
  <resources>
+  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="../pep9micro/pep9micro-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
  </resources>
  <connections>
