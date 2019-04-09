@@ -1412,15 +1412,15 @@ void CpuGraphicsItems::repaintAndZSelect(QPainter *painter)
     switch (type) {
     case Enu::CPUType::OneByteDataBus:
         painter->drawLine(OneByteShapes::AndZOut._lines[2]);
-        painter->drawImage(QPoint(OneByteShapes::zBitLabel.x()-13,OneByteShapes::AndZMuxLabel.y()+OneByteShapes::AndZMuxLabel.height()/2-4),
-                           color == colorScheme->arrowColorOff ? arrowRightGray : arrowRight);
+        painter->drawImage(OneByteShapes::AndZOut._arrowheads[1],
+                color == colorScheme->arrowColorOff ? arrowRightGray : arrowRight);
         break;
     case Enu::CPUType::TwoByteDataBus:
         painter->drawLine(TwoByteShapes::AndZOut._lines[2]);
         //The arrow is ~10 pixels long, and another 3 are needed for it to fit comfortably next to the box
         //The arrow is 8 pixels high, align the the center of the arrow with the middle of the box.
-        painter->drawImage(QPoint(TwoByteShapes::zBitLabel.x()-13,TwoByteShapes::AndZMuxLabel.y()+TwoByteShapes::AndZMuxLabel.height()/2-4),
-                           color == colorScheme->arrowColorOff ? arrowRightGray : arrowRight);
+        painter->drawImage(TwoByteShapes::AndZOut._arrowheads[1],
+                color == colorScheme->arrowColorOff ? arrowRightGray : arrowRight);
         break;
     }
 }

@@ -526,12 +526,19 @@ const Arrow NBitOut       = Arrow(QVector<QPoint>()
                                   << QLine(330,517, 322,517));
 
 const Arrow AndZOut       = Arrow(QVector<QPoint>()
-                                  << QPoint(434,532)
-                                  << QPoint(465,549),
+                                  << QPoint(AndZMuxLabel.x() + AndZMuxLabel.width()/2 - arrowHOffset/2, AndZMuxLabel.top() - selectYOffset - 3 )
+                                  << QPoint(zBitLabel.x() - 12,
+                                            AndZMuxLabel.y() + AndZMuxLabel.height()/2 - 3),
                                   QVector<QLine>()
-                                  << QLine(437,532, 437,524)
-                                  << QLine(437,524, 543,524)
-                                  << QLine(458,552, 465,552));
+                                  // Connects arrow head to horizontal line
+                                  << QLine(AndZMuxLabel.x() + AndZMuxLabel.width()/2, AndZTristateLabel.y() + AndZTristateLabel.height()/2,
+                                         AndZMuxLabel.x() + AndZMuxLabel.width()/2, AndZMuxLabel.y() - arrowHOffset)
+                                  // Horizontal line from label to arrowhead.
+                                  << QLine(AndZMuxLabel.x() + AndZMuxLabel.width()/2, AndZTristateLabel.y() + AndZTristateLabel.height()/2,
+                                           ctrlInputX - 7, AndZTristateLabel.y() + AndZTristateLabel.height()/2)
+                                  // Line from ANDZ circuit to Z bit.
+                                  << QLine(AndZMuxLabel.right(), AndZMuxLabel.y() + AndZMuxLabel.height()/2,
+                                           zBitLabel.left() - arrowHOffset, AndZMuxLabel.y() + AndZMuxLabel.height()/2));
 
 const QLine MemReadSelect  = QLine(DataBus.right()   + arrowHOffset,
                                    MemReadLabel.y() + selectYOffset,

@@ -181,7 +181,7 @@ const Arrow MARMuxSelect            = Arrow(QVector<QPoint>() << QPoint(MARMuxer
                                             QVector<QLine>()
                                             // Horizontal line from middle of MARMux to the tristate label
                                             << QLine(MARMuxerDataLabel.x()+MARMuxerDataLabel.width()/2, MARMuxTristateLabel.y()+MARMuxTristateLabel.height()/2,
-                                                     MARMuxTristateLabel.x(), MARMuxTristateLabel.y()+MARMuxTristateLabel.height()/2)
+                                                     ctrlInputX - 7, MARMuxTristateLabel.y()+MARMuxTristateLabel.height()/2)
                                             // Vertical line connecting the arrowhead to the horizontal line
                                             << QLine(MARMuxerDataLabel.x()+MARMuxerDataLabel.width()/2, MARMuxTristateLabel.y()+MARMuxTristateLabel.height()/2,
                                                      MARMuxerDataLabel.x()+MARMuxerDataLabel.width()/2,MARMuxerDataLabel.y()-12));
@@ -197,7 +197,7 @@ const Arrow MARCk                   = Arrow(QVector<QPoint>()
                                             QVector<QLine> ()
                                             // Horizontal line segment between MARMux and MARCk
                                             << QLine(MARMuxerDataLabel.right()+3,MARMuxerDataLabel.y()+MARMuxerDataLabel.height()/2,
-                                                     MARCkCheckbox.x(),MARMuxerDataLabel.y()+MARMuxerDataLabel.height()/2)
+                                                     ctrlInputX - 7, MARMuxerDataLabel.y()+MARMuxerDataLabel.height()/2)
                                             // Horizontal line segment between MARMux and MAR{A,B}
                                             << QLine(combCircX+5*dataLabelW/7+10,MARMuxerDataLabel.y()+MARMuxerDataLabel.height()/2,
                                                      MARMuxerDataLabel.x(),MARMuxerDataLabel.y()+MARMuxerDataLabel.height()/2)
@@ -230,7 +230,7 @@ const Arrow MDROck              = Arrow(QVector<QPoint>() << QPoint(MDROLabel.x(
                                             QVector<QLine>()
                                         // Horizontal line from MDRO checkbox to center of MDRO
                                         << QLine(MDROLabel.x()+MDROLabel.width()/2,MDROCkCheckbox.y()+MDROCkCheckbox.height()/2,
-                                                 MDROCkCheckbox.x(),MDROCkCheckbox.y()+MDROCkCheckbox.height()/2)
+                                                 ctrlInputX - 7 ,MDROCkCheckbox.y()+MDROCkCheckbox.height()/2)
                                         // Vertical line between arrowhead and horizontal line from checkbox
                                         << QLine(MDROLabel.x()+MDROLabel.width()/2,MDROCkCheckbox.y()+MDROCkCheckbox.height()/2,
                                                  MDROLabel.x()+MDROLabel.width()/2, MDROLabel.y()-12));
@@ -243,7 +243,7 @@ const Arrow MDROMuxSelect           = Arrow(QVector<QPoint>()
                                             <<QPoint(MDROMuxerDataLabel.right()+5,MDROMuxTristateLabel.y()+MDROMuxTristateLabel.height()/2-3),
                                             QVector<QLine>()
                                             // Horizontal line between MDROMux and its tristate label
-                                            <<QLine(MDROMuxTristateLabel.x(),MDROMuxTristateLabel.y()+MDROMuxTristateLabel.height()/2,
+                                            <<QLine(ctrlInputX - 7 ,MDROMuxTristateLabel.y()+MDROMuxTristateLabel.height()/2,
                                                     MDROMuxerDataLabel.right()+5,MDROMuxTristateLabel.y()+MDROMuxTristateLabel.height()/2)
                                             );
 
@@ -254,7 +254,7 @@ const Arrow MDREck                  = Arrow(QVector<QPoint>()
                                             <<QPoint(MDRELabel.x()+MDRELabel.width()/2-3, MDRELabel.y()-12),
                                             QVector<QLine>()
                                             // Horizontal line from MDRECk to midpoint of MDREven
-                                            << QLine(MDRECkCheckbox.x(),MDRECkCheckbox.y()+MDRECkCheckbox.height()/2,
+                                            << QLine(ctrlInputX - 7, MDRECkCheckbox.y()+MDRECkCheckbox.height()/2,
                                                      MDRELabel.x()+MDRELabel.width()/2,MDRECkCheckbox.y()+MDRECkCheckbox.height()/2)
                                             // Vertical line connecting arrowhead and horizontal line segment
                                             << QLine(MDRELabel.x()+MDRELabel.width()/2,MDRECkCheckbox.y()+MDRECkCheckbox.height()/2,
@@ -268,7 +268,7 @@ const Arrow MDREMuxSelect           = Arrow(QVector<QPoint>()
                                             << QPoint(MDREMuxerDataLabel.right()+5,MDREMuxerDataLabel.y()+MDREMuxerDataLabel.height()/2-3),
                                             QVector<QLine>()
                                             // Horizontal leg extending from MDROCk
-                                            << QLine(MDREMuxTristateLabel.x(),MDREMuxTristateLabel.y()+MDREMuxTristateLabel.height()/2,
+                                            << QLine(ctrlInputX - 7,  MDREMuxTristateLabel.y()+MDREMuxTristateLabel.height()/2,
                                                      MDREMuxerDataLabel.right()+25 ,MDREMuxTristateLabel.y()+MDREMuxTristateLabel.height()/2)
                                             // Vertical line segment
                                             << QLine(MDREMuxerDataLabel.right()+25,MDREMuxTristateLabel.y()+MDREMuxTristateLabel.height()/2,
@@ -285,7 +285,7 @@ const Arrow EOMuxSelect             = Arrow(QVector<QPoint>() << QPoint(EOMuxerD
                                                                         EOMuxTristateLabel.y()+6),
                                             QVector<QLine>()
                                             <<QLine(EOMuxerDataLabel.right()+5,EOMuxerDataLabel.y()+EOMuxerDataLabel.height()/2,
-                                                    EOMuxTristateLabel.x(),EOMuxerDataLabel.y()+EOMuxerDataLabel.height()/2));
+                                                    ctrlInputX - 7 ,EOMuxerDataLabel.y()+EOMuxerDataLabel.height()/2));
 
 
 // ALU and its control
@@ -385,7 +385,7 @@ const Arrow AMuxSelect              = Arrow(QVector<QPoint>()
                                             << QPoint(aMuxerDataLabel.x()+aMuxerDataLabel.width()+3,aMuxerDataLabel.y()+aMuxerDataLabel.height()/2-2),
                                             // Draw a line from the aMuxTristateLabel to AMux, and center the line vertically between the two.
                                             // Add one to the calculated y coordinates, otherwise the line and arrow don't appear to be centered.
-                                            QVector<QLine>()<<QLine(aMuxTristateLabel.x(),aMuxerDataLabel.y()+aMuxerDataLabel.height()/2+1,
+                                            QVector<QLine>()<<QLine(ctrlInputX - 7,aMuxerDataLabel.y()+aMuxerDataLabel.height()/2+1,
                                                                     // Add 5 to the x coordinate, otherwise the line extends past the arrow.
                                                                     aMuxerDataLabel.x()+aMuxerDataLabel.width()+5,aMuxerDataLabel.y()+aMuxerDataLabel.height()/2+1));
 
@@ -633,7 +633,20 @@ const Arrow ZBitOut        = OneByteShapes::ZBitOut.translated(controlOffsetX, a
 const Arrow VBitOut        = OneByteShapes::VBitOut.translated(controlOffsetX, aluOffsetY);
 const Arrow NBitOut        = OneByteShapes::NBitOut.translated(controlOffsetX, aluOffsetY);
 
-const Arrow AndZOut        = OneByteShapes::AndZOut.translated(controlOffsetX, aluOffsetY);
+const Arrow AndZOut        = Arrow(QVector<QPoint>()
+                                     << QPoint(AndZMuxLabel.x() + AndZMuxLabel.width()/2 - arrowHOffset/2, AndZMuxLabel.top() - selectYOffset - 2)
+                                     << QPoint(zBitLabel.x() - 12,
+                                               AndZMuxLabel.y() + AndZMuxLabel.height()/2 - 3),
+                                     QVector<QLine>()
+                                     // Connects arrow head to horizontal line
+                                     << QLine(AndZMuxLabel.x() + AndZMuxLabel.width()/2, AndZTristateLabel.y() + AndZTristateLabel.height()/2,
+                                            AndZMuxLabel.x() + AndZMuxLabel.width()/2, AndZMuxLabel.y() - arrowHOffset)
+                                     // Horizontal line from label to arrowhead.
+                                     << QLine(AndZMuxLabel.x() + AndZMuxLabel.width()/2, AndZTristateLabel.y() + AndZTristateLabel.height()/2,
+                                              ctrlInputX - 7, AndZTristateLabel.y() + AndZTristateLabel.height()/2)
+                                     // Line from ANDZ circuit to Z bit.
+                                     << QLine(AndZMuxLabel.right(), AndZMuxLabel.y() + AndZMuxLabel.height()/2,
+                                              zBitLabel.left() - arrowHOffset, AndZMuxLabel.y() + AndZMuxLabel.height()/2));
 
 const QLine MemReadSelect  = QLine(DataBus.right()   + arrowHOffset,
                                   MemReadLabel.y() + selectYOffset,
