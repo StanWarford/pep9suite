@@ -98,7 +98,7 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
 
     // Insert charIn, charOut symbols if they have not been previously defined.
     quint16 chin, chout;
-    if(!symTable->exists("charIn") || symTable->getValue("charIn")->isUndefined()) {
+    if(symTable->exists("charIn") && symTable->getValue("charIn")->isUndefined()) {
         // According to the OS memory map vector, the location of chicharIn is
         // stored in the 6th and 7th bytes from the end of the operating system.
         // quint16 chinOffset = manager.getOperatingSystem()->getBurnValue() - 0x7;
@@ -110,7 +110,7 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
                     manager.getOperatingSystem()->getSymbolTable()->getValue("charIn")->getValue());
         symTable->setValue("charIn", QSharedPointer<SymbolValueNumeric>::create(chin));
     }
-    if(!symTable->exists("charOut") || symTable->getValue("charOut")->isUndefined()) {
+    if(symTable->exists("charOut") && symTable->getValue("charOut")->isUndefined()) {
         // According to the OS memory map vector, the location of charOut is
         // stored in the 4th and 5th bytes from the end of the operating system.
         // quint16 choutOffset = manager.getOperatingSystem()->getBurnValue() - 0x5;
