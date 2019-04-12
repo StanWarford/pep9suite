@@ -816,6 +816,9 @@
    <property name="toolTip">
     <string>Single Step</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Return</string>
+   </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
    </property>
