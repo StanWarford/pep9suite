@@ -49,6 +49,7 @@ NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent), ui(ne
     ui->graphicsView->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
 
     connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(zoomFactorChanged(int)));
+    ui->spinBox->hide();
 
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);

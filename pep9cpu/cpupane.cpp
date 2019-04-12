@@ -48,7 +48,7 @@ CpuPane::CpuPane( QWidget *parent) :
 
     ui->graphicsView->setFont(QFont(Pep::cpuFont, Pep::cpuFontSize));
 
-    // ui->spinBox->hide();
+    ui->spinBox->hide();
     ui->graphicsView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
 
 
