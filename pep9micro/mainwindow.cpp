@@ -1708,7 +1708,18 @@ void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
     //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
     disconnectViewUpdate();
+    // Since stepOver() could loop infinitely, disable all stepping buttons
+    // until this step finishes.
+    debugState = DebugState::DEBUG_RESUMED;
+    handleDebugButtons();
     controlSection->stepOver();
+    // The step has finished. The program may have been canceled
+    // during the execution of that step, so only transition to
+    // debugging at the ISA level if the simulation is still ongoing.
+    if(debugState != DebugState::DISABLED) {
+            // Actions will be refreshed on simulationUpdate.
+            debugState = DebugState::DEBUG_ISA;
+    }
     connectViewUpdate();
     emit simulationUpdate();
 }
@@ -1727,7 +1738,18 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
     //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
     disconnectViewUpdate();
+    // Since stepOut() could loop infinitely, disable all stepping buttons
+    // until this step finishes.
+    debugState = DebugState::DEBUG_RESUMED;
+    handleDebugButtons();
     controlSection->stepOut();
+    // The step has finished. The program may have been canceled
+    // during the execution of that step, so only transition to
+    // debugging at the ISA level if the simulation is still ongoing.
+    if(debugState != DebugState::DISABLED) {
+            // Actions will be refreshed on simulationUpdate.
+            debugState = DebugState::DEBUG_ISA;
+    }
     connectViewUpdate();
     emit simulationUpdate();
 }

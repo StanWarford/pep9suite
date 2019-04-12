@@ -1357,7 +1357,9 @@ bool MainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         // upon starting the simulation.
         highlightActiveLines();
         ui->memoryTracePane->updateTrace();
-        ui->asmListingTracePane->setFocus();
+        // Give focus to the trace pane so that once can immediately
+        // start hitting "return" to trigger single steps.
+        ui->asmListingTracePane->setFocus(Qt::FocusReason::MouseFocusReason);
         return true;
     }
     return false;
@@ -1384,6 +1386,9 @@ bool MainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     controlSection->getRegisterBank().writeRegisterWord(Enu::CPURegisters::SP, sp);
     // Memory has been cleared, but will not display as such unless explicitly refreshed.
     ui->memoryWidget->refreshMemory();
+    // Give focus to the trace pane so that once can immediately
+    // start hitting "return" to trigger single steps.
+    ui->asmListingTracePane->setFocus(Qt::FocusReason::MouseFocusReason);
     emit simulationUpdate();
     return true;
 }
@@ -1457,11 +1462,21 @@ void MainWindow::on_actionDebug_Restart_Debugging_triggered()
 
 void MainWindow::on_actionDebug_Step_Over_Assembler_triggered()
 {
-    debugState = DebugState::DEBUG_ISA;
     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
     //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
     disconnectViewUpdate();
+    // Since stepOver() could loop infinitely, disable all stepping buttons
+    // until this step finishes.
+    debugState = DebugState::DEBUG_RESUMED;
+    handleDebugButtons();
     controlSection->stepOver();
+    // The step has finished. The program may have been canceled
+    // during the execution of that step, so only transition to
+    // debugging at the ISA level if the simulation is still ongoing.
+    if(debugState != DebugState::DISABLED) {
+            // Actions will be refreshed on simulationUpdate.
+            debugState = DebugState::DEBUG_ISA;
+    }
     connectViewUpdate();
     emit simulationUpdate();
 }
@@ -1480,7 +1495,18 @@ void MainWindow::on_actionDebug_Step_Out_Assembler_triggered()
     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
     //Disconnect any drawing functions, since very many steps might execute, and it would be wasteful to update the UI
     disconnectViewUpdate();
+    // Since stepOut() could loop infinitely, disable all stepping buttons
+    // until this step finishes.
+    debugState = DebugState::DEBUG_RESUMED;
+    handleDebugButtons();
     controlSection->stepOut();
+    // The step has finished. The program may have been canceled
+    // during the execution of that step, so only transition to
+    // debugging at the ISA level if the simulation is still ongoing.
+    if(debugState != DebugState::DISABLED) {
+            // Actions will be refreshed on simulationUpdate.
+            debugState = DebugState::DEBUG_ISA;
+    }
     connectViewUpdate();
     emit simulationUpdate();
 }
