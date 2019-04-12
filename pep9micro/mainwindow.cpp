@@ -1448,6 +1448,7 @@ void MainWindow::on_actionBuild_Load_Object_triggered()
     loadOperatingSystem();
     loadObjectCodeProgram();
     ui->memoryWidget->refreshMemory();
+    ui->memoryWidget->clearHighlight();
 }
 
 void MainWindow::on_actionBuild_Run_Object_triggered()
@@ -1795,6 +1796,7 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
 {
     memDevice->clearMemory();
     ui->memoryWidget->refreshMemory();
+    ui->memoryWidget->clearHighlight();
 }
 
 void MainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()

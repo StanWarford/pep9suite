@@ -866,6 +866,7 @@ void MainWindow::on_actionSystem_Clear_Memory_triggered()
 {
     memDevice->clearMemory();
     ui->memoryWidget->refreshMemory();
+    ui->memoryWidget->clearHighlight();
 }
 
 void MainWindow::on_actionSystem_One_Byte_triggered()
