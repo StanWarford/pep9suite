@@ -110,7 +110,7 @@ void AsmCpuPane::updateCpu() {
     ui->accDecLabel->setText(QString("%1").arg(static_cast<qint16>(acc)));
 
     ui->xHexLabel->setText(QString("0x") + QString("%1").arg(idx, 4, 16, QLatin1Char('0')).toUpper());
-    ui->xDecLabel->setText(QString("%1").arg(static_cast<qint16>(acc)));
+    ui->xDecLabel->setText(QString("%1").arg(static_cast<qint16>(idx)));
 
     ui->spHexLabel->setText(QString("0x") + QString("%1").arg(sp, 4, 16, QLatin1Char('0')).toUpper());
     ui->spDecLabel->setText(QString("%1").arg(sp));
