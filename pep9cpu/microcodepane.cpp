@@ -113,6 +113,7 @@ bool MicrocodePane::microAssemble()
     }
     symbolTable = QSharedPointer<SymbolTable>(new SymbolTable());
 
+    microASM->setCPUType(dataSection->getCPUType());
     while (lineNum < sourceCodeList.size()) {
         sourceLine = sourceCodeList[lineNum];
         if (!microASM->processSourceLine(symbolTable.data(),sourceLine, code, errorString)) {

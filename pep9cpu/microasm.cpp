@@ -195,7 +195,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
         switch (state) {
         case MicroAsm::PS_START:
             if (token == MicroAsm::LTE_SYMBOL) {
-                microCode = new MicroCode(cpuType);
+                microCode = new MicroCode(cpuType, useExt);
                 code = microCode;
                 if(symTable->exists(tokenString.left(tokenString.length() - 1))) {
                     if(symTable->getValue(tokenString.left(tokenString.length() - 1))->isDefined()) {
@@ -211,14 +211,14 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
             }
             else if (token == MicroAsm::LT_IDENTIFIER) {
                 if (Pep::mnemonToDecControlMap.contains(tokenString.toUpper())) {
-                    microCode = new MicroCode(cpuType);
+                    microCode = new MicroCode(cpuType, useExt);
                     code = microCode;
                     localEnumMnemonic = Pep::mnemonToDecControlMap.value(tokenString.toUpper());
                     localIdentifier = tokenString;
                     state = MicroAsm::PS_EQUAL_DEC;
                 }
                 else if (Pep::mnemonToMemControlMap.contains(tokenString.toUpper())) {
-                    microCode = new MicroCode(cpuType);
+                    microCode = new MicroCode(cpuType, useExt);
                     code = microCode;
                     localEnumMnemonic = Pep::mnemonToMemControlMap.value(tokenString.toUpper());
                     microCode->setControlSignal(static_cast<Enu::EControlSignals>(localEnumMnemonic), 1);
@@ -268,29 +268,29 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
                 state = MicroAsm::PS_FINISH;
             }
             else if (token == MicroAsm::LTE_IF)  {
-                microCode = new MicroCode(cpuType);
+                microCode = new MicroCode(cpuType, useExt);
                 code = microCode;
                 state = MicroAsm::PSE_IF;
             }
             else if(token == LTE_STOP) {
-                microCode = new MicroCode(cpuType);
+                microCode = new MicroCode(cpuType, useExt);
                 microCode->setBranchFunction(Enu::EBranchFunctions::Stop);
                 code = microCode;
                 state = PSE_OPTIONAL_COMMENT;
             }
             else if(token == LTE_GOTO) {
-                microCode = new MicroCode(cpuType);
+                microCode = new MicroCode(cpuType, useExt);
                 code = microCode;
                 state = PSE_LONE_GOTO;
             }
             else if (token == LTE_AMD) {
-                microCode = new MicroCode(cpuType);
+                microCode = new MicroCode(cpuType, useExt);
                 microCode->setBranchFunction(Enu::EBranchFunctions::AddressingModeDecoder);
                 code = microCode;
                 state = PSE_OPTIONAL_COMMENT;
             }
             else if (token == LTE_ISD) {
-                microCode = new MicroCode(cpuType);
+                microCode = new MicroCode(cpuType, useExt);
                 microCode->setBranchFunction(Enu::EBranchFunctions::InstructionSpecifierDecoder);
                 code = microCode;
                 state = PSE_OPTIONAL_COMMENT;
@@ -823,7 +823,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
 
         case MicroAsm::PSE_IF:
             if(microCode == nullptr) {
-                microCode = new MicroCode(cpuType);
+                microCode = new MicroCode(cpuType, useExt);
                 code = microCode;
             }
             if(token == MicroAsm::LT_IDENTIFIER && Pep::mnemonToBranchFuncMap.contains(tokenString.toUpper())) {

@@ -48,7 +48,7 @@ class MicroCode: public AMicroCode
 {
     friend class MicroAsm;
 public:
-    MicroCode(Enu::CPUType cpuType);
+    MicroCode(Enu::CPUType cpuType, bool useExtendedFatures);
     bool isMicrocode() const override;
     QString getObjectCode() const override;
     QString getSourceCode() const override;
@@ -83,7 +83,7 @@ private:
     QVector<quint8> controlSignals;
     QVector<bool> clockSignals;
     QString cComment;
-    bool breakpoint;
+    bool breakpoint, extendedFeatures;
     Enu::EBranchFunctions branchFunc = Enu::Unconditional;
     SymbolEntry* symbol;
     const SymbolEntry* trueTargetAddr;

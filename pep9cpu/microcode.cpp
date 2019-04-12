@@ -29,8 +29,8 @@
 #include "cpupane.h"
 #include "newcpudata.h"
 
-MicroCode::MicroCode(Enu::CPUType cpuType): cpuType(cpuType), controlSignals(Pep::numControlSignals(), Enu::signalDisabled),
-    clockSignals(Pep::numClockSignals(), false), breakpoint(false), branchFunc(Enu::Assembler_Assigned),
+MicroCode::MicroCode(Enu::CPUType cpuType, bool extendedFeatures): cpuType(cpuType), controlSignals(Pep::numControlSignals(), Enu::signalDisabled),
+    clockSignals(Pep::numClockSignals(), false), breakpoint(false), extendedFeatures(extendedFeatures), branchFunc(Enu::Assembler_Assigned),
     symbol(nullptr), trueTargetAddr(nullptr), falseTargetAddr(nullptr)
 {
     // Initialize all memory controls, normal controls, and clocklines to disabled.
@@ -198,12 +198,15 @@ QString MicroCode::getSourceCode() const
         if (clockSignals[Enu::LoadCk] != 0) { str.append("LoadCk, "); }
         if (clockSignals[Enu::MDRECk] != 0) { str.append("MDRECk, "); }
         if (clockSignals[Enu::MDROCk] != 0) { str.append("MDROCk, "); }
-        if (clockSignals[Enu::PValidCk] != 0) { str.append("PValidCk, "); }
+        if (extendedFeatures && clockSignals[Enu::PValidCk] != 0) { str.append("PValidCk, "); }
 
         if (str.endsWith(", ") || str.endsWith("; ")) { str.chop(2); }
     }
 
-    if (branchFunc == Enu::Unconditional) {
+    if(!extendedFeatures){
+        // Do not append a branch function to "basic" microcode lines of Pep9CPU.
+    }
+    else if (branchFunc == Enu::Unconditional) {
         // If the true target of an unconditional branch is assembler assigned
         // (e.g. _as212), then there is no need to write the implicit goto.
         // The only way to have an assembler assigned symbol is if the branch function
@@ -223,11 +226,9 @@ QString MicroCode::getSourceCode() const
             }
         }
     }
-
     else if(branchFunc == Enu::Assembler_Assigned) {
         // Assume that a jump to the next line will be used unless otherwise specified.
     }
-
     else if (branchFunc == Enu::Stop) {
         if(str.isEmpty()){
             str.append("stopCPU");
@@ -236,7 +237,6 @@ QString MicroCode::getSourceCode() const
            str.append("; stopCPU");
         }
     }
-
     else if (branchFunc == Enu::InstructionSpecifierDecoder ||
              branchFunc == Enu::AddressingModeDecoder) {
         if(str.isEmpty()){

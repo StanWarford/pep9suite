@@ -719,7 +719,7 @@ void CpuPane::clockButtonPushed()
 
 void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
 {
-    MicroCode code(dataSection->getCPUType());
+    MicroCode code(dataSection->getCPUType(), false);
     if (cpuPaneItems->loadCk->isChecked()) {
         code.setClockSingal(Enu::LoadCk, 1);
     }
