@@ -1026,7 +1026,7 @@ void MainWindow::on_actionFile_Open_triggered()
                 this,
                 "Open text file",
                 curPath,
-                "Pep/9 files (*.pep *.pepo *.pepl *.pepcpu *.txt)");
+                "Pep/9 files (*.pep *.pepo *.pepl *.txt)");
     // If we don't recognize an extension, assume it is an assembler source document
     Enu::EPane which = Enu::EPane::ESource;
     // Depending on the file ending, change which pane will be loaded into.
@@ -1034,7 +1034,6 @@ void MainWindow::on_actionFile_Open_triggered()
         if(fileName.endsWith("pep", Qt::CaseInsensitive)) which = Enu::EPane::ESource;
         else if(fileName.endsWith("pepo", Qt::CaseInsensitive)) which = Enu::EPane::EObject;
         else if(fileName.endsWith("pepl", Qt::CaseInsensitive)) which = Enu::EPane::EListing;
-        else if(fileName.endsWith("pepcpu", Qt::CaseInsensitive)) which = Enu::EPane::EMicrocode;
         if(maybeSave(which)) {
             loadFile(fileName, which);
         }
