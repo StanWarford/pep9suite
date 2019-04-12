@@ -477,7 +477,7 @@ void MainWindow::print()
     // Create a highlighter independent of the microcodewidget's highlighter,
     // so that we may force it to use light mode colors.
     PepMicroHighlighter mcHi(Enu::CPUType::TwoByteDataBus,
-                                                   true, PepColors::lightMode, &document);
+                                                   false, PepColors::lightMode, &document);
     mcHi.forceAllFeatures(true);
     document.setPlainText(ui->microcodeWidget->toPlainText());
     mcHi.rehighlight();
