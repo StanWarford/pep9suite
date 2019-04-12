@@ -930,15 +930,12 @@ void MainWindow::doubleClickedCodeLabel(Enu::EPane which)
 
 void MainWindow::debugButtonEnableHelper(const int which)
 {
-    // Only allow formatting of code if there exists a user-built program
-    // to format from.
-    bool formatAssembler = !ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull();
     // Crack the parameter using DebugButtons to properly enable
     // and disable all buttons related to debugging and running.
     // Build Actions
     ui->ActionBuild_Assemble->setEnabled(which & DebugButtons::BUILD_ASM);
     ui->actionEdit_Remove_Error_Assembler->setEnabled(which & DebugButtons::BUILD_ASM);
-    ui->actionEdit_Format_Assembler->setEnabled((which & DebugButtons::BUILD_ASM) && formatAssembler);
+    ui->actionEdit_Format_Assembler->setEnabled((which & DebugButtons::BUILD_ASM));
     ui->actionBuild_Load_Object->setEnabled(which & DebugButtons::BUILD_ASM);
 
     // Debug & Run Actions
@@ -1156,7 +1153,11 @@ void MainWindow::on_actionEdit_Paste_triggered()
 
 void MainWindow::on_actionEdit_Format_Assembler_triggered()
 {
-    if(ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull()) return;
+    if(ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull()) {
+        if(on_ActionBuild_Assemble_triggered()) {
+        }
+        else return;
+    }
     QString code =ui->AsmSourceCodeWidgetPane->getAsmProgram()->getFormattedSourceCode();
     ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
 }

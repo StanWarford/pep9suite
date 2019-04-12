@@ -227,7 +227,7 @@
     </property>
     <widget class="QMenu" name="menuFormat">
      <property name="title">
-      <string>Format from Listing...</string>
+      <string>Assemble &amp;&amp; Format...</string>
      </property>
      <addaction name="actionEdit_Format_Assembler"/>
      <addaction name="actionEdit_Format_Microcode"/>

@@ -502,14 +502,11 @@ void MainWindow::print()
 
 void MainWindow::debugButtonEnableHelper(const int which)
 {
-    // Only allow formatting of code if there exists a user-built program
-    // to format from.
-    bool formatMicrocode = !ui->microcodeWidget->getMicrocodeProgram().isNull();
     // Crack the parameter using DebugButtons to properly enable and disable all buttons related to debugging and running.
     // Build Actions
     ui->actionBuild_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
     ui->actionEdit_Remove_Error_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
-    ui->actionEdit_Format_Microcode->setEnabled((which & DebugButtons::BUILD_MICRO) && formatMicrocode);
+    ui->actionEdit_Format_Microcode->setEnabled((which & DebugButtons::BUILD_MICRO));
 
     // Debug & Run Actions
     ui->actionBuild_Run->setEnabled(which & DebugButtons::RUN);

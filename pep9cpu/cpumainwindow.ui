@@ -644,7 +644,10 @@
   </action>
   <action name="actionEdit_Format_Microcode">
    <property name="text">
-    <string>Format Microcode</string>
+    <string>Build &amp;&amp; Format</string>
+   </property>
+   <property name="toolTip">
+    <string>Build &amp; Format</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>

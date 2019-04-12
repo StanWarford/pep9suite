@@ -286,6 +286,9 @@ MainWindow::MainWindow(QWidget *parent) :
                                                           static_cast<int>(io)}, Qt::Vertical);
     // Create a new ASM file so that the dialog always has a file name in it
     on_actionFile_New_Asm_triggered();
+
+    // Hide statistics tab at this time, because it does nothing
+    ui->tabWidget->removeTab(ui->tabWidget->indexOf(ui->statsTab));
 }
 
 MainWindow::~MainWindow()
@@ -1048,20 +1051,16 @@ void MainWindow::doubleClickedCodeLabel(Enu::EPane which)
 
 void MainWindow::debugButtonEnableHelper(const int which)
 {
-    // Only allow formatting of code if there exists a user-built program
-    // to format from.
-    bool formatAssembler = !ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull();
-    bool formatMicrocode = !ui->microcodeWidget->getMicrocodeProgram().isNull();
     // Crack the parameter using DebugButtons to properly enable
     // and disable all buttons related to debugging and running.
     // Build Actions
     ui->ActionBuild_Assemble->setEnabled(which & DebugButtons::BUILD_ASM);
     ui->actionEdit_Remove_Error_Assembler->setEnabled(which & DebugButtons::BUILD_ASM);
-    ui->actionEdit_Format_Assembler->setEnabled((which & DebugButtons::BUILD_ASM) && formatAssembler);
+    ui->actionEdit_Format_Assembler->setEnabled((which & DebugButtons::BUILD_ASM));
     ui->actionBuild_Load_Object->setEnabled(which & DebugButtons::BUILD_ASM);
     ui->actionBuild_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
     ui->actionEdit_Remove_Error_Microcode->setEnabled(which & DebugButtons::BUILD_MICRO);
-    ui->actionEdit_Format_Microcode->setEnabled((which & DebugButtons::BUILD_MICRO) &&  formatMicrocode);
+    ui->actionEdit_Format_Microcode->setEnabled((which & DebugButtons::BUILD_MICRO));
 
     // Debug & Run Actions
     ui->actionBuild_Run->setEnabled(which & DebugButtons::RUN);
@@ -1366,7 +1365,11 @@ void MainWindow::on_actionEdit_UnComment_Line_triggered()
 
 void MainWindow::on_actionEdit_Format_Assembler_triggered()
 {
-    if(ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull()) return;
+    if(ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull()) {
+        if(on_ActionBuild_Assemble_triggered()) {
+        }
+        else return;
+    }
     QString code =ui->AsmSourceCodeWidgetPane->getAsmProgram()->getFormattedSourceCode();
     ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
 }

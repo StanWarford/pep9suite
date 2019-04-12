@@ -633,7 +633,7 @@
   </action>
   <action name="actionEdit_Format_Assembler">
    <property name="text">
-    <string>Format From Listing</string>
+    <string>Assemble &amp;&amp; Format</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
