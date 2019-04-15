@@ -1,0 +1,11 @@
+pep9micro:
+	script "echo \"helloworld, making pep9micro\""
+pep9term:
+        script "echo \"helloworld, making pep9term\""
+pep9asm:
+        script "echo \"helloworld, making pep9asm\""
+pep9cpu:
+        script "echo \"helloworld, making pep9cpu\""
+
+
+
