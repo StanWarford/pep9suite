@@ -159,6 +159,7 @@ void MicrocodeEditor::highlightSimulatedLine()
         cursor.movePosition(QTextCursor::NextBlock, QTextCursor::MoveAnchor, activeBlockNum);
         cursor.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor);
         this->setTextCursor(cursor);
+        selection.cursor = cursor;
         centerCursor();
         extraSelections.append(selection);
 
