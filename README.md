@@ -4,10 +4,11 @@ The Pep/9 computer is a 16-bit complex instruction set computer (CISC). It is de
 
 # Pep9Suite
 Pep9Suite is a suite of software for the Pep/9 virtual machine.
-It consists of three applications:
+It consists of four applications:
 * [Pep9](#pep9)
 * [Pep9CPU](#pep9cpu)
 * [Pep9Micro](#pep9micro)
+* [Pep9Term](#pep9term)
 
 ## Pep9
 Pep9 is simulator allowing users to interact with the Pep/9 virtual machine at the assembly code & operating system levels.
@@ -32,6 +33,11 @@ In addition to supporting all of assembly programming features of the Pep9 appli
 * Provides performance statistics in the form of statement execution counts at the microcode level and the ISA level. Students can measure the performance differences between aligned and nonaligned programs.
 * Retains the unit tests of the original Pep/9 CPU IDE so that students can write microcode fragments with the extended microinstruction format.
 * Supports new debugging features like step-into, step-out, and step-over so students can trace assembly programs more efficiently.
+
+## Pep9Term
+Pep9Term is a command-line version of the Pep/9 virtual machine.
+It uses the assembler from the Pep9 application to create a .pepo file, and the simulator to execute the .pepo file.
+Teachers can script Pep9Term to batch test assembly language homework submissions.
 
 # Building from Sources
 To sucessfully build from the sources, you must have the Qt libraries installed on their machine. In addition, the WebEngine components must be installed, and if one wishes to package the application with an installer, Qt Installer Framework (QtIFW) 3.0 or higher must be installed.
