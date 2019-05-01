@@ -93,4 +93,7 @@ QDebug operator<<(QDebug os, const SymbolEntry&);
 QDebug operator<<(QDebug os, const QSharedPointer<SymbolEntry>&);
 QDebug operator<<(QDebug os, const QSharedPointer<const SymbolEntry>&);
 
+bool SymbolAlphabeticComparator(QSharedPointer<SymbolEntry> &lhs, QSharedPointer<SymbolEntry> &rhs);
+
+
 #endif // SYMBOLENTRY_H

@@ -128,3 +128,8 @@ QDebug operator<<(QDebug os, const QSharedPointer<const SymbolEntry>& ent)
     return os.noquote() << QString("symbol: %1")
           .arg(ent->getName());
 }
+
+bool SymbolAlphabeticComparator(QSharedPointer<SymbolEntry> &lhs, QSharedPointer<SymbolEntry> &rhs)
+{
+    return lhs->getName() < rhs->getName();
+}
