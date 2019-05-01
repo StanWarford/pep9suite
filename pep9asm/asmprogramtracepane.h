@@ -28,7 +28,7 @@
 
 #include "colors.h"
 namespace Ui {
-class AsmTracePane;
+class AsmProgramTracePane;
 }
 
 class AsmTraceBreakpointArea;
@@ -38,14 +38,14 @@ class AsmProgram;
 class AsmProgramManager;
 
 class ACPUModel;
-class AsmTraceTextEdit;
-class AsmTracePane : public QWidget {
+class AsmProgramTraceTextEdit;
+class AsmProgramTracePane : public QWidget {
     Q_OBJECT
-    Q_DISABLE_COPY(AsmTracePane)
+    Q_DISABLE_COPY(AsmProgramTracePane)
 public:
-    explicit AsmTracePane(QWidget *parent = nullptr);
+    explicit AsmProgramTracePane(QWidget *parent = nullptr);
     void init(QSharedPointer<const ACPUModel> controlSection, AsmProgramManager* programManager);
-    virtual ~AsmTracePane();
+    virtual ~AsmProgramTracePane();
 
     // Optionally, add a label to the top of the memory dump pane displaying the
     // widget's name.
@@ -91,7 +91,7 @@ public slots:
     void onBreakpointRemoved(quint16 line);
 
 private:
-    Ui::AsmTracePane *ui;
+    Ui::AsmProgramTracePane *ui;
     QSharedPointer<AsmProgram> activeProgram;
     AsmProgramManager* programManager;
     QSharedPointer<const ACPUModel> cpu;
@@ -109,11 +109,11 @@ private slots:
  * The breakpointable text editor must be a sublass of QPlainTextEdit because it must subclass resizeEvent to function properly.
  * So, this functionality cannot be implemented in the AsmSourceCodePane.
  */
-class AsmTraceTextEdit : public QPlainTextEdit {
+class AsmProgramTraceTextEdit : public QPlainTextEdit {
     Q_OBJECT
 public:
-    explicit AsmTraceTextEdit(QWidget *parent = nullptr);
-    virtual ~AsmTraceTextEdit() override;
+    explicit AsmProgramTraceTextEdit(QWidget *parent = nullptr);
+    virtual ~AsmProgramTraceTextEdit() override;
     void breakpointAreaPaintEvent(QPaintEvent *event);
     int breakpointAreaWidth();
     void breakpointAreaMousePress(QMouseEvent* event);
@@ -155,9 +155,9 @@ private:
 class AsmTraceBreakpointArea : public QWidget
 {
 private:
-    AsmTraceTextEdit *editor;
+    AsmProgramTraceTextEdit *editor;
 public:
-    AsmTraceBreakpointArea(AsmTraceTextEdit *editor) : QWidget(editor) {
+    AsmTraceBreakpointArea(AsmProgramTraceTextEdit *editor) : QWidget(editor) {
         this->editor = editor;
     }
     virtual ~AsmTraceBreakpointArea() override;

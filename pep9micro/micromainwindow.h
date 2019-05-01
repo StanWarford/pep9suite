@@ -18,8 +18,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef MICROMAINWINDOW_H
+#define MICROMAINWINDOW_H
 
 #include <QtWidgets/QMainWindow>
 
@@ -27,7 +27,7 @@
 #include <QDir>
 #include "isaasm.h"
 namespace Ui {
-    class MainWindow;
+    class MicroMainWindow;
 }
 class AboutPep;
 class AsmProgramManager;
@@ -71,7 +71,7 @@ protected:
     bool eventFilter(QObject *, QEvent *);
 
 private:
-    Ui::MainWindow *ui;
+    Ui::MicroMainWindow *ui;
     DebugState debugState;
     QString curPath;
     QFont codeFont;

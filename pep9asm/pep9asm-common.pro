@@ -6,23 +6,21 @@ INCLUDEPATH += $$PWD\..\pep9common
 VPATH += $$PWD\..\pep9common
 
 FORMS += \
-    asmlistingpane.ui \
     asmobjectcodepane.ui \
     asmsourcecodepane.ui \
-    asmtracepane.ui \
     memorytracepane.ui \
     redefinemnemonicsdialog.ui \
-    asmcpupane.ui
+    asmcpupane.ui \
+    asmprogramtracepane.ui \
+    asmprogramlistingpane.ui
 
 HEADERS += \
     asmargument.h \
     asmcode.h \
-    asmlistingpane.h \
     asmobjectcodepane.h \
     asmprogram.h \
     asmprogrammanager.h \
     asmsourcecodepane.h \
-    asmtracepane.h \
     cpphighlighter.h \
     interfaceisacpu.h \
     isaasm.h \
@@ -35,17 +33,17 @@ HEADERS += \
     asmcpupane.h \
     isacpu.h \
     isacpumemoizer.h \
-    memoizerhelper.h
+    memoizerhelper.h \
+    asmprogramtracepane.h \
+    asmprogramlistingpane.h
 
 SOURCES += \
     asmargument.cpp \
     asmcode.cpp \
-    asmlistingpane.cpp \
     asmobjectcodepane.cpp \
     asmprogram.cpp \
     asmprogrammanager.cpp \
     asmsourcecodepane.cpp \
-    asmtracepane.cpp \
     cpphighlighter.cpp \
     interfaceisacpu.cpp \
     isaasm.cpp \
@@ -58,4 +56,6 @@ SOURCES += \
     asmcpupane.cpp \
     isacpu.cpp \
     isacpumemoizer.cpp \
-    memoizerhelper.cpp
+    memoizerhelper.cpp \
+    asmprogramtracepane.cpp \
+    asmprogramlistingpane.cpp

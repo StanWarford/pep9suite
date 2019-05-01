@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>CPUMainWindow</class>
+ <widget class="QMainWindow" name="CPUMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -712,16 +712,16 @@
  </customwidgets>
  <resources>
   <include location="../pep9common/pep9common-resources.qrc"/>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9cpu-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9cpu-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
  </resources>
  <connections>
   <connection>
    <sender>actionExit</sender>
    <signal>triggered(bool)</signal>
-   <receiver>MainWindow</receiver>
+   <receiver>CPUMainWindow</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">

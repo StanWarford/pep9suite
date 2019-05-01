@@ -18,8 +18,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef CPUMAINWINDOW_H
+#define CPUMAINWINDOW_H
 
 #include <QtWidgets/QMainWindow>
 
@@ -27,7 +27,7 @@
 #include "pep.h"
 #include <QDir>
 namespace Ui {
-    class MainWindow;
+    class CPUMainWindow;
 }
 class AboutPep;
 class ByteConverterBin;
@@ -69,7 +69,7 @@ protected:
     bool eventFilter(QObject *, QEvent *);
 
 private:
-    Ui::MainWindow *ui;
+    Ui::CPUMainWindow *ui;
     DebugState debugState;
     QString curPath;
     QFont codeFont;

@@ -1,5 +1,5 @@
-#include "asmtracepane.h"
-#include "ui_asmtracepane.h"
+#include "asmprogramtracepane.h"
+#include "ui_asmprogramtracepane.h"
 #include "asmcode.h"
 #include "pepasmhighlighter.h"
 #include "asmprogram.h"
@@ -7,41 +7,41 @@
 #include "acpumodel.h"
 #include "asmprogrammanager.h"
 #include "asmprogram.h"
-AsmTracePane::AsmTracePane(QWidget *parent) :
+AsmProgramTracePane::AsmProgramTracePane(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::AsmTracePane), inDarkMode(false)
+    ui(new Ui::AsmProgramTracePane), inDarkMode(false)
 {
     ui->setupUi(this);
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
     pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->tracePaneTextEdit->document());
     ui->tracePaneTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
-    connect(((AsmTraceTextEdit*)ui->tracePaneTextEdit), &AsmTraceTextEdit::breakpointAdded, this, &AsmTracePane::onBreakpointAddedProp);
-    connect(((AsmTraceTextEdit*)ui->tracePaneTextEdit), &AsmTraceTextEdit::breakpointRemoved, this, &AsmTracePane::onBreakpointRemovedProp);
+    connect(((AsmProgramTraceTextEdit*)ui->tracePaneTextEdit), &AsmProgramTraceTextEdit::breakpointAdded, this, &AsmProgramTracePane::onBreakpointAddedProp);
+    connect(((AsmProgramTraceTextEdit*)ui->tracePaneTextEdit), &AsmProgramTraceTextEdit::breakpointRemoved, this, &AsmProgramTracePane::onBreakpointRemovedProp);
 }
 
-void AsmTracePane::init(QSharedPointer<const ACPUModel> controlSection, AsmProgramManager* programManager)
+void AsmProgramTracePane::init(QSharedPointer<const ACPUModel> controlSection, AsmProgramManager* programManager)
 {
     this->cpu = controlSection;
     this->programManager = programManager;
 }
 
-AsmTracePane::~AsmTracePane()
+AsmProgramTracePane::~AsmProgramTracePane()
 {
     delete ui;
 }
 
-void AsmTracePane::showTitleLabel(bool showLabel)
+void AsmProgramTracePane::showTitleLabel(bool showLabel)
 {
     ui->label->setVisible(showLabel);
 }
 
-void AsmTracePane::clearSourceCode()
+void AsmProgramTracePane::clearSourceCode()
 {
     ui->tracePaneTextEdit->clear();
     activeProgram.clear();
 }
 
-void AsmTracePane::highlightOnFocus()
+void AsmProgramTracePane::highlightOnFocus()
 {
     if (ui->tracePaneTextEdit->hasFocus()) {
         ui->label->setAutoFillBackground(true);
@@ -51,50 +51,50 @@ void AsmTracePane::highlightOnFocus()
     }
 }
 
-bool AsmTracePane::hasFocus()
+bool AsmProgramTracePane::hasFocus()
 {
     return ui->tracePaneTextEdit->hasFocus();
 }
 
-void AsmTracePane::rebuildHighlightingRules()
+void AsmProgramTracePane::rebuildHighlightingRules()
 {
     if(inDarkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
     else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
     pepHighlighter->rehighlight();
 }
 
-void AsmTracePane::setProgram(QSharedPointer<AsmProgram> program)
+void AsmProgramTracePane::setProgram(QSharedPointer<AsmProgram> program)
 {
     this->activeProgram = program;
     ui->tracePaneTextEdit->setTextFromCode(program);
 }
 
-void AsmTracePane::setBreakpoints(QSet<quint16> memAddresses)
+void AsmProgramTracePane::setBreakpoints(QSet<quint16> memAddresses)
 {
     ui->tracePaneTextEdit->setBreakpoints(memAddresses);
 }
 
-const QSet<quint16> AsmTracePane::getBreakpoints() const
+const QSet<quint16> AsmProgramTracePane::getBreakpoints() const
 {
     return ui->tracePaneTextEdit->getBreakpoints();
 }
 
-void AsmTracePane::writeSettings(QSettings &)
+void AsmProgramTracePane::writeSettings(QSettings &)
 {
 
 }
 
-void AsmTracePane::readSettings(QSettings &)
+void AsmProgramTracePane::readSettings(QSettings &)
 {
 
 }
 
-void AsmTracePane::startSimulationView()
+void AsmProgramTracePane::startSimulationView()
 {
     ui->tracePaneTextEdit->startSimulationView();
 }
 
-void AsmTracePane::updateSimulationView()
+void AsmProgramTracePane::updateSimulationView()
 {
     quint16 pc = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
     if(activeProgram.data() != programManager->getProgramAt(pc)) {
@@ -112,74 +112,74 @@ void AsmTracePane::updateSimulationView()
     ui->tracePaneTextEdit->centerCursor();
 }
 
-void AsmTracePane::clearSimulationView()
+void AsmProgramTracePane::clearSimulationView()
 {
     ui->tracePaneTextEdit->clearSimulationView();
 }
 
-void AsmTracePane::onFontChanged(QFont font)
+void AsmProgramTracePane::onFontChanged(QFont font)
 {
     ui->tracePaneTextEdit->setFont(font);
 }
 
-void AsmTracePane::onDarkModeChanged(bool darkMode)
+void AsmProgramTracePane::onDarkModeChanged(bool darkMode)
 {
     inDarkMode = darkMode;
     if(darkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
     else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
-    ((AsmTraceTextEdit*)ui->tracePaneTextEdit)->onDarkModeChanged(darkMode);
+    ((AsmProgramTraceTextEdit*)ui->tracePaneTextEdit)->onDarkModeChanged(darkMode);
     pepHighlighter->rehighlight();
 }
 
-void AsmTracePane::onRemoveAllBreakpoints()
+void AsmProgramTracePane::onRemoveAllBreakpoints()
 {
-    ((AsmTraceTextEdit*)ui->tracePaneTextEdit)->onRemoveAllBreakpoints();
+    ((AsmProgramTraceTextEdit*)ui->tracePaneTextEdit)->onRemoveAllBreakpoints();
 }
 
-void AsmTracePane::onBreakpointAdded(quint16 address)
+void AsmProgramTracePane::onBreakpointAdded(quint16 address)
 {
-    ((AsmTraceTextEdit*)ui->tracePaneTextEdit)->onBreakpointAdded(address);
+    ((AsmProgramTraceTextEdit*)ui->tracePaneTextEdit)->onBreakpointAdded(address);
 }
 
-void AsmTracePane::onBreakpointRemoved(quint16 address)
+void AsmProgramTracePane::onBreakpointRemoved(quint16 address)
 {
-    ((AsmTraceTextEdit*)ui->tracePaneTextEdit)->onBreakpointRemoved(address);
+    ((AsmProgramTraceTextEdit*)ui->tracePaneTextEdit)->onBreakpointRemoved(address);
 }
 
-void AsmTracePane::mouseReleaseEvent(QMouseEvent *)
-{
-
-}
-
-void AsmTracePane::mouseDoubleClickEvent(QMouseEvent *)
+void AsmProgramTracePane::mouseReleaseEvent(QMouseEvent *)
 {
 
 }
 
-void AsmTracePane::onBreakpointAddedProp(quint16 address)
+void AsmProgramTracePane::mouseDoubleClickEvent(QMouseEvent *)
+{
+
+}
+
+void AsmProgramTracePane::onBreakpointAddedProp(quint16 address)
 {
     emit breakpointAdded(address);
 }
 
-void AsmTracePane::onBreakpointRemovedProp(quint16 address)
+void AsmProgramTracePane::onBreakpointRemovedProp(quint16 address)
 {
     emit breakpointRemoved(address);
 }
 
-AsmTraceTextEdit::AsmTraceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode),
+AsmProgramTraceTextEdit::AsmProgramTraceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode),
     activeProgram(), updateHighlight(false)
 {
     breakpointArea = new AsmTraceBreakpointArea(this);
-    connect(this, &QPlainTextEdit::blockCountChanged, this, &AsmTraceTextEdit::updateBreakpointAreaWidth);
-    connect(this, &QPlainTextEdit::updateRequest, this, &AsmTraceTextEdit::updateBreakpointArea);
+    connect(this, &QPlainTextEdit::blockCountChanged, this, &AsmProgramTraceTextEdit::updateBreakpointAreaWidth);
+    connect(this, &QPlainTextEdit::updateRequest, this, &AsmProgramTraceTextEdit::updateBreakpointArea);
 }
 
-AsmTraceTextEdit::~AsmTraceTextEdit()
+AsmProgramTraceTextEdit::~AsmProgramTraceTextEdit()
 {
     delete breakpointArea;
 }
 
-void AsmTraceTextEdit::breakpointAreaPaintEvent(QPaintEvent *event)
+void AsmProgramTraceTextEdit::breakpointAreaPaintEvent(QPaintEvent *event)
 {
     QPainter painter(breakpointArea);
     painter.fillRect(event->rect(), colors.lineAreaBackground); // light grey
@@ -211,12 +211,12 @@ void AsmTraceTextEdit::breakpointAreaPaintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing, antialias);
 }
 
-int AsmTraceTextEdit::breakpointAreaWidth()
+int AsmProgramTraceTextEdit::breakpointAreaWidth()
 {
     return 5 + fontMetrics().height();
 }
 
-void AsmTraceTextEdit::breakpointAreaMousePress(QMouseEvent *event)
+void AsmProgramTraceTextEdit::breakpointAreaMousePress(QMouseEvent *event)
 {
     QTextBlock block;
     int blockNumber, top, bottom, breakpointAddress;
@@ -253,12 +253,12 @@ void AsmTraceTextEdit::breakpointAreaMousePress(QMouseEvent *event)
     update();
 }
 
-const QSet<quint16> AsmTraceTextEdit::getBreakpoints() const
+const QSet<quint16> AsmProgramTraceTextEdit::getBreakpoints() const
 {
     return breakpoints;
 }
 
-void AsmTraceTextEdit::setTextFromCode(QSharedPointer<AsmProgram> code)
+void AsmProgramTraceTextEdit::setTextFromCode(QSharedPointer<AsmProgram> code)
 {
     activeProgram = code;
     QStringList finList, traceList;
@@ -287,12 +287,12 @@ void AsmTraceTextEdit::setTextFromCode(QSharedPointer<AsmProgram> code)
     update();
 }
 
-void AsmTraceTextEdit::setBreakpoints(QSet<quint16> memAddresses)
+void AsmProgramTraceTextEdit::setBreakpoints(QSet<quint16> memAddresses)
 {
     breakpoints = memAddresses;
 }
 
-void AsmTraceTextEdit::highlightActiveLine()
+void AsmProgramTraceTextEdit::highlightActiveLine()
 {
     QList<QTextEdit::ExtraSelection> extraSelections;
     if(updateHighlight && addrToLine.contains(activeAddress)) {
@@ -316,30 +316,30 @@ void AsmTraceTextEdit::highlightActiveLine()
     setExtraSelections(extraSelections);
 }
 
-void AsmTraceTextEdit::startSimulationView()
+void AsmProgramTraceTextEdit::startSimulationView()
 {
     updateHighlight = true;
 }
 
-void AsmTraceTextEdit::setActiveAddress(quint16 address)
+void AsmProgramTraceTextEdit::setActiveAddress(quint16 address)
 {
     activeAddress = address;
 }
 
-void AsmTraceTextEdit::clearSimulationView()
+void AsmProgramTraceTextEdit::clearSimulationView()
 {
     updateHighlight = false;
     QList<QTextEdit::ExtraSelection> extraSelections;
     setExtraSelections(extraSelections);
 }
 
-void AsmTraceTextEdit::onRemoveAllBreakpoints()
+void AsmProgramTraceTextEdit::onRemoveAllBreakpoints()
 {
     breakpoints.clear();
     update();
 }
 
-void AsmTraceTextEdit::onBreakpointAdded(quint16 address)
+void AsmProgramTraceTextEdit::onBreakpointAdded(quint16 address)
 {
     if(addrToLine.contains(address)) {
         breakpoints.insert(addrToLine[address]);
@@ -347,7 +347,7 @@ void AsmTraceTextEdit::onBreakpointAdded(quint16 address)
     }
 }
 
-void AsmTraceTextEdit::onBreakpointRemoved(quint16 address)
+void AsmProgramTraceTextEdit::onBreakpointRemoved(quint16 address)
 {
     if(addrToLine.contains(address)) {
         breakpoints.remove(addrToLine[address]);
@@ -355,18 +355,18 @@ void AsmTraceTextEdit::onBreakpointRemoved(quint16 address)
     }
 }
 
-void AsmTraceTextEdit::onDarkModeChanged(bool darkMode)
+void AsmProgramTraceTextEdit::onDarkModeChanged(bool darkMode)
 {
     if(darkMode) colors = PepColors::darkMode;
     else colors = PepColors::lightMode;
 }
 
-void AsmTraceTextEdit::updateBreakpointAreaWidth(int )
+void AsmProgramTraceTextEdit::updateBreakpointAreaWidth(int )
 {
     setViewportMargins(breakpointAreaWidth(), 0, 0, 0);
 }
 
-void AsmTraceTextEdit::updateBreakpointArea(const QRect &rect, int dy)
+void AsmProgramTraceTextEdit::updateBreakpointArea(const QRect &rect, int dy)
 {
     if (dy)
         breakpointArea->scroll(0, dy);
@@ -377,7 +377,7 @@ void AsmTraceTextEdit::updateBreakpointArea(const QRect &rect, int dy)
         updateBreakpointAreaWidth(0);
 }
 
-void AsmTraceTextEdit::resizeEvent(QResizeEvent *evt)
+void AsmProgramTraceTextEdit::resizeEvent(QResizeEvent *evt)
 {
     QPlainTextEdit::resizeEvent(evt);
 

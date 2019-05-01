@@ -21,7 +21,7 @@
 
 #include <QScrollBar>
 #include <QFontDialog>
-#include "asmlistingpane.h"
+#include "asmprogramlistingpane.h"
 #include "ui_asmlistingpane.h"
 #include "pep.h"
 #include "pepasmhighlighter.h"
@@ -31,7 +31,7 @@
 #include "symbolentry.h"
 #include "symboltable.h"
 #include "symbolvalue.h"
-AsmListingPane::AsmListingPane(QWidget *parent) :
+AsmProgramListingPane::AsmProgramListingPane(QWidget *parent) :
         QWidget(parent),
         ui(new Ui::AsmListingPane), currentFile(), inDarkMode(false)
 {
@@ -44,12 +44,12 @@ AsmListingPane::AsmListingPane(QWidget *parent) :
     ui->plainTextEdit->setReadOnly(true);
 }
 
-AsmListingPane::~AsmListingPane()
+AsmProgramListingPane::~AsmProgramListingPane()
 {
     delete ui;
 }
 
-void AsmListingPane::setAssemblerListing(QSharedPointer<AsmProgram> program, QSharedPointer<SymbolTable> symTable) {
+void AsmProgramListingPane::setAssemblerListing(QSharedPointer<AsmProgram> program, QSharedPointer<SymbolTable> symTable) {
     clearAssemblerListing();
     ui->plainTextEdit->appendPlainText(program->getProgramListing());
     if(!symTable->getSymbolMap().isEmpty()) {
@@ -58,22 +58,22 @@ void AsmListingPane::setAssemblerListing(QSharedPointer<AsmProgram> program, QSh
     ui->plainTextEdit->verticalScrollBar()->setValue(ui->plainTextEdit->verticalScrollBar()->minimum());
 }
 
-void AsmListingPane::clearAssemblerListing()
+void AsmProgramListingPane::clearAssemblerListing()
 {
     ui->plainTextEdit->clear();
 }
 
-bool AsmListingPane::isModified()
+bool AsmProgramListingPane::isModified()
 {
     return ui->plainTextEdit->document()->isModified();
 }
 
-QString AsmListingPane::toPlainText()
+QString AsmProgramListingPane::toPlainText()
 {
     return ui->plainTextEdit->toPlainText();
 }
 
-void AsmListingPane::setCurrentFile(QString string)
+void AsmProgramListingPane::setCurrentFile(QString string)
 {
     if (!string.isEmpty()) {
         currentFile.setFileName(string);
@@ -85,12 +85,12 @@ void AsmListingPane::setCurrentFile(QString string)
     }
 }
 
-const QFile &AsmListingPane::getCurrentFile() const
+const QFile &AsmProgramListingPane::getCurrentFile() const
 {
     return currentFile;
 }
 
-void AsmListingPane::highlightOnFocus()
+void AsmProgramListingPane::highlightOnFocus()
 {
     if (ui->plainTextEdit->hasFocus()) {
         ui->label->setAutoFillBackground(true);
@@ -100,39 +100,39 @@ void AsmListingPane::highlightOnFocus()
     }
 }
 
-bool AsmListingPane::hasFocus()
+bool AsmProgramListingPane::hasFocus()
 {
     return ui->plainTextEdit->hasFocus();
 }
 
-void AsmListingPane::copy()
+void AsmProgramListingPane::copy()
 {
     ui->plainTextEdit->copy();
 }
 
-void AsmListingPane::setFocus()
+void AsmProgramListingPane::setFocus()
 {
     ui->plainTextEdit->setFocus();
 }
 
-bool AsmListingPane::isEmpty()
+bool AsmProgramListingPane::isEmpty()
 {
     return ui->plainTextEdit->toPlainText() == "";
 }
 
-void AsmListingPane::rebuildHighlightingRules()
+void AsmProgramListingPane::rebuildHighlightingRules()
 {
     if(inDarkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
     else pepHighlighter->rebuildHighlightingRules(PepColors::lightMode);
     pepHighlighter->rehighlight();
 }
 
-void AsmListingPane::onFontChanged(QFont font)
+void AsmProgramListingPane::onFontChanged(QFont font)
 {
     ui->plainTextEdit->setFont(font);
 }
 
-void AsmListingPane::onDarkModeChanged(bool darkMode)
+void AsmProgramListingPane::onDarkModeChanged(bool darkMode)
 {
     inDarkMode = darkMode;
     if(darkMode) pepHighlighter->rebuildHighlightingRules(PepColors::darkMode);
@@ -140,12 +140,12 @@ void AsmListingPane::onDarkModeChanged(bool darkMode)
     pepHighlighter->rehighlight();
 }
 
-void AsmListingPane::mouseReleaseEvent(QMouseEvent *)
+void AsmProgramListingPane::mouseReleaseEvent(QMouseEvent *)
 {
     ui->plainTextEdit->setFocus();
 }
 
-void AsmListingPane::mouseDoubleClickEvent(QMouseEvent *)
+void AsmProgramListingPane::mouseDoubleClickEvent(QMouseEvent *)
 {
     emit labelDoubleClicked(Enu::EPane::EListing);
 }

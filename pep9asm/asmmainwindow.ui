@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>AsmMainWindow</class>
+ <widget class="QMainWindow" name="AsmMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -75,7 +75,7 @@
              </property>
              <widget class="AsmSourceCodePane" name="AsmSourceCodeWidgetPane" native="true"/>
              <widget class="AsmObjectCodePane" name="AsmObjectCodeWidgetPane" native="true"/>
-             <widget class="AsmListingPane" name="AsmListingWidgetPane" native="true"/>
+             <widget class="AsmProgramListingPane" name="AsmProgramListingWidgetPane" native="true"/>
             </widget>
            </item>
           </layout>
@@ -88,7 +88,7 @@
         </attribute>
         <layout class="QGridLayout" name="gridLayout_4">
          <item row="0" column="0">
-          <widget class="AsmTracePane" name="asmListingTracePane" native="true"/>
+          <widget class="AsmProgramTracePane" name="asmProgramTracePane" native="true"/>
          </item>
          <item row="1" column="0">
           <widget class="NewMemoryTracePane" name="memoryTracePane" native="true">
@@ -910,12 +910,6 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>AsmListingPane</class>
-   <extends>QWidget</extends>
-   <header>asmlistingpane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>AsmSourceCodePane</class>
    <extends>QWidget</extends>
    <header>asmsourcecodepane.h</header>
@@ -928,15 +922,21 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>AsmTracePane</class>
-   <extends>QWidget</extends>
-   <header>asmtracepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>NewMemoryTracePane</class>
    <extends>QWidget</extends>
    <header>memorytracepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AsmProgramListingPane</class>
+   <extends>QWidget</extends>
+   <header>asmprogramlistingpane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AsmProgramTracePane</class>
+   <extends>QWidget</extends>
+   <header>asmprogramtracepane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -959,7 +959,7 @@
   <connection>
    <sender>actionExit</sender>
    <signal>triggered(bool)</signal>
-   <receiver>MainWindow</receiver>
+   <receiver>AsmMainWindow</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">

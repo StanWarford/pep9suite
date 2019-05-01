@@ -31,12 +31,12 @@ namespace Ui {
 }
 class SymbolTable;
 class AsmProgram;
-class AsmListingPane : public QWidget {
+class AsmProgramListingPane : public QWidget {
     Q_OBJECT
-    Q_DISABLE_COPY(AsmListingPane)
+    Q_DISABLE_COPY(AsmProgramListingPane)
 public:
-    explicit AsmListingPane(QWidget *parent = nullptr);
-    virtual ~AsmListingPane();
+    explicit AsmProgramListingPane(QWidget *parent = nullptr);
+    virtual ~AsmProgramListingPane();
     void setAssemblerListing(QSharedPointer<AsmProgram> assemblerListingList, QSharedPointer<SymbolTable> symTable);
     void clearAssemblerListing();
 

@@ -59,7 +59,7 @@
 
 CPUMainWindow::CPUMainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), debugState(DebugState::DISABLED), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
+    ui(new Ui::CPUMainWindow), debugState(DebugState::DISABLED), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
     updateChecker(new UpdateChecker()),  isInDarkMode(false),
     memDevice(new MainMemory(nullptr)), controlSection(new PartialMicrocodedCPU(Enu::CPUType::OneByteDataBus, memDevice)),
     dataSection(controlSection->getDataSection()),

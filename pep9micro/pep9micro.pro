@@ -29,15 +29,11 @@ QMAKE_MAC_SDK = macosx10.14
 RC_FILE = pep9resources.rc
 
 FORMS += \
-    addrmodedialog.ui \
-    addrmodewidget.ui \
     helpdialog.ui \
-    mainwindow.ui \
-    decodertabledialog.ui
+    decodertabledialog.ui \
+    micromainwindow.ui
 
 HEADERS += \
-    addrmodedialog.h \
-    addrmodewidget.h \
     fullmicrocodedcpu.h \
     fullmicrocodedmemoizer.h \
     decodertabledialog.h \
@@ -45,8 +41,6 @@ HEADERS += \
     microhelpdialog.h
 
 SOURCES += \
-    addrmodedialog.cpp \
-    addrmodewidget.cpp \
     fullmicrocodedcpu.cpp \
     fullmicrocodedmemoizer.cpp \
     decodertabledialog.cpp \
