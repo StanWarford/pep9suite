@@ -286,7 +286,7 @@
     <string>Ctrl+Z</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionEdit_Redo">
@@ -304,7 +304,7 @@
     <string>Ctrl+Y</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionEdit_Cut">
@@ -408,7 +408,7 @@
     <string>Ctrl+R</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Start_Debugging">
@@ -423,7 +423,7 @@
     <string>Ctrl+D</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Stop_Debugging">
@@ -441,7 +441,7 @@
     <string>Ctrl+.</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionHelp">
@@ -525,7 +525,7 @@
     <string>Build Microcode</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Single_Step_Microcode">
@@ -540,7 +540,7 @@
     <string>Alt+Return</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Restart_Debugging">
@@ -552,7 +552,7 @@
     <string>Restart Debugging</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Continue">
@@ -561,10 +561,10 @@
      <normaloff>:/images/debugger_continue.png</normaloff>:/images/debugger_continue.png</iconset>
    </property>
    <property name="text">
-    <string>Continue</string>
+    <string>Continue Debugging</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionFile_Save_Microcode_As">

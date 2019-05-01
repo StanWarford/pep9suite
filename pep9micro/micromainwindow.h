@@ -124,7 +124,7 @@ private:
     //Methods to load user compiled code
     void assembleDefaultOperatingSystem();
     void loadOperatingSystem();
-    void loadObjectCodeProgram();
+    bool loadObjectCodeProgram();
 
     //
     void set_Obj_Listing_filenames_from_Source();
@@ -190,10 +190,11 @@ private slots:
 
     // Build
     void on_actionBuild_Microcode_triggered();
-    bool on_ActionBuild_Assemble_triggered(); //Returns true if assembly succeded.
+    bool on_actionBuild_Assemble_triggered(); //Returns true if assembly succeded.
     void on_actionBuild_Load_Object_triggered();
-    void on_actionBuild_Run_Object_triggered();
+    void on_actionBuild_Execute_triggered();
     void on_actionBuild_Run_triggered();
+    void on_actionBuild_Run_Object_triggered();
 
 
     //Debug Events

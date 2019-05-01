@@ -297,11 +297,12 @@
      <string>Build</string>
     </property>
     <addaction name="actionBuild_Microcode"/>
-    <addaction name="ActionBuild_Assemble"/>
+    <addaction name="actionBuild_Assemble"/>
     <addaction name="actionBuild_Load_Object"/>
-    <addaction name="actionBuild_Run_Object"/>
+    <addaction name="actionBuild_Execute"/>
     <addaction name="separator"/>
     <addaction name="actionBuild_Run"/>
+    <addaction name="actionBuild_Run_Object"/>
    </widget>
    <widget class="QMenu" name="menuDebug_2">
     <property name="title">
@@ -365,7 +366,7 @@
    <addaction name="actionEdit_Redo"/>
    <addaction name="actionHelp"/>
    <addaction name="actionBuild_Microcode"/>
-   <addaction name="ActionBuild_Assemble"/>
+   <addaction name="actionBuild_Assemble"/>
    <addaction name="actionBuild_Run"/>
    <addaction name="actionDebug_Start_Debugging"/>
   </widget>
@@ -585,7 +586,7 @@
     <string>Ctrl+Z</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionEdit_Redo">
@@ -603,7 +604,7 @@
     <string>Ctrl+Y</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionEdit_Cut">
@@ -681,13 +682,13 @@
      <normaloff>:/images/run.png</normaloff>:/images/run.png</iconset>
    </property>
    <property name="text">
-    <string>Run</string>
+    <string>Run Source</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Start_Debugging">
@@ -702,7 +703,7 @@
     <string>Ctrl+D</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Stop_Debugging">
@@ -720,7 +721,7 @@
     <string>Ctrl+E</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionHelp">
@@ -813,19 +814,19 @@
     <string>Microcode Source</string>
    </property>
   </action>
-  <action name="ActionBuild_Assemble">
+  <action name="actionBuild_Assemble">
    <property name="icon">
     <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/assemble.png</normaloff>:/images/assemble.png</iconset>
    </property>
    <property name="text">
-    <string>Assemble</string>
+    <string>Assemble Source</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+A</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionBuild_Load_Object">
@@ -840,7 +841,7 @@
     <string>Ctrl+Shift+L</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionBuild_Microcode">
@@ -858,7 +859,7 @@
     <string>Ctrl+Shift+M</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Interupt_Execution">
@@ -881,7 +882,7 @@
     <string>Step Over - Assembler</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Step_Into_Assembler">
@@ -893,7 +894,7 @@
     <string>Step Into - Assembler</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Step_Out_Assembler">
@@ -905,7 +906,7 @@
     <string>Step Out - Assembler</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Single_Step_Microcode">
@@ -920,7 +921,7 @@
     <string>Alt+Return</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Restart_Debugging">
@@ -932,7 +933,7 @@
     <string>Restart Debugging</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Continue">
@@ -941,15 +942,18 @@
      <normaloff>:/images/debugger_continue.png</normaloff>:/images/debugger_continue.png</iconset>
    </property>
    <property name="text">
-    <string>Continue</string>
+    <string>Continue Debugging</string>
+   </property>
+   <property name="toolTip">
+    <string>Continue Debugging</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
-  <action name="actionBuild_Run_Object">
+  <action name="actionBuild_Execute">
    <property name="text">
-    <string>Run Object</string>
+    <string>Execute</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+R</string>
@@ -1064,7 +1068,7 @@
     <string>Ctrl+Return</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionSystem_Redefine_Mnemonics">
@@ -1140,6 +1144,14 @@
   <action name="actionSystem_Redefine_Decoder_Tables">
    <property name="text">
     <string>Redefine Decoder Tables</string>
+   </property>
+  </action>
+  <action name="actionBuild_Run_Object">
+   <property name="text">
+    <string>Run Object</string>
+   </property>
+   <property name="toolTip">
+    <string>Run Object Code</string>
    </property>
   </action>
  </widget>

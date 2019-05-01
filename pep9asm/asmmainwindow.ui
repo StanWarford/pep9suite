@@ -221,11 +221,12 @@
     <property name="title">
      <string>Build</string>
     </property>
-    <addaction name="ActionBuild_Assemble"/>
+    <addaction name="actionBuild_Assemble"/>
     <addaction name="actionBuild_Load_Object"/>
-    <addaction name="actionBuild_Run_Object"/>
+    <addaction name="actionBuild_Execute"/>
     <addaction name="separator"/>
     <addaction name="actionBuild_Run"/>
+    <addaction name="actionBuild_Run_Object"/>
    </widget>
    <widget class="QMenu" name="menuDebug_2">
     <property name="title">
@@ -285,7 +286,7 @@
    <addaction name="actionEdit_Undo"/>
    <addaction name="actionEdit_Redo"/>
    <addaction name="actionHelp"/>
-   <addaction name="ActionBuild_Assemble"/>
+   <addaction name="actionBuild_Assemble"/>
    <addaction name="actionBuild_Run"/>
    <addaction name="actionDebug_Start_Debugging"/>
   </widget>
@@ -358,7 +359,7 @@
      <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
    </property>
    <property name="text">
-    <string>New Assembly Program</string>
+    <string>New</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -388,7 +389,7 @@
      <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
    </property>
    <property name="text">
-    <string>Save Assembler Source</string>
+    <string>Save Source</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -399,7 +400,7 @@
   </action>
   <action name="actionFile_Save_Asm_Source_As">
    <property name="text">
-    <string>Save Assembler Source As...</string>
+    <string>Save Source As...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -423,7 +424,7 @@
     <string>Ctrl+Z</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionEdit_Redo">
@@ -441,7 +442,7 @@
     <string>Ctrl+Y</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionEdit_Cut">
@@ -533,7 +534,7 @@
     <string>Ctrl+R</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Start_Debugging">
@@ -548,7 +549,7 @@
     <string>Ctrl+D</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Stop_Debugging">
@@ -566,7 +567,7 @@
     <string>Ctrl+E</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="shortcutVisibleInContextMenu">
     <bool>false</bool>
@@ -644,19 +645,19 @@
     <string>Remove Error Messages</string>
    </property>
   </action>
-  <action name="ActionBuild_Assemble">
+  <action name="actionBuild_Assemble">
    <property name="icon">
     <iconset resource="../pep9common/pep9common-resources.qrc">
      <normaloff>:/images/assemble.png</normaloff>:/images/assemble.png</iconset>
    </property>
    <property name="text">
-    <string>Assemble</string>
+    <string>Assemble Source</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+A</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionBuild_Load_Object">
@@ -671,7 +672,7 @@
     <string>Ctrl+Shift+L</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Interupt_Execution">
@@ -697,7 +698,7 @@
     <string>Step Over</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Step_Into_Assembler">
@@ -709,7 +710,7 @@
     <string>Step Into</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Step_Out_Assembler">
@@ -724,7 +725,7 @@
     <string>Step Out</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Restart_Debugging">
@@ -736,7 +737,7 @@
     <string>Restart Debugging</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionDebug_Continue">
@@ -745,18 +746,21 @@
      <normaloff>:/images/debugger_continue.png</normaloff>:/images/debugger_continue.png</iconset>
    </property>
    <property name="text">
-    <string>Continue</string>
+    <string>Continue Debuggind</string>
+   </property>
+   <property name="toolTip">
+    <string>Continue Debugging</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="shortcutVisibleInContextMenu">
     <bool>false</bool>
    </property>
   </action>
-  <action name="actionBuild_Run_Object">
+  <action name="actionBuild_Execute">
    <property name="text">
-    <string>Run Object</string>
+    <string>Execute</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+R</string>
@@ -777,12 +781,12 @@
   </action>
   <action name="actionFile_Print_Assembler_Source">
    <property name="text">
-    <string>Print Assembler Source...</string>
+    <string>Print Source...</string>
    </property>
   </action>
   <action name="actionFile_Print_Assembler_Listing">
    <property name="text">
-    <string>Print Assembler Listing...</string>
+    <string>Print Listing...</string>
    </property>
   </action>
   <action name="actionFile_Save_Object_Code_As">
@@ -792,7 +796,7 @@
   </action>
   <action name="actionFile_Save_Assembler_Listing_As">
    <property name="text">
-    <string>Save Assembler Listing As..</string>
+    <string>Save Listing As..</string>
    </property>
   </action>
   <action name="actionExit">
@@ -820,7 +824,7 @@
     <string>Ctrl+Return</string>
    </property>
    <property name="iconVisibleInMenu">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionSystem_Redefine_Mnemonics">
@@ -892,6 +896,14 @@
    </property>
    <property name="toolTip">
     <string>View Code / CPU / Memory</string>
+   </property>
+  </action>
+  <action name="actionBuild_Run_Object">
+   <property name="text">
+    <string>Run Object</string>
+   </property>
+   <property name="toolTip">
+    <string>Run Object Code</string>
    </property>
   </action>
  </widget>

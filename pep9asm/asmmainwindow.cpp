@@ -789,9 +789,10 @@ void AsmMainWindow::assembleDefaultOperatingSystem()
 }
 
 // Helper function that turns hexadecimal object code into a vector of unsigned characters, which is easier to copy into memory.
-QVector<quint8> convertObjectCodeToIntArray(QString line)
+QVector<quint8> convertObjectCodeToIntArray(QString line, bool &success)
 {
-    bool ok = false;
+    success = true;
+    bool ok = true;
     quint8 temp;
     QVector<quint8> output;
     for(QString byte : line.split(" ")) {
@@ -799,6 +800,7 @@ QVector<quint8> convertObjectCodeToIntArray(QString line)
         temp = static_cast<quint8>(byte.toShort(&ok, 16));
         // There could be a loss in precision if given text outside the range of an uchar but in range of a ushort.
         if(ok && byte.length()>0) output.append(temp);
+        else ok = false;
     }
     return output;
 }
@@ -832,17 +834,39 @@ void AsmMainWindow::loadOperatingSystem()
     memDevice->loadValues(programManager->getOperatingSystem()->getBurnAddress(), values);
 }
 
-void AsmMainWindow::loadObjectCodeProgram()
+bool AsmMainWindow::loadObjectCodeProgram()
 {
     // Get the object code, and convert it to an integer array.
     QString lines = ui->AsmObjectCodeWidgetPane->toPlainText();
     QVector<quint8> data;
-    for(auto line : lines.split("\n", QString::SkipEmptyParts)) {
-        data.append(convertObjectCodeToIntArray(line));
+    // Temp to track each conversion, and tracker for cumulative success.
+    bool temp, convertSuccess = true;
+    // If there are no lines, there is no data.
+    bool hadData = !lines.isEmpty();
+    for(auto line : lines.split("\n")) {
+        // Check if line is empty, if it is, stop processing line.
+        QString trimmed = line.trimmed();
+        if(trimmed.isEmpty()){
+            continue;
+        } else {
+            hadData = true;
+            data.append(convertObjectCodeToIntArray(line, temp));
+            // Keep track of rolling success status.
+            convertSuccess &= temp;
+        }
+
     }
-    // Imitate the behavior of Pep/9.
-    // Always copy bytes to memory starting at 0x0000, instead of invoking the loader.
-    memDevice->loadValues(0, data);
+    // If there was no data or a data conversion failed, display an error message.
+    if(!hadData || !convertSuccess) {
+        ui->statusBar->showMessage("Load Failed", 4000);
+    }
+    // Otherwise load the values correctly.
+    else {
+        // Imitate the behavior of Pep/9.
+        // Always copy bytes to memory starting at 0x0000, instead of invoking the loader.
+        memDevice->loadValues(0, data);
+    }
+    return hadData;
 }
 
 void AsmMainWindow::set_Obj_Listing_filenames_from_Source()
@@ -919,13 +943,14 @@ void AsmMainWindow::debugButtonEnableHelper(const int which)
     // Crack the parameter using DebugButtons to properly enable
     // and disable all buttons related to debugging and running.
     // Build Actions
-    ui->ActionBuild_Assemble->setEnabled(which & DebugButtons::BUILD_ASM);
+    ui->actionBuild_Assemble->setEnabled(which & DebugButtons::BUILD_ASM);
     ui->actionEdit_Remove_Error_Assembler->setEnabled(which & DebugButtons::BUILD_ASM);
     ui->actionEdit_Format_Assembler->setEnabled((which & DebugButtons::BUILD_ASM));
     ui->actionBuild_Load_Object->setEnabled(which & DebugButtons::BUILD_ASM);
 
     // Debug & Run Actions
     ui->actionBuild_Run->setEnabled(which & DebugButtons::RUN);
+    ui->actionBuild_Execute->setEnabled(which);
     ui->actionBuild_Run_Object->setEnabled(which & DebugButtons::RUN_OBJECT);
     ui->actionDebug_Start_Debugging->setEnabled(which & DebugButtons::DEBUG);
     ui->actionDebug_Start_Debugging_Object->setEnabled(which & DebugButtons::DEBUG_OBJECT);
@@ -1140,7 +1165,7 @@ void AsmMainWindow::on_actionEdit_Paste_triggered()
 void AsmMainWindow::on_actionEdit_Format_Assembler_triggered()
 {
     if(ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull()) {
-        if(on_ActionBuild_Assemble_triggered()) {
+        if(on_actionBuild_Assemble_triggered()) {
         }
         else return;
     }
@@ -1170,7 +1195,7 @@ void AsmMainWindow::on_actionEdit_Reset_font_to_Default_triggered()
 }
 
 //Build Events
-bool AsmMainWindow::on_ActionBuild_Assemble_triggered()
+bool AsmMainWindow::on_actionBuild_Assemble_triggered()
 {
     if(ui->AsmSourceCodeWidgetPane->assemble()){
         ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
@@ -1205,8 +1230,9 @@ void AsmMainWindow::on_actionBuild_Load_Object_triggered()
     ui->memoryWidget->clearHighlight();
 }
 
-void AsmMainWindow::on_actionBuild_Run_Object_triggered()
+void AsmMainWindow::on_actionBuild_Execute_triggered()
 {
+    loadOperatingSystem();
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
         disconnectViewUpdate();
@@ -1236,7 +1262,7 @@ void AsmMainWindow::on_actionBuild_Run_Object_triggered()
 
 void AsmMainWindow::on_actionBuild_Run_triggered()
 {
-    if(!on_ActionBuild_Assemble_triggered()) return;
+    if(!on_actionBuild_Assemble_triggered()) return;
     loadOperatingSystem();
     loadObjectCodeProgram();
     debugState = DebugState::RUN;
@@ -1267,6 +1293,14 @@ void AsmMainWindow::on_actionBuild_Run_triggered()
     else {
         handleDebugButtons();
         emit simulationUpdate();
+    }
+}
+
+void AsmMainWindow::on_actionBuild_Run_Object_triggered()
+{
+    // No need to load operating system, as this will be done by execute.
+    if(loadObjectCodeProgram()) {
+        on_actionBuild_Execute_triggered();
     }
 }
 
@@ -1316,7 +1350,7 @@ void AsmMainWindow::handleDebugButtons()
 
 bool AsmMainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
-    if(!on_ActionBuild_Assemble_triggered()) return false;
+    if(!on_actionBuild_Assemble_triggered()) return false;
     loadOperatingSystem();
     loadObjectCodeProgram();
 
@@ -1354,7 +1388,7 @@ bool AsmMainWindow::on_actionDebug_Start_Debugging_Object_triggered()
 
 bool AsmMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
 {
-    if(!on_ActionBuild_Assemble_triggered()) return false;
+    if(!on_actionBuild_Assemble_triggered()) return false;
     memDevice->clearMemory();
     loadOperatingSystem();
     // Copy object code to batch input pane and make it the active input pane
