@@ -19,21 +19,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <QScrollBar>
 #include <QFontDialog>
-#include "asmprogramlistingpane.h"
-#include "ui_asmlistingpane.h"
-#include "pep.h"
-#include "pepasmhighlighter.h"
 #include <QMouseEvent>
+#include <QScrollBar>
+
+#include "asmprogramlistingpane.h"
+#include "ui_asmprogramlistingpane.h"
 #include "asmprogram.h"
 #include "colors.h"
+#include "pep.h"
+#include "pepasmhighlighter.h"
 #include "symbolentry.h"
 #include "symboltable.h"
 #include "symbolvalue.h"
+
 AsmProgramListingPane::AsmProgramListingPane(QWidget *parent) :
         QWidget(parent),
-        ui(new Ui::AsmListingPane), currentFile(), inDarkMode(false)
+        ui(new Ui::AsmProgramListingPane), currentFile(), inDarkMode(false)
 {
     ui->setupUi(this);
 

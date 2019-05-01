@@ -19,15 +19,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ASSEMBLERLISTINGPANE_H
-#define ASSEMBLERLISTINGPANE_H
+#ifndef ASSEMBLERPROGRAMLISTINGPANE_H
+#define ASSEMBLERPROGRAMLISTINGPANE_H
 
 #include <QWidget>
 #include "enu.h"
 #include "pepasmhighlighter.h"
 #include <QSharedPointer>
 namespace Ui {
-    class AsmListingPane;
+    class AsmProgramListingPane;
 }
 class SymbolTable;
 class AsmProgram;
@@ -74,7 +74,7 @@ public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
 private:
-    Ui::AsmListingPane *ui;
+    Ui::AsmProgramListingPane *ui;
     PepASMHighlighter *pepHighlighter;
     QFile currentFile;
     bool inDarkMode;
