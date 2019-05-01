@@ -89,8 +89,8 @@ CPUMainWindow::CPUMainWindow(QWidget *parent) :
     cpuModesGroup->setExclusive(true);
 
     // Create & connect all dialogs.
-    helpDialog = new HelpDialog(this);
-    connect(helpDialog, &HelpDialog::copyToMicrocodeClicked, this, &CPUMainWindow::onCopyToMicrocodeClicked);
+    helpDialog = new CPUHelpDialog(this);
+    connect(helpDialog, &CPUHelpDialog::copyToMicrocodeClicked, this, &CPUMainWindow::onCopyToMicrocodeClicked);
     // Load the about text and create the about dialog
     QFile aboutFile(":/help-cpu/about.html");
     QString text = "";
@@ -144,12 +144,12 @@ CPUMainWindow::CPUMainWindow(QWidget *parent) :
 
     // Connect font change events.
     connect(this, &CPUMainWindow::fontChanged, ui->microcodeWidget, &MicrocodePane::onFontChanged);
-    connect(this, &CPUMainWindow::fontChanged, helpDialog, &HelpDialog::onFontChanged);
+    connect(this, &CPUMainWindow::fontChanged, helpDialog, &CPUHelpDialog::onFontChanged);
     connect(this, &CPUMainWindow::fontChanged, ui->memoryWidget, &MemoryDumpPane::onFontChanged);
 
     // Connect dark mode events.
     connect(this, &CPUMainWindow::darkModeChanged, ui->microcodeWidget, &MicrocodePane::onDarkModeChanged);
-    connect(this, &CPUMainWindow::darkModeChanged, helpDialog, &HelpDialog::onDarkModeChanged);
+    connect(this, &CPUMainWindow::darkModeChanged, helpDialog, &CPUHelpDialog::onDarkModeChanged);
     connect(this, &CPUMainWindow::darkModeChanged, ui->microobjectWidget, &MicroObjectCodePane::onDarkModeChanged);
     connect(this, &CPUMainWindow::darkModeChanged, ui->cpuWidget, &CpuPane::onDarkModeChanged);
     connect(this, &CPUMainWindow::darkModeChanged, ui->microcodeWidget->getEditor(), &MicrocodeEditor::onDarkModeChanged);

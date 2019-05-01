@@ -58,7 +58,7 @@
 #include "darkhelper.h"
 #include "decodertabledialog.h"
 #include "fullmicrocodedcpu.h"
-#include "helpdialog.h"
+#include "microhelpdialog.h"
 #include "isaasm.h"
 #include "mainmemory.h"
 #include "memorychips.h"
@@ -102,8 +102,8 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     redefineMnemonicsDialog->init(false);
 
     // Create & connect all dialogs.
-    helpDialog = new HelpDialog(this);
-    connect(helpDialog, &HelpDialog::copyToSourceClicked, this, &MicroMainWindow::helpCopyToSourceClicked);
+    helpDialog = new MicroHelpDialog(this);
+    connect(helpDialog, &MicroHelpDialog::copyToSourceClicked, this, &MicroMainWindow::helpCopyToSourceClicked);
     // Load the about text and create the about dialog
     QFile aboutFile(":/help-micro/about.html");
     QString text = "";
@@ -179,7 +179,7 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
 
     // Connect font change events.
     connect(this, &MicroMainWindow::fontChanged, ui->microcodeWidget, &MicrocodePane::onFontChanged);
-    connect(this, &MicroMainWindow::fontChanged, helpDialog, &HelpDialog::onFontChanged);
+    connect(this, &MicroMainWindow::fontChanged, helpDialog, &MicroHelpDialog::onFontChanged);
     connect(this, &MicroMainWindow::fontChanged, ui->ioWidget, &IOWidget::onFontChanged);
     connect(this, &MicroMainWindow::fontChanged, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onFontChanged);
     connect(this, &MicroMainWindow::fontChanged, ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::onFontChanged);
@@ -190,7 +190,7 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     // Connect dark mode events.
     connect(qApp, &QGuiApplication::paletteChanged, this, &MicroMainWindow::onPaletteChanged);
     connect(this, &MicroMainWindow::darkModeChanged, ui->microcodeWidget, &MicrocodePane::onDarkModeChanged);
-    connect(this, &MicroMainWindow::darkModeChanged, helpDialog, &HelpDialog::onDarkModeChanged);
+    connect(this, &MicroMainWindow::darkModeChanged, helpDialog, &MicroHelpDialog::onDarkModeChanged);
     connect(this, &MicroMainWindow::darkModeChanged, ui->microObjectCodePane, &MicroObjectCodePane::onDarkModeChanged);
     connect(this, &MicroMainWindow::darkModeChanged, ui->cpuWidget, &CpuPane::onDarkModeChanged);
     connect(this, &MicroMainWindow::darkModeChanged, ui->microcodeWidget->getEditor(), &MicrocodeEditor::onDarkModeChanged);

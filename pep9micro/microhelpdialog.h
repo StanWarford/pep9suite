@@ -33,11 +33,11 @@ namespace Ui {
 class CppHighlighter;
 class PepASMHighlighter;
 class PepMicroHighlighter;
-class HelpDialog : public QDialog {
+class MicroHelpDialog : public QDialog {
     Q_OBJECT
 public:
-    HelpDialog(QWidget *parent = 0);
-    ~HelpDialog();
+    MicroHelpDialog(QWidget *parent = 0);
+    ~MicroHelpDialog();
 
     QString getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString &input);
 

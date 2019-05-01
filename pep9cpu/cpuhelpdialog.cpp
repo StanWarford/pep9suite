@@ -26,16 +26,16 @@
 #include <QClipboard>
 #include <QDebug>
 #include "colors.h"
-HelpDialog::HelpDialog(QWidget *parent) :
+CPUHelpDialog::CPUHelpDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::HelpDialog)
 {
     ui->setupUi(this);
 
     connect(ui->helpTreeWidget, &QTreeWidget::currentItemChanged, this,
-            &HelpDialog::onCurrentItemChanged);
+            &CPUHelpDialog::onCurrentItemChanged);
     // Forward the helpCopyToMicrocodeButton_clicked() signal from this to the main window
-    connect(ui->helpCopyToMicrocodeButton, &QAbstractButton::clicked, this, &HelpDialog::copyToMicrocodeClicked);
+    connect(ui->helpCopyToMicrocodeButton, &QAbstractButton::clicked, this, &CPUHelpDialog::copyToMicrocodeClicked);
 
     ui->helpSplitter->widget(1)->hide();
     ui->helpTreeWidget->expandAll();
@@ -53,12 +53,12 @@ HelpDialog::HelpDialog(QWidget *parent) :
     ui->helpTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
 }
 
-HelpDialog::~HelpDialog()
+CPUHelpDialog::~CPUHelpDialog()
 {
     delete ui;
 }
 
-void HelpDialog::selectItem(QString string) {
+void CPUHelpDialog::selectItem(QString string) {
     QTreeWidgetItemIterator it(ui->helpTreeWidget);
     while (*it) {
         if ((*it)->text(0) == string) {
@@ -71,12 +71,12 @@ void HelpDialog::selectItem(QString string) {
     }
 }
 
-QString HelpDialog::getExampleText()
+QString CPUHelpDialog::getExampleText()
 {
     return ui->helpTextEdit->toPlainText();
 }
 
-Enu::CPUType HelpDialog::getExamplesModel()
+Enu::CPUType CPUHelpDialog::getExamplesModel()
 {
     // Is this a subcategory?
     bool isHelpSubCat = ui->helpTreeWidget->currentIndex().parent().isValid();
@@ -102,7 +102,7 @@ Enu::CPUType HelpDialog::getExamplesModel()
     }
 }
 
-void HelpDialog::changeEvent(QEvent *e)
+void CPUHelpDialog::changeEvent(QEvent *e)
 {
     QDialog::changeEvent(e);
     switch (e->type()) {
@@ -114,12 +114,12 @@ void HelpDialog::changeEvent(QEvent *e)
     }
 }
 
-void HelpDialog::onFontChanged(QFont font)
+void CPUHelpDialog::onFontChanged(QFont font)
 {
     ui->helpTextEdit->setFont(font);
 }
 
-void HelpDialog::onDarkModeChanged(bool darkMode)
+void CPUHelpDialog::onDarkModeChanged(bool darkMode)
 {
     if(darkMode)
     {
@@ -132,7 +132,7 @@ void HelpDialog::onDarkModeChanged(bool darkMode)
     leftHighlighter->rehighlight();
 }
 
-void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
+void CPUHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
     // Is this a subcategory?
     bool isHelpSubCat = ui->helpTreeWidget->currentIndex().parent().isValid();
     // Parent row (if it has a parent, -1 else)
@@ -469,7 +469,7 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
     }
 }
 
-void HelpDialog::copy()
+void CPUHelpDialog::copy()
 {
     if (ui->helpTextEdit->hasFocus()) {
         ui->helpTextEdit->copy();
@@ -478,7 +478,7 @@ void HelpDialog::copy()
     }
 }
 
-bool HelpDialog::hasFocus()
+bool CPUHelpDialog::hasFocus()
 {
     return ui->helpTextEdit->hasFocus() || ui->helpTopWebView->hasFocus();
 }

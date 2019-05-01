@@ -39,7 +39,7 @@ class ByteConverterInstr;
 class CpuPane;
 class DecoderTableDialog;
 class FullMicrocodedCPU;
-class HelpDialog;
+class MicroHelpDialog;
 class MainMemory;
 class MicrocodePane;
 class MicroObjectCodePane;
@@ -90,7 +90,7 @@ private:
     QSharedPointer<NewCPUDataSection> dataSection;
 
     // Dialogues
-    HelpDialog *helpDialog;
+    MicroHelpDialog *helpDialog;
     AboutPep *aboutPepDialog;
     RedefineMnemonicsDialog *redefineMnemonicsDialog;
     DecoderTableDialog *decoderTableDialog;

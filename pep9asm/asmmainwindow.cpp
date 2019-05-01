@@ -94,8 +94,8 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     redefineMnemonicsDialog->init(false);
 
     // Create & connect all dialogs.
-    helpDialog = new HelpDialog(this);
-    connect(helpDialog, &HelpDialog::copyToSourceClicked, this, &AsmMainWindow::helpCopyToSourceClicked);
+    helpDialog = new AsmHelpDialog(this);
+    connect(helpDialog, &AsmHelpDialog::copyToSourceClicked, this, &AsmMainWindow::helpCopyToSourceClicked);
     // Load the about text and create the about dialog
     QFile aboutFile(":/help-asm/about.html");
     QString text = "";
@@ -167,7 +167,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     connect(this, &AsmMainWindow::simulationStarted, this, &AsmMainWindow::handleDebugButtons);
 
     // Connect font change events.
-    connect(this, &AsmMainWindow::fontChanged, helpDialog, &HelpDialog::onFontChanged);
+    connect(this, &AsmMainWindow::fontChanged, helpDialog, &AsmHelpDialog::onFontChanged);
     connect(this, &AsmMainWindow::fontChanged, ui->ioWidget, &IOWidget::onFontChanged);
     connect(this, &AsmMainWindow::fontChanged, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onFontChanged);
     connect(this, &AsmMainWindow::fontChanged, ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::onFontChanged);
@@ -177,7 +177,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
 
     // Connect dark mode events.
     connect(qApp, &QGuiApplication::paletteChanged, this, &AsmMainWindow::onPaletteChanged);
-    connect(this, &AsmMainWindow::darkModeChanged, helpDialog, &HelpDialog::onDarkModeChanged);
+    connect(this, &AsmMainWindow::darkModeChanged, helpDialog, &AsmHelpDialog::onDarkModeChanged);
     connect(this, &AsmMainWindow::darkModeChanged, ui->memoryWidget, &MemoryDumpPane::onDarkModeChanged);
     connect(this, &AsmMainWindow::darkModeChanged, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onDarkModeChanged);
     connect(this, &AsmMainWindow::darkModeChanged, ui->AsmListingWidgetPane, &AsmListingPane::onDarkModeChanged);

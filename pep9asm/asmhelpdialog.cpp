@@ -24,8 +24,8 @@
 #include "pep.h"
 #include "colors.h"
 
-const int HelpDialog::defaultHelpTreeWidth = 200;
-HelpDialog::HelpDialog(QWidget *parent) :
+const int AsmHelpDialog::defaultHelpTreeWidth = 200;
+AsmHelpDialog::AsmHelpDialog(QWidget *parent) :
         QDialog(parent),
         ui(new Ui::HelpDialog)
 {
@@ -34,7 +34,7 @@ HelpDialog::HelpDialog(QWidget *parent) :
     connect(ui->treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)), this,
             SLOT(onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)));
     // Forward the helpCopyToMicrocodeButton_clicked() signal from this to the main window
-    connect(ui->copyToSourceButton, &QAbstractButton::clicked, this, &HelpDialog::copyToSourceClicked);
+    connect(ui->copyToSourceButton, &QAbstractButton::clicked, this, &AsmHelpDialog::copyToSourceClicked);
 
     ui->helpSplitter->widget(1)->hide();
     ui->treeWidget->expandAll();
@@ -60,17 +60,17 @@ HelpDialog::HelpDialog(QWidget *parent) :
 
     // Manual size allocation to prevent help web view from being hidden.
     QList<int> helpBalance;
-    static const int desiredSize = size().width()-HelpDialog::defaultHelpTreeWidth;
+    static const int desiredSize = size().width()-AsmHelpDialog::defaultHelpTreeWidth;
     helpBalance.append({defaultHelpTreeWidth, desiredSize});
     ui->splitter_3->setSizes(helpBalance);
 }
 
-HelpDialog::~HelpDialog()
+AsmHelpDialog::~AsmHelpDialog()
 {
     delete ui;
 }
 
-void HelpDialog::selectItem(QString string) {
+void AsmHelpDialog::selectItem(QString string) {
     QTreeWidgetItemIterator it(ui->treeWidget);
     while (*it) {
         if ((*it)->text(0) == string) {
@@ -83,7 +83,7 @@ void HelpDialog::selectItem(QString string) {
     }
 }
 
-void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
+void AsmHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
     // Is this a subcategory?
     bool isHelpSubCat = ui->treeWidget->currentIndex().parent().isValid();
     // Parent row (if it has a parent, -1 else)
@@ -489,43 +489,43 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
 
 // Public functions called by main window help menu items:
 
-void HelpDialog::machineLanguageClicked()
+void AsmHelpDialog::machineLanguageClicked()
 {
     selectItem("Machine Language");
 }
 
-void HelpDialog::assemblyLanguageClicked()
+void AsmHelpDialog::assemblyLanguageClicked()
 {
     selectItem("Assembly Language");
 }
 
-void HelpDialog::debuggingProgramsClicked()
+void AsmHelpDialog::debuggingProgramsClicked()
 {
     selectItem("Debugging Programs");
 }
 
-void HelpDialog::writingTrapHandlersClicked()
+void AsmHelpDialog::writingTrapHandlersClicked()
 {
     selectItem("Writing Trap Handlers");
 }
 
-void HelpDialog::pep9ReferenceClicked()
+void AsmHelpDialog::pep9ReferenceClicked()
 {
     selectItem("Pep/9 Reference");
 }
 
-void HelpDialog::examplesClicked()
+void AsmHelpDialog::examplesClicked()
 {
     selectItem("Examples");
 }
 
-void HelpDialog::operatingSystemClicked()
+void AsmHelpDialog::operatingSystemClicked()
 {
     selectItem("Pep/9 Operating System");
 }
 
 // Helper Functions
-QString HelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString &input)
+QString AsmHelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString &input)
 {
     bool isHelpSubCat = ui->treeWidget->currentIndex().parent().isValid();
     int row = ui->treeWidget->currentIndex().row();
@@ -658,12 +658,12 @@ QString HelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString
     return ui->leftTextEdit->toPlainText();
 }
 
-bool HelpDialog::hasFocus()
+bool AsmHelpDialog::hasFocus()
 {
     return ui->leftTextEdit->hasFocus() || ui->rightCppTextEdit->hasFocus() || ui->webView->hasFocus();
 }
 
-void HelpDialog::copy()
+void AsmHelpDialog::copy()
 {
     if (ui->leftTextEdit->hasFocus()) {
         ui->leftTextEdit->copy();
@@ -674,19 +674,19 @@ void HelpDialog::copy()
     }
 }
 
-void HelpDialog::setCopyButtonDisabled(bool b)
+void AsmHelpDialog::setCopyButtonDisabled(bool b)
 {
     ui->copyToSourceButton->setDisabled(b);
 }
 
-void HelpDialog::onFontChanged(QFont font)
+void AsmHelpDialog::onFontChanged(QFont font)
 {
     ui->leftTextEdit->setFont(font);
     ui->rightPepTextEdit->setFont(font);
     ui->rightCppTextEdit->setFont(font);
 }
 
-void HelpDialog::onDarkModeChanged(bool darkMode)
+void AsmHelpDialog::onDarkModeChanged(bool darkMode)
 {
     if(darkMode)
     {

@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "helpdialog.h"
+#include "microhelpdialog.h"
 #include "ui_helpdialog.h"
 
 #include "pep.h"
@@ -30,18 +30,18 @@
 #include "pepasmhighlighter.h"
 #include "cpphighlighter.h"
 
-const int HelpDialog::defaultHelpTreeWidth = 225;
+const int MicroHelpDialog::defaultHelpTreeWidth = 225;
 
-HelpDialog::HelpDialog(QWidget *parent) :
+MicroHelpDialog::MicroHelpDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::HelpDialog)
 {
     ui->setupUi(this);
 
     connect(ui->helpTreeWidget, &QTreeWidget::currentItemChanged, this,
-            &HelpDialog::onCurrentItemChanged);
+            &MicroHelpDialog::onCurrentItemChanged);
     // Forward the helpCopyToMicrocodeButton_clicked() signal from this to the main window
-    connect(ui->copyToSourceButton, &QAbstractButton::clicked, this, &HelpDialog::copyToSourceClicked);
+    connect(ui->copyToSourceButton, &QAbstractButton::clicked, this, &MicroHelpDialog::copyToSourceClicked);
 
     ui->helpSplitter->widget(1)->hide();
     ui->helpTreeWidget->expandAll();
@@ -61,17 +61,17 @@ HelpDialog::HelpDialog(QWidget *parent) :
 
     // Manual size allocation to prevent help web view from being hidden.
     QList<int> helpBalance;
-    static const int desiredSize = size().width()-HelpDialog::defaultHelpTreeWidth;
+    static const int desiredSize = size().width()-MicroHelpDialog::defaultHelpTreeWidth;
     helpBalance.append({defaultHelpTreeWidth, desiredSize});
     ui->splitter_3->setSizes(helpBalance);
 }
 
-HelpDialog::~HelpDialog()
+MicroHelpDialog::~MicroHelpDialog()
 {
     delete ui;
 }
 
-QString HelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString &input)
+QString MicroHelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString &input)
 {
     bool isHelpSubCat = ui->helpTreeWidget->currentIndex().parent().isValid();
     int row = ui->helpTreeWidget->currentIndex().row();
@@ -181,7 +181,7 @@ QString HelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString
     return ui->leftPepTextEdit->toPlainText();
 }
 
-void HelpDialog::selectItem(QString string)
+void MicroHelpDialog::selectItem(QString string)
 {
     QTreeWidgetItemIterator it(ui->helpTreeWidget);
     while (*it) {
@@ -195,7 +195,7 @@ void HelpDialog::selectItem(QString string)
     }
 }
 
-void HelpDialog::changeEvent(QEvent *e)
+void MicroHelpDialog::changeEvent(QEvent *e)
 {
     QDialog::changeEvent(e);
     switch (e->type()) {
@@ -207,7 +207,7 @@ void HelpDialog::changeEvent(QEvent *e)
     }
 }
 
-void HelpDialog::onFontChanged(QFont font)
+void MicroHelpDialog::onFontChanged(QFont font)
 {
     ui->microTextEdit->setFont(font);
     ui->leftPepTextEdit->setFont(font);
@@ -215,7 +215,7 @@ void HelpDialog::onFontChanged(QFont font)
     ui->rightCppTextEdit->setFont(font);
 }
 
-void HelpDialog::onDarkModeChanged(bool darkMode)
+void MicroHelpDialog::onDarkModeChanged(bool darkMode)
 {
     if(darkMode) {
         leftMicroHighlighter->rebuildHighlightingRules(PepColors::darkMode);
@@ -235,7 +235,7 @@ void HelpDialog::onDarkModeChanged(bool darkMode)
     rightCppHighlighter->rehighlight();
 }
 
-void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
+void MicroHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
     // Is this a subcategory?
     bool isHelpSubCat = ui->helpTreeWidget->currentIndex().parent().isValid();
     // Parent row (if it has a parent, -1 else)
@@ -614,14 +614,14 @@ void HelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
     }
 }
 
-void HelpDialog::copy()
+void MicroHelpDialog::copy()
 {
     if (ui->helpTopWebView->hasFocus()) {
         QApplication::clipboard()->setText(ui->helpTopWebView->selectedText());
     }
 }
 
-bool HelpDialog::hasFocus()
+bool MicroHelpDialog::hasFocus()
 {
     return ui->helpTopWebView->hasFocus();
 }

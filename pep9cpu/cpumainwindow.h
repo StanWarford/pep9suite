@@ -35,7 +35,7 @@ class ByteConverterChar;
 class ByteConverterDec;
 class ByteConverterHex;
 class CpuPane;
-class HelpDialog;
+class CPUHelpDialog;
 class MicrocodePane;
 class MicroObjectCodePane;
 class UpdateChecker;
@@ -87,7 +87,7 @@ private:
     QSharedPointer<PartialMicrocodedCPU> controlSection;
     QSharedPointer<NewCPUDataSection> dataSection;
 
-    HelpDialog *helpDialog;
+    CPUHelpDialog *helpDialog;
     AboutPep *aboutPepDialog;
 
     QActionGroup *cpuModesGroup;

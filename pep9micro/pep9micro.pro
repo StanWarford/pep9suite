@@ -38,21 +38,21 @@ FORMS += \
 HEADERS += \
     addrmodedialog.h \
     addrmodewidget.h \
-    helpdialog.h \
     fullmicrocodedcpu.h \
     fullmicrocodedmemoizer.h \
     decodertabledialog.h \
-    micromainwindow.h
+    micromainwindow.h \
+    microhelpdialog.h
 
 SOURCES += \
     addrmodedialog.cpp \
     addrmodewidget.cpp \
-    helpdialog.cpp \
     fullmicrocodedcpu.cpp \
     fullmicrocodedmemoizer.cpp \
     decodertabledialog.cpp \
     micromainwindow.cpp \
-    micromain.cpp
+    micromain.cpp \
+    microhelpdialog.cpp
 
 RESOURCES += \
     ../pep9common/pep9common-resources.qrc\

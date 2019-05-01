@@ -32,11 +32,11 @@ namespace Ui {
     class HelpDialog;
 }
 
-class HelpDialog : public QDialog {
+class CPUHelpDialog : public QDialog {
     Q_OBJECT
 public:
-    HelpDialog(QWidget *parent = 0);
-    ~HelpDialog();
+    CPUHelpDialog(QWidget *parent = 0);
+    ~CPUHelpDialog();
 
     QString getExampleText();
     Enu::CPUType getExamplesModel();

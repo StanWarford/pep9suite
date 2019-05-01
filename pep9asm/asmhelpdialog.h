@@ -32,12 +32,12 @@ namespace Ui {
     class HelpDialog;
 }
 
-class HelpDialog : public QDialog {
+class AsmHelpDialog : public QDialog {
     Q_OBJECT
-    Q_DISABLE_COPY(HelpDialog)
+    Q_DISABLE_COPY(AsmHelpDialog)
 public:
-    explicit HelpDialog(QWidget *parent = nullptr);
-    virtual ~HelpDialog();
+    explicit AsmHelpDialog(QWidget *parent = nullptr);
+    virtual ~AsmHelpDialog();
 
     void machineLanguageClicked();
     void assemblyLanguageClicked();

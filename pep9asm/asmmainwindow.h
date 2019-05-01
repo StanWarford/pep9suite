@@ -37,7 +37,7 @@ class ByteConverterDec;
 class ByteConverterHex;
 class ByteConverterInstr;
 class CpuPane;
-class HelpDialog;
+class AsmHelpDialog;
 class MicrocodePane;
 class MicroObjectCodePane;
 class UpdateChecker;
@@ -88,7 +88,7 @@ private:
     QSharedPointer<IsaCpu> controlSection;
 
     // Dialogues
-    HelpDialog *helpDialog;
+    AsmHelpDialog *helpDialog;
     AboutPep *aboutPepDialog;
     RedefineMnemonicsDialog *redefineMnemonicsDialog;
 
