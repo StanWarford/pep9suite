@@ -39,20 +39,20 @@ HEADERS += \
     addrmodedialog.h \
     addrmodewidget.h \
     helpdialog.h \
-    mainwindow.h \
     fullmicrocodedcpu.h \
     fullmicrocodedmemoizer.h \
-    decodertabledialog.h
+    decodertabledialog.h \
+    micromainwindow.h
 
 SOURCES += \
     addrmodedialog.cpp \
     addrmodewidget.cpp \
     helpdialog.cpp \
-    main.cpp \
-    mainwindow.cpp \
     fullmicrocodedcpu.cpp \
     fullmicrocodedmemoizer.cpp \
-    decodertabledialog.cpp
+    decodertabledialog.cpp \
+    micromainwindow.cpp \
+    micromain.cpp
 
 RESOURCES += \
     ../pep9common/pep9common-resources.qrc\

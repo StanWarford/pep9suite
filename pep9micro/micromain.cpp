@@ -20,13 +20,12 @@
 */
 
 #include <QtWidgets/QApplication>
-#include "cpumainwindow.h"
+#include "micromainwindow.h"
 #ifdef WIN32
 #include <string.h>
 #include <qvector.h>
 #endif
 #include <iostream>
-
 int main(int argc, char *argv[])
 {
 #ifdef WIN32 //Always inject -platform windows:dpiawareness=0 flag to disable hi-dpi support.
@@ -43,10 +42,19 @@ int main(int argc, char *argv[])
     argv = &new_argv.data()[0];
     argc+=2;
 #endif
+
+    // Initialize all global maps.
+    Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, true);
+    Pep::initEnumMnemonMaps();
+    Pep::initMnemonicMaps(false);
+    Pep::initAddrModesMap();
+    Pep::initDecoderTables();
+    Pep::initMicroDecoderTables();
     qInstallMessageHandler(nullptr);
+
     QApplication a(argc, argv);
 
-    MainWindow w;
+    MicroMainWindow w;
     w.show();
     return a.exec();
 }

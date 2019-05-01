@@ -39,7 +39,7 @@ HEADERS += \
 SOURCES += \
     asmmainwindow.cpp \
     asmhelpdialog.cpp \
-    main.cpp
+    asmmain.cpp
 
 RESOURCES += \
     ../pep9asm/pep9asm-helpresources.qrc \

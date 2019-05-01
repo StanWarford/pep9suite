@@ -27,15 +27,13 @@
 #include <QLabel>
 #include <QLineEdit>
 
-#include "cpugraphicsitems.h"
-
 #include "enu.h"
+#include "cpugraphicsitems.h"
 
 namespace Ui {
     class CpuPane;
 }
 class InterfaceMCCPU;
-class MainWindow;
 class NewCPUDataSection;
 class CpuPane : public QWidget {
     Q_OBJECT

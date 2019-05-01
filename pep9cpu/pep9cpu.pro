@@ -42,9 +42,9 @@ HEADERS += \
 SOURCES += \
     cpuhelpdialog.cpp \
     cpumainwindow.cpp \
-    main.cpp \
     partialmicrocodedcpu.cpp \
-    partialmicrocodedmemoizer.cpp
+    partialmicrocodedmemoizer.cpp \
+    cpumain.cpp
 
 RESOURCES += \
     pep9cpu-resources.qrc \

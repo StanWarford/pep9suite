@@ -58,11 +58,11 @@ enum class DebugState
     RUN, // The simulation is being run, not debugged.
 };
 
-class MainWindow : public QMainWindow {
+class CPUMainWindow : public QMainWindow {
     Q_OBJECT
 public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    CPUMainWindow(QWidget *parent = nullptr);
+    ~CPUMainWindow();
 protected:
     void changeEvent(QEvent *e);
     void closeEvent(QCloseEvent *e);
