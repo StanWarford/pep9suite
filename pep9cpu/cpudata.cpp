@@ -1,4 +1,4 @@
-#include "newcpudata.h"
+#include "cpudata.h"
 #include "microcode.h"
 #include "microcodeprogram.h"
 #include "amemorydevice.h"
@@ -7,7 +7,7 @@
 #include <exception>
 #include <string>
 #include <registerfile.h>
-NewCPUDataSection::NewCPUDataSection(Enu::CPUType type, QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
+CPUDataSection::CPUDataSection(Enu::CPUType type, QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
     cpuFeatures(type), mainBusState(Enu::None),
     registerBank(QSharedPointer<RegisterFile>::create()), memoryRegisters(6), controlSignals(Pep::numControlSignals()),
     clockSignals(Pep::numClockSignals()), emitEvents(true), hadDataError(false), errorMessage(""),
@@ -16,18 +16,18 @@ NewCPUDataSection::NewCPUDataSection(Enu::CPUType type, QSharedPointer<AMemoryDe
     presetStaticRegisters();
 }
 
-NewCPUDataSection::~NewCPUDataSection()
+CPUDataSection::~CPUDataSection()
 {
     //This code should not be called during the normal lifetime of Pep9CPU
 }
 
-bool NewCPUDataSection::aluFnIsUnary() const
+bool CPUDataSection::aluFnIsUnary() const
 {
     //The only alu functions that are unary are 0 & 10..15
     return controlSignals[Enu::ALU] == 0 || controlSignals[Enu::ALU] >= 10;
 }
 
-bool NewCPUDataSection::getAMuxOutput(quint8& result) const
+bool CPUDataSection::getAMuxOutput(quint8& result) const
 {
         if(controlSignals[Enu::AMux] == 0 && cpuFeatures == Enu::CPUType::TwoByteDataBus) {
             //Which could come from MDRE when EOMux is 0
@@ -54,7 +54,7 @@ bool NewCPUDataSection::getAMuxOutput(quint8& result) const
         else return false;
 }
 
-bool NewCPUDataSection::calculateCSMuxOutput(bool &result) const
+bool CPUDataSection::calculateCSMuxOutput(bool &result) const
 {
     //CSMux either outputs C when CS is 0
     if(controlSignals[Enu::CSMux]==0) {
@@ -70,7 +70,7 @@ bool NewCPUDataSection::calculateCSMuxOutput(bool &result) const
     else return false;
 }
 
-bool NewCPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
+bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
 {
     /*
      * Profiling determined calculateALUOutput(...) to be the most computationally intensive part of the program.
@@ -190,61 +190,61 @@ bool NewCPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
 
 }
 
-Enu::CPUType NewCPUDataSection::getCPUType() const
+Enu::CPUType CPUDataSection::getCPUType() const
 {
     return cpuFeatures;
 }
 
-RegisterFile &NewCPUDataSection::getRegisterBank()
+RegisterFile &CPUDataSection::getRegisterBank()
 {
     return *registerBank.get();
 }
 
-const RegisterFile &NewCPUDataSection::getRegisterBank() const
+const RegisterFile &CPUDataSection::getRegisterBank() const
 {
     return *registerBank.get();
 }
 
-quint8 NewCPUDataSection::getRegisterBankByte(quint8 registerNumber) const
+quint8 CPUDataSection::getRegisterBankByte(quint8 registerNumber) const
 {
     return registerBank->readRegisterByteCurrent(registerNumber);
 }
 
-quint16 NewCPUDataSection::getRegisterBankWord(quint8 registerNumber) const
+quint16 CPUDataSection::getRegisterBankWord(quint8 registerNumber) const
 {
     return registerBank->readRegisterWordCurrent(registerNumber);
 }
 
-quint8 NewCPUDataSection::getRegisterBankByte(Enu::CPURegisters registerNumber) const
+quint8 CPUDataSection::getRegisterBankByte(Enu::CPURegisters registerNumber) const
 {
     return registerBank->readRegisterByteCurrent(registerNumber);
 }
 
-quint16 NewCPUDataSection::getRegisterBankWord(Enu::CPURegisters registerNumber) const
+quint16 CPUDataSection::getRegisterBankWord(Enu::CPURegisters registerNumber) const
 {
     return registerBank->readRegisterWordCurrent(registerNumber);
 }
 
-quint8 NewCPUDataSection::getMemoryRegister(Enu::EMemoryRegisters registerNumber) const
+quint8 CPUDataSection::getMemoryRegister(Enu::EMemoryRegisters registerNumber) const
 {
     return memoryRegisters[registerNumber];
 }
 
-bool NewCPUDataSection::valueOnABus(quint8 &result) const
+bool CPUDataSection::valueOnABus(quint8 &result) const
 {
     if(controlSignals[Enu::A] == Enu::signalDisabled) return false;
     result = getRegisterBankByte(controlSignals[Enu::A]);
     return true;
 }
 
-bool NewCPUDataSection::valueOnBBus(quint8 &result) const
+bool CPUDataSection::valueOnBBus(quint8 &result) const
 {
     if(controlSignals[Enu::B] == Enu::signalDisabled) return false;
     result = getRegisterBankByte(controlSignals[Enu::B]);
     return true;
 }
 
-bool NewCPUDataSection::valueOnCBus(quint8 &result) const
+bool CPUDataSection::valueOnCBus(quint8 &result) const
 {
     if(controlSignals[Enu::CMux] == 0) {
         // If CMux is 0, then the NZVC bits (minus S) are directly routed to result
@@ -259,12 +259,12 @@ bool NewCPUDataSection::valueOnCBus(quint8 &result) const
     else return false;
 }
 
-Enu::MainBusState NewCPUDataSection::getMainBusState() const
+Enu::MainBusState CPUDataSection::getMainBusState() const
 {
     return mainBusState;
 }
 
-bool NewCPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
+bool CPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
 {
     quint8 NZVCSbits = registerBank->readStatusBitsCurrent();
     switch(statusBit)
@@ -286,7 +286,7 @@ bool NewCPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
     }
 }
 
-void NewCPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
+void CPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
 {
     bool oldVal = false;
 
@@ -298,7 +298,7 @@ void NewCPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
     }
 }
 
-void NewCPUDataSection::onSetRegisterByte(quint8 reg, quint8 val)
+void CPUDataSection::onSetRegisterByte(quint8 reg, quint8 val)
 {
     if(reg > 21) return; // Don't allow static registers to be written to
     quint8 oldVal = getRegisterBankByte(reg);
@@ -308,7 +308,7 @@ void NewCPUDataSection::onSetRegisterByte(quint8 reg, quint8 val)
     }
 }
 
-void NewCPUDataSection::onSetRegisterWord(quint8 reg, quint16 val)
+void CPUDataSection::onSetRegisterWord(quint8 reg, quint16 val)
 {
    if(reg + 1 >21) return; // Don't allow static registers to be written to
    quint8 oldHigh = getRegisterBankByte(reg), oldLow = getRegisterBankByte(reg+1);
@@ -321,7 +321,7 @@ void NewCPUDataSection::onSetRegisterWord(quint8 reg, quint16 val)
    }
 }
 
-void NewCPUDataSection::onSetMemoryRegister(Enu::EMemoryRegisters reg, quint8 val)
+void CPUDataSection::onSetMemoryRegister(Enu::EMemoryRegisters reg, quint8 val)
 {
     quint8 oldVal = memoryRegisters[reg];
     memoryRegisters[reg] = val;
@@ -330,17 +330,17 @@ void NewCPUDataSection::onSetMemoryRegister(Enu::EMemoryRegisters reg, quint8 va
     }
 }
 
-void NewCPUDataSection::onSetClock(Enu::EClockSignals clock, bool value)
+void CPUDataSection::onSetClock(Enu::EClockSignals clock, bool value)
 {
     clockSignals[clock] = value;
 }
 
-void NewCPUDataSection::onSetControlSignal(Enu::EControlSignals control, quint8 value)
+void CPUDataSection::onSetControlSignal(Enu::EControlSignals control, quint8 value)
 {
     controlSignals[control] = value;
 }
 
-bool NewCPUDataSection::setSignalsFromMicrocode(const MicroCode *line)
+bool CPUDataSection::setSignalsFromMicrocode(const MicroCode *line)
 { 
     /*
      * Verify that both arrays of control signals are the same length,
@@ -380,22 +380,22 @@ bool NewCPUDataSection::setSignalsFromMicrocode(const MicroCode *line)
     return true;
 }
 
-void NewCPUDataSection::setEmitEvents(bool b)
+void CPUDataSection::setEmitEvents(bool b)
 {
     emitEvents = b;
 }
 
-bool NewCPUDataSection::hadErrorOnStep() const
+bool CPUDataSection::hadErrorOnStep() const
 {
     return hadDataError;
 }
 
-QString NewCPUDataSection::getErrorMessage() const
+QString CPUDataSection::getErrorMessage() const
 {
     return errorMessage;
 }
 
-void NewCPUDataSection::handleMainBusState() noexcept
+void CPUDataSection::handleMainBusState() noexcept
 {
     bool marChanged = false;
     quint8 a, b;
@@ -451,7 +451,7 @@ void NewCPUDataSection::handleMainBusState() noexcept
     }
 }
 
-void NewCPUDataSection::stepOneByte() noexcept
+void CPUDataSection::stepOneByte() noexcept
 {
     //Update the bus state first, as the rest of the read / write functionality depends on it
     handleMainBusState();
@@ -573,7 +573,7 @@ void NewCPUDataSection::stepOneByte() noexcept
 
 }
 
-void NewCPUDataSection::stepTwoByte() noexcept
+void CPUDataSection::stepTwoByte() noexcept
 {
     //Update the bus state first, as the rest of the read / write functionality depends on it
     handleMainBusState();
@@ -754,7 +754,7 @@ void NewCPUDataSection::stepTwoByte() noexcept
     }
 }
 
-void NewCPUDataSection::presetStaticRegisters() noexcept
+void CPUDataSection::presetStaticRegisters() noexcept
 {
     // Pre-assign static registers according to CPU diagram
     registerBank->writeRegisterByte(22, 0x00);
@@ -769,7 +769,7 @@ void NewCPUDataSection::presetStaticRegisters() noexcept
     registerBank->writeRegisterByte(31, 0xFF);
 }
 
-void NewCPUDataSection::clearControlSignals() noexcept
+void CPUDataSection::clearControlSignals() noexcept
 {
     //Set all control signals to disabled
     for(int it = 0; it < controlSignals.length(); it++) {
@@ -777,7 +777,7 @@ void NewCPUDataSection::clearControlSignals() noexcept
     }
 }
 
-void NewCPUDataSection::clearClockSignals() noexcept
+void CPUDataSection::clearClockSignals() noexcept
 {
     //Set all clock signals to low
     for(int it = 0; it < clockSignals.length(); it++) {
@@ -785,7 +785,7 @@ void NewCPUDataSection::clearClockSignals() noexcept
     }
 }
 
-void NewCPUDataSection::clearRegisters() noexcept
+void CPUDataSection::clearRegisters() noexcept
 {
     // Clear all registers in register bank, then restore the static values
     registerBank->clearRegisters();
@@ -798,13 +798,13 @@ void NewCPUDataSection::clearRegisters() noexcept
     }
 }
 
-void NewCPUDataSection::clearErrors() noexcept
+void CPUDataSection::clearErrors() noexcept
 {
     hadDataError = false;
     errorMessage.clear();
 }
 
-void NewCPUDataSection::onStep() noexcept
+void CPUDataSection::onStep() noexcept
 {
     //If the error hasn't been handled by now, clear it
     clearErrors();
@@ -816,7 +816,7 @@ void NewCPUDataSection::onStep() noexcept
     }
 }
 
-void NewCPUDataSection::onClock() noexcept
+void CPUDataSection::onClock() noexcept
 {
     //When the clock button is pushed, execute whatever control signals are set, and the clear their values
     onStep();
@@ -824,7 +824,7 @@ void NewCPUDataSection::onClock() noexcept
     clearControlSignals();
 }
 
-void NewCPUDataSection::onClearCPU() noexcept
+void CPUDataSection::onClearCPU() noexcept
 {
     //Reset evey value associated with the CPU
     mainBusState = Enu::None;
@@ -834,7 +834,7 @@ void NewCPUDataSection::onClearCPU() noexcept
     clearControlSignals();
 }
 
-void NewCPUDataSection::onSetCPUType(Enu::CPUType type)
+void CPUDataSection::onSetCPUType(Enu::CPUType type)
 {
     if(cpuFeatures != type) {
        cpuFeatures = type;
@@ -843,7 +843,7 @@ void NewCPUDataSection::onSetCPUType(Enu::CPUType type)
 
 }
 
-void NewCPUDataSection::setMemoryDevice(QSharedPointer<AMemoryDevice> newDevice)
+void CPUDataSection::setMemoryDevice(QSharedPointer<AMemoryDevice> newDevice)
 {
     memDevice = newDevice;
 }

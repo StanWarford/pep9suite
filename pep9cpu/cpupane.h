@@ -34,12 +34,12 @@ namespace Ui {
     class CpuPane;
 }
 class InterfaceMCCPU;
-class NewCPUDataSection;
+class CPUDataSection;
 class CpuPane : public QWidget {
     Q_OBJECT
 public:
     explicit CpuPane(QWidget *parent = nullptr);
-    void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> dataSection);
+    void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<CPUDataSection> dataSection);
     ~CpuPane() override;
 
     void highlightOnFocus();
@@ -70,7 +70,7 @@ public:
 protected:
     void changeEvent(QEvent *e) override;
     QSharedPointer<InterfaceMCCPU> cpu;
-    QSharedPointer<NewCPUDataSection> dataSection;
+    QSharedPointer<CPUDataSection> dataSection;
     QGraphicsScene *scene;
     CpuGraphicsItems *cpuPaneItems;
     Enu::CPUType type;

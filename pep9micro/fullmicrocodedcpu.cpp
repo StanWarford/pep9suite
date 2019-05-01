@@ -8,7 +8,7 @@
 #include "microcode.h"
 #include "microcodeprogram.h"
 #include "pep.h"
-#include "newcpudata.h"
+#include "cpudata.h"
 #include "symbolentry.h"
 #include "fullmicrocodedmemoizer.h"
 #include "registerfile.h"
@@ -17,8 +17,8 @@ FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPo
     InterfaceISACPU(memoryDev.get(), manager)
 {
     memoizer = new FullMicrocodedMemoizer(*this);
-    data = new NewCPUDataSection(Enu::CPUType::TwoByteDataBus, memoryDev, parent);
-    dataShared = QSharedPointer<NewCPUDataSection>(data);
+    data = new CPUDataSection(Enu::CPUType::TwoByteDataBus, memoryDev, parent);
+    dataShared = QSharedPointer<CPUDataSection>(data);
 }
 
 FullMicrocodedCPU::~FullMicrocodedCPU()
@@ -27,7 +27,7 @@ FullMicrocodedCPU::~FullMicrocodedCPU()
     delete memoizer;
 }
 
-QSharedPointer<NewCPUDataSection> FullMicrocodedCPU::getDataSection()
+QSharedPointer<CPUDataSection> FullMicrocodedCPU::getDataSection()
 {
     return dataShared;
 }

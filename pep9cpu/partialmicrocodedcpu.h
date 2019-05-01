@@ -3,7 +3,7 @@
 
 #include "interfacemccpu.h"
 #include <QElapsedTimer>
-class NewCPUDataSection;
+class CPUDataSection;
 class PartialMicrocodedMemoizer;
 class PartialMicrocodedCPU : public ACPUModel, public InterfaceMCCPU
 {
@@ -13,7 +13,7 @@ class PartialMicrocodedCPU : public ACPUModel, public InterfaceMCCPU
 public:
     PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~PartialMicrocodedCPU() override;
-    QSharedPointer<NewCPUDataSection> getDataSection();
+    QSharedPointer<CPUDataSection> getDataSection();
 
     // ACPUModel interface
     bool getStatusBitCurrent(Enu::EStatusBit) const override;
@@ -45,8 +45,8 @@ public slots:
 private:
     void breakpointHandler();
     void branchHandler() override;
-    NewCPUDataSection *data;
-    QSharedPointer<NewCPUDataSection> dataShared;
+    CPUDataSection *data;
+    QSharedPointer<CPUDataSection> dataShared;
     PartialMicrocodedMemoizer *memoizer;
 };
 

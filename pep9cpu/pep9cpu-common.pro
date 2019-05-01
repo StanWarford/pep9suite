@@ -11,6 +11,7 @@ FORMS += \
     microobjectcodepane.ui \
 
 HEADERS += \
+    cpudata.h \
     cpupane.h \
     cpugraphicsitems.h \
     disableselectionmodel.h \
@@ -27,9 +28,9 @@ HEADERS += \
     shapes_two_byte_data_bus.h \
     specification.h \
     tristatelabel.h \
-    newcpudata.h
 
 SOURCES += \
+    cpudata.cpp \
     cpupane.cpp \
     cpugraphicsitems.cpp \
     disableselectionmodel.cpp \
@@ -44,4 +45,3 @@ SOURCES += \
     rotatedheaderview.cpp \
     specification.cpp \
     tristatelabel.cpp \
-    newcpudata.cpp

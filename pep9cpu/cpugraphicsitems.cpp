@@ -34,7 +34,7 @@
 #include "pep.h"
 
 #include "shapes_two_byte_data_bus.h"
-#include "newcpudata.h"
+#include "cpudata.h"
 
 void addLabelToScene(QLabel** labelLoc, QGraphicsScene *scene, QString name, const QRect& geometry)
 {
@@ -119,7 +119,7 @@ void addCheckToScene(QCheckBox** checkLoc, QVector<QCheckBox*> &checkVector, QGr
     scene->addWidget(*checkLoc);
 }
 
-CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, NewCPUDataSection *dataSection, QWidget *widgetParent,
+CpuGraphicsItems::CpuGraphicsItems(Enu::CPUType type, CPUDataSection *dataSection, QWidget *widgetParent,
                                                    QGraphicsItem *itemParent,
                                                    QGraphicsScene *scene)
     : QGraphicsItem(itemParent),parent(widgetParent), parentScene(scene), dataSection(dataSection),

@@ -5,7 +5,7 @@
 #include "interfaceisacpu.h"
 #include <QElapsedTimer>
 #include <array>
-class NewCPUDataSection;
+class CPUDataSection;
 class FullMicrocodedMemoizer;
 class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public InterfaceISACPU
 {
@@ -15,7 +15,7 @@ class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public Interf
 public:
     FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~FullMicrocodedCPU() override;
-    QSharedPointer<NewCPUDataSection> getDataSection();
+    QSharedPointer<CPUDataSection> getDataSection();
     // Returns true if the microprogram counter is at the
     // start of the von neumann cycle.
     bool atMicroprogramStart() const noexcept;
@@ -71,8 +71,8 @@ private:
     void calculateAddrJT();
     bool isPrefetchValid;
     QElapsedTimer timer;
-    NewCPUDataSection *data;
-    QSharedPointer<NewCPUDataSection> dataShared;
+    CPUDataSection *data;
+    QSharedPointer<CPUDataSection> dataShared;
     FullMicrocodedMemoizer *memoizer;
     // A class to represent a single item in the instruction specifier
     // or addressing mode decoder.

@@ -34,14 +34,14 @@ namespace Ui {
 }
 class SymbolTable;
 class MicrocodeProgram;
-class NewCPUDataSection;
+class CPUDataSection;
 class MicrocodePane : public QWidget {
     Q_OBJECT
 public:
     MicrocodePane(QWidget *parent = 0);
     ~MicrocodePane();
 
-    void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> dataSection,  QSharedPointer<AMemoryDevice> memDevice, bool fullCtrlSection);
+    void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<CPUDataSection> dataSection,  QSharedPointer<AMemoryDevice> memDevice, bool fullCtrlSection);
     void initCPUModelState();
 
     bool microAssemble();
@@ -116,7 +116,7 @@ protected:
 
 private:
     Ui::MicrocodePane *ui;
-    QSharedPointer<NewCPUDataSection> dataSection;
+    QSharedPointer<CPUDataSection> dataSection;
     MicroAsm *microASM;
     bool inDarkMode, fullCtrlSection;
     QSharedPointer<SymbolTable> symbolTable;

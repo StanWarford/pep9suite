@@ -43,7 +43,7 @@ class MicroHelpDialog;
 class MainMemory;
 class MicrocodePane;
 class MicroObjectCodePane;
-class NewCPUDataSection;
+class CPUDataSection;
 class UpdateChecker;
 class RedefineMnemonicsDialog;
 
@@ -87,7 +87,7 @@ private:
     // Main Memory
     QSharedPointer<MainMemory> memDevice;
     QSharedPointer<FullMicrocodedCPU> controlSection;
-    QSharedPointer<NewCPUDataSection> dataSection;
+    QSharedPointer<CPUDataSection> dataSection;
 
     // Dialogues
     MicroHelpDialog *helpDialog;

@@ -26,22 +26,22 @@
 #include "cpupane.h"
 
 class AMemoryDevice;
-class NewCPUDataSection; //Forward declare CPUDataSection to avoid inclusion loops
+class CPUDataSection; //Forward declare CPUDataSection to avoid inclusion loops
 class Specification
 {
 public:
     explicit Specification() noexcept;
     virtual ~Specification() { }
-    virtual void setUnitPre(NewCPUDataSection*) noexcept { }
-    virtual bool testUnitPost(const NewCPUDataSection*, QString&) const noexcept {return true;}
+    virtual void setUnitPre(CPUDataSection*) noexcept { }
+    virtual bool testUnitPost(const CPUDataSection*, QString&) const noexcept {return true;}
     virtual QString getSourceCode() const noexcept = 0;
 };
 
 class MemSpecification: public Specification {    
 public:
     MemSpecification(AMemoryDevice* mem, int memoryAddress, int memoryValue, int numberBytes) noexcept;
-    void setUnitPre(NewCPUDataSection*) noexcept override;
-    bool testUnitPost(const NewCPUDataSection *data, QString &errString) const noexcept override;
+    void setUnitPre(CPUDataSection*) noexcept override;
+    bool testUnitPost(const CPUDataSection *data, QString &errString) const noexcept override;
     QString getSourceCode() const noexcept override;
 private:
     AMemoryDevice* memDevice;
@@ -53,8 +53,8 @@ private:
 class RegSpecification: public Specification {
 public:
     RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue) noexcept;
-    void setUnitPre(NewCPUDataSection*) noexcept override;
-    bool testUnitPost(const NewCPUDataSection *data, QString &errString) const noexcept override;
+    void setUnitPre(CPUDataSection*) noexcept override;
+    bool testUnitPost(const CPUDataSection *data, QString &errString) const noexcept override;
     QString getSourceCode() const noexcept override;
 private:
     Enu::ECPUKeywords regAddress;
@@ -64,8 +64,8 @@ private:
 class StatusBitSpecification: public Specification {
 public:
     StatusBitSpecification(Enu::ECPUKeywords statusBitAddress, bool statusBitValue) noexcept;
-    void setUnitPre(NewCPUDataSection*) noexcept override;
-    bool testUnitPost(const NewCPUDataSection *data, QString &errString) const noexcept override;
+    void setUnitPre(CPUDataSection*) noexcept override;
+    bool testUnitPost(const CPUDataSection *data, QString &errString) const noexcept override;
     QString getSourceCode() const noexcept override;
 private:
     Enu::ECPUKeywords nzvcsAddress;

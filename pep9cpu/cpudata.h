@@ -12,14 +12,14 @@ class InterfaceMCCPU;
 class MemorySection;
 class MicroCode;
 class RegisterFile;
-class NewCPUDataSection: public QObject
+class CPUDataSection: public QObject
 {
     Q_OBJECT
     friend class CPUControlSection;
     friend class InterfaceMCCPU;
 public:
-    NewCPUDataSection(Enu::CPUType type, QSharedPointer<AMemoryDevice> memDevice, QObject *parent = nullptr );
-    virtual ~NewCPUDataSection();
+    CPUDataSection(Enu::CPUType type, QSharedPointer<AMemoryDevice> memDevice, QObject *parent = nullptr );
+    virtual ~CPUDataSection();
 
 
     Enu::CPUType getCPUType() const;

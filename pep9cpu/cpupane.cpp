@@ -34,7 +34,7 @@
 #include "tristatelabel.h"
 #include "pep.h"
 #include "microcode.h"
-#include "newcpudata.h"
+#include "cpudata.h"
 using namespace Enu;
 CpuPane::CpuPane( QWidget *parent) :
         QWidget(parent),
@@ -54,7 +54,7 @@ CpuPane::CpuPane( QWidget *parent) :
 
 }
 
-void CpuPane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> dataSection)
+void CpuPane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<CPUDataSection> dataSection)
 {
     this->cpu = cpu;
     this->dataSection = dataSection;

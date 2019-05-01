@@ -20,7 +20,7 @@
 */
 
 #include "specification.h"
-#include "newcpudata.h"
+#include "cpudata.h"
 #include "amemorydevice.h"
 Specification::Specification() noexcept
 {
@@ -30,7 +30,7 @@ MemSpecification::MemSpecification(AMemoryDevice* mem, int memoryAddress, int me
     memValue(memoryValue), numBytes(numberBytes) {
 }
 
-void MemSpecification::setUnitPre(NewCPUDataSection *) noexcept
+void MemSpecification::setUnitPre(CPUDataSection *) noexcept
 {
     if(numBytes == 1) {
         memDevice->setByte(static_cast<quint16>(memAddress), static_cast<quint8>(memValue));
@@ -46,7 +46,7 @@ void MemSpecification::setUnitPre(NewCPUDataSection *) noexcept
     }
 }
 
-bool MemSpecification::testUnitPost(const NewCPUDataSection *, QString &errorString) const noexcept
+bool MemSpecification::testUnitPost(const CPUDataSection *, QString &errorString) const noexcept
 {
     bool retVal;
     quint8 byte;
@@ -81,7 +81,7 @@ RegSpecification::RegSpecification(Enu::ECPUKeywords registerAddress, int regist
     regValue = registerValue;
 }
 
-void RegSpecification::setUnitPre(NewCPUDataSection *data) noexcept
+void RegSpecification::setUnitPre(CPUDataSection *data) noexcept
 {
     switch(regAddress)
     {
@@ -139,7 +139,7 @@ void RegSpecification::setUnitPre(NewCPUDataSection *data) noexcept
     }
 }
 
-bool RegSpecification::testUnitPost(const NewCPUDataSection *data, QString &errorString) const noexcept
+bool RegSpecification::testUnitPost(const CPUDataSection *data, QString &errorString) const noexcept
 {
     int reg = 0;
     switch(regAddress)
@@ -225,7 +225,7 @@ StatusBitSpecification::StatusBitSpecification(Enu::ECPUKeywords statusBitAddres
     nzvcsValue = statusBitValue;
 }
 
-void StatusBitSpecification::setUnitPre(NewCPUDataSection *data) noexcept
+void StatusBitSpecification::setUnitPre(CPUDataSection *data) noexcept
 {
     Enu::EStatusBit status;
     switch(nzvcsAddress)
@@ -251,7 +251,7 @@ void StatusBitSpecification::setUnitPre(NewCPUDataSection *data) noexcept
     data->onSetStatusBit(status,nzvcsValue);
 }
 
-bool StatusBitSpecification::testUnitPost(const NewCPUDataSection *data, QString &errorString) const noexcept
+bool StatusBitSpecification::testUnitPost(const CPUDataSection *data, QString &errorString) const noexcept
 {
     Enu::EStatusBit status;
     switch(nzvcsAddress)

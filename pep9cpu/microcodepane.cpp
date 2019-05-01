@@ -31,7 +31,7 @@
 #include "symbolentry.h"
 #include "symbolvalue.h"
 #include "symboltable.h"
-#include "newcpudata.h"
+#include "cpudata.h"
 MicrocodePane::MicrocodePane(QWidget *parent) :
         QWidget(parent), dataSection(nullptr),
         ui(new Ui::MicrocodePane), inDarkMode(false), symbolTable(nullptr), program(nullptr), currentFile(), microASM(nullptr)
@@ -67,15 +67,15 @@ MicrocodePane::~MicrocodePane()
     delete ui;
 }
 
-void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<NewCPUDataSection> newData, QSharedPointer<AMemoryDevice> memDevice, bool fullCtrlSection)
+void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<CPUDataSection> newData, QSharedPointer<AMemoryDevice> memDevice, bool fullCtrlSection)
 {
     if(!dataSection.isNull()) {
-        disconnect(dataSection.get(), &NewCPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
+        disconnect(dataSection.get(), &CPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
     }
     if(microASM != nullptr) delete microASM;
     microASM = new MicroAsm(memDevice, newData->getCPUType(), fullCtrlSection);
     dataSection = newData;
-    connect(dataSection.get(), &NewCPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
+    connect(dataSection.get(), &CPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
     editor->init(cpu);
     // Calls initCPUModelState() to refresh the highlighters
     useFullCtrlSection(fullCtrlSection);

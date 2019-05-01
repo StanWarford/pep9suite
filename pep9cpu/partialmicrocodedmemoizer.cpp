@@ -2,7 +2,7 @@
 #include "partialmicrocodedcpu.h"
 #include "pep.h"
 #include "amemorydevice.h"
-#include "newcpudata.h"
+#include "cpudata.h"
 #include "registerfile.h"
 #include <assert.h>
 #include <QString>

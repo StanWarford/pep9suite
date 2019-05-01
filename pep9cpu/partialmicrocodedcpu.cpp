@@ -7,7 +7,7 @@
 #include "microcode.h"
 #include "microcodeprogram.h"
 #include "pep.h"
-#include "newcpudata.h"
+#include "cpudata.h"
 #include "symbolentry.h"
 #include "partialmicrocodedmemoizer.h"
 #include "registerfile.h"
@@ -15,8 +15,8 @@ PartialMicrocodedCPU::PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<AMe
     InterfaceMCCPU(type)
 {
     memoizer = new PartialMicrocodedMemoizer(*this);
-    data = new NewCPUDataSection(type, memoryDev, parent);
-    dataShared = QSharedPointer<NewCPUDataSection>(data);
+    data = new CPUDataSection(type, memoryDev, parent);
+    dataShared = QSharedPointer<CPUDataSection>(data);
 }
 
 PartialMicrocodedCPU::~PartialMicrocodedCPU()
@@ -25,7 +25,7 @@ PartialMicrocodedCPU::~PartialMicrocodedCPU()
     delete memoizer;
 }
 
-QSharedPointer<NewCPUDataSection> PartialMicrocodedCPU::getDataSection()
+QSharedPointer<CPUDataSection> PartialMicrocodedCPU::getDataSection()
 {
     return dataShared;
 }

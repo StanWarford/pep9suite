@@ -27,7 +27,7 @@
 #include "symbolentry.h"
 #include "specification.h"
 #include "cpupane.h"
-#include "newcpudata.h"
+#include "cpudata.h"
 
 MicroCode::MicroCode(Enu::CPUType cpuType, bool extendedFeatures): cpuType(cpuType), controlSignals(Pep::numControlSignals(), Enu::signalDisabled),
     clockSignals(Pep::numClockSignals(), false), breakpoint(false), extendedFeatures(extendedFeatures), branchFunc(Enu::Assembler_Assigned),
@@ -423,7 +423,7 @@ bool UnitPreCode::hasUnitPre() const
     return !unitPreList.isEmpty();
 }
 
-void UnitPreCode::setUnitPre(NewCPUDataSection *data)
+void UnitPreCode::setUnitPre(CPUDataSection *data)
 {
     for(auto x : unitPreList) {
         x->setUnitPre(data);
@@ -462,7 +462,7 @@ QString UnitPostCode::getSourceCode() const
     return str;
 }
 
-bool UnitPostCode::testPostcondition(NewCPUDataSection *data, QString &err)
+bool UnitPostCode::testPostcondition(CPUDataSection *data, QString &err)
 {
     bool val = true;;
     for(auto x : unitPostList){

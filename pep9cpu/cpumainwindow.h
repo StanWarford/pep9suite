@@ -43,7 +43,7 @@ class QActionGroup;
 
 //WIP classes
 class PartialMicrocodedCPU;
-class NewCPUDataSection;
+class CPUDataSection;
 class MainMemory;
 
 /*
@@ -85,7 +85,7 @@ private:
     // Main Memory
     QSharedPointer<MainMemory> memDevice;
     QSharedPointer<PartialMicrocodedCPU> controlSection;
-    QSharedPointer<NewCPUDataSection> dataSection;
+    QSharedPointer<CPUDataSection> dataSection;
 
     CPUHelpDialog *helpDialog;
     AboutPep *aboutPepDialog;

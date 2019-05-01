@@ -4,7 +4,7 @@
 #include "amemorydevice.h"
 #include "asmprogram.h"
 #include "asmprogrammanager.h"
-#include "newcpudata.h"
+#include "cpudata.h"
 #include "registerfile.h"
 #include <assert.h>
 #include <QString>

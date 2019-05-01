@@ -16,7 +16,7 @@
  * to function correctly. This flag enables or disables this behvaior
  */
 #define hardwarePCIncr true
-class NewCPUDataSection;
+class CPUDataSection;
 class IsaCpuMemoizer;
 class IsaCpu: public ACPUModel, public InterfaceISACPU
 {
