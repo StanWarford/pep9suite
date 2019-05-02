@@ -1736,6 +1736,16 @@ void AsmMainWindow::on_actionView_Code_CPU_Memory_triggered()
 
 }
 
+void AsmMainWindow::on_actionView_Assembler_Tab_triggered()
+{
+    ui->tabWidget->setCurrentWidget(ui->assemblerTab);
+}
+
+void AsmMainWindow::on_actionView_Debugger_Tab_triggered()
+{
+    ui->tabWidget->setCurrentWidget(ui->debuggerTab);
+}
+
 // Byte Converter slots
 
 void AsmMainWindow::slotByteConverterBinEdited(const QString &str)

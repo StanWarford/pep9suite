@@ -215,9 +215,6 @@ private slots:
     // changes to the mnemonics have been finished.
     void redefine_Mnemonics_closed();
 
-    // View
-    void onDarkModeChanged();
-
     // Help
     void on_actionHelp_triggered();
     void on_actionHelp_Writing_Programs_triggered();
@@ -231,10 +228,13 @@ private slots:
     void on_actionHelp_About_Pep9_triggered();
     void on_actionHelp_About_Qt_triggered();
 
-    //Pane hiding events
+    // View
+    void onDarkModeChanged();
     void on_actionView_Code_Only_triggered();
     void on_actionView_Code_CPU_triggered();
     void on_actionView_Code_CPU_Memory_triggered();
+    void on_actionView_Assembler_Tab_triggered();
+    void on_actionView_Debugger_Tab_triggered();
 
     //Run events
     void onSimulationFinished();

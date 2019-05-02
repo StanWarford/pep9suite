@@ -205,6 +205,9 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <property name="separatorsCollapsible">
+     <bool>true</bool>
+    </property>
     <addaction name="actionHelp_Writing_Programs"/>
     <addaction name="actionHelp_Assembly_Language"/>
     <addaction name="actionHelp_Machine_Language"/>
@@ -248,11 +251,27 @@
     <addaction name="separator"/>
     <addaction name="actionDebug_Remove_All_Assembly_Breakpoints"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <property name="separatorsCollapsible">
+     <bool>false</bool>
+    </property>
+    <addaction name="actionView_Code_Only"/>
+    <addaction name="actionView_Code_CPU"/>
+    <addaction name="actionView_Code_CPU_Memory"/>
+    <addaction name="separator"/>
+    <addaction name="actionView_Assembler_Tab"/>
+    <addaction name="actionView_Debugger_Tab"/>
+    <addaction name="separator"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuBuild"/>
    <addaction name="menuDebug_2"/>
    <addaction name="menuSystem"/>
+   <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -868,22 +887,37 @@
      <normaloff>:/images/codeOnly.png</normaloff>:/images/codeOnly.png</iconset>
    </property>
    <property name="text">
-    <string>View Code Only</string>
+    <string>Code Only</string>
    </property>
    <property name="toolTip">
     <string>View Code Only</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionView_Code_CPU">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="pep9asm-resources.qrc">
      <normaloff>:/images/codeCPU.png</normaloff>:/images/codeCPU.png</iconset>
    </property>
    <property name="text">
-    <string>View Code / CPU</string>
+    <string>Code/CPU</string>
    </property>
    <property name="toolTip">
     <string>View Code / CPU</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionView_Code_CPU_Memory">
@@ -892,10 +926,16 @@
      <normaloff>:/images/codeCPUMem.png</normaloff>:/images/codeCPUMem.png</iconset>
    </property>
    <property name="text">
-    <string>View Code / CPU / Memory</string>
+    <string>Code/CPU/Memory</string>
    </property>
    <property name="toolTip">
     <string>View Code / CPU / Memory</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionBuild_Run_Object">
@@ -904,6 +944,27 @@
    </property>
    <property name="toolTip">
     <string>Run Object Code</string>
+   </property>
+  </action>
+  <action name="actionEnter_Full_Screen">
+   <property name="text">
+    <string>Enter Full Screen</string>
+   </property>
+  </action>
+  <action name="actionView_Assembler_Tab">
+   <property name="text">
+    <string>Assembler Tab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+4</string>
+   </property>
+  </action>
+  <action name="actionView_Debugger_Tab">
+   <property name="text">
+    <string>Debugger Tab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+5</string>
    </property>
   </action>
  </widget>
@@ -962,8 +1023,8 @@
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="../pep9micro/pep9micro-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
  </resources>
