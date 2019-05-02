@@ -231,6 +231,9 @@ private slots:
 
     // View
     void onDarkModeChanged();
+    void on_actionView_Assembler_Tab_triggered();
+    void on_actionView_Debugger_Tab_triggered();
+    void on_actionView_Statistics_Tab_triggered();
 
     // Help
     void on_actionHelp_triggered();

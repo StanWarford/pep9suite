@@ -1910,6 +1910,21 @@ void MicroMainWindow::onDarkModeChanged()
     emit darkModeChanged(isInDarkMode, styleSheet());
 }
 
+void MicroMainWindow::on_actionView_Assembler_Tab_triggered()
+{
+    ui->tabWidget->setCurrentWidget(ui->assemblerTab);
+}
+
+void MicroMainWindow::on_actionView_Debugger_Tab_triggered()
+{
+    ui->tabWidget->setCurrentWidget(ui->debuggerTab);
+}
+
+void MicroMainWindow::on_actionView_Statistics_Tab_triggered()
+{
+    ui->tabWidget->setCurrentWidget(ui->statsTab);
+}
+
 // help:
 void MicroMainWindow::on_actionHelp_triggered()
 {
