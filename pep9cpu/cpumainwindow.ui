@@ -171,11 +171,23 @@
     <addaction name="separator"/>
     <addaction name="actionDebug_Remove_All_Microcode_Breakpoints"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <property name="separatorsCollapsible">
+     <bool>false</bool>
+    </property>
+    <addaction name="actionView_CPU_Code"/>
+    <addaction name="actionView_CPU_Code_Memory"/>
+    <addaction name="separator"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuBuild"/>
    <addaction name="menuDebug_2"/>
    <addaction name="menuSystem"/>
+   <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -664,7 +676,7 @@
      <normaloff>:/images/microcodeCPUOnly.png</normaloff>:/images/microcodeCPUOnly.png</iconset>
    </property>
    <property name="text">
-    <string>View CPU / Code</string>
+    <string>CPU/Code</string>
    </property>
    <property name="toolTip">
     <string>View CPU / MicroCode</string>
@@ -676,7 +688,7 @@
      <normaloff>:/images/microcodeCPUMem.png</normaloff>:/images/microcodeCPUMem.png</iconset>
    </property>
    <property name="text">
-    <string>View CPU / Code / Memory</string>
+    <string>CPU/Code/Memory</string>
    </property>
    <property name="toolTip">
     <string>View CPU / Microcode / Memory</string>
@@ -714,8 +726,8 @@
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9cpu-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
-  <include location="pep9cpu-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
+  <include location="pep9cpu-resources.qrc"/>
  </resources>
  <connections>
   <connection>

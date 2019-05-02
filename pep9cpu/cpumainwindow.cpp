@@ -290,6 +290,10 @@ void CPUMainWindow::readSettings()
     QSettings settings("cslab.pepperdine","Pep9CPU");
     settings.beginGroup("MainWindow");
 
+    // Restore Pep9CPU into one byte mode. Future versions might
+    // store the CPU mode and load into the last used version.
+    on_actionSystem_One_Byte_triggered();
+
     // Restore screen dimensions
     QByteArray readGeometry = settings.value("geometry", saveGeometry()).toByteArray();
     restoreGeometry(readGeometry);
@@ -302,6 +306,7 @@ void CPUMainWindow::readSettings()
     curPath = settings.value("filePath", QDir::homePath()).toString();
     // Restore dark mode state
     onDarkModeChanged();
+
 
     settings.endGroup();
 
@@ -867,6 +872,8 @@ void CPUMainWindow::on_actionSystem_One_Byte_triggered()
     ui->microobjectWidget->initCPUModelState();
     ui->microcodeWidget->onCPUTypeChanged(Enu::OneByteDataBus);
     ui->cpuWidget->onCPUTypeChanged();
+    ui->actionSystem_One_Byte->setEnabled(false);
+    ui->actionSystem_Two_Byte->setEnabled(true);
 
 }
 
@@ -877,6 +884,8 @@ void CPUMainWindow::on_actionSystem_Two_Byte_triggered()
     ui->microobjectWidget->initCPUModelState();
     ui->microcodeWidget->onCPUTypeChanged(Enu::TwoByteDataBus);
     ui->cpuWidget->onCPUTypeChanged();
+    ui->actionSystem_One_Byte->setEnabled(true);
+    ui->actionSystem_Two_Byte->setEnabled(false);
 }
 
 void CPUMainWindow::onSimulationFinished()
