@@ -83,7 +83,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
         // Highlight the special conditional branching keywords
         conditionalFormat.setForeground(color.conditionalHighlight);
         QStringList keywords;
-        keywords << "if" << "else" << "goto" << "stop";
+        keywords << "if" << "else" << "goto" << "stopCPU";
         foreach (const QString &pattern, keywords) {
             rule.pattern = QRegExp(pattern);
             rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
@@ -96,7 +96,8 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
         branchFunctionFormat.setForeground(color.branchFunctionHighlight);
         for(QString function : Pep::branchFuncToMnemonMap.values())
         {
-            rule.pattern = QRegExp(function,Qt::CaseInsensitive);
+            // A branch function is a string followed by a space or newline.
+            rule.pattern = QRegExp(function.append("\\W+"), Qt::CaseInsensitive);
             rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
             rule.format = branchFunctionFormat;
             highlightingRulesOne.append(rule);
