@@ -7,6 +7,9 @@ DecoderTableDialog::DecoderTableDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // Force this window to stay on top, so that users may not accidentally change
+    // mnemonics and keywords while a microprogram is running.
+    setWindowFlags(Qt::WindowStaysOnTopHint);
     delegate = new DecoderTableDelegate(ui->tableView);
 
     // Set up model so it has the right number of rows & columns.

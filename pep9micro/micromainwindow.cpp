@@ -78,7 +78,7 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     updateChecker(new UpdateChecker()), isInDarkMode(false),
     memDevice(new MainMemory(nullptr)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), memDevice)),
     dataSection(controlSection->getDataSection()), redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),
-    decoderTableDialog(new DecoderTableDialog(this)), programManager(AsmProgramManager::getInstance())
+    decoderTableDialog(new DecoderTableDialog(nullptr)), programManager(AsmProgramManager::getInstance())
 
 {
     // Initialize the memory subsystem
@@ -1113,9 +1113,11 @@ void MicroMainWindow::debugButtonEnableHelper(const int which)
         redefineMnemonicsDialog->hide();
         redefine_Mnemonics_closed();
     }
-    if(!(which & DebugButtons::INSTALL_OS) && redefineMnemonicsDialog->isVisible()) {
-        redefineMnemonicsDialog->hide();
-        redefine_Mnemonics_closed();
+    // If the table to redefine decoder entries is visible, and one is unable to build microcode
+    // (i.e. the simulation is running), then make sure the dialog is hidden.
+    // It would be dangerous to allow microcode menmonics to be modified as a simulation is ongoing.
+    if(!(which & DebugButtons::INSTALL_OS) && decoderTableDialog->isVisible()) {
+        decoderTableDialog->hide();
     }
 }
 
