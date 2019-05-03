@@ -1,0 +1,94 @@
+UnitPre: IR=0x112233 //alternate between 32 and 33 to work with even / odd fetching
+UnitPre: X=0x0004, SP=0x1000
+//Direct
+UnitPre: Mem[0x2232]=0x5566, Mem[0x2234]=0x7788 //Even should give 5566, odd should give 6677
+//indeXed
+UnitPre: Mem[0x2236]=0x99AA, Mem[0x2238]=0xBBCC //Even should be 99aa, odd aabb
+//Stack-relative
+UnitPre: Mem[0x3232]=0xCAFE, Mem[0x3234]=0xEDBE //Even should be cafe, odd feed
+//Stack-indeXed
+UnitPre: Mem[0x3236]=0xDEAD, Mem[0x3238]=0xDEEF //Even should be dead, odd adde
+//iNdirect
+UnitPre: Mem[0x5566]=0xBABE //Even should yield babe
+UnitPre: Mem[0x6676]=0xDE13, Mem[0x6678]=0x37CA //Odd IR should yield this 1337
+//Override earlier mem value to test odd ,even load combination
+//unitPre: Mem[0x2234]=0x7888, Mem[0x6678]=0xfade
+//Stack-deFfered
+UnitPre: Mem[0xCAFE]=0x8086 //Even IR should yield 8086
+UnitPre: Mem[0xFEEC]=0x68B3, Mem[0xFEEE]=0x2B92 //Odd IR should yield b32b
+
+
+// ================
+// Operand Specifier Decoder
+// ================
+
+// Each addressing mode is responsible for the following:
+// 1. T6 ? Value of Operand Specifier after address lookup is performed.
+// 2. T5 ? Address in memory from where Operand Specified was loaded. Not set in immediate addressing.
+// 3. Using the ISD branch function to continue microprogram execution.
+
+// Here is an example. Consider the instruction "LDWA 6,d" and suppose Mem[0x0006] = 0xCAFE.
+// At the end of the "dAddr" unit, T6 ? 0xCAFE & T5 ? 0x0006.
+
+// Another example. Consider the instruction "LDWA 7,n" and suppose:
+// Mem[0x0007]=0xFE, Mem[0x0008]=0x01, Mem[0xFE01]=0xBE,Mem[0xFE02]=EF.
+// At the of the "nAddr" unit, T6 ? 0xBEEF & T5 ? 0xFE01.
+
+// ----------------
+// Stack Deferred Indexed T6 ? Mem[Mem[OperSpec plus SP] plus X], T5 ? Mem[OperSpec plus SP] plus X.
+// ----------------
+// Unfortunately, this code shares little with other addressing modes due to the multiple additions
+
+
+// T4 ? OperSpec plus SP
+sfxAddr: A=10, B=5, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+A=9, B=4, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+// Fetch Mem[T4]
+A=16, B=17, MARMux=1; MARCk
+// Branch if T4<lo> is odd
+MemRead, A=17, AMux=1, ALU=13; SCk; if SBit sfx1_odd else sfx1_even 
+
+// Even path for first memread
+sfx1_even: MemRead
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+// T5<lo> ? MDRO plus X<lo>; T5<hi> ? MDRE plus X<hi> plus cin
+B=3, EOMux=1, AMux=0, ALU=1, CMux=1, C=19; SCk, LoadCk
+B=2, EOMux=0, AMux=0, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sfx1_shared
+
+// Odd path for first memread. Word straddles two word boundaries.
+// T4 ? T4 plus 1
+sfx1_odd: MemRead, A=17, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
+// Fetch Mem[T4]
+A=16, B=17, MARMux=1; MARCk
+MemRead
+MemRead
+MemRead, MDREMux=0; MDRECk
+// T5<lo> ? MDRE plus X<lo>; T5<hi> ? MDRO plus X<hi> plus cin
+B=3, EOMux=0, AMux=0, ALU=1, CMux=1, C=19; SCk, LoadCk
+B=2, EOMux=1, AMux=0, CSMux=1, ALU=2, CMux=1, C=18; LoadCk; goto sfx1_shared
+
+// Prepare for second memread.
+sfx1_shared: A=18, B=19, MARMux=1; MARCk
+// If T4<lo> is even, remaining fetch is identical to d_even.
+MemRead, A=19, AMux=1, ALU=13; SCk; if SBit sfx2_odd else sfx2_even 
+
+// Loads an entire aligned word from mem into T6.
+sfx2_even: MemRead
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+// T6<hi> ? MDRE, T6<lo> ? MDRO
+EOMux=0, AMux=0, ALU=0, CMux=1, C=20; LoadCk
+EOMux=1, AMux=0, ALU=0, CMux=1, C=21; LoadCk; goto end
+
+// Otherwise T4 ? T4 plus 1; goto d_odd_shared
+sfx2_odd: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
+A=16, B=17, MARMux=1; MARCk
+// T6<hi> ? MDRO
+MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, C=20; LoadCk
+MemRead
+MemRead, MDREMux=0; MDRECk
+// T6<lo> ? MDRE
+EOMux=0, AMux=0, ALU=0, CMux=1, C=21; LoadCk; goto end
+
+end: stopCPU 

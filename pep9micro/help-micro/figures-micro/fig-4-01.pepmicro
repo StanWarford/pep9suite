@@ -1,0 +1,24 @@
+// ================
+// Operand Specifier Decoder
+// ================
+
+// Each addressing mode is responsible for the following:
+// 1. T6 ? Value of Operand Specifier after address lookup is performed.
+// 2. T5 ? Address in memory from where Operand Specified was loaded. Not set in immediate addressing.
+// 3. Using the ISD branch function to continue microprogram execution.
+
+// Here is an example. Consider the instruction "LDWA 6,d" and suppose Mem[0x0006] = 0xCAFE.
+// At the end of the "dAddr" unit, T6 ? 0xCAFE & T5 ? 0x0006.
+
+// Another example. Consider the instruction "LDWA 7,n" and suppose:
+// Mem[0x0007]=0xFE, Mem[0x0008]=0x01, Mem[0xFE01]=0xBE,Mem[0xFE02]=EF.
+// At the of the "nAddr" unit, T6 ? 0xBEEF & T5 ? 0xFE01.
+
+
+/// ----------------
+// Immediate Addressing Mode (I)
+// ----------------
+// T6 ? OperSpec. T5 is ignored.
+iAddr: A=9, AMux=1, ALU=0, CMux=1, C=20; LoadCk
+A=10, AMux=1, ALU=0, CMux=1, C=21; LoadCk; goto end 
+end: stopCPU 

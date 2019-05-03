@@ -215,6 +215,26 @@
          <string>Figure 3.03</string>
         </property>
        </item>
+       <item>
+        <property name="text">
+         <string>Figure 4.01</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 4.02</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 4.03</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 4.04</string>
+        </property>
+       </item>
       </item>
       <item>
        <property name="text">

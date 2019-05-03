@@ -94,6 +94,10 @@ private:
         eMFig301,
         eMFig302,
         eMFig303,
+        eMFig401,
+        eMFig402,
+        eMFig403,
+        eMFig404,
         // Assembler Examples
         eFIG433 = 0,
         eFIG435,

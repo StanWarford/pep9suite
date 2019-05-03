@@ -362,6 +362,22 @@ void MicroHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
                 ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-3-03.pepmicro"));
                 ui->helpFigureLabel->setText("<b>Figure 3.03</b><code>  </code> Add a prelude section to the von Neumann cycle.");
             }
+            else if(row == eMFig401) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-4-01.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 4.01</b><code>  </code> Show operand immediate operand decoding");
+            }
+            else if(row == eMFig402) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-4-02.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 4.02</b><code>  </code> Show direct, indexed, stack relative, stack-indexed operand decoding");
+            }
+            else if(row == eMFig403) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-4-03.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 4.03</b><code>  </code> Show indirect, stack deferred operand decoding.");
+            }
+            else if(row == eMFig404) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-4-04.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 4.04</b><code>  </code> Show stack deferred indexed operand decoding.");
+            }
         }
     }
     else if ((!isHelpSubCat && row == eASMEXAMPLES) || parentRow == eASMEXAMPLES) {
