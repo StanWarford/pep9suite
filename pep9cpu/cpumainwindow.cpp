@@ -245,7 +245,7 @@ bool CPUMainWindow::eventFilter(QObject *, QEvent *event)
     }
     else if (event->type() == QEvent::FileOpen) {
         if (ui->actionDebug_Stop_Debugging->isEnabled()) {
-            ui->statusBar->showMessage("Open failed, currently debugging.", 4000);
+            ui->statusBar->showMessage("Open failed, simulator currently debugging", 4000);
             return false;
         }
         //loadFile(static_cast<QFileOpenEvent *>(event)->file());
@@ -906,14 +906,14 @@ void CPUMainWindow::onSimulationFinished()
          }
     }
     if(controlSection->hadErrorOnStep()) {
-        ui->statusBar->showMessage("Execution Failed", 4000);
+        ui->statusBar->showMessage("Execution failed", 4000);
         QMessageBox::critical(
           this,
           tr("Pep/9 CPU"),
           controlSection->getErrorMessage());        
     }
     else if(hadPostTest) ui->statusBar->showMessage("Passed unit test", 4000);
-    else ui->statusBar->showMessage("Execution Finished", 4000);
+    else ui->statusBar->showMessage("Execution finished", 4000);
 }
 
 void CPUMainWindow::onDarkModeChanged()

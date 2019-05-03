@@ -307,7 +307,7 @@ bool AsmMainWindow::eventFilter(QObject *, QEvent *event)
     }
     else if (event->type() == QEvent::FileOpen) {
         if (ui->actionDebug_Stop_Debugging->isEnabled()) {
-            ui->statusBar->showMessage("Open failed, currently debugging.", 4000);
+            ui->statusBar->showMessage("Open failed, simulator currently debugging", 4000);
             return false;
         }
         //loadFile(static_cast<QFileOpenEvent *>(event)->file());
@@ -858,13 +858,14 @@ bool AsmMainWindow::loadObjectCodeProgram()
     }
     // If there was no data or a data conversion failed, display an error message.
     if(!hadData || !convertSuccess) {
-        ui->statusBar->showMessage("Load Failed", 4000);
+        ui->statusBar->showMessage("Load failed", 4000);
     }
     // Otherwise load the values correctly.
     else {
         // Imitate the behavior of Pep/9.
         // Always copy bytes to memory starting at 0x0000, instead of invoking the loader.
         memDevice->loadValues(0, data);
+        ui->statusBar->showMessage("Load succeeded", 4000);
     }
     return hadData;
 }
@@ -1351,15 +1352,14 @@ void AsmMainWindow::handleDebugButtons()
 bool AsmMainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
     if(!on_actionBuild_Assemble_triggered()) return false;
-    loadOperatingSystem();
-    loadObjectCodeProgram();
-
     return on_actionDebug_Start_Debugging_Object_triggered();
 
 }
 
 bool AsmMainWindow::on_actionDebug_Start_Debugging_Object_triggered()
 {
+    loadOperatingSystem();
+    loadObjectCodeProgram();
     connectViewUpdate();
     debugState = DebugState::DEBUG_ISA;
     ui->asmProgramTracePane->startSimulationView();
@@ -1574,7 +1574,7 @@ void AsmMainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
         ui->AsmProgramListingWidgetPane->clearAssemblerListing();
         ui->asmProgramTracePane->clearSourceCode();
         ui->asmProgramTracePane->onRemoveAllBreakpoints();
-        ui->statusBar->showMessage("Assembly failed, previous OS left", 4000);
+        ui->statusBar->showMessage("Assembly failed, previous OS remains", 4000);
     }
     loadOperatingSystem();
     ui->memoryWidget->refreshMemory();
@@ -1611,9 +1611,9 @@ void AsmMainWindow::onSimulationFinished()
           this,
           tr("Pep/9 Micro"),
           controlSection->getErrorMessage());
-        ui->statusBar->showMessage("Execution Failed", 4000);
+        ui->statusBar->showMessage("Execution failed", 4000);
     }
-    else ui->statusBar->showMessage("Execution Finished", 4000);
+    else ui->statusBar->showMessage("Execution finished", 4000);
 
 }
 
