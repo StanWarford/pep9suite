@@ -1,0 +1,27 @@
+// File: FIGURE
+// BOOK NAME
+// Based on Figure 12.11
+// ADDA this,i
+// After performing addition, check whether A is even or odd.
+// If it is odd, then set T1 to 1, else if even set T1 to 0.
+UnitPre: T1=0x02
+
+UnitPre: IR=0x700FF0, A=0x0F11, N=1, Z=1, V=1, C=1, S=0
+UnitPost: A=0x1F01, N=0, Z=0, V=0, C=0, T1=0x01
+
+// UnitPre: IR=0x70FF01, A=0xFFAB, N=0, Z=1, V=1, C=0, S=1
+// UnitPost: A=0xFEAC, N=1, Z=0, V=0, C=1, T1=0x00
+
+// A<low> <- A<low> + Oprnd<low>, Save shadow carry.
+A=1, B=10, AMux=1, ALU=1, AndZ=0, CMux=1, C=1; ZCk, SCk, LoadCk
+// A<high> <- A<high> plus Oprnd<high> plus saved carry.
+A=0, B=9, AMux=1, CSMux=1, ALU=2, AndZ=1, CMux=1, C=0; NCk, ZCk, VCk, CCk, LoadCk
+// Shift A<lo> to the right, store the carry out in S.
+// If A<lo> was odd, S will be 1, else it will be 0.
+A=1, AMux=1, ALU=13; SCk; if SBIt set else clear
+// If S bit is 1 then A is odd, and set T1 to 1
+set: A=23, AMux=1, ALU=0, CMux=1, C=11; LoadCk; goto end
+// If S bit is 0 then A is even, and set T1 to 0
+clear: A=22, AMux=1, ALU=0, CMux=1, C=11; LoadCk; goto end
+// Stop execution
+end: stopCPU

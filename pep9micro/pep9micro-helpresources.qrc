@@ -3,5 +3,11 @@
         <file>help-micro/pep9micro.pepmicro</file>
         <file>help-micro/alignedIO-OS.pep</file>
         <file>help-micro/about.html</file>
+        <file>help-micro/figures-micro/fig-2-03.pepmicro</file>
+        <file>help-micro/figures-micro/fig-2-02.pepmicro</file>
+        <file>help-micro/figures-micro/fig-2-01.pepmicro</file>
+        <file>help-micro/figures-micro/fig-1-03.pepmicro</file>
+        <file>help-micro/figures-micro/fig-1-02.pepmicro</file>
+        <file>help-micro/figures-micro/fig-1-01.pepmicro</file>
     </qresource>
 </RCC>

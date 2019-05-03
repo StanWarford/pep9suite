@@ -1,0 +1,17 @@
+// File: FILE NAME
+// BOOK NAME
+// Based on Figure 12.21 from Computer Systems, Fifth edition.
+// Two-byte data bus
+// Demonstrate the use of unconditional branches, stopCPU via a fragment that
+// fetches the instruction specifier and increments PC by 1.
+// Assume instruction specifier has been pre-fetched.
+UnitPre: IR=0x000000, PC=0x01FF, T1=0x12, S=0
+UnitPost: IR=0x120000, PC=0x0200
+
+// Fetch instruction specifier. Explictly branch to the following line.
+l1: A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk; goto l2
+
+// PC <- PC plus 1. Implicitly branch to the following line.
+l2: A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+// Do not branch to next line, instead stop CPU execution
+A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk; stopCPU

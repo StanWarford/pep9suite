@@ -1,0 +1,25 @@
+// File: FILE NAME
+// BOOK NAME
+// Based on Figure 12.21 from Computer Systems, Fifth edition.
+// Two-byte data bus
+// Demonstrate the ability of goto to branch over blocks of code.
+// Fetches the instruction specifier and increments PC by 1.
+// Assume instruction specifier has been pre-fetched.
+UnitPre: IR=0x000000, PC=0x01FF, T1=0x12, S=0
+UnitPost: IR=0x120000, PC=0x0200
+
+// Fetch instruction specifier. Explictly branch over
+l1: A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk; goto l6
+
+// Code block that will be "skipped" over
+// MAR <- PC.
+A=6, B=7, MARMux=1; MARCk
+// Initiate fetch, PC <- PC + 1.
+MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+
+// PC <- PC plus 1. Implicitly branch to the following line.
+l6: A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+// Do not branch to next line, instead stop CPU execution
+A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk; stopCPU

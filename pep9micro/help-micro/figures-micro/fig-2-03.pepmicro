@@ -1,0 +1,42 @@
+// File: FIGURE
+// BOOK NAME
+// Based on Figure 12.11
+// T6 ? Mem[OS]
+// This program demnostrates that while unaligned 
+// memory accesses may be performed,
+
+UnitPre: IR=0xC100F0, Mem[0x00F0] = 0xABCD
+UnitPost:T6=0xABCD
+
+// UnitPre: IR=0xC10011, Mem[0x0010] = 0x89AB, Mem[0x0012] = 0xCDEF
+// UnitPost:T6=0xABCD
+
+// Select fetch logic depending on if OperSpec is odd.
+A=10, AMux=1, ALU=13; SCk; if SBit oddRead else evenRead 
+
+// An odd addressed word will span two words in memory. So, two lookups must be performed.
+// Use T4 to computer the address of the second word.
+// MAR ? OperSpec, initiate fetch.
+oddRead: A=9, B=10, MARMux=1; MARCk
+MemRead
+MemRead, A=10, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+// Clock in odd byte, which is high order byte of operand value.
+MemRead, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDROMux=0, C=16; LoadCk, MDROCk
+A=16, B=17, MARMux=1; MARCk
+// T6<hi> ? MDRO
+MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, C=20; LoadCk
+MemRead
+MemRead, MDREMux=0; MDRECk
+// T6<lo> ? MDRE
+EOMux=0, AMux=0, ALU=0, CMux=1, C=21; LoadCk; goto end
+
+// Loads an entire aligned word from mem into T6.
+// MAR ? OperSpec, initiate fetch.
+evenRead: A=9, B=10, MARMux=1; MARCk
+MemRead
+MemRead
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+// T6<hi> ? MDRE, T6<lo> ? MDRO
+EOMux=0, AMux=0, ALU=0, CMux=1, C=20; LoadCk
+EOMux=1, AMux=0, ALU=0, CMux=1, C=21; LoadCk; goto end
+end: stopCPU 

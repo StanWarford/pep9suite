@@ -81,8 +81,21 @@ QString MicroHelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QS
         destPane = Enu::ESource;
         return ui->leftTextEdit->toPlainText();
     }*/
-
-    if (parentRow == eASMEXAMPLES) {
+    if(parentRow == eMICROEXAMPLES) {
+        if(row == eMFig101) {
+            destPane = Enu::EPane::EMicrocode;
+            return ui->microTextEdit->toPlainText();
+        }
+        else if(row == eMFig102) {
+            destPane = Enu::EPane::EMicrocode;
+            return ui->microTextEdit->toPlainText();
+        }
+        else if(row == eMFig103) {
+            destPane = Enu::EPane::EMicrocode;
+            return ui->microTextEdit->toPlainText();
+        }
+    }
+    else if (parentRow == eASMEXAMPLES) {
         if (row == eFIG433) {
             destPane = Enu::EPane::EObject;
             return Pep::resToString(":/help-micro/figures-asm/fig0433.pepo");
@@ -293,6 +306,48 @@ void MicroHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->helpTopWebView->show();
         ui->helpTopWebView->load(QUrl("qrc:/help/pep9reference.html"));
     }
+    else if ((!isHelpSubCat && row == eMICROEXAMPLES) || parentRow == eMICROEXAMPLES) {
+        if (!isHelpSubCat) {
+            ui->helpSplitter->widget(1)->hide();
+            ui->helpTopWebView->show();
+            #pragma message("Add microcode examples htmlfile")
+            ui->helpTopWebView->load(QUrl("qrc:/help-micro/examples.html"));
+        }
+        else {
+            ui->leftPepTextEdit->hide();
+            ui->rightPepTextEdit->hide();
+            ui->rightCppTextEdit->hide();
+            ui->microTextEdit->show();
+            ui->helpSplitter->widget(0)->hide();
+            ui->helpSplitter->widget(1)->show();
+            ui->copyToSourceButton->setText("Copy to Microcode");
+#pragma message("TODO: decide on the official figure names.")
+            if(row == eMFig101) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-1-01.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 1.01</b><code>  </code> A fragment demonstrating explicit & implict branching, as well as stopping the CPU.");
+            }
+            else if(row == eMFig102) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-1-02.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 1.02</b><code>  </code> A fragment using explicit branching to skip over code blocks.");
+            }
+            else if(row == eMFig103) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-1-03.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 1.03</b><code>  </code> A fragment using explicit branching to jump backwards and execute in a non-linear order.");
+            }
+            else if(row == eMFig201) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-2-01.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 2.01</b><code>  </code> A fragment using conditonal branching on C to set T1.");
+            }
+            else if(row == eMFig202) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-2-02.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 2.02</b><code>  </code> A fragment using conditional branching to test if A is odd.");
+            }
+            else if(row == eMFig203) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-2-03.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 2.03</b><code>  </code> A fragment using conditional branching to select correct memory fetch logic..");
+            }
+        }
+    }
     else if ((!isHelpSubCat && row == eASMEXAMPLES) || parentRow == eASMEXAMPLES) {
         if (!isHelpSubCat) {
             ui->helpSplitter->widget(1)->hide();
@@ -301,6 +356,7 @@ void MicroHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         }
         else {
             ui->microTextEdit->hide();
+            ui->leftPepTextEdit->show();
             ui->helpSplitter->widget(0)->hide();
             ui->helpSplitter->widget(1)->show();
             ui->copyToSourceButton->setText("Copy to Source");
@@ -325,6 +381,7 @@ void MicroHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
                 ui->leftPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0436.peph"));
                 ui->rightPepTextEdit->setText(Pep::resToString(":/help-micro/figures-asm/fig0436.pepb"));
                 ui->helpFigureLabel->setText("<b>Figure 4.36</b><code>  </code> A machine language program to add 5 and 3 and output the single-character result.");
+                ui->leftPepTextEdit->show();
                 ui->rightPepTextEdit->show();
                 ui->rightCppTextEdit->hide();
                 ui->copyToSourceButton->setText("Copy to Object");

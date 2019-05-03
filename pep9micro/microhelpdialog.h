@@ -69,6 +69,7 @@ private:
         eTRAPS,
         eUSINGPEP9CPU,
         ePEP9REFERENCE,
+        eMICROEXAMPLES,
         eASMEXAMPLES,
         eOS,
         eMICROIMPL,
@@ -82,6 +83,13 @@ private:
         eMICROCODE,
         eDEBUGGINGMICRO,
 
+        // Microcode Examples,
+        eMFig101 = 0,
+        eMFig102,
+        eMFig103,
+        eMFig201,
+        eMFig202,
+        eMFig203,
         // Assembler Examples
         eFIG433 = 0,
         eFIG435,

@@ -163,7 +163,42 @@
       </item>
       <item>
        <property name="text">
-        <string>Examples</string>
+        <string>Microcode Examples</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>Figure 1.01</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 1.02</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 1.03</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 2.01</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 2.02</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Figure 2.03</string>
+        </property>
+       </item>
+      </item>
+      <item>
+       <property name="text">
+        <string>Assembler Examples</string>
        </property>
        <item>
         <property name="text">
