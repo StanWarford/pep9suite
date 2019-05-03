@@ -1,0 +1,40 @@
+// Choose between aligned / unaligned version of call.
+A=5, AMux=1, ALU=13; SCk; if SBIt call_o else call_e
+
+// Decrement SP by 2.
+call_e: A=5, B=24, AMux=1, ALU=3, CMux=1, C=5; SCk, LoadCk
+A=4, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=4; LoadCk
+A=4, B=5, MARMux=1; MARCk
+// Mem[SP] <- PC,
+MemWrite, A=7, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
+MemWrite, A=6, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
+// Move decoded operand value (which by convention is stored
+// in T6) to PC. PC <- T6
+MemWrite, A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
+A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk; goto end
+
+
+call_o: A=4, B=5, MARMux=1, PValid=0; MARCk, PValidCk
+// Decrement SP by 2.
+// Since bytes are read in pairs, must first read in old value of
+// Mem[SP - 1] into MDRE.
+MemRead, A=5, B=24, AMux=1, ALU=3, CMux=1, C=5; SCk, LoadCk
+MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=4; LoadCk
+MemRead, A=7, AMux=1, ALU=0, CMux=1, MDREMux=1, MDROMux=0; MDRECk, MDROCk
+// MDRO <- PC<hi>, begin write back.
+MemWrite, A=6, AMux=1, ALU=0, CMux=1, C=16; LoadCk
+MemWrite
+MemWrite
+// Begin read/write pair for Mem[SP].
+A=4, B=5, MARMux=1; MARCk
+MemRead
+MemRead
+// MDRE <- PC<lo>, MDRO <- Mem[SP + 1].
+MemRead, A=16, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
+// Begin writeback.
+MemWrite
+// Move decoded operand value (which by convention is stored
+// in T6) to PC. PC <- T6
+MemWrite, A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
+MemWrite, A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk; goto end
+end: stopCPU

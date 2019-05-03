@@ -1,0 +1,102 @@
+UnitPre: IR=0x000000, PC=0x01FF, T1=0x12, S=0
+UnitPre: Mem[0x0200]=0xAABB, Mem[0x0202]=0xCCDD,Mem[0x0204]=0xEEFF
+// ================
+// Before starting program execution, load the correct
+// machine vector for SP from Mem[0xFFF4-0xFFF5]
+// ================
+
+// No static register has a value of F4, so construct
+// it from F6 - 2.
+A=29, B=24, AMux=1, ALU=3, CMux=1, C=21; LoadCk
+// Initiate fetch from Mem[0xFFF4-0xFFF5].
+A=31, B=21, MARMux=1; MARCk
+MemRead
+MemRead
+// MDREven ? Mem[0xFFF4], MDROdd ? Mem[0xFFF5]
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+// SP<hi> ? MDREven
+EOMux=0, AMux=0, ALU=0, CMux=1, C=4; LoadCk
+// SP<lo> ? MDROdd
+EOMux=1, AMux=0, ALU=0, CMux=1, C=5; LoadCk; goto start
+
+// ================
+// Instruction Specifier & Operand Specifier Fetch
+// ================
+
+// Decide if the program counter is even, and select instruction specifier fetch logic.
+start: if isPCEven is_fetch_e else is_fetch_o 
+
+// ----------------
+// Even Instruction Specifier fetch w/ prefetch
+// ----------------
+
+is_fetch_e: A=6, B=7, MARMux=1; MARCk
+// Initiate fetch, PC ? PC plus 1.
+MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+// IR ? MDREven, T1 ? MDROdd, PrefetchValid ? true
+EOMux=0, AMux=0, ALU=0, CMux=1, C=8; LoadCk
+EOMux=1, AMux=0, ALU=0, CMux=1, C=11, PValid=1; LoadCk, PValidCk; goto end_is_fetch
+
+// ----------------
+// Odd Instruction Specifier fetch
+// ----------------
+
+// Determine if prefetch in T1 is valid.
+is_fetch_o: if hasPrefetch is_fetch_o_v else is_fetch_o_i 
+
+// Path taken when prefetch is valid. IR ? T1
+is_fetch_o_v: A=11, AMux=1, ALU=0, CMux=1, C=8; LoadCk
+// PC ? PC plus 1
+A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk; goto end_is_fetch
+
+// Path taken when prefetch is not valid. IR ? Mem[PC]<8..15>
+// Initiate fetch, PC ? PC plus 1.
+is_fetch_o_i: A=6, B=7, MARMux=1; MARCk
+MemRead, A=7, B=23, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+MemRead, MDROMux=0; MDROCk
+// T1 ? MDROdd.
+EOMux=1, AMux=0, ALU=0, CMux=1, C=8; LoadCk; goto end_is_fetch
+
+// Either execute unary instruction, or fetch operand specifier for non-unary instructions.
+end_is_fetch: if ISUNARY unary_dispatch else os_fetch
+
+// Execute unary instruction via instruction specifier decoder.
+unary_dispatch: goto loop 
+
+// ----------------
+// Operand Specifier Fetch
+// ----------------
+
+// Decide if the program counter is even, and select operand specifier fetch logic.
+os_fetch: if isPCEven os_even else os_odd 
+
+// PC is even, so there is no prefetch to use. Fetch from Mem[PC].
+os_even: A=6, B=7, MARMux=1; MARCk
+// Initiate fetch, PC ? PC plus 2.
+MemRead, A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+MemRead, A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+// OS<hi> ? MDREven, OS<lo> ? MDROdd
+EOMux=0, AMux=0, ALU=0, CMux=1, C=9; LoadCk
+EOMux=1, AMux=0, ALU=0, CMux=1, C=10; LoadCk; goto loop 
+
+//
+// PC is odd, so there is prefetch to use. PC ? PC plus 2
+os_odd: A=7, B=24, AMux=1, ALU=1, CMux=1, C=7; SCk, LoadCk
+A=6, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=6; LoadCk
+// Move PC to MAR.
+A=6, B=7, MARMux=1; MARCk
+// Initiate fetch from Mem[PC]. OS<hi> ? T1 (prefetch)
+MemRead, A=11, AMux=1, ALU=0, CMux=1, C=9; LoadCk
+MemRead
+MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
+// OS<lo> ? MDREven, T1 ? MDROdd, PrefetchValid ? true
+EOMux=0, AMux=0, ALU=0, CMux=1, C=10; LoadCk
+EOMux=1, AMux=0, ALU=0, CMux=1, C=11, PValid=1; LoadCk, PValidCk; goto loop 
+loop: A=8, AMux=1, ALU=0, ANDZ=0; ZCk; if EQ end else start
+
+end: stopCPU

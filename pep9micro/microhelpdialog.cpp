@@ -344,7 +344,23 @@ void MicroHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
             }
             else if(row == eMFig203) {
                 ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-2-03.pepmicro"));
-                ui->helpFigureLabel->setText("<b>Figure 2.03</b><code>  </code> A fragment using conditional branching to select correct memory fetch logic..");
+                ui->helpFigureLabel->setText("<b>Figure 2.03</b><code>  </code> A fragment using conditional branching to select correct memory fetch logic.");
+            }
+            else if(row == eMFig204) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-2-04.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 2.04</b><code>  </code> A fragment using showing the cost of unaligned memory access.");
+            }
+            else if(row == eMFig301) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-3-01.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 3.01</b><code>  </code> Unuary instruction fetch using the von Neumann cycle.");
+            }
+            else if(row == eMFig302) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-3-02.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 3.02</b><code>  </code> Unuary instruction / Non-unary instruction & operand fetch using the von Neumann cycle.");
+            }
+            else if(row == eMFig303) {
+                ui->microTextEdit->setText(Pep::resToString(":/help-micro/figures-micro/fig-3-03.pepmicro"));
+                ui->helpFigureLabel->setText("<b>Figure 3.03</b><code>  </code> Add a prelude section to the von Neumann cycle.");
             }
         }
     }
