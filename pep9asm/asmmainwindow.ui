@@ -699,7 +699,13 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Interupt Execution</string>
+    <string>Interrupt Execution</string>
+   </property>
+   <property name="iconText">
+    <string>Interrupt Execution</string>
+   </property>
+   <property name="toolTip">
+    <string>Interrupt Execution</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+.</string>
