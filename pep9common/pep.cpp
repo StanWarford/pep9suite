@@ -63,7 +63,7 @@ QString Pep::getSystem() {
     #endif
 }
 
-QString Pep::resToString(QString fileName) {
+QString Pep::resToString(QString fileName, bool removeLineNumbers) {
     QFile file(fileName);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
     QTextStream in(&file);
@@ -74,8 +74,8 @@ QString Pep::resToString(QString fileName) {
     }
     QStringList microcodeList;
     microcodeList = inString.split('\n');
-    for (int i = 0; i < microcodeList.size(); i++) {
-        microcodeList[i].remove(QRegExp("^[0-9]+\\.?\\s*"));
+    for (int i = 0; removeLineNumbers && i < microcodeList.size(); i++) {
+        microcodeList[i].remove(QRegExp("^[0-9a-fA-F]+\\.?\\s*"));
     }
     inString = microcodeList.join("\n");
     return inString;

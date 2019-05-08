@@ -44,7 +44,7 @@ public:
     static QString getSystem();
 
     // Function to read text from a resource file
-    static QString resToString(QString fileName);
+    static QString resToString(QString fileName, bool removeLineNumbers);
     static QString addCycleNumbers(QString codeString);
 
     // Maps between mnemonic enums and strings

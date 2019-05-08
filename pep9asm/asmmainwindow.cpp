@@ -761,7 +761,7 @@ void AsmMainWindow::print(Enu::EPane which)
 void AsmMainWindow::assembleDefaultOperatingSystem()
 {
     // Need to assemble operating system.
-    QString defaultOSText = Pep::resToString(":/help-asm/figures/pep9os.pep");
+    QString defaultOSText = Pep::resToString(":/help-asm/figures/pep9os.pep", false);
     // If there is text, attempt to assemble it
     if(!defaultOSText.isEmpty()) {
         QSharedPointer<AsmProgram> prog;

@@ -887,7 +887,7 @@ void MicroMainWindow::print(Enu::EPane which)
 void MicroMainWindow::assembleDefaultOperatingSystem()
 {
     // Need to assemble operating system.
-    QString defaultOSText = Pep::resToString(":/help-micro/alignedIO-OS.pep");
+    QString defaultOSText = Pep::resToString(":/help-micro/alignedIO-OS.pep", false);
     // If there is text, attempt to assemble it
     if(!defaultOSText.isEmpty()) {
         QSharedPointer<AsmProgram> prog;
