@@ -19,7 +19,7 @@ Debugging Programs
 </table>
 <p>
  The Pep/9 system provides debugging tools to help you locate errors in the programs you write.
- The tools include a memory dump, break points, and a symbolic trace feature.
+ The tools include a memory dump, tracing machine code, tracing assembler code, break points, and a symbolic trace feature.
  If you are debugging a machine language program that you wrote you can use the memory dump feature
  but you cannot set break points or use the symbolic trace feature.
  You can use all the debugging features if you are debugging an assembly language program.
@@ -27,6 +27,8 @@ Debugging Programs
  <p>
  <a name = "Topics">Topics:</a>
  <a href="#Memory">The memory dump</a>,
+ <a href="#Machine">Tracing machine code</a>,
+ <a href="#Assembler">Tracing assembler code</a>,
  <a href="#Break">Break points</a>,
  <a href="#Symbolic">Symbolic trace</a>,
  <a href="#Byte">Byte converter</a>.
@@ -43,32 +45,97 @@ You can click either of the other two view icons to hide the Memory Dump pane.
 <p>
  <img src="images/codecodememory.png" alt="codecodememory" hspace=10 vspace=10>
 <p>
+Each row of the memory dump pane displays eight contiguous bytes of memory and has three items.
+<p>
+<img src="images/memorydump.png" alt="memorydump" hspace=10 vspace=10>
+<p>
+The first item is the address of the first byte in the row.
+The second item is a list of eight bytes, each one displayed as two hexadecimal digits.
+In the above figure, 0008 is the address of 0E, the first byte of the row.
+Byte F1 is at address 0009, byte FC is at address 000A, and so on.
+<p>
+The third item in the memory dump pane are the ASCII representations of the eight bytes in the row.
+Some bytes in a memory dump are generated from ASCII strings, and are meaningeful when interpreted as such.
+For example, in the above figure bytes 48 and 69 at addresses 000D and 000E are displayed in the third item as
+letters H and i.
+Most bytes in a memory dump are not generated from ASCII strings, and are meaningless when interpreted as such.
+In the above figure, byte F1 is displayed as an accented n.
+When a byte represents a nonprintable ASCII control character, it is shown as a period.
+<p>
 You can scroll to any location in memory using the scroll bar on the right.
 To scroll to a specific memory location enter the address in hexadecimal
 in the input field at the bottom of the pane.
-Click the SP button to scroll to the run-time stack.
+Click the SP button to scroll to the region of memory pointed to by the stack pointer.
 Click the PC button to scroll to the region of memory pointed to by the program counter.
 <p>
 <img src="qrc:/help-asm/images/scrollto.png" alt="fig0434" hspace=10 vspace=10>
-
-<h4>Switching to debug mode</h4>
-To use the Memory Dump pane you must first switch to the debug mode.
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
+<h3><a name="Machine">Tracing machine code</a></h3>
 If you are debugging a machine language program that you wrote, the first step is to enter the program in hexadecimal in the Object Code pane.
 The following figure shows the object program from Figure 4.35 of the text.
+The input stream contains the two characters "up".
 <p>
 <img src="qrc:/help-asm/images/fig0435.png" alt="fig0435" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/inputup.png" alt="inputup" hspace=10 vspace=10>
 <p>
- Then select Build&rarr;Start Debugging Object from the menu, which puts you in the debugging mode.
+ Then select Debug&rarr;Start Debugging Object from the menu, which puts you in the debugging mode.
 <p>
 <img src="qrc:/help-asm/images/startdebuggingobject.png" alt="startdebuggingobject" hspace=10 vspace=10>
 <p>
+At the beginning of the trace, the program counter (PC) is set to 0, indicating that the next instruction to be fetched
+is the one in memory at address 0000.
+The memory dump highlights in blue the machine language instruction, in this example D1 FC15.
+<p>
+<img src="qrc:/help-asm/images/fig0435trace1.png" alt="fig0435trace1" hspace=10 vspace=10>
+<p>
+To trace what happens when the instruction executes select Debug&rarr;Single Step from the menu
+or click the corresponding icon in the tool bar.
+<p>
+<img src="qrc:/help-asm/images/singlestep.png" alt="singlestep" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/singlestepicon.png" alt="singlestepicon" hspace=10 vspace=10>
+<p>
+The debugger will perform one von Neumann cycle.
+Namely, it will fetch the instruction, decode it, increment PC, and execute the instruction fetched.
+In this example, the instruction D1 loads a byte from the input port FC15 into the accumulator.
+Because u is the first character in the input stream, the instruction puts its hexadecimal equivalent
+0x75 in the right half of the accumulator.
+At this point, the CPU pane shows the instruction specifier D1 in binary and the operand specifier FC15
+in hexadecimal.
+This is the instruction that was fetched and executed.
+The value of PC is the incremented value, which points to the instruction that will be executed next.
+The memory dump highlights the instruction that will be executed next, not the instruction that was
+just executed.
+<p>
+<img src="qrc:/help-asm/images/fig0435trace2.png" alt="fig0435trace2" hspace=10 vspace=10>
+<p>
+Instruction F1 0013 is the store byte instruction.
+It stores the right half of the accumulator to memory location 0013.
+The memory dump pane highlights in red that part of memory that was changed by the instruction.
+<p>
+<img src="qrc:/help-asm/images/fig0435trace3.png" alt="fig0435trace3" hspace=10 vspace=10>
+<p>
+ If you want to terminate the debugging session without running the program to completion, select Debug&rarr;Stop Debugging
+ from the menu or click the stop sign icon in the tool bar.
+<p>
+<img src="qrc:/help-asm/images/stopdebugging.png" alt="stopdebugging" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
+<p>
+
+
+
+
+
+<h3><a name="Assembler">Tracing assembler code</a></h3>
+
 If you are debugging an assembly language program that you wrote, enter the program in the Source Code pane.
 Assemble it by selecting Build&rarr;Assemble from the menu or clicking on the hammer icon in the tool bar.
 <p>
 <img src="qrc:/help-asm/images/assemble.png" alt="assemble" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/assembleicon.png" alt="assembleicon" hspace=10 vspace=10>
 <p>
- Then select Build&rarr;Start Debugging Source from the menu, or click on the icon with the bug in the toolbar, which puts you in the debugging mode.
+ Then select Build&rarr;Start Debugging Source from the menu, or click on the icon with the bug in the tool bar, which puts you in the debugging mode.
 <p>
 <img src="qrc:/help-asm/images/startdebuggingsource.png" alt="startdebuggingsource" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/startdebuggingicon.png" alt="startdebuggingicon" hspace=10 vspace=10>
@@ -136,6 +203,10 @@ The following screenshots from Figure 6.1 show the stack starting at address FB8
 <p>
 <img src="qrc:/help-asm/images/stopdebugging.png" alt="stopdebugging" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
+The basic operation for tracing a program is the Single step, which you activate by the
 <p>
 <a href="#Topics">Scroll to topics</a>.
 <p>

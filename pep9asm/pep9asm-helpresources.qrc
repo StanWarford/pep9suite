@@ -151,5 +151,18 @@
         <file>help-asm/figures/prob0832.pep</file>
         <file>help-asm/images/stopdebuggingicon.png</file>
         <file>help-asm/images/startdebuggingicon.png</file>
+        <file>help-asm/images/memorydump.png</file>
+        <file>help-asm/images/copytosource.png</file>
+        <file>help-asm/images/fig0435trace1.png</file>
+        <file>help-asm/images/fig0435trace2.png</file>
+        <file>help-asm/images/fig0435trace3.png</file>
+        <file>help-asm/images/singlestepicon.png</file>
+        <file>help-asm/images/stepinto.png</file>
+        <file>help-asm/images/stepintoicon.png</file>
+        <file>help-asm/images/stepout.png</file>
+        <file>help-asm/images/stepouticon.png</file>
+        <file>help-asm/images/stepover.png</file>
+        <file>help-asm/images/stepovericon.png</file>
+        <file>help-asm/images/inputup.png</file>
     </qresource>
 </RCC>
