@@ -771,7 +771,7 @@
      <normaloff>:/images/debugger_continue.png</normaloff>:/images/debugger_continue.png</iconset>
    </property>
    <property name="text">
-    <string>Continue Debuggind</string>
+    <string>Continue Debugging</string>
    </property>
    <property name="toolTip">
     <string>Continue Debugging</string>
@@ -1029,9 +1029,9 @@
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
-  <include location="../pep9micro/pep9micro-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
+  <include location="../pep9micro/pep9micro-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
  </resources>
  <connections>
