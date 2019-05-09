@@ -35,6 +35,7 @@
 #include <QtCore>
 #include <Qt>
 #include <QClipboard>
+#include <QPainter>
 
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     QWidget(parent), ui(new Ui::MemoryDumpPane), data(new QStandardItemModel(this)), lineSize(500), memDevice(nullptr),
@@ -50,7 +51,7 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     data->insertRows(0, (1<<16)/8);
     // Set the addresses of every row now, as they will not change during execution of the program.
     for(int it = 0; it < (1<<16) /8; it++) {
-        data->setData(data->index(it, 0), QString("0x%1").arg(it*8, 4, 16, QChar('0')));
+        data->setData(data->index(it, 0), QString("%1").arg(it*8, 4, 16, QChar('0')).toUpper());
     }
 
     // Hook the table view into the model, and size everything correctly
@@ -127,7 +128,7 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
             if(quint32(row * 8 + col) <= memDevice->maxAddress()) {
                 // Use the data in the memory section to set the value in the model.
                 memDevice->getByte(static_cast<quint16>(row * 8 + col), tempData);
-                data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')));
+                data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')).toUpper());
                 ch = QChar(tempData);
                 if (ch.isPrint()) {
                     memoryDumpLine.append(ch);
@@ -441,7 +442,7 @@ void MemoryDumpDelegate::setModelData(QWidget *editor, QAbstractItemModel *, con
     QString strValue = line->text();
     bool ok;
     quint64 intValue = static_cast<quint64>(strValue.toInt(&ok, 16));
-    // Use column-1 since the first column is the address.
+    // Use column - 1 since the first column is the address.
     quint16 addr = static_cast<quint16>(index.row()*8 + index.column() - 1);
     // Even though there is a regexp validator in place, validate data again.
     if(ok && intValue< 1<<16) {
@@ -449,6 +450,23 @@ void MemoryDumpDelegate::setModelData(QWidget *editor, QAbstractItemModel *, con
         // The memory section will signal back to the MemoryDump to update the value that changed.
         // This is done to avoid an infinite loop of signals between the memory section and the item model.
         memDevice->setByte(addr, static_cast<quint8>(intValue));
+    }
+}
+
+void MemoryDumpDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    // Do default drawing before overriding borders for leftmost and rightmost columns
+    QStyledItemDelegate::paint(painter, option, index);
+    // Use default pen color, as it should be aware of the current theme.
+
+    auto rect = option.rect;
+    // The first column has a bar on the right.
+    if(index.column() == 0) {
+        painter->drawLine(rect.topRight(), rect.bottomRight());
+    }
+    // The last column has a bar on the left.
+    else if(index.column() == 9) {
+        painter->drawLine(rect.topLeft(), rect.bottomLeft());
     }
 }
 

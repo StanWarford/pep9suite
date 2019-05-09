@@ -219,9 +219,10 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     connect(programManager, &AsmProgramManager::removeAllBreakpoints,
             [&](){controlSection->breakpointsRemoveAll();});
 
-    // Pre-render memory & fix minimum widget size.
-    int minSize = ui->memoryWidget->memoryDumpWidth();
-    ui->memoryWidget->setMinimumWidth(minSize);
+    // Pre-render memory & fix minimum/maximum widget sizes.
+    int size = ui->memoryWidget->memoryDumpWidth();
+    ui->memoryWidget->setMinimumWidth(size);
+    ui->memoryWidget->setMaximumWidth(size);
 
     // Assemble default OS
     assembleDefaultOperatingSystem();

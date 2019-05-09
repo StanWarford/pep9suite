@@ -171,9 +171,10 @@ CPUMainWindow::CPUMainWindow(QWidget *parent) :
     // Connect events for breakpoints
     connect(ui->actionDebug_Remove_All_Microcode_Breakpoints, &QAction::triggered, ui->microcodeWidget, &MicrocodePane::onRemoveAllBreakpoints);
 
-    // Pre-render memory & fix minimum widget size.
-    int minSize = ui->memoryWidget->memoryDumpWidth();
-    ui->memoryWidget->setMinimumWidth(minSize);
+    // Pre-render memory & fix minimum/maximum widget sizes.
+    int size = ui->memoryWidget->memoryDumpWidth();
+    ui->memoryWidget->setMinimumWidth(size);
+    ui->memoryWidget->setMaximumWidth(size);
 
     //Initialize debug menu
     handleDebugButtons();
