@@ -36,6 +36,7 @@
 #include <Qt>
 #include <QClipboard>
 #include <QPainter>
+static QString space = "   ";
 
 MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     QWidget(parent), ui(new Ui::MemoryDumpPane), data(new QStandardItemModel(this)), lineSize(500), memDevice(nullptr),
@@ -51,7 +52,7 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     data->insertRows(0, (1<<16)/8);
     // Set the addresses of every row now, as they will not change during execution of the program.
     for(int it = 0; it < (1<<16) /8; it++) {
-        data->setData(data->index(it, 0), QString("%1").arg(it*8, 4, 16, QChar('0')).toUpper());
+        data->setData(data->index(it, 0), QString("%1").arg(it*8, 4, 16, QChar('0')).toUpper() + space);
     }
 
     // Hook the table view into the model, and size everything correctly
@@ -145,7 +146,6 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
 
 
         }
-
         data->setData(data->index(row, 1+8), memoryDumpLine);
     }
     lineSize = 0;
@@ -282,7 +282,7 @@ QSize MemoryDumpPane::sizeHint() const
 {
     int tableSize = static_cast<int>(lineSize);
     int extraPad = 8;
-    return QSize(tableSize + extraPad,QWidget::sizeHint().height());
+    return QSize(tableSize + extraPad, QWidget::sizeHint().height());
 }
 
 void MemoryDumpPane::onFontChanged(QFont font)
@@ -294,6 +294,7 @@ void MemoryDumpPane::onFontChanged(QFont font)
     for(int it = 0; it < data->columnCount(); it++) {
         lineSize += static_cast<unsigned int>(ui->tableView->columnWidth(it));
     }
+    lineSize += QFontMetrics(font).boundingRect(space).width();
     setMaximumWidth(sizeHint().width());
 }
 
@@ -461,17 +462,26 @@ void MemoryDumpDelegate::setModelData(QWidget *editor, QAbstractItemModel *, con
 void MemoryDumpDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     // Do default drawing before overriding borders for leftmost and rightmost columns
-    QStyledItemDelegate::paint(painter, option, index);
     // Use default pen color, as it should be aware of the current theme.
-
-    auto rect = option.rect;
+    int margin = option.fontMetrics.boundingRect(space).width();
     // The first column has a bar on the right.
     if(index.column() == 0) {
-        painter->drawLine(rect.topRight(), rect.bottomRight());
+        QStyleOptionViewItem style(option);
+        style.textElideMode = Qt::TextElideMode::ElideNone;
+        style.rect.adjust(0, 0, -margin, 0);
+        QStyledItemDelegate::paint(painter, style, index);
+        painter->drawLine(style.rect.topRight(), style.rect.bottomRight());
     }
     // The last column has a bar on the left.
     else if(index.column() == 9) {
-        painter->drawLine(rect.topLeft(), rect.bottomLeft());
+        QStyleOptionViewItem style(option);
+        style.textElideMode = Qt::TextElideMode::ElideNone;
+        style.rect.adjust(margin, 0, 0, 0);
+        QStyledItemDelegate::paint(painter, style, index);
+        painter->drawLine(style.rect.topLeft(), style.rect.bottomLeft());
+    }
+    else {
+        QStyledItemDelegate::paint(painter, option, index);
     }
 }
 
