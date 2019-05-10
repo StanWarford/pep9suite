@@ -243,11 +243,6 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     connect(programManager, &AsmProgramManager::removeAllBreakpoints,
             [&](){controlSection->breakpointsRemoveAll();});
 
-    // Pre-render memory & fix minimum/maximum widget sizes.
-    int size = ui->memoryWidget->memoryDumpWidth();
-    ui->memoryWidget->setMinimumWidth(size);
-    ui->memoryWidget->setMaximumWidth(size);
-
     // Assemble default OS
     assembleDefaultOperatingSystem();
 

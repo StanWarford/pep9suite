@@ -88,7 +88,7 @@ public:
     void copy();
     // Post: selected text in the text edit is copied to the clipboard
 
-    int memoryDumpWidth();
+    QSize sizeHint() const override;
     // Post: the width of the memory dump text edit document is returned
 
 

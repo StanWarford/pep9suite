@@ -278,11 +278,11 @@ void MemoryDumpPane::copy()
     QApplication::clipboard()->setText(lines.join("\n"));
 }
 
-int MemoryDumpPane::memoryDumpWidth()
+QSize MemoryDumpPane::sizeHint() const
 {
     int tableSize = static_cast<int>(lineSize);
-    int extraPad = 15;
-    return tableSize + extraPad;
+    int extraPad = 8;
+    return QSize(tableSize + extraPad,QWidget::sizeHint().height());
 }
 
 void MemoryDumpPane::onFontChanged(QFont font)
@@ -290,6 +290,11 @@ void MemoryDumpPane::onFontChanged(QFont font)
     ui->tableView->setFont(font);
     ui->scrollToLineEdit->setFont(font);
     ui->tableView->resizeColumnsToContents();
+    lineSize = 0;
+    for(int it = 0; it < data->columnCount(); it++) {
+        lineSize += static_cast<unsigned int>(ui->tableView->columnWidth(it));
+    }
+    setMaximumWidth(sizeHint().width());
 }
 
 void MemoryDumpPane::onDarkModeChanged(bool darkMode)
