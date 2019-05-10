@@ -479,7 +479,7 @@ void MemoryDumpDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
         style.rect.adjust(0, 0, -margin, 0);
         QStyledItemDelegate::paint(painter, style, index);
         // Draw a line at the  midpoint of the old and new positions.
-        style.rect.adjust(0, 0, margin/2, 0);
+        style.rect.adjust(0, 0, margin/2 - 1, 0);
         painter->drawLine(style.rect.topRight(), style.rect.bottomRight());
     }
     // The last column has a bar on the left.
