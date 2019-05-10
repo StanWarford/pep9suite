@@ -35,7 +35,7 @@
       </property>
       <widget class="QTabWidget" name="tabWidget">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
          <horstretch>5</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -47,7 +47,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <property name="documentMode">
         <bool>false</bool>
@@ -73,9 +73,30 @@
              <property name="opaqueResize">
               <bool>true</bool>
              </property>
-             <widget class="AsmSourceCodePane" name="AsmSourceCodeWidgetPane" native="true"/>
-             <widget class="AsmObjectCodePane" name="AsmObjectCodeWidgetPane" native="true"/>
-             <widget class="AsmProgramListingPane" name="AsmProgramListingWidgetPane" native="true"/>
+             <widget class="AsmSourceCodePane" name="AsmSourceCodeWidgetPane" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+             <widget class="AsmObjectCodePane" name="AsmObjectCodeWidgetPane" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+             <widget class="AsmProgramListingPane" name="AsmProgramListingWidgetPane" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
             </widget>
            </item>
           </layout>
@@ -86,19 +107,26 @@
         <attribute name="title">
          <string>Debugger</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="0">
-          <widget class="AsmProgramTracePane" name="asmProgramTracePane" native="true"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="NewMemoryTracePane" name="memoryTracePane" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>0</height>
-            </size>
-           </property>
-          </widget>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="1">
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <widget class="QSplitter" name="splitter">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <widget class="AsmProgramTracePane" name="asmProgramTracePane" native="true"/>
+             <widget class="NewMemoryTracePane" name="memoryTracePane" native="true">
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
@@ -111,7 +139,7 @@
         <item>
          <widget class="IOWidget" name="ioWidget" native="true">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
             <horstretch>1</horstretch>
             <verstretch>3</verstretch>
            </sizepolicy>
@@ -128,9 +156,9 @@
       </widget>
       <widget class="MemoryDumpPane" name="memoryWidget" native="true">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
          <horstretch>1</horstretch>
-         <verstretch>8</verstretch>
+         <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="minimumSize">
@@ -977,15 +1005,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>MemoryDumpPane</class>
+   <class>AsmProgramListingPane</class>
    <extends>QWidget</extends>
-   <header>memorydumppane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>IOWidget</class>
-   <extends>QWidget</extends>
-   <header>iowidget.h</header>
+   <header>asmprogramlistingpane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -1001,15 +1023,21 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>NewMemoryTracePane</class>
+   <class>MemoryDumpPane</class>
    <extends>QWidget</extends>
-   <header>memorytracepane.h</header>
+   <header>memorydumppane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>AsmProgramListingPane</class>
+   <class>IOWidget</class>
    <extends>QWidget</extends>
-   <header>asmprogramlistingpane.h</header>
+   <header>iowidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>NewMemoryTracePane</class>
+   <extends>QWidget</extends>
+   <header>memorytracepane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -1026,12 +1054,12 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
-  <include location="pep9asm-resources.qrc"/>
   <include location="../pep9micro/pep9micro-resources.qrc"/>
+  <include location="pep9asm-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
  </resources>
  <connections>
