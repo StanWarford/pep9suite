@@ -146,7 +146,7 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
 
 
         }
-        data->setData(data->index(row, 1+8), memoryDumpLine);
+        data->setData(data->index(row, 1+8), memoryDumpLine.append(space));
     }
     lineSize = 0;
     for(int it = 0; it< data->columnCount(); it++) {
@@ -266,7 +266,9 @@ void MemoryDumpPane::copy()
         // Allow any text to be copied, even though copying the address
         // or text representation seems like a useless feature.
         if(!map.contains(index.row())) map[index.row()] = QStringList();
-        map[index.row()].append(index.data().toString());
+        // First and last columns have hidden white space to help with graphics.
+        // Remove it before appending it to a string.
+        map[index.row()].append(index.data().toString().trimmed());
 
     }
     // Turn the text of the selected rows into space delimited strings.
@@ -294,7 +296,9 @@ void MemoryDumpPane::onFontChanged(QFont font)
     for(int it = 0; it < data->columnCount(); it++) {
         lineSize += static_cast<unsigned int>(ui->tableView->columnWidth(it));
     }
-    lineSize += QFontMetrics(font).boundingRect(space).width();
+    lineSize +=
+            QFontMetrics(font).boundingRect(space).width();
+    ui->tableView->adjustSize();
     setMaximumWidth(sizeHint().width());
 }
 
@@ -461,25 +465,37 @@ void MemoryDumpDelegate::setModelData(QWidget *editor, QAbstractItemModel *, con
 
 void MemoryDumpDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    // Do default drawing before overriding borders for leftmost and rightmost columns
+
     // Use default pen color, as it should be aware of the current theme.
     int margin = option.fontMetrics.boundingRect(space).width();
     // The first column has a bar on the right.
     if(index.column() == 0) {
+
         QStyleOptionViewItem style(option);
+        // Prevent text from being hidden, since the new display rectangle will be too
+        // small to hold all of the text.
         style.textElideMode = Qt::TextElideMode::ElideNone;
+        // Add space between first column and next column.
         style.rect.adjust(0, 0, -margin, 0);
         QStyledItemDelegate::paint(painter, style, index);
+        // Draw a line at the  midpoint of the old and new positions.
+        style.rect.adjust(0, 0, margin/2, 0);
         painter->drawLine(style.rect.topRight(), style.rect.bottomRight());
     }
     // The last column has a bar on the left.
     else if(index.column() == 9) {
         QStyleOptionViewItem style(option);
+        // Prevent text from being hidden, since the new display rectangle will be too
+        // small to hold all of the text.
         style.textElideMode = Qt::TextElideMode::ElideNone;
+        // Add space between last column and previous column.
         style.rect.adjust(margin, 0, 0, 0);
         QStyledItemDelegate::paint(painter, style, index);
+        // Draw a line at the  midpoint of the old and new positions.
+        style.rect.adjust(-margin/2, 0, 0, 0);
         painter->drawLine(style.rect.topLeft(), style.rect.bottomLeft());
     }
+    // Otherwise perfom default drawing with given parameters.
     else {
         QStyledItemDelegate::paint(painter, option, index);
     }
