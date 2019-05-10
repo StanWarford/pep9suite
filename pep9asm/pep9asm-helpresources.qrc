@@ -21,7 +21,6 @@
         <file>help-asm/images/execute.png</file>
         <file>help-asm/images/fig0434io.png</file>
         <file>help-asm/images/fig0435.png</file>
-        <file>help-asm/images/fig0435cpu.png</file>
         <file>help-asm/images/fig0435memorydump.png</file>
         <file>help-asm/images/fig0441output.png</file>
         <file>help-asm/images/fig0443.png</file>
@@ -164,5 +163,17 @@
         <file>help-asm/images/stepover.png</file>
         <file>help-asm/images/stepovericon.png</file>
         <file>help-asm/images/inputup.png</file>
+        <file>help-asm/images/fig0604input.png</file>
+        <file>help-asm/images/fig0604trace1.png</file>
+        <file>help-asm/images/fig0604trace2.png</file>
+        <file>help-asm/images/fig0604trace2cpu.png</file>
+        <file>help-asm/images/fig0604trace3.png</file>
+        <file>help-asm/images/fig0604trace4.png</file>
+        <file>help-asm/images/fig0604trace3stack.png</file>
+        <file>help-asm/images/fig0604trace4stack.png</file>
+        <file>help-asm/images/fig0604trace3cpu.png</file>
+        <file>help-asm/images/fig0604trace4cpu.png</file>
+        <file>help-asm/images/fig0604trace5.png</file>
+        <file>help-asm/images/fig0604trace5cpu.png</file>
     </qresource>
 </RCC>

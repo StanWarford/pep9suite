@@ -123,34 +123,102 @@ The memory dump pane highlights in red that part of memory that was changed by t
 <img src="qrc:/help-asm/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
 <p>
 
-
-
-
-
 <h3><a name="Assembler">Tracing assembler code</a></h3>
 
 If you are debugging an assembly language program that you wrote, enter the program in the Source Code pane.
-Assemble it by selecting Build&rarr;Assemble from the menu or clicking on the hammer icon in the tool bar.
+Or, if you want to trace a textbook example, select it from the column on the left and click the Copy to Source button.
 <p>
-<img src="qrc:/help-asm/images/assemble.png" alt="assemble" hspace=10 vspace=10>
-<img src="qrc:/help-asm/images/assembleicon.png" alt="assembleicon" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/copytosource.png" alt="copytosource" hspace=10 vspace=10>
 <p>
- Then select Build&rarr;Start Debugging Source from the menu, or click on the icon with the bug in the tool bar, which puts you in the debugging mode.
+Select Debug&rarr;Start Debugging from the menu, or click on the icon with the bug in the tool bar.
+The Start Debugging action does three things &mdash; clears memory to all zeros, assembles and loads the source program,
+and puts you in the debugging mode.
 <p>
 <img src="qrc:/help-asm/images/startdebuggingsource.png" alt="startdebuggingsource" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/startdebuggingicon.png" alt="startdebuggingicon" hspace=10 vspace=10>
 <p>
-<h4>Tracing in debug mode</h4>
-While you are in the debugging mode, you can click the Single Step button in the CPU pane,
-which will execute one von Neumann cycle of the CPU.
+The following sequence of figures shows the tracing steps when debugging the program of Figure 6.4
+with values 68 84 in the input stream.
+<p>
+<img src="qrc:/help-asm/images/fig0604input.png" alt="fig0604input" hspace=10 vspace=10>
+<p>
+The Start Debugging action activates the Debugger tab, which displays the Program Trace.
+The Program Trace shows the assembly language source code with the statement to be executed next highlighted in blue.
+With this program, the branch-to-main instruction is about to execute.
+<p>
+<img src="qrc:/help-asm/images/fig0604trace1.png" alt="fig0604trace1" hspace=10 vspace=10>
+<p>
+Select
+While you are in the debugging mode, you can select Debug&rarr;Single Step from the menu or click on
+the corresponding icon in the tool bar.
 <p>
 <img src="qrc:/help-asm/images/singlestep.png" alt="singlestep" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/singlestepicon.png" alt="singlestepicon" hspace=10 vspace=10>
 <p>
+The debugger will perform one von Neumann cycle.
+Namely, it will fetch the instruction, decode it, increment PC, and execute the instruction fetched.
+In this example, the branch instruction uses immediate addressing to put 0003 into PC.
+At each step of the trace you can also see the content of the CPU.
+At this point, the CPU pane shows the instruction specifier for <code>BR</code> in binary and the operand specifier 0003
+in hexadecimal.
+This is the instruction that was fetched and executed.
+The value of PC is the address of the instruction that will be executed next, in this case the <code>SUBSP</code> instruction.
+The program trace highlights the instruction that will be executed next, not the instruction that was
+just executed.
+<p>
+<img src="qrc:/help-asm/images/fig0604trace2.png" alt="fig0604trace2" hspace=10 vspace=10>
+<p>
+<img src="qrc:/help-asm/images/fig0604trace2cpu.png" alt="fig0604trace2cpu" hspace=10 vspace=10>
+<p>
+The following figures show the Program Trace and CPU after another single step, which executes the <code>SUBSP</code> instruction.
+The CPU shows the <code>SUBSP</code> instruction in the instruction specifier and 6 in the operand specifier.
+This is the instruction that was just executed.
+Also shown is the rendering of the run-time stack in the Memory Trace.
+The program trace highlights the <code>DECI</code> instruction, which will be executed next.
+<p>
+<img src="qrc:/help-asm/images/fig0604trace3.png" alt="fig0604trace3" hspace=10 vspace=10>
+<p>
+<img src="qrc:/help-asm/images/fig0604trace3cpu.png" alt="fig0604trace3cpu" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0604trace3stack.png" alt="fig0604trace3stack" hspace=10 vspace=10>
+<p>
+Now the <code>DECI</code> instruction is about to execute.
+But, <code>DECI</code> is a trap instruction, which generates a trap to the operating system.
+Therefore, you have two trace options.
+If you select Single Step again, the debugger will execute all the code in the operating system
+for the <code>DECI</code> instruction and then show the state of the computer as if <code>DECI</code> were a single instruction.
+The Program Trace highlights the second <code>DECI</code> instruction, because that is the instruction
+that will be executed next.
+The Memory Trace shows that the <code>DECI</code> instruction input the value 68 to <code>exam1</code> on the run-time stack.
+The instruction specifier in the CPU shows that the last instruction executed is <code>RETTR</code>,
+which stands for "return from trap".
+This is the instruction in the operating system that returns control to the application.
+<p>
+<img src="qrc:/help-asm/images/fig0604trace4.png" alt="fig0604trace4" hspace=10 vspace=10>
+<p>
+<img src="qrc:/help-asm/images/fig0604trace4cpu.png" alt="fig0604trace4cpu" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0604trace4stack.png" alt="fig0604trace4stack" hspace=10 vspace=10>
+<p>
+If you want to trace the execution of the statements in the operating system that implement the <code>DECI</code>
+instruction, you can choose the second trace option.
+Select Debug&rarr;Step Into from the menu or click on the corresponding icon in the tool bar.
+<p>
+<img src="qrc:/help-asm/images/stepinto.png" alt="stepinto" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/stepintoicon.png" alt="stepintoicon" hspace=10 vspace=10>
+<p>
+Blah blah
+<p>
+<img src="qrc:/help-asm/images/fig0604trace5.png" alt="fig0604trace5" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0604trace5cpu.png" alt="fig0604trace5cpu" hspace=10 vspace=10>
+<p>
+
+
+
+
+
  The CPU pane shows you the values of the NZVC bits and of each register in the CPU.
- The following screenshot shows the CPU pane after one click of the Single Step button for the object program from Figure 4.35.
-<p>
-<img src="qrc:/help-asm/images/fig0435cpu.png" alt="fig0435cpupane" hspace=10 vspace=10>
-<p>
+ The following screenshot shows the CPU pane after one click of the Single Step button for the object program from
+ Figure 4.35.
+
 The CPU pane displays the content of the accumulator, index register, stack pointer, and program counter first in hexadecimal and
 then in decimal.
 It displays the instruction specifier first in binary, and then as a mnemonic.
