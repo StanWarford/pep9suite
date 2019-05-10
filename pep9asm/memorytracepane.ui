@@ -147,7 +147,10 @@
         </size>
        </property>
        <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
+        <enum>QFrame::Box</enum>
+       </property>
+       <property name="lineWidth">
+        <number>1</number>
        </property>
        <property name="interactive">
         <bool>false</bool>
