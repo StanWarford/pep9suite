@@ -144,11 +144,11 @@ with values 68 84 in the input stream.
 <p>
 The Start Debugging action activates the Debugger tab, which displays the Program Trace.
 The Program Trace shows the assembly language source code with the statement to be executed next highlighted in blue.
-With this program, the branch-to-main instruction is about to execute.
+With this program, the <code>BR main</code> instruction is about to execute.
 <p>
 <img src="qrc:/help-asm/images/fig0604trace1.png" alt="fig0604trace1" hspace=10 vspace=10>
 <p>
-Select
+<h4>Single step</h4>
 While you are in the debugging mode, you can select Debug&rarr;Single Step from the menu or click on
 the corresponding icon in the tool bar.
 <p>
@@ -198,6 +198,7 @@ This is the instruction in the operating system that returns control to the appl
 <img src="qrc:/help-asm/images/fig0604trace4cpu.png" alt="fig0604trace4cpu" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/fig0604trace4stack.png" alt="fig0604trace4stack" hspace=10 vspace=10>
 <p>
+<h4>Step into</h4>
 If you want to trace the execution of the statements in the operating system that implement the <code>DECI</code>
 instruction, you can choose the second trace option.
 Select Debug&rarr;Step Into from the menu or click on the corresponding icon in the tool bar.
@@ -205,15 +206,27 @@ Select Debug&rarr;Step Into from the menu or click on the corresponding icon in 
 <img src="qrc:/help-asm/images/stepinto.png" alt="stepinto" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/stepintoicon.png" alt="stepintoicon" hspace=10 vspace=10>
 <p>
-Blah blah
+The Program Trace pane switches to the operating system.
+When a trap instruction executes, control is transferred to the trap handler of the OS.
+The first instruction of the trap handler to execute is the <code>LDBX</code> instruction at FC522.
 <p>
 <img src="qrc:/help-asm/images/fig0604trace5.png" alt="fig0604trace5" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/fig0604trace5cpu.png" alt="fig0604trace5cpu" hspace=10 vspace=10>
 <p>
-
-
-
-
+<h4>Step out</h4>
+You can continue to single step through the operating system to trace the statements that implement <code>DECI</code>.
+Eventually, you will execute <code>RETTR</code>, the return from trap instruction.
+The Program Trace pane will switch back to the application and highlight the instruction after the one that caused the trap.
+If you are part way through tracing the trap handler and want to immediately return to the application,
+select Debug&rarr;Step Out from the menu or click on the corresponding icon in the tool bar.
+<p>
+<img src="qrc:/help-asm/images/stepout.png" alt="stepout" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/stepouticon.png" alt="stepouticon" hspace=10 vspace=10>
+<p>
+The debugger will automatically execute all the remaining statements of the trap handler up to,
+and including, the <code>RETTR</code> instruction.
+You will then be ready to single step through the remaining statements of the application.
+<p>
 
  The CPU pane shows you the values of the NZVC bits and of each register in the CPU.
  The following screenshot shows the CPU pane after one click of the Single Step button for the object program from
@@ -238,12 +251,6 @@ The Operand field in the CPU pane is enclosed in parentheses to emphasize the fa
  So, the value of the program counter is the address of the <i>next</i> instruction to execute.
  In the above screenshot, the program counter is 3, which is the address of the <i>next</i> instruction to execute,
  while the instruction that just executed is the instruction at address 0.
-<p>
- As you single step through the program, the Memory Dump pane highlights in red the bytes that have changed,
- and highlights in blue the bytes of the instruction as specified by the program counter.
- The following screenshot shows the Memory Dump pane after the second click of the Single Step button.
-<p>
-<img src="qrc:/help-asm/images/fig0435memorydump.png" alt="fig0435memorydump" hspace=10 vspace=10>
 <p>
 Each line of the Memory Dump pane displays eight bytes, each byte represented as two hexadecimal digits.
 The address in the first column is the address of the first byte.
@@ -271,10 +278,6 @@ The following screenshots from Figure 6.1 show the stack starting at address FB8
 <p>
 <img src="qrc:/help-asm/images/stopdebugging.png" alt="stopdebugging" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
-<p>
-<a href="#Topics">Scroll to topics</a>.
-<p>
-The basic operation for tracing a program is the Single step, which you activate by the
 <p>
 <a href="#Topics">Scroll to topics</a>.
 <p>
