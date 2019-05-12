@@ -38,8 +38,8 @@
 NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent), ui(new Ui::MemoryTracePane),
     colors(&PepColors::lightMode), globalVars(), runtimeStack(), heap(), extraItems(),
     graphicItemsInStackFrame(), heapFrameItemStack(),
-    globalLocation(QPointF(0, 0)), stackLocation(QPointF(150, 0)),
-    heapLocation (QPointF(300, 0/* - MemoryCellGraphicsItem::boxHeight*/)),
+    globalLocation(QPointF(0, 0)), stackLocation(QPointF(175, 0)),
+    heapLocation (QPointF(350, 0/* - MemoryCellGraphicsItem::boxHeight*/)),
     addressToItems()
 {
     ui->setupUi(this);
