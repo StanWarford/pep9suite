@@ -19,19 +19,61 @@ Debugging Programs
 </table>
 <p>
  The Pep/9 system provides debugging tools to help you locate errors in the programs you write.
- The tools include a memory dump, tracing machine code, tracing assembler code, break points, and a symbolic trace feature.
+ The tools include the CPU display, a memory dump, tracing machine code, tracing assembler code, break points, and a symbolic trace feature.
  If you are debugging a machine language program that you wrote you can use the memory dump feature
  but you cannot set break points or use the symbolic trace feature.
  You can use all the debugging features if you are debugging an assembly language program.
  An additional debugging tool is the byte converter, which is available any time the application is running.
  <p>
  <a name = "Topics">Topics:</a>
+ <a href="#CPU">The CPU display</a>,
  <a href="#Memory">The memory dump</a>,
  <a href="#Machine">Tracing machine code</a>,
  <a href="#Assembler">Tracing assembler code</a>,
  <a href="#Break">Break points</a>,
  <a href="#Symbolic">Symbolic trace</a>,
  <a href="#Byte">Byte converter</a>.
+
+<h3><a name="CPU">The CPU display</a></h3>
+
+The Pep/9 debugging system lets you step through the execution of a program one statement at a time.
+At each point in time, the Program Trace pane highlights the assembly language statement that will be executed next,
+and the CPU displays the contents of its registers just after the previous statement has executed.
+<p>
+The screenshot of the Program Trace below highlights the <code>ASRA</code> instruction at 0012.
+This statement has <i>not</i> yet executed.
+The screenshot of the CPU display below shows the state of the processor just <i>after</i> the <code>ADDA</code> instruction at 000F has executed.
+<p>
+<img src="qrc:/help-asm/images/cpudisplay1.png" alt="cpudisplay1" hspace=10 vspace=10>
+<p>
+<img src="qrc:/help-asm/images/cpudisplay2.png" alt="cpudisplay2" hspace=10 vspace=10>
+<p>
+The CPU pane shows the values of the NZVC bits and of each register in the CPU.
+It displays the content of the accumulator, index register, stack pointer, and program counter first in hexadecimal and
+then in decimal.
+In the above screenshot, the accumulator has a decimal value of 152, the result of adding 68 for <code>exam1</code> and 84 for <code>exam2</code>.
+<p>
+The CPU display shows the instruction specifier first in binary, and then as a mnemonic.
+If the instruction is nonunary, it decodes the addressing mode field and shows the corresponding letter for the addressing mode
+after the mnemonic, and displays the operand specifier.
+In the above screenshot, the mnemonic is <code>ADDA</code>, and the addressing mode letter is <code>s</code> for stack-relative addressing.
+The operand specifier is 2.
+<p>
+The operand is not part of the CPU, except for the case of immediate addressing when the operand <i>is</i> the operand specifier.
+However, for the convenience of the programmer, the CPU pane computes the value of the operand from the addressing mode
+and displays it as well.
+The Operand field in the CPU pane is enclosed in parentheses to emphasize the fact that it is <i>not</i> part of the CPU.
+In the above screenshot, the operand is 84, the decimal value that was just added to the accumulator.
+<p>
+The values in the CPU pane are the values <i>after</i> the instruction in the instruction specifier has executed.
+For example, the values in the above screenshots are the values after the <code>ADDA</code> at 000F executes.
+In the von Neumann cycle, the program counter increments before the instruction executes.
+So, the value of the program counter is the address of the <i>next</i> instruction to execute.
+In the above screenshot, the program counter is 0012, which is the address of the <i>next</i> instruction to execute,
+while the instruction that just executed is the instruction at address 000F.
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
 
 <h3><a name="Memory">The memory dump</a></h3>
 
@@ -45,19 +87,19 @@ You can click either of the other two view icons to hide the Memory Dump pane.
 <p>
  <img src="images/codecodememory.png" alt="codecodememory" hspace=10 vspace=10>
 <p>
-Each row of the memory dump pane displays eight contiguous bytes of memory and has three items.
+Each row of the memory dump pane displays eight contiguous bytes of memory and has three parts.
 <p>
 <img src="images/memorydump.png" alt="memorydump" hspace=10 vspace=10>
 <p>
-The first item is the address of the first byte in the row.
-The second item is a list of eight bytes, each one displayed as two hexadecimal digits.
+The first part shows the address of the first byte in the row.
+The second part shows a list of eight bytes, each one displayed as two hexadecimal digits.
 In the above figure, 0008 is the address of 0E, the first byte of the row.
 Byte F1 is at address 0009, byte FC is at address 000A, and so on.
 <p>
-The third item in the memory dump pane are the ASCII representations of the eight bytes in the row.
+The third part in the memory dump pane shows the ASCII representations of the eight bytes in the row.
 Some bytes in a memory dump are generated from ASCII strings, and are meaningeful when interpreted as such.
 For example, in the above figure bytes 48 and 69 at addresses 000D and 000E are displayed in the third item as
-letters H and i.
+letters <code>H</code> and <code>i</code>.
 Most bytes in a memory dump are not generated from ASCII strings, and are meaningless when interpreted as such.
 In the above figure, byte F1 is displayed as an accented n.
 When a byte represents a nonprintable ASCII control character, it is shown as a period.
@@ -90,6 +132,7 @@ The memory dump highlights in blue the machine language instruction, in this exa
 <p>
 <img src="qrc:/help-asm/images/fig0435trace1.png" alt="fig0435trace1" hspace=10 vspace=10>
 <p>
+<h4>Single step</h4>
 To trace what happens when the instruction executes select Debug&rarr;Single Step from the menu
 or click the corresponding icon in the tool bar.
 <p>
@@ -99,7 +142,7 @@ or click the corresponding icon in the tool bar.
 The debugger will perform one von Neumann cycle.
 Namely, it will fetch the instruction, decode it, increment PC, and execute the instruction fetched.
 In this example, the instruction D1 loads a byte from the input port FC15 into the accumulator.
-Because u is the first character in the input stream, the instruction puts its hexadecimal equivalent
+Because <code>u</code> is the first character in the input stream, the instruction puts its hexadecimal equivalent
 0x75 in the right half of the accumulator.
 At this point, the CPU pane shows the instruction specifier D1 in binary and the operand specifier FC15
 in hexadecimal.
@@ -198,6 +241,12 @@ This is the instruction in the operating system that returns control to the appl
 <img src="qrc:/help-asm/images/fig0604trace4cpu.png" alt="fig0604trace4cpu" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/fig0604trace4stack.png" alt="fig0604trace4stack" hspace=10 vspace=10>
 <p>
+The Memory Dump pane also highlights the top byte of the stack in magenta.
+The following screenshot show the stack starting at address FB89.
+The <code>DECI</code> instruction stored 0044(hex) = 68(dec) at address FB8D on the run-time stack.
+<p>
+<img src="qrc:/help-asm/images/memorydumpsp.png" alt="memorydumpsp" hspace=10 vspace=10>
+<p>
 <h4>Step into</h4>
 If you want to trace the execution of the statements in the operating system that implement the <code>DECI</code>
 instruction, you can choose the second trace option.
@@ -208,7 +257,7 @@ Select Debug&rarr;Step Into from the menu or click on the corresponding icon in 
 <p>
 The Program Trace pane switches to the operating system.
 When a trap instruction executes, control is transferred to the trap handler of the OS.
-The first instruction of the trap handler to execute is the <code>LDBX</code> instruction at FC522.
+The first instruction of the trap handler to execute is the <code>LDBX</code> instruction at FC52.
 <p>
 <img src="qrc:/help-asm/images/fig0604trace5.png" alt="fig0604trace5" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/fig0604trace5cpu.png" alt="fig0604trace5cpu" hspace=10 vspace=10>
@@ -223,50 +272,17 @@ select Debug&rarr;Step Out from the menu or click on the corresponding icon in t
 <img src="qrc:/help-asm/images/stepout.png" alt="stepout" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/stepouticon.png" alt="stepouticon" hspace=10 vspace=10>
 <p>
-The debugger will automatically execute all the remaining statements of the trap handler up to,
-and including, the <code>RETTR</code> instruction.
+The debugger will automatically execute all the remaining statements of the code you are tracing up to,
+and including, the next <code>RETTR</code> or <code>RET</code> instruction.
 You will then be ready to single step through the remaining statements of the application.
 <p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
 
- The CPU pane shows you the values of the NZVC bits and of each register in the CPU.
- The following screenshot shows the CPU pane after one click of the Single Step button for the object program from
- Figure 4.35.
 
-The CPU pane displays the content of the accumulator, index register, stack pointer, and program counter first in hexadecimal and
-then in decimal.
-It displays the instruction specifier first in binary, and then as a mnemonic.
-If the instruction is nonunary, it decodes the addressing mode field and shows the corresponding letter for the addressing mode
-after the mnemonic, and displays the operand specifier.
-<p>
-The operand is not part of the CPU, except for the case of immediate addressing when the operand <i>is</i> the operand specifier.
-However, for the convenience of the programmer, the CPU pane computes the value of the operand from the addressing mode
-and displays it as well.
-The Operand field in the CPU pane is enclosed in parentheses to emphasize the fact that it is <i>not</i> part of the CPU.
-<p>
-<img src="qrc:/help-asm/images/operand.png" alt="operand" hspace=10 vspace=10>
-<p>
- The values in the CPU pane are the values <i>after</i> the instruction in the instruction specifier has executed.
- For example, the values in the above screenshots are the values after the first <code>LDBA</code> executes.
- In the von Neumann cycle, the program counter increments before the instruction executes.
- So, the value of the program counter is the address of the <i>next</i> instruction to execute.
- In the above screenshot, the program counter is 3, which is the address of the <i>next</i> instruction to execute,
- while the instruction that just executed is the instruction at address 0.
-<p>
-Each line of the Memory Dump pane displays eight bytes, each byte represented as two hexadecimal digits.
-The address in the first column is the address of the first byte.
-The rightmost column shows the value of the bytes in the row displayed as ASCII characters.
-If the byte is a control character that cannot be displayed, the column depicts the value as a period.
-<p>
-The above screenshot highlights the byte at address 0013 in red because the first <code>STBA</code> instruction
-input the letter <code>u</code> at that address.
-It hightlights the bytes starting at address 0006 in blue because that is the value of the program counter,
-and those bytes are the instruction that will execute <i>next</i>.
-<p>
-The Memory Dump pane also highlights the top byte of the stack in magenta.
-The following screenshots from Figure 6.1 show the stack starting at address FB8E just before the <code>ADDSP</code> executes.
-<p>
-<img src="qrc:/help-asm/images/fig0601.png" alt="fig0601" hspace=10 vspace=10>
-<img src="qrc:/help-asm/images/fig0601dump.png" alt="fig0601dump" hspace=10 vspace=10><p>
+
+
+
  <h4>Switching out of debug mode</h4>
  If you want the program to run to completion, click the Resume button.
  The program will run to completion and exit the debug mode.

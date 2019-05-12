@@ -35,8 +35,6 @@
         <file>help-asm/images/fig0519error.png</file>
         <file>help-asm/images/fig0519unformatted.png</file>
         <file>help-asm/images/fig0527tracetagwarning.png</file>
-        <file>help-asm/images/fig0601.png</file>
-        <file>help-asm/images/fig0601dump.png</file>
         <file>help-asm/images/formatfromlisting.png</file>
         <file>help-asm/images/interruptexecution.png</file>
         <file>help-asm/images/iotab.png</file>
@@ -45,7 +43,6 @@
         <file>help-asm/images/memorytrace.png</file>
         <file>help-asm/images/modifieddotburn.png</file>
         <file>help-asm/images/nop0.png</file>
-        <file>help-asm/images/operand.png</file>
         <file>help-asm/images/pecho.png</file>
         <file>help-asm/images/pep9help.png</file>
         <file>help-asm/images/pep9oshelpsystem.png</file>
@@ -174,5 +171,8 @@
         <file>help-asm/images/fig0604trace4cpu.png</file>
         <file>help-asm/images/fig0604trace5.png</file>
         <file>help-asm/images/fig0604trace5cpu.png</file>
+        <file>help-asm/images/cpudisplay1.png</file>
+        <file>help-asm/images/cpudisplay2.png</file>
+        <file>help-asm/images/memorydumpsp.png</file>
     </qresource>
 </RCC>
