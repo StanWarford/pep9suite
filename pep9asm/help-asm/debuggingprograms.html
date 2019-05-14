@@ -98,7 +98,7 @@ Byte F1 is at address 0009, byte FC is at address 000A, and so on.
 <p>
 The third part in the memory dump pane shows the ASCII representations of the eight bytes in the row.
 Some bytes in a memory dump are generated from ASCII strings, and are meaningeful when interpreted as such.
-For example, in the above figure bytes 48 and 69 at addresses 000D and 000E are displayed in the third item as
+For example, in the above figure bytes 48 and 69 at addresses 000D and 000E are displayed in the third part as
 letters <code>H</code> and <code>i</code>.
 Most bytes in a memory dump are not generated from ASCII strings, and are meaningless when interpreted as such.
 In the above figure, byte F1 is displayed as an accented n.
@@ -117,12 +117,14 @@ Click the PC button to scroll to the region of memory pointed to by the program 
 <h3><a name="Machine">Tracing machine code</a></h3>
 If you are debugging a machine language program that you wrote, the first step is to enter the program in hexadecimal in the Object Code pane.
 The following figure shows the object program from Figure 4.35 of the text.
-The input stream contains the two characters "up".
+The input stream contains the two characters <code>up</code>.
 <p>
 <img src="qrc:/help-asm/images/fig0435.png" alt="fig0435" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/inputup.png" alt="inputup" hspace=10 vspace=10>
 <p>
- Then select Debug&rarr;Start Debugging Object from the menu, which puts you in the debugging mode.
+Then select Debug&rarr;Start Debugging Object from the menu.
+The Start Debugging Object action does three things &mdash; clears memory to all zeros, loads the machine language program
+into memory starting at address 0000, and puts you in the debugging mode.
 <p>
 <img src="qrc:/help-asm/images/startdebuggingobject.png" alt="startdebuggingobject" hspace=10 vspace=10>
 <p>
@@ -153,9 +155,11 @@ just executed.
 <p>
 <img src="qrc:/help-asm/images/fig0435trace2.png" alt="fig0435trace2" hspace=10 vspace=10>
 <p>
+The following figure shows the state of the machine after one more single step.
 Instruction F1 0013 is the store byte instruction.
 It stores the right half of the accumulator to memory location 0013.
 The memory dump pane highlights in red that part of memory that was changed by the instruction.
+The highlighted instruction in the memory dump, D1 FC15, is the instruction that will execute next.
 <p>
 <img src="qrc:/help-asm/images/fig0435trace3.png" alt="fig0435trace3" hspace=10 vspace=10>
 <p>
@@ -226,10 +230,12 @@ The program trace highlights the <code>DECI</code> instruction, which will be ex
 <p>
 Now the <code>DECI</code> instruction is about to execute.
 But, <code>DECI</code> is a trap instruction, which generates a trap to the operating system.
-Therefore, you have two trace options.
-If you select Single Step again, the debugger will execute all the code in the operating system
-for the <code>DECI</code> instruction and then show the state of the computer as if <code>DECI</code> were a single instruction.
-The Program Trace highlights the second <code>DECI</code> instruction, because that is the instruction
+Therefore, you have two trace options &mdash; (1) single step the trap instruction, or (2) step into the trap instruction.
+<p>
+<h4>Single step a trap instruction</h4>
+Option (1): If you select Single Step again, the debugger will execute all the code in the operating system
+for the <code>DECI</code> trap instruction and then show the state of the computer as if <code>DECI</code> were a single instruction.
+The Program Trace below highlights the second <code>DECI</code> instruction, because that is the instruction
 that will be executed next.
 The Memory Trace shows that the <code>DECI</code> instruction input the value 68 to <code>exam1</code> on the run-time stack.
 The instruction specifier in the CPU shows that the last instruction executed is <code>RETTR</code>,
@@ -247,8 +253,8 @@ The <code>DECI</code> instruction stored 0044(hex) = 68(dec) at address FB8D on 
 <p>
 <img src="qrc:/help-asm/images/memorydumpsp.png" alt="memorydumpsp" hspace=10 vspace=10>
 <p>
-<h4>Step into</h4>
-If you want to trace the execution of the statements in the operating system that implement the <code>DECI</code>
+<h4>Step into a trap instruction</h4>
+Option (2): If you want to trace the execution of the statements in the operating system that implement the <code>DECI</code>
 instruction, you can choose the second trace option.
 Select Debug&rarr;Step Into from the menu or click on the corresponding icon in the tool bar.
 <p>
@@ -276,84 +282,116 @@ The debugger will automatically execute all the remaining statements of the code
 and including, the next <code>RETTR</code> or <code>RET</code> instruction.
 You will then be ready to single step through the remaining statements of the application.
 <p>
-<a href="#Topics">Scroll to topics</a>.
+<h4>Switching out of debug mode</h4>
+If you want the program to run to completion, select Debug&rarr;Continue Debugging from the menu or click on the corresponding icon in the tool bar.
+If you have inserted any break points in your program, the debugger will execute all the statements up to the statement that has a break point,
+and you will still be in the debug mode.
+Otherwise, the program will run to completion and exit the debug mode.
 <p>
-
-
-
-
-
- <h4>Switching out of debug mode</h4>
- If you want the program to run to completion, click the Resume button.
- The program will run to completion and exit the debug mode.
+<img src="qrc:/help-asm/images/continuedebugging.png" alt="continuedebugging" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/continuedebuggingicon.png" alt="continuedebuggingicon" hspace=10 vspace=10>
 <p>
-<img src="qrc:/help-asm/images/resume.png" alt="resume" hspace=10 vspace=10>
-<p>
- If you want to terminate the debugging session without running the program to completion, select Build&rarr;Stop Debugging
- from the menu or click the stop sign icon in the menu bar.
+If you want to terminate the debugging session without running the program to completion, select Debug&rarr;Stop Debugging
+from the menu or click the stop sign icon in the menu bar.
 <p>
 <img src="qrc:/help-asm/images/stopdebugging.png" alt="stopdebugging" hspace=10 vspace=10>
 <img src="qrc:/help-asm/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
 <p>
+<h4>Step over</h4>
+If you are stepping through a program in the debugger and get to a <code>call</code> instruction, it is possible to bypass
+all the statements inside the function.
+For example, susppose you trace the main program in Figure 6.25 of the textbook up to the <code>CALL</code> at 007D.
+The <code>SUBSP</code> statement that just executed has pushed storage for <code>retVal</code>
+and parameters <code>n</code> and <code>k</code> onto the run-time stack.
+<p>
+<img src="qrc:/help-asm/images/fig0625trace1.png" alt="fig0625trace1" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0625trace1stack.png" alt="fig0625trace1stack" hspace=10 vspace=10>
+<p>
+If you do not want to trace all the code of the function but just want to know the state of the computation
+after the function returns, select Debug&rarr;Step Over from the menu or click the corresponding icon in the menu bar.
+<p>
+<img src="qrc:/help-asm/images/stepover.png" alt="stepover" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/stepovericon.png" alt="stepovericon" hspace=10 vspace=10>
+<p>
+The debugger will execute all the statements of the function up to and including the <code>RET</code> statement
+that corresponds to the <code>CALL</code>.
+In the following figure, the function has computed the value of <code>retVal</code>, which the main program will output.
+<p>
+<img src="qrc:/help-asm/images/fig0625trace2.png" alt="fig0625trace2" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0625trace2stack.png" alt="fig0625trace2stack" hspace=10 vspace=10>
+<p>
+The Step Over operation works on a <code>CALL</code> instruction the same way the Single Step operation works
+on a trap instruction.
+In both cases, the debugger executes all the code of the trap or call as if it were a single instruction at
+a higher level of abstraction.
+<p>
+<h4>Summary of step operations</h4>
+Here is a summary of the four debugging step operations.
+<p>
+Step Over
+<ul>
+  <li>Steps over a trap instruction</li>
+  <li>Steps over a <code>CALL</code> instruction</li>
+</ul>
+Step Into
+<ul>
+  <li>Steps into a trap instruction</li>
+  <li>Steps into a <code>CALL</code> instruction</li>
+</ul>
+Single Step
+<ul>
+  <li>Steps over a trap instruction</li>
+  <li>Steps into a <code>CALL</code> instruction</li>
+</ul>
+Step Out
+<ul>
+  <li>Steps out of the most recent <code>call</code> or trap instruction</li>
+</ul>
+Strictly speaking, the Single Step operation is not necessary, because you could always achieve the same
+effect by stepping over or stepping into the instruction.
+It is provided as a convenience, because most of the time you will want to step over a trap instruction
+and step into a <code>CALL</code> instruction.
+See the menu for the keyboard shortcut on your system for the Single Step operation.
+<p>
 <a href="#Topics">Scroll to topics</a>.
 <p>
-<h3><a name="Break">Break points</a></h3>
-To use break points for an assembly language program enter the debugging mode as described in the previous section.
-Pep/9 will switch from the Code pane to the Trace pane and display the source program for tracing.
-The following screenshot shows the Trace pane for the program in Figure 5.15 of the text.
-<p>
-<img src="qrc:/help-asm/images/fig0515listingtrace.png" alt="fig0515listingtrace" hspace=10 vspace=10>
-<p>
-As you single step through the program, the CPU shows the content of the registers as described in the previous section.
-Remember that the CPU pane shows the values of the registers <i>after</i> the instruction in the instruction specifier
-has executed.
-In addition, the Trace pane highlights the instruction specified by the program counter, which is the <i>next</i> instruction
-to be executed.
-The following screenshot shows the Trace pane after five clicks of the Single Step button.
-The <code>LDWA</code> instruction has just executed, and the <code>ADDA</code> instruction will execute next.
-<p>
-<img src="qrc:/help-asm/images/fig0515listingadda.png" alt="fig0515listingadda" hspace=10 vspace=10>
-<img src="qrc:/help-asm/images/fig0515cpu.png" alt="fig0515cpu" hspace=10 vspace=10>
 
+<h3><a name="Break">Break points</a></h3>
+
+If you want to trace a program up to a specific instruction and you do not want to single step through all the previous statements to get there,
+you can set a break point at the instruction and then Continue Debugging to that point.
+For example, the following figure shows the program from Figure 6.10 in the textbook after Start Debugging.
+The input stream is <code>Hello, world!*</code>.
 <p>
-<h4>Setting break points</h4>
- Each executable instruction in the Trace pane has a checkbox for setting a break point.
- The following screenshot shows the Trace pane for the program in Figure 5.15 before any statement has been executed.
- The programmer has set a breakpoint at the <code>STWA</code> instruction.
+<img src="qrc:/help-asm/images/fig0610trace1.png" alt="fig0610trace1" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0610trace1mem.png" alt="fig0610trace1mem" hspace=10 vspace=10>
 <p>
-<img src="qrc:/help-asm/images/fig0515breakpoint.png" alt="fig0515breakpoint" hspace=10 vspace=10>
+The gray strip on the left of the listing is the break point area.
+If you click in the break point area next to an executable statement, a red circle will appear to indicate that the statement has a break point.
+In the above figure, break points have been set for the <code>LDBA</code> instruction at 000A and the <code>LDBA</code> instruction at 0019.
+To remove a break point click the red circle.
 <p>
- When the programmer clicks the Resume button, the program resumes executing until it gets to an instruction with a breakpoint
- or until completion if no breakpoint is encountered.
- The following screenshots show what happens when the Resume button is clicked.
- Note that the <code>STWA</code> instruction will execute next if the programmer clicks the Single Step button at this point.
- <p>
-<img src="qrc:/help-asm/images/resume.png" alt="resume" hspace=10 vspace=10>
-<img src="qrc:/help-asm/images/fig0515resumed.png" alt="fig0515resumed" hspace=10 vspace=10>
+To execute all the statements up to the next break point, select Debug&rarr;Continue Debugging from the menu or click on the corresponding icon in the tool bar.
 <p>
-<h4>Tracing traps</h4>
- If you want to trace the operating system's execution of a trap instruction, click the Trace Traps checkbox in the CPU pane before
- entering the debugging mode.
- <p>
-<img src="qrc:/help-asm/images/tracetraps.png" alt="tracetraps" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/continuedebugging.png" alt="continuedebugging" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/continuedebuggingicon.png" alt="continuedebuggingicon" hspace=10 vspace=10>
 <p>
-As you single step through your program, if you execute a trap instruction the Trace pane will show the individual instructions
-in the trap handler of the operating system.
-The following screenshot shows the <code>DECI</code> instruction about to be executed.
+The following figure shows that all the statements up to but not including the one at 000A have executed.
+The previous instruction <code>STBA</code> put the letter <code>H</code> in the global variable <code>letter</code> at 0003.
+At this point, the statement to be executed is the statement at the top of a <code>while</code> loop.
 <p>
-<img src="qrc:/help-asm/images/fig0515deci.png" alt="fig0515deci" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0610trace2.png" alt="fig0610trace2" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0610trace2mem.png" alt="fig0610trace2mem" hspace=10 vspace=10>
 <p>
-Clicking the Single Step button at this point causes the Trace pane to switch to the trap handler in the operating system.
-The screenshot below shows the Trace pane after clicking the Single Step button.
-It highlights the first instruction in the trap handler of the operating system.
+The next figure shows the debugger after one more Continue Debugging operation.
+The debugger executed the statements in the body of the <code>while</code> loop.
+The debugger did not stop at the second break point because that break point is on an instruction in a nested <code>if</code>
+statement that did not execute.
+The previous statement that executed was the <code>BR</code> instruction at 002B.
+The memory trace shows the value of <code>e</code> stored to <code>letter</code> by the <code>STBA</code> instruction at 0028.
 <p>
-<img src="qrc:/help-asm/images/fig0515trap.png" alt="fig0515trap" hspace=10 vspace=10>
-<p>
-When you are tracing an operating system trap, you can set breakpoints and click Single Step or Resume as you would
-with the source program.
-If you resume within the operating system and encounter no further breakpoints, Pep/9 will continue after the return
-from trap instruction <code>RETTR</code>
-to the source program until it encounters a break point there.
+<img src="qrc:/help-asm/images/fig0610trace2.png" alt="fig0610trace2" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/fig0610trace3mem.png" alt="fig0610trace3mem" hspace=10 vspace=10>
 <p>
 <a href="#Topics">Scroll to topics</a>.
 
@@ -375,17 +413,22 @@ The screenshot below shows what happens if you make an error in one of the trace
 If your program does include trace tags and they have no errors, the memory trace will automatically become visible
 below the listing trace pane.
 As you single-step through the program, you can see the global variables on the left, and the run-time stack on the right.
-The only user interface control that affects the symbolic trace display is the magnification input at the bottom left of the pane.
 Here is a screenshot of the memory trace pane from the program in Figure 6.21.
-The memory cell for <code>k</code> on top of the run-time stack is colored red because the <code>STA</code>
+The memory cell for <code>k</code> on top of the run-time stack is colored red because a <code>STWA</code>
 instruction has just changed its value.
 <p>
 <img src="qrc:/help-asm/images/memorytrace.png" alt="memorytrace" hspace=10 vspace=10>
 <p>
- The sybolic trace feature displays global variables allocated with the <code>.BLOCK</code> dot command,
- parameters and local variables allocated with the <code>SUBSP</code> instruction, the fields of a global <code>struct</code>,
- and storage from the heap allocated with the <code>new</code> operator.
- See the text for information on how to use trace tags in your programs.
+The sybolic trace feature also displays the fields of a global <code>struct</code>,
+and storage from the heap allocated with a call to <code>malloc</code>.
+Here is a screenshot of the memory trace pane from the program in Figure 6.48.
+The stack on the left contains the local variables, and the heap on the right contains the dynamically allocated variables.
+The program has just executed a call to <code>malloc</code>, which has allocated a new node shaded green
+with fields <code>data</code> and <code>next</code>.
+<p>
+<img src="qrc:/help-asm/images/memorytrace2.png" alt="memorytrace2" hspace=10 vspace=10>
+<p>
+See the textbook for information on how to use trace tags in your programs.
 <p>
 <a href="#Topics">Scroll to topics</a>.
 

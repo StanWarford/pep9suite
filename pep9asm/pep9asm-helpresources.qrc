@@ -23,13 +23,6 @@
         <file>help-asm/images/fig0435.png</file>
         <file>help-asm/images/fig0441output.png</file>
         <file>help-asm/images/fig0443.png</file>
-        <file>help-asm/images/fig0515breakpoint.png</file>
-        <file>help-asm/images/fig0515cpu.png</file>
-        <file>help-asm/images/fig0515deci.png</file>
-        <file>help-asm/images/fig0515listingadda.png</file>
-        <file>help-asm/images/fig0515listingtrace.png</file>
-        <file>help-asm/images/fig0515resumed.png</file>
-        <file>help-asm/images/fig0515trap.png</file>
         <file>help-asm/images/fig0519.png</file>
         <file>help-asm/images/fig0519assembled.png</file>
         <file>help-asm/images/fig0519error.png</file>
@@ -49,7 +42,6 @@
         <file>help-asm/images/redefinemnemonics.png</file>
         <file>help-asm/images/relocatedos.png</file>
         <file>help-asm/images/removeerrormessages.png</file>
-        <file>help-asm/images/resume.png</file>
         <file>help-asm/images/runicon.png</file>
         <file>help-asm/images/runobject.png</file>
         <file>help-asm/images/runsource.png</file>
@@ -60,7 +52,6 @@
         <file>help-asm/images/startdebuggingobject.png</file>
         <file>help-asm/images/startdebuggingsource.png</file>
         <file>help-asm/images/stopdebugging.png</file>
-        <file>help-asm/images/tracetraps.png</file>
         <file>help-asm/images/viewicon.png</file>
         <file>help-asm/figures/exer0804.pep</file>
         <file>help-asm/figures/fig0433.pepb</file>
@@ -174,5 +165,17 @@
         <file>help-asm/images/cpudisplay1.png</file>
         <file>help-asm/images/cpudisplay2.png</file>
         <file>help-asm/images/memorydumpsp.png</file>
+        <file>help-asm/images/continuedebugging.png</file>
+        <file>help-asm/images/continuedebuggingicon.png</file>
+        <file>help-asm/images/fig0625trace1.png</file>
+        <file>help-asm/images/fig0625trace1stack.png</file>
+        <file>help-asm/images/fig0625trace2.png</file>
+        <file>help-asm/images/fig0625trace2stack.png</file>
+        <file>help-asm/images/fig0610trace1.png</file>
+        <file>help-asm/images/fig0610trace1mem.png</file>
+        <file>help-asm/images/fig0610trace2.png</file>
+        <file>help-asm/images/fig0610trace2mem.png</file>
+        <file>help-asm/images/fig0610trace3mem.png</file>
+        <file>help-asm/images/memorytrace2.png</file>
     </qresource>
 </RCC>
