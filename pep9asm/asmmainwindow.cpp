@@ -91,7 +91,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     ui->AsmSourceCodeWidgetPane->init(memDevice, programManager);
     ui->asmProgramTracePane->init(controlSection, programManager);
     ui->asmCpuPane->init(controlSection, controlSection);
-    redefineMnemonicsDialog->init(false);
+    redefineMnemonicsDialog->init(true);
 
     // Create & connect all dialogs.
     helpDialog = new AsmHelpDialog(this);
