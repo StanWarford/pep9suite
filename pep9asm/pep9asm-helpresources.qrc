@@ -177,5 +177,9 @@
         <file>help-asm/images/fig0610trace2mem.png</file>
         <file>help-asm/images/fig0610trace3mem.png</file>
         <file>help-asm/images/memorytrace2.png</file>
+        <file>help-asm/images/redefinemnemonicsmenu.png</file>
+        <file>help-asm/images/osinstalledmsg.png</file>
+        <file>help-asm/images/relocatedos2.png</file>
+        <file>help-asm/images/relocatedos3.png</file>
     </qresource>
 </RCC>

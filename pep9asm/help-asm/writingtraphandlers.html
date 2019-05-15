@@ -10,7 +10,7 @@
    h4 { margin-bottom: 0; border-bottom-width: 0; padding-bottom: 0; }
   </style>
 </head>
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#0000FF" alink="#0099FF">
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#0000FF" alink="#0000FF">
 <table bgcolor="#FB9F14" width="100%" cellpadding="2" cellspacing="0" border="0">
 <tr><td>
 <p style="text-align:center; font-family:helvetica, arial, sans-serif; font-size:14pt; font-weight:bold; color: #29315E">
@@ -40,6 +40,9 @@ Decide on your mnemonic for your new instruction.
 It will replace one of <code>NOP0</code>, <code>NOP1</code>,
 <code>NOP</code>, <code>DECI</code>, <code>DECO</code>, <code>HEXO</code>, or <code>STRO</code>.
 Select the menu option System&rarr;Redefine Mnemonics to change the mnemonics of one of the instructions.
+<p>
+<img src="qrc:/help-asm/images/redefinemnemonicsmenu.png" alt="redefinemnemonicsmenu" hspace=10 vspace=10>
+<p>
 The dialog box requires you to enter a mnemonic and its allowed addressing modes if it is nonunary.
 For example, change the mnemonic for the unary instruction <code>NOP0</code> to <code>ECHO</code>.
 <p>
@@ -64,9 +67,13 @@ And here is how you would modify it to implement the new <code>ECHO</code> instr
 CAUTION: You cannot use any trap instructions in your trap handler.
 <p>
 <h4>Step 4.</h4>
-Select System&rarr;Assemble/Install New OS to assemble and install the reprogrammed operating system.
+Select System&rarr;Assemble & Install New OS to assemble and install the reprogrammed operating system.
 <p>
 <img src="qrc:/help-asm/images/assembleinstallnewos.png" alt="assembleinstallnewos" hspace=10 vspace=10>
+<p>
+A message will inform you if your modified operating system assembled correctly.
+<p>
+<img src="qrc:/help-asm/images/osinstalledmsg.png" alt="osinstalledmsg" hspace=10 vspace=10>
 <p>
 You can save your modified operating system as a <code>.pep</code> file as you would any other Pep/9 assembly language program.
 <p>
@@ -78,7 +85,7 @@ For example, your test program might be the following.
 <img src="qrc:/help-asm/images/echoprogram.png" alt="echoprogram" hspace=10 vspace=10>
 <p>
 <h4>Step 6.</h4>
-Load and execute your program assembled in step 5.
+Run or Start Debugging your program written in step 5.
 In this example, whatever character is placed in the Input pane should be echoed in the output pane.
 <p>
 <img src="qrc:/help-asm/images/pecho.png" alt="pecho" hspace=10 vspace=10>
@@ -95,6 +102,11 @@ by the burn directive.
 <p>
 Pep/9 is a 16-bit computer, and can therfore access 2<sup>16</sup> = 64 KiB = 65,536 bytes of main memory.
 The Pep/9 operating system contains <code>.BURN 0xFFFF</code> because <code>0xFFFF</code> is the address of the 65,536th byte.
+The following figure shows the memory dump at the bottom of memory.
+Figure 8.1 of the textbook shows that machine vector FC52, which is the address of the first instruction of the trap handler,
+is stored at FFFE.
+<p>
+<img src="qrc:/help-asm/images/relocatedos3.png" alt="relocatedos3" hspace=10 vspace=10>
 <p>
 It is possible to install a smaller amount of memory in the Pep/9 system.
 Simply change the burn directive in the operating system to a smaller value.
@@ -103,11 +115,17 @@ and the system will install only 32 KiB of memory instead of 64 KiB.
 <p>
 <img src="qrc:/help-asm/images/modifieddotburn.png" alt="modifieddotburn" hspace=10 vspace=10>
 <p>
+The last machine vector is now at address 7FFF instead of FFFF.
+Furthermore, the machine vector is now 7C52 instead of FC52, because 7C52 is now the address of the first instruction of the trap handler.
+The memory dump displays zz for uninstalled memory.
+<p>
+<img src="qrc:/help-asm/images/relocatedos2.png" alt="relocatedos2" hspace=10 vspace=10>
+<p>
 The trap handlers all run correctly, which you can trace in the Memory Dump pane.
 Following is the memory dump after the execution of a <code>DECI</code> trap instruction.
 A trap stores the ten bytes of the process control block on the system stack, indicated by the ten red bytes in the memory dump.
-Note that 31, the instruction specifier for <code>DECI</code>, at the bottom of the stack is at address 7C0E.
-With 64 KiB of memory installed, it would be at address FC0E.
+Note that the first instruction in the trap handler to execute is DB 0009 and is stored at 7C52.
+With 64 KiB of memory installed, it would be at address FC52.
 <p>
 <img src="qrc:/help-asm/images/relocatedos.png" alt="relocatedos" hspace=10 vspace=10>
 <p>

@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C/DTD HTML 4.01//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C/DTD HTML 5.2//EN">
 
 <html>
 <head>
@@ -9,7 +9,7 @@
    code { font-family:Courier, 'Courier New', monospace; font-size:11pt }
   </style>
 </head>
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#000033" alink="#0066FF">
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#0000FF" alink="#0000FF">
 <table bgcolor="#FB9F14" width="100%" cellpadding="2" cellspacing="0" border="0">
 <tr><td>
 <p style="text-align:center; font-family:helvetica, arial, sans-serif; font-size:14pt; font-weight:bold; color: #29315E">
@@ -18,10 +18,10 @@ Pep/9 Reference
 </td></tr>
 </table>
 <p>
- The Pep/9 computer is a 16-bit complex instruction set computer (CISC).
- It is designed to teach computer architecture and assembly language programming principles.
+ Pep/9 is a virtual machine for writing machine language and assembly language programs.
+ It is designed to be used with the textbook, <i>Computer Systems</i>, J. Stanley Warford, Fifth edition, Jones and Bartlett Learning, 2017.
  Its 39 instructions are based on an expanding opcode and are either unary (one byte) or nonunary (three bytes).
- The eight addressing modes are designed for straighforward translation between C/C++ and assembly language.
+ The eight addressing modes are designed for straighforward translation from C to assembly language.
 <p>
  <a name = "Topics">Topics:</a>
  <a href="#Instruction">Instruction set</a>,
@@ -205,46 +205,31 @@ will operate as expected.
 
 <table border cellspacing=0 cellpadding=5>
  <tr>
-  <th>Addressing Mode</th> <th>aaa-field</th> <th>Letters</th> <th>Operand</th>
+  <th>Addressing Mode</th> <th>aaa-field</th> <th>a-field</th> <th>Letters</th> <th>Operand</th>
  </tr>
  <tr>
-  <td>Immediate</td> <td><code>000</code></td> <td>i</td> <td>OprndSpec</td>
+  <td>Immediate</td> <td><code>000</code></td> <td><code>0</code></td> <td>i</td> <td>OprndSpec</td>
  </tr>
  <tr>
-  <td>Direct</td> <td><code>001</code></td> <td>d</td> <td>Mem [OprndSpec ]</td>
+  <td>Direct</td> <td><code>001</code></td> <td></td> <td>d</td> <td>Mem [OprndSpec ]</td>
  </tr>
  <tr>
-  <td>Indirect</td> <td><code>010</code></td> <td>n</td> <td>Mem [Mem [OprndSpec ] ]</td>
+  <td>Indirect</td> <td><code>010</code></td> <td></td> <td>n</td> <td>Mem [Mem [OprndSpec ] ]</td>
  </tr>
  <tr>
-  <td>Stack-relative</td> <td><code>011</code></td> <td>s</td> <td>Mem [SP + OprndSpec ]</td>
+  <td>Stack-relative</td> <td><code>011</code></td> <td></td> <td>s</td> <td>Mem [SP + OprndSpec ]</td>
  </tr>
  <tr>
-  <td>Stack-relative deferred</td> <td><code>100</code></td> <td>sf</td> <td>Mem [Mem [SP + OprndSpec ] ]</td>
+  <td>Stack-relative deferred</td> <td><code>100</code></td> <td></td> <td>sf</td> <td>Mem [Mem [SP + OprndSpec ] ]</td>
  </tr>
  <tr>
-  <td>Indexed</td> <td><code>101</code></td> <td>x</td> <td>Mem [OprndSpec + X ]</td>
+  <td>Indexed</td> <td><code>101</code></td> <td><code>1</code></td> <td>x</td> <td>Mem [OprndSpec + X ]</td>
  </tr>
  <tr>
-  <td>Stack-indexed</td> <td><code>110</code></td> <td>sx</td> <td>Mem [SP + OprndSpec + X ]</td>
+  <td>Stack-indexed</td> <td><code>110</code></td> <td></td> <td>sx</td> <td>Mem [SP + OprndSpec + X ]</td>
  </tr>
  <tr>
-  <td>Stack-indexed deferred</td> <td><code>111</code></td> <td>sxf</td> <td>Mem [Mem [SP + OprndSpec ] + X ]</td>
- </tr>
-</table>
-<p>
-<a href="#Topics">Scroll to topics</a>.
-
-<p>
-<table border cellspacing=0 cellpadding=5>
- <tr>
-  <th>Addressing Mode</th> <th>a-field</th> <th>Letters</th> <th>Operand</th>
- </tr>
- <tr>
-  <td>Immediate</td> <td><code>0</code></td> <td>i</td> <td>OprndSpec</td>
- </tr>
- <tr>
-  <td>Indexed</td> <td><code>1</code></td> <td>x</td> <td>Mem [OprndSpec + X ]</td>
+  <td>Stack-indexed deferred</td> <td><code>111</code></td> <td></td> <td>sxf</td> <td>Mem [Mem [SP + OprndSpec ] + X ]</td>
  </tr>
 </table>
 <p>
