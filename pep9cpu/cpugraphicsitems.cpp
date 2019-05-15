@@ -40,7 +40,7 @@ void addLabelToScene(QLabel** labelLoc, QGraphicsScene *scene, QString name, con
 {
     *labelLoc = new QLabel(name);
     (*labelLoc)->setGeometry(geometry);
-    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSizeCPUPane));
     scene->addWidget(*labelLoc);
 }
 
@@ -55,7 +55,7 @@ void addDLabelToScene(QLabel** labelLoc, QGraphicsScene *scene, QString name, co
     *labelLoc = new QLabel(name);
     (*labelLoc)->setGeometry(geometry);
     (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSizeCPUPane));
     scene->addWidget(*labelLoc);
 }
 
@@ -63,7 +63,7 @@ void addTLabel(TristateLabel** labelLoc, QGraphicsScene *scene, const QRect& geo
     (*labelLoc) = new TristateLabel(nullptr, TristateLabel::Tristate);
     (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     (*labelLoc)->setGeometry(geometry);
-    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSizeCPUPane));
     scene->addWidget(*labelLoc);
 }
 
@@ -72,7 +72,7 @@ void addStatusLabel(TristateLabel** labelLoc, QGraphicsScene* scene, const QRect
     (*labelLoc)->setText("0");
     (*labelLoc)->setGeometry(geometry);
     (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSizeCPUPane));
     scene->addWidget(*labelLoc);
 }
 
@@ -114,7 +114,7 @@ void addCheckToScene(QCheckBox** checkLoc, QVector<QCheckBox*> &checkVector, QGr
 {
     *checkLoc = new QCheckBox(name);
     (*checkLoc)->setGeometry(geometry);
-    (*checkLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSize));
+    (*checkLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSizeCPUPane));
     checkVector.append(*checkLoc);
     scene->addWidget(*checkLoc);
 }

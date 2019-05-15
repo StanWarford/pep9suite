@@ -38,6 +38,7 @@ public:
     static const int ioFontSize;
     static const QString labelFont;
     static const int labelFontSize;
+    static const int labelFontSizeCPUPane;
     static const int labelFontSizeSmall;
     static const QString cpuFont;
     static const int cpuFontSize;
