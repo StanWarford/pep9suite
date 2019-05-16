@@ -296,6 +296,7 @@ void CPUMainWindow::readSettings()
 
     // Restore last used font
     QVariant val = settings.value("font", codeFont);
+    codeFont = qvariant_cast<QFont>(val);
     emit fontChanged(codeFont);
 
     //Restore last used file path
