@@ -157,9 +157,6 @@ bool IsaAsm::assembleUserProgram(const QString &progText, QSharedPointer<AsmProg
     handleTraceTags(*symTable.get(), *traceInfo.get(), programList, errList);
     progOut = QSharedPointer<AsmProgram>::create(programList, symTable, traceInfo);
 
-    if(success) {
-        manager.setUserProgram(progOut);
-    }
     return success;
 }
 
@@ -306,7 +303,6 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0x
     // handleTraceTags(*symTable.get(), *traceInfo, codeList, errList);
     traceInfo->hadTraceTags = false;
     progOut = QSharedPointer<AsmProgram>::create(programList, symTable, traceInfo, info.startROMAddress, info.burnValue);
-    manager.setOperatingSystem(progOut);
     return true;
 }
 

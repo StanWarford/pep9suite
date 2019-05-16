@@ -12,7 +12,8 @@ FORMS += \
     redefinemnemonicsdialog.ui \
     asmcpupane.ui \
     asmprogramtracepane.ui \
-    asmprogramlistingpane.ui
+    asmprogramlistingpane.ui \
+    assemblerpane.ui
 
 HEADERS += \
     asmargument.h \
@@ -35,7 +36,8 @@ HEADERS += \
     isacpumemoizer.h \
     memoizerhelper.h \
     asmprogramtracepane.h \
-    asmprogramlistingpane.h
+    asmprogramlistingpane.h \
+    assemblerpane.h
 
 SOURCES += \
     asmargument.cpp \
@@ -58,4 +60,5 @@ SOURCES += \
     isacpumemoizer.cpp \
     memoizerhelper.cpp \
     asmprogramtracepane.cpp \
-    asmprogramlistingpane.cpp
+    asmprogramlistingpane.cpp \
+    assemblerpane.cpp

@@ -113,7 +113,8 @@ public:
     // Post: errList contains a list of (line numbers, error messages) that occured during assembly,
     // and will be non-empty if returned false.
     // Assembly can be successful (ret true) and still have errors. This happens when there are
-    // warnings regarding trace tags/
+    // warnings regarding trace tags.
+    // Note: will not automatically set manger's userProgram.
 
 
 
@@ -127,6 +128,7 @@ public:
     // Post: If returned true, progOut is non-null, otherwise undefined.
     // Post: errList contains a list of (line numbers, error messages) that occured during assembly,
     // and will be non-empty if returned false.
+    // Note: will not automatically set manger's operatingSystem.
 
 private:
 

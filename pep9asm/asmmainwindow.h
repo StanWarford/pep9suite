@@ -125,7 +125,6 @@ private:
 
     //
     void set_Obj_Listing_filenames_from_Source();
-    void doubleClickedCodeLabel(Enu::EPane which);
 
     // Debug helper functions
 

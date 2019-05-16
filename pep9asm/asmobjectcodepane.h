@@ -38,7 +38,10 @@ public:
     virtual ~AsmObjectCodePane();
 
     void setObjectCode(QList<int> objectCode);
-    // Post Sets text in source code pane.
+    // Post: Sets text in source code pane.
+
+    void setObjectCode(QVector<quint8> objectCode);
+    // Post: Sets text in source code pane.
 
     void setObjectCodePaneText(QString string);
     // Post: Sets text in source code pane to string.
@@ -55,8 +58,8 @@ public:
     bool isModified();
     // Post: Returns true if the source code pane has been modified
 
-    void setModifiedFalse();
-    // Post: Sets isModified of the source code pane to false
+    void setModified(bool modified);
+    // Post: Sets isModified of the source code pane to modified
 
     QString toPlainText();
     // Post: Contents of the source code pane are returned

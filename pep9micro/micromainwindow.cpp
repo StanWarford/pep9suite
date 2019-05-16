@@ -95,7 +95,7 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     ui->memoryWidget->showTitleLabel(false);
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
     ui->memoryTracePane->init(programManager, controlSection, memDevice, controlSection->getMemoryTrace());
-    ui->AsmSourceCodeWidgetPane->init(memDevice, programManager);
+    ui->assemblerPane->init(programManager);
     ui->asmProgramTracePane->init(controlSection, programManager);
     ui->microcodeWidget->init(controlSection, dataSection, memDevice, true);
     ui->microObjectCodePane->init(controlSection, true);
@@ -141,10 +141,8 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     // Connect Undo / Redo events
     connect(ui->microcodeWidget, &MicrocodePane::undoAvailable, this, &MicroMainWindow::setUndoability);
     connect(ui->microcodeWidget, &MicrocodePane::redoAvailable, this, &MicroMainWindow::setRedoability);
-    connect(ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::undoAvailable, this, &MicroMainWindow::setUndoability);
-    connect(ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::redoAvailable, this, &MicroMainWindow::setRedoability);
-    connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::undoAvailable, this, &MicroMainWindow::setUndoability);
-    connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::redoAvailable, this, &MicroMainWindow::setRedoability);
+    connect(ui->assemblerPane, &AssemblerPane::undoAvailable, this, &MicroMainWindow::setUndoability);
+    connect(ui->assemblerPane, &AssemblerPane::redoAvailable, this, &MicroMainWindow::setRedoability);
     connect(ui->ioWidget, &IOWidget::undoAvailable, this, &MicroMainWindow::setUndoability);
     connect(ui->ioWidget, &IOWidget::redoAvailable, this, &MicroMainWindow::setRedoability);
 
@@ -181,9 +179,7 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     connect(this, &MicroMainWindow::fontChanged, ui->microcodeWidget, &MicrocodePane::onFontChanged);
     connect(this, &MicroMainWindow::fontChanged, helpDialog, &MicroHelpDialog::onFontChanged);
     connect(this, &MicroMainWindow::fontChanged, ui->ioWidget, &IOWidget::onFontChanged);
-    connect(this, &MicroMainWindow::fontChanged, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onFontChanged);
-    connect(this, &MicroMainWindow::fontChanged, ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::onFontChanged);
-    connect(this, &MicroMainWindow::fontChanged, ui->AsmProgramListingWidgetPane, &AsmProgramListingPane::onFontChanged);
+    connect(this, &MicroMainWindow::fontChanged, ui->assemblerPane, &AssemblerPane::onFontChanged);
     connect(this, &MicroMainWindow::fontChanged, ui->memoryWidget, &MemoryDumpPane::onFontChanged);
     connect(this, &MicroMainWindow::fontChanged, ui->asmProgramTracePane, &AsmProgramTracePane::onFontChanged);
 
@@ -195,17 +191,11 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     connect(this, &MicroMainWindow::darkModeChanged, ui->cpuWidget, &CpuPane::onDarkModeChanged);
     connect(this, &MicroMainWindow::darkModeChanged, ui->microcodeWidget->getEditor(), &MicrocodeEditor::onDarkModeChanged);
     connect(this, &MicroMainWindow::darkModeChanged, ui->memoryWidget, &MemoryDumpPane::onDarkModeChanged);
-    connect(this, &MicroMainWindow::darkModeChanged, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onDarkModeChanged);
-    connect(this, &MicroMainWindow::darkModeChanged, ui->AsmProgramListingWidgetPane, &AsmProgramListingPane::onDarkModeChanged);
+    connect(this, &MicroMainWindow::darkModeChanged, ui->assemblerPane, &AssemblerPane::onDarkModeChanged);
     connect(this, &MicroMainWindow::darkModeChanged, ui->asmProgramTracePane, &AsmProgramTracePane::onDarkModeChanged);
     connect(this, &MicroMainWindow::darkModeChanged, ui->memoryTracePane, &NewMemoryTracePane::onDarkModeChanged);
 
     connect(ui->cpuWidget, &CpuPane::appendMicrocodeLine, this, &MicroMainWindow::appendMicrocodeLine);
-
-    //Connect assembler pane widgets
-    connect(ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::labelDoubleClicked, this, &MicroMainWindow::doubleClickedCodeLabel);
-    connect(ui->AsmObjectCodeWidgetPane, &AsmObjectCodePane::labelDoubleClicked, this, &MicroMainWindow::doubleClickedCodeLabel);
-    connect(ui->AsmProgramListingWidgetPane, &AsmProgramListingPane::labelDoubleClicked, this, &MicroMainWindow::doubleClickedCodeLabel);
 
     // Events that notify view of changes in model.
     // These events are disconnected whenevr "run" or "continue" are called, because they have significant overhead,
@@ -224,13 +214,13 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     connect(ui->asmProgramTracePane, &AsmProgramTracePane::breakpointAdded, programManager, &AsmProgramManager::onBreakpointAdded);
     connect(ui->asmProgramTracePane, &AsmProgramTracePane::breakpointRemoved, programManager, &AsmProgramManager::onBreakpointRemoved);
 
-    connect(programManager, &AsmProgramManager::removeAllBreakpoints, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onRemoveAllBreakpoints);
+    connect(programManager, &AsmProgramManager::removeAllBreakpoints, ui->assemblerPane, &AssemblerPane::onRemoveAllBreakpoints);
     connect(programManager, &AsmProgramManager::removeAllBreakpoints, ui->asmProgramTracePane, &AsmProgramTracePane::onRemoveAllBreakpoints);
 
     connect(programManager, &AsmProgramManager::breakpointAdded, ui->asmProgramTracePane, &AsmProgramTracePane::onBreakpointAdded);
     connect(programManager, &AsmProgramManager::breakpointRemoved, ui->asmProgramTracePane, &AsmProgramTracePane::onBreakpointRemoved);
-    connect(programManager, &AsmProgramManager::breakpointAdded, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onBreakpointAdded);
-    connect(programManager, &AsmProgramManager::breakpointRemoved, ui->AsmSourceCodeWidgetPane, &AsmSourceCodePane::onBreakpointRemoved);
+    connect(programManager, &AsmProgramManager::breakpointAdded, ui->assemblerPane, &AssemblerPane::onBreakpointAdded);
+    connect(programManager, &AsmProgramManager::breakpointRemoved, ui->assemblerPane, &AssemblerPane::onBreakpointRemoved);
 
     // These aren't technically slots being bound to, but this is allowed because of the new signal / slot syntax
 #pragma message ("If breakpoints aren't being added / set correctly, this is probably why")
@@ -342,18 +332,6 @@ bool MicroMainWindow::eventFilter(QObject *, QEvent *event)
 
             }*/
         }
-        else if(keyEvent->key() == Qt::Key_Tab) {
-            if(ui->AsmSourceCodeWidgetPane->hasFocus()) {
-                ui->AsmSourceCodeWidgetPane->tab();
-                return true;
-            }
-        }
-    else if(keyEvent->key() == Qt::Key_Backtab) {
-            if(ui->AsmSourceCodeWidgetPane->hasFocus()) {
-                ui->AsmSourceCodeWidgetPane->backTab();
-                return true;
-            }
-        }
     }
     else if (event->type() == QEvent::FileOpen) {
         if (ui->actionDebug_Stop_Debugging->isEnabled()) {
@@ -419,17 +397,6 @@ void MicroMainWindow::readSettings()
     // Restore dark mode state
     onDarkModeChanged();
 
-    // Restore last used split in assembly code pane
-    val = settings.beginReadArray("codePaneSplit");
-    QList<int> sizes;
-    for(int it = 0; it < ui->codeSplitter->sizes().length(); it++) {
-        settings.setArrayIndex(it);
-        sizes.append(settings.value("size", 1).toInt());
-    }
-    ui->codeSplitter->setSizes(sizes);
-    settings.endArray();
-
-
     settings.endGroup();
 
     //Handle reading for all children
@@ -443,13 +410,6 @@ void MicroMainWindow::writeSettings()
     settings.setValue("geometry", saveGeometry());
     settings.setValue("font", codeFont);
     settings.setValue("filePath", curPath);
-    settings.beginWriteArray("codePaneSplit", 3);
-    QList<int> temp = ui->codeSplitter->sizes();
-    for(int it = 0; it < 3; it++) {
-        settings.setArrayIndex(it);
-        settings.setValue("size", temp[it]);
-    }
-    settings.endArray();
     settings.endGroup();
     //Handle writing for all children
     ui->microcodeWidget->writeSettings(settings);
@@ -465,20 +425,20 @@ bool MicroMainWindow::save(Enu::EPane which)
      */
     switch(which) {
     case Enu::EPane::ESource:
-        if(QFileInfo(ui->AsmSourceCodeWidgetPane->getCurrentFile()).absoluteFilePath().isEmpty()) {
-            retVal = saveAsFile(Enu::EPane::ESource);
+        if(ui->assemblerPane->getFileName(which).absoluteFilePath().isEmpty()) {
+            retVal = saveAsFile(which);
         }
-        else retVal = saveFile(ui->AsmSourceCodeWidgetPane->getCurrentFile().fileName(),Enu::EPane::ESource);
-        if(retVal) ui->AsmSourceCodeWidgetPane->setModifiedFalse();
+        else retVal = saveFile(ui->assemblerPane->getFileName(which).absoluteFilePath(), which);
+        if(retVal) ui->assemblerPane->setModified(which, false);
         break;
     case Enu::EPane::EObject:
-        if(QFileInfo(ui->AsmObjectCodeWidgetPane->getCurrentFile()).absoluteFilePath().isEmpty()) {
-            retVal = saveAsFile(Enu::EPane::EObject);
+        if(ui->assemblerPane->getFileName(which).absoluteFilePath().isEmpty()) {
+            retVal = saveAsFile(which);
         }
-        if(retVal) ui->AsmObjectCodeWidgetPane->setModifiedFalse();
+        if(retVal) ui->assemblerPane->setModified(which, false);
         break;
     case Enu::EPane::EListing:
-        if(QFileInfo(ui->AsmProgramListingWidgetPane->getCurrentFile()).absoluteFilePath().isEmpty()) {
+        if(ui->assemblerPane->getFileName(Enu::EPane::EListing).absoluteFilePath().isEmpty()) {
             retVal = saveAsFile(Enu::EPane::EListing);
         }
         break;
@@ -530,8 +490,8 @@ bool MicroMainWindow::maybeSave(Enu::EPane which)
      * There is no attempt to save the listing pane, since it can be recreated from the source code.
      */
     case Enu::EPane::ESource:
-        if(ui->AsmSourceCodeWidgetPane->isModified()) {
-            ret = QMessageBox::warning(this, dlgTitle,sourceText,buttons);
+        if(ui->assemblerPane->isModified(which)) {
+            ret = QMessageBox::warning(this, dlgTitle, sourceText, buttons);
             if (ret == QMessageBox::Save)
                 retVal = save(Enu::EPane::ESource);
             else if (ret == QMessageBox::Cancel)
@@ -539,8 +499,8 @@ bool MicroMainWindow::maybeSave(Enu::EPane which)
         }
         break;
     case Enu::EPane::EObject:
-        if(ui->AsmObjectCodeWidgetPane->isModified()) {
-            ret = QMessageBox::warning(this, dlgTitle,objectText,buttons);
+        if(ui->assemblerPane->isModified(which)) {
+            ret = QMessageBox::warning(this, dlgTitle, objectText, buttons);
             if (ret == QMessageBox::Save)
                 retVal = save(Enu::EPane::EObject);
             else if (ret == QMessageBox::Cancel)
@@ -583,18 +543,12 @@ void MicroMainWindow::loadFile(const QString &fileName, Enu::EPane which)
     switch(which) {
     case Enu::EPane::ESource:
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-        ui->AsmSourceCodeWidgetPane->setFocus();
-        ui->AsmSourceCodeWidgetPane->setCurrentFile(fileName);
-        ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(in.readAll());
-        ui->AsmSourceCodeWidgetPane->setModifiedFalse();
+        ui->assemblerPane->loadSourceFile(QFileInfo(file).absoluteFilePath(), in.readAll());
         emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
         break;
     case Enu::EPane::EObject:
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-        ui->AsmObjectCodeWidgetPane->setFocus();
-        ui->AsmObjectCodeWidgetPane->setCurrentFile(fileName);
-        ui->AsmObjectCodeWidgetPane->setObjectCodePaneText(in.readAll());
-        ui->AsmObjectCodeWidgetPane->setModifiedFalse();
+        ui->assemblerPane->loadObjectFile(QFileInfo(file).absoluteFilePath(), in.readAll());
         break;
     case Enu::EPane::EMicrocode:
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
@@ -623,13 +577,13 @@ bool MicroMainWindow::saveFile(Enu::EPane which)
     {
     //Get the filename associated with the dialog
     case Enu::EPane::ESource:
-        fileName = QFileInfo(ui->AsmSourceCodeWidgetPane->getCurrentFile()).absoluteFilePath();
+        fileName = QFileInfo(ui->assemblerPane->getFileName(which)).absoluteFilePath();
         break;
     case Enu::EPane::EObject:
-        fileName = QFileInfo(ui->AsmObjectCodeWidgetPane->getCurrentFile()).absoluteFilePath();
+        fileName = QFileInfo(ui->assemblerPane->getFileName(which)).absoluteFilePath();
         break;
     case Enu::EPane::EListing:
-        fileName = QFileInfo(ui->AsmProgramListingWidgetPane->getCurrentFile()).absoluteFilePath();
+        fileName = QFileInfo(ui->assemblerPane->getFileName(which)).absoluteFilePath();
         break;
     case Enu::EPane::EMicrocode:
         fileName = QFileInfo(ui->microcodeWidget->getCurrentFile()).absoluteFilePath();
@@ -668,15 +622,15 @@ bool MicroMainWindow::saveFile(const QString &fileName, Enu::EPane which)
     {
     // Set the output text & the pointer to the status bar message.
     case Enu::EPane::ESource:
-        out << ui->AsmSourceCodeWidgetPane->toPlainText();
+        out << ui->assemblerPane->getPaneContents(which);
         msgOutput = &msgSource;
         break;
     case Enu::EPane::EObject:
-        out << ui->AsmObjectCodeWidgetPane->toPlainText();
+        out << ui->assemblerPane->getPaneContents(which);
         msgOutput = &msgObject;
         break;
     case Enu::EPane::EListing:
-        out << ui->AsmProgramListingWidgetPane->toPlainText();
+        out << ui->assemblerPane->getPaneContents(which);
         msgOutput = &msgListing;
         break;
     case Enu::EPane::EMicrocode:
@@ -719,6 +673,7 @@ bool MicroMainWindow::saveAsFile(Enu::EPane which)
     static const QString microTypes = "Pep/9 Microcode (*.pepmicro *.pepcpu  *.txt)";
     const QString *usingTypes;
 
+    QFileInfo file;
     /*
      * For each pane, get the file associated with each pane, or the default if there is none.
      * Set the title and source code patterns for the pane.
@@ -726,26 +681,29 @@ bool MicroMainWindow::saveAsFile(Enu::EPane which)
     switch(which)
     {
     case Enu::EPane::ESource:
-        if(ui->AsmSourceCodeWidgetPane->getCurrentFile().fileName().isEmpty()) {
+        file = ui->assemblerPane->getFileName(which);
+        if(file.fileName().isEmpty()) {
             usingFile = QDir(curPath).absoluteFilePath(defSourceFile);
         }
-        else usingFile = ui->AsmSourceCodeWidgetPane->getCurrentFile().fileName();
+        else usingFile = file.fileName();
         usingTitle = &sourceTitle;
         usingTypes = &sourceTypes;
         break;
     case Enu::EPane::EObject:
-        if(ui->AsmObjectCodeWidgetPane->getCurrentFile().fileName().isEmpty()) {
+        file = ui->assemblerPane->getFileName(which);
+        if(file.fileName().isEmpty()) {
             usingFile = QDir(curPath).absoluteFilePath(defObjectFile);
         }
-        else usingFile = ui->AsmObjectCodeWidgetPane->getCurrentFile().fileName();
+        else usingFile = file.fileName();
         usingTitle = &objectTitle;
         usingTypes = &objectTypes;
         break;
     case Enu::EPane::EListing:
-        if(ui->AsmProgramListingWidgetPane->getCurrentFile().fileName().isEmpty()) {
+        file = ui->assemblerPane->getFileName(which);
+        if(file.fileName().isEmpty()) {
             usingFile = QDir(curPath).absoluteFilePath(defListingFile);
         }
-        else usingFile = ui->AsmProgramListingWidgetPane->getCurrentFile().fileName();
+        else usingFile = file.fileName();
         usingTitle = &listingTitle;
         usingTypes = &listingTypes;
         break;
@@ -774,16 +732,17 @@ bool MicroMainWindow::saveAsFile(Enu::EPane which)
     }
     else if (saveFile(fileName, which)) {
         // If the file is successfully saved, then change the file associated with the pane.
+        QFileInfo fileInfo = QFileInfo(fileName);
         switch(which)
         {
         case Enu::EPane::ESource:
-            ui->AsmSourceCodeWidgetPane->setCurrentFile(fileName);
+            ui->assemblerPane->setFileName(which, fileInfo);
             break;
         case Enu::EPane::EObject:
-            ui->AsmObjectCodeWidgetPane->setCurrentFile(fileName);
+            ui->assemblerPane->setFileName(which, fileInfo);
             break;
         case Enu::EPane::EListing:
-            ui->AsmProgramListingWidgetPane->setCurrentFile(fileName);
+            ui->assemblerPane->setFileName(which, fileInfo);
             break;
         case Enu::EPane::EMicrocode:
             ui->microcodeWidget->setCurrentFile(fileName);
@@ -827,18 +786,18 @@ void MicroMainWindow::print(Enu::EPane which)
     {
     case Enu::EPane::ESource:
         title = &source;
-        document.setPlainText(ui->AsmSourceCodeWidgetPane->toPlainText());
+        document.setPlainText(ui->assemblerPane->getPaneContents(which));
         asHi = new PepASMHighlighter(PepColors::lightMode, &document);
         hi = asHi;
         hi->rehighlight();
         break;
     case Enu::EPane::EObject:
         title = &object;
-        document.setPlainText(ui->AsmObjectCodeWidgetPane->toPlainText());
+        document.setPlainText(ui->assemblerPane->getPaneContents(which));
         break;
     case Enu::EPane::EListing:
         title = &listing;
-        document.setPlainText(ui->AsmProgramListingWidgetPane->toPlainText());
+        document.setPlainText(ui->assemblerPane->getPaneContents(which));
         asHi = new PepASMHighlighter(PepColors::lightMode, &document);
         hi = asHi;
         hi->rehighlight();
@@ -959,7 +918,7 @@ void MicroMainWindow::loadOperatingSystem()
 bool MicroMainWindow::loadObjectCodeProgram()
 {
     // Get the object code, and convert it to an integer array.
-    QString lines = ui->AsmObjectCodeWidgetPane->toPlainText();
+    QString lines = ui->assemblerPane->getPaneContents(Enu::EPane::EObject);
     QVector<quint8> data;
     // Temp to track each conversion, and tracker for cumulative success.
     bool temp, convertSuccess = true;
@@ -994,71 +953,7 @@ bool MicroMainWindow::loadObjectCodeProgram()
 
 void MicroMainWindow::set_Obj_Listing_filenames_from_Source()
 {
-    // If source code pane has a file, set the object code and listing to have the same file name.
-    // Otherwise, set the filenames to empty.
-    QFileInfo fileInfo(ui->AsmSourceCodeWidgetPane->getCurrentFile());
-    QString object, listing;
-    // If there is no file name, then empty file name of listing and object code panes.
-    if(fileInfo.fileName().isEmpty()){
-        object = "";
-        listing = "";
-    }
-    else {
-        object = fileInfo.absoluteDir().absoluteFilePath(fileInfo.baseName()+".pepo");
-        listing = fileInfo.absoluteDir().absoluteFilePath(fileInfo.baseName()+".pepl");
-    }
-    ui->AsmObjectCodeWidgetPane->setCurrentFile(object);
-    ui->AsmProgramListingWidgetPane->setCurrentFile(listing);
-}
-
-void MicroMainWindow::doubleClickedCodeLabel(Enu::EPane which)
-{
-    QList<int> list, defaultList = {1,1,1};
-    QList<int> old = ui->codeSplitter->sizes();
-    auto max = std::minmax_element(old.begin(), old.end());
-    static const int largeSize = 3000, smallSize = 1;
-    bool sameSize = *max.second - *max.first <5;
-    switch(which)
-    {
-    // Give the selected pane the majority of the screen space.
-    case Enu::EPane::ESource:
-        if(old[0] == *max.second && !sameSize) {
-            list = defaultList;
-        }
-        else {
-            list.append(largeSize);
-            list.append(smallSize);
-            list.append(smallSize);
-        }
-        ui->codeSplitter->setSizes(list);
-        break;
-    case Enu::EPane::EObject:
-        if(old[1] == *max.second && !sameSize) {
-            list = defaultList;
-        }
-        else {
-            list.append(smallSize);
-            list.append(largeSize);
-            list.append(smallSize);
-        }
-        ui->codeSplitter->setSizes(list);
-        break;
-    case Enu::EPane::EListing:
-        if(old[2] == *max.second && !sameSize) {
-            list = defaultList;
-        }
-        else {
-            list.append(smallSize);
-            list.append(smallSize);
-            list.append(largeSize);
-        }
-        ui->codeSplitter->setSizes(list);
-        break;
-    default:
-        // Provided a default - even though it should never occur -
-        // to silence compiler warnings.
-        break;
-    }
+    ui->assemblerPane->setFilesFromSource();
 }
 
 void MicroMainWindow::debugButtonEnableHelper(const int which)
@@ -1169,17 +1064,11 @@ void MicroMainWindow::onUpdateCheck(int /*val*/)
 // File MainWindow triggers
 void MicroMainWindow::on_actionFile_New_Asm_triggered()
 {
-    //Try to save source code before clearing it, the object code pane, and the listing pane.
+    // Try to save source code before clearing it, the object code pane, and the listing pane.
     if (maybeSave(Enu::EPane::ESource)) {
         ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-        ui->AsmSourceCodeWidgetPane->setFocus();
-        ui->AsmSourceCodeWidgetPane->clearSourceCode();
-        ui->AsmSourceCodeWidgetPane->setCurrentFile("");
-        ui->AsmObjectCodeWidgetPane->clearObjectCode();
-        ui->AsmObjectCodeWidgetPane->setCurrentFile("");
-        ui->AsmProgramListingWidgetPane->clearAssemblerListing();
-        ui->AsmProgramListingWidgetPane->setCurrentFile("");
+        ui->assemblerPane->newProject();
         ui->asmProgramTracePane->clearSourceCode();
         programManager->setUserProgram(nullptr);
         emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
@@ -1283,11 +1172,8 @@ void MicroMainWindow::on_actionEdit_Undo_triggered()
         ui->microcodeWidget->undo();
     }
     // However, the Pep9 panes do
-    else if(ui->AsmSourceCodeWidgetPane->hasFocus()) {
-        ui->AsmSourceCodeWidgetPane->undo();
-    }
-    else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
-        ui->AsmObjectCodeWidgetPane->undo();
+    else if(ui->assemblerPane->isAncestorOf(focusWidget())) {
+        ui->assemblerPane->undo();
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->ioWidget->undo();
@@ -1301,11 +1187,8 @@ void MicroMainWindow::on_actionEdit_Redo_triggered()
         ui->microcodeWidget->redo();
     }
     // However, the Pep9 panes do
-    else if(ui->AsmSourceCodeWidgetPane->hasFocus()) {
-        ui->AsmSourceCodeWidgetPane->redo();
-    }
-    else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
-        ui->AsmObjectCodeWidgetPane->redo();
+    else if(ui->assemblerPane->isAncestorOf(focusWidget())) {
+        ui->assemblerPane->redo();
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->ioWidget->redo();
@@ -1317,11 +1200,8 @@ void MicroMainWindow::on_actionEdit_Cut_triggered()
     if (ui->microcodeWidget->hasFocus() && ui->actionDebug_Start_Debugging->isEnabled()) {
         ui->microcodeWidget->cut();
     }
-    else if(ui->AsmSourceCodeWidgetPane->hasFocus()) {
-        ui->AsmSourceCodeWidgetPane->cut();
-    }
-    else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
-        ui->AsmObjectCodeWidgetPane->cut();
+    else if(ui->assemblerPane->isAncestorOf(focusWidget())) {
+        ui->assemblerPane->cut();
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->ioWidget->cut();
@@ -1336,14 +1216,8 @@ void MicroMainWindow::on_actionEdit_Copy_triggered()
     else if (helpDialog->hasFocus()) {
         helpDialog->copy();
     }
-    else if(ui->AsmSourceCodeWidgetPane->hasFocus()) {
-        ui->AsmSourceCodeWidgetPane->copy();
-    }
-    else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
-        ui->AsmObjectCodeWidgetPane->copy();
-    }
-    else if(ui->AsmProgramListingWidgetPane->hasFocus()) {
-        ui->AsmProgramListingWidgetPane->copy();
+    else if(ui->assemblerPane->isAncestorOf(focusWidget())) {
+        ui->assemblerPane->copy();
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->ioWidget->copy();
@@ -1359,11 +1233,8 @@ void MicroMainWindow::on_actionEdit_Paste_triggered()
     if (ui->microcodeWidget->hasFocus() && ui->actionDebug_Start_Debugging->isEnabled()) {
         ui->microcodeWidget->paste();
     }
-    else if(ui->AsmSourceCodeWidgetPane->hasFocus()) {
-        ui->AsmSourceCodeWidgetPane->paste();
-    }
-    else if(ui->AsmObjectCodeWidgetPane->hasFocus()) {
-        ui->AsmObjectCodeWidgetPane->paste();
+    else if(ui->assemblerPane->isAncestorOf(focusWidget())) {
+        ui->assemblerPane->paste();
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         ui->ioWidget->paste();
@@ -1380,13 +1251,7 @@ void MicroMainWindow::on_actionEdit_UnComment_Line_triggered()
 
 void MicroMainWindow::on_actionEdit_Format_Assembler_triggered()
 {
-    if(ui->AsmSourceCodeWidgetPane->getAsmProgram().isNull()) {
-        if(on_actionBuild_Assemble_triggered()) {
-        }
-        else return;
-    }
-    QString code =ui->AsmSourceCodeWidgetPane->getAsmProgram()->getFormattedSourceCode();
-    ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
+    ui->assemblerPane->formatAssemblerCode();
 }
 
 void MicroMainWindow::on_actionEdit_Format_Microcode_triggered()
@@ -1398,7 +1263,7 @@ void MicroMainWindow::on_actionEdit_Format_Microcode_triggered()
 
 void MicroMainWindow::on_actionEdit_Remove_Error_Assembler_triggered()
 {
-    ui->AsmSourceCodeWidgetPane->removeErrorMessages();
+    ui->assemblerPane->removeErrorMessages();
 }
 
 void MicroMainWindow::on_actionEdit_Remove_Error_Microcode_triggered()
@@ -1436,21 +1301,21 @@ void MicroMainWindow::on_actionBuild_Microcode_triggered()
 //Build Events
 bool MicroMainWindow::on_actionBuild_Assemble_triggered()
 {
-    if(ui->AsmSourceCodeWidgetPane->assemble()){
-        ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
-        ui->AsmProgramListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAsmProgram(),
-                                                      ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
+    ui->assemblerPane->assembleAsProgram();
+    if(ui->assemblerPane->getAssemblerOutput()->success){
+        programManager->setUserProgram(ui->assemblerPane->getAssemblerOutput()->prog);
         ui->asmProgramTracePane->onRemoveAllBreakpoints();
         controlSection->breakpointsRemoveAll();
-        ui->asmProgramTracePane->setProgram(ui->AsmSourceCodeWidgetPane->getAsmProgram());
+        ui->asmProgramTracePane->setProgram(ui->assemblerPane->getAssemblerOutput()->prog);
         set_Obj_Listing_filenames_from_Source();
         ui->statusBar->showMessage("Assembly succeeded", 4000);
         handleDebugButtons();
         return true;
     }
     else {
-        ui->AsmObjectCodeWidgetPane->clearObjectCode();
-        ui->AsmProgramListingWidgetPane->clearAssemblerListing();
+#pragma message("May be redundant")
+        ui->assemblerPane->clearPane(Enu::EPane::EObject);
+        ui->assemblerPane->clearPane(Enu::EPane::EListing);
         ui->asmProgramTracePane->clearSourceCode();
         ui->asmProgramTracePane->onRemoveAllBreakpoints();
         // ui->pepCodeTraceTab->setCurrentIndex(0); // Make source code pane visible
@@ -1636,7 +1501,7 @@ bool MicroMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     memDevice->clearMemory();
     loadOperatingSystem();
     // Copy object code to batch input pane and make it the active input pane
-    QString objcode = ui->AsmObjectCodeWidgetPane->toPlainText();
+    QString objcode = ui->assemblerPane->getPaneContents(Enu::EPane::EObject);
     // Replace all new line characters with spaces
     objcode = objcode.replace('\n', ' ');
     ui->ioWidget->setBatchInput(objcode);
@@ -1827,18 +1692,18 @@ void MicroMainWindow::on_actionSystem_Clear_Memory_triggered()
 
 void MicroMainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
 {
-    if(ui->AsmSourceCodeWidgetPane->assembleOS(true)) {
-        ui->AsmObjectCodeWidgetPane->setObjectCode(ui->AsmSourceCodeWidgetPane->getObjectCode());
-        ui->AsmProgramListingWidgetPane->setAssemblerListing(ui->AsmSourceCodeWidgetPane->getAsmProgram(),
-                                                      ui->AsmSourceCodeWidgetPane->getAsmProgram()->getSymbolTable());
+    auto output = programManager->assembleOS(ui->assemblerPane->getPaneContents(Enu::EPane::ESource),false);
+    if(output->success) {
+        programManager->setOperatingSystem(output->prog);
+        ui->assemblerPane->setPanesFromProgram(*output);
         ui->asmProgramTracePane->onRemoveAllBreakpoints();
         controlSection->breakpointsRemoveAll();
         set_Obj_Listing_filenames_from_Source();
         ui->statusBar->showMessage("Assembly succeeded, OS installed", 4000);
     }
     else {
-        ui->AsmObjectCodeWidgetPane->clearObjectCode();
-        ui->AsmProgramListingWidgetPane->clearAssemblerListing();
+        ui->assemblerPane->clearPane(Enu::EPane::EObject);
+        ui->assemblerPane->clearPane(Enu::EPane::EListing);
         ui->asmProgramTracePane->clearSourceCode();
         ui->asmProgramTracePane->onRemoveAllBreakpoints();
         ui->statusBar->showMessage("Assembly failed, previous OS remains", 4000);
@@ -1868,9 +1733,8 @@ void MicroMainWindow::on_actionSystem_Redefine_Decoder_Tables_triggered()
 void MicroMainWindow::redefine_Mnemonics_closed()
 {
     // Propogate ASM-level instruction definition changes across the application.
-    ui->AsmSourceCodeWidgetPane->rebuildHighlightingRules();
+    ui->assemblerPane->rebuildHighlightingRules();
     ui->asmProgramTracePane->rebuildHighlightingRules();
-    ui->AsmProgramListingWidgetPane->rebuildHighlightingRules();
 }
 
 void MicroMainWindow::onSimulationFinished()
@@ -2109,14 +1973,8 @@ void MicroMainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     else if(ui->cpuWidget->isAncestorOf(oldFocus)) {
         ui->cpuWidget->highlightOnFocus();
     }
-    else if(ui->AsmSourceCodeWidgetPane->isAncestorOf(oldFocus)) {
-        ui->AsmSourceCodeWidgetPane->highlightOnFocus();
-    }
-    else if(ui->AsmObjectCodeWidgetPane->isAncestorOf(oldFocus)) {
-        ui->AsmObjectCodeWidgetPane->highlightOnFocus();
-    }
-    else if(ui->AsmProgramListingWidgetPane->isAncestorOf(oldFocus)) {
-        ui->AsmProgramListingWidgetPane->highlightOnFocus();
+    else if(ui->assemblerPane->isAncestorOf(oldFocus)) {
+        ui->assemblerPane->highlightOnFocus();
     }
     else if(ui->asmProgramTracePane->isAncestorOf(oldFocus)) {
         ui->asmProgramTracePane->highlightOnFocus();
@@ -2144,19 +2002,9 @@ void MicroMainWindow::focusChanged(QWidget *oldFocus, QWidget *)
         which = Enu::EditButton::COPY;
         ui->microObjectCodePane->highlightOnFocus();
     }
-    else if (ui->AsmSourceCodeWidgetPane->hasFocus()) {
-        which = Enu::EditButton::COPY | Enu::EditButton::CUT | Enu::EditButton::PASTE;
-        which |= Enu::EditButton::UNDO * ui->AsmSourceCodeWidgetPane->isUndoable() | Enu::EditButton::REDO * ui->AsmSourceCodeWidgetPane->isRedoable();
-        ui->AsmSourceCodeWidgetPane->highlightOnFocus();
-    }
-    else if (ui->AsmObjectCodeWidgetPane->hasFocus()) {
-        which = Enu::EditButton::COPY | Enu::EditButton::CUT | Enu::EditButton::PASTE;
-        which |= Enu::EditButton::UNDO * ui->AsmObjectCodeWidgetPane->isUndoable() | Enu::EditButton::REDO * ui->AsmObjectCodeWidgetPane->isRedoable();
-        ui->AsmObjectCodeWidgetPane->highlightOnFocus();
-    }
-    else if (ui->AsmProgramListingWidgetPane->hasFocus()) {
-        which = Enu::EditButton::COPY;
-        ui->AsmProgramListingWidgetPane->highlightOnFocus();
+    else if (ui->assemblerPane->isAncestorOf(focusWidget())) {
+        which = ui->assemblerPane->enabledButtons();
+        ui->assemblerPane->highlightOnFocus();
     }
     else if (ui->ioWidget->isAncestorOf(QApplication::focusWidget())) {
         which = ui->ioWidget->editActions();
@@ -2185,11 +2033,8 @@ void MicroMainWindow::setUndoability(bool b)
     else if (ui->cpuWidget->hasFocus()) {
         ui->actionEdit_Undo->setEnabled(false);
     }
-    else if (ui->AsmSourceCodeWidgetPane->hasFocus()) {
-        ui->actionEdit_Undo->setEnabled(b);
-    }
-    else if (ui->AsmObjectCodeWidgetPane->hasFocus()) {
-        ui->actionEdit_Undo->setEnabled(b);
+    else if (ui->assemblerPane->isAncestorOf(focusWidget())) {
+        ui->actionEdit_Undo->setEnabled(ui->assemblerPane->isUndoable() && b);
     }
     else if (ui->microObjectCodePane->hasFocus()) {
         ui->actionEdit_Redo->setDisabled(true);
@@ -2213,11 +2058,8 @@ void MicroMainWindow::setRedoability(bool b)
     else if (ui->cpuWidget->hasFocus()) {
         ui->actionEdit_Redo->setEnabled(false);
     }
-    else if (ui->AsmSourceCodeWidgetPane->hasFocus()) {
-        ui->actionEdit_Redo->setEnabled(b);
-    }
-    else if (ui->AsmObjectCodeWidgetPane->hasFocus()) {
-        ui->actionEdit_Redo->setEnabled(b);
+    else if (ui->assemblerPane->isAncestorOf(focusWidget())) {
+        ui->actionEdit_Redo->setEnabled(ui->assemblerPane->isRedoable() && b);
     }
     else if (ui->microObjectCodePane->hasFocus()) {
         ui->actionEdit_Redo->setDisabled(true);
@@ -2248,21 +2090,15 @@ void MicroMainWindow::helpCopyToSourceClicked()
             case Enu::EPane::ESource:
                 if(maybeSave(Enu::EPane::ESource)) {
                     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-                    ui->AsmSourceCodeWidgetPane->setFocus();
-                    ui->AsmSourceCodeWidgetPane->setCurrentFile("");
-                    ui->AsmSourceCodeWidgetPane->setSourceCodePaneText(code);
-                    ui->AsmSourceCodeWidgetPane->setModifiedFalse();
-                    statusBar()->showMessage("Copied to assembler source code", 4000);
+                    ui->assemblerPane->loadSourceFile("", code);
                     emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
+                    statusBar()->showMessage("Copied to assembler source code", 4000);
                 }
                 break;
             case Enu::EPane::EObject:
                 if(maybeSave(Enu::EPane::EObject)) {
                     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-                    ui->AsmObjectCodeWidgetPane->setFocus();
-                    ui->AsmObjectCodeWidgetPane->setCurrentFile("");
-                    ui->AsmObjectCodeWidgetPane->setObjectCodePaneText(code);
-                    ui->AsmObjectCodeWidgetPane->setModifiedFalse();
+                    ui->assemblerPane->loadObjectFile("", code);
                     statusBar()->showMessage("Copied to assembler object code", 4000);
                 }
                 break;

@@ -46,7 +46,7 @@
 #include "symbolvalue.h"
 #include "mainmemory.h"
 AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
-        QWidget(parent), ui(new Ui::SourceCodePane), inDarkMode(false), memDevice(nullptr),
+        QWidget(parent), ui(new Ui::SourceCodePane), inDarkMode(false),
         programManager(nullptr), currentProgram(nullptr), objectCode(), assemblerListingList(),
         addressToIndex(), currentFile()
 {
@@ -63,17 +63,41 @@ AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
 
     connect(static_cast<AsmSourceTextEdit*>(ui->textEdit), &AsmSourceTextEdit::breakpointAdded, this, &AsmSourceCodePane::onBreakpointAddedProp);
     connect(static_cast<AsmSourceTextEdit*>(ui->textEdit), &AsmSourceTextEdit::breakpointRemoved, this, &AsmSourceCodePane::onBreakpointRemovedProp);
+
+    installEventFilter(this);
+    ui->textEdit->installEventFilter(this);
 }
 
-void AsmSourceCodePane::init(QSharedPointer<MainMemory> memDevice, AsmProgramManager *manager)
+void AsmSourceCodePane::init(AsmProgramManager *manager)
 {
-    this->memDevice = memDevice;
     programManager = manager;
 }
 
 AsmSourceCodePane::~AsmSourceCodePane()
 {
     delete ui;
+}
+
+void AsmSourceCodePane::displayAssemblerOutput(AsmProgramManager::AsmOutput output)
+{
+    // Clean up any global state from previous compilation attempts
+    addressToIndex.clear();
+
+    // List of errors and warnings and the lines on which they occured
+    // Add all warnings and errors to source files
+    appendMessagesInSourceCodePane(output.errors);
+    // If assemble failed, don't perform any more work
+    if(!output.success) {
+        return;
+    }
+    for (int i = 0; i < output.prog->getProgram().size(); i++) {
+        if(output.prog->getProgram()[i]->getMemoryAddress() >=0) {
+            addressToIndex[output.prog->getProgram()[i]->getMemoryAddress()] = i;
+        }
+        if(ui->textEdit->lineHasBreakpoint(i)) {
+            output.prog->getProgram()[i]->setBreakpoint(true);
+        }
+    }
 }
 
 bool AsmSourceCodePane::assemble()
@@ -132,6 +156,7 @@ bool AsmSourceCodePane::assembleOS(bool forceBurnAt0xFFFF)
     auto elist = QList<QPair<int, QString>>();
     QString sourceCode = ui->textEdit->toPlainText();
     bool success = myAsm.assembleOperatingSystem(sourceCode, forceBurnAt0xFFFF, prog, elist);
+    programManager->setOperatingSystem(prog);
     // Add all warnings and errors to source files
     appendMessagesInSourceCodePane(elist);
     // If assemble failed, don't perform any more work
@@ -227,9 +252,9 @@ bool AsmSourceCodePane::isModified()
     return ui->textEdit->document()->isModified();
 }
 
-void AsmSourceCodePane::setModifiedFalse()
+void AsmSourceCodePane::setModified(bool modified)
 {
-    ui->textEdit->document()->setModified(false);
+    ui->textEdit->document()->setModified(modified);
 }
 
 QString AsmSourceCodePane::toPlainText()
@@ -319,7 +344,7 @@ void AsmSourceCodePane::tab()
 {
     if (!ui->textEdit->isReadOnly()) {
         QTextCursor cursor = ui->textEdit->textCursor();
-        cursor.movePosition(QTextCursor::StartOfLine);
+        cursor.movePosition(QTextCursor::StartOfBlock);
         QString string;
         int curLinePos = ui->textEdit->textCursor().position() - cursor.position();
         int spaces;
@@ -485,6 +510,22 @@ void AsmSourceCodePane::onBreakpointRemovedProp(quint16 line)
     if(currentProgram.isNull()) return;
     else if(currentProgram->getProgram().length()<line) return;
     else emit breakpointRemoved(currentProgram->getProgram().at(line)->getMemoryAddress());
+}
+
+bool AsmSourceCodePane::eventFilter(QObject *, QEvent *event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        if(keyEvent->key() == Qt::Key_Tab) {
+            tab();
+            return true;
+        }
+        else if(keyEvent->key() == Qt::Key_Backtab) {
+            backTab();
+            return true;
+        }
+    }
+    return false;
 }
 
 AsmSourceTextEdit::AsmSourceTextEdit(QWidget *parent): QPlainTextEdit(parent), colors(PepColors::lightMode)

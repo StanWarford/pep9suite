@@ -47,7 +47,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <property name="documentMode">
         <bool>false</bool>
@@ -66,38 +66,7 @@
          <item row="0" column="0">
           <layout class="QGridLayout" name="assemblerGridLayout">
            <item row="0" column="0">
-            <widget class="QSplitter" name="codeSplitter">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="opaqueResize">
-              <bool>true</bool>
-             </property>
-             <widget class="AsmSourceCodePane" name="AsmSourceCodeWidgetPane" native="true">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-             <widget class="AsmObjectCodePane" name="AsmObjectCodeWidgetPane" native="true">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-             <widget class="AsmProgramListingPane" name="AsmProgramListingWidgetPane" native="true">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </widget>
+            <widget class="AssemblerPane" name="assemblerPane" native="true"/>
            </item>
           </layout>
          </item>
@@ -1005,24 +974,6 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>AsmProgramListingPane</class>
-   <extends>QWidget</extends>
-   <header>asmprogramlistingpane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>AsmSourceCodePane</class>
-   <extends>QWidget</extends>
-   <header>asmsourcecodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>AsmObjectCodePane</class>
-   <extends>QWidget</extends>
-   <header>asmobjectcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>MemoryDumpPane</class>
    <extends>QWidget</extends>
    <header>memorydumppane.h</header>
@@ -1052,14 +1003,20 @@
    <header>asmcpupane.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>AssemblerPane</class>
+   <extends>QWidget</extends>
+   <header>assemblerpane.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <resources>
+  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
+  <include location="pep9asm-resources.qrc"/>
   <include location="../pep9micro/pep9micro-resources.qrc"/>
-  <include location="pep9asm-resources.qrc"/>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
  </resources>
  <connections>

@@ -56,6 +56,18 @@ void AsmObjectCodePane::setObjectCode(QList<int> objectCode)
     ui->plainTextEdit->setPlainText(objectCodeString);
 }
 
+void AsmObjectCodePane::setObjectCode(QVector<quint8> objectCode)
+{
+    QString objectCodeString = "";
+    for (int i = 0; i < objectCode.length(); i++) {
+        objectCodeString.append(QString("%1").arg(objectCode[i], 2, 16, QLatin1Char('0')).toUpper());
+        objectCodeString.append((i % 16) == 15 ? '\n' : ' ');
+    }
+    objectCodeString.append("zz");
+    ui->plainTextEdit->clear();
+    ui->plainTextEdit->setPlainText(objectCodeString);
+}
+
 void AsmObjectCodePane::setObjectCodePaneText(QString string)
 {
         ui->plainTextEdit->setPlainText(string);
@@ -92,9 +104,9 @@ bool AsmObjectCodePane::isModified()
     return ui->plainTextEdit->document()->isModified();
 }
 
-void AsmObjectCodePane::setModifiedFalse()
+void AsmObjectCodePane::setModified(bool modified)
 {
-    ui->plainTextEdit->document()->setModified(false);
+    ui->plainTextEdit->document()->setModified(modified);
 }
 
 QString AsmObjectCodePane::toPlainText()

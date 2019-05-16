@@ -30,7 +30,7 @@ RC_FILE = pep9resources.rc
 
 FORMS += \
     asmmainwindow.ui \
-    asmhelpdialog.ui \
+    asmhelpdialog.ui
 
 HEADERS += \
     asmmainwindow.h \

@@ -132,6 +132,42 @@ void AsmProgramManager::onRemoveAllBreakpoints()
     emit removeAllBreakpoints();
 }
 
+QSharedPointer<AsmProgramManager::AsmOutput> AsmProgramManager::assembleOS(QString sourceCode, bool forceBurnAt0xFFFF)
+{
+    QSharedPointer<AsmProgramManager::AsmOutput> out = QSharedPointer<AsmProgramManager::AsmOutput>::create();
+    IsaAsm assembler(*this);
+    // List of errors and warnings and the lines on which they occured
+    bool success = assembler.assembleOperatingSystem(sourceCode, forceBurnAt0xFFFF, out->prog, out->errors);
+    // Add all warnings and errors to source files
+    // If assemble failed, don't perform any more work
+    if(!success) {
+        out->success = false;
+        return out;
+    }
+    else {
+        out->success = true;
+    }
+    return out;
+}
+
+QSharedPointer<AsmProgramManager::AsmOutput> AsmProgramManager::assembleProgram(QString sourceCode)
+{
+    QSharedPointer<AsmProgramManager::AsmOutput> out = QSharedPointer<AsmProgramManager::AsmOutput>::create();
+    IsaAsm assembler(*this);
+    // List of errors and warnings and the lines on which they occured
+    bool success = assembler.assembleUserProgram(sourceCode, out->prog, out->errors);
+    // Add all warnings and errors to source files
+    // If assemble failed, don't perform any more work
+    if(!success) {
+        out->success = false;
+        return out;
+    }
+    else {
+        out->success = true;
+    }
+    return out;
+}
+
 quint16 AsmProgramManager::getMemoryVectorOffset(MemoryVectors which)
 {
     switch(which) {

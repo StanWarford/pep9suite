@@ -32,7 +32,7 @@
 #include "pepasmhighlighter.h" // For syntax highlighting
 #include "enu.h"
 #include <QSharedPointer>
-
+#include "asmprogrammanager.h"
 namespace Ui {
     class SourceCodePane;
 }
@@ -85,8 +85,10 @@ class AsmSourceCodePane : public QWidget {
     Q_DISABLE_COPY(AsmSourceCodePane)
 public:
     explicit AsmSourceCodePane(QWidget *parent = nullptr);
-    void init(QSharedPointer<MainMemory> memory, AsmProgramManager* manager);
-    virtual ~AsmSourceCodePane();
+    virtual ~AsmSourceCodePane() override;
+    void init(AsmProgramManager* manager);
+
+    void displayAssemblerOutput(AsmProgramManager::AsmOutput output);
 
     bool assemble();
     // Pre: The source code pane contains a Pep/9 source program.
@@ -126,8 +128,8 @@ public:
     bool isModified();
     // Post: Returns true if the source code pane has been modified
 
-    void setModifiedFalse();
-    // Post: Sets isModified of the source code pane to false
+    void setModified(bool modified);
+    // Post: Sets isModified of the source code pane to modified
 
     QString toPlainText();
     // Post: Contents of the source code pane are returned
@@ -179,6 +181,7 @@ public:
 
     void writeSettings(QSettings& settings);
     void readSettings(QSettings& settings);
+    bool eventFilter(QObject *, QEvent * event) override;
 
 public slots:
     void onFontChanged(QFont font);
@@ -193,7 +196,6 @@ public slots:
 private:
     Ui::SourceCodePane *ui;
     bool inDarkMode;
-    QSharedPointer<MainMemory> memDevice;
     AsmProgramManager* programManager;
     QSharedPointer<AsmProgram> currentProgram;
     QList<int> objectCode;
@@ -201,9 +203,9 @@ private:
     QMap<quint16, quint16> addressToIndex;
     PepASMHighlighter *pepHighlighter;
     QFile currentFile;
-    void mouseReleaseEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent *) override;
 
-    void mouseDoubleClickEvent(QMouseEvent *);
+    void mouseDoubleClickEvent(QMouseEvent *) override;
 
 private slots:
     void setLabelToModified(bool modified);

@@ -82,18 +82,8 @@ QString MicroHelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QS
         return ui->leftTextEdit->toPlainText();
     }*/
     if(parentRow == eMICROEXAMPLES) {
-        if(row == eMFig101) {
-            destPane = Enu::EPane::EMicrocode;
-            return ui->microTextEdit->toPlainText();
-        }
-        else if(row == eMFig102) {
-            destPane = Enu::EPane::EMicrocode;
-            return ui->microTextEdit->toPlainText();
-        }
-        else if(row == eMFig103) {
-            destPane = Enu::EPane::EMicrocode;
-            return ui->microTextEdit->toPlainText();
-        }
+        destPane = Enu::EPane::EMicrocode;
+        return ui->microTextEdit->toPlainText();
     }
     else if (parentRow == eASMEXAMPLES) {
         if (row == eFIG433) {
@@ -188,7 +178,7 @@ QString MicroHelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QS
     }
     else if(parentRow == eMICROIMPL || row == eMICROIMPL) {
         destPane = Enu::EPane::EMicrocode;
-        return Pep::resToString(":/help-micro/pep9micro.pepcpu", true);
+        return ui->microTextEdit->toPlainText();
     }
     destPane = Enu::EPane::ESource;
     return ui->leftPepTextEdit->toPlainText();

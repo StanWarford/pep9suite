@@ -81,9 +81,7 @@
             <property name="opaqueResize">
              <bool>true</bool>
             </property>
-            <widget class="AsmSourceCodePane" name="AsmSourceCodeWidgetPane" native="true"/>
-            <widget class="AsmObjectCodePane" name="AsmObjectCodeWidgetPane" native="true"/>
-            <widget class="AsmProgramListingPane" name="AsmProgramListingWidgetPane" native="true"/>
+            <widget class="AssemblerPane" name="assemblerPane" native="true"/>
            </widget>
           </item>
          </layout>
@@ -1219,33 +1217,21 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>AsmSourceCodePane</class>
-   <extends>QWidget</extends>
-   <header>asmsourcecodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>AsmObjectCodePane</class>
-   <extends>QWidget</extends>
-   <header>asmobjectcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>NewMemoryTracePane</class>
    <extends>QWidget</extends>
    <header>memorytracepane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>AsmProgramListingPane</class>
-   <extends>QWidget</extends>
-   <header>asmprogramlistingpane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>AsmProgramTracePane</class>
    <extends>QWidget</extends>
    <header>asmprogramtracepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AssemblerPane</class>
+   <extends>QWidget</extends>
+   <header>assemblerpane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
