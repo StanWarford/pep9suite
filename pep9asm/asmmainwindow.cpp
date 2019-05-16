@@ -912,6 +912,7 @@ void AsmMainWindow::on_actionFile_New_Asm_triggered()
         ui->assemblerPane->newProject();
         ui->asmProgramTracePane->clearSourceCode();
         programManager->setUserProgram(nullptr);
+        ui->ioWidget->onClear();
         emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
         handleDebugButtons();
     }
@@ -1769,10 +1770,13 @@ void AsmMainWindow::setRedoability(bool b)
 void AsmMainWindow::helpCopyToSourceClicked()
 {
     helpDialog->hide();
+    ui->ioWidget->onClear();
     Enu::EPane destPane, inputPane;
     QString input;
     QString code = helpDialog->getCode(destPane, inputPane, input);
-    if(code.isEmpty()) return;
+    if(code.isEmpty()) {
+        return;
+    }
     else {
         switch(destPane)
         {

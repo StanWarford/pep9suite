@@ -1071,6 +1071,7 @@ void MicroMainWindow::on_actionFile_New_Asm_triggered()
         ui->assemblerPane->newProject();
         ui->asmProgramTracePane->clearSourceCode();
         programManager->setUserProgram(nullptr);
+        ui->ioWidget->onClear();
         emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
         handleDebugButtons();
     }
@@ -2080,48 +2081,51 @@ void MicroMainWindow::appendMicrocodeLine(QString line)
 void MicroMainWindow::helpCopyToSourceClicked()
 {
     helpDialog->hide();
-        Enu::EPane destPane, inputPane;
-        QString input;
-        QString code = helpDialog->getCode(destPane, inputPane, input);
-        if(code.isEmpty()) return;
-        else {           
-            switch(destPane)
-            {
-            case Enu::EPane::ESource:
-                if(maybeSave(Enu::EPane::ESource)) {
-                    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-                    ui->assemblerPane->loadSourceFile("", code);
-                    emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
-                    statusBar()->showMessage("Copied to assembler source code", 4000);
-                }
-                break;
-            case Enu::EPane::EObject:
-                if(maybeSave(Enu::EPane::EObject)) {
-                    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
-                    ui->assemblerPane->loadObjectFile("", code);
-                    statusBar()->showMessage("Copied to assembler object code", 4000);
-                }
-                break;
-            case Enu::EPane::EMicrocode:
-                if(maybeSave(Enu::EPane::EMicrocode)) {
-                    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
-                    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
-                    ui->microcodeWidget->setFocus();
-                    ui->microcodeWidget->setCurrentFile("");
-                    ui->microcodeWidget->setMicrocode(code);
-                    ui->microcodeWidget->setModifiedFalse();
-                    on_actionBuild_Microcode_triggered();
-
-                    emit ui->actionDebug_Remove_All_Microcode_Breakpoints->trigger();
-                    statusBar()->showMessage("Copied to microcode", 4000);
-                }
-                break;
-            default:
-                // No other panes allow copying help into them.
-                return;
-
-        }
+    ui->ioWidget->onClear();
+    Enu::EPane destPane, inputPane;
+    QString input;
+    QString code = helpDialog->getCode(destPane, inputPane, input);
+    if(code.isEmpty()) {
+        return;
     }
+    else {
+        switch(destPane)
+        {
+        case Enu::EPane::ESource:
+            if(maybeSave(Enu::EPane::ESource)) {
+                ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
+                ui->assemblerPane->loadSourceFile("", code);
+                emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
+                statusBar()->showMessage("Copied to assembler source code", 4000);
+            }
+            break;
+        case Enu::EPane::EObject:
+            if(maybeSave(Enu::EPane::EObject)) {
+                ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
+                ui->assemblerPane->loadObjectFile("", code);
+                statusBar()->showMessage("Copied to assembler object code", 4000);
+            }
+            break;
+        case Enu::EPane::EMicrocode:
+            if(maybeSave(Enu::EPane::EMicrocode)) {
+                ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
+                ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
+                ui->microcodeWidget->setFocus();
+                ui->microcodeWidget->setCurrentFile("");
+                ui->microcodeWidget->setMicrocode(code);
+                ui->microcodeWidget->setModifiedFalse();
+                on_actionBuild_Microcode_triggered();
+
+                emit ui->actionDebug_Remove_All_Microcode_Breakpoints->trigger();
+                statusBar()->showMessage("Copied to microcode", 4000);
+            }
+            break;
+        default:
+            // No other panes allow copying help into them.
+            return;
+
+    }
+}
 
     switch(inputPane)
     {
