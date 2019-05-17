@@ -354,6 +354,7 @@ void AssemblerPane::writeSettings(QSettings &settings)
         settings.setArrayIndex(it);
         settings.setValue("size", temp[it]);
     }
+    settings.endArray();
     ui->sourcePane->writeSettings(settings);
     // ui->objectPane->writeSettings(settings); // Unimplemented
     // ui->listingPane->writeSettings(settings); // Unimplemented
