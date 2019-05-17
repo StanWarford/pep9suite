@@ -1,14 +1,15 @@
-<!DOCTYPE HTML PUBLIC "-//W3C/DTD HTML 4.01//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C/DTD HTML 5.2//EN">
 
 <html>
 <head>
  <title> Pep/9 CPU: Interactive Use </title>
   <style type="text/css" media="all">
-   img { vertical-align:text-top; }
-   code { font-family:Courier, 'Courier New', monospace; font-size:11pt }
+  code { font-family:Courier, 'Courier New', monospace; font-size:11pt }
+  img { vertical-align:text-top; }
+  h4 { margin-bottom: 0; border-bottom-width: 0; padding-bottom: 0; }
   </style>
 </head>
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#000033" alink="#0066FF">
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#0000FF" alink="#0000FF">
 <table bgcolor="#FB9F14" width="100%" cellpadding="2" cellspacing="0" border="0">
 <tr><td>
 <p style="text-align:center; font-family:helvetica, arial, sans-serif; font-size:14pt; font-weight:bold; color: #29315E">
@@ -20,33 +21,42 @@ Interactive Use
 With interactive use, the user controls the execution of a single CPU cycle.
 The general process is to make the following settings:
 <p>
-1. <a href="#Memory">Initialize the memory values</a>
-<p>
-2. <a href="#Register">Initialize the register values</a>
-<p>
-3. <a href="#Control">Set the control signals</a>
-<p>
-4. <a href="#Clock">Enable the clock signals</a>
+<ul>
+  <li>Initialize the memory values.</li>
+  <li>Initialize the register values.</li>
+  <li>Initialize the set the control signals.</li>
+  <li>Initialize the enable the clock signals.</li>
+</ul>
 <p>
 After making these settings, you can click the Clock button at the bottom of the CPU pane to see the effect of the cycle
 on the state of the CPU.
-Before clicking the Clock button, you may click the Copy to Microcode button, which
-will insert a line of microcode text equivalent to your CPU pane settings into the microcode pane at the position of the text cursor.
-See the section Microcode Use for further details of Copy to Microcode.
 <p>
-<img src="qrc:/help-cpu/images/clockandcopybuttons.png" alt="clockandcopybuttons" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/clockbutton.png" alt="clockbutton" hspace=10 vspace=10>
 <p>
-<h3><a name="Memory">1. Initialize the memory values</a></h3>
-You initialize a memory value by clicking on the value cell in the memory pane on the left side of the main window.
+The following documentation uses examples from the one-byte data bus but applies similarly to the two-byte data bus.
+<p>
+<a name = "Topics">Topics:</a>
+<a href="#Memory">Initialize the memory values</a>,
+<a href="#Register">Initialize the register values</a>,
+<a href="#Control">Set the control signals</a>,
+<a href="#Clock">Enable the clock signals</a>.
+
+<h3><a name="Memory">Initialize the memory values</a></h3>
+
+You initialize a memory value by clicking on the value cell in the Memory Dump pane on the left side of the main window.
 Enter a one-byte value in hexadecimal then press Enter (Return) or click outside the cell.
-The following figure shows the user entering the hexadecimal value 0xab in the cell at address 0x0001.
+The following figure shows the user entering the hexadecimal value AB in the cell at address 0001.
 <p>
 <img src="qrc:/help-cpu/images/settingmemory.png" alt="settingmemory" hspace=10 vspace=10>
 <p>
-If you want to clear all the values in memory to all zeros select System->Clear Memory from the menu.
+If you want to clear all the values in memory to all zeros select System&rarr;Clear Memory from the menu.
 <p>
 <img src="qrc:/help-cpu/images/clearmemory.png" alt="clearmemory" hspace=10 vspace=10>
-<h3><a name="Register">2. Initialize the register values</a></h3>
+<p>
+<a href="#Topics">Scroll to topics</a>.
+
+<h3><a name="Register">Initialize the register values</a></h3>
+
 You initialize a register value by clicking on the register in the CPU pane.
 Enter a two-byte value in hexadecimal then press Enter (Return) or click outside the register.
 The following figure shows the user entering the hexadecimal value 0xabcd in the index register.
@@ -58,10 +68,14 @@ The following figure shows the V bit toggled from 0 to 1.
 <p>
 <img src="qrc:/help-cpu/images/togglevbit.png" alt="togglevbit" hspace=10 vspace=10>
 <p>
-If you want to clear all the registers in the CPU to all zeros select System->Clear CPU from the menu.
+If you want to clear all the registers in the CPU to all zeros select System&rarr;Clear CPU from the menu.
 <p>
 <img src="qrc:/help-cpu/images/clearcpu.png" alt="clearcpu" hspace=10 vspace=10>
-<h3><a name="Control">3. Set the control signals</a></h3>
+<p>
+<a href="#Topics">Scroll to topics</a>.
+
+<h3><a name="Control">Set the control signals</a></h3>
+
 Each control signal is activated by a GUI widget on the right side of the CPU pane.
 There are five kinds of control signals &mdash; register address signals, multiplexer signals,
 the ALU function signal, the AndZ signal, and the memory read/write signals.
@@ -107,12 +121,16 @@ significant of ROM register M1, which has a value of 1.
   The corresponding value in the GUI widget is one or blank respectively.
   You set the value by clicking in the widget, which toggles the signal between one and blank.
   MemRead and MemWrite cannot be asserted simultaneously.
-  The following figure shows MemWrite asserted.
+  The following figure shows MemRead asserted.
   <img src="qrc:/help-cpu/images/memreadwrite.png" alt="memreadwrite" hspace=10 vspace=10>
-  <h3><a name="Clock">4. Enable the clock signals</a></h3>
-  There are seven clock signals &mdash; LoadCk, MARCk, MDRCk, CCk, VCk, ZCk, NCk &mdash; that
-  are the clock inputs to the seven sequential circuits in the CPU  &mdash; the register bank,
-  the memory address register, the memory data register, and the C, V, Z, and N status bits respectively.
+  <p>
+  <a href="#Topics">Scroll to topics</a>.
+
+  <h3><a name="Clock">Enable the clock signals</a></h3>
+
+  There are eight clock signals &mdash; LoadCk, MARCk, MDRCk, SCk, CCk, VCk, ZCk, NCk &mdash; that
+  are the clock inputs to the eight sequential circuits in the CPU  &mdash; the register bank,
+  the memory address register, the memory data register, and the S, C, V, Z, and N status bits respectively.
   At the end of each cycle you can specify data to be clocked into one or more of these sequential
   circuits.
   Click the check box to specify that data is to be clocked into a sequential circuit.
@@ -121,5 +139,7 @@ significant of ROM register M1, which has a value of 1.
   <p>
   <img src="qrc:/help-cpu/images/clocksignal.png" alt="clocksignal" hspace=10 vspace=10>
   <p>
+  <a href="#Topics">Scroll to topics</a>.
+
   </body>
   </html>

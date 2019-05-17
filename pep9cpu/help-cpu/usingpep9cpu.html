@@ -1,14 +1,15 @@
-<!DOCTYPE HTML PUBLIC "-//W3C/DTD HTML 4.01//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C/DTD HTML 5.2//EN">
 
 <html>
 <head>
  <title> Pep/9 CPU: Using Pep/9 CPU </title>
   <style type="text/css" media="all">
-   img { vertical-align:text-top; }
-   code { font-family:Courier, 'Courier New', monospace; font-size:11pt }
+  code { font-family:Courier, 'Courier New', monospace; font-size:11pt }
+  img { vertical-align:text-top; }
+  h4 { margin-bottom: 0; border-bottom-width: 0; padding-bottom: 0; }
   </style>
 </head>
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#000033" alink="#0066FF">
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#0000FF" alink="#0000FF">
 <table bgcolor="#FB9F14" width="100%" cellpadding="2" cellspacing="0" border="0">
 <tr><td>
 <p style="text-align:center; font-family:helvetica, arial, sans-serif; font-size:14pt; font-weight:bold; color: #29315E">
@@ -26,29 +27,31 @@ You should use the Pep/9 CPU system in conjunction with the textbook to write mi
 Reference: <i>Computer Systems</i>, Chapter 12, Section 12.1.
 <p>
  <a name = "Topics">Topics:</a>
- <a href="#Modes">Interactive, microcode, and debugging use</a>,
+ <a href="#Bus">The data bus</a>,
+ <a href="#Modes">Using Pep9CPU</a>,
  <a href="#File">Microcode files</a>,
  <a href="#Byte">Byte converter</a>.
 
-<h3><a name="Modes">One-byte versus two-byte data bus</a></h3>
+<h3><a name="Bus">The data bus</a></h3>
 
 Figure 12.2 of the textbook shows the data section of the Pep/9 CPU with a one-byte data bus.
 Figure 12.17 shows a modification to the CPU that incorporates a two-byte data bus for increased performance.
 Pep/9 CPU supports both versions of the CPU.
-Use the System main menu to switch between the two versions.
+<p>
+<img src="qrc:/help-cpu/images/bus1byte.png" alt="bus1byte" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/bus2byte.png" alt="bus2byte" hspace=10 vspace=10>
+<p>
+The Pep9CPU application starts up with the one-byte data bus.
+Use the System menu or keyboard shortcut to switch between the two versions.
  <p>
  <img src="qrc:/help-cpu/images/switchbus.png" alt="switchbus" hspace=10 vspace=10>
  <p>
+ <a href="#Topics">Scroll to topics</a>.
 
-<h3><a name="Modes">Interactive, microcode, and debugging use</a></h3>
+<h3><a name="Modes">Using Pep9CPU</a></h3>
 
  There are three ways to use the Pep/9 CPU simulator &ndash; interactive, microcode, and debugging.
- When the application starts up, the two buttons Clock and Copy to Microcode are enabled
- and the two buttons Single Step and Resume are disabled.
- <p>
- <img src="qrc:/help-cpu/images/fourbuttonsinteractivemode.png" alt="fourbuttonsinteractivemode" hspace=10 vspace=10>
- <p>
- In this state, the system is available for interactive use and for microcode use.
+ When the application starts up, the system is available for interactive use and for microcode use.
  <p>
  <h4>Interactive use</h4>
  With interactive use, you can set individual control signals via the GUI widgets on the right side of the CPU pane.
@@ -59,6 +62,7 @@ Use the System main menu to switch between the two versions.
 <p>
 The A bus and B bus are colored red to indicate that the A and B adresses are set.
 When the user clicks the Clock button, the CPU pane shows the effect of this single CPU cycle.
+See the section titled Interactive Use in this help system for details of how to use Pep9CPU in interactive mode.
 <p>
 <h4>Microcode use</h4>
 With microcode use, you can write a microprogram in the microcode pane.
@@ -72,21 +76,25 @@ The keywords <code>UnitPre</code> and <code>UnitPost</code> in the above figure 
 <p>
 After writing a microprogram the user can either run the program or use the debugger to see the effect of each
 cycle in the CPU pane.
+See the section titled Microcode Use in this help system for details of how to write microcode.
 <p>
 <h4>Debugging use</h4>
-When you are using the debugger, the two buttons Clock and Copy to Microcode are disabled and the
-two buttons Single Step and Resume are enabled.
+With debugging use, you can single step through a microprogram to see the effect of each cycle on the state of the CPU.
+The following figure shows the first few lines of a microprogram at the start of a single step.
 <p>
-<img src="qrc:/help-cpu/images/fourbuttonsmicrocodemode.png" alt="fourbuttonsmicrocodemode" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/debugginguse.png" alt="debugginguse" hspace=10 vspace=10>
 <p>
-You can click the Single Step button to see the effect of each cycle on the state of the Pep/9 CPU.
-<h4>More details</h4>
-For more details about how to use Pep/9 CPU in each of these three ways, see the sections Interactive Use, Microcode Use,
-and Debugging Use in this Help system.
+See the section titled Debugging Use in this help system for details of how to debug your microcode programs.
 <p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
+
 <h3><a name="File">Microcode files</a></h3>
+
 The Pep/9 CPU system uses the file extension <code>.pepcpu</code> to store microcode programs.
 The files are text files that you can modify with your favorite text editor or word processor outside the Pep/9 CPU application.
+Although Pep/9 CPU displays the micro-object code in the object code pane, there is no facility to store a micro-object
+program to an external file.
 <p>
 When you write a microprogram the editor automatically numbers the statements that correspond to CPU cycles.
 The following figure shows the auto-cycle number feature of the editor.
@@ -120,6 +128,9 @@ UnitPost: Mem[0x00FF]=0xABCD
 </pre>
 When you open a previously saved microprogram the editor strips any cycle numbers in the text and auto-renumbers them.
 <p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
+
 <h3><a name="Byte">Byte converter</a></h3>
 
 Any time the Pep/9 CPU application is running, the byte converter is available in the tool bar.
@@ -129,6 +140,10 @@ Here is the result of entering the letter <code>P</code> in the ASCII field.
  <p>
 <img src="qrc:/help-cpu/images/byteconverter.png" alt="byteconverter" hspace=10 vspace=10>
 <p>
-
+An instruction specifier decoder is to the right of the four input fields.
+It displays the instruction mnemonic and possibly the addressing mode assuming you interpret the byte value as an instruction specifier.
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
 </body>
 </html>

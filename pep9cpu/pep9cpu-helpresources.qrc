@@ -41,7 +41,6 @@
         <file>help-cpu/images/switchbus.png</file>
         <file>help-cpu/images/togglevbit.png</file>
         <file>help-cpu/images/byteconverter.png</file>
-        <file>help-cpu/images/clockandcopybuttons.png</file>
         <file>help-cpu/images/comment1.png</file>
         <file>help-cpu/images/comment2.png</file>
         <file>help-cpu/images/comment3.png</file>
@@ -54,8 +53,6 @@
         <file>help-cpu/images/debugging.png</file>
         <file>help-cpu/images/formatfromobject.png</file>
         <file>help-cpu/images/formatfromobject3.png</file>
-        <file>help-cpu/images/fourbuttonsinteractivemode.png</file>
-        <file>help-cpu/images/fourbuttonsmicrocodemode.png</file>
         <file>help-cpu/images/objectcode.png</file>
         <file>help-cpu/images/removeerrormessages.png</file>
         <file>help-cpu/images/resumebutton.png</file>
@@ -127,5 +124,9 @@
         <file>help-cpu/figures/prob1236f.pepcpu</file>
         <file>help-cpu/images/stopdebuggingicon.png</file>
         <file>help-cpu/images/startdebuggingicon.png</file>
+        <file>help-cpu/images/bus1byte.png</file>
+        <file>help-cpu/images/bus2byte.png</file>
+        <file>help-cpu/images/debugginguse.png</file>
+        <file>help-cpu/images/clockbutton.png</file>
     </qresource>
 </RCC>
