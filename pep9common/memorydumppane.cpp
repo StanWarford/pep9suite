@@ -57,7 +57,8 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
 
     // Hook the table view into the model, and size everything correctly
     ui->tableView->setModel(data);
-
+    // Safe to use new inline, as it will be deleted when this class is destructed,
+    ui->tableView->setSelectionModel(new DisableEdgeSelectionModel(data, this));
     ui->tableView->resizeRowsToContents();
 
     // Connect scrolling events
@@ -501,4 +502,63 @@ void MemoryDumpDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     }
 }
 
+DisableEdgeSelectionModel::DisableEdgeSelectionModel(QAbstractItemModel *model) noexcept :
+    QItemSelectionModel (model)
+{
 
+}
+
+DisableEdgeSelectionModel::DisableEdgeSelectionModel(QAbstractItemModel *model, QObject *parent) noexcept :
+    QItemSelectionModel (model, parent)
+{
+
+}
+
+DisableEdgeSelectionModel::~DisableEdgeSelectionModel()
+{
+
+}
+
+void DisableEdgeSelectionModel::select(const QItemSelection &selection, QItemSelectionModel::SelectionFlags command)
+{
+    QItemSelection newSelection;
+    // For every selection range, remove any invalid indicies.
+    for(auto item : selection) {
+        // If the leftmost edge is in the last column, the selection
+        // only spans the last column, so ignore it.
+        if(item.topLeft().column() == model()->columnCount() - 1) continue;
+        // If the rightmost edge is in the first column, the selection
+        // only spans the first column, so ignore it.
+        else if(item.bottomRight().column() == 0) continue;
+        // If the selection spans the first and lasts columns, remove both columns.
+        else if(item.topLeft().column() == 0 &&
+                item.bottomRight().column() == model()->columnCount() - 1) {
+            newSelection.append(QItemSelectionRange(model()->index(item.left(), 1), model()->index(item.right(), model()->columnCount() - 2)));
+        }
+        // If the selection extends only into the first column, remove first column from selection.
+        else if(item.topLeft().column() == 0) {
+            newSelection.append(QItemSelectionRange(model()->index(item.left(), 1), item.bottomRight()));
+        }
+        // If the selection extends only into the last column, remove last column from selection.
+        else if(item.bottomRight().column() == model()->columnCount() - 1) {
+            newSelection.append(QItemSelectionRange(item.topLeft(), model()->index(item.right(), model()->columnCount() - 2)));
+        }
+        // Otherwise, no change to the selection is needed.
+        else{
+            newSelection.append(item);
+        }
+    }
+    QItemSelectionModel::select(newSelection, command);
+}
+
+void DisableEdgeSelectionModel::select(const QModelIndex &index, QItemSelectionModel::SelectionFlags command)
+{
+    // Don't allow first or last columns to be selected
+    if(index.column() == 0 ||
+            index.column() == model()->columnCount() - 1) {
+        return;
+    }
+    else {
+        QItemSelectionModel::select(index, command);
+    }
+}

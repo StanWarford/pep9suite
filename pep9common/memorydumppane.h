@@ -170,4 +170,24 @@ public:
                        const QStyleOptionViewItem &option,
                        const QModelIndex &index ) const override;
 };
+#include <QObject>
+#include <QItemSelectionModel>
+#include <QAbstractItemModel>
+
+/*
+ * DisableEdgeSelectionModel prevents the user from selecting either
+ * the rightmost or leftmost columns in an item model.
+ */
+class DisableEdgeSelectionModel : public QItemSelectionModel
+{
+    Q_OBJECT
+public:
+    DisableEdgeSelectionModel(QAbstractItemModel *model = Q_NULLPTR) noexcept;
+    DisableEdgeSelectionModel(QAbstractItemModel *model, QObject *parent = Q_NULLPTR) noexcept;
+    virtual ~DisableEdgeSelectionModel() override;
+    void select(const QItemSelection &selection, QItemSelectionModel::SelectionFlags command) override;
+    void select(const QModelIndex &index, SelectionFlags command) override;
+};
+
+
 #endif // MEMORYDUMPPANE_H
