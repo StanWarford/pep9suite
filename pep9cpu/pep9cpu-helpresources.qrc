@@ -13,7 +13,6 @@
         <file>help-cpu/images/comment6.png</file>
         <file>help-cpu/images/copycode1.png</file>
         <file>help-cpu/images/copycode2.png</file>
-        <file>help-cpu/images/copycode4.png</file>
         <file>help-cpu/images/debugger1.png</file>
         <file>help-cpu/images/debugger2.png</file>
         <file>help-cpu/images/debugger4.png</file>
@@ -21,8 +20,6 @@
         <file>help-cpu/images/debugger7.png</file>
         <file>help-cpu/images/debugger8.png</file>
         <file>help-cpu/images/errormessage.png</file>
-        <file>help-cpu/images/formatfromobject2.png</file>
-        <file>help-cpu/images/formatfromobject4.png</file>
         <file>help-cpu/images/postconditionerror.png</file>
         <file>help-cpu/images/runmenu.png</file>
         <file>help-cpu/images/startdebuggingmenu.png</file>
@@ -45,14 +42,11 @@
         <file>help-cpu/images/comment2.png</file>
         <file>help-cpu/images/comment3.png</file>
         <file>help-cpu/images/comment4.png</file>
-        <file>help-cpu/images/copycode3.png</file>
         <file>help-cpu/images/copyexample.png</file>
         <file>help-cpu/images/copyexercise.png</file>
         <file>help-cpu/images/debugger3.png</file>
         <file>help-cpu/images/debugger6.png</file>
         <file>help-cpu/images/debugging.png</file>
-        <file>help-cpu/images/formatfromobject.png</file>
-        <file>help-cpu/images/formatfromobject3.png</file>
         <file>help-cpu/images/objectcode.png</file>
         <file>help-cpu/images/removeerrormessages.png</file>
         <file>help-cpu/images/resumebutton.png</file>
@@ -128,5 +122,17 @@
         <file>help-cpu/images/bus2byte.png</file>
         <file>help-cpu/images/debugginguse.png</file>
         <file>help-cpu/images/clockbutton.png</file>
+        <file>help-cpu/images/copycode4.png</file>
+        <file>help-cpu/images/copycode3.png</file>
+        <file>help-cpu/images/buildandformatmenu.png</file>
+        <file>help-cpu/images/buildandformat1.png</file>
+        <file>help-cpu/images/buildandformat2.png</file>
+        <file>help-cpu/images/viewmemoryicon.png</file>
+        <file>help-cpu/images/viewmemorymenu.png</file>
+        <file>help-cpu/images/microcodeobject.png</file>
+        <file>help-cpu/images/microcodeprogram.png</file>
+        <file>help-cpu/images/buildicon.png</file>
+        <file>help-cpu/images/buildmenu.png</file>
+        <file>help-cpu/images/postconditionerrordialog.png</file>
     </qresource>
 </RCC>

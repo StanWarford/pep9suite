@@ -18,22 +18,20 @@ Microcode Use
 </td></tr>
 </table>
 <p>
-A microprogram consists of a sequence of microcode statements, which, when executed, implement
+A microprogram consists of a sequence of microcode statements, which, when executed, implements
 a single ISA3 instruction.
-To test an implementation of an ISA3 instruction, you can manually set initial values
-in memory and the CPU interactively, set the control signals for each individual cycle,
-then inspect the state of the machine after the last cycle as described in the section Interactive Use.
-<p>
-Alternatively, you can write a microprogram in the Microcode pane, invoke the microassembler
-to translate the microprogram to binary, then execute the sequence.
-One advantage of writing a microprogram is the built-in unit test facility of the microassembler.
+Pep/9 CPU lets you write a microprogram code fragment in the Microcode pane and invoke the microassembler
+to translate the microprogram to binary, then execute the sequence of statements in the code fragment.
+The IDE has a built-in unit test facility that specifies preconditions and postconditions to test the
+correctness of the code fragment.
 <p>
 <a name = "Topics">Topics:</a>
 <a href="#Writing">Writing a microprogram</a>,
-<a href="#Unit">Unit tests</a>,
 <a href="#Running">Running a microprogram</a>,
+<a href="#Unit">Unit tests</a>.
 
 <h3><a name="Writing">Writing a microprogram</a></h3>
+
 Three features of Pep/9 CPU help you write microprograms &mdash; automatic code generation, automatic un/commenting,
 and automatic formatting.
 <p>
@@ -81,7 +79,7 @@ The second line will also be affected by the automatic comment operation.
 <p>
 <img src="qrc:/help-cpu/images/comment2.png" alt="comment2" hspace=10 vspace=10>
 <p>
-Now, select Edit->Un/Comment from the main menu, or press the equivalent keyboard shortcut for your platform.
+Now, select Edit&rarr;Un/Comment Line from the main menu, or press the equivalent keyboard shortcut for your platform.
 <p>
 <img src="qrc:/help-cpu/images/comment3.png" alt="comment3" hspace=10 vspace=10>
 <p>
@@ -100,24 +98,64 @@ When you perform the operation, the first test is commented and the second test 
 <img src="qrc:/help-cpu/images/comment6.png" alt="comment6" hspace=10 vspace=10>
 <p>
 <h4>Automatic formatting</h4>
-Once you run your program so that an object code listing appears in the Object Code pane,
-you can format your code with a standard formatting style.
+After you write your program, you can format your code with a standard formatting style.
 For example, suppose you write the following microcode program in the editor.
 <p>
-<img src="qrc:/help-cpu/images/formatfromobject2.png" alt="formatfromobject2" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/buildandformat1.png" alt="buildandformat1" hspace=10 vspace=10>
 <p>
-After you run the program and determine that it is correct, the binary object code is stored inside the app.
-Now, select Edit->Format From Object Code from the menu.
+Now, select Edit&rarr;Build & Format from the menu.
 <p>
-<img src="qrc:/help-cpu/images/formatfromobject.png" alt="formatfromobject" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/buildandformatmenu.png" alt="buildandformatmenu" hspace=10 vspace=10>
 <p>
-Your source code will be replaced with standard formatted source code extracted from the object code.
+Your source code will be replaced with standard formatted source code.
 <p>
-<img src="qrc:/help-cpu/images/formatfromobject4.png" alt="formatfromobject4" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/buildandformat2.png" alt="buildandformat2" hspace=10 vspace=10>
 <p>
 <a href="#Topics">Scroll to topics</a>.
+
+<h3><a name="Running">Running a microprogram</a></h3>
+
+After writing a microcode program in the Micorocode pane, there are two ways to execute the program.
+You can run the program or you can debug it step by step.
+See the section Debugging Use for how to debug your microprogram.
 <p>
+Suppose you have entered the following microcode in the Microcode pane.
+<p>
+<img src="qrc:/help-cpu/images/microcodeprogram.png" alt="microcodeprogram" hspace=10 vspace=10>
+<p>
+To run your program select Build&rarr;Run from the menu or click the corresponding Run icon on the toolbar.
+<p>
+<img src="qrc:/help-cpu/images/runmenu.png" alt="runmenu" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/runicon.png" alt="runicon" hspace=10 vspace=10>
+<p>
+Pep/9 CPU will attempt to microassemble your microcode program.
+If there are no errors, it will show the object code in the Object Code pane and execute the microcode.
+<p>
+<img src="qrc:/help-cpu/images/microcodeobject.png" alt="microcodeobject" hspace=10 vspace=10>
+<p>
+If you simply want to check for microcode errors without executing the program select Build&rarr;Build Microcode from the menu
+or click the corresponding Build Microcode icon on the toolbar.
+<p>
+<img src="qrc:/help-cpu/images/buildmenu.png" alt="buildmenu" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/buildicon.png" alt="buildicon" hspace=10 vspace=10>
+<p>
+If there are errors, they will appear in red in the Microcode pane.
+The following figure shows the error message that appears when a comma is omitted after the first control signal.
+<p>
+<img src="qrc:/help-cpu/images/errormessage.png" alt="errormessage" hspace=10 vspace=10>
+<p>
+If you would like, you can select Edit&rarr;Remove Error Messages from the menu to delete the error message.
+Then, you can correct your error and try to run your program again.
+<p>
+<img src="qrc:/help-cpu/images/removeerrormessages.png" alt="removeerrormessages" hspace=10 vspace=10>
+<p>
+It is not necessary to remove the error message before correcting your program, as error messages
+are automatically removed when you rerun your program.
+<p>
+<a href="#Topics">Scroll to topics</a>.
+
 <h3><a name="Unit">Unit tests</a></h3>
+
 To establish a unit test for your program write the unit test precondition with the <code>UnitPre</code>
 keyword and the unit test postcondition with the <code>UnitPost</code> keyword
 at the beginning of a line and followed by a colon <code>:</code> .
@@ -125,7 +163,17 @@ The <code>UnitPre</code> statement clears all memory and CPU vaules to zero
 then sets values in memory and the CPU before the first microcode statement executes.
 The <code>UnitPost</code> statement tests whether a memory cell or CPU register has a specified value
 after the last microcode statement executes.
-If a unit test fails, an error message is displayed in the Microcode pane, as in the following figure.
+<p>
+If a unit test fails, a dialog alert is activated.
+<p>
+<img src="qrc:/help-cpu/images/postconditionerrordialog.png" alt="postconditionerror" hspace=10 vspace=10>
+<p>
+When you dismiss the dialog box, a detailed error message is displayed in the Microcode pane.
+<p>
+In the following figure, the programmer ommitted the CCk clock signal in the second microcode statement.
+Consequently, the C bit was not clocked into its cell.
+The <code>UnitPost</code> statement specifies that C must be 1 at the conclusion of the unit test.
+The error was triggerred because C was 0.
 <p>
 <img src="qrc:/help-cpu/images/postconditionerror.png" alt="postconditionerror" hspace=10 vspace=10>
 <p>
@@ -177,34 +225,6 @@ For example, you can write the above specification as
 <pre>
 Mem[0xabcd]=0x1122
 </pre>
-<a href="#Topics">Scroll to topics</a>.
-<p>
-<h3><a name="Running">Running a microprogram</a></h3>
-After writing a microcode program in the Micorocode pane, there are two ways to execute the program.
-You can run the program or you can debug it step by step.
-See the section Debugging Use for how to debug your microprogram.
-<h4>Running a program</h4>
-The first way to execute a program is to select System->Run from the menu or click the corresponding Run icon on the toolbar.
-<p>
-<img src="qrc:/help-cpu/images/runmenu.png" alt="runmenu" hspace=10 vspace=10>
-<img src="qrc:/help-cpu/images/runicon.png" alt="runicon" hspace=10 vspace=10>
-<p>
-Pep/9 CPU will attempt to microassemble your microcode program.
-If there are errors, they will appear in red in the Microcode pane.
-The following figure shows the error message that appears when a comma is omitted after the first control signal.
-<p>
-<img src="qrc:/help-cpu/images/errormessage.png" alt="errormessage" hspace=10 vspace=10>
-<p>
-If you would like, you can select Edit->Remove Error Messages from the menu to delete the error message.
-Then, you can correct your error and try to run your program again.
-<p>
-<img src="qrc:/help-cpu/images/removeerrormessages.png" alt="removeerrormessages" hspace=10 vspace=10>
-<p>
-It is not necessary to remove the error message before correcting your program, as error messages
-are automatically removed when you rerun your program.
-If there are no errors, the translated program will be stored in the app and the microcode sequence will
-execute.
-
 <p>
 <a href="#Topics">Scroll to topics</a>.
 <p>
