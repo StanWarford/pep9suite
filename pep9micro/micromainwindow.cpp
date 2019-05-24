@@ -2175,6 +2175,8 @@ void MicroMainWindow::onInputRequested(quint16 address)
 
 void MicroMainWindow::onBreakpointHit(Enu::BreakpointTypes type)
 {
+    ui->memoryWidget->refreshMemory();
+    ui->memoryTracePane->updateTrace();
     switch(type) {
     case Enu::BreakpointTypes::ASSEMBLER:
         onASMBreakpointHit();

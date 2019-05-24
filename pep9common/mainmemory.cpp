@@ -193,12 +193,16 @@ void MainMemory::autoUpdateMemoryMap(bool update) noexcept
 
 void MainMemory::loadValues(quint16 address, QVector<quint8> values) noexcept
 {
+    // Block signals being omitted, as it was causing issues with large heap sizes.
+    bool block = signalsBlocked();
+    blockSignals(true);
     // For ever value in the values array that falls in range of the memory module.
     for(quint16 idx = 0;idx < values.length()
         && idx + address <= static_cast<qint32>(maxAddress()); idx++) {
         bytesSet.insert(idx + address);
         setByte(idx + address, values[idx]);
     }
+    blockSignals(block);
 }
 
 void MainMemory::clearMemory()

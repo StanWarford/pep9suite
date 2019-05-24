@@ -1185,6 +1185,7 @@ void CPUMainWindow::onCopyToMicrocodeClicked()
 
 void CPUMainWindow::onBreakpointHit(Enu::BreakpointTypes type)
 {
+    ui->memoryWidget->refreshMemory();
     switch(type) {
     case Enu::BreakpointTypes::MICROCODE:
         onMicroBreakpointHit();
