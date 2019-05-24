@@ -43,11 +43,13 @@ public slots:
     void onResetCPU() override;
 
 private:
-    void breakpointHandler();
-    void branchHandler() override;
     CPUDataSection *data;
     QSharedPointer<CPUDataSection> dataShared;
     PartialMicrocodedMemoizer *memoizer;
+
+    // Callback function to handle InteruptHandler's BREAKPOINT_MICRO.
+    void breakpointMicroHandler();
+    void branchHandler() override;
 };
 
 #endif // FULLMICROCODEDCPU_H

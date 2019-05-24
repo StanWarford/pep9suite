@@ -1,23 +1,27 @@
 #include "isacpu.h"
-#include "acpumodel.h"
-#include "amemorydevice.h"
-#include "pep.h"
 #include <functional>
 #include <QApplication>
+
+#include "acpumodel.h"
+#include "amemorydevice.h"
 #include "asmprogrammanager.h"
 #include "asmprogram.h"
+#include "interrupthandler.h"
 #include "isacpumemoizer.h"
+#include "pep.h"
+
 IsaCpu::IsaCpu(const AsmProgramManager *manager, QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
     ACPUModel(memDevice, parent), InterfaceISACPU(memDevice.get(), manager), memoizer(new IsaCpuMemoizer(*this))
 {
-
+    // Create & register callbacks for breakpoint interrupts.
+    std::function<void(void)> bpHandler = [this](){breakpointAsmHandler();};
+    ACPUModel::handler->registerHandler(Interrupts::BREAKPOINT_ASM, bpHandler);
 }
 
 IsaCpu::~IsaCpu()
 {
     delete memoizer;
 }
-
 
 void IsaCpu::stepOver()
 {
@@ -74,6 +78,7 @@ const RegisterFile &IsaCpu::getRegisterBank() const
 
 void IsaCpu::onISAStep()
 {
+    asmBreakpointHit = false;
     // Store PC at the start of the cycle, so that we know where the instruction started from.
     // Also store any other values needed for detailed statistics
     memoizer->storeStateInstrStart();
@@ -133,13 +138,8 @@ void IsaCpu::onISAStep()
     // during process events would never be cleared by branch handler.
     if(asmInstructionCounter % 500 == 0) {
         QApplication::processEvents();
-        if(inDebug && asmBreakpointHit) {
-            // If a breakpoint was forced on us by the processEvents(), react to it now.
-            // Clear breakpoint flags, otherwise we might get stuck
-            // reacting to this breakpoint forever.
-            return;
-        }
     }
+
     // If execution finished on this instruction, then restore original starting program counter,
     // as the instruction at the current program counter will not be executed.
     if(executionFinished || hadErrorOnStep()) {
@@ -147,7 +147,10 @@ void IsaCpu::onISAStep()
         emit simulationFinished();
     }
 
-    breakpointHandler();
+    if(inDebug && breakpointsISA.contains(registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC))) {
+        ACPUModel::handler->interupt(Interrupts::BREAKPOINT_ASM);
+    }
+    ACPUModel::handler->handleQueuedInterrupts();
 }
 
 void IsaCpu::updateAtInstructionEnd()
@@ -299,12 +302,14 @@ void IsaCpu::onSimulationStarted()
     asmBreakpointHit = false;
     memoizer->clear();
     memory->clearErrors();
+    ACPUModel::handler->clearQueuedInterrupts();
 }
 
 void IsaCpu::onSimulationFinished()
 {
     executionFinished = true;
     inDebug = false;
+    ACPUModel::handler->clearQueuedInterrupts();
     #pragma message("TODO: Inform memory that execution is finished")
 }
 
@@ -317,7 +322,7 @@ void IsaCpu::forceBreakpoint(Enu::BreakpointTypes breakpoint)
 {
     switch(breakpoint){
     case Enu::BreakpointTypes::ASSEMBLER:
-        asmBreakpointHit = true;
+        ACPUModel::handler->interupt(Interrupts::BREAKPOINT_ASM);
         break;
     default:
         //Ignore any other breakpoint types
@@ -357,6 +362,7 @@ void IsaCpu::onResetCPU()
 {
     // Reset all internal state, but keep loaded micropgoram & breakpoints
     ACPUModel::memory->clearErrors();
+    ACPUModel::handler->clearQueuedInterrupts();
     memoizer->clear();
     InterfaceISACPU::reset();
     inSimulation = false;
@@ -368,6 +374,7 @@ void IsaCpu::onResetCPU()
     asmBreakpointHit = false;
     registerBank.clearRegisters();
     registerBank.clearStatusBits();
+
 }
 
 bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
@@ -1160,8 +1167,8 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
         [[fallthrough]];
     case Enu::EMnemonic::STRO:;
 #if hardwarePCIncr
-        // though not part of the specification, the Pep9 hardware must increment the program counter
-        // in order for non-unary traps to function correctly
+        // Though not part of the specification, the Pep9 hardware must increment the program counter
+        // in order for non-unary traps to function correctly.
         pc = registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC) + 2;
         registerBank.writeRegisterWord(Enu::CPURegisters::PC, pc);
 #endif
@@ -1205,16 +1212,10 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
     }
 }
 
-void IsaCpu::breakpointHandler()
+void IsaCpu::breakpointAsmHandler()
 {
-    // If the CPU is not being debugged, breakpoints make no sense. Stop.
-    if(!inDebug) return;
-    else if(breakpointsISA.contains(registerBank.readRegisterWordCurrent(Enu::CPURegisters::PC))) {
-        asmBreakpointHit = true;
-        emit hitBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
-        return;
-    }
-    else {
-        asmBreakpointHit = false;
-    }
+    // Callback function
+    asmBreakpointHit = true;
+    emit hitBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
+    return;
 }

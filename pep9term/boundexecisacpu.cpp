@@ -27,7 +27,8 @@ BoundExecIsaCpu::BoundExecIsaCpu(quint64 stepCount, const AsmProgramManager *man
     IsaCpu(manager, memDevice, parent), maxSteps(stepCount)
 
 {
-
+    // This version of the CPU does not respond to breakpoints, and as such
+    // does not register any handlers with the InterruptHandler.
 }
 
 BoundExecIsaCpu::~BoundExecIsaCpu()

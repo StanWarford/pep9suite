@@ -26,6 +26,7 @@
 #include "enu.h"
 
 class AMemoryDevice;
+class InterruptHandler;
 /*
  * Class representing commonalities between all Pep/9 implementations.
  * Provides a unified way to access registers, status bits, and memory.
@@ -113,6 +114,7 @@ signals:
 
 protected:
     QSharedPointer<AMemoryDevice> memory;
+    QSharedPointer<InterruptHandler> handler;
     int callDepth;
     bool inDebug, inSimulation, executionFinished;
     mutable bool controlError;

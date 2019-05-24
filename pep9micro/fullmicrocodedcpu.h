@@ -61,14 +61,6 @@ protected:
     void onISAStep() override;
 
 private:
-    void breakpointHandler();
-    void setSignalsFromMicrocode(const MicroCode *line);
-    void branchHandler() override;
-    void updateAtInstructionEnd() override;
-    // For all 256 instructions in the Pep/9 insturction set,
-    // map the instruction to the first line of microcode that implements it.
-    void calculateInstrJT();
-    void calculateAddrJT();
     bool isPrefetchValid;
     QElapsedTimer timer;
     CPUDataSection *data;
@@ -95,6 +87,16 @@ private:
     // is running, else a microprogram might fail unexpectedly.
     std::array<decoder_entry, 256> addrModeJT;
     quint16 startLine = 0;
+
+    void breakpointAsmHandler();
+    void breakpointMicroHandler();
+    void setSignalsFromMicrocode(const MicroCode *line);
+    void branchHandler() override;
+    void updateAtInstructionEnd() override;
+    // For all 256 instructions in the Pep/9 insturction set,
+    // map the instruction to the first line of microcode that implements it.
+    void calculateInstrJT();
+    void calculateAddrJT();
 };
 
 #endif // FULLMICROCODEDCPU_H

@@ -4,19 +4,23 @@
 #include <QTimer>
 
 #include "amemorydevice.h"
+#include "cpudata.h"
+#include "interrupthandler.h"
 #include "microcode.h"
 #include "microcodeprogram.h"
-#include "pep.h"
-#include "cpudata.h"
-#include "symbolentry.h"
 #include "partialmicrocodedmemoizer.h"
+#include "pep.h"
 #include "registerfile.h"
+#include "symbolentry.h"
+
 PartialMicrocodedCPU::PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
-    InterfaceMCCPU(type)
+    InterfaceMCCPU(type), memoizer(new PartialMicrocodedMemoizer(*this))
 {
-    memoizer = new PartialMicrocodedMemoizer(*this);
     data = new CPUDataSection(type, memoryDev, parent);
     dataShared = QSharedPointer<CPUDataSection>(data);
+    // Create & register callbacks for breakpoint interrupts.
+    std::function<void(void)> bpHandler = [this](){breakpointMicroHandler();};
+    ACPUModel::handler->registerHandler(Interrupts::BREAKPOINT_MICRO, bpHandler);
 }
 
 PartialMicrocodedCPU::~PartialMicrocodedCPU()
@@ -97,6 +101,7 @@ void PartialMicrocodedCPU::onSimulationStarted()
     microBreakpointHit = false;
     memoizer->clear();
     memory->clearErrors();
+    ACPUModel::handler->clearQueuedInterrupts();
 }
 
 void PartialMicrocodedCPU::onSimulationFinished()
@@ -105,6 +110,7 @@ void PartialMicrocodedCPU::onSimulationFinished()
     data->clearControlSignals();
     executionFinished = true;
     inDebug = false;
+    ACPUModel::handler->clearQueuedInterrupts();
 }
 
 void PartialMicrocodedCPU::enableDebugging()
@@ -116,7 +122,7 @@ void PartialMicrocodedCPU::forceBreakpoint(Enu::BreakpointTypes breakpoint)
 {
     switch(breakpoint){
     case Enu::BreakpointTypes::MICROCODE:
-        microBreakpointHit = true;
+        ACPUModel::handler->interupt(Interrupts::BREAKPOINT_MICRO);
         break;
     default:
         // Don't handle other kinds of breakpoints if they are generated.
@@ -183,11 +189,12 @@ void PartialMicrocodedCPU::onResetCPU()
     executionFinished = false;
     errorMessage = "";
     microBreakpointHit = false;
+    ACPUModel::handler->clearQueuedInterrupts();
 }
 
 void PartialMicrocodedCPU::onMCStep()
 {
-
+    microBreakpointHit = false;
     if(microprogramCounter == 0) {
         // Store PC at the start of the cycle, so that we know where the instruction started from.
         // Also store any other values needed for detailed statistics
@@ -229,9 +236,11 @@ void PartialMicrocodedCPU::onMCStep()
 
     // Upon entering an instruction that is going to trap
     // If running in debug mode, first check if this line has any microcode breakpoints.
-    if(inDebug) {
-        breakpointHandler();
+    if(inDebug && sharedProgram->getCodeLine(microprogramCounter)->hasBreakpoint()) {
+        ACPUModel::handler->interupt(Interrupts::BREAKPOINT_MICRO);
     }
+
+    ACPUModel::handler->handleQueuedInterrupts();
 }
 
 void PartialMicrocodedCPU::onClock()
@@ -258,17 +267,9 @@ void PartialMicrocodedCPU::branchHandler()
     }
 }
 
-void PartialMicrocodedCPU::breakpointHandler()
+void PartialMicrocodedCPU::breakpointMicroHandler()
 {
-    // If the CPU is not being debugged, breakpoints make no sense. Abort.
-    if(!inDebug) return;
-    // Trap on micrcode breakpoints
-    else if(sharedProgram->getCodeLine(microprogramCounter)->hasBreakpoint()) {
-        microBreakpointHit = true;
-        emit hitBreakpoint(Enu::BreakpointTypes::MICROCODE);
-        return;
-    }
-    else {
-        microBreakpointHit = false;
-    }
+    microBreakpointHit = true;
+    emit hitBreakpoint(Enu::BreakpointTypes::MICROCODE);
+    return;
 }

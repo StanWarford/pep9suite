@@ -5,26 +5,33 @@
 
 #include "amemorydevice.h"
 #include "asmprogrammanager.h"
+#include "cpudata.h"
+#include "fullmicrocodedmemoizer.h"
+#include "interrupthandler.h"
 #include "microcode.h"
 #include "microcodeprogram.h"
 #include "pep.h"
-#include "cpudata.h"
-#include "symbolentry.h"
-#include "fullmicrocodedmemoizer.h"
 #include "registerfile.h"
+#include "symbolentry.h"
 FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
     InterfaceMCCPU(Enu::CPUType::TwoByteDataBus),
-    InterfaceISACPU(memoryDev.get(), manager)
+    InterfaceISACPU(memoryDev.get(), manager), memoizer(new FullMicrocodedMemoizer(*this))
 {
-    memoizer = new FullMicrocodedMemoizer(*this);
     data = new CPUDataSection(Enu::CPUType::TwoByteDataBus, memoryDev, parent);
     dataShared = QSharedPointer<CPUDataSection>(data);
+    // Create & register callbacks for breakpoint interrupts.
+    std::function<void(void)> mcHandler = [this](){this->breakpointMicroHandler();};
+    std::function<void(void)> asmHandler = [this](){this->breakpointAsmHandler();};
+    ACPUModel::handler->registerHandler(Interrupts::BREAKPOINT_MICRO, mcHandler);
+    ACPUModel::handler->registerHandler(Interrupts::BREAKPOINT_ASM, asmHandler);
+
 }
 
 FullMicrocodedCPU::~FullMicrocodedCPU()
 {
-    //This object should last the lifetime of the  program, it does not need to be cleaned up
+    //This object should last the lifetime of the  program, it does not need to be cleaned up.
     delete memoizer;
+    // No need to delete data, as it will be cleaned up by dataShared.
 }
 
 QSharedPointer<CPUDataSection> FullMicrocodedCPU::getDataSection()
@@ -117,6 +124,7 @@ void FullMicrocodedCPU::onSimulationStarted()
     memoizer->clear();
     calculateInstrJT();
     calculateAddrJT();
+    ACPUModel::handler->clearQueuedInterrupts();
 }
 
 void FullMicrocodedCPU::onSimulationFinished()
@@ -125,6 +133,7 @@ void FullMicrocodedCPU::onSimulationFinished()
     data->clearControlSignals();
     executionFinished = true;
     inDebug = false;
+    ACPUModel::handler->clearQueuedInterrupts();
 #pragma message("TODO: Inform memory that execution is finished")
 }
 
@@ -137,10 +146,10 @@ void FullMicrocodedCPU::forceBreakpoint(Enu::BreakpointTypes breakpoint)
 {
     switch(breakpoint){
     case Enu::BreakpointTypes::ASSEMBLER:
-        asmBreakpointHit = true;
+        ACPUModel::handler->interupt(Interrupts::BREAKPOINT_ASM);
         break;
     case Enu::BreakpointTypes::MICROCODE:
-        microBreakpointHit = true;
+        ACPUModel::handler->interupt(Interrupts::BREAKPOINT_MICRO);
         break;
     }
 }
@@ -156,7 +165,7 @@ bool FullMicrocodedCPU::onRun()
     timer.start();
 
     std::function<bool(void)> cond = [this] () {
-        bool rVal = !hadErrorOnStep() && !executionFinished && !(inDebug && (microBreakpointHit || asmBreakpointHit));
+        bool rVal = !(hadErrorOnStep() || executionFinished || (inDebug && (microBreakpointHit || asmBreakpointHit)));
         // If execution would be finished this cycle, don't clear the last written bytes
         // so that the bytes modified by the last instruction are displayed.
         if(rVal && microprogramCounter == startLine) {
@@ -222,10 +231,14 @@ void FullMicrocodedCPU::onResetCPU()
     errorMessage = "";
     microBreakpointHit = false;
     asmBreakpointHit = false;
+    ACPUModel::handler->clearQueuedInterrupts();
 }
 
 void FullMicrocodedCPU::onMCStep()
 {
+    microBreakpointHit = false;
+    asmBreakpointHit = false;
+
     if(microprogramCounter == startLine) {
         // Store PC at the start of the cycle, so that we know where the instruction started from.
         // Also store any other values needed for detailed statistics.
@@ -302,8 +315,17 @@ void FullMicrocodedCPU::onMCStep()
     // Upon entering an instruction that is going to trap
     // If running in debug mode, first check if this line has any microcode breakpoints.
     if(inDebug) {
-        breakpointHandler();
+        // Only trap assembly breakpoints once on the first line of microcode.
+        if((microprogramCounter == startLine) && breakpointsISA.contains(data->getRegisterBankWord(Enu::CPURegisters::PC))) {
+            ACPUModel::handler->interupt(Interrupts::BREAKPOINT_ASM);
+        }
+        // Trap on micrcode breakpoints
+        else if(sharedProgram->getCodeLine(microprogramCounter)->hasBreakpoint()) {
+            ACPUModel::handler->interupt(Interrupts::BREAKPOINT_MICRO);
+        }
     }
+
+    ACPUModel::handler->handleQueuedInterrupts();
 }
 
 void FullMicrocodedCPU::onClock()
@@ -634,26 +656,18 @@ void FullMicrocodedCPU::calculateAddrJT()
     }
 }
 
-void FullMicrocodedCPU::breakpointHandler()
+void FullMicrocodedCPU::breakpointAsmHandler()
 {
-    // If the CPU is not being debugged, breakpoints make no sense. Stop.
-    if(!inDebug) return;
-    // Only trap assembly breakpoints once on the first line of microcode.
-    if((microprogramCounter == startLine) && breakpointsISA.contains(data->getRegisterBankWord(Enu::CPURegisters::PC))) {
-        asmBreakpointHit = true;
-        emit hitBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
-        return;
-    }
-    // Trap on micrcode breakpoints
-    else if(sharedProgram->getCodeLine(microprogramCounter)->hasBreakpoint()) {
-        microBreakpointHit = true;
-        emit hitBreakpoint(Enu::BreakpointTypes::MICROCODE);
-        return;
-    }
-    else {
-        microBreakpointHit = false;
-        asmBreakpointHit = false;
-    }
+    asmBreakpointHit = true;
+    emit hitBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
+    return;
+}
+
+void FullMicrocodedCPU::breakpointMicroHandler()
+{
+    microBreakpointHit = true;
+    emit hitBreakpoint(Enu::BreakpointTypes::MICROCODE);
+    return;
 }
 
 void FullMicrocodedCPU::setSignalsFromMicrocode(const MicroCode *line)

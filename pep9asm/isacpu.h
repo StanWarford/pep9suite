@@ -76,7 +76,8 @@ private:
     void executeUnary(Enu::EMnemonic mnemon);
     void executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode);
     void executeTrap(Enu::EMnemonic mnemon);
-    void breakpointHandler();
+    // Callback function to handle InteruptHandler's BREAKPOINT_ASM.
+    void breakpointAsmHandler();
 };
 
 #endif // ISACPU_H

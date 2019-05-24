@@ -29,6 +29,7 @@ HEADERS += \
     colors.h \
     enu.h \
     inputpane.h \
+    interrupthandler.h \
     iowidget.h \
     mainmemory.h \
     memorychips.h \
@@ -56,6 +57,7 @@ SOURCES += \
     byteconverterinstr.cpp \
     colors.cpp \
     inputpane.cpp \
+    interrupthandler.cpp \
     iowidget.cpp \
     mainmemory.cpp \
     memorychips.cpp \
