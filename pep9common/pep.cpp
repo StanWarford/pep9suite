@@ -73,12 +73,9 @@ QString Pep::resToString(QString fileName, bool removeLineNumbers) {
         QString line = in.readLine();
         inString.append(line + "\n");
     }
-    QStringList microcodeList;
-    microcodeList = inString.split('\n');
-    for (int i = 0; removeLineNumbers && i < microcodeList.size(); i++) {
-        microcodeList[i].remove(QRegExp("^[0-9a-fA-F]+\\.?\\s*"));
+    if(removeLineNumbers) {
+        inString = removeCycleNumbers(inString);
     }
-    inString = microcodeList.join("\n");
     return inString;
 }
 
@@ -89,6 +86,16 @@ QString Pep::addCycleNumbers(QString codeString) {
         if (QRegExp("^//|^\\s*$|^unitpre|^unitpost", Qt::CaseInsensitive).indexIn(microcodeList.at(i)) != 0) {
             microcodeList[i].prepend(QString("%1. ").arg(lineNumber++));
         }
+    }
+    return microcodeList.join("\n");
+}
+
+QString Pep::removeCycleNumbers(QString codeString)
+{
+    QStringList microcodeList;
+    microcodeList = codeString.split('\n');
+    for (int i = 0; i < microcodeList.size(); i++) {
+        microcodeList[i].remove(QRegExp("^[0-9a-fA-F]+\\.?\\s*"));
     }
     return microcodeList.join("\n");
 }

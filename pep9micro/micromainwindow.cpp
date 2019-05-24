@@ -555,7 +555,7 @@ void MicroMainWindow::loadFile(const QString &fileName, Enu::EPane which)
         ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
         ui->microcodeWidget->setFocus();
         ui->microcodeWidget->setCurrentFile(fileName);
-        ui->microcodeWidget->setMicrocode(in.readAll());
+        ui->microcodeWidget->setMicrocode(Pep::removeCycleNumbers(in.readAll()));
         ui->microcodeWidget->setModifiedFalse();
         emit ui->actionDebug_Remove_All_Microcode_Breakpoints->trigger();
         break;
@@ -634,7 +634,7 @@ bool MicroMainWindow::saveFile(const QString &fileName, Enu::EPane which)
         msgOutput = &msgListing;
         break;
     case Enu::EPane::EMicrocode:
-        out << ui->microcodeWidget->getMicrocodeText();
+        out << Pep::addCycleNumbers(ui->microcodeWidget->getMicrocodeText());
         msgOutput = &msgMicro;
         break;
     default:

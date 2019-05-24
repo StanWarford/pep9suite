@@ -378,7 +378,7 @@ void CPUMainWindow::loadFile(const QString &fileName)
     QApplication::setOverrideCursor(Qt::WaitCursor);
     ui->microcodeWidget->setFocus();
     ui->microcodeWidget->setCurrentFile(fileName);
-    ui->microcodeWidget->setMicrocode(in.readAll());
+    ui->microcodeWidget->setMicrocode(Pep::removeCycleNumbers(in.readAll()));
     ui->microcodeWidget->setModifiedFalse();
     curPath = QFileInfo(file).dir().absolutePath();
     statusBar()->showMessage(tr("File loaded"), 4000);
@@ -411,7 +411,7 @@ bool CPUMainWindow::saveFile(const QString &fileName)
     // Messages for status bar.
     static const QString msgMicro = "Microcode saved";
     const QString *msgOutput; // Mutable pointer to const data.
-    out << ui->microcodeWidget->getMicrocodeText();
+    out << Pep::addCycleNumbers(ui->microcodeWidget->getMicrocodeText());
     msgOutput = &msgMicro;
     QApplication::restoreOverrideCursor();
     curPath = QFileInfo(file).dir().absolutePath();
