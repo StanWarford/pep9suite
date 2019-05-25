@@ -341,6 +341,12 @@ bool MicroMainWindow::eventFilter(QObject *, QEvent *event)
         //loadFile(static_cast<QFileOpenEvent *>(event)->file());
         return true;
     }
+    // Touch events are giving CPU pane focus when it should be receiving it.
+    // Therefore, accept all touch events to prevent them from getting to the CPU pane.
+    else if(event->type() == QEvent::TouchBegin ||
+            event->type() == QEvent::TouchEnd) {
+        return true;
+    }
     return false;
 }
 
@@ -1751,6 +1757,11 @@ void MicroMainWindow::onSimulationFinished()
              static_cast<UnitPostCode*>(x)->testPostcondition(dataSection.get(), errorString);
              ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
              QMessageBox::warning(this, "Pep/9 Micro", "Failed unit test");
+             ui->microcodeWidget->getEditor()->setFocus();
+             QTextCursor curs = ui->microcodeWidget->getEditor()->textCursor();
+             ui->microcodeWidget->getEditor()->centerCursor();
+             curs.clearSelection();
+             ui->microcodeWidget->getEditor()->setTextCursor(curs);
              ui->statusBar->showMessage("Failed unit test", 4000);
              return;
         }

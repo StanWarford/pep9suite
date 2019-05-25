@@ -247,6 +247,12 @@ bool CPUMainWindow::eventFilter(QObject *, QEvent *event)
         //loadFile(static_cast<QFileOpenEvent *>(event)->file());
         return true;
     }
+    // Touch events are giving CPU pane focus when it should be receiving it.
+    // Therefore, accept all touch events to prevent them from getting to the CPU pane.
+    else if(event->type() == QEvent::TouchBegin ||
+            event->type() == QEvent::TouchEnd) {
+        return true;
+    }
     return false;
 }
 
@@ -895,11 +901,16 @@ void CPUMainWindow::onSimulationFinished()
     for (AMicroCode* x : prog) {
         if(x->hasUnitPost()) hadPostTest = true;
         if (x->hasUnitPost() && !((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString)) {
-             ((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString);
-             ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
-             QMessageBox::warning(this, "Pep/9 CPU", "Failed unit test");
-             ui->statusBar->showMessage("Failed unit test", 4000);
-             return;
+            ((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString);
+            ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
+            QMessageBox::warning(this, "Pep/9 CPU", "Failed unit test");
+            ui->microcodeWidget->getEditor()->setFocus();
+            QTextCursor curs = ui->microcodeWidget->getEditor()->textCursor();
+            ui->microcodeWidget->getEditor()->centerCursor();
+            curs.clearSelection();
+            ui->microcodeWidget->getEditor()->setTextCursor(curs);
+            ui->statusBar->showMessage("Failed unit test", 4000);
+            return;
          }
     }
     if(controlSection->hadErrorOnStep()) {
