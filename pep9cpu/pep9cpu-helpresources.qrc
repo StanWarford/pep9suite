@@ -134,5 +134,7 @@
         <file>help-cpu/images/buildicon.png</file>
         <file>help-cpu/images/buildmenu.png</file>
         <file>help-cpu/images/postconditionerrordialog.png</file>
+        <file>help-cpu/images/singlestepicon.png</file>
+        <file>help-cpu/images/singlestepmenu.png</file>
     </qresource>
 </RCC>

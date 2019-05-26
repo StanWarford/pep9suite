@@ -18,21 +18,24 @@ Debugging Use
 </td></tr>
 </table>
 <p>
-The debugger allows you to see the effect of each microcode cycle on the state of the Pep/9 CPU.
+The Pep/9 CPU system provides debugging tools to help you locate errors in the microcode you write.
+The tools include the ability to trace your program by single stepping through it and the ability to set break points.
+An additional debugging tool is the byte converter, which is available any time the application is running.
 <p>
 <a name = "Topics">Topics:</a>
-<a href="#Starting">Starting the debugger</a>,
-<a href="#Using">Using the debugger</a>,
-<a href="#Stopping">Stopping the debugger</a>,
+<a href="#Tracing">Tracing microcode</a>,
+<a href="#Break">Break points</a>,
+<a href="#Byte">Byte converter</a>.
 
-<h3><a name="Starting">Starting the debugger</a></h3>
+<h3><a name="Tracing">Tracing microcode</a></h3>
 To use the debugger first enter a microcode program in the Microcode pane.
 For example, here is the microprogram for Figure 12.5 from the textbook.
 <p>
 <img src="qrc:/help-cpu/images/debugger1.png" alt="debugger1" hspace=10 vspace=10>
 <p>
+<h4>Starting the debugger</h4>
 Then select
-System->Start Debugging from the menu or click the corresponding Start Debugging icon on the toolbar.
+Debug&rarr;Start Debugging from the menu or click the corresponding Start Debugging icon on the toolbar.
 <p>
 <img src="qrc:/help-cpu/images/startdebuggingmenu.png" alt="startdebuggingmenu" hspace=10 vspace=10>
 <img src="qrc:/help-cpu/images/startdebuggingicon.png" alt="startdebuggingicon" hspace=10 vspace=10>
@@ -42,11 +45,9 @@ If there is an assembler error the message will be displayed as described in the
 the application will not be in debugging mode.
 You can correct your assembler errors using the techniques explained in that section.
 <p>
-<h3><a name="Using">Using the debugger</a></h3>
-When you are in debugging mode, the two buttons Clock and Copy to Microcode are disabled and the
-two buttons Single Step and Resume are enabled.
-<p>
-<img src="qrc:/help-cpu/images/fourbuttonsmicrocodemode.png" alt="fourbuttonsmicrocodemode" hspace=10 vspace=10>
+<h4>Using the debugger</h4>
+When you are in debugging mode, the two buttons Clock and Copy to Microcode are disabled and you
+can single step through your program.
 <p>
 The following scenario shows the process of debugging Figure 12.5.
 When you enter the debugger, the first statement that is <i>about to be</i> executed is highlighted
@@ -65,10 +66,25 @@ In particular, A is set to 6, which puts the most significant byte of PC on the 
 B is set to 7, which puts the least significant byte of PC on the BBus,
 and MARCk is checked, which will clock those values into the memory address register MARA and MARB.
 <p>
-When you click the Clock button, one cycle executes.
-The highlighted line in the source pane is now the statement <i>that will be executed next</i>.
+Corresponding to the Microcode pane, the Object Code pane shows the binary object code for the statement that
+will execute next.
+It displays decimal values for the binary fields.
+For example, the A field is a five-bit field with value 00110, which the Object Code pane shows as 6.
+<p>
+<img src="qrc:/help-cpu/images/debugger3.png" alt="debugger3" hspace=10 vspace=10>
+<p>
+<h4>Single stepping</h4>
+To trace what happens when the instruction executes select Debug&rarr;Single Step from the menu
+or click the corresponding icon in the tool bar.
+<p>
+<img src="qrc:/help-cpu/images/singlestepmenu.png" alt="singlestepmenu" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/singlestepicon.png" alt="singlestepicon" hspace=10 vspace=10>
+<p>
+The highlighted line in the Microcode pane and the Object Code pane is now the statement <i>that will be executed next</i>.
 <p>
 <img src="qrc:/help-cpu/images/debugger5.png" alt="debugger5" hspace=10 vspace=10>
+<p>
+<img src="qrc:/help-cpu/images/debugger6.png" alt="debugger6" hspace=10 vspace=10>
 <p>
 The CPU pane shows the effect of the statement that was just executed.
 In the figure, MARA now has the value 0x00 and MARB has 0xFF, which is correct because 0x00FF is the content of PC.
@@ -82,14 +98,36 @@ and the content from the data bus is passing through MDRMux and about to be cloc
 <img src="qrc:/help-cpu/images/debugger8.png" alt="debugger8" hspace=10 vspace=10>
 <p>
 Each additional click of the Single Step button executes the next cycle of the microprogram.
-<h3><a name="Stopping">Stopping the debugger</a></h3>
+<p>
 To exit the debugger, run a microcode sequence to completion by clicking the Resume button,
-select System->Stop Debugging from the menu, or click the corresponding Stop Debugging icon on the toolbar.
+select System&rarr;Stop Debugging from the menu, or click the corresponding Stop Debugging icon on the toolbar.
 <p>
 <img src="qrc:/help-cpu/images/resumebutton.png" alt="resumebutton" hspace=10 vspace=10>
 <img src="qrc:/help-cpu/images/stopdebuggingmenu.png" alt="stopdebuggingmenu" hspace=10 vspace=10>
 <img src="qrc:/help-cpu/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
 
+<h3><a name="Break">Break points</a></h3>
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
+
+
+<h3><a name="Byte">Byte converter</a></h3>
+
+Any time the Pep/9 CPU application is running, the byte converter is available in the tool bar.
+The four input fields represent the value of a single byte as displayed from left to right in decimal, hexadecimal, binary, and ASCII.
+Simply enter any value in any input field and the other fields will show the same value in the corresponding format.
+Here is the result of entering the letter <code>P</code> in the ASCII field.
+ <p>
+<img src="qrc:/help-cpu/images/byteconverter.png" alt="byteconverter" hspace=10 vspace=10>
+<p>
+An instruction specifier decoder is to the right of the four input fields.
+It displays the instruction mnemonic and possibly the addressing mode assuming you interpret the byte value as an instruction specifier.
+<p>
+<a href="#Topics">Scroll to topics</a>.
 <p>
 
 </body>
