@@ -238,7 +238,6 @@
     <addaction name="separator"/>
     <addaction name="actionDebug_Interupt_Execution"/>
     <addaction name="actionDebug_Continue"/>
-    <addaction name="actionDebug_Restart_Debugging"/>
     <addaction name="actionDebug_Stop_Debugging"/>
     <addaction name="separator"/>
     <addaction name="actionDebug_Single_Step_Assembler"/>
@@ -1011,12 +1010,12 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
   <include location="../pep9micro/pep9micro-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
  </resources>
  <connections>

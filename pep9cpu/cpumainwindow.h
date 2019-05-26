@@ -122,7 +122,7 @@ private:
     struct DebugButtons
     {
         static const int RUN = 1<<0, DEBUG = 1<<1,
-        INTERRUPT = 1<<2, CONTINUE = 1<<3, RESTART = 1<<4, STOP = 1<<5,
+        INTERRUPT = 1<<2, CONTINUE = 1<<3, STOP = 1<<5,
         SINGLE_STEP_MICRO = 1<<6, BUILD_MICRO = 1<<7,
         OPEN_NEW = 1<<9, SWITCH_BUSES = 1<<10;
     };
@@ -175,7 +175,6 @@ private slots:
 
     void on_actionDebug_Interupt_Execution_triggered();
     void on_actionDebug_Continue_triggered();
-    void on_actionDebug_Restart_Debugging_triggered();
     void on_actionDebug_Stop_Debugging_triggered();
 
     // Executes a single line of microcode, which is the behavior of Pep/9CPU

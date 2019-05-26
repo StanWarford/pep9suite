@@ -984,7 +984,6 @@ void MicroMainWindow::debugButtonEnableHelper(const int which)
     ui->actionDebug_Start_Debugging_Loader->setEnabled(which & DebugButtons::DEBUG_LOADER);
     ui->actionDebug_Interupt_Execution->setEnabled(which & DebugButtons::INTERRUPT);
     ui->actionDebug_Continue->setEnabled(which & DebugButtons::CONTINUE);
-    ui->actionDebug_Restart_Debugging->setEnabled(which & DebugButtons::RESTART);
     ui->actionDebug_Stop_Debugging->setEnabled(which & DebugButtons::STOP);
     ui->actionDebug_Single_Step_Assembler->setEnabled(which & DebugButtons::STEP_OVER_ASM);
     ui->actionDebug_Step_Over_Assembler->setEnabled(which & DebugButtons::STEP_OVER_ASM);
@@ -1445,19 +1444,19 @@ void MicroMainWindow::handleDebugButtons()
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;
         break;
     case DebugState::DEBUG_ISA:
-        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE*(!waiting_io);
+        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::CONTINUE*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_OUT_ASM*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_OVER_ASM*(!waiting_io) | DebugButtons::SINGLE_STEP_MICRO*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_INTO_ASM*(enable_into * !waiting_io);
         break;
     case DebugState::DEBUG_MICRO:
-        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE*(!waiting_io);
+        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::CONTINUE*(!waiting_io);
         enabledButtons |= /*DebugButtons::SINGLE_STEP_ASM*(!waiting_io * 0) |*/ DebugButtons::STEP_OUT_ASM*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_OVER_ASM*(!waiting_io) | DebugButtons::SINGLE_STEP_MICRO*(!waiting_io);
         enabledButtons |= DebugButtons::STEP_INTO_ASM*(enable_into * !waiting_io);
         break;
     case DebugState::DEBUG_RESUMED:
-        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART;
+        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP;
         break;
     default:
         break;
@@ -1593,12 +1592,6 @@ void MicroMainWindow::on_actionDebug_Continue_triggered()
         QApplication::processEvents();
         highlightActiveLines();
     }
-}
-
-void MicroMainWindow::on_actionDebug_Restart_Debugging_triggered()
-{
-    on_actionDebug_Stop_Debugging_triggered();
-    on_actionDebug_Start_Debugging_triggered();
 }
 
 void MicroMainWindow::on_actionDebug_Step_Over_Assembler_triggered()

@@ -514,7 +514,6 @@ void CPUMainWindow::debugButtonEnableHelper(const int which)
     ui->actionBuild_Run->setEnabled(which & DebugButtons::RUN);
     ui->actionDebug_Start_Debugging->setEnabled(which & DebugButtons::DEBUG);
     ui->actionDebug_Continue->setEnabled(which & DebugButtons::CONTINUE);
-    ui->actionDebug_Restart_Debugging->setEnabled(which & DebugButtons::RESTART);
     ui->actionDebug_Stop_Debugging->setEnabled(which & DebugButtons::STOP);
     ui->actionDebug_Single_Step_Microcode->setEnabled(which & DebugButtons::SINGLE_STEP_MICRO);
 
@@ -765,11 +764,11 @@ void CPUMainWindow::handleDebugButtons()
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;
         break;
     case DebugState::DEBUG_MICRO:
-        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART | DebugButtons::CONTINUE;
+        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::CONTINUE;
         enabledButtons |= DebugButtons::SINGLE_STEP_MICRO;
         break;
     case DebugState::DEBUG_RESUMED:
-        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP | DebugButtons::RESTART;
+        enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP;
         break;
     default:
         break;
@@ -834,12 +833,6 @@ void CPUMainWindow::on_actionDebug_Continue_triggered()
         QApplication::processEvents();
         highlightActiveLines();
     }
-}
-
-void CPUMainWindow::on_actionDebug_Restart_Debugging_triggered()
-{
-    on_actionDebug_Stop_Debugging_triggered();
-    on_actionDebug_Start_Debugging_triggered();
 }
 
 void CPUMainWindow::on_actionDebug_Single_Step_Microcode_triggered()

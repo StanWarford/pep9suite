@@ -312,7 +312,6 @@
     <addaction name="separator"/>
     <addaction name="actionDebug_Interupt_Execution"/>
     <addaction name="actionDebug_Continue"/>
-    <addaction name="actionDebug_Restart_Debugging"/>
     <addaction name="actionDebug_Stop_Debugging"/>
     <addaction name="separator"/>
     <addaction name="actionDebug_Single_Step_Assembler"/>
@@ -1211,6 +1210,24 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>MicrocodePane</class>
+   <extends>QWidget</extends>
+   <header>microcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MicroObjectCodePane</class>
+   <extends>QWidget</extends>
+   <header>microobjectcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CpuPane</class>
+   <extends>QWidget</extends>
+   <header>cpupane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>IOWidget</class>
    <extends>QWidget</extends>
    <header>iowidget.h</header>
@@ -1232,24 +1249,6 @@
    <class>AssemblerPane</class>
    <extends>QWidget</extends>
    <header>assemblerpane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MicrocodePane</class>
-   <extends>QWidget</extends>
-   <header>microcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MicroObjectCodePane</class>
-   <extends>QWidget</extends>
-   <header>microobjectcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CpuPane</class>
-   <extends>QWidget</extends>
-   <header>cpupane.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

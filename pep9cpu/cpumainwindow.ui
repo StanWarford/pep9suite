@@ -163,7 +163,6 @@
     <addaction name="actionDebug_Start_Debugging"/>
     <addaction name="separator"/>
     <addaction name="actionDebug_Continue"/>
-    <addaction name="actionDebug_Restart_Debugging"/>
     <addaction name="actionDebug_Stop_Debugging"/>
     <addaction name="separator"/>
     <addaction name="actionDebug_Single_Step_Microcode"/>
