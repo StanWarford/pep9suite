@@ -206,7 +206,6 @@ void CpuPane::startDebugging()
     ui->copyToMicrocodePushButton->setEnabled(false);
     const MicroCode *code = cpu->getCurrentMicrocodeLine();
     code->setCpuLabels(cpuPaneItems);
-    emit updateSimulation();
 }
 
 void CpuPane::stopDebugging()
@@ -715,7 +714,6 @@ void CpuPane::clockButtonPushed()
     if (dataSection->hadErrorOnStep()) {
         // simulation had issues.
         QMessageBox::warning(nullptr, "Pep/9", dataSection->getErrorMessage());
-        emit stopSimulation();
     }
     scene->invalidate();
     clearCpuControlSignals();
@@ -999,6 +997,16 @@ void CpuPane::onSimulationUpdate()
     const AMicroCode *code = cpu->getCurrentMicrocodeLine();
     code->setCpuLabels(cpuPaneItems);
     ui->graphicsView->invalidateScene();
+}
+
+void CpuPane::onSimulationFinished()
+{
+    clearCpuControlSignals();
+    ui->graphicsView->invalidateScene();
+    const AMicroCode code;
+    code.setCpuLabels(cpuPaneItems);
+    qDebug() << "Finished";
+
 }
 
 void CpuPane::onDarkModeChanged(bool darkMode, QString styleSheet)

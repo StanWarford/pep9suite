@@ -132,7 +132,7 @@ CPUMainWindow::CPUMainWindow(QWidget *parent) :
     connect(this, &CPUMainWindow::simulationStarted, ui->microobjectWidget, &MicroObjectCodePane::onSimulationStarted);
     connect(this, &CPUMainWindow::simulationFinished, ui->microobjectWidget, &MicroObjectCodePane::onSimulationFinished);
     connect(this, &CPUMainWindow::simulationFinished, controlSection.get(), &PartialMicrocodedCPU::onSimulationFinished);
-    connect(this, &CPUMainWindow::simulationFinished, ui->cpuWidget, &CpuPane::onSimulationUpdate);
+    connect(this, &CPUMainWindow::simulationFinished, ui->cpuWidget, &CpuPane::onSimulationFinished);
     connect(this, &CPUMainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished);
     // Connect MainWindow so that it can propogate simulationFinished event and clean up when execution is finished.
     connect(controlSection.get(), &PartialMicrocodedCPU::simulationFinished, this, &CPUMainWindow::onSimulationFinished);

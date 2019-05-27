@@ -96,15 +96,13 @@ public slots:
     void onStatusBitChanged(Enu::EStatusBit,bool value);
     void repaintOnScroll(int distance);
     void onSimulationUpdate();
+    void onSimulationFinished();
     void onDarkModeChanged(bool darkMode, QString styleSheet);
     // Instead of passing the type it changed to
     // the CPU will querry the cpu it was given for its new type.
     void onCPUTypeChanged();
 
 signals:
-    void updateSimulation();
-    void stopSimulation();
-    void simulationFinished();
     void appendMicrocodeLine(QString line);
     void readByte(int address);
     void writeByte(int address);
