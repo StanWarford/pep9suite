@@ -443,7 +443,11 @@ void CpuPane::clearCpuControlSignals()
     cpuPaneItems->MemReadTristateLabel->setText("");
     cpuPaneItems->MemWriteTristateLabel->setText("");
 
-    // new signals:
+    // One byte signals:
+    cpuPaneItems->MDRCk->setChecked(false);
+    cpuPaneItems->MDRMuxTristateLabel->setText("");
+
+    // Two byte signals:
     cpuPaneItems->MDRECk->setChecked(false);
     cpuPaneItems->MDROCk->setChecked(false);
     cpuPaneItems->MDROMuxTristateLabel->setText("");
