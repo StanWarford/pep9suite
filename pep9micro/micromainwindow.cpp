@@ -1542,6 +1542,10 @@ void MicroMainWindow::on_actionDebug_Stop_Debugging_triggered()
     ui->ioWidget->cancelWaiting();
     ui->cpuWidget->stopDebugging();
     ui->asmProgramTracePane->clearSimulationView();
+    QTextCursor curs = ui->microcodeWidget->getEditor()->textCursor();
+    ui->microcodeWidget->getEditor()->centerCursor();
+    curs.clearSelection();
+    ui->microcodeWidget->getEditor()->setTextCursor(curs);
     handleDebugButtons();
     controlSection->onSimulationFinished();
     emit simulationFinished();
@@ -1751,10 +1755,6 @@ void MicroMainWindow::onSimulationFinished()
              ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
              QMessageBox::warning(this, "Pep/9 Micro", "Failed unit test");
              ui->microcodeWidget->getEditor()->setFocus();
-             QTextCursor curs = ui->microcodeWidget->getEditor()->textCursor();
-             ui->microcodeWidget->getEditor()->centerCursor();
-             curs.clearSelection();
-             ui->microcodeWidget->getEditor()->setTextCursor(curs);
              ui->statusBar->showMessage("Failed unit test", 4000);
              return;
         }

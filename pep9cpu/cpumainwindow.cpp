@@ -807,6 +807,10 @@ void CPUMainWindow::on_actionDebug_Stop_Debugging_triggered()
     ui->microobjectWidget->clearSimulationView();
     ui->microcodeWidget->setReadOnly(false);
     ui->cpuWidget->stopDebugging();
+    QTextCursor curs = ui->microcodeWidget->getEditor()->textCursor();
+    ui->microcodeWidget->getEditor()->centerCursor();
+    curs.clearSelection();
+    ui->microcodeWidget->getEditor()->setTextCursor(curs);
     handleDebugButtons();
     ui->memoryWidget->updateMemory();
     controlSection->onSimulationFinished();
@@ -898,10 +902,6 @@ void CPUMainWindow::onSimulationFinished()
             ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
             QMessageBox::warning(this, "Pep/9 CPU", "Failed unit test");
             ui->microcodeWidget->getEditor()->setFocus();
-            QTextCursor curs = ui->microcodeWidget->getEditor()->textCursor();
-            ui->microcodeWidget->getEditor()->centerCursor();
-            curs.clearSelection();
-            ui->microcodeWidget->getEditor()->setTextCursor(curs);
             ui->statusBar->showMessage("Failed unit test", 4000);
             return;
          }

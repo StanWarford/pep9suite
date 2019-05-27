@@ -1005,7 +1005,6 @@ void CpuPane::onSimulationFinished()
     ui->graphicsView->invalidateScene();
     const AMicroCode code;
     code.setCpuLabels(cpuPaneItems);
-    qDebug() << "Finished";
 
 }
 
