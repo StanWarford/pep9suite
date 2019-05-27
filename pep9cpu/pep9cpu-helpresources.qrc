@@ -43,13 +43,11 @@
         <file>help-cpu/images/comment3.png</file>
         <file>help-cpu/images/comment4.png</file>
         <file>help-cpu/images/copyexample.png</file>
-        <file>help-cpu/images/copyexercise.png</file>
         <file>help-cpu/images/debugger3.png</file>
         <file>help-cpu/images/debugger6.png</file>
         <file>help-cpu/images/debugging.png</file>
         <file>help-cpu/images/objectcode.png</file>
         <file>help-cpu/images/removeerrormessages.png</file>
-        <file>help-cpu/images/resumebutton.png</file>
         <file>help-cpu/images/runicon.png</file>
         <file>help-cpu/images/settingmemory.png</file>
         <file>help-cpu/figures/fig1205.pepcpu</file>
@@ -136,5 +134,11 @@
         <file>help-cpu/images/postconditionerrordialog.png</file>
         <file>help-cpu/images/singlestepicon.png</file>
         <file>help-cpu/images/singlestepmenu.png</file>
+        <file>help-cpu/images/continuedebuggingicon.png</file>
+        <file>help-cpu/images/continuedebuggingmenu.png</file>
+        <file>help-cpu/images/fig1205trace1.png</file>
+        <file>help-cpu/images/fig1205trace2.png</file>
+        <file>help-cpu/images/fig1205trace3.png</file>
+        <file>help-cpu/images/copyexercise.png</file>
     </qresource>
 </RCC>

@@ -28,6 +28,7 @@ An additional debugging tool is the byte converter, which is available any time 
 <a href="#Byte">Byte converter</a>.
 
 <h3><a name="Tracing">Tracing microcode</a></h3>
+
 To use the debugger first enter a microcode program in the Microcode pane.
 For example, here is the microprogram for Figure 12.5 from the textbook.
 <p>
@@ -99,10 +100,18 @@ and the content from the data bus is passing through MDRMux and about to be cloc
 <p>
 Each additional click of the Single Step button executes the next cycle of the microprogram.
 <p>
-To exit the debugger, run a microcode sequence to completion by clicking the Resume button,
-select System&rarr;Stop Debugging from the menu, or click the corresponding Stop Debugging icon on the toolbar.
+<h4>Stopping the debugger</h4>
+If you want the program to run to completion, select Debug&rarr;Continue Debugging from the menu or click on the corresponding icon in the tool bar.
+If you have inserted any break points in your program, the debugger will execute all the statements up to the statement that has a break point,
+and you will still be in the debug mode.
+Otherwise, the program will run to completion and exit the debug mode.
 <p>
-<img src="qrc:/help-cpu/images/resumebutton.png" alt="resumebutton" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/continuedebuggingmenu.png" alt="continuedebuggingmenu" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/continuedebuggingicon.png" alt="continuedebuggingicon" hspace=10 vspace=10>
+<p>
+If you want to terminate the debugging session without running the program to completion, select Debug&rarr;Stop Debugging
+from the menu or click the stop sign icon in the menu bar.
+<p>
 <img src="qrc:/help-cpu/images/stopdebuggingmenu.png" alt="stopdebuggingmenu" hspace=10 vspace=10>
 <img src="qrc:/help-cpu/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
 <p>
@@ -110,10 +119,33 @@ select System&rarr;Stop Debugging from the menu, or click the corresponding Stop
 <p>
 
 <h3><a name="Break">Break points</a></h3>
+
+If you want to trace a program up to a specific instruction and you do not want to single step through all the previous statements to get there,
+you can set a break point at the instruction and then Continue Debugging to that point.
+For example, the following figure shows the program from Figure 12.5 in the textbook after Start Debugging.
+<p>
+<img src="qrc:/help-cpu/images/fig1205trace1.png" alt="fig1205trace1" hspace=10 vspace=10>
+<p>
+The gray strip on the left of the listing is the break point area.
+If you click in the break point area next to an executable statement, a red circle will appear to indicate that the statement has a break point.
+In the above figure, break points have been set for cycle 4 and cycle 6.
+<p>
+To execute all the statements up to the next break point, select Debug&rarr;Continue Debugging from the menu or click on the corresponding icon in the tool bar.
+<p>
+<img src="qrc:/help-cpu/images/continuedebuggingmenu.png" alt="continuedebuggingmenu" hspace=10 vspace=10>
+<img src="qrc:/help-cpu/images/continuedebuggingicon.png" alt="continuedebuggingicon" hspace=10 vspace=10>
+<p>
+The following figure shows that all the statements up to but not including the one at cycle 4 have executed.
+<p>
+<img src="qrc:/help-cpu/images/fig1205trace2.png" alt="fig1205trace2" hspace=10 vspace=10>
+<p>
+The next figure shows the debugger after one more Continue Debugging operation.
+The debugger executed cycles 4 and 5, and will execute cycle 6 on the next single step.
+<p>
+<img src="qrc:/help-cpu/images/fig1205trace3.png" alt="fig1205trace3" hspace=10 vspace=10>
 <p>
 <a href="#Topics">Scroll to topics</a>.
 <p>
-
 
 <h3><a name="Byte">Byte converter</a></h3>
 

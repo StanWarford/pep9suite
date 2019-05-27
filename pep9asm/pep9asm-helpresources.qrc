@@ -37,7 +37,6 @@
         <file>help-asm/images/modifieddotburn.png</file>
         <file>help-asm/images/nop0.png</file>
         <file>help-asm/images/pecho.png</file>
-        <file>help-asm/images/pep9help.png</file>
         <file>help-asm/images/pep9oshelpsystem.png</file>
         <file>help-asm/images/redefinemnemonics.png</file>
         <file>help-asm/images/relocatedos.png</file>
@@ -48,7 +47,6 @@
         <file>help-asm/images/scrollto.png</file>
         <file>help-asm/images/singlestep.png</file>
         <file>help-asm/images/sourcecode.png</file>
-        <file>help-asm/images/stackpointer.png</file>
         <file>help-asm/images/startdebuggingobject.png</file>
         <file>help-asm/images/startdebuggingsource.png</file>
         <file>help-asm/images/stopdebugging.png</file>
