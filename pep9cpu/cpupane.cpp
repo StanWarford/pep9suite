@@ -994,7 +994,7 @@ void CpuPane::onSimulationUpdate()
     setStatusBit(Enu::S, dataSection->getStatusBit(Enu::STATUS_S));
     const AMicroCode *code = cpu->getCurrentMicrocodeLine();
     code->setCpuLabels(cpuPaneItems);
-    update();
+    ui->graphicsView->invalidateScene();
 }
 
 void CpuPane::onDarkModeChanged(bool darkMode, QString styleSheet)

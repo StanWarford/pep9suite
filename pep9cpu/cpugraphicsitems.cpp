@@ -1523,8 +1523,8 @@ void CpuGraphicsItems::repaintMDRMuxSelect(QPainter *painter)
     painter->setPen(colorScheme->arrowColorOn);
     if(MDRCk->isChecked()) {
         if(MDRMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
-            color = colorScheme->combCircuitGreen;
-            pal.setColor(QPalette::Background,colorScheme->muxCircuitGreen);
+            color = colorScheme->combCircuitRed;
+            pal.setColor(QPalette::Background,colorScheme->muxCircuitRed);
             MDRMuxerDataLabel->setPalette(pal);
         }
         else if(MDRMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
@@ -1701,9 +1701,8 @@ void CpuGraphicsItems::repaintMemReadOneByte(QPainter *painter)
     painter->setBrush(colorScheme->backgroundFill);
 
     // Draw DATA bus stuff:
-    if (isHigh && (dataSection->getMainBusState() == Enu::MemReadReady ||
-                dataSection->getMainBusState() == Enu::MemReadSecondWait)) {
-        color = colorScheme->combCircuitGreen;
+    if (isHigh) {
+        color = colorScheme->combCircuitRed;
     }
     else {
         color = colorScheme->backgroundFill;
@@ -1716,7 +1715,7 @@ void CpuGraphicsItems::repaintMemReadOneByte(QPainter *painter)
     // Mem Data Bus
     poly.clear();
     // arrowhead into the main bus:
-    if (color == colorScheme->combCircuitGreen) {
+    if (isHigh && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
         // square end (when reading):
         poly << QPoint(3, 365) << QPoint(3, 375);
     }
@@ -1808,8 +1807,8 @@ void CpuGraphicsItems::repaintMemWriteOneByte(QPainter *painter)
 
     // Draw DATA bus stuff:
     // figure out the color:
-    if (isHigh && (dataSection->getMainBusState() == Enu::MemWriteReady ||
-                dataSection->getMainBusState() == Enu::MemWriteSecondWait)) {
+    // Draw DATA bus stuff:
+    if (isHigh) {
         color = colorScheme->combCircuitGreen;
     }
     else {
@@ -1826,7 +1825,7 @@ void CpuGraphicsItems::repaintMemWriteOneByte(QPainter *painter)
     poly << QPoint(13, 365) << QPoint(13, 360) << QPoint(3, 370)
          << QPoint(13, 380) << QPoint(13, 375);
     // other end of the bus:
-    if (color == QColor(16, 150, 24)) {
+    if (dataSection->getMainBusState() == Enu::MainBusState::MemWriteSecondWait) {
         // flat end
         poly << QPoint(40, 375) << QPoint(40, 365);
     }
@@ -2130,12 +2129,13 @@ void CpuGraphicsItems::repaintMemCommonTwoByte(QPainter *painter)
     QPolygon poly;
 
     //Pick data bus and data arrow color
-    if(MemReadTristateLabel->text()=="1" && (dataSection->getMainBusState() == Enu::MemReadReady ||
-                                             dataSection->getMainBusState() == Enu::MemReadSecondWait)){
-        color=colorScheme->combCircuitRed;
+    if (readIsHigh && writeIsHigh) {
+        color = colorScheme->backgroundFill;
     }
-    else if(MemWriteTristateLabel->text()=="1" && (dataSection->getMainBusState() == Enu::MemWriteReady ||
-                                                   dataSection->getMainBusState() == Enu::MemWriteSecondWait)){
+    else if(readIsHigh) {
+        color = colorScheme->combCircuitRed;
+    }
+    else if(writeIsHigh) {
         color = colorScheme->combCircuitGreen;
     }
     else{
@@ -2144,8 +2144,7 @@ void CpuGraphicsItems::repaintMemCommonTwoByte(QPainter *painter)
     painter->setPen(colorScheme->arrowColorOn);
     painter->setBrush(color);
     // Left end points
-    if (MemReadTristateLabel->text() == "1" && (dataSection->getMainBusState() == Enu::MemReadReady ||
-                   dataSection->getMainBusState() == Enu::MemReadSecondWait)) {
+    if (readIsHigh  && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
         // square end (when reading):
         poly << QPoint(TwoByteShapes::DataArrowLeftX + TwoByteShapes::arrowHOffset,
                        TwoByteShapes::DataArrowMidpointY - TwoByteShapes::DataArrowInnerYSpread) // Arrow Top Inner point
@@ -2164,8 +2163,7 @@ void CpuGraphicsItems::repaintMemCommonTwoByte(QPainter *painter)
                        TwoByteShapes::DataArrowMidpointY + TwoByteShapes::DataArrowInnerYSpread); // Arrow Bottom Inner point
     }
     // Right end points
-    if (MemWriteTristateLabel->text()== "1"  && (dataSection->getMainBusState() == Enu::MemWriteReady ||
-                                               dataSection->getMainBusState() == Enu::MemWriteSecondWait)) {
+    if (writeIsHigh  && dataSection->getMainBusState() == Enu::MemWriteSecondWait) {
         // square end (when writing):
         poly << QPoint(TwoByteShapes::DataArrowRightX + 1,
                        TwoByteShapes::DataArrowMidpointY + TwoByteShapes::DataArrowInnerYSpread) // Arrow Bottom Inner point
@@ -2196,8 +2194,7 @@ void CpuGraphicsItems::repaintMemReadTwoByte(QPainter *painter)
         // Do not paint main bus if MemWrite is isHigh
         return;
     }
-    if (isHigh && (dataSection->getMainBusState() == Enu::MemReadReady ||
-                dataSection->getMainBusState() == Enu::MemReadSecondWait)) {
+    if (isHigh) {
         color = colorScheme->combCircuitRed;
     }
     else {
@@ -2237,8 +2234,7 @@ void CpuGraphicsItems::repaintMemWriteTwoByte(QPainter *painter)
     }
 
     // Figure out the color:
-    if (isHigh && (dataSection->getMainBusState() == Enu::MemWriteReady ||
-                dataSection->getMainBusState() == Enu::MemWriteSecondWait)) {
+    if (isHigh) {
         color = colorScheme->combCircuitGreen;
     }
     else {
