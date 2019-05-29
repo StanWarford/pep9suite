@@ -106,14 +106,14 @@ $$DO_REPOGEN {
 # Start configuration for installers
 
 # If configured, create a dmg-style installer for Mac OS.
-macx: $$MAC_USE_DMG: !$$DO_INSTALLER {
+macx: $$MAC_USE_DMG: $$DO_INSTALLER {
     debugMessage("Creating Mac OS DMG installer.")
     DEPLOY_ARGS = $$extraLibArgs(EXTRA_LIBS)
     include(dmg-installer.pri)
 }
 
 # Otherwise, create a typical QT-IFW installer.
-else: macx: $$MAC_USE_DMG: $$DO_INSTALLER {
+else: macx: !$$MAC_USE_DMG: $$DO_INSTALLER {
     debugMessage("Creating Mac OS QTIFW installer.")
     PLATFORM_DATA = MAC_DATA
     PLATFORM_ICONS = MAC_ICONS
