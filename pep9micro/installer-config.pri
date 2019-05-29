@@ -5,9 +5,6 @@ PEPVER=92
 OUTPUT_INSTALLER_NAME=$$TARGET"-Installer-"$$PEPVER
 #Internal version number, unused as of 5/2/2018
 VERSION_NUMBER = "1_0"
-#If you want to use a DMG based installer for Mac, put anything in this field
-#If you want to use a QT Installer Framework Base Installer, set the field to ""
-MAC_USE_DMG_INSTALLER = "true"
 
 #Data Configuration
 #Look for all files below starting in this directory
@@ -17,6 +14,16 @@ UNIVERSAL_ICONS = ""
 WINDOWS_ICONS = "images/icon.ico" "images/Pep9micro-icon.png"
 MAC_ICONS = "images/icon.icns" "images/Pep9micro-icon.png"
 LINUX_ICONS = "" #No implementation for Linux
+
+# Path where the installer config files may be found
+INSTALLER_CONFIG_PATH = $$PWD/../installer/packages/pep9micro
+
+#  Needed for appimage in linux
+LINUX_ICON = $$PWD/images/Pep9micro-icon.png
+LINUX_ICON_THEME = "hicolor"
+LINUX_ICON_SIZE = "256x256"
+LINUX_DESKTOP_FILE_PATH = $$PWD/../installer/packages/pep9micro
+LINUX_DESKTOP_FILE_NAME = $$TARGET".desktop"
 
 #One of your target packages must always be $$TARGET
 MAIN_PACKAGE.NAME = $$TARGET

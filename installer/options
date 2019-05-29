@@ -1,0 +1,10 @@
+DEPLOY_OPT:
+    // Only one of the following options is respected.
+    // If there are multiples, qtifw_installer will be choosen by default.
+
+    one_of {
+        appimg_installer:   Generate an appimage that can be executed in Linux distros.
+        dmg_installer:      Generate a DMG based installer for Mac OS.
+        qtifw_installer:    Generate a QTIFW installer from the directory structure.
+    }
+    repogen:                Generate an update repository for the application.

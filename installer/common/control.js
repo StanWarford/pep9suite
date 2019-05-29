@@ -32,8 +32,8 @@ function Controller()
 			installer.setValue("UserTargetDir", "@ApplicationsDirX64@/" + targetBase);
 			installer.setValue("AdminTargetDir", "@ApplicationsDirX64@/" + targetBase);
 		} else if(installer.value("os") === "mac") {
-			installer.setValue("UserTargetDir", "@HomeDir@/Applications/" + targetBase + ".app");
-			installer.setValue("AdminTargetDir", "@ApplicationsDir@/" + targetBase + ".app");
+            installer.setValue("UserTargetDir", "@HomeDir@/Applications/" + targetBase);
+            installer.setValue("AdminTargetDir", "@ApplicationsDir@/" + targetBase);
 		} else if(installer.value("os") === "x11") {
 			installer.setValue("UserTargetDir", "@HomeDir@/" + targetBase);
 			installer.setValue("AdminTargetDir", "@ApplicationsDir@/" + targetBase);
