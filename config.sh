@@ -9,8 +9,9 @@ rm patchelf-0.9.tar.bz2
 sudo wget -c "https://github.com/AppImage/AppImageKit/releases/download/continu$
 sudo chmod a+x /usr/local/bin/appimagetool
 cd linuxdeployqt
-echo -e "$(tput setaf 1)All linuxdeployqt dependencies have been collected.\n" \
-        "To build linuxdeployqt, open the directory's .pro file in Qt Creator.\n" \
-        "For each Qt build kit that you would like to enable linuxdeployqt on,\n"\
-        "build the project in Qt creator, and then open the build directory in the terminal.\n" \
-        "In the terminal, execute \"sudo make install\"."
+red=`tput setaf 1`
+echo -e "${red}All linuxdeployqt dependencies have been collected.\n"
+echo -e "${red}To build linuxdeployqt, open the directory's .pro file in Qt Creator.\n"
+echo -e "${red}For each Qt build kit that you would like to enable linuxdeployqt on,\n"
+echo -e "${red}build the project in Qt creator, and then open the build directory in the terminal.\n"
+echo -e "${red}In the terminal, execute \"sudo make install\"."
