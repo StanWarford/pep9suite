@@ -1,15 +1,22 @@
+#Should debug messages be printed by the installer?
 #dbgMsg = "true"
+
+# Library of functions & definitions needed
 include(installer_lib.pri)
 
 # Pre-declare any condition variables and set them all to sensible defaults
+# This prevents
 DO_REPOGEN = false
 DO_PACKAGE_COPY = false
 LINUX_USE_APPIMAGE = false
 MAC_USE_DMG = false
-DO_INSTALLER = false
+ALL_USE_QTIFW_INSTALLER = false
 
+######################
 # Begin installer code
-contains(DEPLOY_OPT, repogen):CONFIG(release) {
+######################
+# Should online updater repositories be generated?
+contains(DEPLOY_OPT, repogen): CONFIG(release) {
     debugMessage("Initializing repogen.")
     !detectRepogen($$QtInstallerBin) {
         error("Aborting due to failure to find repogen executable.")
@@ -33,30 +40,34 @@ options = $$find(DEPLOY_OPT, "appimg_installer") $$find(DEPLOY_OPT, "dmg_install
 # If an app image output type was selected.
 contains(DEPLOY_OPT, appimg_installer): CONFIG(release) {
     debugMessage("Selecting appimg_installer installer.")
-    !linux{
+    # AppImages only work on linux, so error if a non-linux system is trying to use them.
+    !linux {
         error("appimg_installer is not a valid option on platforms other than linux.")
     }
+    # If the Qt deployment tools can't be detected, abort.
     !detectDeploy($$QtInstallerBin) {
         error("Aborting due to failure to find linuxdeployqt executable.")
     }
     LINUX_USE_APPIMAGE = true
-    DO_INSTALLER = true
+    ALL_USE_QTIFW_INSTALLER = false
     DO_PACKAGE_COPY = true
 }
 # If a dmg image output type was selected.
 else: contains(DEPLOY_OPT, dmg_installer): CONFIG(release) {
     debugMessage("Selecting dmg_installer installer.")
+    # Installing from a DMG is only available on Mac OS.
     !macx{
-        error("dmg_installer is not a valid option on platforms other than linux.")
+        error("dmg_installer is not a valid option on platforms other than Mac OS.")
     }
+    # If the Qt deployment tools can't be detected, abort.
     !detectDeploy($$QtInstallerBin) {
         error("Aborting due to failure to find macdeployqt executable.")
     }
     MAC_USE_DMG = true
-    DO_INSTALLER = true
+    ALL_USE_QTIFW_INSTALLER = false
     DO_PACKAGE_COPY = true
 }
-# If a standard QTIFW installer was selected.
+# If a standard QT-IFW installer was selected.
 else: contains(DEPLOY_OPT, qtifw_installer): CONFIG(release) {
     debugMessage("Selecting qtifw_installer.")
     !detectDeploy($$QtInstallerBin) {
@@ -65,21 +76,21 @@ else: contains(DEPLOY_OPT, qtifw_installer): CONFIG(release) {
     linux {
         error("Only appimg_installer deployment is supported on linux.")
     }
-    DO_INSTALLER = true
+    ALL_USE_QTIFW_INSTALLER = true
     DO_PACKAGE_COPY = true
 }
 
-# If doing repository generation or creating an installer, a QTIFW installer config is needed.
-$$DO_INSTALLER | $$DO_REPOGEN {
-    debugMessage("Setting installer config")
+# If doing repository generation or creating a QT-IFW installer, a QT-IFW installer config is needed.
+$$ALL_USE_QTIFW_INSTALLER | $$DO_REPOGEN {
+    debugMessage("Setting installer config.")
     win32 {
-        INSTALLER_CONFIG_FILE=$$cleanPathQuote($$INSTALLER_CONFIG_PATH/configwin32.xml)
+        INSTALLER_CONFIG_FILE = $$cleanPathQuote($$INSTALLER_CONFIG_PATH/configwin32.xml)
     }
-    else:macx {
-        INSTALLER_CONFIG_FILE=$$cleanPathQuote($$INSTALLER_CONFIG_PATH/configmacx.xml)
+    else: macx {
+        INSTALLER_CONFIG_FILE = $$cleanPathQuote($$INSTALLER_CONFIG_PATH/configmacx.xml)
     }
-    else:linux {
-        INSTALLER_CONFIG_FILE=$$cleanPathQuote($$INSTALLER_CONFIG_PATH/configlinux.xml)
+    else: linux {
+        INSTALLER_CONFIG_FILE = $$cleanPathQuote($$INSTALLER_CONFIG_PATH/configlinux.xml)
     }
 }
 # Set parameters for repo gen tools.
@@ -88,10 +99,10 @@ $$DO_REPOGEN {
     win32 {
         repoDir = $$cleanPathQuote($$OUT_PWD/Repository/win32)
     }
-    else:macx {
+    else: macx {
         repoDir = $$cleanPathQuote($$OUT_PWD/Repository/macx)
     }
-    else:linux {
+    else: linux {
         error("Repository generation is not supported on Linux.")
         #repoDir = $$cleanPathQuote($$OUT_PWD/Repository/linux)
     }
@@ -106,18 +117,22 @@ $$DO_REPOGEN {
 # Start configuration for installers
 
 # If configured, create a dmg-style installer for Mac OS.
-macx: $$MAC_USE_DMG: $$DO_INSTALLER {
+macx: $$MAC_USE_DMG {
     debugMessage("Creating Mac OS DMG installer.")
-    DEPLOY_ARGS = $$extraLibArgs(EXTRA_LIBS)
+    # Additional libraries like XML will not be picked up automatically.
+    # Therefore, tell the deploy tool about all linked Qt libraries.
+    DEPLOY_ARGS = $$extraLibArgs(QT)
     include(dmg-installer.pri)
 }
 
-# Otherwise, create a typical QT-IFW installer.
-else: macx: !$$MAC_USE_DMG: $$DO_INSTALLER {
+# Otherwise, create a typical QT-IFW installer for Mac OS.
+else: macx: !$$MAC_USE_DMG: $$ALL_USE_QTIFW_INSTALLER {
     debugMessage("Creating Mac OS QTIFW installer.")
     PLATFORM_DATA = MAC_DATA
     PLATFORM_ICONS = MAC_ICONS
-    DEPLOY_ARGS = $$extraLibArgs(extraLibs)
+    # Additional libraries like XML will not be picked up automatically.
+    # Therefore, tell the deploy tool about all linked Qt libraries.
+    DEPLOY_ARGS = $$extraLibArgs(QT)
     $$DO_PACKAGE_COPY {
         include(qtifw-packager.pri)
         DO_PACKAGE_COPY = false
@@ -125,12 +140,16 @@ else: macx: !$$MAC_USE_DMG: $$DO_INSTALLER {
     include(qtifw-installer.pri)
 }
 
-#Otherwise build the installer for windows as normal.
-else: win32: $$DO_INSTALLER {
+# Build a QT-IFW installer for Windows as normal.
+else: win32: $$ALL_USE_QTIFW_INSTALLER {
     debugMessage("Creating Windows QTIFW installer.")
     PLATFORM_DATA = WINDOWS_DATA
     PLATFORM_ICONS = WINDOWS_ICONS
-    DEPLOY_ARGS = "--no-translations --no-system-d3d-compiler "$$extraLibArgs(EXTRA_LIBS)
+    # Translations & d3d compiler are unused by our application, but
+    # use a significant amount of space, so we do not include them.
+    # Additional libraries like XML will not be picked up automatically.
+    # Therefore, tell the deploy tool about all linked Qt libraries.
+    DEPLOY_ARGS = "--no-translations --no-system-d3d-compiler "$$extraLibArgs(QT)
     $$DO_PACKAGE_COPY {
         include(qtifw-packager.pri)
         DO_PACKAGE_COPY = false
@@ -138,12 +157,14 @@ else: win32: $$DO_INSTALLER {
     include(qtifw-installer.pri)
 }
 
-#Then linuxdeployqt is available, and it should be used to make a working installer for linux.
-else: linux: $$DO_INSTALLER: $$LINUX_USE_APPIMAGE {
-    message("Creating Linux QTIFW AppImage installer.")
+# If configured, use linuxdeployqt & AppImage to construct a working Linux application.
+else: linux: $$LINUX_USE_APPIMAGE {
+    debugMessage("Creating Linux AppImage installer.")
+    # No need to set DEPLOY_ARGS, as
     include(appimage-installer.pri)
 }
-else: linux: $$DO_INSTALLER:: !$$LINUX_USE_APPIMAGE {
+# Default QT-IFW installer is not supported at this time.
+else: linux: !$$LINUX_USE_APPIMAGE: $$ALL_USE_QTIFW_INSTALLER {
     error("Linux only supports appimg_installers.")
 }
 
