@@ -6,7 +6,7 @@ wget https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2
 tar xf patchelf-0.9.tar.bz2
 ( cd patchelf-0.9/ && ./configure  && make && sudo make install )
 rm patchelf-0.9.tar.bz2
-sudo wget -c "https://github.com/AppImage/AppImageKit/releases/download/continunuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool
+sudo wget -c "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool
 sudo chmod a+x /usr/local/bin/appimagetool
 cd linuxdeployqt
 red=`tput setaf 1`
