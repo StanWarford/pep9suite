@@ -22,7 +22,7 @@ INSTALLER_CONFIG_PATH = $$PWD/../installer/packages/pep9
 #  Needed for appimage in linux
 LINUX_ICON = $$PWD/images/Pep9-icon.png
 LINUX_ICON_THEME = "hicolor"
-LINUX_ICON_SIZE = "256x256"
+LINUX_ICON_SIZE = "512x512"
 LINUX_DESKTOP_FILE_PATH = $$PWD/../installer/packages/pep9
 LINUX_DESKTOP_FILE_NAME = "Pep9.desktop"
 
