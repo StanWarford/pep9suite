@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Pep9Term
+Exec=Pep9Term
+Icon=Pep9term-icon
+Comment=Run the Pep9Term app
+Categories=Education;
+Name[en_US]=Pep9Term.desktop

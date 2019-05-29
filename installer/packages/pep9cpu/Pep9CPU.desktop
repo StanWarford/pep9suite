@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Pep9CPU
+Exec=Pep9CPU
+Icon=Pep9cpu-icon
+Comment=Run the Pep9CPU app
+Categories=Education;
+Name[en_US]=Pep9CPU.desktop

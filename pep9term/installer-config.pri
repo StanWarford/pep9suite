@@ -16,13 +16,13 @@ MAC_ICONS = "images/icon.icns" "images/Pep9term-icon.png"
 LINUX_ICONS = "" #No implementation for Linux
 
 # Path where the installer config files may be found
-INSTALLER_CONFIG_PATH = $$PWD/../installer/packages/$$TARGET
+INSTALLER_CONFIG_PATH = $$PWD/../installer/packages/pep9term
 
 #  Needed for appimage in linux
-LINUX_ICON = $$PWD/images/Pep9Micro-icon.png
+LINUX_ICON = $$PWD/images/Pep9term-icon.png
 LINUX_ICON_THEME = "hicolor"
 LINUX_ICON_SIZE = "256x256"
-LINUX_DESKTOP_FILE_PATH = $$PWD/../installer/packages/$$TARGET
+LINUX_DESKTOP_FILE_PATH = $$PWD/../installer/packages/pep9term
 LINUX_DESKTOP_FILE_NAME = $$TARGET".desktop"
 
 #One of your target packages must always be $$TARGET

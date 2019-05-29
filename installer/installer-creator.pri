@@ -10,7 +10,7 @@ DO_INSTALLER = false
 
 # Begin installer code
 contains(DEPLOY_OPT, repogen):CONFIG(release) {
-    debugMessage("Initializing repogen")
+    debugMessage("Initializing repogen.")
     !detectRepogen($$QtInstallerBin) {
         error("Aborting due to failure to find repogen executable.")
     }
@@ -24,17 +24,17 @@ contains(DEPLOY_OPT, repogen):CONFIG(release) {
 # If multiples were selected, warn user and default to qtifw_installer
 options = $$find(DEPLOY_OPT, "appimg_installer") $$find(DEPLOY_OPT, "dmg_installer") $$find(DEPLOY_OPT, "qtifw_installer")
 !count(options, 0) : !count(options, 1)  {
-    warning("Too many installer types specified, defaulting to qtifw_installer")
+    warning("Too many installer types specified, defaulting to qtifw_installer.")
     INSTALLER_OPT -= "appimg_installer"
     INSTALLER_OPT -= "dmg_installer"
     INSTALLER_OPT += "qtifw_installer"
 }
 
 # If an app image output type was selected.
-contains(DEPLOY_OPT, appimg_installer):CONFIG(release) {
-    debugMessage("Selecting appimg_installer installer")
+contains(DEPLOY_OPT, appimg_installer): CONFIG(release) {
+    debugMessage("Selecting appimg_installer installer.")
     !linux{
-        error("appimg_installer is not a valid option on platforms other than linux")
+        error("appimg_installer is not a valid option on platforms other than linux.")
     }
     !detectDeploy($$QtInstallerBin) {
         error("Aborting due to failure to find linuxdeployqt executable.")
@@ -44,10 +44,10 @@ contains(DEPLOY_OPT, appimg_installer):CONFIG(release) {
     DO_PACKAGE_COPY = true
 }
 # If a dmg image output type was selected.
-else: contains(DEPLOY_OPT, dmg_installer):CONFIG(release) {
-    debugMessage("Selecting dmg_installer installer")
+else: contains(DEPLOY_OPT, dmg_installer): CONFIG(release) {
+    debugMessage("Selecting dmg_installer installer.")
     !macx{
-        error("dmg_installer is not a valid option on platforms other than linux")
+        error("dmg_installer is not a valid option on platforms other than linux.")
     }
     !detectDeploy($$QtInstallerBin) {
         error("Aborting due to failure to find macdeployqt executable.")
@@ -57,10 +57,13 @@ else: contains(DEPLOY_OPT, dmg_installer):CONFIG(release) {
     DO_PACKAGE_COPY = true
 }
 # If a standard QTIFW installer was selected.
-else: contains(DEPLOY_OPT, qtifw_installer):CONFIG(release) {
-    debugMessage("Selecting qtifw_installer")
+else: contains(DEPLOY_OPT, qtifw_installer): CONFIG(release) {
+    debugMessage("Selecting qtifw_installer.")
     !detectDeploy($$QtInstallerBin) {
         error("Aborting due to failure to find $$platformDeployTool() executable.")
+    }
+    linux {
+        error("Only appimg_installer deployment is supported on linux.")
     }
     DO_INSTALLER = true
     DO_PACKAGE_COPY = true
@@ -81,7 +84,7 @@ $$DO_INSTALLER | $$DO_REPOGEN {
 }
 # Set parameters for repo gen tools.
 $$DO_REPOGEN {
-    debugMessage("Doing repository generation")
+    debugMessage("Performing repository generation.")
     win32 {
         repoDir = $$cleanPathQuote($$OUT_PWD/Repository/win32)
     }
@@ -89,7 +92,8 @@ $$DO_REPOGEN {
         repoDir = $$cleanPathQuote($$OUT_PWD/Repository/macx)
     }
     else:linux {
-        repoDir = $$cleanPathQuote($$OUT_PWD/Repository/linux)
+        error("Repository generation is not supported on Linux.")
+        #repoDir = $$cleanPathQuote($$OUT_PWD/Repository/linux)
     }
     DEPLOY_ARGS = $$extraLibArgs(EXTRA_LIBS)
     $$DO_PACKAGE_COPY {
@@ -123,7 +127,7 @@ else: macx: $$MAC_USE_DMG: $$DO_INSTALLER {
 
 #Otherwise build the installer for windows as normal.
 else: win32: $$DO_INSTALLER {
-    debugMessage("Creating Windows QTIFW installer")
+    debugMessage("Creating Windows QTIFW installer.")
     PLATFORM_DATA = WINDOWS_DATA
     PLATFORM_ICONS = WINDOWS_ICONS
     DEPLOY_ARGS = "--no-translations --no-system-d3d-compiler "$$extraLibArgs(EXTRA_LIBS)
@@ -134,19 +138,13 @@ else: win32: $$DO_INSTALLER {
     include(qtifw-installer.pri)
 }
 
-#Since there is no native QT deploy tool for Linux, one must be added in the project configuration
-#This condition is to make sure that a tool was provided as an argument to qmake
-else:linux:isEmpty(LINUX_DEPLOY){
-    warning("Attempting a Linux build, but no path to the build tool was provided")
-}
-
 #Then linuxdeployqt is available, and it should be used to make a working installer for linux.
-else:linux:$$DO_INSTALLER::$$LINUX_USE_APPIMAGE {
-    message("This is where the linux build code will go")
+else: linux: $$DO_INSTALLER: $$LINUX_USE_APPIMAGE {
+    message("Creating Linux QTIFW AppImage installer.")
     include(appimage-installer.pri)
 }
-else:linux:$$DO_INSTALLER::!$$LINUX_USE_APPIMAGE {
-    error("Can't do non-linux appimage installer")
+else: linux: $$DO_INSTALLER:: !$$LINUX_USE_APPIMAGE {
+    error("Linux only supports appimg_installers.")
 }
 
 DISTFILES += \

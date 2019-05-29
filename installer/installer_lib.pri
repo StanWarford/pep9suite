@@ -74,14 +74,15 @@ defineTest(detectDeploy) {
         exists($$1/windeployqt.exe) {
             return(true)
         }
-        exists($$1/macdeployQt) {
+        exists($$1/macdeployqt) {
             return(true)
         }
         warning("Aborting installer creation, since QT Installer Framework 3.1 is not installed.")
         warning("Please run the QT maintence tool and install QT Installer Framework 3.1.")
         return(false)
     }
-    else:linux:!exists($$1/linuxdeployqt) {
+    else: linux: !exists($$[QT_INSTALL_BINS]/linuxdeployqt) {
+        message($$[QT_INSTALL_BINS])
         warning("Aborting installer creation, since linuxdeployqt is not installed.")
         warning("Please follow the build instructions listed for https://github.com/probonopd/linuxdeployqt.")
         warning("Alternatively, check out https://github.com/StanWarford/pep9suite/wiki/Generating-the-Installer-&-Update-Files-from-Qt-Creator.")
