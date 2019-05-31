@@ -104,7 +104,7 @@ Pep/9 Reference
  <td><code>0010 010a</code></td> <td><code>CALL</code></td> <td>Call subroutine</td> <td>i, x</td> <td></td>
 </tr>
 <tr>
- <td><code>0010 011n</code></td> <td><code>NOPn</code></td> <td>Unary no operation trap</td> <td>U</td> <td></td>
+ <td><code>0010 011n</code></td> <td><code>NOPn</code></td> <td>Unary no operation trap<sup>*</sup></td> <td>U</td> <td></td>
 </tr>
 <tr>
  <td><code>0010 1aaa</code></td> <td><code>NOP</code></td> <td>Nonunary no operation trap</td> <td>i</td> <td></td>
@@ -158,6 +158,8 @@ Pep/9 Reference
  <td><code>1111 raaa</code></td> <td><code>STBr</code></td> <td>Store byte r&lt;8..15&gt; to memory</td> <td>d, n, s, sf, x, sx, sfx</td> <td></td>
 </tr>
 </table>
+<p>
+<sup>*</sup>Note: In the Pep9Micro application, <code>NOP0</code> is a native machine instruction, not a trap.
 <p>
 <a href="#Topics">Scroll to topics</a>.
 
