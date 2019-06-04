@@ -213,11 +213,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionFile_New_Microcode"/>
-   <addaction name="actionFile_Open"/>
-   <addaction name="actionFile_Save_Microcode"/>
-   <addaction name="actionEdit_Undo"/>
-   <addaction name="actionEdit_Redo"/>
    <addaction name="actionHelp"/>
    <addaction name="actionBuild_Microcode"/>
    <addaction name="actionBuild_Run"/>

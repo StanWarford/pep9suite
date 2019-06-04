@@ -295,11 +295,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionFile_New_Asm"/>
-   <addaction name="actionFile_Open"/>
-   <addaction name="actionFile_Save_Asm"/>
-   <addaction name="actionEdit_Undo"/>
-   <addaction name="actionEdit_Redo"/>
    <addaction name="actionHelp"/>
    <addaction name="actionBuild_Assemble"/>
    <addaction name="actionBuild_Run"/>
@@ -1010,12 +1005,12 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="pep9asm-resources.qrc"/>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="../pep9micro/pep9micro-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
+  <include location="pep9asm-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
  </resources>
  <connections>

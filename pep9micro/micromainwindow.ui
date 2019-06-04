@@ -369,11 +369,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionFile_New_Asm"/>
-   <addaction name="actionFile_Open"/>
-   <addaction name="actionFile_Save_Asm"/>
-   <addaction name="actionEdit_Undo"/>
-   <addaction name="actionEdit_Redo"/>
    <addaction name="actionHelp"/>
    <addaction name="actionBuild_Microcode"/>
    <addaction name="actionBuild_Assemble"/>
@@ -1210,24 +1205,6 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>MicrocodePane</class>
-   <extends>QWidget</extends>
-   <header>microcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MicroObjectCodePane</class>
-   <extends>QWidget</extends>
-   <header>microobjectcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CpuPane</class>
-   <extends>QWidget</extends>
-   <header>cpupane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>IOWidget</class>
    <extends>QWidget</extends>
    <header>iowidget.h</header>
@@ -1249,6 +1226,24 @@
    <class>AssemblerPane</class>
    <extends>QWidget</extends>
    <header>assemblerpane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MicrocodePane</class>
+   <extends>QWidget</extends>
+   <header>microcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MicroObjectCodePane</class>
+   <extends>QWidget</extends>
+   <header>microobjectcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CpuPane</class>
+   <extends>QWidget</extends>
+   <header>cpupane.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
