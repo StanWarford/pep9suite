@@ -262,11 +262,15 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     double io = geometry().height() * ui->ioDockWidget->sizePolicy().verticalStretch() / static_cast<double>(scaleTotal);
     resizeDocks({ui->memoryDockWdget, ui->ioDockWidget}, {static_cast<int>(memory),
                                                           static_cast<int>(io)}, Qt::Vertical);
+    // Make the docks as large as the memory widget by default
+    resizeDocks({ui->memoryDockWdget, ui->ioDockWidget}, {static_cast<int>(ui->memoryWidget->maximumSize().width()),
+                                                          static_cast<int>(ui->memoryWidget->maximumSize().width())}, Qt::Horizontal);
     // Create a new ASM file so that the dialog always has a file name in it
     on_actionFile_New_Asm_triggered();
 
     // Hide statistics tab at this time, because it does nothing
     ui->tabWidget->removeTab(ui->tabWidget->indexOf(ui->statsTab));
+
 }
 
 MicroMainWindow::~MicroMainWindow()

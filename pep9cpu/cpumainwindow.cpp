@@ -1013,9 +1013,9 @@ void CPUMainWindow::on_actionView_CPU_Code_Memory_triggered()
     ui->actionView_CPU_Code->setDisabled(false);
     ui->actionView_CPU_Code_Memory->setDisabled(true);
     QList<int> list;
-    list.append(3000);
-    list.append(3000);
-    list.append(3000);
+    list.append(1);
+    list.append(1);
+    list.append(1);
     ui->horizontalSplitter->setSizes(list);
 
 }
