@@ -151,9 +151,10 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     connect(this, &AsmMainWindow::simulationStarted, ui->ioWidget, &IOWidget::onClear);
     connect(this, &AsmMainWindow::simulationStarted, ui->ioWidget, &IOWidget::onSimulationStart);
 
-    connect(this, &AsmMainWindow::simulationFinished, controlSection.get(), &IsaCpu::onSimulationFinished);
-    connect(this, &AsmMainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished);
-    connect(this, &AsmMainWindow::simulationFinished, ui->memoryTracePane, &NewMemoryTracePane::onSimulationFinished);
+    // Post finished events to the event queue so that they are processed after simulation updates.
+    connect(this, &AsmMainWindow::simulationFinished, controlSection.get(), &IsaCpu::onSimulationFinished, Qt::QueuedConnection);
+    connect(this, &AsmMainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished, Qt::QueuedConnection);
+    connect(this, &AsmMainWindow::simulationFinished, ui->memoryTracePane, &NewMemoryTracePane::onSimulationFinished, Qt::QueuedConnection);
     connect(this, &AsmMainWindow::simulationFinished, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
     // Connect MainWindow so that it can propogate simulationFinished event and clean up when execution is finished.
     connect(controlSection.get(), &IsaCpu::simulationFinished, this, &AsmMainWindow::onSimulationFinished);

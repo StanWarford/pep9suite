@@ -1027,9 +1027,12 @@ void CpuPane::onSimulationUpdate()
 void CpuPane::onSimulationFinished()
 {
     clearCpuControlSignals();
-    ui->graphicsView->invalidateScene();
-    const AMicroCode code;
+    // Create a dummy microcode line that will reset CPU pane.
+    // The CPU pane will never render control section signals,
+    // but set the boolean flag to true just in case.
+    const MicroCode code(cpu->getCPUType(), true);
     code.setCpuLabels(cpuPaneItems);
+    cpuPaneItems->update();
 
 }
 

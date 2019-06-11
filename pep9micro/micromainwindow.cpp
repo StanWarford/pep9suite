@@ -161,11 +161,12 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     connect(this, &MicroMainWindow::simulationStarted, ui->ioWidget, &IOWidget::onSimulationStart);
 
     connect(this, &MicroMainWindow::simulationStarted, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationStarted);
-    connect(this, &MicroMainWindow::simulationFinished, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationFinished);
-    connect(this, &MicroMainWindow::simulationFinished, controlSection.get(), &FullMicrocodedCPU::onSimulationFinished);
-    connect(this, &MicroMainWindow::simulationFinished, ui->cpuWidget, &CpuPane::onSimulationFinished);
-    connect(this, &MicroMainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished);
-    connect(this, &MicroMainWindow::simulationFinished, ui->memoryTracePane, &NewMemoryTracePane::onSimulationFinished);
+    // Post finished events to the event queue so that they are processed after simulation updates.
+    connect(this, &MicroMainWindow::simulationFinished, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationFinished, Qt::QueuedConnection);
+    connect(this, &MicroMainWindow::simulationFinished, controlSection.get(), &FullMicrocodedCPU::onSimulationFinished, Qt::QueuedConnection);
+    connect(this, &MicroMainWindow::simulationFinished, ui->cpuWidget, &CpuPane::onSimulationFinished, Qt::QueuedConnection);
+    connect(this, &MicroMainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished, Qt::QueuedConnection);
+    connect(this, &MicroMainWindow::simulationFinished, ui->memoryTracePane, &NewMemoryTracePane::onSimulationFinished, Qt::QueuedConnection);
     // Connect MainWindow so that it can propogate simulationFinished event and clean up when execution is finished.
     connect(controlSection.get(), &FullMicrocodedCPU::simulationFinished, this, &MicroMainWindow::onSimulationFinished);
 
