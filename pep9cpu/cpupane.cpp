@@ -409,6 +409,8 @@ void CpuPane::clearCpu()
 
     setRegister(Enu::MARAREG, 0);
     setRegister(Enu::MARBREG, 0);
+
+    // Clear 1 & 2 byte data registers
     setRegister(Enu::MDRREG, 0);
 
     setRegister(Enu::MDREREG, 0);
@@ -737,26 +739,8 @@ void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
     if (cpuPaneItems->MARCk->isChecked()) {
         code.setClockSingal(Enu::MARCk, 1);
     }
-    if (cpuPaneItems->MARMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::MARMux, static_cast<quint8>(cpuPaneItems->MARMuxTristateLabel->text().toInt()));
-    }
     if (cpuPaneItems->aMuxTristateLabel->text() != "") {
         code.setControlSignal(Enu::AMux, static_cast<quint8>(cpuPaneItems->aMuxTristateLabel->text().toInt()));
-    }
-    if (cpuPaneItems->MDROCk->isChecked()) { // 2 byte bus
-        code.setClockSingal(Enu::MDROCk, 1);
-    }
-    if (cpuPaneItems->MDROMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::MDROMux, static_cast<quint8>(cpuPaneItems->MDROMuxTristateLabel->text().toInt()));
-    }
-    if (cpuPaneItems->MDRECk->isChecked()) { // 2 byte bus
-        code.setClockSingal(Enu::MDRECk, 1);
-    }
-    if (cpuPaneItems->MDREMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::MDREMux, static_cast<quint8>(cpuPaneItems->MDREMuxTristateLabel->text().toInt()));
-    }
-    if (cpuPaneItems->EOMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::EOMux, static_cast<quint8>(cpuPaneItems->EOMuxTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->cMuxTristateLabel->text() != "") {
         code.setControlSignal(Enu::CMux, static_cast<quint8>(cpuPaneItems->cMuxTristateLabel->text().toInt()));
@@ -790,6 +774,46 @@ void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
     }
     if (cpuPaneItems->MemWriteTristateLabel->text() != "") {
         code.setControlSignal(Enu::MemWrite, static_cast<quint8>(cpuPaneItems->MemWriteTristateLabel->text().toInt()));
+    }
+    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+            cpuPaneItems->MARMuxTristateLabel->text() != "") { // 2 byte bus
+        code.setControlSignal(Enu::MARMux, static_cast<quint8>(cpuPaneItems->MARMuxTristateLabel->text().toInt()));
+    }
+
+    // 1 byte exclusive controls.
+    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+            cpuPaneItems->MDRCk->isChecked()) { // 1 byte bus
+        code.setClockSingal(Enu::MDRCk, 1);
+    }
+    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+            cpuPaneItems->MDRMuxTristateLabel->text() != "") { // 1 byte bus
+        code.setControlSignal(Enu::MDRMux, static_cast<quint8>(cpuPaneItems->MDRMuxTristateLabel->text().toInt()));
+    }
+
+    // 2 byte exclusive controls.
+    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+            cpuPaneItems->MARMuxTristateLabel->text() != "") { // 2 byte bus
+        code.setControlSignal(Enu::MARMux, static_cast<quint8>(cpuPaneItems->MARMuxTristateLabel->text().toInt()));
+    }
+    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+            cpuPaneItems->MDROCk->isChecked()) { // 2 byte bus
+        code.setClockSingal(Enu::MDROCk, 1);
+    }
+    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+            cpuPaneItems->MDROMuxTristateLabel->text() != "") { // 2 byte bus
+        code.setControlSignal(Enu::MDROMux, static_cast<quint8>(cpuPaneItems->MDROMuxTristateLabel->text().toInt()));
+    }
+    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+            cpuPaneItems->MDRECk->isChecked()) { // 2 byte bus
+        code.setClockSingal(Enu::MDRECk, 1);
+    }
+    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+            cpuPaneItems->MDREMuxTristateLabel->text() != "") { // 2 byte bus
+        code.setControlSignal(Enu::MDREMux, static_cast<quint8>(cpuPaneItems->MDREMuxTristateLabel->text().toInt()));
+    }
+    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+            cpuPaneItems->EOMuxTristateLabel->text() != "") { // 2 byte bus
+        code.setControlSignal(Enu::EOMux, static_cast<quint8>(cpuPaneItems->EOMuxTristateLabel->text().toInt()));
     }
     code.setBranchFunction(Enu::Assembler_Assigned);
     emit appendMicrocodeLine(code.getSourceCode());
@@ -987,6 +1011,7 @@ void CpuPane::onSimulationUpdate()
     setRegister(Enu::T6, dataSection->getRegisterBankWord(CPURegisters::T6));
     setRegister(Enu::MARAREG, dataSection->getMemoryRegister(Enu::MEM_MARA));
     setRegister(Enu::MARBREG, dataSection->getMemoryRegister(Enu::MEM_MARB));
+    setRegister(Enu::MDRREG, dataSection->getMemoryRegister(Enu::MEM_MDR));
     setRegister(Enu::MDROREG, dataSection->getMemoryRegister(Enu::MEM_MDRO));
     setRegister(Enu::MDREREG, dataSection->getMemoryRegister(Enu::MEM_MDRE));
     setStatusBit(Enu::N, dataSection->getStatusBit(Enu::STATUS_N));
