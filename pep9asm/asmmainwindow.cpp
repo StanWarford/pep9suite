@@ -1151,7 +1151,6 @@ void AsmMainWindow::on_actionBuild_Run_triggered()
     if(controlSection->getExecutionFinished()) {
         debugState = DebugState::DISABLED;
         onSimulationFinished();
-        emit simulationFinished();
     }
     // Otherwise, the simulator paused execution, so don't explicitly terminate
     // the simulator.

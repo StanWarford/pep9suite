@@ -78,6 +78,14 @@ public:
     virtual void stepInto() = 0;
     // Executes the next ISA instructions until the call depth is decreased by 1.
     virtual void stepOut() = 0;
+
+    // Returns how many cycles were used by the CPU. For an ISA level CPU, this will be
+    // equal to getInstructionCount(), but for a microcoded implementation it may be different.
+    virtual quint64 getCycleCount() = 0;
+    // Returns how many ISA level instructions (including those in the OS) were executed.
+    virtual quint64 getInstructionCount() = 0;
+    // Returns a 256 element vector that indicates how many times each opcode was used.
+    virtual const QVector<quint32> getInstructionHistogram() = 0;
 protected:
     // Execute a single ISA instruction.
     virtual void onISAStep() = 0;

@@ -103,6 +103,22 @@ QString FullMicrocodedMemoizer::finalStatistics()
     return output;
 }
 
+quint64 FullMicrocodedMemoizer::getCycleCount()
+{
+    return  cpu.microCycleCounter;
+}
+
+quint64 FullMicrocodedMemoizer::getInstructionCount()
+{
+    return cpu.asmInstructionCounter;
+}
+
+const QVector<quint32> FullMicrocodedMemoizer::getInstructionHistogram()
+{
+    return state.instructionsCalled;
+    //return finalStatistics();
+}
+
 void FullMicrocodedMemoizer::calculateOpVal() const
 {
     quint8 instr;

@@ -408,6 +408,21 @@ void FullMicrocodedCPU::stepOut()
     doISAStepWhile(cond);
 }
 
+quint64 FullMicrocodedCPU::getCycleCount()
+{
+    return memoizer->getCycleCount();
+}
+
+quint64 FullMicrocodedCPU::getInstructionCount()
+{
+    return memoizer->getInstructionCount();
+}
+
+const QVector<quint32> FullMicrocodedCPU::getInstructionHistogram()
+{
+    return memoizer->getInstructionHistogram();
+}
+
 void FullMicrocodedCPU::branchHandler()
 {
     // If execution is already finished, then nothing to update.

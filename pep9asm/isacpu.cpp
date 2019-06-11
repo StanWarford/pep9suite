@@ -66,6 +66,21 @@ void IsaCpu::stepOut()
     doISAStepWhile(cond);
 }
 
+quint64 IsaCpu::getCycleCount()
+{
+    return memoizer->getInstructionCount();
+}
+
+quint64 IsaCpu::getInstructionCount()
+{
+    return memoizer->getInstructionCount();
+}
+
+const QVector<quint32> IsaCpu::getInstructionHistogram()
+{
+    return memoizer->getInstructionHistogram();
+}
+
 RegisterFile &IsaCpu::getRegisterBank()
 {
     return registerBank;

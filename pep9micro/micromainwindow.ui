@@ -55,7 +55,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -179,7 +179,11 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_10">
         <item row="0" column="0">
-         <layout class="QGridLayout" name="gridLayout_8"/>
+         <layout class="QGridLayout" name="gridLayout_8">
+          <item row="0" column="0">
+           <widget class="ExecutionStatisticsWidget" name="executionStatisticsWidget" native="true"/>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -1205,6 +1209,24 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>MicrocodePane</class>
+   <extends>QWidget</extends>
+   <header>microcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MicroObjectCodePane</class>
+   <extends>QWidget</extends>
+   <header>microobjectcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CpuPane</class>
+   <extends>QWidget</extends>
+   <header>cpupane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>IOWidget</class>
    <extends>QWidget</extends>
    <header>iowidget.h</header>
@@ -1229,21 +1251,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>MicrocodePane</class>
+   <class>ExecutionStatisticsWidget</class>
    <extends>QWidget</extends>
-   <header>microcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MicroObjectCodePane</class>
-   <extends>QWidget</extends>
-   <header>microobjectcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CpuPane</class>
-   <extends>QWidget</extends>
-   <header>cpupane.h</header>
+   <header>executionstatisticswidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

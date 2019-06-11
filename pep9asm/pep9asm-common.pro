@@ -8,6 +8,7 @@ VPATH += $$PWD\..\pep9common
 FORMS += \
     asmobjectcodepane.ui \
     asmsourcecodepane.ui \
+    executionstatisticswidget.ui \
     memorytracepane.ui \
     redefinemnemonicsdialog.ui \
     asmcpupane.ui \
@@ -23,6 +24,7 @@ HEADERS += \
     asmprogrammanager.h \
     asmsourcecodepane.h \
     cpphighlighter.h \
+    executionstatisticswidget.h \
     interfaceisacpu.h \
     isaasm.h \
     memorycellgraphicsitem.h \
@@ -47,6 +49,7 @@ SOURCES += \
     asmprogrammanager.cpp \
     asmsourcecodepane.cpp \
     cpphighlighter.cpp \
+    executionstatisticswidget.cpp \
     interfaceisacpu.cpp \
     isaasm.cpp \
     memorycellgraphicsitem.cpp \

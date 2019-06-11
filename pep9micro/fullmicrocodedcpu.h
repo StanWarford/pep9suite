@@ -46,6 +46,9 @@ public:
     bool canStepInto() const override;
     void stepInto() override;
     void stepOut() override;
+    quint64 getCycleCount() override;
+    quint64 getInstructionCount() override;
+    const QVector<quint32> getInstructionHistogram() override;
 
 public slots:
     void onSimulationStarted() override;

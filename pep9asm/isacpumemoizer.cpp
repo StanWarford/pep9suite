@@ -106,3 +106,18 @@ QString IsaCpuMemoizer::finalStatistics()
     return output;
 }
 
+quint64 IsaCpuMemoizer::getCycleCount()
+{
+    return cpu.asmInstructionCounter;
+}
+
+quint64 IsaCpuMemoizer::getInstructionCount()
+{
+    return cpu.asmInstructionCounter;
+}
+
+const QVector<quint32> IsaCpuMemoizer::getInstructionHistogram()
+{
+    return state.instructionsCalled;
+}
+

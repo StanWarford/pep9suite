@@ -15,7 +15,9 @@ public:
     void storeStateInstrStart();
     QString memoize();
     QString finalStatistics();
-
+    quint64 getCycleCount();
+    quint64 getInstructionCount();
+    const QVector<quint32> getInstructionHistogram();
 private:
     IsaCpu& cpu;
     CPUState state;

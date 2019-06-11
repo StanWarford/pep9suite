@@ -100,6 +100,7 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     ui->microcodeWidget->init(controlSection, dataSection, memDevice, true);
     ui->microObjectCodePane->init(controlSection, true);
     redefineMnemonicsDialog->init(false);
+    ui->executionStatisticsWidget->init(controlSection, true);
 
     // Create & connect all dialogs.
     helpDialog = new MicroHelpDialog(this);
@@ -161,12 +162,16 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     connect(this, &MicroMainWindow::simulationStarted, ui->ioWidget, &IOWidget::onSimulationStart);
 
     connect(this, &MicroMainWindow::simulationStarted, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationStarted);
+    connect(this, &MicroMainWindow::simulationStarted, ui->executionStatisticsWidget, &ExecutionStatisticsWidget::onSimulationStarted);
+    connect(ui->actionSystem_Clear_CPU, &QAction::triggered, ui->executionStatisticsWidget, &ExecutionStatisticsWidget::onClear);
     // Post finished events to the event queue so that they are processed after simulation updates.
     connect(this, &MicroMainWindow::simulationFinished, ui->microObjectCodePane, &MicroObjectCodePane::onSimulationFinished, Qt::QueuedConnection);
     connect(this, &MicroMainWindow::simulationFinished, controlSection.get(), &FullMicrocodedCPU::onSimulationFinished, Qt::QueuedConnection);
     connect(this, &MicroMainWindow::simulationFinished, ui->cpuWidget, &CpuPane::onSimulationFinished, Qt::QueuedConnection);
     connect(this, &MicroMainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished, Qt::QueuedConnection);
     connect(this, &MicroMainWindow::simulationFinished, ui->memoryTracePane, &NewMemoryTracePane::onSimulationFinished, Qt::QueuedConnection);
+    connect(this, &MicroMainWindow::simulationFinished, ui->executionStatisticsWidget, &ExecutionStatisticsWidget::onSimulationFinished, Qt::QueuedConnection);
+
     // Connect MainWindow so that it can propogate simulationFinished event and clean up when execution is finished.
     connect(controlSection.get(), &FullMicrocodedCPU::simulationFinished, this, &MicroMainWindow::onSimulationFinished);
 
@@ -267,10 +272,6 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
                                                           static_cast<int>(ui->memoryWidget->maximumSize().width())}, Qt::Horizontal);
     // Create a new ASM file so that the dialog always has a file name in it
     on_actionFile_New_Asm_triggered();
-
-    // Hide statistics tab at this time, because it does nothing
-    ui->tabWidget->removeTab(ui->tabWidget->indexOf(ui->statsTab));
-
 }
 
 MicroMainWindow::~MicroMainWindow()
@@ -1403,7 +1404,6 @@ void MicroMainWindow::on_actionBuild_Run_triggered()
     if(controlSection->getExecutionFinished()) {
         debugState = DebugState::DISABLED;
         onSimulationFinished();
-        emit simulationFinished();
     }
     // Otherwise, the simulator paused execution, so don't explicitly terminate
     // the simulator.
