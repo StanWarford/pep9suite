@@ -386,7 +386,7 @@ void MicroMainWindow::disconnectViewUpdate()
 
 void MicroMainWindow::readSettings()
 {
-    QSettings settings("cslab.pepperdine","Pep9Micro");
+    QSettings settings;
 
     settings.beginGroup("MainWindow");
 
@@ -399,20 +399,21 @@ void MicroMainWindow::readSettings()
     codeFont = qvariant_cast<QFont>(val);
     emit fontChanged(codeFont);
 
-    //Restore last used file path
+    // Restore last used file path
     curPath = settings.value("filePath", QDir::homePath()).toString();
     // Restore dark mode state
     onDarkModeChanged();
 
     settings.endGroup();
 
-    //Handle reading for all children
+    // Handle reading for all children
     ui->microcodeWidget->readSettings(settings);
+    ui->assemblerPane->readSettings(settings);
 }
 
 void MicroMainWindow::writeSettings()
 {
-    QSettings settings("cslab.pepperdine","Pep9Micro");
+    QSettings settings;
     settings.beginGroup("MainWindow");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("font", codeFont);
@@ -420,6 +421,7 @@ void MicroMainWindow::writeSettings()
     settings.endGroup();
     //Handle writing for all children
     ui->microcodeWidget->writeSettings(settings);
+    ui->assemblerPane->writeSettings(settings);
 }
 
 // Save methods

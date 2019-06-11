@@ -39,16 +39,18 @@ const QString maxStepText = "The maximum number of steps executed before abortin
 
 int main(int argc, char *argv[])
 {
-    // Construct an application so that we have a Qt main event loop.
-    QCoreApplication a(argc, argv);
-
     // Initialize global state maps.
     Pep::initEnumMnemonMaps();
     Pep::initMnemonicMaps(true);
     Pep::initAddrModesMap();
     Pep::initDecoderTables();
 
-    QCoreApplication::setApplicationName("pep9term");
+    // Construct an application so that we have a Qt main event loop.
+    QCoreApplication a(argc, argv);
+
+    QCoreApplication::setOrganizationName("Pepperdine Computer Science Lab");
+    QCoreApplication::setOrganizationDomain("cslab.pepperdine.edu");
+    QCoreApplication::setApplicationName("Pep9Term");
     QCoreApplication::setApplicationVersion("9.2");
 
     // Create a parser

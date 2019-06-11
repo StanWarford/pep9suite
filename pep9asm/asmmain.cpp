@@ -28,11 +28,6 @@
 #include <iostream>
 int main(int argc, char *argv[])
 {
-    // Initialize all global maps.
-    Pep::initEnumMnemonMaps();
-    Pep::initMnemonicMaps(true);
-    Pep::initAddrModesMap();
-    Pep::initDecoderTables();
 #ifdef WIN32 //Always inject -platform windows:dpiawareness=0 flag to disable hi-dpi support.
     //Hi-dpi support makes all of the pixel arithmatic break.
     QApplication::setAttribute(Qt::AA_DisableHighDpiScaling,true);
@@ -47,8 +42,20 @@ int main(int argc, char *argv[])
     argv = &new_argv.data()[0];
     argc+=2;
 #endif
+    // Initialize all global maps.
+    Pep::initEnumMnemonMaps();
+    Pep::initMnemonicMaps(true);
+    Pep::initAddrModesMap();
+    Pep::initDecoderTables();
+
     qInstallMessageHandler(nullptr);
+
     QApplication a(argc, argv);
+
+    QCoreApplication::setOrganizationName("Pepperdine Computer Science Lab");
+    QCoreApplication::setOrganizationDomain("cslab.pepperdine.edu");
+    QCoreApplication::setApplicationName("Pep9");
+    QCoreApplication::setApplicationVersion("9.2");
 
     AsmMainWindow w;
     w.show();

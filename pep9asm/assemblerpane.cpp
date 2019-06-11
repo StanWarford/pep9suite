@@ -365,12 +365,10 @@ void AssemblerPane::readSettings(QSettings &settings)
 {
     // Restore last used split in assembly code pane
     settings.beginGroup("AssemblerPane");
-    qDebug() << settings.allKeys();
     QVariant val = settings.beginReadArray("codePaneSplit");
     QList<int> sizes;
     for(int it = 0; it < ui->splitter->sizes().length(); it++) {
         settings.setArrayIndex(it);
-        qDebug() << settings.value("size");
         sizes.append(settings.value("size", 1).toInt());
     }
     ui->splitter->setSizes(sizes);

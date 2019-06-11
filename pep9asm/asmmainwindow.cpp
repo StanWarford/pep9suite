@@ -318,7 +318,7 @@ void AsmMainWindow::disconnectViewUpdate()
 
 void AsmMainWindow::readSettings()
 {
-    QSettings settings("cslab.pepperdine","Pep9M");
+    QSettings settings;
 
     settings.beginGroup("MainWindow");
 
@@ -336,7 +336,6 @@ void AsmMainWindow::readSettings()
     // Restore dark mode state
     onDarkModeChanged();
     settings.endGroup();
-
     //Handle reading for all children
     ui->assemblerPane->readSettings(settings);
 
@@ -344,7 +343,7 @@ void AsmMainWindow::readSettings()
 
 void AsmMainWindow::writeSettings()
 {
-    QSettings settings("cslab.pepperdine","Pep9");
+    QSettings settings;
     settings.beginGroup("MainWindow");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("font", codeFont);

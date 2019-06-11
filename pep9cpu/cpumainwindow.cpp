@@ -290,7 +290,7 @@ void CPUMainWindow::disconnectViewUpdate()
 
 void CPUMainWindow::readSettings()
 {
-    QSettings settings("cslab.pepperdine","Pep9CPU");
+    QSettings settings;
     settings.beginGroup("MainWindow");
 
     // Restore Pep9CPU into one byte mode. Future versions might
@@ -320,7 +320,7 @@ void CPUMainWindow::readSettings()
 
 void CPUMainWindow::writeSettings()
 {
-    QSettings settings("cslab.pepperdine","Pep9CPU");
+    QSettings settings;
     settings.beginGroup("MainWindow");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("font", codeFont);

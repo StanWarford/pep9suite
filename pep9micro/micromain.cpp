@@ -52,7 +52,13 @@ int main(int argc, char *argv[])
     Pep::initMicroDecoderTables();
     qInstallMessageHandler(nullptr);
 
+
     QApplication a(argc, argv);
+
+    QCoreApplication::setOrganizationName("Pepperdine Computer Science Lab");
+    QCoreApplication::setOrganizationDomain("cslab.pepperdine.edu");
+    QCoreApplication::setApplicationName("Pep9Micro");
+    QCoreApplication::setApplicationVersion("9.2");
 
     MicroMainWindow w;
     w.show();
