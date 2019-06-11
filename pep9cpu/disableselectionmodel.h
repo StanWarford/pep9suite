@@ -40,7 +40,11 @@ public:
     virtual ~DisableSelectionModel() override;
     void select(const QItemSelection &selection, QItemSelectionModel::SelectionFlags command) override;
     void select(const QModelIndex &index, SelectionFlags command) override;
-    void forceSelectRow(uint row);
+    // If non-negative, select the row with the passed "row" index,
+    // else do nothing.
+    void forceSelectRow(qint32 row);
+    // No matter the current state of the selection model, clear the selection.
+    void forceClear();
 public slots:
     void onDisableSelection();
     void onEnableSelection();

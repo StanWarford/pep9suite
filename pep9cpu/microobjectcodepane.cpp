@@ -160,19 +160,23 @@ void MicroObjectCodePane::setObjectCode(QSharedPointer<MicrocodeProgram> prog, Q
 
 void MicroObjectCodePane::highlightCurrentInstruction()
 {
+    // If we aren't simulating, then there is no current
+    // microinstruction to highlight
+    if(!inSimulation) return;
     rowCount = cpu->getMicrocodeLineNumber();
-    selectionModel->forceSelectRow(rowCount);
+    selectionModel->forceSelectRow(static_cast<int>(rowCount));
     // Row count interpeted as a signed 32 bit integer.
     qint32 sRowCount = static_cast<int>(rowCount);
     ui->codeTable->setCurrentIndex(model->index(sRowCount,0));
-    inSimulation=true;
 }
 
 void MicroObjectCodePane::clearSimulationView()
 {
-    ui->codeTable->clearSelection();
-    rowCount=0;
-    inSimulation=false;
+    // We clear the selected portions microcode in the text editor,
+    // and we clear the CPU of control signals. For consistency,
+    // also clear the selected line of microobject code.
+    selectionModel->forceClear();
+    rowCount = 0;
 }
 
 void MicroObjectCodePane::copy()
@@ -213,12 +217,20 @@ void MicroObjectCodePane::assignHeaders()
 
 void MicroObjectCodePane::onSimulationStarted()
 {
-    emit beginSimulation();
+    // Prevent user from selecting a row other than the one containing microcode
+    // to be executed. This behavior makes it less confusing as to the binary
+    // representation of a microcode fragment.
+    selectionModel->onDisableSelection();
+    inSimulation = true;
 }
 
 void MicroObjectCodePane::onSimulationFinished()
 {
-    emit endSimulation();
+    // Signal to selection model that users can now select any row.
+    selectionModel->onEnableSelection();
+    // Set an invalid current item, which will disable item selection.
+    inSimulation = false;
+    selectionModel->forceClear();
 }
 
 void MicroObjectCodePane::onDarkModeChanged(bool)
