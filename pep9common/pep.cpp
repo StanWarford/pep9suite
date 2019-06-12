@@ -95,7 +95,7 @@ QString Pep::removeCycleNumbers(QString codeString)
     QStringList microcodeList;
     microcodeList = codeString.split('\n');
     for (int i = 0; i < microcodeList.size(); i++) {
-        microcodeList[i].remove(QRegExp("^[0-9a-fA-F]+\\.?\\s*"));
+        microcodeList[i].remove(QRegExp("^[0-9]+\\.?\\s*"));
     }
     return microcodeList.join("\n");
 }
