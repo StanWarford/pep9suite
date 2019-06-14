@@ -252,44 +252,44 @@ void MicroHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->helpSplitter->widget(1)->hide();
         ui->helpTopWebView->show();
         if (!isHelpSubCat) {                  // Writing Programs
-            ui->helpTopWebView->load(QUrl("qrc:/help-asm/writingprograms.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-micro/writingprograms.html"));
         }
         else if (row == eMACHINELANG) {           // Writing Programs > Machine Language
-            ui->helpTopWebView->load(QUrl("qrc:/help-asm/machinelanguage.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-micro/machinelanguage.html"));
         }
         else if (row == EASMLANG) {          // Writing Programs > Assembly Language
-            ui->helpTopWebView->load(QUrl("qrc:/help-asm/assemblylanguage.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-micro/assemblylanguage.html"));
         }
     }
     else if (!isHelpSubCat && row == eDEBUGGINGASM) {
         ui->helpSplitter->widget(1)->hide();
         ui->helpTopWebView->show();
-        ui->helpTopWebView->load(QUrl("qrc:/help-asm/debuggingprograms.html"));
+        ui->helpTopWebView->load(QUrl("qrc:/help-micro/debuggingprograms.html"));
     }
     if (!isHelpSubCat && row == eUSINGPEP9CPU) { // Using Pep/9 CPU
         ui->helpSplitter->widget(1)->hide();
         ui->helpTopWebView->show();
-        ui->helpTopWebView->load(QUrl("qrc:/help-cpu/usingpep9cpu.html"));
+        ui->helpTopWebView->load(QUrl("qrc:/help-micro/usingpep9cpu.html"));
     }
     else if (isHelpSubCat && parentRow == eUSINGPEP9CPU && row == eCPU) { // Interactive use
             ui->helpSplitter->widget(1)->hide();
             ui->helpTopWebView->show();
-            ui->helpTopWebView->load(QUrl("qrc:/help-cpu/cpu.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-micro/cpu.html"));
         }
     else if (isHelpSubCat && parentRow == eUSINGPEP9CPU && row == eMICROCODE) { // Microcode use
             ui->helpSplitter->widget(1)->hide();
             ui->helpTopWebView->show();
-            ui->helpTopWebView->load(QUrl("qrc:/help-cpu/microcode.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-micro/microcode.html"));
         }
     else if (isHelpSubCat && parentRow == eUSINGPEP9CPU && row == eDEBUGGINGMICRO) { // Debugging use
             ui->helpSplitter->widget(1)->hide();
             ui->helpTopWebView->show();
-            ui->helpTopWebView->load(QUrl("qrc:/help-cpu/debugging.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-micro/debugging.html"));
         }
     else if (!isHelpSubCat && row == eTRAPS) {  // Writing Trap Handlers
         ui->helpSplitter->widget(1)->hide();
         ui->helpTopWebView->show();
-        ui->helpTopWebView->load(QUrl("qrc:/help-asm/writingtraphandlers.html"));
+        ui->helpTopWebView->load(QUrl("qrc:/help-micro/writingtraphandlers.html"));
     }
     else if ((!isHelpSubCat && row == ePEP9REFERENCE)) {
         ui->helpSplitter->widget(1)->hide();
@@ -374,7 +374,7 @@ void MicroHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         if (!isHelpSubCat) {
             ui->helpSplitter->widget(1)->hide();
             ui->helpTopWebView->show();
-            ui->helpTopWebView->load(QUrl("qrc:/help-asm/examples.html"));
+            ui->helpTopWebView->load(QUrl("qrc:/help-micro/examples.html"));
         }
         else {
             ui->microTextEdit->hide();

@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C/DTD HTML 5.2//EN">
+
+<html>
+<head>
+ <title> Pep/9 CPU: Using Pep/9 CPU </title>
+  <style type="text/css" media="all">
+  code { font-family:Courier, 'Courier New', monospace; font-size:11pt }
+  img { vertical-align:text-top; }
+  h4 { margin-bottom: 0; border-bottom-width: 0; padding-bottom: 0; }
+  </style>
+</head>
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#0000FF" alink="#0000FF">
+<table bgcolor="#FB9F14" width="100%" cellpadding="2" cellspacing="0" border="0">
+<tr><td>
+<p style="text-align:center; font-family:helvetica, arial, sans-serif; font-size:14pt; font-weight:bold; color: #29315E">
+Using Pep/9 CPU
+</p>
+</td></tr>
+</table>
+ <p>
+
+Pep/9 CPU is a central processing unit simulator for writing microcode programs.
+It is designed to be used with the textbook, <i>Computer Systems</i>, J. Stanley Warford, Fifth edition, Jones & Bartlett Learning, 2017.
+The goal of the book is to teach the fundamentals of the classic von Neumann machine.
+You should use the Pep/9 CPU system in conjunction with the textbook to write microcode programs.
+<p>
+Reference: <i>Computer Systems</i>, Chapter 12, Section 12.1.
+<p>
+ <a name = "Topics">Topics:</a>
+ <a href="#Bus">The data bus</a>,
+ <a href="#Memory">Viewing memory</a>,
+ <a href="#Modes">Using Pep9CPU</a>,
+ <a href="#File">Microcode files</a>.
+
+<h3><a name="Bus">The data bus</a></h3>
+
+Figure 12.2 of the textbook shows the data section of the Pep/9 CPU with a one-byte data bus.
+Figure 12.17 shows a modification to the CPU that incorporates a two-byte data bus for increased performance.
+Pep/9 CPU supports both versions of the CPU.
+<p>
+<img src="qrc:/help-micro/images/bus1byte.png" alt="bus1byte" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/bus2byte.png" alt="bus2byte" hspace=10 vspace=10>
+<p>
+The Pep9CPU application starts up with the one-byte data bus.
+Use the System menu or keyboard shortcut to switch between the two versions.
+ <p>
+ <img src="qrc:/help-micro/images/switchbus.png" alt="switchbus" hspace=10 vspace=10>
+ <p>
+ <a href="#Topics">Scroll to topics</a>.
+
+<h3><a name="Memory">Viewing memory</a></h3>
+
+The Pep/9 CPU system has two panels &ndash; the CPU/Code panel and the memory dump panel.
+You can change which of these panels is visible by making the appropriate selection from the View menu or clicking the corresponding icon on the tool bar.
+<p>
+<img src="qrc:/help-micro/images/viewmemorymenu.png" alt="viewmemorymenu" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/viewmemoryicon.png" alt="viewmemoryicon" hspace=10 vspace=10>
+ <p>
+ <a href="#Topics">Scroll to topics</a>.
+
+<h3><a name="Modes">Using Pep9CPU</a></h3>
+
+ There are three ways to use the Pep/9 CPU simulator &ndash; interactive, microcode, and debugging.
+ When the application starts up, the system is available for interactive use and for microcode use.
+ <p>
+ <h4>Interactive use</h4>
+ With interactive use, you can set individual control signals via the GUI widgets on the right side of the CPU pane.
+ For example, in the following figure the user has set register address A to 6, register address B to 7,
+ and clicked the MARCk check box.
+ <p>
+ <img src="qrc:/help-micro/images/interactiveuse.png" alt="interactiveuse" hspace=10 vspace=10>
+<p>
+The A bus and B bus are colored red to indicate that the A and B adresses are set.
+When the user clicks the Clock button, the CPU pane shows the effect of this single CPU cycle.
+See the section titled Interactive Use in this help system for details of how to use Pep9CPU in interactive mode.
+<p>
+<h4>Microcode use</h4>
+With microcode use, you can write a microprogram in the microcode pane.
+The following figure shows the first few lines of a microprogram.
+ <p>
+ <img src="qrc:/help-micro/images/microcodeuse.png" alt="microcodeuse" hspace=10 vspace=10>
+<p>
+Comments begin with <code>//</code> as in C and Java.
+Pep/9 CPU features automated unit code testing.
+The keywords <code>UnitPre</code> and <code>UnitPost</code> in the above figure specify a unit test for the program.
+<p>
+After writing a microprogram the user can either run the program or use the debugger to see the effect of each
+cycle in the CPU pane.
+See the section titled Microcode Use in this help system for details of how to write microcode.
+<p>
+<h4>Debugging use</h4>
+With debugging use, you can single step through a microprogram to see the effect of each cycle on the state of the CPU.
+The following figure shows the first few lines of a microprogram at the start of a single step.
+<p>
+<img src="qrc:/help-micro/images/debugginguse.png" alt="debugginguse" hspace=10 vspace=10>
+<p>
+See the section titled Debugging Use in this help system for details of how to debug your microcode programs.
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
+
+<h3><a name="File">Microcode files</a></h3>
+
+The Pep/9 CPU system uses the file extension <code>.pepcpu</code> to store microcode programs.
+The files are text files that you can modify with your favorite text editor or word processor outside the Pep/9 CPU application.
+Although Pep/9 CPU displays the micro-object code in the object code pane, there is no facility to store a micro-object
+program to an external file.
+<p>
+When you write a microprogram the editor automatically numbers the statements that correspond to CPU cycles.
+The following figure shows the auto-cycle number feature of the editor.
+Comments and unit test specifications are excluded from the numbering.
+<p>
+<img src="qrc:/help-micro/images/cyclenumbers.png" alt="cyclenumbers" hspace=10 vspace=10>
+<p>
+When you save a microprogram the editor includes the cycle numbers in the text.
+For example, here are the first few lines of text from the file that is saved from the above figure.
+<pre>
+// File: fig1210.pepcpu
+// Computer Systems, Fifth Edition
+// Figure 12.10
+// STWA there,d
+// RTL: Oprnd <- A
+// Direct addressing: Oprnd = Mem[OprndSpec]
+
+UnitPre: IR=0xE100FF, A=0xABCD, S=0
+UnitPost: Mem[0x00FF]=0xABCD
+
+// UnitPre: IR=0xE101FE, A=0xABCD, S=1
+// UnitPost: Mem[0x01FE]=0xABCD
+
+// MAR <- OprndSpec.
+1. A=9, B=10; MARCk
+// Initiate write, MDR <- A<high>.
+2. MemWrite, A=0, AMux=1, ALU=0, CMux=1, MDRMux=1; MDRCk
+// Continue write, T2 <- OprndSpec + 1.
+3. MemWrite, A=10, B=23, AMux=1, ALU=1, CMux=1, C=13; SCk, LoadCk
+4. MemWrite, A=9, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=12; LoadCk
+</pre>
+When you open a previously saved microprogram the editor strips any cycle numbers in the text and auto-renumbers them.
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
+
+</body>
+</html>

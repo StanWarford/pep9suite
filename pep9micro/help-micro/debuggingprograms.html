@@ -1,0 +1,451 @@
+<!DOCTYPE HTML PUBLIC "-//W3C/DTD HTML 5.2//EN">
+
+<html>
+<head>
+ <title> Pep/9: Debugging Programs Documentation </title>
+  <style type="text/css" media="all">
+   code { font-family:Courier, 'Courier New', monospace; font-size:11pt }
+   img { vertical-align:text-top; }
+   h4 { margin-bottom: 0; border-bottom-width: 0; padding-bottom: 0; }
+  </style>
+</head>
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#0000FF" alink="#0000FF">
+<table bgcolor="#FB9F14" width="100%" cellpadding="2" cellspacing="0" border="0">
+<tr><td>
+<p style="text-align:center; font-family:helvetica, arial, sans-serif; font-size:14pt; font-weight:bold; color: #29315E">
+Debugging Programs
+</p>
+</td></tr>
+</table>
+<p>
+ The Pep/9 system provides debugging tools to help you locate errors in the programs you write.
+ The tools include the CPU display, a memory dump, tracing machine code, tracing assembler code, break points, and a symbolic trace feature.
+ If you are debugging a machine language program that you wrote you can use the memory dump feature
+ but you cannot set break points or use the symbolic trace feature.
+ You can use all the debugging features if you are debugging an assembly language program.
+ An additional debugging tool is the byte converter, which is available any time the application is running.
+ <p>
+ <a name = "Topics">Topics:</a>
+ <a href="#CPU">The CPU display</a>,
+ <a href="#Memory">The memory dump</a>,
+ <a href="#Machine">Tracing machine code</a>,
+ <a href="#Assembler">Tracing assembler code</a>,
+ <a href="#Break">Break points</a>,
+ <a href="#Symbolic">Symbolic trace</a>,
+ <a href="#Byte">Byte converter</a>.
+
+<h3><a name="CPU">The CPU display</a></h3>
+
+The Pep/9 debugging system lets you step through the execution of a program one statement at a time.
+At each point in time, the Program Trace pane highlights the assembly language statement that will be executed next,
+and the CPU displays the contents of its registers just after the previous statement has executed.
+<p>
+The screenshot of the Program Trace below highlights the <code>ASRA</code> instruction at 0012.
+This statement has <i>not</i> yet executed.
+The screenshot of the CPU display below shows the state of the processor just <i>after</i> the <code>ADDA</code> instruction at 000F has executed.
+<p>
+<img src="qrc:/help-micro/images/cpudisplay1.png" alt="cpudisplay1" hspace=10 vspace=10>
+<p>
+<img src="qrc:/help-micro/images/cpudisplay2.png" alt="cpudisplay2" hspace=10 vspace=10>
+<p>
+The CPU pane shows the values of the NZVC bits and of each register in the CPU.
+It displays the content of the accumulator, index register, stack pointer, and program counter first in hexadecimal and
+then in decimal.
+In the above screenshot, the accumulator has a decimal value of 152, the result of adding 68 for <code>exam1</code> and 84 for <code>exam2</code>.
+<p>
+The CPU display shows the instruction specifier first in binary, and then as a mnemonic.
+If the instruction is nonunary, it decodes the addressing mode field and shows the corresponding letter for the addressing mode
+after the mnemonic, and displays the operand specifier.
+In the above screenshot, the mnemonic is <code>ADDA</code>, and the addressing mode letter is <code>s</code> for stack-relative addressing.
+The operand specifier is 2.
+<p>
+The operand is not part of the CPU, except for the case of immediate addressing when the operand <i>is</i> the operand specifier.
+However, for the convenience of the programmer, the CPU pane computes the value of the operand from the addressing mode
+and displays it as well.
+The Operand field in the CPU pane is enclosed in parentheses to emphasize the fact that it is <i>not</i> part of the CPU.
+In the above screenshot, the operand is 84, the decimal value that was just added to the accumulator.
+<p>
+The values in the CPU pane are the values <i>after</i> the instruction in the instruction specifier has executed.
+For example, the values in the above screenshots are the values after the <code>ADDA</code> at 000F executes.
+In the von Neumann cycle, the program counter increments before the instruction executes.
+So, the value of the program counter is the address of the <i>next</i> instruction to execute.
+In the above screenshot, the program counter is 0012, which is the address of the <i>next</i> instruction to execute,
+while the instruction that just executed is the instruction at address 000F.
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
+
+<h3><a name="Memory">The memory dump</a></h3>
+
+View the Memory Dump pane by selecting View&rarr;Code/CPU/Memory from the menu or by clicking the corresponding icon in the tool bar.
+<p>
+<img src="images/codecpumemory.png" alt="codecpumemory" hspace=10 vspace=10>
+<img src="images/codecpumemoryicon.png" alt="codecpumemoryicon" hspace=10 vspace=10>
+<p>
+The Pep/9 application may run noticibly slower when the Memory Dump pane is visible.
+You can click either of the other two view icons to hide the Memory Dump pane.
+<p>
+ <img src="images/codecodememory.png" alt="codecodememory" hspace=10 vspace=10>
+<p>
+Each row of the memory dump pane displays eight contiguous bytes of memory and has three parts.
+<p>
+<img src="images/memorydump.png" alt="memorydump" hspace=10 vspace=10>
+<p>
+The first part shows the address of the first byte in the row.
+The second part shows a list of eight bytes, each one displayed as two hexadecimal digits.
+In the above figure, 0008 is the address of 0E, the first byte of the row.
+Byte F1 is at address 0009, byte FC is at address 000A, and so on.
+<p>
+The third part in the memory dump pane shows the ASCII representations of the eight bytes in the row.
+Some bytes in a memory dump are generated from ASCII strings, and are meaningeful when interpreted as such.
+For example, in the above figure bytes 48 and 69 at addresses 000D and 000E are displayed in the third part as
+letters <code>H</code> and <code>i</code>.
+Most bytes in a memory dump are not generated from ASCII strings, and are meaningless when interpreted as such.
+In the above figure, byte F1 is displayed as an accented n.
+When a byte represents a nonprintable ASCII control character, it is shown as a period.
+<p>
+You can scroll to any location in memory using the scroll bar on the right.
+To scroll to a specific memory location enter the address in hexadecimal
+in the input field at the bottom of the pane.
+Click the SP button to scroll to the region of memory pointed to by the stack pointer.
+Click the PC button to scroll to the region of memory pointed to by the program counter.
+<p>
+<img src="qrc:/help-micro/images/scrollto.png" alt="fig0434" hspace=10 vspace=10>
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
+<h3><a name="Machine">Tracing machine code</a></h3>
+If you are debugging a machine language program that you wrote, the first step is to enter the program in hexadecimal in the Object Code pane.
+The following figure shows the object program from Figure 4.35 of the text.
+The input stream contains the two characters <code>up</code>.
+<p>
+<img src="qrc:/help-micro/images/fig0435.png" alt="fig0435" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/inputup.png" alt="inputup" hspace=10 vspace=10>
+<p>
+Then select Debug&rarr;Start Debugging Object from the menu.
+The Start Debugging Object action does three things &mdash; clears memory to all zeros, loads the machine language program
+into memory starting at address 0000, and puts you in the debugging mode.
+<p>
+<img src="qrc:/help-micro/images/startdebuggingobject.png" alt="startdebuggingobject" hspace=10 vspace=10>
+<p>
+At the beginning of the trace, the program counter (PC) is set to 0, indicating that the next instruction to be fetched
+is the one in memory at address 0000.
+The memory dump highlights in blue the machine language instruction, in this example D1 FC15.
+<p>
+<img src="qrc:/help-micro/images/fig0435trace1.png" alt="fig0435trace1" hspace=10 vspace=10>
+<p>
+<h4>Single step</h4>
+To trace what happens when the instruction executes select Debug&rarr;Single Step from the menu
+or click the corresponding icon in the tool bar.
+<p>
+<img src="qrc:/help-micro/images/singlestep.png" alt="singlestep" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/singlestepicon.png" alt="singlestepicon" hspace=10 vspace=10>
+<p>
+The debugger will perform one von Neumann cycle.
+Namely, it will fetch the instruction, decode it, increment PC, and execute the instruction fetched.
+In this example, the instruction D1 loads a byte from the input port FC15 into the accumulator.
+Because <code>u</code> is the first character in the input stream, the instruction puts its hexadecimal equivalent
+0x75 in the right half of the accumulator.
+At this point, the CPU pane shows the instruction specifier D1 in binary and the operand specifier FC15
+in hexadecimal.
+This is the instruction that was fetched and executed.
+The value of PC is the incremented value, which points to the instruction that will be executed next.
+The memory dump highlights the instruction that will be executed next, not the instruction that was
+just executed.
+<p>
+<img src="qrc:/help-micro/images/fig0435trace2.png" alt="fig0435trace2" hspace=10 vspace=10>
+<p>
+The following figure shows the state of the machine after one more single step.
+Instruction F1 0013 is the store byte instruction.
+It stores the right half of the accumulator to memory location 0013.
+The memory dump pane highlights in red that part of memory that was changed by the instruction.
+The highlighted instruction in the memory dump, D1 FC15, is the instruction that will execute next.
+<p>
+<img src="qrc:/help-micro/images/fig0435trace3.png" alt="fig0435trace3" hspace=10 vspace=10>
+<p>
+ If you want to terminate the debugging session without running the program to completion, select Debug&rarr;Stop Debugging
+ from the menu or click the stop sign icon in the tool bar.
+<p>
+<img src="qrc:/help-micro/images/stopdebugging.png" alt="stopdebugging" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
+<p>
+
+<h3><a name="Assembler">Tracing assembler code</a></h3>
+
+If you are debugging an assembly language program that you wrote, enter the program in the Source Code pane.
+Or, if you want to trace a textbook example, select it from the column on the left and click the Copy to Source button.
+<p>
+<img src="qrc:/help-micro/images/copytosource.png" alt="copytosource" hspace=10 vspace=10>
+<p>
+Select Debug&rarr;Start Debugging from the menu, or click on the icon with the bug in the tool bar.
+The Start Debugging action does three things &mdash; clears memory to all zeros, assembles and loads the source program,
+and puts you in the debugging mode.
+<p>
+<img src="qrc:/help-micro/images/startdebuggingsource.png" alt="startdebuggingsource" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/startdebuggingicon.png" alt="startdebuggingicon" hspace=10 vspace=10>
+<p>
+The following sequence of figures shows the tracing steps when debugging the program of Figure 6.4
+with values 68 84 in the input stream.
+<p>
+<img src="qrc:/help-micro/images/fig0604input.png" alt="fig0604input" hspace=10 vspace=10>
+<p>
+The Start Debugging action activates the Debugger tab, which displays the Program Trace.
+The Program Trace shows the assembly language source code with the statement to be executed next highlighted in blue.
+With this program, the <code>BR main</code> instruction is about to execute.
+<p>
+<img src="qrc:/help-micro/images/fig0604trace1.png" alt="fig0604trace1" hspace=10 vspace=10>
+<p>
+<h4>Single step</h4>
+While you are in the debugging mode, you can select Debug&rarr;Single Step from the menu or click on
+the corresponding icon in the tool bar.
+<p>
+<img src="qrc:/help-micro/images/singlestep.png" alt="singlestep" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/singlestepicon.png" alt="singlestepicon" hspace=10 vspace=10>
+<p>
+The debugger will perform one von Neumann cycle.
+Namely, it will fetch the instruction, decode it, increment PC, and execute the instruction fetched.
+In this example, the branch instruction uses immediate addressing to put 0003 into PC.
+At each step of the trace you can also see the content of the CPU.
+At this point, the CPU pane shows the instruction specifier for <code>BR</code> in binary and the operand specifier 0003
+in hexadecimal.
+This is the instruction that was fetched and executed.
+The value of PC is the address of the instruction that will be executed next, in this case the <code>SUBSP</code> instruction.
+The program trace highlights the instruction that will be executed next, not the instruction that was
+just executed.
+<p>
+<img src="qrc:/help-micro/images/fig0604trace2.png" alt="fig0604trace2" hspace=10 vspace=10>
+<p>
+<img src="qrc:/help-micro/images/fig0604trace2cpu.png" alt="fig0604trace2cpu" hspace=10 vspace=10>
+<p>
+The following figures show the Program Trace and CPU after another single step, which executes the <code>SUBSP</code> instruction.
+The CPU shows the <code>SUBSP</code> instruction in the instruction specifier and 6 in the operand specifier.
+This is the instruction that was just executed.
+Also shown is the rendering of the run-time stack in the Memory Trace.
+The program trace highlights the <code>DECI</code> instruction, which will be executed next.
+<p>
+<img src="qrc:/help-micro/images/fig0604trace3.png" alt="fig0604trace3" hspace=10 vspace=10>
+<p>
+<img src="qrc:/help-micro/images/fig0604trace3cpu.png" alt="fig0604trace3cpu" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/fig0604trace3stack.png" alt="fig0604trace3stack" hspace=10 vspace=10>
+<p>
+Now the <code>DECI</code> instruction is about to execute.
+But, <code>DECI</code> is a trap instruction, which generates a trap to the operating system.
+Therefore, you have two trace options &mdash; (1) single step the trap instruction, or (2) step into the trap instruction.
+<p>
+<h4>Single step a trap instruction</h4>
+Option (1): If you select Single Step again, the debugger will execute all the code in the operating system
+for the <code>DECI</code> trap instruction and then show the state of the computer as if <code>DECI</code> were a single instruction.
+The Program Trace below highlights the second <code>DECI</code> instruction, because that is the instruction
+that will be executed next.
+The Memory Trace shows that the <code>DECI</code> instruction input the value 68 to <code>exam1</code> on the run-time stack.
+The instruction specifier in the CPU shows that the last instruction executed is <code>RETTR</code>,
+which stands for "return from trap".
+This is the instruction in the operating system that returns control to the application.
+<p>
+<img src="qrc:/help-micro/images/fig0604trace4.png" alt="fig0604trace4" hspace=10 vspace=10>
+<p>
+<img src="qrc:/help-micro/images/fig0604trace4cpu.png" alt="fig0604trace4cpu" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/fig0604trace4stack.png" alt="fig0604trace4stack" hspace=10 vspace=10>
+<p>
+The Memory Dump pane also highlights the top byte of the stack in magenta.
+The following screenshot show the stack starting at address FB89.
+The <code>DECI</code> instruction stored 0044(hex) = 68(dec) at address FB8D on the run-time stack.
+<p>
+<img src="qrc:/help-micro/images/memorydumpsp.png" alt="memorydumpsp" hspace=10 vspace=10>
+<p>
+<h4>Step into a trap instruction</h4>
+Option (2): If you want to trace the execution of the statements in the operating system that implement the <code>DECI</code>
+instruction, you can choose the second trace option.
+Select Debug&rarr;Step Into from the menu or click on the corresponding icon in the tool bar.
+<p>
+<img src="qrc:/help-micro/images/stepinto.png" alt="stepinto" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/stepintoicon.png" alt="stepintoicon" hspace=10 vspace=10>
+<p>
+The Program Trace pane switches to the operating system.
+When a trap instruction executes, control is transferred to the trap handler of the OS.
+The first instruction of the trap handler to execute is the <code>LDBX</code> instruction at FC52.
+<p>
+<img src="qrc:/help-micro/images/fig0604trace5.png" alt="fig0604trace5" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/fig0604trace5cpu.png" alt="fig0604trace5cpu" hspace=10 vspace=10>
+<p>
+<h4>Step out</h4>
+You can continue to single step through the operating system to trace the statements that implement <code>DECI</code>.
+Eventually, you will execute <code>RETTR</code>, the return from trap instruction.
+The Program Trace pane will switch back to the application and highlight the instruction after the one that caused the trap.
+If you are part way through tracing the trap handler and want to immediately return to the application,
+select Debug&rarr;Step Out from the menu or click on the corresponding icon in the tool bar.
+<p>
+<img src="qrc:/help-micro/images/stepout.png" alt="stepout" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/stepouticon.png" alt="stepouticon" hspace=10 vspace=10>
+<p>
+The debugger will automatically execute all the remaining statements of the code you are tracing up to,
+and including, the next <code>RETTR</code> or <code>RET</code> instruction.
+You will then be ready to single step through the remaining statements of the application.
+<p>
+<h4>Switching out of debug mode</h4>
+If you want the program to run to completion, select Debug&rarr;Continue Debugging from the menu or click on the corresponding icon in the tool bar.
+If you have inserted any break points in your program, the debugger will execute all the statements up to the statement that has a break point,
+and you will still be in the debug mode.
+Otherwise, the program will run to completion and exit the debug mode.
+<p>
+<img src="qrc:/help-micro/images/continuedebugging.png" alt="continuedebugging" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/continuedebuggingicon.png" alt="continuedebuggingicon" hspace=10 vspace=10>
+<p>
+If you want to terminate the debugging session without running the program to completion, select Debug&rarr;Stop Debugging
+from the menu or click the stop sign icon in the menu bar.
+<p>
+<img src="qrc:/help-micro/images/stopdebugging.png" alt="stopdebugging" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/stopdebuggingicon.png" alt="stopdebuggingicon" hspace=10 vspace=10>
+<p>
+<h4>Step over</h4>
+If you are stepping through a program in the debugger and get to a <code>call</code> instruction, it is possible to bypass
+all the statements inside the function.
+For example, susppose you trace the main program in Figure 6.25 of the textbook up to the <code>CALL</code> at 007D.
+The <code>SUBSP</code> statement that just executed has pushed storage for <code>retVal</code>
+and parameters <code>n</code> and <code>k</code> onto the run-time stack.
+<p>
+<img src="qrc:/help-micro/images/fig0625trace1.png" alt="fig0625trace1" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/fig0625trace1stack.png" alt="fig0625trace1stack" hspace=10 vspace=10>
+<p>
+If you do not want to trace all the code of the function but just want to know the state of the computation
+after the function returns, select Debug&rarr;Step Over from the menu or click the corresponding icon in the menu bar.
+<p>
+<img src="qrc:/help-micro/images/stepover.png" alt="stepover" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/stepovericon.png" alt="stepovericon" hspace=10 vspace=10>
+<p>
+The debugger will execute all the statements of the function up to and including the <code>RET</code> statement
+that corresponds to the <code>CALL</code>.
+In the following figure, the function has computed the value of <code>retVal</code>, which the main program will output.
+<p>
+<img src="qrc:/help-micro/images/fig0625trace2.png" alt="fig0625trace2" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/fig0625trace2stack.png" alt="fig0625trace2stack" hspace=10 vspace=10>
+<p>
+The Step Over operation works on a <code>CALL</code> instruction the same way the Single Step operation works
+on a trap instruction.
+In both cases, the debugger executes all the code of the trap or call as if it were a single instruction at
+a higher level of abstraction.
+<p>
+<h4>Summary of step operations</h4>
+Here is a summary of the four debugging step operations.
+<p>
+Step Over
+<ul>
+  <li>Steps over a trap instruction.</li>
+  <li>Steps over a <code>CALL</code> instruction.</li>
+</ul>
+Step Into
+<ul>
+  <li>Steps into a trap instruction.</li>
+  <li>Steps into a <code>CALL</code> instruction.</li>
+</ul>
+Single Step
+<ul>
+  <li>Steps over a trap instruction.</li>
+  <li>Steps into a <code>CALL</code> instruction.</li>
+</ul>
+Step Out
+<ul>
+  <li>Steps out of the most recent <code>call</code> or trap instruction.</li>
+</ul>
+Strictly speaking, the Single Step operation is not necessary, because you could always achieve the same
+effect by stepping over or stepping into the instruction.
+It is provided as a convenience, because most of the time you will want to step over a trap instruction
+and step into a <code>CALL</code> instruction.
+See the menu for the keyboard shortcut on your system for the Single Step operation.
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
+
+<h3><a name="Break">Break points</a></h3>
+
+If you want to trace a program up to a specific instruction and you do not want to single step through all the previous statements to get there,
+you can set a break point at the instruction and then Continue Debugging to that point.
+For example, the following figure shows the program from Figure 6.10 in the textbook after Start Debugging.
+The input stream is <code>Hello, world!*</code>.
+<p>
+<img src="qrc:/help-micro/images/fig0610trace1.png" alt="fig0610trace1" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/fig0610trace1mem.png" alt="fig0610trace1mem" hspace=10 vspace=10>
+<p>
+The gray strip on the left of the listing is the break point area.
+If you click in the break point area next to an executable statement, a red circle will appear to indicate that the statement has a break point.
+In the above figure, break points have been set for the <code>LDBA</code> instruction at 000A and the <code>LDBA</code> instruction at 0019.
+To remove a break point click the red circle.
+<p>
+To execute all the statements up to the next break point, select Debug&rarr;Continue Debugging from the menu or click on the corresponding icon in the tool bar.
+<p>
+<img src="qrc:/help-micro/images/continuedebugging.png" alt="continuedebugging" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/continuedebuggingicon.png" alt="continuedebuggingicon" hspace=10 vspace=10>
+<p>
+The following figure shows that all the statements up to but not including the one at 000A have executed.
+The previous instruction <code>STBA</code> put the letter <code>H</code> in the global variable <code>letter</code> at 0003.
+At this point, the statement to be executed is the statement at the top of a <code>while</code> loop.
+<p>
+<img src="qrc:/help-micro/images/fig0610trace2.png" alt="fig0610trace2" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/fig0610trace2mem.png" alt="fig0610trace2mem" hspace=10 vspace=10>
+<p>
+The next figure shows the debugger after one more Continue Debugging operation.
+The debugger executed the statements in the body of the <code>while</code> loop.
+The debugger did not stop at the second break point because that break point is on an instruction in a nested <code>if</code>
+statement that did not execute.
+The previous statement that executed was the <code>BR</code> instruction at 002B.
+The memory trace shows the value of <code>e</code> stored to <code>letter</code> by the <code>STBA</code> instruction at 0028.
+<p>
+<img src="qrc:/help-micro/images/fig0610trace2.png" alt="fig0610trace2" hspace=10 vspace=10>
+<img src="qrc:/help-micro/images/fig0610trace3mem.png" alt="fig0610trace3mem" hspace=10 vspace=10>
+<p>
+<a href="#Topics">Scroll to topics</a>.
+
+<h3><a name="Symbolic">Symbolic trace</a></h3>
+
+The symbolic trace feature is controlled by the trace tags described in the text.
+Trace tags are contained in assembly language comments and have no effect on generated object code.
+Each trace tag begins with the <code>#</code> character and supplies information to the symbol tracer on how to format
+and label the memory cell in the trace window.
+<p>
+If your program does not include trace tags, the memory trace pane will not be visible when you run your program.
+You can still use the debugger to single-step through your program and set break points.
+If it does include trace tags, but errors are detected in the tags, a blue warning will be issued.
+You can still run your program and use the debugger, but the memory trace pane will not be visible.
+The screenshot below shows what happens if you make an error in one of the trace tags in the program from Figure 5.27.
+<p>
+<img src="qrc:/help-micro/images/fig0527tracetagwarning.png" alt="fig0527tracetagwarning" hspace=10 vspace=10>
+<p>
+If your program does include trace tags and they have no errors, the memory trace will automatically become visible
+below the listing trace pane.
+As you single-step through the program, you can see the global variables on the left, and the run-time stack on the right.
+Here is a screenshot of the memory trace pane from the program in Figure 6.21.
+The memory cell for <code>k</code> on top of the run-time stack is colored red because a <code>STWA</code>
+instruction has just changed its value.
+<p>
+<img src="qrc:/help-micro/images/memorytrace.png" alt="memorytrace" hspace=10 vspace=10>
+<p>
+The sybolic trace feature also displays the fields of a global <code>struct</code>,
+and storage from the heap allocated with a call to <code>malloc</code>.
+Here is a screenshot of the memory trace pane from the program in Figure 6.48.
+The stack on the left contains the local variables, and the heap on the right contains the dynamically allocated variables.
+The program has just executed a call to <code>malloc</code>, which has allocated a new node shaded green
+with fields <code>data</code> and <code>next</code>.
+<p>
+<img src="qrc:/help-micro/images/memorytrace2.png" alt="memorytrace2" hspace=10 vspace=10>
+<p>
+See the textbook for information on how to use trace tags in your programs.
+<p>
+<a href="#Topics">Scroll to topics</a>.
+
+<h3><a name="Byte">Byte converter</a></h3>
+
+Any time the Pep/9 application is running, the byte converter is available in the tool bar.
+The four input fields represent the value of a single byte as displayed from left to right in decimal, hexadecimal, binary, and ASCII.
+Simply enter any value in any input field and the other fields will show the same value in the corresponding format.
+Here is the result of entering the letter <code>P</code> in the ASCII field.
+ <p>
+<img src="qrc:/help-micro/images/byteconverter.png" alt="byteconverter" hspace=10 vspace=10>
+<p>
+An instruction specifier decoder is to the right of the four input fields.
+It displays the instruction mnemonic and possibly the addressing mode assuming you interpret the byte value as an instruction specifier.
+<p>
+<a href="#Topics">Scroll to topics</a>.
+<p>
+
+</body>
+</html>
