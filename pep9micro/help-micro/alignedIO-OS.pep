@@ -67,8 +67,7 @@ unary:   ANDX    0x0001,i    ;Mask out all but rightmost bit
          CALL    unaryJT,x   ;Call unary trap routine
          RETTR               ;Return from trap
 ;
-unaryJT: .ADDRSS opcode26    ;Address of NOP0 subroutine
-         .ADDRSS opcode27    ;Address of NOP1 subroutine
+unaryJT: .ADDRSS opcode27    ;Address of NOP1 subroutine
 ;
 nonUnary:ASRX                ;Trap opcode is nonunary               
          ASRX                ;Discard addressing mode bits
@@ -180,11 +179,7 @@ addrSFX: LDWX    oldPC4,s    ;Stack-deferred indexed addressing
          LDWX    0,x         
          ADDX    oldX4,s     
          STWX    opAddr,d    
-         RET                 
-;
-;******* Opcode 0x26
-;The NOP0 instruction.
-opcode26:RET                 
+         RET                               
 ;
 ;******* Opcode 0x27
 ;The NOP1 instruction.
