@@ -259,7 +259,7 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     // Read in settings
     readSettings();
 
-    // Resize docking widgets because QT does a poor job of it
+    // Resize docking widgets because QT does a poor job of it.
     tabifyDockWidget(ui->memoryDockWdget, ui->memoryTraceDockWidget);
     ui->memoryDockWdget->raise();
     int scaleTotal = ui->memoryDockWdget->sizePolicy().verticalStretch()+ ui->ioDockWidget->sizePolicy().verticalStretch();
@@ -267,11 +267,17 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     double io = geometry().height() * ui->ioDockWidget->sizePolicy().verticalStretch() / static_cast<double>(scaleTotal);
     resizeDocks({ui->memoryDockWdget, ui->ioDockWidget}, {static_cast<int>(memory),
                                                           static_cast<int>(io)}, Qt::Vertical);
-    // Make the docks as large as the memory widget by default
+    // Make the docks as large as the memory widget by default.
     resizeDocks({ui->memoryDockWdget, ui->ioDockWidget}, {static_cast<int>(ui->memoryWidget->maximumSize().width()),
                                                           static_cast<int>(ui->memoryWidget->maximumSize().width())}, Qt::Horizontal);
-    // Create a new ASM file so that the dialog always has a file name in it
+
+    // Create a new ASM file so that the dialog always has a file name in it.
     on_actionFile_New_Asm_triggered();
+
+    // Make sure there is always an operating system loaded.
+    // Otherwise, executing a object code program upon starting the application will
+    // cause a crash.
+    loadOperatingSystem();
 }
 
 MicroMainWindow::~MicroMainWindow()
@@ -1350,7 +1356,7 @@ void MicroMainWindow::on_actionBuild_Load_Object_triggered()
 
 void MicroMainWindow::on_actionBuild_Execute_triggered()
 {
-    loadOperatingSystem();
+    // Do not load operating system, as this will erase existing bytes in memory.
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
         disconnectViewUpdate();
@@ -1415,7 +1421,9 @@ void MicroMainWindow::on_actionBuild_Run_triggered()
 
 void MicroMainWindow::on_actionBuild_Run_Object_triggered()
 {
-    // No need to load operating system, as this will be done by execute.
+    // Must load operating system, as this will not be done by
+    // on_actionBuild_Execute_triggered().
+    loadOperatingSystem();
     if(loadObjectCodeProgram()) {
         on_actionBuild_Execute_triggered();
     }
@@ -1474,6 +1482,8 @@ void MicroMainWindow::handleDebugButtons()
 bool MicroMainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
     if(!on_actionBuild_Assemble_triggered()) return false;
+    // Unlike Pep9asm, on_actionDebug_Start_Debugging_Object_triggered switched to the
+    // debugger tab. This is because in the event of useless object code there is still microcode to debug.
     return on_actionDebug_Start_Debugging_Object_triggered();
 
 }

@@ -214,20 +214,25 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     connect(programManager, &AsmProgramManager::removeAllBreakpoints,
             [&](){controlSection->breakpointsRemoveAll();});
 
-    // Assemble default OS
+    // Assemble default OS.
     assembleDefaultOperatingSystem();
 
-    // Initialize debug menu
+    // Initialize debug menu.
     handleDebugButtons();
 
-    // Read in settings
+    // Read in settings.
     readSettings();
 
-    // Create a new ASM file so that the dialog always has a file name in it
+    // Create a new ASM file so that the dialog always has a file name in it.
     on_actionFile_New_Asm_triggered();
 
     // Correctly show correct panes & set up buttons.
     on_actionView_Code_CPU_triggered();
+
+    // Make sure there is always an operating system loaded.
+    // Otherwise, executing a object code program upon starting the application will
+    // cause a crash.
+    loadOperatingSystem();
 }
 
 AsmMainWindow::~AsmMainWindow()
@@ -1101,7 +1106,7 @@ void AsmMainWindow::on_actionBuild_Load_Object_triggered()
 
 void AsmMainWindow::on_actionBuild_Execute_triggered()
 {
-    loadOperatingSystem();
+    // Do not load operating system, as this will erase existing bytes in memory.
     debugState = DebugState::RUN;
     if (initializeSimulation()) {
         disconnectViewUpdate();
@@ -1166,7 +1171,9 @@ void AsmMainWindow::on_actionBuild_Run_triggered()
 
 void AsmMainWindow::on_actionBuild_Run_Object_triggered()
 {
-    // No need to load operating system, as this will be done by execute.
+    // Must load operating system, as this will not be done by
+    // on_actionBuild_Execute_triggered().
+    loadOperatingSystem();
     if(loadObjectCodeProgram()) {
         on_actionBuild_Execute_triggered();
     }
@@ -1219,6 +1226,9 @@ void AsmMainWindow::handleDebugButtons()
 bool AsmMainWindow::on_actionDebug_Start_Debugging_triggered()
 {  
     if(!on_actionBuild_Assemble_triggered()) return false;
+    // The function on_actionDebug_Start_Debugging_Object_triggered() does not switch to
+    // the debugger tab. This is intentional, since object code does not necessarily
+    // correspond to the last assembled program.
     else if(!on_actionDebug_Start_Debugging_Object_triggered()) return false;
     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
     return true;
