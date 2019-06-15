@@ -468,6 +468,9 @@
    <property name="shortcut">
     <string>Ctrl+P</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionHelp_About_Pep9CPU">
    <property name="text">
@@ -579,6 +582,9 @@
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionFile_New_Microcode">
    <property name="icon">
@@ -591,6 +597,9 @@
    <property name="shortcut">
     <string>Ctrl+N</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionFile_Save_Microcode">
    <property name="icon">
@@ -602,6 +611,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionExit">
@@ -674,6 +686,9 @@
    <property name="toolTip">
     <string>View CPU / MicroCode</string>
    </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionView_CPU_Code_Memory">
    <property name="icon">
@@ -685,6 +700,9 @@
    </property>
    <property name="toolTip">
     <string>View CPU / Microcode / Memory</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
  </widget>
@@ -717,10 +735,10 @@
  </customwidgets>
  <resources>
   <include location="../pep9common/pep9common-resources.qrc"/>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9cpu-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9cpu-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
  </resources>
  <connections>
   <connection>
