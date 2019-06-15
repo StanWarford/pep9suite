@@ -996,6 +996,7 @@ void MicroMainWindow::debugButtonEnableHelper(const int which)
     ui->actionDebug_Start_Debugging->setEnabled(which & DebugButtons::DEBUG);
     ui->actionDebug_Start_Debugging_Object->setEnabled(which & DebugButtons::DEBUG_OBJECT);
     ui->actionDebug_Start_Debugging_Loader->setEnabled(which & DebugButtons::DEBUG_LOADER);
+    ui->actionDebug_Start_Debugging_Microcode->setEnabled(which & DebugButtons::DEBUG_MICRO);
     ui->actionDebug_Interupt_Execution->setEnabled(which & DebugButtons::INTERRUPT);
     ui->actionDebug_Continue->setEnabled(which & DebugButtons::CONTINUE);
     ui->actionDebug_Stop_Debugging->setEnabled(which & DebugButtons::STOP);
@@ -1467,7 +1468,7 @@ void MicroMainWindow::handleDebugButtons()
     case DebugState::DISABLED:
         enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
         enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO;
-        enabledButtons |= DebugButtons::OPEN_NEW | DebugButtons::INSTALL_OS;
+        enabledButtons |= DebugButtons::OPEN_NEW | DebugButtons::INSTALL_OS | DebugButtons::DEBUG_MICRO;
         break;
     case DebugState::RUN:
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;
@@ -1486,6 +1487,10 @@ void MicroMainWindow::handleDebugButtons()
         break;
     case DebugState::DEBUG_RESUMED:
         enabledButtons = DebugButtons::INTERRUPT | DebugButtons::STOP;
+        break;
+    case DebugState::DEBUG_ONLY_MICRO:
+        enabledButtons =  DebugButtons::STOP | DebugButtons::CONTINUE;
+        enabledButtons |= DebugButtons::SINGLE_STEP_MICRO;
         break;
     default:
         break;
@@ -1559,6 +1564,69 @@ bool MicroMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     return true;
 }
 
+bool MicroMainWindow::on_actionDebug_Start_Debugging_Microcode_triggered()
+{
+    connectViewUpdate();
+    // Load microprogram into the micro control store
+    if (ui->microcodeWidget->microAssemble()) {
+        ui->statusBar->showMessage("MicroAssembly succeeded", 4000);
+        if(ui->microcodeWidget->getMicrocodeProgram()->hasMicrocode() == false)
+        {
+            ui->statusBar->showMessage("No microcode program to build", 4000);
+            return false;
+        }
+        ui->microObjectCodePane->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
+        controlSection->setMicrocodeProgram(ui->microcodeWidget->getMicrocodeProgram());
+    }
+    else {
+        ui->statusBar->showMessage("MicroAssembly failed", 4000);
+        return false;
+    }
+
+    debugState = DebugState::DEBUG_ONLY_MICRO;
+
+    // Unlike at the ISA level, we only need to clear CPU state in the microcode-only
+    // level when there are preconditions (like in Pep9CPU). However, in microcode
+    // mode, both the CPU and memory must be cleared.
+
+    if(ui->microcodeWidget->getMicrocodeProgram()->hasUnitPre()) {
+        controlSection->onResetCPU();
+        controlSection->initCPU();
+        ui->cpuWidget->clearCpu();
+        memDevice->clearMemory();
+        // Unlike Pep9CPU, do not clear all of memory. With the assembly level features,
+        // we need to make sure that operating system / user program does not get removed from memory,
+        // which would break the simulator whenever microprograms contained preconditions.
+        for(auto line : ui->microcodeWidget->getMicrocodeProgram()->getObjectCode()) {
+            if(line->hasUnitPre()) {
+                static_cast<UnitPreCode*>(line)->setUnitPre(dataSection.get());
+            }
+        }
+    }
+    // Don't allow the microcode pane to be edited while the program is running
+    ui->microcodeWidget->setReadOnly(true);
+
+    emit simulationStarted();
+    controlSection->onSimulationStarted();
+    controlSection->enableDebugging();
+    controlSection->breakpointsSet(programManager->getBreakpoints());
+    ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
+    ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
+    memDevice->clearBytesSet();
+    memDevice->clearBytesWritten();
+    ui->cpuWidget->startDebugging();
+    ui->memoryWidget->refreshMemory();
+    ui->asmProgramTracePane->clearSourceCode();
+    // Force re-highlighting on memory to prevent last run's data
+    // from remaining highlighted. Otherwise, if the last program
+    // was "run", then every byte that it modified will be highlighted
+    // upon starting the simulation.
+    highlightActiveLines();
+    ui->memoryTracePane->hide();
+    ui->microcodeWidget->setFocus();
+    return true;
+}
+
 void MicroMainWindow::on_actionDebug_Stop_Debugging_triggered()
 {
     connectViewUpdate();
@@ -1614,7 +1682,14 @@ void MicroMainWindow::on_actionDebug_Interupt_Execution_triggered()
 
 void MicroMainWindow::on_actionDebug_Continue_triggered()
 {
-    debugState = DebugState::DEBUG_RESUMED;
+    // Don't allow a transition from microcode-only to ISA level.
+    if(debugState == DebugState::DEBUG_ONLY_MICRO) {
+        debugState = DebugState::DEBUG_RESUMED_ONLY_MICRO;
+    }
+    else {
+        debugState = DebugState::DEBUG_RESUMED;
+    }
+
     handleDebugButtons();
     disconnectViewUpdate();
     controlSection->onRun();
@@ -1683,7 +1758,12 @@ void MicroMainWindow::on_actionDebug_Step_Out_Assembler_triggered()
 
 void MicroMainWindow::on_actionDebug_Single_Step_Microcode_triggered()
 {
-    debugState = DebugState::DEBUG_MICRO;
+    // Don't allow transition from microcode-only simulation to ISA level simulation.
+    if(debugState != DebugState::DEBUG_ONLY_MICRO) {
+        debugState = DebugState::DEBUG_MICRO;
+    }
+
+
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
     if(controlSection->atMicroprogramStart()) {
             memDevice->clearBytesSet();
@@ -1696,7 +1776,13 @@ void MicroMainWindow::on_actionDebug_Single_Step_Microcode_triggered()
 
 void MicroMainWindow::onMicroBreakpointHit()
 {
-    debugState = DebugState::DEBUG_MICRO;
+    // Don't allow a transition from microcode-only to ISA level.
+    if(debugState == DebugState::DEBUG_RESUMED_ONLY_MICRO) {
+        debugState = DebugState::DEBUG_ONLY_MICRO;
+    }
+    else {
+        debugState = DebugState::DEBUG_MICRO;
+    }
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
 }
 

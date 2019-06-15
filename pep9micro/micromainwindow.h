@@ -57,6 +57,8 @@ enum class DebugState
     DEBUG_ISA,  // The simulation is being stepped through at the assembly level.
     DEBUG_MICRO,  // The simulation is being stepped through at the microcode level.
     DEBUG_RESUMED,  // The simulation is being debugged, and resume has been called.
+    DEBUG_ONLY_MICRO, // The simulation's ISA level features have been disabled, only microcode can be stepped.
+    DEBUG_RESUMED_ONLY_MICRO, // A microcode only simulation has been continued.
     RUN, // The simulation is being run, not debugged.
 };
 
@@ -139,7 +141,7 @@ private:
         static const int RUN = 1<<0, RUN_OBJECT = 1<<1, DEBUG = 1<<2, DEBUG_OBJECT = 1<<3, DEBUG_LOADER = 1<<4,
         INTERRUPT = 1<<5, CONTINUE = 1<<6, STOP = 1<<8, STEP_OVER_ASM = 1<<9, STEP_INTO_ASM = 1<<10,
         STEP_OUT_ASM = 1<<11, SINGLE_STEP_MICRO = 1<<12/*, SINGLE_STEP_ASM = 1<<13*/, BUILD_ASM = 1<<14, BUILD_MICRO = 1<<15,
-        OPEN_NEW = 1<<17, INSTALL_OS = 1<<18;
+        OPEN_NEW = 1<<17, INSTALL_OS = 1<<18, DEBUG_MICRO = 1<<19;
     };
 
     // Which debug buttons to enable, based on integer cracking of the above struct. It is not strongly typed with an enum, because the casting
@@ -202,6 +204,7 @@ private slots:
     bool on_actionDebug_Start_Debugging_triggered();
     bool on_actionDebug_Start_Debugging_Object_triggered();
     bool on_actionDebug_Start_Debugging_Loader_triggered();
+    bool on_actionDebug_Start_Debugging_Microcode_triggered();
 
     void on_actionDebug_Interupt_Execution_triggered();
     void on_actionDebug_Continue_triggered();

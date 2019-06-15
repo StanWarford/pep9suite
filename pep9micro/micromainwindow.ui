@@ -314,6 +314,8 @@
     <addaction name="actionDebug_Start_Debugging_Object"/>
     <addaction name="actionDebug_Start_Debugging_Loader"/>
     <addaction name="separator"/>
+    <addaction name="actionDebug_Start_Debugging_Microcode"/>
+    <addaction name="separator"/>
     <addaction name="actionDebug_Interupt_Execution"/>
     <addaction name="actionDebug_Continue"/>
     <addaction name="actionDebug_Stop_Debugging"/>
@@ -1199,6 +1201,11 @@
     <bool>false</bool>
    </property>
   </action>
+  <action name="actionDebug_Start_Debugging_Microcode">
+   <property name="text">
+    <string>Start Debugging Microcode</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -1206,24 +1213,6 @@
    <class>MemoryDumpPane</class>
    <extends>QWidget</extends>
    <header>memorydumppane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MicrocodePane</class>
-   <extends>QWidget</extends>
-   <header>microcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MicroObjectCodePane</class>
-   <extends>QWidget</extends>
-   <header>microobjectcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CpuPane</class>
-   <extends>QWidget</extends>
-   <header>cpupane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -1254,6 +1243,24 @@
    <class>ExecutionStatisticsWidget</class>
    <extends>QWidget</extends>
    <header>executionstatisticswidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MicrocodePane</class>
+   <extends>QWidget</extends>
+   <header>microcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MicroObjectCodePane</class>
+   <extends>QWidget</extends>
+   <header>microobjectcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CpuPane</class>
+   <extends>QWidget</extends>
+   <header>cpupane.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
