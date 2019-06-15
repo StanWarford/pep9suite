@@ -47,7 +47,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <property name="documentMode">
         <bool>false</bool>
@@ -94,6 +94,20 @@
               </property>
              </widget>
             </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="statsTab">
+        <attribute name="title">
+         <string>Statistics</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="0" column="0">
+            <widget class="ExecutionStatisticsWidget" name="executionStatisticsWidget" native="true"/>
            </item>
           </layout>
          </item>
@@ -1001,6 +1015,12 @@
    <class>AssemblerPane</class>
    <extends>QWidget</extends>
    <header>assemblerpane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ExecutionStatisticsWidget</class>
+   <extends>QWidget</extends>
+   <header>executionstatisticswidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

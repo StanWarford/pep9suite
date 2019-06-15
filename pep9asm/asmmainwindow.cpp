@@ -92,6 +92,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     ui->asmProgramTracePane->init(controlSection, programManager);
     ui->asmCpuPane->init(controlSection, controlSection);
     redefineMnemonicsDialog->init(true);
+    ui->executionStatisticsWidget->init(controlSection, false);
 
     // Create & connect all dialogs.
     helpDialog = new AsmHelpDialog(this);
@@ -143,6 +144,8 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     connect(this, &AsmMainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationStarted, ui->memoryWidget, &MemoryDumpPane::onSimulationStarted);
     connect(this, &AsmMainWindow::simulationStarted, ui->memoryTracePane, &NewMemoryTracePane::onSimulationStarted);
+    connect(this, &AsmMainWindow::simulationStarted, ui->executionStatisticsWidget, &ExecutionStatisticsWidget::onSimulationStarted);
+    connect(ui->actionSystem_Clear_CPU, &QAction::triggered, ui->executionStatisticsWidget, &ExecutionStatisticsWidget::onClear);
 
     connect(this, &AsmMainWindow::simulationStarted, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(controlSection.get(), &IsaCpu::hitBreakpoint, this, &AsmMainWindow::onBreakpointHit);
@@ -155,7 +158,8 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     connect(this, &AsmMainWindow::simulationFinished, controlSection.get(), &IsaCpu::onSimulationFinished, Qt::QueuedConnection);
     connect(this, &AsmMainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished, Qt::QueuedConnection);
     connect(this, &AsmMainWindow::simulationFinished, ui->memoryTracePane, &NewMemoryTracePane::onSimulationFinished, Qt::QueuedConnection);
-    connect(this, &AsmMainWindow::simulationFinished, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
+    connect(this, &AsmMainWindow::simulationFinished, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::QueuedConnection);
+    connect(this, &AsmMainWindow::simulationFinished, ui->executionStatisticsWidget, &ExecutionStatisticsWidget::onSimulationFinished, Qt::QueuedConnection);
     // Connect MainWindow so that it can propogate simulationFinished event and clean up when execution is finished.
     connect(controlSection.get(), &IsaCpu::simulationFinished, this, &AsmMainWindow::onSimulationFinished);
 
