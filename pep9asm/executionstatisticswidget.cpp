@@ -29,6 +29,15 @@ ExecutionStatisticsWidget::ExecutionStatisticsWidget(QWidget *parent) :
     ui->setupUi(this);
     ui->treeView->setModel(model);
     model->setHorizontalHeaderLabels({"Instruction", "Frequency"});
+
+    // Use the default palette of one of the line editors as a starting point,
+    // and set its background color to be entirely transparent.
+    QPalette pal = ui->lineEdit_Cycles->palette();
+    QColor col = QColor(0,0,0,0);
+    pal.setColor(QPalette::Base, col);
+
+    ui->lineEdit_Cycles->setPalette(pal);
+    ui->lineEdit_Instructions->setPalette(pal);
 }
 
 void ExecutionStatisticsWidget::init(QSharedPointer<InterfaceISACPU> cpu, bool showCycles)
