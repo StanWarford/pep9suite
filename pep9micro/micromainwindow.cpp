@@ -1063,13 +1063,27 @@ bool MicroMainWindow::initializeSimulation()
         return false;
     }
 
-    // Clear data models & application views
+    // Always clear CPU state, as maintaining state makes no sense in an
+    // ISA level simulation. This differs from Pep9CPU where the application
+    // only clears the CPU when preconditions are hit.
     controlSection->onResetCPU();
     controlSection->initCPU();
     ui->cpuWidget->clearCpu();
 
     // Don't allow the microcode pane to be edited while the program is running
     ui->microcodeWidget->setReadOnly(true);
+
+    // If there are preconditions then apply them.
+    if(ui->microcodeWidget->getMicrocodeProgram()->hasUnitPre()) {
+        // Unlike Pep9CPU, do not clear all of memory. With the assembly level features,
+        // we need to make sure that operating system / user program does not get removed from memory,
+        // which would break the simulator whenever microprograms contained preconditions.
+        for(auto line : ui->microcodeWidget->getMicrocodeProgram()->getObjectCode()) {
+            if(line->hasUnitPre()) {
+                static_cast<UnitPreCode*>(line)->setUnitPre(dataSection.get());
+            }
+        }
+    }
 
     // No longer emits simulationStarted(), as this could trigger extra screen painting that is unwanted.
     return true;
