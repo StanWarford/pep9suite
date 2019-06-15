@@ -119,12 +119,15 @@ void MemoryCellGraphicsItem::updateValue()
     switch (eSymbolFormat) {
     case Enu::ESymbolFormat::F_1C:
         memDevice->getByte(address, byte);
-        value = QString(QChar(byte));
+        if(QChar::isPrint(byte)) {
+            value = QChar(byte);
+        }
+        else value = QChar('.');
         iValue = byte;
         break;
     case Enu::ESymbolFormat::F_1D:
         memDevice->getByte(address, byte);
-        value = QString("%1").arg(QChar(byte));
+        value = QString("%1").arg(byte);
         iValue = byte;
         break;
     case Enu::ESymbolFormat::F_2D:

@@ -462,10 +462,13 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
         bool forceContinue = false;
         if(dynamic_cast<NonUnaryInstruction*>(line.second.get()) != nullptr) {
             NonUnaryInstruction *instr = static_cast<NonUnaryInstruction*>(line.second.get());
-            QStringList texts = extractTagList(line.second->getComment());
             QList<QSharedPointer<AType>> lineTypes;
-            for(auto tag : texts) {
-                if(!symTable.exists(tag)) {
+            if(hasSymbolTag(line.second->getComment())) {
+                QStringList texts = extractTagList(line.second->getComment());
+                for(auto tag : texts) {
+                // We allow empty tags (can occur to calls to malloc),
+                // with a primitive type, but we disallow empty symbols.
+                if(!tag.isEmpty() && !symTable.exists(tag)) {
                     errList.append({line.first, badTag.arg(tag)});
                     // The rest of the checks on a ADDSP or SUBSP are meaningless
                     // if the tag list contains bad entries, so give up.
@@ -485,6 +488,18 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                 else {
                     lineTypes.append(traceInfo.dynamicAllocSymbolTypes[symPtr]);
                 }
+            }
+            }
+            else if(hasArrayType(line.second->getComment())) {
+                auto array = arrayType(extractTypeTags(line.second->comment));
+                for(int it = 0; it < array.first; it++) {
+                    lineTypes.append(QSharedPointer<LiteralPrimitiveType>::create("", array.second));
+                }
+            }
+            else if(hasPrimitiveType(line.second->getComment())) {
+                auto type = extractTypeTags(line.second->comment);
+                lineTypes.append(QSharedPointer<LiteralPrimitiveType>::create("", primitiveType(type)));
+
             }
             if(forceContinue) continue;
             // Calculate the number of bytes listed in the trace tags.
@@ -1278,6 +1293,13 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
     else if(hasArrayType(tag)) {
         traceInfo.hadTraceTags = true;
         auto aTag = arrayType(tag);
+        if(nui != nullptr &&
+           nui->mnemonic == Enu::EMnemonic::CALL &&
+           nui->argument->getArgumentString() == "malloc") {
+            auto item = QSharedPointer<LiteralArrayType>::create(aTag.second, aTag.first);
+            traceInfo.dynamicAllocSymbolTypes.insert(code->getSymbolEntry(), item);
+            return true;
+        }
         if(!code->hasSymbolEntry()) {
             errorString = ";WARNING: given trace tag, but no symbol";
             traceInfo.staticTraceError = true;
@@ -1307,12 +1329,21 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
     else if(hasPrimitiveType(tag)) {
         traceInfo.hadTraceTags = true;
         auto pTag = primitiveType(tag);
-        if(!code->hasSymbolEntry()) {
+        if(nui != nullptr &&
+           nui->mnemonic == Enu::EMnemonic::CALL &&
+           nui->argument->getArgumentString() == "malloc") {
+            // It's alright for a call to malloc to have a primitive type tag.
+            auto item = QSharedPointer<LiteralPrimitiveType>::create("", pTag);
+            traceInfo.dynamicAllocSymbolTypes.insert(code->getSymbolEntry(), item);
+            return true;
+        }
+        else if(!code->hasSymbolEntry()) {
             errorString = ";WARNING: given trace tag, but no symbol";
             traceInfo.staticTraceError = true;
             return true;
         }
         auto item = QSharedPointer<PrimitiveType>::create(code->getSymbolEntry(), pTag);
+
 
         // Global Primitives - static allocation
         if(dotBlock != nullptr) {
@@ -1389,7 +1420,7 @@ bool IsaAsm::hasPrimitiveType(QString typeTag)
 
 bool IsaAsm::hasArrayType(QString formatTag)
 {
-    return primitiveType(formatTag) != Enu::ESymbolFormat::F_NONE
+    return hasPrimitiveType(formatTag)
             && formatTag.contains(IsaParserHelper::rxArrayTag);
 }
 
@@ -1519,7 +1550,7 @@ bool IsaAsm::hasSymbolTag(QString comment)
 
 QStringList IsaAsm::extractTagList(QString comment)
 {
-    QRegularExpression reg(IsaParserHelper::rxSymbolTag.pattern());
+    QRegularExpression reg(IsaParserHelper::rxSymbolTag.pattern() + "|");
     auto items = reg.globalMatch(comment);
     QStringList out;
     while(items.hasNext()) {

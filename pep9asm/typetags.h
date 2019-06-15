@@ -90,6 +90,20 @@ public:
     quint16 size() const override;
     operator QString() const override;
 };
+/*
+ * Class to represent an array of primitive types
+ */
+class LiteralArrayType : public AType {
+    Enu::ESymbolFormat format;
+    quint16 len;
+public:
+    explicit LiteralArrayType(Enu::ESymbolFormat format, quint16 len);
+    ~LiteralArrayType() override;
+    QList<QPair<Enu::ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
+    QString toString(QString prefix = QString("")) const override;
+    quint16 size() const override;
+    operator QString() const override;
+};
 
 /*
  * Class to represent an array of primitive types

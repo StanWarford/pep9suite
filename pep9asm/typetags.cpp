@@ -129,6 +129,45 @@ ArrayType::operator QString() const
     return toString();
 }
 
+LiteralArrayType::LiteralArrayType(Enu::ESymbolFormat format, quint16 len):
+    format(format), len(len)
+{
+
+}
+
+LiteralArrayType::~LiteralArrayType()
+{
+
+}
+
+QList<QPair<Enu::ESymbolFormat, QString> > LiteralArrayType::toPrimitives(QString prefix) const
+{
+    auto out = QList<QPair<Enu::ESymbolFormat, QString>>();
+    QString runningPrefix = QString("%1")
+            .arg(prefix);
+    for(int it=0; it< this->len; it++) {
+        out.append({{format,QString("%1[%2]").arg(runningPrefix).arg(it)}});
+    }
+    return out;
+}
+
+QString LiteralArrayType::toString(QString prefix) const
+{
+    return QString("%1[%3]")
+            .arg(prefix)
+            .arg(len);
+}
+
+quint16 LiteralArrayType::size() const
+{
+    return static_cast<quint16>(Enu::tagNumBytes(format) * len);
+}
+
+LiteralArrayType::operator QString() const
+{
+    return toString();
+}
+
 LiteralPrimitiveType::LiteralPrimitiveType(QString name, Enu::ESymbolFormat format): name(name), format(format)
 {
 
