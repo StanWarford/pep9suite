@@ -1,4 +1,4 @@
-// File: objectcodepane.h
+// File: asmobjectcodepane.h
 /*
     Pep9 is a virtual machine for writing machine language and assembly
     language programs.

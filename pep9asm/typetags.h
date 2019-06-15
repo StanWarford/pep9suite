@@ -1,11 +1,9 @@
-#ifndef TYPETAGS_H
-#define TYPETAGS_H
 // File: typetags.h
 /*
     Pep9 is a virtual machine for writing machine language and assembly
     language programs.
 
-    Copyright (C) 2019  Matthew McRaven, Pepperdine University
+    Copyright (C) 2019  J. Stanley Warfors & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,6 +18,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifndef TYPETAGS_H
+#define TYPETAGS_H
 #include <QtCore>
 #include "enu.h"
 

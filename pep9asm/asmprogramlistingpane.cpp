@@ -2,8 +2,8 @@
 /*
     Pep9 is a virtual machine for writing machine language and assembly
     language programs.
-    
-    Copyright (C) 2009  J. Stanley Warford, Pepperdine University
+
+    Copyright (C) 2018  J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

@@ -1,7 +1,7 @@
-// File: mainwindow.h
+// File: asmmainwindow.h
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
+    Pep9 is a virtual machine for writing machine language and assembly
+    language programs.
 
     Copyright (C) 2010  J. Stanley Warford, Pepperdine University
 
