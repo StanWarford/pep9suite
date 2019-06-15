@@ -468,7 +468,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                 for(auto tag : texts) {
                 // We allow empty tags (can occur to calls to malloc),
                 // with a primitive type, but we disallow empty symbols.
-                if(!tag.isEmpty() && !symTable.exists(tag)) {
+                if(!symTable.exists(tag)) {
                     errList.append({line.first, badTag.arg(tag)});
                     // The rest of the checks on a ADDSP or SUBSP are meaningless
                     // if the tag list contains bad entries, so give up.
@@ -1550,7 +1550,7 @@ bool IsaAsm::hasSymbolTag(QString comment)
 
 QStringList IsaAsm::extractTagList(QString comment)
 {
-    QRegularExpression reg(IsaParserHelper::rxSymbolTag.pattern() + "|");
+    QRegularExpression reg(IsaParserHelper::rxSymbolTag.pattern());
     auto items = reg.globalMatch(comment);
     QStringList out;
     while(items.hasNext()) {
