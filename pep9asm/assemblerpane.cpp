@@ -89,6 +89,9 @@ QFileInfo AssemblerPane::getFileName(Enu::EPane which) const
     case Enu::EPane::EListing:
         fInfo = QFileInfo(ui->listingPane->getCurrentFile());
         break;
+    default:
+        // Can't access file name of other panes from this class.
+        break;
     }
     return fInfo;
 }
@@ -104,6 +107,9 @@ void AssemblerPane::setFileName(Enu::EPane which, QFileInfo fileName)
         break;
     case Enu::EPane::EListing:
         ui->listingPane->setCurrentFile(fileName.absoluteFilePath());
+        break;
+    default:
+        // Can't set file of other panes from this class.
         break;
     }
 }
@@ -136,6 +142,9 @@ QString AssemblerPane::getPaneContents(Enu::EPane which) const
         return ui->objectPane->toPlainText();
     case Enu::EPane::EListing:
         return ui->listingPane->toPlainText();
+    default:
+        // Other panes may not be read from this class.
+        return QString();
     }
 }
 
@@ -159,7 +168,11 @@ void AssemblerPane::clearPane(Enu::EPane which)
     case Enu::EPane::EListing:
         ui->listingPane->clearAssemblerListing();
         break;
+    default:
+        // Can't clear other panes from this class.
+        break;
     }
+
 }
 
 QSharedPointer<AsmProgramManager::AsmOutput> AssemblerPane::getAssemblerOutput()
@@ -176,6 +189,9 @@ bool AssemblerPane::isModified(Enu::EPane which) const
         return ui->objectPane->isModified();
     case Enu::EPane::EListing:
         return ui->listingPane->isModified();
+    default:
+        // Can't check if any other panes are modified from this class.
+       return false;
     }
 }
 
@@ -190,6 +206,9 @@ void AssemblerPane::setModified(Enu::EPane which, bool val)
         break;
     case Enu::EPane::EListing:
         // The assembler listing can't be modified.
+        break;
+    default:
+        // Can't modify any other panes from this class.
         break;
     }
 }
@@ -248,6 +267,9 @@ bool AssemblerPane::isUndoable()
     else if(ui->listingPane->isAncestorOf(focusWidget())) {
         return false;
     }
+    else {
+        return false;
+    }
 }
 
 bool AssemblerPane::isRedoable()
@@ -259,6 +281,9 @@ bool AssemblerPane::isRedoable()
         return ui->objectPane->isRedoable();
     }
     else if(ui->listingPane->isAncestorOf(focusWidget())) {
+        return false;
+    }
+    else {
         return false;
     }
 }
