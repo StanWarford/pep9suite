@@ -77,9 +77,10 @@ void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<CPUD
     dataSection = newData;
     connect(dataSection.get(), &CPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
     editor->init(cpu);
-    // Calls initCPUModelState() to refresh the highlighters
+
     useFullCtrlSection(fullCtrlSection);
-    // initCPUModelState();
+    // Use helper function to set correct default names of microcode files on load.
+    setCurrentFile("");
 }
 
 void MicrocodePane::initCPUModelState()
