@@ -1,4 +1,4 @@
-// File: helpdialog.cpp
+// File: cpuhelpdialog.cpp
 /*
     Pep9CPU is a CPU simulator for executing microcode sequences to
     implement instructions in the instruction set of the Pep/9 computer.
