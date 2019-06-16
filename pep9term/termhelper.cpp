@@ -1,7 +1,7 @@
 // File: termhelper.cpp
 /*
-    Pep9 is a virtual machine for writing machine language and assembly
-    language programs.
+    Pep9Term is a  command line tool utility for assembling Pep/9 programs to
+    object code and executing object code programs.
 
     Copyright (C) 2019  J. Stanley Warford & Matthew McRaevn, Pepperdine University
 
