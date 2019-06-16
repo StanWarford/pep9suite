@@ -95,10 +95,6 @@ void NewMemoryTracePane::updateTrace()
         }
     }
 
-    // Scroll to the top item if we have a scrollbar:
-    if (!runtimeStack.isEmpty() && ui->graphicsView->viewport()->height() < scene->height()) {
-        ui->graphicsView->centerOn(runtimeStack.top());
-    }
 
     // This is time-consuming, but worthwhile to ensure scrollbars aren't going off into
     // oblivion after items are removed.
@@ -110,6 +106,11 @@ void NewMemoryTracePane::updateTrace()
     scene->setSceneRect(scene->itemsBoundingRect());
 
     scene->invalidate();
+
+    // NOTE: code has been disabled, since I'm not sure this behavior is desirable.
+    // Update graphicsView viewport location after the scene is repainted, else
+    // the location will not be calculated correctly.
+    // ui->graphicsView->centerOn(ui->graphicsView->viewport()->x(), scene->sceneRect().top());
 
 }
 
