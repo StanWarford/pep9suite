@@ -373,17 +373,25 @@ A=3, AMux=1, CSMux=1, ALU=14, CMux=1, C=3; CCk, LoadCk; goto start
 br: A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
 A=20, AMux=1, ALU=0, CMux=1, C=6, PValid=0; LoadCk, PValidCk; goto start
 
-brle: if LE br else start // N=1+Z=1 => (PC ← T6) 
-brlt: if LT br else start // N=1 => (PC ← T6)
-breq: if EQ br else start // N=1 => (PC ← T6)
-brne: if NE br else start // N=0 => (PC ← T6)
-brge: if GE br else start // N=0+Z=1 => (PC ← T6)
-brgt: if GT br else start // N=0 => (PC ← T6)
-brv: if VBit br else start // V=1 => (PC ← T6)
-brc: if CBit br else start // C=1 => (PC ← T6)
+// N=1+Z=1 => (PC ← T6)
+brle: if LE br else start
+// N=1 => (PC ← T6)
+brlt: if LT br else start
+// N=1 => (PC ← T6)
+breq: if EQ br else start
+// N=0 => (PC ← T6)
+brne: if NE br else start
+// N=0+Z=1 => (PC ← T6)
+brge: if GE br else start
+// N=0 => (PC ← T6)
+brgt: if GT br else start
+// V=1 => (PC ← T6)
+brv: if VBit br else start
+// C=1 => (PC ← T6)
+brc: if CBit br else start
 
 // ----------------
-// Non-Unary Arithetic Instruction
+// Non-Unary Arithmetic Instruction
 // ----------------
 
 // SP ← SP plus T6
@@ -415,19 +423,19 @@ A=2, B=20, AMux=1, CSMux=1, ALU=4, AndZ=1, CMux=1, C=2; NCk, ZCk, VCk, CCk, Load
 // Non-Unary Logical Instructions
 // ----------------
 
-// A ← A*T6; N ← A<0, Z ← A=0
+// A ← A * T6; N ← A<0, Z ← A=0
 anda: A=1, B=21, AMux=1, ALU=5, AndZ=0, CMux=1, C=1; ZCk, LoadCk
 A=0, B=20, AMux=1, ALU=5, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
 
-// X ← X*T6; X ← A<0, Z ← X=0
+// X ← X * T6; X ← A<0, Z ← X=0
 andx: A=3, B=21, AMux=1, ALU=5, AndZ=0, CMux=1, C=3; ZCk, LoadCk
 A=2, B=20, AMux=1, ALU=5, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
 
-// A ← A+T6; N ← A<0, Z ← A=0
+// A ← A + T6; N ← A<0, Z ← A=0
 ora: A=1, B=21, AMux=1, ALU=7, AndZ=0, CMux=1, C=1; ZCk, LoadCk
 A=0, B=20, AMux=1, ALU=7, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
 
-// A ← A+T6; N ← X<0, Z ← X=0
+// A ← A + T6; N ← X<0, Z ← X=0
 orx: A=3, B=21, AMux=1, ALU=7, AndZ=0, CMux=1, C=3; ZCk, LoadCk
 A=2, B=20, AMux=1, ALU=7, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
 
@@ -452,63 +460,94 @@ A=17, B=27, AMux=1, ALU=9, CMux=1, C=17; LoadCk
 // NZVCS <- T4<lo>
 A=17, AMux=1, ALU=15, AndZ=0; NCk, ZCk, VCk, CCk; goto start
 
+// T3 ← A minus T6 ; N ← T3<0 , Z ← T3=0 , V ← {overflow} , C ← {carry}
 cpba: A=1, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; NCk, ZCk, VCk, CCk, LoadCk; goto start
+// T3 ← X minus T6; N ← T3<0 , Z ← T3=0 , V ← {overflow} , C ← {carry}
 cpbx: A=3, B=21, AMux=1, ALU=3, AndZ=0, CMux=1, C=15; NCk, ZCk, VCk, CCk, LoadCk; goto start
 
 // ----------------
 // Load Instructions
 // ----------------
 
-// Load byte instructions have to decide which of the two bytes to use
-// If immediate, use leftmost byte.
-// Otherwise, if T5 is even, use right, else use left.
-// Store the AAA field in t4
+// Load byte instructions have to decide which of the two bytes to use.
+// If immediate, use rightmost byte of the operand.
+// Otherwise, use the leftmost byte, as this was the byte
+// requested from memory by the operand decode.
+// Note that the hi order byte of the register remains unchanged.
+
+// T4<lo> ← 7
 ldba: A=27, B=23, AMux=1, ALU=3, CMux=1, C=17; LoadCk
+// Mask out the AAA addressing bits. T4<lo> ← IR * T4<lo>
 A=8, B=17, AMux=1, ALU=5, CMux=1, C=17; LoadCk
+// If AAA bits are non-zero, adding FF to them will cause an overflow.
+// If there was no overflow then using immediate addressing mode.
+// T ← T4<lo> plus FF; S = {carry}
 A=17, B=31, AMux=1, ALU=1; SCk; if SBit ldba_eo else ldba_i 
+// A<lo> ← T6<hi>, N ← T6<hi> < 0, Z ← T6<hi> = 0
 ldba_eo: A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto start
+// A<lo> ← T6<lo>, N ← T6<hi> < 0, Z ← T6<hi> = 0
 ldba_i: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto start
-// ldba_z: A=22, AMux=1, ALU=0, CMux=1, C=0; LoadCk; goto start
 
+// T4<lo> ← 7
 ldbx: A=27, B=23, AMux=1, ALU=3, CMux=1, C=17; LoadCk
+// Mask out the AAA addressing bits. T4<lo> ← IR * T4<lo>
 A=8, B=17, AMux=1, ALU=5, CMux=1, C=17; LoadCk
+// If AAA bits are non-zero, adding FF to them will cause an overflow.
+// If there was no overflow then using immediate addressing mode.
+// T ← T4<lo> plus FF; S = {carry}
 A=17, B=31, AMux=1, ALU=1; SCk; if SBit ldbx_eo else ldbx_i
+// X<lo> ← T6<hi>, N ← T6<hi> < 0, Z ← T6<hi> = 0
 ldbx_eo: A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto start
+// X<lo> ← T6<lo>, N ← T6<hi> < 0, Z ← T6<hi> = 0
 ldbx_i: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto start
-// ldbx_z: A=22, AMux=1, ALU=0, CMux=1, C=2; LoadCk; goto start
 
+// Decoded operand value resides in T6; no computation must be performed.
+// A ← T6, N ← T6 < 0, Z ← T6 = 0
 ldwa: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; ZCk, LoadCk
 A=20, AMux=1, ALU=0, AndZ=1, CMux=1, C=0; NCk, ZCk, LoadCk; goto start
 
+// Decoded operand value resides in T6; no computation must be performed.
+// X ← T6, N ← T6 < 0, Z ← T6 = 0
 ldwx: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; ZCk, LoadCk
 A=20, AMux=1, ALU=0, AndZ=1, CMux=1, C=2; NCk, ZCk, LoadCk; goto start
 
 // ----------------
 // Store Instructions
 // ----------------
-// Store Byte Accumulate
+// Store Byte Accumulator 
 stba: A=18, B=19, MARMux=1; MARCk
-MemRead, A=19, AMux=1, ALU=13; SCk; if SBit stba_o else stba_e 
+// Start memory fetch, determine whether storing to even or odd address.
+MemRead, A=19, AMux=1, ALU=13; SCk; if SBit stba_o else stba_e
+// MDRO ← A<lo>
 stba_o: MemRead, A=1, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
+// MDRE ← A<lo>
 stba_e: MemRead, A=1, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
 
+// Store Byte Index Register 
 stbx: A=18, B=19, MARMux=1; MARCk
+// Start memory fetch, determine whether storing to even or odd address.
 MemRead, A=19, AMux=1, ALU=13; SCk; if SBit stbx_o else stbx_e
+// MDRO ← X<lo>
 stbx_o: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk; goto stbr_o
+// MDRE ← X<lo>
 stbx_e: MemRead, A=3, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto stbr_e
 
-// Shared store byte ode
+// Shared store byte code
+// MDRE ← Mem
 stbr_o: MemRead, MDREMux=0; MDRECk; goto mwrte
+// MDRO ← Mem
 stbr_e: MemRead, MDROMux=0; MDROCk; goto mwrte
+// Write back full word.
 mwrte: MemWrite
 MemWrite; goto mwrte3
 mwrte3: MemWrite; goto start
 
 // Store word instructions
-// First thing, determine if taking even or odd path
+// Determine if taking even or odd path
 stwa: A=18, B=19, MARMux=1; MARCk
 A=19, AMux=1, ALU=13; SCk; if SBit stwa_o else stwa_e
 
+// For odd aligned stores, we must first fetch the contents
 stwa_o: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
 MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
 MemRead, A=0, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
