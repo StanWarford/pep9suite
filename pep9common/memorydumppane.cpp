@@ -4,7 +4,7 @@
     simulators for the Pep/9 virtual machine, and allow users to
     create, simulate, and debug across various levels of abstraction.
     
-    Copyright (C) 2018  J. Stanley Warford, Pepperdine University
+    Copyright (C) 2018  J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

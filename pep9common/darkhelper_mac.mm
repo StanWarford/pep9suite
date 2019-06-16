@@ -1,4 +1,4 @@
-// File: darkhelper_mac.cpp
+// File: darkhelper_mac.mm
 /*
     The Pep/9 suite of applications (Pep9, Pep9CPU, Pep9Micro) are
     simulators for the Pep/9 virtual machine, and allow users to
