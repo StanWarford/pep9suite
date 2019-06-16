@@ -631,21 +631,43 @@ MemRead
 MemRead
 MemRead, A=16, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk; goto mwrte
 
+// Begin reading return address from stack pointer.
+// Must also mark prefetch as invalid as this instruction 
+// modifies control flow.
 ret: A=4, B=5, MARMux=1, PValid=0; MARCk, PValidCk
-A=5, AMux=1, ALU=13; SCk; if SBit ret_o else ret_e 
-ret_o: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
-MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; LoadCk
-MemRead, MDROMux=0; MDROCk
-A=4, B=5, MARMux=1; MARCk
-MemRead
-MemRead
-MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, MDREMux=0, C=6; LoadCk, MDRECk
-EOMux=0, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start
+// Determine if SP is word-aligned or not.
+A=5, AMux=1, ALU=13; SCk; if SBit ret_o else ret_e
+
+// Stack pointer is word aligned.
+// Initiate read. 
+// PC ← Mem[SP]; SP ← SP minus 2
 ret_e: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
 MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; LoadCk
 MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 EOMux=0, AMux=0, ALU=0, CMux=1, C=6; LoadCk
 EOMux=1, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start
+
+// If SP is not word aligned, return address spans two word.
+// Return address<hi> is at odd byte of first word, 
+// <lo> is at even byte of second word.
+// Initiate read. SP ← SP minus 2
+ret_o: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
+MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; LoadCk
+// MDRO ← Mem[SP]
+MemRead, MDROMux=0; MDROCk
+// Initiate read of second word.
+A=4, B=5, MARMux=1; MARCk
+MemRead
+MemRead
+// MDRE ← Mem[SP], PC<hi> ← MDRO
+MemRead, EOMux=1, AMux=0, ALU=0, CMux=1, MDREMux=0, C=6; LoadCk, MDRECk
+// PC<lo> ← MDRE
+EOMux=0, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start
+
+
+// ----------------
+// Context Switching Instructions
+// ----------------
 
 // NZVC ← Sp
 rettr: A=4, B=5, MARMux=1; MARCk
