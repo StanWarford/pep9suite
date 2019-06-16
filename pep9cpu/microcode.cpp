@@ -1,4 +1,4 @@
-// File: code.cpp
+// File: microcode.cpp
 /*
     Pep9CPU is a CPU simulator for executing microcode sequences to
     implement instructions in the instruction set of the Pep/9 computer.
