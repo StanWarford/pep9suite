@@ -1,9 +1,10 @@
-// File: helpdialog.cpp
+// File: microhelpdialog.cpp
 /*
-    Pep9CPU is a CPU simulator for executing microcode sequences to
-    implement instructions in the instruction set of the Pep/9 computer.
+    Pep9Micro is a complete CPU simulator for the Pep/9 instruction set,
+    and is capable of assembling programs to object code, executing
+    object code programs, and executing microcode fragments.
 
-    Copyright (C) 2010  J. Stanley Warford, Pepperdine University
+    Copyright (C) 2018  J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
