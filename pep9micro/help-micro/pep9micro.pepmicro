@@ -542,33 +542,56 @@ mwrte: MemWrite
 MemWrite; goto mwrte3
 mwrte3: MemWrite; goto start
 
+// Store word instructions may either store to an 
+// even address (an be aligned) or an odd address
+// (which is unaligned, and requires two read-writes).
 // Store word instructions
-// Determine if taking even or odd path
+// MAR ← T5
 stwa: A=18, B=19, MARMux=1; MARCk
+// Determine if store is aligned to a word boundary 
+// or spans two words.
 A=19, AMux=1, ALU=13; SCk; if SBit stwa_o else stwa_e
 
-// For odd aligned stores, we must first fetch the contents
+// T4 ← T5 plus 1
 stwa_o: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
 MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+// Preserve even byte, overwrite odd byte. 
+// MDRE ← Mem, MDRO ← A<hi>
 MemRead, A=0, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
+// T3<lo> ← A<lo>
 MemWrite, A=1, AMux=1, ALU=0, CMux=1, C=15; LoadCk; goto stwr_o
 
+// With an aligned store, we do not overwrite adjacent bytes.
+// MDRE ← A<hi>; MDRO ← A<lo>
 stwa_e: MemWrite, A=1, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
 MemWrite, A=0, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto mwrte3
 
+// MAR ← T5
 stwx: A=18, B=19, MARMux=1; MARCk
+// Determine if store is aligned to a word boundary 
+// or spans two words.
 A=19, AMux=1, ALU=13; SCk; if SBit stwx_o else stwx_e 
 
 stwx_o: MemRead, A=19, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
 MemRead, A=18, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+// Preserve even byte, overwrite odd byte. 
+// MDRE ← Mem, MDRO ← X<hi>
 MemRead, A=2, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk
+// T3<lo> ← X<lo>
 MemWrite, A=3, AMux=1, ALU=0, CMux=1, C=15; LoadCk; goto stwr_o
 
+// With an aligned store, we do not overwrite adjacent bytes.
+// MDRE ← X<hi>; MDRO ← X<lo>
 stwx_e: MemWrite, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
 MemWrite, A=2, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk; goto mwrte3
 
+// Store word helper. Assumes that the write back
+// of the first word is underway, the next address
+// is in T4, and T3<lo> contains the next byte.
 stwr_o: MemWrite
 MemWrite
+// Perform next fetch / write cycle
+// MDRO ← Mem, MDRE ← T3<lo>
 A=16, B=17, MARMux=1; MARCk
 MemRead, A=15, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
 MemRead
