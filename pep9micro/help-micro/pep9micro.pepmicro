@@ -543,8 +543,11 @@ MemWrite; goto mwrte3
 mwrte3: MemWrite; goto start
 
 // Store word instructions may either store to an 
-// even address (an be aligned) or an odd address
-// (which is unaligned, and requires two read-writes).
+// even address (an be aligned) or an odd address,
+// which spans two words in main memory. In this case,
+// the first byte is written to the odd byte of the 
+// first word, and the second byte to the even byte 
+// of the second word.
 // Store word instructions
 // MAR ← T5
 stwa: A=18, B=19, MARMux=1; MARCk
@@ -601,44 +604,67 @@ MemWrite
 MemWrite; goto start
 
 // ----------------
-// Call & Return functions
+// Call & Return instructions
 // ----------------
 
-// First determine if SP is even
-// If even, then take the aligned path
-// Otherwise, take the unaligned path
+// Call (much like STWr) may either store to an 
+// even address (an be aligned) or an odd address,
+// which spans two words in main memory. In this case,
+// the first byte is written to the odd byte of the 
+// first word, and the second byte to the even byte 
+// of the second word.
+// Determine if SP is even or odd
 call: A=5, AMux=1, ALU=13; SCk; if SBit call_o else call_e
-// Decr SP by 2
+
+// Stack pointer is aligned to a word boundary.
+// SP ← SP minus 2  
 call_e: A=5, B=24, AMux=1, ALU=3, CMux=1, C=5; SCk, LoadCk
 A=4, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=4; LoadCk
+// Mark prefetch as invalid as CALL modifies control flow.
+// Initiate write of return address
 A=4, B=5, MARMux=1, PValid=0; MARCk, PValidCk
+// PC was incremented during instruction fetch, so
+// it already points to next instruction. Mem[SP] ← PC
 MemWrite, A=7, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
 MemWrite, A=6, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
+// Move operand of call to PC. PC ← T6
 MemWrite, A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
 A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk; goto start
 
+// Stack pointer is NOT aligned to a word boundary, return 
+// address spans two word. Write return address<lo> to even 
+// byte of first word, <hi> to odd byte of second word.
+// Must preserve contents of the odd byte of the first
+// word and even byte of second word. 
+// This is backwards of how STWr works, since the stack
+// is written to in reverse order.
+// Initiate fetch of even byte of first word.
 call_o: A=4, B=5, MARMux=1, PValid=0; MARCk, PValidCk
-// Decr SP by 2
+// SP ← SP minus 2.
 MemRead, A=5, B=24, AMux=1, ALU=3, CMux=1, C=5; SCk, LoadCk
 MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=4; LoadCk
+// MDRE ← PC<lo>, MDRO ← Mem
 MemRead, A=7, AMux=1, ALU=0, CMux=1, MDREMux=1, MDROMux=0; MDRECk, MDROCk
-// Assign PC<hi> to T4<hi>, so that PC can be overriden earlier in the microcode
+// Initiate write back. T4<hi> ← PC<hi>
 MemWrite, A=6, AMux=1, ALU=0, CMux=1, C=16; LoadCk
+// PC ← T6
 MemWrite, A=21, AMux=1, ALU=0, CMux=1, C=7; LoadCk
 MemWrite, A=20, AMux=1, ALU=0, CMux=1, C=6; LoadCk
+// Initiate fetch of second word
 A=4, B=5, MARMux=1, PValid=0; MARCk, PValidCk
 MemRead
 MemRead
+// MDRE ← Mem, MDRO ← T4<hi>
+// Then, reuse fragment from STWr to perform three writes and goto start.
 MemRead, A=16, AMux=1, ALU=0, CMux=1, MDREMux=0, MDROMux=1; MDRECk, MDROCk; goto mwrte
 
 // Begin reading return address from stack pointer.
-// Must also mark prefetch as invalid as this instruction 
-// modifies control flow.
+// Mark prefetch as invalid as RET modifies control flow.
 ret: A=4, B=5, MARMux=1, PValid=0; MARCk, PValidCk
 // Determine if SP is word-aligned or not.
 A=5, AMux=1, ALU=13; SCk; if SBit ret_o else ret_e
 
-// Stack pointer is word aligned.
+// Stack pointer is aligned to a word boundary.
 // Initiate read. 
 // PC ← Mem[SP]; SP ← SP minus 2
 ret_e: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
@@ -647,9 +673,9 @@ MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
 EOMux=0, AMux=0, ALU=0, CMux=1, C=6; LoadCk
 EOMux=1, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start
 
-// If SP is not word aligned, return address spans two word.
-// Return address<hi> is at odd byte of first word, 
-// <lo> is at even byte of second word.
+// Stack pointer is NOT aligned to a word boundary, return 
+// address spans two word. Return address<hi> is at odd 
+// byte of first word, <lo> is at even byte of second word.
 // Initiate read. SP ← SP minus 2
 ret_o: MemRead, A=5, B=24, AMux=1, ALU=1, CMux=1, C=5; SCk, LoadCk
 MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=4; LoadCk
