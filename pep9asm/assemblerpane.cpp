@@ -3,7 +3,7 @@
 #include "asmprogram.h"
 AssemblerPane::AssemblerPane(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::AssemblerPane), manager(nullptr)
+    ui(new Ui::AssemblerPane), manager(nullptr), output(nullptr)
 {
     ui->setupUi(this);
     //Connect assembler pane widgets
@@ -36,7 +36,9 @@ void AssemblerPane::newProject()
     ui->objectPane->setCurrentFile("");
     ui->listingPane->clearAssemblerListing();
     ui->listingPane->setCurrentFile("");
-    output = QSharedPointer<AsmProgramManager::AsmOutput>::create();
+    // Set output to nullptr, as a new project does
+    // not have any output until assembled.
+    output.clear();
 }
 
 void AssemblerPane::loadSourceFile(QString fileName, QString code)
