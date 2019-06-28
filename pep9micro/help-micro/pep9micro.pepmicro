@@ -694,46 +694,71 @@ EOMux=0, AMux=0, ALU=0, CMux=1, C=7; LoadCk; goto start
 // ----------------
 // Context Switching Instructions
 // ----------------
+// These context switching instructions assume that the system
+// stack ENDS on an ODD address, meaning the stack is
+// aligned to start at a two byte boundary.
 
+
+// RETTR interrupts control flow, so must mark
+// prefetch as invalid.
 // NZVC ← Sp
-rettr: A=4, B=5, MARMux=1; MARCk
-// T4← SP +1
-MemRead, A=5, B=23, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
-MemRead, MDROMux=0; MDROCk
+rettr: A=4, B=5, PValid=0, MARMux=1; MARCk, PValidCK
 
-// Fetch A
+// NZVCS ← Mem[T]
+// A<Hi> ← Mem[T plus 1]
+// T4<lo> ← SP<lo> plus 2
+Memread, A=5, B=24, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+// T4<hi> ← SP<hi> plus cin
+Memread, A=4, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16; LoadCk
+// T3<lo> ← T4<lo> plus 2, MDRE ← NZVCS, MDRO ← A<hi>
+Memread, A=17, B=24, AMux=1, ALU=1, CMux=1, C=15, MDREMUX=0, MDROMux=0; MDRECk, MDROCk, SCk, LoadCk
+EOMUX=0, AMux=0, ALU=15, AndZ=0; NCk, ZCk, VCk, CCk
+EOMUX=1, AMux=0, ALU=0, CMUX=1, C=0; LoadCk
+
+// A<L0> ← Mem[T + 2]
+// X<Hi> ← Mem[T + 3]
 A=16, B=17, MARMux=1; MARCk
-// T4 ← T4 +2
-MemRead, EOMux=1, AMux=0, ALU=15, AndZ=0; NCk, ZCk, VCk, CCk // Move NZVC
-MemRead, A=17, B=24, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDREMux=0, MDROMux=0, C=16; LoadCk, MDRECk, MDROCk
+// T3<hi> ← T4<hi> plus cin
+Memread, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=14; LoadCk
+// T4<lo> ← T3<lo> plus 2
+Memread, A=15, B=24, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
+// T4<hi> ← T3<hi> plus cin, MDRE ← A<lo>, MDRO ← X<hi>
+Memread, A=14, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=16, MDREMUX=0, MDROMux=0; MDRECk, MDROCk, LoadCk
+EOMUX=0, AMux=0, ALU=0, CMUX=1, C=1; LoadCk
+EOMUX=1, AMux=0, ALU=0, CMUX=1, C=2; LoadCk
+// Now T3 ← T plus 4 and T4 ← T plus 6
 
-// Fetch X
-A=16, B=17, MARMux=1, EOMux=1, AMux=0, ALU=0, CMux=1, C=1; MARCk, LoadCk // Move A<lo>
-MemRead, EOMux=0, AMux=0, ALU=0, CMux=1, C=0; LoadCk // Move A<hi>
-// T4 ← T4 +2
-MemRead, A=17, B=24, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDREMux=0, MDROMux=0, C=16; LoadCk, MDRECk, MDROCk
+// X<Lo> ← Mem[T + 4]
+// PC<Hi> ← Mem[T + 5]
+A=14, B=15, MARMux=1; MARCk
+// T3<lo> ← T4<lo> plus 2
+Memread, A=17, B=24, AMux=1, ALU=1, CMux=1, C=15; SCk, loadck
+// T3<hi> ← T4<hi> plus cin
+Memread, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, C=14; loadck
+Memread, mdromux=0, mdremux=0; mdrock, mdreck
+EOMUX=0, AMux=0, ALU=0, CMUX=1, C=3; LoadCk
+EOMUX=1, AMux=0, ALU=0, CMUX=1, C=6; LoadCk
 
-// Fetch PC
-A=16, B=17, MARMux=1, EOMux=1, AMux=0, ALU=0, CMux=1, C=3; MARCk, LoadCk // Move X<lo>
-MemRead, EOMux=0, AMux=0, ALU=0, CMux=1, C=2; LoadCk // Move X<hi>
-// T4 ← T4 +2
-MemRead, A=17, B=24, AMux=1, ALU=1, CMux=1, C=17; SCk, LoadCk
-MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=2, CMux=1, MDREMux=0, MDROMux=0, C=16; LoadCk, MDRECk, MDROCk
+// PC<Lo> ← Mem[T + 6]
+// SP<Hi> ← Mem[T + 7]
+A=16, B=17, MARMux=1; MARCk
+Memread
+Memread
+Memread, mdromux=0, mdremux=0; mdrock, mdreck
+EOMUX=0, AMux=0, ALU=0, CMUX=1, C=7; LoadCk
+EOMUX=1, AMux=0, ALU=0, CMUX=1, C=4; LoadCk
 
-// Fetch SP
-A=16, B=17, MARMux=1, EOMux=1, AMux=0, ALU=0, CMux=1, C=7; MARCk, LoadCk // Move PC<lo>
-MemRead, EOMux=0, AMux=0, ALU=0, CMux=1, C=6; LoadCk // Move PC<hi>
-MemRead
-MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
-EOMux=1, AMux=0, ALU=0, CMux=1, C=5; LoadCk // Move PC<hi>
-EOMux=0, AMux=0, ALU=0, CMux=1, C=4, PValid=0; LoadCk, PValidCk; goto start // Move PC <lo>
+// SP<Lo> ← Mem[T + 8]
+// Ignore old IR which is at Mem[T+9]
+A=14, B=15, MARMux=1; MARCk
+Memread
+Memread
+Memread, mdremux=0; mdreck
+EOMUX=0, AMux=0, ALU=0, CMUX=1, C=5; LoadCk; goto start
 
-// trap instructions
 // For each of the following trap instructions, start the fetch
-// T4 ← Mem[0xFFF6]. Registers T1, T3,T4  are in use.
+// T4 ← Mem[0xFFF6]. Registers T2 through T5 will be used to computer
+// temporaries to speed context switch.
 opcode27: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
 opcode28: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
 opcode30: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
@@ -741,67 +766,70 @@ opcode38: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
 opcode40: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
 opcode48: A=31, B=29, MARMux=1, PValid=0; MARCk, PValidCk; goto trap
 
+// Perform context switch to operating system.
+// T4 ← Mem[0xFFF6] minus 1.
 trap: MemRead
 MemRead
 MemRead, MDREMux=0, MDROMux=0; MDRECk, MDROCk
-EOMux=0, AMux=0, ALU=0, CMux=1, C=16; LoadCk
-EOMux=1, AMux=0, ALU=0, CMux=1, C=17; LoadCk
+EOMux=1, AMux=0, B=23, ALU=3, CMux=1, C=17; SCK, LoadCk 
+EOMux=0, AMux=0, B=22, ALU=4, CMux=1, CSMux=1, C=16; LoadCk
+
 
 // Mem[T - 1] ← IR<0..7>
-// Preserve T, Store T-1
+// Mem[T - 2] ← SP<lo>
 A=16, B=17, MARMux=1; MARCk
 // T4 ← (T - 3)
-MemRead, A=17, B=25, AMux=1, ALU=3, CMux=1, C=17; SCk, LoadCk
-MemRead, A=16, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=16; LoadCk
-MemRead, A=8, AMux=1, ALU=0, CMux=1, MDREMux=1, MDROMux=0; MDRECk, MDROCk
-// T3 ← (T-5)
-MemWrite, A=17, B=24, AMux=1, ALU=3, CMux=1, C=15; SCk, LoadCk
-MemWrite, A=16, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=14; LoadCk
-MemWrite
-
-// Mem[T-3] ← SP
-A=16, B=17, MARMux=1; MARCk
-MemWrite, A=5, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
-MemWrite, A=4, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
-// Start calculating whether IR is unary or nonuary trap
-MemWrite, A=8, AMux=1, ALU=13, CMux=1, C=21; LoadCk
-
-// Mem[T-5] ← PC
-// NZVC bits go to T5<lo>
-A=14, B=15, MARMux=1, CMux=0, C=19; MARCk, LoadCk; goto trap_wrtpc
-
-// Calculate lo order of T-7
-trap_wrtpc: A=15, B=24, AMux=1, ALU=3, CMux=1, C=17; SCk, LoadCk
-MemWrite, A=7, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
-MemWrite, A=6, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
-// Calculate hi order of t-7
-MemWrite, A=14, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=16; LoadCk
-
-// Mem[T-7] ← X
-A=16, B=17, MARMux=1; MARCk
-MemWrite, A=3, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
-MemWrite, A=2, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
-// Calculate lo orde of T-9
-MemWrite, A=17, B=24, AMux=1, ALU=3, CMux=1, C=17; SCk, LoadCk
-
-// Mem[T-9] ← A
-// Calculate hi order of T-9
+A=17, B=24, AMux=1, ALU=3, CMux=1, C=17; SCk, LoadCk
 A=16, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=16; LoadCk
+MemWrite, A=8, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
+MemWrite, A=5, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
+// T3 ← (T-5), finish write.
+MemWrite, A=17, B=24, AMux=1, ALU=3, CMux=1, C=15; SCk, LoadCk
+A=16, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=14; LoadCk
+
+// Mem[T-3] ← SP<hi>
+// Mem[T-4] ← PC<lo>
 A=16, B=17, MARMux=1; MARCk
-MemWrite, A=1, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
-MemWrite, A=0, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
-// Calculate lo order of T-10 in sp
-MemWrite, A=17, B=23, AMux=1, ALU=3, CMux=1, C=5; SCk, LoadCk
-
-// Mem[T-10] ← NZVC
-// Calculate high order of t-10
-A=16, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=4; LoadCk
-A=4, B=5, MARMux=1; MARCk
-MemWrite, A=19, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
-MemWrite
+MemWrite, A=4, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
+MemWrite, A=7, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
 MemWrite
 
-// Load to PC
+// Mem[T-5] ← PC<hi>
+// Mem[T-6] ← X<lo>
+// NZVC bits go to T5<lo>
+A=14, B=15, MARMux=1, CMux=0, C=19; MARCk, LoadCk
+
+MemWrite, A=6, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
+MemWrite, A=3, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
+MemWrite
+
+// T4 ← (T - 7)
+A=15, B=24, AMux=1, ALU=3, CMux=1, C=17; SCk, LoadCk
+A=14, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=16; LoadCk
+
+// Mem[T-7] ← X<hi>
+// Mem[T-7] ← A<lo>
+A=16, B=17, MARMux=1; MARCk
+MemWrite, A=2, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
+MemWrite, A=1, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
+MemWrite
+
+// T4 ← (T-9)
+A=17, B=24, AMux=1, ALU=3, CMux=1, C=17; SCk, LoadCk
+A=16, B=22, AMux=1, CSMux=1, ALU=4, CMux=1, C=16; LoadCk
+
+// Mem[T-9] ← A<hi>
+// Mem[T-10] ← NZVCS
+A=16, B=17, MARMux=1; MARCk
+MemWrite, A=0, AMux=1, ALU=0, CMux=1, MDROMux=1; MDROCk
+MemWrite, A=19, AMux=1, ALU=0, CMux=1, MDREMux=1; MDRECk
+MemWrite
+
+// SP ← T4 minus 1 (T-10)
+A=17, B=23, AMUX=1, ALU=3, CMUX=1, C=5; SCK, LoadCk
+A=16, B=22, AMux=1, ALU=4, CSMUX=1, CMUX=1, C=4; LoadCk
+
+// PC ← Mem[0xFFFE]
 A=31, B=30, MARMux=1; MARCk
 MemRead
 MemRead
