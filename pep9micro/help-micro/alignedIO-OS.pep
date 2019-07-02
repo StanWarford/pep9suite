@@ -5,16 +5,14 @@ FALSE:   .EQUATE 0
 ;
 ;******* Operating system RAM
 osRAM:   .BLOCK  128         ;System stack area
-;Force system stack to start at an even address.
-         .ALIGN  2           
+         .ALIGN  2           ;System stack at even address
 wordTemp:.BLOCK  1           ;Temporary word storage
 byteTemp:.BLOCK  1           ;Least significant byte of wordTemp
 addrMask:.BLOCK  2           ;Addressing mode mask
 opAddr:  .BLOCK  2           ;Trap instruction operand address
 charIn:  .BLOCK  2           ;Memory-mapped input device
 charOut: .BLOCK  2           ;Memory-mapped output device
-;Force I/O ports to start at an even address.
-         .align 2            
+         .ALIGN  2           ;I/O ports at even addresses
 
 ;******* Operating system ROM
          .BURN   0xFFFF      
