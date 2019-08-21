@@ -632,6 +632,7 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
 void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
 {
     quint16 temp, sp, acc, idx;
+    quint8 tempByte;
     sp = registerBank.readRegisterWordCurrent(Enu::CPURegisters::SP);
     acc = registerBank.readRegisterWordCurrent(Enu::CPURegisters::A);
     idx = registerBank.readRegisterWordCurrent(Enu::CPURegisters::X);
@@ -649,9 +650,9 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         break;
 
     case Enu::EMnemonic::RETTR:
-        memory->readWord(sp, temp);
+        memory->readByte(sp, tempByte);
         // Function will automatically mask out bits that don't matter
-        registerBank.writeStatusBits(static_cast<quint8>(temp));
+        registerBank.writeStatusBits(tempByte);
         memory->readWord(sp + 1, temp);
         registerBank.writeRegisterWord(Enu::CPURegisters::A, temp);
         memory->readWord(sp + 3, temp);
