@@ -34,15 +34,11 @@ FORMS += \
     micromainwindow.ui
 
 HEADERS += \
-    fullmicrocodedcpu.h \
-    fullmicrocodedmemoizer.h \
     decodertabledialog.h \
     micromainwindow.h \
     microhelpdialog.h
 
 SOURCES += \
-    fullmicrocodedcpu.cpp \
-    fullmicrocodedmemoizer.cpp \
     decodertabledialog.cpp \
     micromainwindow.cpp \
     micromain.cpp \
@@ -84,7 +80,7 @@ VPATH += $$PWD/../pep9cpu
 include(../pep9common/pep9common.pro)
 include(../pep9asm/pep9asm-common.pro)
 include(../pep9cpu/pep9cpu-common.pro)
-
+include(pep9micro-common.pro)
 #Add this include to the bottom of your project to enable automated installer creation
 #Include the definitions file that sets all variables needed for the InstallerConfig Script
 include("installer-config.pri")
