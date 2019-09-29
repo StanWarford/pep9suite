@@ -59,7 +59,7 @@ int MicrocodeEditor::lineNumberAreaWidth()
     // Floor(Log10) returns the number of digits in number (minus one)
     int digits = 1 + static_cast<int>(log10(max));
 
-    int space = 4 + fontMetrics().width(QLatin1Char('9')) * digits;
+    int space = 4 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
 
     return space + fontMetrics().height();
 }

@@ -61,7 +61,7 @@ void ExecutionStatisticsWidget::onClear()
     model->removeRows(0, model->rowCount());
     // Sort by a non-existent column to prevent the "sorting arrow"
     // from appearing over unsorted data.
-    ui->treeView->sortByColumn(-1);
+    ui->treeView->sortByColumn(-1, Qt::SortOrder::AscendingOrder);
 }
 
 void ExecutionStatisticsWidget::onSimulationStarted()
