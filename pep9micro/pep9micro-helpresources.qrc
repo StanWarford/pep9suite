@@ -176,5 +176,7 @@
         <file>help-micro/images/stepovericon.png</file>
         <file>help-micro/images/stopdebugging.png</file>
         <file>help-micro/images/viewicon.png</file>
+        <file>help-micro/images/floatingmemory.png</file>
+        <file>help-micro/images/missingmemory.png</file>
     </qresource>
 </RCC>
