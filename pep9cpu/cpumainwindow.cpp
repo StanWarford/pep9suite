@@ -525,6 +525,10 @@ void CPUMainWindow::debugButtonEnableHelper(const int which)
     //File open & new actions
     ui->actionFile_New_Microcode->setEnabled(which & DebugButtons::OPEN_NEW);
     ui->actionFile_Open->setEnabled(which & DebugButtons::OPEN_NEW);
+
+    // System actions
+    ui->actionSystem_Clear_CPU->setEnabled(which & DebugButtons::CLEAR);
+    ui->actionSystem_Clear_Memory->setEnabled(which & DebugButtons::CLEAR);
 }
 
 void CPUMainWindow::highlightActiveLines()
@@ -760,6 +764,7 @@ void CPUMainWindow::handleDebugButtons()
         enabledButtons = DebugButtons::RUN| DebugButtons::DEBUG;
         enabledButtons |= DebugButtons::BUILD_MICRO;
         enabledButtons |= DebugButtons::OPEN_NEW | DebugButtons::SWITCH_BUSES;
+        enabledButtons |= DebugButtons::CLEAR;
         break;
     case DebugState::RUN:
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;

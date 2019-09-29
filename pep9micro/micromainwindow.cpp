@@ -1016,7 +1016,13 @@ void MicroMainWindow::debugButtonEnableHelper(const int which)
     ui->actionSystem_Redefine_Mnemonics->setEnabled(which & DebugButtons::INSTALL_OS);
     ui->actionSystem_Reinstall_Default_OS->setEnabled(which & DebugButtons::INSTALL_OS);
     ui->actionSystem_Assemble_Install_New_OS->setEnabled(which & DebugButtons::INSTALL_OS);
+    ui->actionSystem_Code_Fragment->setEnabled(which & DebugButtons::INSTALL_OS);
+    ui->actionSystem_Complete_Microcode->setEnabled(which & DebugButtons::INSTALL_OS);
     ui->actionSystem_Redefine_Decoder_Tables->setEnabled(which & DebugButtons::INSTALL_OS);
+
+    // System actions
+    ui->actionSystem_Clear_CPU->setEnabled(which & DebugButtons::CLEAR);
+    ui->actionSystem_Clear_Memory->setEnabled(which & DebugButtons::CLEAR);
 
     // If the user starts simulating while the redefine mnemonics dialog is open,
     // force it to close so that the user can't change any mnemonics at runtime.
@@ -1470,6 +1476,7 @@ void MicroMainWindow::handleDebugButtons()
         enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
         enabledButtons |= DebugButtons::BUILD_ASM | DebugButtons::BUILD_MICRO;
         enabledButtons |= DebugButtons::OPEN_NEW | DebugButtons::INSTALL_OS | DebugButtons::DEBUG_MICRO;
+        enabledButtons |= DebugButtons::CLEAR;
         break;
     case DebugState::RUN:
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;

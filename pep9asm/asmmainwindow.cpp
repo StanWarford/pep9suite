@@ -876,6 +876,10 @@ void AsmMainWindow::debugButtonEnableHelper(const int which)
     ui->actionSystem_Reinstall_Default_OS->setEnabled(which & DebugButtons::INSTALL_OS);
     ui->actionSystem_Assemble_Install_New_OS->setEnabled(which & DebugButtons::INSTALL_OS);
 
+    // System actions
+    ui->actionSystem_Clear_CPU->setEnabled(which & DebugButtons::CLEAR);
+    ui->actionSystem_Clear_Memory->setEnabled(which & DebugButtons::CLEAR);
+
     // If the user starts simulating while the redefine mnemonics dialog is open,
     // force it to close so that the user can't change any mnemonics at runtime.
     // Also explictly call redefine_Mnemonics_closed(), since QDialog::closed is
@@ -1204,6 +1208,7 @@ void AsmMainWindow::handleDebugButtons()
         enabledButtons = DebugButtons::RUN | DebugButtons::RUN_OBJECT| DebugButtons::DEBUG | DebugButtons::DEBUG_OBJECT | DebugButtons::DEBUG_LOADER;
         enabledButtons |= DebugButtons::BUILD_ASM;
         enabledButtons |= DebugButtons::OPEN_NEW | DebugButtons::INSTALL_OS;
+        enabledButtons |= DebugButtons::CLEAR;
         break;
     case DebugState::RUN:
         enabledButtons = DebugButtons::STOP | DebugButtons::INTERRUPT;
