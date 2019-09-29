@@ -36,10 +36,10 @@ ByteConverterInstr::ByteConverterInstr(QWidget *parent) :
     // By making a read-only transparent QLineEdit, we should get the correct
     // text styling with minimal extra effort on our part.
     QPalette pal = ui->label->palette();
-    pal.setColor(QPalette::Background, QColor(0,0,0,0));
+    pal.setColor(QPalette::Window, QColor(0,0,0,0));
     pal.setColor(QPalette::Window, QColor(0,0,0,0));
     pal.setColor(QPalette::Base, QColor(0,0,0,0));
-    pal.setColor(QPalette::Background, QColor(0,0,0,0));
+    pal.setColor(QPalette::Window, QColor(0,0,0,0));
     ui->label->setPalette(pal);
     ui->label->setFrame(false);
     ui->label->setAttribute(Qt::WA_TranslucentBackground);
