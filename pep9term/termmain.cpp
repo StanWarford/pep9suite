@@ -55,6 +55,7 @@ std::optional<QRunnable*> handle_run(QCommandLineParser& parser, QCoreApplicatio
 std::optional<QRunnable*> handle_cpuasm(QCommandLineParser& parser, QCoreApplication &app);
 std::optional<QRunnable*> handle_cpurun(QCommandLineParser& parser, QCoreApplication &app);
 std::optional<QRunnable*> handle_microasm(QCommandLineParser& parser, QCoreApplication &app);
+std::optional<QRunnable*> handle_microstep(QCommandLineParser& parser, QCoreApplication &app);
 
 int main(int argc, char *argv[])
 {
@@ -131,7 +132,7 @@ It will write any errors to <output_log_file_name>_errLog.txt if assembly fails 
     else if (command == "cpurun") {
         parser.clearPositionalArguments();
         parser.addPositionalArgument("cpurun", "Run a microcode program with an optional list of preconditions.",
-                                     "pep9term cpurun -m microcode.pepcpu [-p pre.pepcpu] -o log.txt");
+                                     "pep9term cpurun -m microcode.pepcpu [-p pre.pepcpu] -o log.txt [--d2]");
         parser.addOption(QCommandLineOption("m", cpuasmInputFileText, "micro_source_file"));
         parser.addOption(QCommandLineOption("d2", cpu1or2));
         parser.addOption(QCommandLineOption("p", cpuPreconditions, "precondition_source_file"));
@@ -145,6 +146,15 @@ to <output_log_file> if assembly succeeds.",
                                      "pep9term microasm -i source.pepcpu -o output.txt");
         parser.addOption(QCommandLineOption("m", cpuasmInputFileText, "source_file"));
         parser.addOption(QCommandLineOption("o", cpuasmOutputFileText, "output_log_file"));
+    }
+    else if (command == "microstep") {
+        parser.clearPositionalArguments();
+        parser.addPositionalArgument("microstep", "Run a microcode program \
+using the Pep9Micro CPU with an optional list of preconditions.",
+                                     "pep9term microstep -m microcode.pepcpu [-p pre.pepcpu] -o log.txt");
+        parser.addOption(QCommandLineOption("m", cpuasmInputFileText, "micro_source_file"));
+        parser.addOption(QCommandLineOption("p", cpuPreconditions, "precondition_source_file"));
+        parser.addOption(QCommandLineOption("o", cpuRunLog, "output_log_file"));
     }
     // Otherwise it's an invalid mode, return an error and have the help
     // documentation appear
@@ -177,6 +187,9 @@ to <output_log_file> if assembly succeeds.",
     }
     else if (command == "microasm") {
         run = handle_microasm(parser, a);
+    }
+    else if (command == "microstep") {
+        run = handle_microstep(parser, a);
     }
     else {
         parser.showHelp(0);
@@ -408,4 +421,57 @@ std::optional<QRunnable*> handle_microasm(QCommandLineParser& parser, QCoreAppli
 
         return helper;
     }
+}
+
+std::optional<QRunnable*> handle_microstep(QCommandLineParser& parser, QCoreApplication &app)
+{
+    // Needs a source program, output file to be well defined
+    if(!parser.isSet("m") || !parser.isSet("o")) {
+        qDebug() << "Need to set the (m)icrocode program and (o)utput file.";
+        parser.showHelp(-1);
+    }
+
+    // Pep9Micro is always two byte.
+    Enu::CPUType type = Enu::CPUType::TwoByteDataBus;
+
+    Pep::initMicroEnumMnemonMaps(type, true);
+
+    // Microcode input file and unit test output file.
+    QString microcodeFileName = parser.value("m");
+    QString textOutputFileName = parser.value("o");
+
+    // Load object code string from file if possible, else print error log.
+    QFile microcodeFile(microcodeFileName);
+    if(!microcodeFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug().noquote() << errLogOpenErr.arg(microcodeFile.fileName());
+        parser.showHelp(-1);
+    }
+
+    QTextStream microprogramStream(&microcodeFile);
+    QString microprogramText = Pep::removeCycleNumbers(microprogramStream.readAll());
+    microcodeFile.close();
+
+    // Load overriding preconditions if present.
+    QString preconditionText;
+    if(parser.isSet("p")) {
+        QString preconditionFileName = parser.value("p");
+        QFile preconditionFile(preconditionFileName);
+        // If passed precondition file that can't be opened, raise an error.
+        if(!preconditionFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qDebug().noquote() << errLogOpenErr.arg(microcodeFile.fileName());
+            parser.showHelp(-1);
+        }
+
+        QTextStream preconditionStream(&preconditionFile);
+        preconditionText = Pep::removeCycleNumbers(preconditionStream.readAll());
+        preconditionFile.close();
+    }
+
+
+    MicroStepHelper *helper = new MicroStepHelper(type, microprogramText,
+                                           QFileInfo(microcodeFile), preconditionText,
+                                           textOutputFileName, nullptr);
+    QObject::connect(helper, &MicroStepHelper::finished, &app, &QCoreApplication::quit);
+
+    return helper;
 }

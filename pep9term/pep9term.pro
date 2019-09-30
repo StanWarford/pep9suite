@@ -46,6 +46,7 @@ SOURCES += \
     asmrunhelper.cpp \
     cpubuildhelper.cpp \
     cpurunhelper.cpp \
+    microstephelper.cpp \
     termhelper.cpp \
     boundexecisacpu.cpp \
     termmain.cpp
@@ -60,6 +61,7 @@ HEADERS += \
     asmrunhelper.h \
     cpubuildhelper.h \
     cpurunhelper.h \
+    microstephelper.h \
     termhelper.h \
     boundexecisacpu.h
 

@@ -1,4 +1,5 @@
-#include "cpurunhelper.h"
+#include "microstephelper.h"
+
 #include "termhelper.h"
 #include "amemorydevice.h"
 #include "symboltable.h"
@@ -6,14 +7,15 @@
 #include "memorychips.h"
 #include "amemorychip.h"
 #include "mainmemory.h"
-#include "partialmicrocodedcpu.h"
-#include "cpubuildhelper.h"
 #include "microcode.h"
 #include "cpudata.h"
-#include "partialmicrocodedcpu.h"
+#include "fullmicrocodedcpu.h"
 #include "termhelper.h"
 #include "amemorydevice.h"
-CPURunHelper::~CPURunHelper()
+#include "cpubuildhelper.h"
+#include "asmprogrammanager.h"
+
+MicroStepHelper::~MicroStepHelper()
 {
     // All of our memory is owned by sharedpointers, so we should not attempt
     // to delete anything ourselves.
@@ -26,7 +28,7 @@ CPURunHelper::~CPURunHelper()
     }
 }
 
-void CPURunHelper::onSimulationFinished()
+void MicroStepHelper::onSimulationFinished()
 {
     // There migh be outstanding IO events. Give them a chance to finish
     // before initiating shutdown.
@@ -34,7 +36,7 @@ void CPURunHelper::onSimulationFinished()
     emit finished();
 }
 
-void CPURunHelper::runProgram()
+void MicroStepHelper::runProgram()
 {
 
     // Construct files that will be needed for assembly
@@ -166,7 +168,7 @@ void CPURunHelper::runProgram()
 
 }
 
-CPURunHelper::CPURunHelper(Enu::CPUType type, const QString microcodeProgram,
+MicroStepHelper::MicroStepHelper(Enu::CPUType type, const QString microcodeProgram,
                            QFileInfo microcodeProgramFile,
                            const QString preconditionsProgram,
                            QFileInfo programOutput, QObject *parent) :
@@ -182,7 +184,7 @@ CPURunHelper::CPURunHelper(Enu::CPUType type, const QString microcodeProgram,
 
 }
 
-void CPURunHelper::run()
+void MicroStepHelper::run()
 {
 
     // Construct all needed simulation objects in run, so that the owning
@@ -193,7 +195,9 @@ void CPURunHelper::run()
         QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memory.get()));
         memory->insertChip(ramChip, 0);
 
-        cpu = QSharedPointer<PartialMicrocodedCPU>::create(type, memory, nullptr);
+
+        cpu = QSharedPointer<FullMicrocodedCPU>::create(AsmProgramManager::getInstance(),
+                                                        memory, nullptr);
     }
 
     // Clear & initialize all values in CPU before starting simulation.
@@ -205,10 +209,11 @@ void CPURunHelper::run()
     // having an error where closing IO streams directly after simulation completion would
     // cause a race condition with IO pending for the file. The overhead of the simulation events
     // seems to "serialize" writes / closing.
-    connect(cpu.get(), &PartialMicrocodedCPU::simulationFinished,
-            this, &CPURunHelper::onSimulationFinished);
+    connect(cpu.get(), &FullMicrocodedCPU::simulationFinished,
+            this, &MicroStepHelper::onSimulationFinished);
     runProgram();
 
     // Make sure any outstanding events are handled.
     QCoreApplication::processEvents();
 }
+
