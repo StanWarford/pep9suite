@@ -67,13 +67,16 @@ MicrocodePane::~MicrocodePane()
     delete ui;
 }
 
-void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<CPUDataSection> newData, QSharedPointer<AMemoryDevice> memDevice, bool fullCtrlSection)
+void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu,
+                         QSharedPointer<CPUDataSection> newData,
+                         bool fullCtrlSection)
 {
     if(!dataSection.isNull()) {
-        disconnect(dataSection.get(), &CPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
+        disconnect(dataSection.get(), &CPUDataSection::CPUTypeChanged,
+                   this, &MicrocodePane::onCPUTypeChanged);
     }
     if(microASM != nullptr) delete microASM;
-    microASM = new MicroAsm(memDevice, newData->getCPUType(), fullCtrlSection);
+    microASM = new MicroAsm(newData->getCPUType(), fullCtrlSection);
     dataSection = newData;
     connect(dataSection.get(), &CPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
     editor->init(cpu);

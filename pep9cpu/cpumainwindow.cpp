@@ -80,7 +80,7 @@ CPUMainWindow::CPUMainWindow(QWidget *parent) :
     ui->memoryWidget->setHighlightPC(false);
     ui->memoryWidget->showJumpToPC(false);
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
-    ui->microcodeWidget->init(controlSection, dataSection, memDevice, false);
+    ui->microcodeWidget->init(controlSection, dataSection, false);
     ui->microobjectWidget->init(controlSection, false);
 
     // Create button group to hold CPU types
@@ -565,9 +565,12 @@ bool CPUMainWindow::initializeSimulation()
         controlSection->initCPU();
         ui->cpuWidget->clearCpu();
         on_actionSystem_Clear_Memory_triggered();
+
+        CPUDataSection* data = this->dataSection.get();
+        AMemoryDevice* memory = this->memDevice.get();
         for(auto line : ui->microcodeWidget->getMicrocodeProgram()->getObjectCode()) {
             if(line->hasUnitPre()) {
-                static_cast<UnitPreCode*>(line)->setUnitPre(dataSection.get());
+                static_cast<UnitPreCode*>(line)->setUnitPre(data, memory);
             }
         }
     }
@@ -901,15 +904,20 @@ void CPUMainWindow::onSimulationFinished()
 
     QVector<AMicroCode*> prog = ui->microcodeWidget->getMicrocodeProgram()->getObjectCode();
     bool hadPostTest = false;
+    CPUDataSection* data = this->dataSection.get();
+    AMemoryDevice* memory = this->memDevice.get();
     for (AMicroCode* x : prog) {
-        if(x->hasUnitPost()) hadPostTest = true;
-        if (x->hasUnitPost() && !((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString)) {
-            ((UnitPostCode*)x)->testPostcondition(dataSection.get(), errorString);
-            ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
-            QMessageBox::warning(this, "Pep/9 CPU", "Failed unit test");
-            ui->microcodeWidget->getEditor()->setFocus();
-            ui->statusBar->showMessage("Failed unit test", 4000);
-            return;
+        if(x->hasUnitPost()) {
+            hadPostTest = true;
+            UnitPostCode* code = dynamic_cast<UnitPostCode*>(x);
+            if(!code->testPostcondition(data, memory, errorString)) {
+                ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
+                QMessageBox::warning(this, "Pep/9 CPU", "Failed unit test");
+                ui->microcodeWidget->getEditor()->setFocus();
+                ui->statusBar->showMessage("Failed unit test", 4000);
+                return;
+            }
+
          }
     }
     if(controlSection->hadErrorOnStep()) {
