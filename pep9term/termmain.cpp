@@ -45,6 +45,7 @@ const QString charinFileText = "File which will be buffered behind the charIn";
 const QString charoutFileText = "File which charOut will be written to.";
 const QString maxStepText = "The maximum number of steps executed before aborting. Defaults to %1";
 const QString cpuasmInputFileText = "Input Pep/9 CPU source program for microassembler.";
+const QString cpuasmOutputFileText = "Output from Pep/9 CPU microassembler. Either contains an error log or \"success\".";
 const QString cpu1or2 = "Assemble the program with assuming a 2-byte data bus (default is 1).";
 const QString cpuPreconditions = "Pep9 Microcode file containg pre and post conditions, overriding and skipping any preconditions and postconditions in the main microcode source file. ";
 const QString cpuRunLog = "Text file that will contain \"Succes\" if the program passes unit tests, or will contain the violated unit tests.";
@@ -53,6 +54,7 @@ std::optional<QRunnable*> handle_asm(QCommandLineParser& parser, QCoreApplicatio
 std::optional<QRunnable*> handle_run(QCommandLineParser& parser, QCoreApplication &app);
 std::optional<QRunnable*> handle_cpuasm(QCommandLineParser& parser, QCoreApplication &app);
 std::optional<QRunnable*> handle_cpurun(QCommandLineParser& parser, QCoreApplication &app);
+std::optional<QRunnable*> handle_microasm(QCommandLineParser& parser, QCoreApplication &app);
 
 int main(int argc, char *argv[])
 {
@@ -135,6 +137,15 @@ It will write any errors to <output_log_file_name>_errLog.txt if assembly fails 
         parser.addOption(QCommandLineOption("p", cpuPreconditions, "precondition_source_file"));
         parser.addOption(QCommandLineOption("o", cpuRunLog, "output_log_file"));
     }
+    else if(command == "microasm") {
+        parser.clearPositionalArguments();
+        parser.addPositionalArgument("microasm", "Assemble a Pep/9 Micro source code program. \
+It will write any errors to <output_log_file_name>_errLog.txt if assembly fails or \"success\" \
+to <output_log_file> if assembly succeeds.",
+                                     "pep9term microasm -i source.pepcpu -o output.txt");
+        parser.addOption(QCommandLineOption("m", cpuasmInputFileText, "source_file"));
+        parser.addOption(QCommandLineOption("o", cpuasmOutputFileText, "output_log_file"));
+    }
     // Otherwise it's an invalid mode, return an error and have the help
     // documentation appear
     else {
@@ -163,6 +174,9 @@ It will write any errors to <output_log_file_name>_errLog.txt if assembly fails 
     }
     else if (command == "cpurun") {
         run = handle_cpurun(parser, a);
+    }
+    else if (command == "microasm") {
+        run = handle_microasm(parser, a);
     }
     else {
         parser.showHelp(0);
@@ -355,4 +369,43 @@ std::optional<QRunnable*> handle_cpurun(QCommandLineParser& parser, QCoreApplica
     QObject::connect(helper, &CPURunHelper::finished, &app, &QCoreApplication::quit);
 
     return helper;
+}
+
+std::optional<QRunnable*> handle_microasm(QCommandLineParser& parser, QCoreApplication &app)
+{
+    // Needs a source program to be well defined.
+    if(!parser.isSet("m")) {
+        qDebug() << "Must set microcode input.";
+        parser.showHelp(-1);
+    }
+    // Needs an output log to be well defined.
+    else if(!parser.isSet("o")) {
+        qDebug() << "Must set output log.";
+        parser.showHelp(-1);
+    }
+    QString outputFileName = parser.value("o");
+
+    // Microcoded CPU is always two bytes.
+    Enu::CPUType type = Enu::CPUType::TwoByteDataBus;
+    Pep::initMicroEnumMnemonMaps(type, true);
+
+    QString sourceFileString = parser.value("m");
+    QFile sourceFile(sourceFileString);
+    QString sourceText;
+
+    if(!sourceFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug().noquote() << errLogOpenErr.arg(sourceFile.fileName());
+        parser.showHelp(-1);
+    }
+    else {
+        QTextStream sourceStream(&sourceFile);
+        sourceText = Pep::removeCycleNumbers(sourceStream.readAll());
+        sourceFile.close();
+
+        CPUBuildHelper *helper = new CPUBuildHelper(type, true, sourceText,
+                                              QFileInfo(outputFileName));
+        QObject::connect(helper, &CPUBuildHelper::finished, &app, &QCoreApplication::quit);
+
+        return helper;
+    }
 }
