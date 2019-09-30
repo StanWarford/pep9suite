@@ -10,8 +10,8 @@
 bool CPUBuildHelper::buildMicroprogram()
 {
     // Construct files that will be needed for assembly
-    QFile errorLog(QFileInfo(sourceFileInfo).absoluteDir().absoluteFilePath(
-                       QFileInfo(sourceFileInfo).baseName() + "_errLog.txt"));
+    QFile errorLog(QFileInfo(logFileInfo).absoluteDir().absoluteFilePath(
+                       QFileInfo(logFileInfo).baseName() + "_errLog.txt"));
 
     auto result = buildMicroprogramHelper(type, useExtendedFeatures,
                                           source);
@@ -38,6 +38,13 @@ bool CPUBuildHelper::buildMicroprogram()
         // case of trace tag warnings. Must gaurd against this.
         if(result.elist.isEmpty()) {
             qDebug() << "Program assembled successfully.";
+            QFile output = QFile(logFileInfo.absoluteFilePath());
+            if(!output.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+                qDebug().noquote() << errLogOpenErr.arg(output.fileName());
+                throw std::logic_error("Can't open output file.");
+            }
+            output.write("success");
+            output.close();
         }
     }
     else {
@@ -50,7 +57,7 @@ CPUBuildHelper::CPUBuildHelper(Enu::CPUType type,bool useExtendedFeatures,
                                const QString source, QFileInfo sourceFileInfo,
                                QObject *parent):
     QObject(parent), QRunnable(), type(type), useExtendedFeatures(useExtendedFeatures),
-    source(source), sourceFileInfo(sourceFileInfo)
+    source(source), logFileInfo(sourceFileInfo)
 {
 
 }

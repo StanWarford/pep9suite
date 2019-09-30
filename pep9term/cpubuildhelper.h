@@ -37,7 +37,7 @@ class CPUBuildHelper: public QObject, public QRunnable {
     Q_OBJECT
 public:
     explicit CPUBuildHelper(Enu::CPUType type, bool useExtendedFeatures,
-                            const QString source, QFileInfo sourceFileInfo,
+                            const QString source, QFileInfo logFileInfo,
                             QObject *parent = nullptr);
     ~CPUBuildHelper() override;
 
@@ -58,7 +58,7 @@ private:
     const  Enu::CPUType type;
     bool useExtendedFeatures;
     const QString source;
-    QFileInfo sourceFileInfo;
+    QFileInfo logFileInfo;
     // Helper method responsible for triggering program assembly.
     bool buildMicroprogram();
 };

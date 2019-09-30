@@ -117,8 +117,11 @@ Run pep9term 'mode' --help for more options.");
     }
     else if(command == "cpuasm") {
         parser.clearPositionalArguments();
-        parser.addPositionalArgument("cpuasm", "Assemble a Pep/9 CPU source code program. It will create an error log if assembly fails.", "pep9term cpuasm -i source.pepcpu");
+        parser.addPositionalArgument("cpuasm", "Assemble a Pep/9 CPU source code program. \
+It will write any errors to output if assembly fails or \"success\" if assembly succeeds.",
+                                     "pep9term cpuasm -i source.pepcpu -o output.txt");
         parser.addOption(QCommandLineOption("m", cpuasmInputFileText, "source_file"));
+        parser.addOption(QCommandLineOption("o", cpuasmOutputFileText, "output_log_file"));
         parser.addOption(QCommandLineOption("d2", cpu1or2));
     }
     else if (command == "cpurun") {
@@ -255,6 +258,13 @@ std::optional<QRunnable*> handle_cpuasm(QCommandLineParser& parser, QCoreApplica
         qDebug() << "Must set microcode program.";
         parser.showHelp(-1);
     }
+    // Needs an output log to be well defined.
+    else if(!parser.isSet("o")) {
+        qDebug() << "Must set output log.";
+        parser.showHelp(-1);
+    }
+    QString outputFileName = parser.value("o");
+
     // Determine CPU type.
     Enu::CPUType type = Enu::CPUType::OneByteDataBus;
     if(parser.isSet("d2")) {
@@ -281,7 +291,7 @@ std::optional<QRunnable*> handle_cpuasm(QCommandLineParser& parser, QCoreApplica
         sourceFile.close();
 
         CPUBuildHelper *helper = new CPUBuildHelper(type, false, sourceText,
-                                              QFileInfo(sourceFile));
+                                              QFileInfo(outputFileName));
         QObject::connect(helper, &CPUBuildHelper::finished, &app, &QCoreApplication::quit);
 
         return helper;
