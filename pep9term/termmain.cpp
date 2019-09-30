@@ -104,7 +104,8 @@ Run pep9term 'mode' --help for more options.");
     else if (command == "run") {
         parser.clearPositionalArguments();
         parser.addPositionalArgument("run", "Run an object code program.",
-                                     "pep9term run -s asm.pepo -i charIn.txt, -o charOut.txt");
+                                     "pep9term run -s asm.pepo [-i charIn.txt] \
+-o charOut.txt [-m 2500]");
         parser.addOption(QCommandLineOption("s", objInputFileText, "object_source_file"));
         // Batch input that will be loaded into charIn.
         parser.addOption(QCommandLineOption("i", charinFileText, "char_input"));
@@ -118,8 +119,9 @@ Run pep9term 'mode' --help for more options.");
     else if(command == "cpuasm") {
         parser.clearPositionalArguments();
         parser.addPositionalArgument("cpuasm", "Assemble a Pep/9 CPU source code program. \
-It will write any errors to output if assembly fails or \"success\" if assembly succeeds.",
-                                     "pep9term cpuasm -i source.pepcpu -o output.txt");
+It will write any errors to <output_log_file_name>_errLog.txt if assembly fails or \
+\"success\" to <output_log_file> if assembly succeeds.",
+                                     "pep9term cpuasm -i source.pepcpu -o output.txt [--d2]");
         parser.addOption(QCommandLineOption("m", cpuasmInputFileText, "source_file"));
         parser.addOption(QCommandLineOption("o", cpuasmOutputFileText, "output_log_file"));
         parser.addOption(QCommandLineOption("d2", cpu1or2));
@@ -127,7 +129,7 @@ It will write any errors to output if assembly fails or \"success\" if assembly 
     else if (command == "cpurun") {
         parser.clearPositionalArguments();
         parser.addPositionalArgument("cpurun", "Run a microcode program with an optional list of preconditions.",
-                                     "pep9term cpurun -m microcode.pepcpu -p pre.pepcpu -o log.txt");
+                                     "pep9term cpurun -m microcode.pepcpu [-p pre.pepcpu] -o log.txt");
         parser.addOption(QCommandLineOption("m", cpuasmInputFileText, "micro_source_file"));
         parser.addOption(QCommandLineOption("d2", cpu1or2));
         parser.addOption(QCommandLineOption("p", cpuPreconditions, "precondition_source_file"));
