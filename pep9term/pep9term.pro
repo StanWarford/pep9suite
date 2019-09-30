@@ -42,6 +42,8 @@ RC_FILE = pep9resources.rc
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    asmbuildhelper.cpp \
+    asmrunhelper.cpp \
     termhelper.cpp \
     boundexecisacpu.cpp \
     termmain.cpp
@@ -52,6 +54,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    asmbuildhelper.h \
+    asmrunhelper.h \
     termhelper.h \
     boundexecisacpu.h
 

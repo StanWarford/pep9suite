@@ -20,22 +20,31 @@
 */
 #include <QCoreApplication>
 #include <QtCore>
+#include <QCommandLineOption>
+#include <QCommandLineParser>
 #include <QDebug>
 #include <QThreadPool>
+
+#include <optional>
+
+#include "asmbuildhelper.h"
+#include "asmrunhelper.h"
+#include "asmprogrammanager.h"
+#include "boundexecisacpu.h"
 #include "termhelper.h"
 #include "mainmemory.h"
 #include "memorychips.h"
-#include "asmprogrammanager.h"
 #include "pep.h"
-#include <QCommandLineOption>
-#include <QCommandLineParser>
-#include "boundexecisacpu.h"
-const QString asmInputFileText = "Input Pep/9 source program for assembler";
+
+const QString asmInputFileText = "Input Pep/9 source program for assembler.";
 const QString asmOutputFileText = "Output object code generated from source.";
 const QString objInputFileText = "Input Pep/9 object code program for simulator";
 const QString charinFileText = "File which will be buffered behind the charIn";
 const QString charoutFileText = "File which charOut will be written to.";
 const QString maxStepText = "The maximum number of steps executed before aborting. Defaults to %1";
+
+std::optional<QRunnable*> handle_asm(QCommandLineParser& parser, QCoreApplication &app);
+std::optional<QRunnable*> handle_run(QCommandLineParser& parser, QCoreApplication &app);
 
 int main(int argc, char *argv[])
 {
@@ -108,75 +117,18 @@ Run pep9term 'mode' --help for more options.");
     parser.process(a);
 
     // Task that will be
-    QRunnable *run;
+    std::optional<QRunnable *> run;
 
     // Assembly the default operating system from this thread, so that
     // no worker threads have to check for the presence of an operating system.
     buildDefaultOperatingSystem(*AsmProgramManager::getInstance());
 
     if (command == "asm") {
-        // Needs both an input and output source to be a well-defined command.
-        if(!parser.isSet("s") || !parser.isSet("o")) {
-            qDebug() << "Invalid option combination";
-            parser.showHelp(-1);
-        }
-
-        // File names associated with cli parameters.
-        QString sourceFileString = parser.value("s");
-        QString objectFileString = parser.value("o");
-
-        QFile sourceFile(sourceFileString);
-        QString sourceText;
-        if(!sourceFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            qDebug().noquote() << errLogOpenErr.arg(sourceFile.fileName());
-            parser.showHelp(-1);
-        }
-        else {
-            QTextStream sourceStream(&sourceFile);
-            sourceText = sourceStream.readAll();
-            sourceFile.close();
-
-            BuildHelper *helper = new BuildHelper(sourceText, objectFileString, *AsmProgramManager::getInstance());
-            QObject::connect(helper, &BuildHelper::finished, &a, &QCoreApplication::quit);
-
-            run = helper;
-        }
+        run = handle_asm(parser, a);
     }
     else if(command == "run") {
-        // Needs both an source program, input & output to be a well-defined command.
-        if(!parser.isSet("s") || !parser.isSet("o")) {
-            qDebug() << "Invalid option combination";
-            parser.showHelp(-1);
-        }
-
-        // File names associated with cli parameters.
-        QString objCodeFileName = parser.value("s");
-        QString textInputFileName = parser.value("i");
-        QString textOutputFileName = parser.value("o");
-        QString stepMaxValue = parser.value("m");
-        // Load object code string from file if possible, else print error log.
-        QFile objFile(objCodeFileName);
-        if(!objFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            qDebug().noquote() << errLogOpenErr.arg(objFile.fileName());
-            parser.showHelp(-1);
-        }
-
-        QTextStream objStream(&objFile);
-        QString objText = objStream.readAll();
-        objFile.close();
-
-        // Attempt to parse stepMax string as an integer.
-        bool stepConvWorked;
-        quint64 maxSimSteps = stepMaxValue.toULong(&stepConvWorked);
-        if(!stepConvWorked || maxSimSteps == 0) {
-            maxSimSteps = BoundExecIsaCpu::getDefaultMaxSteps();
-        }
-        RunHelper *helper = new RunHelper(objText,maxSimSteps, textOutputFileName,
-                                          textInputFileName, *AsmProgramManager::getInstance());
-        QObject::connect(helper, &RunHelper::finished, &a, &QCoreApplication::quit);
-
-        run = helper;
-
+        run = handle_run(parser, a);
+    }
     }
     else {
         parser.showHelp(0);
@@ -190,6 +142,79 @@ Run pep9term 'mode' --help for more options.");
      *
      */
     QThreadPool pool;
-    pool.start(run);
+    if(!run.has_value()) {
+        return -1;
+    }
+    else {
+        pool.start(*run);
+    }
+
     return a.exec();
+}
+
+std::optional<QRunnable*> handle_asm(QCommandLineParser& parser, QCoreApplication& app)
+{
+    // Needs both an input and output source to be a well-defined command.
+    if(!parser.isSet("s") || !parser.isSet("o")) {
+        qDebug() << "Invalid option combination";
+        parser.showHelp(-1);
+    }
+
+    // File names associated with cli parameters.
+    QString sourceFileString = parser.value("s");
+    QString objectFileString = parser.value("o");
+
+    QFile sourceFile(sourceFileString);
+    QString sourceText;
+    if(!sourceFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug().noquote() << errLogOpenErr.arg(sourceFile.fileName());
+        parser.showHelp(-1);
+    }
+    else {
+        QTextStream sourceStream(&sourceFile);
+        sourceText = sourceStream.readAll();
+        sourceFile.close();
+
+        AsmBuildHelper *helper = new AsmBuildHelper(sourceText, objectFileString, *AsmProgramManager::getInstance());
+        QObject::connect(helper, &AsmBuildHelper::finished, &app, &QCoreApplication::quit);
+
+        return helper;
+    }
+}
+
+std::optional<QRunnable*> handle_run(QCommandLineParser& parser, QCoreApplication &app)
+{
+    // Needs both an source program, input & output to be a well-defined command.
+    if(!parser.isSet("s") || !parser.isSet("o")) {
+        qDebug() << "Invalid option combination";
+        parser.showHelp(-1);
+    }
+
+    // File names associated with cli parameters.
+    QString objCodeFileName = parser.value("s");
+    QString textInputFileName = parser.value("i");
+    QString textOutputFileName = parser.value("o");
+    QString stepMaxValue = parser.value("m");
+    // Load object code string from file if possible, else print error log.
+    QFile objFile(objCodeFileName);
+    if(!objFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug().noquote() << errLogOpenErr.arg(objFile.fileName());
+        parser.showHelp(-1);
+    }
+
+    QTextStream objStream(&objFile);
+    QString objText = objStream.readAll();
+    objFile.close();
+
+    // Attempt to parse stepMax string as an integer.
+    bool stepConvWorked;
+    quint64 maxSimSteps = stepMaxValue.toULong(&stepConvWorked);
+    if(!stepConvWorked || maxSimSteps == 0) {
+        maxSimSteps = BoundExecIsaCpu::getDefaultMaxSteps();
+    }
+    ASMRunHelper *helper = new ASMRunHelper(objText,maxSimSteps, textOutputFileName,
+                                      textInputFileName, *AsmProgramManager::getInstance());
+    QObject::connect(helper, &ASMRunHelper::finished, &app, &QCoreApplication::quit);
+
+    return helper;
 }
