@@ -38,7 +38,6 @@
 #include "mainmemory.h"
 #include "memorychips.h"
 #include "microstephelper.h"
-#include "microrunhelper.h"
 #include "pep.h"
 
 const QString asmInputFileText = "Input Pep/9 source program for assembler.";
