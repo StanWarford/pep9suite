@@ -77,7 +77,7 @@ bool CPUBuildHelper::buildMicroprogram()
         // case of trace tag warnings. Must gaurd against this.
         if(result.elist.isEmpty()) {
             qDebug() << "Program assembled successfully.";
-            QFile output = QFile(logFileInfo.absoluteFilePath());
+            QFile output(logFileInfo.absoluteFilePath());
             if(!output.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
                 qDebug().noquote() << errLogOpenErr.arg(output.fileName());
                 throw std::logic_error("Can't open output file.");
