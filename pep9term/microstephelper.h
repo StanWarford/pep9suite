@@ -1,19 +1,53 @@
+// File: microstephelper.h
+/*
+    Pep9Term is a  command line tool utility for assembling Pep/9 programs to
+    object code and executing object code programs.
+
+    Copyright (C) 2019  J. Stanley Warford & Matthew McRaven, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef MICROSTEPHELPER_H
 #define MICROSTEPHELPER_H
 
+#include <QFileInfo>
 #include <QObject>
 #include <QRunnable>
 #include <QSharedPointer>
-#include <QFileInfo>
+
 #include "enu.h"
-class MainMemory;
+
 class BoundExecMicroCpu;
+class MainMemory;
 class MicrocodeProgram;
+
 /*
- * This class is responsible for executing a single assembly language program.
- * Given a string of object code (00 01 .. FF zz), the object code will be loaded into a memory
- * device, programInput will be loaded and buffered as values of charIn,
- * and any program output will be written programOutput.
+ * This class is responsible for executing a single microcode program using
+ * the Pep/9 Micro CPU model. Since this CPU is capable of loops, a maximum
+ * number of cycles should be specified.
+ *
+ * The microcode program must contain a valid Pep9CPU microcode program,
+ * with line numbers already stripped. The microcodeProgramFile should
+ * contain the file from which the program to execute was loaded.
+ *
+ * Optionally a preconditionsProgram may be loaded. If this value is non-empty,
+ * ONLY unitpres and posts from preconditionsProgram will affect the CPU.
+ * Any unit tests in microcodeProgram will be ignored,
+ * If preconditionsProgram is empty, then unit tests from microcodeProgram
+ * will work as expected.
+ *
+ * If unit tests are succesful, "success" will be written to programOutput
  *
  * When the simulation finishes running, or is terminated internally for taking too
  * long, finished() will be emitted so that the application may shut down safely.
@@ -23,8 +57,7 @@ class MicroStepHelper: public QObject, public QRunnable {
 public:
     // Program input may be an empty file. If it is empty or does not
     // exist, then it will be ignored.
-    explicit MicroStepHelper(Enu::CPUType type,
-                             const quint64 maxStepCount,
+    explicit MicroStepHelper(const quint64 maxCycleCount,
                              const QString microcodeProgram, QFileInfo microcodeProgramFile,
                              const QString preconditionsProgram,
                              QFileInfo programOutput,
@@ -42,12 +75,13 @@ public:
     // Post:The main thread has been signaled to shutdown.
 
     void run() override;
-    // Pre: The operating system has been built and installed.
     // Pre: The Pep9 mnemonic maps have been initizialized correctly.
-    // Pre: objectCodeString contains only valid space/newline separated object code bytes
-    //      (00, 01, ..., FF, zz).
+    // Pre: The MicrocodeProgram does not contain line numbers.
+    // Pre: If present, preconditionsProgram does not contain line numbers.
+    // Pre: microcodeProgramFile points to a real file.
     // Pre: programOutput is a valid file that can be written to by the program. Will abort otherwise.
-    // Post:The program is run to completion, or is terminated for taking too long.
+    // Post:The program is run to completion, or aborted if it executes for too long.
+    //      If not aborted, CPU state is evaluated by any present unit tests.
     // Post:All program output is written to programOutput.
 protected:
     // Used to load any additional data by the program, such as assembly code
@@ -55,7 +89,6 @@ protected:
     virtual void loadAncilliaryData();
 
 private:
-   Enu::CPUType type;
    const quint64 maxStepCount;
    const QString microcodeProgram;
    QFileInfo microcodeProgramFile;
@@ -76,12 +109,19 @@ private:
    // Potentially multiple output sources, but don't take time to simulate now.
    QFile* outputFile;
 
+   // Pointer to the MicrocodeProgram that should be searched for unit pres
+   // and unit posts.
    QSharedPointer<MicrocodeProgram> preconditionProgram;
-   // Helper method responsible for buffering input, opening output streams,
-   // converting string object code to a byte list, and executing the object
-   // code in memory.
+
+   // Helper method to begin simulation on a CPU that has an already
+   // loaded microprogram, and has already had unit preconditions applied.
    void runProgram();
 
+   // Assemble the microcode program, and signal for termination if it fails.
+   // Additionally, if precondition program is non-empty, assemble, and set
+   // preconditionProgram to the result of assembly.
+   // If precondition program is not present preconditionProgram is set to
+   // main microcode program input.
    void assembleMicrocode();
 
 };

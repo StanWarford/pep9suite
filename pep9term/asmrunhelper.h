@@ -1,11 +1,31 @@
+// File: asmrunhelper.h
+/*
+    Pep9Term is a  command line tool utility for assembling Pep/9 programs to
+    object code and executing object code programs.
+
+    Copyright (C) 2019  J. Stanley Warford & Matthew McRaven, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef ASMRUNHELPER_H
 #define ASMRUNHELPER_H
 #include <QtCore>
 #include <QRunnable>
 
-class MainMemory;
 class AsmProgramManager;
 class BoundExecIsaCpu;
+class MainMemory;
 
 /*
  * This class is responsible for executing a single assembly language program.
@@ -64,7 +84,9 @@ private:
 
     // Memory device used by simulation.
     QSharedPointer<MainMemory> memory;
-    // The CPU simulator that will perform the computation
+    // The CPU simulator that will perform the computation.
+    // It is limited to executing a finite numbers of steps,
+    // so that applications using Pep9Term will not hang if given a bad program.
     QSharedPointer<BoundExecIsaCpu> cpu;
 
     // Potentially multiple output sources, but don't take time to simulate now.

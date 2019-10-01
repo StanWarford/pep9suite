@@ -1,36 +1,57 @@
+// File: cpubuildhelper.h
+/*
+    Pep9Term is a  command line tool utility for assembling Pep/9 programs to
+    object code and executing object code programs.
+
+    Copyright (C) 2019  J. Stanley Warford & Matthew McRaven, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef CPUBUILDHELPER_H
 #define CPUBUILDHELPER_H
+
+#include <QFileInfo>
 #include <QObject>
 #include <QRunnable>
-#include <QFileInfo>
-#include "microcodeprogram.h"
-#include "enu.h"
 
-struct BuildResult
+#include "enu.h"
+#include "microcodeprogram.h"
+
+// Result of a microcode assembler invocation.
+struct MicrocodeAssemblyResult
 {
     bool success;
     QList<QPair<int, QString>> elist;
     QSharedPointer<MicrocodeProgram> program;
 
 };
-BuildResult buildMicroprogramHelper(Enu::CPUType type, bool useExtendedFeatures,
-                                    const QString source);
+
+// Helper function that assemble a microcode source program given a parameter list
+MicrocodeAssemblyResult buildMicroprogramHelper(Enu::CPUType type,
+                                                bool useExtendedFeatures,
+                                                const QString source);
 /*
- * This class is responsible for assembling a single assembly language source file.
- * Takes an assembly language program's text as input, in addition to a program manager
- * which already has the default operating system installed
+ * This class is responsible for assembling a single microcode language source file.
+ * Since there are many combinations of CPU data bus sizes and control section
+ * configurations, these settings must be passed to the assembler.
  *
- * If there are warnings or errors, a error log will be written to a file
- * of the same name as objName with the .extension replaced by -errLog.txt.
+ * The input microcode source program must have its line numbers removed.
+ * The logFileInfo will have "success" written to it if all compile check pass,
+ * or if there are warnings or errors, a error log will be written to a file
+ * of the same name as logFileInfo with the .extension replaced by _errLog.txt.
  *
- * If program assembly was successful (or the only warnings were trace tag issues),
- * then the object code text will be written to objFile. If objFile doesn't exist,
- * it will bre created, and if it does, it will be truncated.
- *
- * If objFile doesn't exist at the end of the execution of this script, then
- * the file failed to assemble, and as such there must be an error log.
- *
- * When the assembler finishes running, or is terminated, finished() will be emitted
+ * When the microassembler finishes running, or is terminated, finished() will be emitted
  * so that the application may shut down safely.
  */
 class CPUBuildHelper: public QObject, public QRunnable {
@@ -50,12 +71,15 @@ signals:
     // QRunnable interface
 public:
     void run() override;
-    // Pre: The operating system has been built and installed.
+    // Pre: The CPU type is one or two bytes.
+    // Pre: If extended features are enabled, then the CPU type is two byte.
     // Pre: The Pep9 mnemonic maps have been initizialized correctly.
-    // Pre: objFile's directory exists.
+    // Pre: Microcode source program does not contain line numbers.
+    // Pre: logFileInfo's directory exists.
+    // Post:If assembly succeeded, "success" is written to logFileInfo.
 
 private:
-    const  Enu::CPUType type;
+    const Enu::CPUType type;
     bool useExtendedFeatures;
     const QString source;
     QFileInfo logFileInfo;

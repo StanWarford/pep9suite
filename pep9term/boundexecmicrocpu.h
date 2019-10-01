@@ -20,21 +20,37 @@
 */
 #ifndef BOUNDEXCECMICROCPU_H
 #define BOUNDEXCECMICROCPU_H
+
 #include "fullmicrocodedcpu.h"
 
+/*
+ * This class extends the functionality of the default Pep/9Micro simulator
+ * by checking that the number of cycles executed is less than maxCycles.
+ * If the condition is violated, the simulation terminates,
+ * an control error is raised, and the corresponding error message indicates the
+ * possible presence of an endless loop.
+ *
+ * When using Pep9Term in a grading script, automatic termination prevents
+ * a malformed program from crashing the script.
+ */
 class BoundExecMicroCpu : public FullMicrocodedCPU
 {
-    quint64 maxSteps;
-    static const quint64 defaultMaxSteps = 25000;
 public:
-    explicit BoundExecMicroCpu(quint64 stepCount,const AsmProgramManager* manager,
+    explicit BoundExecMicroCpu(quint64 maxCycles,const AsmProgramManager* manager,
                      QSharedPointer<AMemoryDevice> memDevice, QObject* parent = nullptr);
     virtual ~BoundExecMicroCpu() override;
 
-    static quint64 getDefaultMaxSteps();
+    // Default maximum number of cycles the simulator will execute.
+    static quint64 getDefaultMaxCycles();
 
 public slots:
     bool onRun() override;
+
+private:
+    quint64 maxCycles;
+    // Default to a large number of cycles, since
+    // an instruction takes ~20 microcde instructions.
+    static const quint64 defaultMaxCycles = 250000;
 };
 
 #endif // BOUNDEXCECMICROCPU_H

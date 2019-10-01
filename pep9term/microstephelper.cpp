@@ -1,26 +1,44 @@
+// File: microstephelper.h
+/*
+    Pep9Term is a  command line tool utility for assembling Pep/9 programs to
+    object code and executing object code programs.
+
+    Copyright (C) 2019  J. Stanley Warford & Matthew McRaven, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "microstephelper.h"
 
-#include "termhelper.h"
-#include "amemorydevice.h"
-#include "symboltable.h"
-#include "symbolentry.h"
-#include "memorychips.h"
 #include "amemorychip.h"
-#include "mainmemory.h"
-#include "microcode.h"
-#include "cpudata.h"
-#include "boundexecmicrocpu.h"
-#include "termhelper.h"
 #include "amemorydevice.h"
-#include "cpubuildhelper.h"
 #include "asmprogrammanager.h"
+#include "boundexecmicrocpu.h"
+#include "cpubuildhelper.h"
+#include "cpudata.h"
+#include "mainmemory.h"
+#include "memorychips.h"
+#include "microcode.h"
+#include "symbolentry.h"
+#include "symboltable.h"
+#include "termhelper.h"
 
-MicroStepHelper::MicroStepHelper(Enu::CPUType type, const quint64 maxStepCount,
+MicroStepHelper::MicroStepHelper(const quint64 maxCycleCount,
                                  const QString microcodeProgram,
                                  QFileInfo microcodeProgramFile,
                                  const QString preconditionsProgram,
                                  QFileInfo programOutput, QObject *parent) :
-    QObject(parent), QRunnable(), type(type), maxStepCount(maxStepCount),
+    QObject(parent), QRunnable(), maxStepCount(maxCycleCount),
     microcodeProgram(microcodeProgram), microcodeProgramFile(microcodeProgramFile),
     preconditionsProgram(preconditionsProgram), programOutput(programOutput),
     // Explicitly initialize both simulation objects to nullptr,
@@ -34,8 +52,7 @@ MicroStepHelper::MicroStepHelper(Enu::CPUType type, const quint64 maxStepCount,
 
 MicroStepHelper::~MicroStepHelper()
 {
-    // All of our memory is owned by sharedpointers, so we should not attempt
-    // to delete anything ourselves.
+    // If we allocated an output file, we need to perform special work to free it.
     if(outputFile != nullptr) {
         outputFile->flush();
         // It might seem like we should close the file here, but it causes read / write violations to do so.
@@ -72,28 +89,37 @@ void MicroStepHelper::runProgram()
     QString errorString;
 
     if(!cpu->onRun()) {
-        qDebug().noquote() << "The CPU failed for the following reason: "<<cpu->getErrorMessage();
-        QTextStream (&*outputFile) << "[[" << cpu->getErrorMessage() << "]]";
+        qDebug().noquote()
+                << "The CPU failed for the following reason: "
+                << cpu->getErrorMessage();
+        QTextStream (&*outputFile)
+                << "[["
+                << cpu->getErrorMessage()
+                << "]]";
     }
     else {
         CPUDataSection* data = cpu->getDataSection().get();
         AMemoryDevice* memory = this->memory.get();
+        // Iterate over all microcde, and select any that have post conditions.
         for (AMicroCode* x : preconditionProgram->getObjectCode()) {
             if(x->hasUnitPost()) {
                 UnitPostCode* code = dynamic_cast<UnitPostCode*>(x);
+                // Check if postcondition holds. If not, errorString will be set.
                 if(!code->testPostcondition(data, memory, errorString)) {
                     qDebug().noquote() << errorString;
+                    // Write the precondition failures to the output file.
                     QTextStream (&*outputFile) << errorString;
+                    // If any postcondition fails, then the entire execution failed.
                     passed = false;
-
                 }
              }
         }
+        // If all unit tests passed, and the CPU had no other issues,
+        // we may report a success.
         if(passed) {
             QTextStream (&*outputFile) << "success";
             qDebug() << "Passed unit tests.";
         }
-
     }
 
 }
@@ -105,10 +131,11 @@ void MicroStepHelper::assembleMicrocode()
     QFile errorLog(QFileInfo(microcodeProgramFile).absoluteDir().absoluteFilePath(
                        QFileInfo(microcodeProgramFile).baseName() + "_errLog.txt"));
 
-    auto programResult = buildMicroprogramHelper(type, false,
+    auto programResult = buildMicroprogramHelper(Enu::CPUType::TwoByteDataBus, false,
                                           microcodeProgram);
-    BuildResult preconditionResult;
-    // If there were errors, attempt to write all of them to the error file.
+    MicrocodeAssemblyResult preconditionResult;
+    // If there were errors assembling input program, attempt to write all of
+    // them to the error file.
     // If the error file can't be opened, log that failure to standard output.
     if(!programResult.elist.isEmpty()) {
         if(!errorLog.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
@@ -118,6 +145,9 @@ void MicroStepHelper::assembleMicrocode()
             QTextStream errAsStream(&errorLog);
             auto textList = microcodeProgram.split("\n");
             for(auto errorPair : programResult.elist) {
+                // The first element of the error pair is the line number which
+                // caused the error, allowing us to write the offending line
+                // and error message to the console.
                 errAsStream << textList[errorPair.first] << errorPair.second << endl;
             }
             // Error log should be flushed automatically.
@@ -129,6 +159,7 @@ void MicroStepHelper::assembleMicrocode()
         // case of trace tag warnings. Must gaurd against this.
         if(programResult.elist.isEmpty()) {
             qDebug() << "Program assembled successfully.";
+            // Initalize CPU's microcode program.
             cpu->setMicrocodeProgram(programResult.program);
         }
     }
@@ -139,9 +170,10 @@ void MicroStepHelper::assembleMicrocode()
     }
 
     if(!preconditionsProgram.isEmpty()) {
-        preconditionResult = buildMicroprogramHelper(type, false,
+        preconditionResult = buildMicroprogramHelper(Enu::CPUType::TwoByteDataBus, false,
                                               preconditionsProgram);
-        // If there were errors, attempt to write all of them to the error file.
+        // If there were errors processing precondition microcode program,
+        // attempt to write all of them to the error file.
         // If the error file can't be opened, log that failure to standard output.
         if(!preconditionResult.elist.isEmpty()) {
             if(!errorLog.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
@@ -151,6 +183,9 @@ void MicroStepHelper::assembleMicrocode()
                 QTextStream errAsStream(&errorLog);
                 auto textList = microcodeProgram.split("\n");
                 for(auto errorPair : preconditionResult.elist) {
+                    // The first element of the error pair is the line number which
+                    // caused the error, allowing us to write the offending line
+                    // and error message to the console.
                     errAsStream << textList[errorPair.first] << errorPair.second << endl;
                 }
                 // Error log should be flushed automatically.
@@ -164,6 +199,8 @@ void MicroStepHelper::assembleMicrocode()
             // case of trace tag warnings. Must gaurd against this.
             if(preconditionResult.elist.isEmpty()) {
                 qDebug() << "Preconditions assembled successfully.";
+                // Preconditions program was present and valid, apply preconditions
+                // in precondition program.
                 preconditionProgram = preconditionResult.program;
             }
         }
@@ -173,6 +210,8 @@ void MicroStepHelper::assembleMicrocode()
             return;
         }
     }
+    // If no preconditions program was present, apply preconditions
+    // in input microcode program.
     else {
         preconditionProgram = programResult.program;
     }

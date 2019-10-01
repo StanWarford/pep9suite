@@ -19,29 +19,28 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "termhelper.h"
-#include "isaasm.h"
-#include "pep.h"
+
+#include "amemorychip.h"
+#include "amemorydevice.h"
 #include "asmcode.h"
 #include "asmprogrammanager.h"
 #include "asmprogram.h"
+#include "boundexecisacpu.h"
+#include "isaasm.h"
 #include "isacpu.h"
-#include "amemorydevice.h"
-#include "symboltable.h"
-#include "symbolentry.h"
+#include "mainmemory.h"
+#include "memorychips.h"
 #include "microcode.h"
 #include "microcodeprogram.h"
-#include "memorychips.h"
-#include "amemorychip.h"
-#include "mainmemory.h"
-#include "boundexecisacpu.h"
+#include "pep.h"
+#include "symbolentry.h"
+#include "symboltable.h"
 
 // Error messages potentially used in multiple places;
 const QString errLogOpenErr = "Could not open file: %1";
 const QString hadErr        = "Errors/warnings encountered while generating output for file: %1";
 const QString assemble      = "About to assemble %1 into object file %2";
 
-// Helper function that turns hexadecimal object code into a vector of
-// unsigned characters, which is easier to copy into memory.
 QVector<quint8> convertObjectCodeToIntArray(QString program)
 {
     bool ok = false;

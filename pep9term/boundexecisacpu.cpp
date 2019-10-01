@@ -19,9 +19,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "boundexecisacpu.h"
-#include "amemorydevice.h"
-#include <QTimer>
+
 #include <QCoreApplication>
+#include <QTimer>
+
+#include "amemorydevice.h"
+
 BoundExecIsaCpu::BoundExecIsaCpu(quint64 stepCount, const AsmProgramManager *manager,
                                    QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
     IsaCpu(manager, memDevice, parent), maxSteps(stepCount)
@@ -33,7 +36,8 @@ BoundExecIsaCpu::BoundExecIsaCpu(quint64 stepCount, const AsmProgramManager *man
 
 BoundExecIsaCpu::~BoundExecIsaCpu()
 {
-
+    // All of our memory is owned by sharedpointers, so we
+    // should not attempt to delete anything ourselves.
 }
 
 quint64 BoundExecIsaCpu::getDefaultMaxSteps()
@@ -43,6 +47,8 @@ quint64 BoundExecIsaCpu::getDefaultMaxSteps()
 
 bool BoundExecIsaCpu::onRun()
 {
+    // Execute instructions until an error occurs, the simulation finished,
+    // or we exceed our step count.
     std::function<bool(void)> cond = [this](){ if(maxSteps <=asmInstructionCounter) {
             controlError = true;
             errorMessage = "Possible endless loop detected.";

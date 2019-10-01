@@ -1,3 +1,23 @@
+// File: asmrunhelper.cpp
+/*
+    Pep9Term is a  command line tool utility for assembling Pep/9 programs to
+    object code and executing object code programs.
+
+    Copyright (C) 2019  J. Stanley Warford & Matthew McRaven, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "asmrunhelper.h"
 
 #include "amemorychip.h"
@@ -30,8 +50,7 @@ ASMRunHelper::ASMRunHelper(const QString objectCodeString,quint64 maxSimSteps,
 
 ASMRunHelper::~ASMRunHelper()
 {
-    // All of our memory is owned by sharedpointers, so we should not attempt
-    // to delete anything ourselves.
+    // If we allocated an output file, we need to perform special work to free it.
     if(outputFile != nullptr) {
         outputFile->flush();
         // It might seem like we should close the file here, but it causes read / write violations to do so.
@@ -47,6 +66,7 @@ void ASMRunHelper::loadOperatingSystem()
     quint16 startAddress;
     values = manager.getOperatingSystem()->getObjectCode();
     startAddress = manager.getOperatingSystem()->getBurnAddress();
+
     // Get addresses for I/O chips
     auto osSymTable = manager.getOperatingSystem()->getSymbolTable();
     charIn = static_cast<quint16>(osSymTable->getValue("charIn")->getValue());
@@ -78,6 +98,8 @@ void ASMRunHelper::onInputRequested(quint16 address)
 static QDebug* dbg = new QDebug(QtDebugMsg);
 void ASMRunHelper::onOutputReceived(quint16 address, quint8 value)
 {
+    // We do not currently support memory mapped output
+    // other than the charOut.
     if(address != charOut) return;
     if(outputFile != nullptr) {
         // Use a temporary (anonymous) text stream to make writing easy.
@@ -129,8 +151,13 @@ void ASMRunHelper::runProgram()
     // Make sure to set up any last minute flags needed by CPU to perform simulation.
     cpu->onSimulationStarted();
     if(!cpu->onRun()) {
-        qDebug().noquote() << "The CPU failed for the following reason: "<<cpu->getErrorMessage();
-        QTextStream (&*outputFile) << "[[" << cpu->getErrorMessage() << "]]";
+        qDebug().noquote()
+                << "The CPU failed for the following reason: "
+                << cpu->getErrorMessage();
+        QTextStream (&*outputFile)
+                << "[["
+                << cpu->getErrorMessage()
+                << "]]";
     }
 
 }

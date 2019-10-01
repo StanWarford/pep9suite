@@ -18,9 +18,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #ifndef TERMHELPER_H
 #define TERMHELPER_H
+
 #include <QtCore>
 
 extern const QString errLogOpenErr;
@@ -29,7 +29,7 @@ extern const QString assemble;
 
 class AsmProgramManager;
 
-// Assemble the default operating system for the help documentation,
+// Assemble the default operating system from the help documentation,
 // and install it into the program manager.
 void buildDefaultOperatingSystem(AsmProgramManager& manager);
 
@@ -37,10 +37,4 @@ void buildDefaultOperatingSystem(AsmProgramManager& manager);
 // unsigned characters, which is easier to copy into memory.
 QVector<quint8> convertObjectCodeToIntArray(QString program);
 
-struct MicroBuildResult
-{
-
-};
-
-MicroBuildResult buildMicroprograms();
 #endif // TERMHELPER_H

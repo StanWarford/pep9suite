@@ -20,21 +20,37 @@
 */
 #ifndef BOUNDEXCECISACPU_H
 #define BOUNDEXCECISACPU_H
+
 #include "isacpu.h"
 
+/*
+ * This class extends the functionality of the default Pep/9 ISA level simulator
+ * by checking that the number of instructions executed is less than maxSteps.
+ * If the condition is violated, the simulation terminates,
+ * an control error is raised, and the corresponding error message indicates the
+ * possible presence of an endless loop.
+ *
+ * When using Pep9Term in a grading script, automatic termination prevents
+ * a malformed program from crashing the script.
+ */
 class BoundExecIsaCpu : public IsaCpu
 {
-    quint64 maxSteps;
-    static const quint64 defaultMaxSteps = 25000;
 public:
     explicit BoundExecIsaCpu(quint64 stepCount,const AsmProgramManager* manager,
                      QSharedPointer<AMemoryDevice> memDevice, QObject* parent = nullptr);
     virtual ~BoundExecIsaCpu() override;
 
+    // Get the default maximum number of instructions to execute.
     static quint64 getDefaultMaxSteps();
 
 public slots:
     bool onRun() override;
+
+private:
+    quint64 maxSteps;
+    // Default to a large number of instructions, since
+    // system calls may take many hundreds of instructions.
+    static const quint64 defaultMaxSteps = 25000;
 };
 
 #endif // BOUNDEXCECISACPU_H

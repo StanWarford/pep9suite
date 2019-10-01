@@ -19,13 +19,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "boundexecmicrocpu.h"
-#include "amemorydevice.h"
-#include <QTimer>
+
 #include <QCoreApplication>
+#include <QTimer>
+
+#include "amemorydevice.h"
 #include "cpudata.h"
-BoundExecMicroCpu::BoundExecMicroCpu(quint64 stepCount, const AsmProgramManager *manager,
+BoundExecMicroCpu::BoundExecMicroCpu(quint64 cycleCount, const AsmProgramManager *manager,
                                    QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
-    FullMicrocodedCPU(manager, memDevice, parent), maxSteps(stepCount)
+    FullMicrocodedCPU(manager, memDevice, parent), maxCycles(cycleCount)
 
 {
     // This version of the CPU does not respond to breakpoints, and as such
@@ -34,17 +36,20 @@ BoundExecMicroCpu::BoundExecMicroCpu(quint64 stepCount, const AsmProgramManager 
 
 BoundExecMicroCpu::~BoundExecMicroCpu()
 {
-
+    // All of our memory is owned by sharedpointers, so we
+    // should not attempt to delete anything ourselves.
 }
 
-quint64 BoundExecMicroCpu::getDefaultMaxSteps()
+quint64 BoundExecMicroCpu::getDefaultMaxCycles()
 {
-    return defaultMaxSteps;
+    return defaultMaxCycles;
 }
 
 bool BoundExecMicroCpu::onRun()
 {
-    std::function<bool(void)> cond = [this](){ if(maxSteps <= microCycleCounter) {
+    // Execute instructions until an error occurs, the simulation finished,
+    // or we exceed our step count.
+    std::function<bool(void)> cond = [this](){ if(maxCycles <= microCycleCounter) {
             controlError = true;
             errorMessage = "Possible endless loop detected.";
             // Make sure to explicitly terminate simulation, else will be stuck in infinite loop.

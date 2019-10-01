@@ -59,9 +59,11 @@ bool AsmBuildHelper::buildProgram()
     QFile objectFile(objFileInfo.absoluteFilePath());
     QFile errorLog(QFileInfo(objectFile).absoluteDir().absoluteFilePath(
                        QFileInfo(objectFile).baseName() + "_errLog.txt"));
+
     QSharedPointer<AsmProgram> program;
-    auto elist = QList<QPair<int, QString> >();
+    auto elist = QList<QPair<int, QString>>();
     IsaAsm assmembler(manager);
+
     // Returns true if object code is successfully generated (i.e. program is non-null).
     bool success = assmembler.assembleUserProgram(source, program, elist);
 
@@ -75,6 +77,9 @@ bool AsmBuildHelper::buildProgram()
             QTextStream errAsStream(&errorLog);
             auto textList = source.split("\n");
             for(auto errorPair : elist) {
+                // The first element of the error pair is the line number which
+                // caused the error, allowing us to write the offending line
+                // and error message to the console.
                 errAsStream << textList[errorPair.first] << errorPair.second << endl;
             }
             // Error log should be flushed automatically.
@@ -113,9 +118,11 @@ bool AsmBuildHelper::buildProgram()
         // Also attempt to generate listing file from assembled program as well.
         QFile listingFile(QFileInfo(objectFile).absoluteDir().absoluteFilePath(
                               QFileInfo(objectFile).baseName() + ".pepl"));
+        // If listing can't be opened, log an error to the console.
         if(!listingFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
             qDebug().noquote() << errLogOpenErr.arg(listingFile.fileName());
         }
+        // Otherwise, write out the listing (and symbol table) to the file.
         else {
             QTextStream listingStream(&listingFile);
             listingStream << program->getProgramListing();
