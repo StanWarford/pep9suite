@@ -44,6 +44,7 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs depr
 SOURCES += \
     asmbuildhelper.cpp \
     asmrunhelper.cpp \
+    boundexecmicrocpu.cpp \
     cpubuildhelper.cpp \
     cpurunhelper.cpp \
     microstephelper.cpp \
@@ -59,6 +60,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     asmbuildhelper.h \
     asmrunhelper.h \
+    boundexecmicrocpu.h \
     cpubuildhelper.h \
     cpurunhelper.h \
     microstephelper.h \

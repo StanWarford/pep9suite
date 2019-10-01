@@ -31,11 +31,14 @@
 #include "asmrunhelper.h"
 #include "asmprogrammanager.h"
 #include "boundexecisacpu.h"
+#include "boundexecmicrocpu.h"
 #include "cpubuildhelper.h"
 #include "cpurunhelper.h"
 #include "termhelper.h"
 #include "mainmemory.h"
 #include "memorychips.h"
+#include "microstephelper.h"
+#include "microrunhelper.h"
 #include "pep.h"
 
 const QString asmInputFileText = "Input Pep/9 source program for assembler.";
@@ -55,7 +58,8 @@ std::optional<QRunnable*> handle_run(QCommandLineParser& parser, QCoreApplicatio
 std::optional<QRunnable*> handle_cpuasm(QCommandLineParser& parser, QCoreApplication &app);
 std::optional<QRunnable*> handle_cpurun(QCommandLineParser& parser, QCoreApplication &app);
 std::optional<QRunnable*> handle_microasm(QCommandLineParser& parser, QCoreApplication &app);
-std::optional<QRunnable*> handle_microstep(QCommandLineParser& parser, QCoreApplication &app);
+std::optional<QRunnable*> handle_microrun(QCommandLineParser& parser, QCoreApplication &app);
+std::optional<QRunnable*> handle_microrun(QCommandLineParser& parser, QCoreApplication &app);
 
 int main(int argc, char *argv[])
 {
@@ -124,16 +128,16 @@ Run pep9term 'mode' --help for more options.");
         parser.addPositionalArgument("cpuasm", "Assemble a Pep/9 CPU source code program. \
 It will write any errors to <output_log_file_name>_errLog.txt if assembly fails or \
 \"success\" to <output_log_file> if assembly succeeds.",
-                                     "pep9term cpuasm -i source.pepcpu -o output.txt [--d2]");
-        parser.addOption(QCommandLineOption("m", cpuasmInputFileText, "source_file"));
+                                     "pep9term cpuasm --mc source.pepcpu -o output.txt [--d2]");
+        parser.addOption(QCommandLineOption("mc", cpuasmInputFileText, "source_file"));
         parser.addOption(QCommandLineOption("o", cpuasmOutputFileText, "output_log_file"));
         parser.addOption(QCommandLineOption("d2", cpu1or2));
     }
     else if (command == "cpurun") {
         parser.clearPositionalArguments();
         parser.addPositionalArgument("cpurun", "Run a microcode program with an optional list of preconditions.",
-                                     "pep9term cpurun -m microcode.pepcpu [-p pre.pepcpu] -o log.txt [--d2]");
-        parser.addOption(QCommandLineOption("m", cpuasmInputFileText, "micro_source_file"));
+                                     "pep9term cpurun --mc microcode.pepcpu [-p pre.pepcpu] -o log.txt [--d2]");
+        parser.addOption(QCommandLineOption("mc", cpuasmInputFileText, "micro_source_file"));
         parser.addOption(QCommandLineOption("d2", cpu1or2));
         parser.addOption(QCommandLineOption("p", cpuPreconditions, "precondition_source_file"));
         parser.addOption(QCommandLineOption("o", cpuRunLog, "output_log_file"));
@@ -143,19 +147,25 @@ It will write any errors to <output_log_file_name>_errLog.txt if assembly fails 
         parser.addPositionalArgument("microasm", "Assemble a Pep/9 Micro source code program. \
 It will write any errors to <output_log_file_name>_errLog.txt if assembly fails or \"success\" \
 to <output_log_file> if assembly succeeds.",
-                                     "pep9term microasm -i source.pepcpu -o output.txt");
-        parser.addOption(QCommandLineOption("m", cpuasmInputFileText, "source_file"));
+                                     "pep9term microasm --mc source.pepcpu -o output.txt");
+        parser.addOption(QCommandLineOption("mc", cpuasmInputFileText, "source_file"));
         parser.addOption(QCommandLineOption("o", cpuasmOutputFileText, "output_log_file"));
     }
-    else if (command == "microstep") {
+    else if (command == "microrun") {
         parser.clearPositionalArguments();
         parser.addPositionalArgument("microstep", "Run a microcode program \
 using the Pep9Micro CPU with an optional list of preconditions.",
-                                     "pep9term microstep -m microcode.pepcpu [-p pre.pepcpu] -o log.txt");
-        parser.addOption(QCommandLineOption("m", cpuasmInputFileText, "micro_source_file"));
+                                     "pep9term microrun --mc microcode.pepcpu [-p pre.pepcpu] -o log.txt \
+[-m max_steps]");
+        parser.addOption(QCommandLineOption("mc", cpuasmInputFileText, "micro_source_file"));
         parser.addOption(QCommandLineOption("p", cpuPreconditions, "precondition_source_file"));
         parser.addOption(QCommandLineOption("o", cpuRunLog, "output_log_file"));
+        // Maximum number of steps.
+        parser.addOption(QCommandLineOption("m",
+                                            maxStepText.arg(BoundExecMicroCpu::getDefaultMaxSteps()),
+                                            "max_Steps"));
     }
+
     // Otherwise it's an invalid mode, return an error and have the help
     // documentation appear
     else {
@@ -188,8 +198,8 @@ using the Pep9Micro CPU with an optional list of preconditions.",
     else if (command == "microasm") {
         run = handle_microasm(parser, a);
     }
-    else if (command == "microstep") {
-        run = handle_microstep(parser, a);
+    else if (command == "microrun") {
+        run = handle_microrun(parser, a);
     }
     else {
         parser.showHelp(0);
@@ -283,13 +293,13 @@ std::optional<QRunnable*> handle_run(QCommandLineParser& parser, QCoreApplicatio
 std::optional<QRunnable*> handle_cpuasm(QCommandLineParser& parser, QCoreApplication &app)
 {
     // Needs a source program to be well defined.
-    if(!parser.isSet("m")) {
-        qDebug() << "Must set microcode program.";
+    if(!parser.isSet("mc")) {
+        qDebug() << "Must set microcode input (--mc).";
         parser.showHelp(-1);
     }
     // Needs an output log to be well defined.
     else if(!parser.isSet("o")) {
-        qDebug() << "Must set output log.";
+        qDebug() << "Must set output log (-o).";
         parser.showHelp(-1);
     }
     QString outputFileName = parser.value("o");
@@ -303,7 +313,7 @@ std::optional<QRunnable*> handle_cpuasm(QCommandLineParser& parser, QCoreApplica
     Pep::initMicroEnumMnemonMaps(type, false);
 
     // Setup parsing of microcode program.
-    QString sourceFileString = parser.value("m");
+    QString sourceFileString = parser.value("mc");
     QFile sourceFile(sourceFileString);
     QString sourceText;
 
@@ -331,9 +341,14 @@ std::optional<QRunnable*> handle_cpuasm(QCommandLineParser& parser, QCoreApplica
 std::optional<QRunnable*> handle_cpurun(QCommandLineParser& parser, QCoreApplication &app)
 {
 
-    // Needs a source program, output file to be well defined
-    if(!parser.isSet("m") || !parser.isSet("o")) {
-        qDebug() << "Need to set the (m)icrocode program and (o)utput file.";
+    // Needs a source program to be well defined.
+    if(!parser.isSet("mc")) {
+        qDebug() << "Must set microcode input (--mc).";
+        parser.showHelp(-1);
+    }
+    // Needs an output log to be well defined.
+    else if(!parser.isSet("o")) {
+        qDebug() << "Must set output log (-o).";
         parser.showHelp(-1);
     }
     // Determine CPU type.
@@ -345,7 +360,7 @@ std::optional<QRunnable*> handle_cpurun(QCommandLineParser& parser, QCoreApplica
     Pep::initMicroEnumMnemonMaps(type, false);
 
     // Microcode input file and unit test output file.
-    QString microcodeFileName = parser.value("m");
+    QString microcodeFileName = parser.value("mc");
     QString textOutputFileName = parser.value("o");
 
     // Load object code string from file if possible, else print error log.
@@ -387,13 +402,13 @@ std::optional<QRunnable*> handle_cpurun(QCommandLineParser& parser, QCoreApplica
 std::optional<QRunnable*> handle_microasm(QCommandLineParser& parser, QCoreApplication &app)
 {
     // Needs a source program to be well defined.
-    if(!parser.isSet("m")) {
-        qDebug() << "Must set microcode input.";
+    if(!parser.isSet("mc")) {
+        qDebug() << "Must set microcode input (--mc).";
         parser.showHelp(-1);
     }
     // Needs an output log to be well defined.
     else if(!parser.isSet("o")) {
-        qDebug() << "Must set output log.";
+        qDebug() << "Must set output log (-o).";
         parser.showHelp(-1);
     }
     QString outputFileName = parser.value("o");
@@ -402,7 +417,7 @@ std::optional<QRunnable*> handle_microasm(QCommandLineParser& parser, QCoreAppli
     Enu::CPUType type = Enu::CPUType::TwoByteDataBus;
     Pep::initMicroEnumMnemonMaps(type, true);
 
-    QString sourceFileString = parser.value("m");
+    QString sourceFileString = parser.value("mc");
     QFile sourceFile(sourceFileString);
     QString sourceText;
 
@@ -423,11 +438,16 @@ std::optional<QRunnable*> handle_microasm(QCommandLineParser& parser, QCoreAppli
     }
 }
 
-std::optional<QRunnable*> handle_microstep(QCommandLineParser& parser, QCoreApplication &app)
+std::optional<QRunnable*> handle_microrun(QCommandLineParser& parser, QCoreApplication &app)
 {
-    // Needs a source program, output file to be well defined
-    if(!parser.isSet("m") || !parser.isSet("o")) {
-        qDebug() << "Need to set the (m)icrocode program and (o)utput file.";
+    // Needs a source program to be well defined.
+    if(!parser.isSet("mc")) {
+        qDebug() << "Must set microcode input (--mc).";
+        parser.showHelp(-1);
+    }
+    // Needs an output log to be well defined.
+    else if(!parser.isSet("o")) {
+        qDebug() << "Must set output log (-o).";
         parser.showHelp(-1);
     }
 
@@ -437,7 +457,7 @@ std::optional<QRunnable*> handle_microstep(QCommandLineParser& parser, QCoreAppl
     Pep::initMicroEnumMnemonMaps(type, true);
 
     // Microcode input file and unit test output file.
-    QString microcodeFileName = parser.value("m");
+    QString microcodeFileName = parser.value("mc");
     QString textOutputFileName = parser.value("o");
 
     // Load object code string from file if possible, else print error log.
@@ -466,11 +486,19 @@ std::optional<QRunnable*> handle_microstep(QCommandLineParser& parser, QCoreAppl
         preconditionText = Pep::removeCycleNumbers(preconditionStream.readAll());
         preconditionFile.close();
     }
+    // Attempt to parse stepMax string as an integer.
+    QString stepMaxValue = parser.value("m");
+    bool stepConvWorked;
+    quint64 maxSimSteps = stepMaxValue.toULong(&stepConvWorked);
+    if(!stepConvWorked || maxSimSteps == 0) {
+        maxSimSteps = BoundExecMicroCpu::getDefaultMaxSteps();
+    }
 
-
-    MicroStepHelper *helper = new MicroStepHelper(type, microprogramText,
-                                           QFileInfo(microcodeFile), preconditionText,
-                                           textOutputFileName, nullptr);
+    MicroStepHelper *helper = new MicroStepHelper(type, maxSimSteps,
+                                                  microprogramText,
+                                                  QFileInfo(microcodeFile),
+                                                  preconditionText,
+                                                  textOutputFileName, nullptr);
     QObject::connect(helper, &MicroStepHelper::finished, &app, &QCoreApplication::quit);
 
     return helper;

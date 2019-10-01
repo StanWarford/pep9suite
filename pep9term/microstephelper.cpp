@@ -9,11 +9,28 @@
 #include "mainmemory.h"
 #include "microcode.h"
 #include "cpudata.h"
-#include "fullmicrocodedcpu.h"
+#include "boundexecmicrocpu.h"
 #include "termhelper.h"
 #include "amemorydevice.h"
 #include "cpubuildhelper.h"
 #include "asmprogrammanager.h"
+
+MicroStepHelper::MicroStepHelper(Enu::CPUType type, const quint64 maxStepCount,
+                                 const QString microcodeProgram,
+                                 QFileInfo microcodeProgramFile,
+                                 const QString preconditionsProgram,
+                                 QFileInfo programOutput, QObject *parent) :
+    QObject(parent), QRunnable(), type(type), maxStepCount(maxStepCount),
+    microcodeProgram(microcodeProgram), microcodeProgramFile(microcodeProgramFile),
+    preconditionsProgram(preconditionsProgram), programOutput(programOutput),
+    // Explicitly initialize both simulation objects to nullptr,
+    // so that it is clear to that neither object has been allocated
+    memory(nullptr), cpu(nullptr), outputFile(nullptr)
+
+{
+
+
+}
 
 MicroStepHelper::~MicroStepHelper()
 {
@@ -38,12 +55,56 @@ void MicroStepHelper::onSimulationFinished()
 
 void MicroStepHelper::runProgram()
 {
+    // Open up program output file if possible.
+    // If output can't be opened up, abort.
+    QFile *output = new QFile(programOutput.absoluteFilePath());
+    if(!output->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+        qDebug().noquote() << errLogOpenErr.arg(output->fileName());
+        throw std::logic_error("Can't open output file.");
+    } else {
+        // If it could be opened, map charOut to the file.
+        outputFile = output;
+    }
+
+    // Make sure to set up any last minute flags needed by CPU to perform simulation.
+    cpu->onSimulationStarted();
+    bool passed = true;
+    QString errorString;
+
+    if(!cpu->onRun()) {
+        qDebug().noquote() << "The CPU failed for the following reason: "<<cpu->getErrorMessage();
+        QTextStream (&*outputFile) << "[[" << cpu->getErrorMessage() << "]]";
+    }
+    else {
+        CPUDataSection* data = cpu->getDataSection().get();
+        AMemoryDevice* memory = this->memory.get();
+        for (AMicroCode* x : preconditionProgram->getObjectCode()) {
+            if(x->hasUnitPost()) {
+                UnitPostCode* code = dynamic_cast<UnitPostCode*>(x);
+                if(!code->testPostcondition(data, memory, errorString)) {
+                    qDebug().noquote() << errorString;
+                    QTextStream (&*outputFile) << errorString;
+                    passed = false;
+
+                }
+             }
+        }
+        if(passed) {
+            QTextStream (&*outputFile) << "success";
+            qDebug() << "Passed unit tests.";
+        }
+
+    }
+
+}
+
+void MicroStepHelper::assembleMicrocode()
+{
 
     // Construct files that will be needed for assembly
     QFile errorLog(QFileInfo(microcodeProgramFile).absoluteDir().absoluteFilePath(
                        QFileInfo(microcodeProgramFile).baseName() + "_errLog.txt"));
 
-    QVector<AMicroCode*> preconditionLines;
     auto programResult = buildMicroprogramHelper(type, false,
                                           microcodeProgram);
     BuildResult preconditionResult;
@@ -103,7 +164,7 @@ void MicroStepHelper::runProgram()
             // case of trace tag warnings. Must gaurd against this.
             if(preconditionResult.elist.isEmpty()) {
                 qDebug() << "Preconditions assembled successfully.";
-                preconditionLines = preconditionResult.program->getObjectCode();
+                preconditionProgram = preconditionResult.program;
             }
         }
         else {
@@ -113,75 +174,8 @@ void MicroStepHelper::runProgram()
         }
     }
     else {
-        preconditionLines = programResult.program->getObjectCode();
+        preconditionProgram = programResult.program;
     }
-
-    // Having selected preconditons, apply them.
-    CPUDataSection* data = cpu->getDataSection().get();
-    AMemoryDevice* memory = this->memory.get();
-    for(auto line : preconditionLines) {
-        if(line->hasUnitPre()) {
-            static_cast<UnitPreCode*>(line)->setUnitPre(data, memory);
-        }
-    }
-
-    // Open up program output file if possible.
-    // If output can't be opened up, abort.
-    QFile *output = new QFile(programOutput.absoluteFilePath());
-    if(!output->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-        qDebug().noquote() << errLogOpenErr.arg(output->fileName());
-        throw std::logic_error("Can't open output file.");
-    } else {
-        // If it could be opened, map charOut to the file.
-        outputFile = output;
-    }
-
-    // Make sure to set up any last minute flags needed by CPU to perform simulation.
-    cpu->onSimulationStarted();
-    bool passed = true;
-    QString errorString;
-
-    if(!cpu->onRun()) {
-        qDebug().noquote() << "The CPU failed for the following reason: "<<cpu->getErrorMessage();
-        QTextStream (&*outputFile) << "[[" << cpu->getErrorMessage() << "]]";
-    }
-    else {
-        CPUDataSection* data = cpu->getDataSection().get();
-        AMemoryDevice* memory = this->memory.get();
-        for (AMicroCode* x : preconditionLines) {
-            if(x->hasUnitPost()) {
-                UnitPostCode* code = dynamic_cast<UnitPostCode*>(x);
-                if(!code->testPostcondition(data, memory, errorString)) {
-                    qDebug().noquote() << errorString;
-                    QTextStream (&*outputFile) << errorString;
-                    passed = false;
-
-                }
-             }
-        }
-        if(passed) {
-            QTextStream (&*outputFile) << "success";
-            qDebug() << "Passed unit tests.";
-        }
-
-    }
-
-}
-
-MicroStepHelper::MicroStepHelper(Enu::CPUType type, const QString microcodeProgram,
-                           QFileInfo microcodeProgramFile,
-                           const QString preconditionsProgram,
-                           QFileInfo programOutput, QObject *parent) :
-    QObject(parent), QRunnable(), type(type), microcodeProgram(microcodeProgram),
-    microcodeProgramFile(microcodeProgramFile),
-    preconditionsProgram(preconditionsProgram), programOutput(programOutput),
-    // Explicitly initialize both simulation objects to nullptr,
-    // so that it is clear to that neither object has been allocated
-    memory(nullptr), cpu(nullptr), outputFile(nullptr)
-
-{
-
-
 }
 
 void MicroStepHelper::run()
@@ -196,7 +190,8 @@ void MicroStepHelper::run()
         memory->insertChip(ramChip, 0);
 
 
-        cpu = QSharedPointer<FullMicrocodedCPU>::create(AsmProgramManager::getInstance(),
+        cpu = QSharedPointer<BoundExecMicroCpu>::create(maxStepCount,
+                                                        AsmProgramManager::getInstance(),
                                                         memory, nullptr);
     }
 
@@ -211,9 +206,24 @@ void MicroStepHelper::run()
     // seems to "serialize" writes / closing.
     connect(cpu.get(), &FullMicrocodedCPU::simulationFinished,
             this, &MicroStepHelper::onSimulationFinished);
+
+    assembleMicrocode();
+    loadAncilliaryData();
     runProgram();
 
     // Make sure any outstanding events are handled.
     QCoreApplication::processEvents();
+}
+
+void MicroStepHelper::loadAncilliaryData()
+{
+    // Having selected preconditons, apply them.
+    CPUDataSection* data = cpu->getDataSection().get();
+    AMemoryDevice* memory = this->memory.get();
+    for(auto line : preconditionProgram->getObjectCode()) {
+        if(line->hasUnitPre()) {
+            static_cast<UnitPreCode*>(line)->setUnitPre(data, memory);
+        }
+    }
 }
 

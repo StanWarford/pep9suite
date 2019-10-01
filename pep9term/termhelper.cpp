@@ -21,13 +21,15 @@
 #include "termhelper.h"
 #include "isaasm.h"
 #include "pep.h"
+#include "asmcode.h"
 #include "asmprogrammanager.h"
 #include "asmprogram.h"
-#include "asmcode.h"
 #include "isacpu.h"
 #include "amemorydevice.h"
 #include "symboltable.h"
 #include "symbolentry.h"
+#include "microcode.h"
+#include "microcodeprogram.h"
 #include "memorychips.h"
 #include "amemorychip.h"
 #include "mainmemory.h"
@@ -85,3 +87,4 @@ void buildDefaultOperatingSystem(AsmProgramManager &manager)
     }
 
 }
+

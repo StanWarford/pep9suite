@@ -7,8 +7,8 @@
 #include <QFileInfo>
 #include "enu.h"
 class MainMemory;
-class FullMicrocodedCPU;
-
+class BoundExecMicroCpu;
+class MicrocodeProgram;
 /*
  * This class is responsible for executing a single assembly language program.
  * Given a string of object code (00 01 .. FF zz), the object code will be loaded into a memory
@@ -24,10 +24,11 @@ public:
     // Program input may be an empty file. If it is empty or does not
     // exist, then it will be ignored.
     explicit MicroStepHelper(Enu::CPUType type,
-                       const QString microcodeProgram, QFileInfo microcodeProgramFile,
-                       const QString preconditionsProgram,
-                       QFileInfo programOutput,
-                       QObject *parent = nullptr);
+                             const quint64 maxStepCount,
+                             const QString microcodeProgram, QFileInfo microcodeProgramFile,
+                             const QString preconditionsProgram,
+                             QFileInfo programOutput,
+                             QObject *parent = nullptr);
     ~MicroStepHelper() override;
 
 signals:
@@ -48,8 +49,14 @@ public:
     // Pre: programOutput is a valid file that can be written to by the program. Will abort otherwise.
     // Post:The program is run to completion, or is terminated for taking too long.
     // Post:All program output is written to programOutput.
+protected:
+    // Used to load any additional data by the program, such as assembly code
+    // and OS, or unit pre conditions.
+    virtual void loadAncilliaryData();
+
 private:
    Enu::CPUType type;
+   const quint64 maxStepCount;
    const QString microcodeProgram;
    QFileInfo microcodeProgramFile;
    const QString preconditionsProgram;
@@ -64,15 +71,18 @@ private:
    // Memory device used by simulation.
    QSharedPointer<MainMemory> memory;
    // The CPU simulator that will perform the computation
-   QSharedPointer<FullMicrocodedCPU> cpu;
+   QSharedPointer<BoundExecMicroCpu> cpu;
 
    // Potentially multiple output sources, but don't take time to simulate now.
    QFile* outputFile;
 
+   QSharedPointer<MicrocodeProgram> preconditionProgram;
    // Helper method responsible for buffering input, opening output streams,
    // converting string object code to a byte list, and executing the object
    // code in memory.
    void runProgram();
+
+   void assembleMicrocode();
 
 };
 

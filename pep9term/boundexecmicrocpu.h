@@ -1,9 +1,9 @@
-// File: termhelper.h
+// File: boundedexecmicrocpu.h
 /*
     Pep9Term is a  command line tool utility for assembling Pep/9 programs to
     object code and executing object code programs.
 
-    Copyright (C) 2019  J. Stanley Warford & Matthew McRaevn, Pepperdine University
+    Copyright (C) 2019  J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,29 +18,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifndef BOUNDEXCECMICROCPU_H
+#define BOUNDEXCECMICROCPU_H
+#include "fullmicrocodedcpu.h"
 
-#ifndef TERMHELPER_H
-#define TERMHELPER_H
-#include <QtCore>
-
-extern const QString errLogOpenErr;
-extern const QString hadErr;
-extern const QString assemble;
-
-class AsmProgramManager;
-
-// Assemble the default operating system for the help documentation,
-// and install it into the program manager.
-void buildDefaultOperatingSystem(AsmProgramManager& manager);
-
-// Helper function that turns hexadecimal object code into a vector of
-// unsigned characters, which is easier to copy into memory.
-QVector<quint8> convertObjectCodeToIntArray(QString program);
-
-struct MicroBuildResult
+class BoundExecMicroCpu : public FullMicrocodedCPU
 {
+    quint64 maxSteps;
+    static const quint64 defaultMaxSteps = 25000;
+public:
+    explicit BoundExecMicroCpu(quint64 stepCount,const AsmProgramManager* manager,
+                     QSharedPointer<AMemoryDevice> memDevice, QObject* parent = nullptr);
+    virtual ~BoundExecMicroCpu() override;
 
+    static quint64 getDefaultMaxSteps();
+
+public slots:
+    bool onRun() override;
 };
 
-MicroBuildResult buildMicroprograms();
-#endif // TERMHELPER_H
+#endif // BOUNDEXCECMICROCPU_H
