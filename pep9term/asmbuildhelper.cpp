@@ -29,20 +29,20 @@
 #include "symboltable.h"
 #include "termhelper.h"
 
-AsmBuildHelper::AsmBuildHelper(const QString source, QFileInfo objFileInfo,
+ASMBuildHelper::ASMBuildHelper(const QString source, QFileInfo objFileInfo,
                          AsmProgramManager &manager, QObject *parent): QObject(parent),
     QRunnable(), source(source), objFileInfo(objFileInfo), manager(manager)
 {
 
 }
 
-AsmBuildHelper::~AsmBuildHelper()
+ASMBuildHelper::~ASMBuildHelper()
 {
     // All of our memory is owned by sharedpointers, so we
     // should not attempt to delete anything ourselves.
 }
 
-void AsmBuildHelper::run()
+void ASMBuildHelper::run()
 {
     // All set up work is done in build program, so all run needs to do is attempt
     if(buildProgram()) {
@@ -53,7 +53,7 @@ void AsmBuildHelper::run()
     emit finished();
 }
 
-bool AsmBuildHelper::buildProgram()
+bool ASMBuildHelper::buildProgram()
 {
     // Construct files that will be needed for assembly
     QFile objectFile(objFileInfo.absoluteFilePath());

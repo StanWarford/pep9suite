@@ -1878,6 +1878,7 @@ void MicroMainWindow::onSimulationFinished()
 
     QVector<AMicroCode*> prog = ui->microcodeWidget->getMicrocodeProgram()->getObjectCode();
     bool hadPostTest = false;
+
     CPUDataSection* data = this->dataSection.get();
     AMemoryDevice* memory = this->memDevice.get();
     for (AMicroCode* x : prog) {

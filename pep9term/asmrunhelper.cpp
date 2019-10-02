@@ -77,11 +77,13 @@ void ASMRunHelper::loadOperatingSystem()
     // Make sure RAM will fill any accidental gaps in the memory map by making it go
     // right up to the start of the operating system.
     list.append({AMemoryChip::ChipTypes::RAM, 0, startAddress});
+    // ROM goes from the first byte of memory until the last installed address.
     list.append({AMemoryChip::ChipTypes::ROM, startAddress, static_cast<quint32>(values.length())});
     // Character input / output ports are only 1 byte wide by design.
     list.append({AMemoryChip::ChipTypes::IDEV, charIn, 1});
     list.append({AMemoryChip::ChipTypes::ODEV, charOut, 1});
     memory->constructMemoryDevice(list);
+
 
     memory->autoUpdateMemoryMap(true);
     memory->loadValues(manager.getOperatingSystem()->getBurnAddress(), values);

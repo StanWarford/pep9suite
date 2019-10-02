@@ -45,12 +45,12 @@ class AsmProgramManager;
  * When the assembler finishes running, or is terminated, finished() will be emitted
  * so that the application may shut down safely.
  */
-class AsmBuildHelper: public QObject, public QRunnable {
+class ASMBuildHelper: public QObject, public QRunnable {
     Q_OBJECT
 public:
-    explicit AsmBuildHelper(const QString source, QFileInfo objFileInfo, AsmProgramManager& manager,
+    explicit ASMBuildHelper(const QString source, QFileInfo objFileInfo, AsmProgramManager& manager,
                         QObject *parent = nullptr);
-    ~AsmBuildHelper() override;
+    ~ASMBuildHelper() override;
 
 
 signals:

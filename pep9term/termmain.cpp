@@ -81,13 +81,13 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("Pep9Term");
     QCoreApplication::setApplicationVersion("9.2");
 
-    // Create a parser
+    // Create a parser.
     QCommandLineParser parser;
     parser.addHelpOption();
     // Placeholder for one of the execution modes. Ideally, the parser would
     // have different options and positional arguments depending on the value of
     // the leading positional argument. However, the parser lacks this functionality.
-    parser.addPositionalArgument("mode", "The mode Pep/ to be executed: \
+    parser.addPositionalArgument("mode", "Mode in which Pep9Term is to be run: \
 Options are \"asm\", \"run\", \"cpuasm\", \"cpurun\", \"microasm\", and \"micorun\".  \
 Run pep9term 'mode' --help for more options.");
     parser.addOption(QCommandLineOption("about",
@@ -261,9 +261,9 @@ std::optional<QRunnable*> handle_asm(QCommandLineParser& parser, QCoreApplicatio
         sourceText = sourceStream.readAll();
         sourceFile.close();
 
-        AsmBuildHelper *helper = new AsmBuildHelper(sourceText, objectFileString,
+        ASMBuildHelper *helper = new ASMBuildHelper(sourceText, objectFileString,
                                                     *AsmProgramManager::getInstance());
-        QObject::connect(helper, &AsmBuildHelper::finished, &app, &QCoreApplication::quit);
+        QObject::connect(helper, &ASMBuildHelper::finished, &app, &QCoreApplication::quit);
 
         return helper;
     }
