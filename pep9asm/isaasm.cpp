@@ -1273,7 +1273,12 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
     }
     while (state != IsaParserHelper::PS_FINISH);
     // Parse trace tags
-    if(!code->hasComment() || !hasTypeTag(code->getComment())) {
+    // If a line has a symbolic or format tag, we must perform additional parsing.
+    // Failure to check for symbol tags led to bug #80, where programs
+    // only containing symbolic trace tags would assemble with no warnings.
+    if(!code->hasComment() ||
+            !(hasTypeTag(code->getComment()) ||
+              hasSymbolTag(code->getComment()) )) {
         return true;
     }
     QString comment = code->getComment(), tag = extractTypeTags(comment);
@@ -1389,6 +1394,15 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
         else {
             traceInfo.dynamicAllocSymbolTypes.insert(code->getSymbolEntry(), item);
         }
+    }
+    // Some (malformed) programs may only symbolic trace tags, and no format tags.
+    // Without this line, only format tags trigger set the hadTraceTags field.
+    // This led to issue #80.
+    // So, if a symbolic trace tag is detected, we must note that trace tags
+    // are present in the program, allowing handleTraceTags(...) to
+    // detect the cases where a symbolic tag is undefined.
+    else if(hasSymbolTag(tag)) {
+        traceInfo.hadTraceTags = true;
     }
     return true;
 }
