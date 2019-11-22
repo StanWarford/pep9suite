@@ -1521,32 +1521,24 @@ void CpuGraphicsItems::repaintMDRMuxSelect(QPainter *painter)
     QColor color;
     QPalette pal = MDRMuxerDataLabel->palette();
     painter->setPen(colorScheme->arrowColorOn);
-    if(MDRCk->isChecked()) {
-        if(MDRMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
-            color = colorScheme->combCircuitRed;
-            pal.setColor(QPalette::Window,colorScheme->muxCircuitRed);
-            MDRMuxerDataLabel->setPalette(pal);
-        }
-        else if(MDRMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
-            color = colorScheme->combCircuitYellow;
-            pal.setColor(QPalette::Window, colorScheme->muxCircuitYellow);
-            MDRMuxerDataLabel->setPalette(pal);
-        }
-        else if(MDRMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "1" && aluHasCorrectOutput()) {
-            color = colorScheme->combCircuitBlue;
-            pal.setColor(QPalette::Window, colorScheme->muxCircuitBlue);
-            MDRMuxerDataLabel->setPalette(pal);
-        }
-        else {
-            color = colorScheme->backgroundFill;
-            pal.setColor(QPalette::Window,color);
-            MDRMuxerDataLabel->setPalette(pal);
-        }
-
+    if(MDRMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
+        color = colorScheme->combCircuitRed;
+        pal.setColor(QPalette::Window,colorScheme->muxCircuitRed);
+        MDRMuxerDataLabel->setPalette(pal);
+    }
+    else if(MDRMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
+        color = colorScheme->combCircuitYellow;
+        pal.setColor(QPalette::Window, colorScheme->muxCircuitYellow);
+        MDRMuxerDataLabel->setPalette(pal);
+    }
+    else if(MDRMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "1" && aluHasCorrectOutput()) {
+        color = colorScheme->combCircuitBlue;
+        pal.setColor(QPalette::Window, colorScheme->muxCircuitBlue);
+        MDRMuxerDataLabel->setPalette(pal);
     }
     else {
         color = colorScheme->backgroundFill;
-        pal.setColor(QPalette::Window, color);
+        pal.setColor(QPalette::Window,color);
         MDRMuxerDataLabel->setPalette(pal);
     }
 
@@ -2287,23 +2279,18 @@ void CpuGraphicsItems::repaintMDRESelect(QPainter *painter)
     painter->drawLines(TwoByteShapes::MDREMuxSelect._lines);
     painter->drawImage(TwoByteShapes::MDREMuxSelect._arrowheads.first(),
                        MDREColor == colorScheme->arrowColorOff ? arrowLeftGray : arrowLeft);
-    if(MDRECk->isChecked()) {
-        if(MDREMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
-            pal.setColor(QPalette::Window, colorScheme->muxCircuitRed);
-        }
-        else if(MDREMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
-            pal.setColor(QPalette::Window, colorScheme->muxCircuitYellow);
-        }
-        else if(MDREMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "1"
-                && aluHasCorrectOutput()) {
-            pal.setColor(QPalette::Window, colorScheme->muxCircuitBlue);
-        }
-        else {
-            pal.setColor(QPalette::Window, colorScheme->backgroundFill);
-        }
+    if(MDREMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
+        pal.setColor(QPalette::Window, colorScheme->muxCircuitRed);
+    }
+    else if(MDREMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
+        pal.setColor(QPalette::Window, colorScheme->muxCircuitYellow);
+    }
+    else if(MDREMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "1"
+            && aluHasCorrectOutput()) {
+        pal.setColor(QPalette::Window, colorScheme->muxCircuitBlue);
     }
     else {
-        pal.setColor(QPalette::Window,colorScheme->backgroundFill);
+        pal.setColor(QPalette::Window, colorScheme->backgroundFill);
     }
     MDREMuxerDataLabel->setPalette(pal);
 }
@@ -2319,22 +2306,17 @@ void CpuGraphicsItems::repaintMDROSelect(QPainter *painter)
     painter->drawLines(TwoByteShapes::MDROMuxSelect._lines);
     painter->drawImage(TwoByteShapes::MDROMuxSelect._arrowheads.first(),
                        MDROColor == colorScheme->arrowColorOff ? arrowLeftGray : arrowLeft);
-    if(MDROCk->isChecked()){
-        if(MDROMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
-            pal.setColor(QPalette::Window,colorScheme->muxCircuitRed);
-        }
-        else if(MDROMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
-            pal.setColor(QPalette::Window,colorScheme->muxCircuitYellow);
-        }
-        else if(MDROMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "1"
-                && aluHasCorrectOutput()) {
-            pal.setColor(QPalette::Window,colorScheme->muxCircuitBlue);
-        }
-        else{
-            pal.setColor(QPalette::Window, colorScheme->backgroundFill);
-        }
+    if(MDROMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
+        pal.setColor(QPalette::Window,colorScheme->muxCircuitRed);
     }
-    else {
+    else if(MDROMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
+        pal.setColor(QPalette::Window,colorScheme->muxCircuitYellow);
+    }
+    else if(MDROMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "1"
+            && aluHasCorrectOutput()) {
+        pal.setColor(QPalette::Window,colorScheme->muxCircuitBlue);
+    }
+    else{
         pal.setColor(QPalette::Window, colorScheme->backgroundFill);
     }
     MDROMuxerDataLabel->setPalette(pal);
@@ -2347,36 +2329,32 @@ void CpuGraphicsItems::repaintMDRMuxOutputBuses(QPainter *painter)
     // Depending on which input is selected on the MDRMuxes, the color might need to change.
     // For now red seems to be the most logical color to use all the time.
     QString MDREText = MDREMuxTristateLabel->text(), MDROText = MDROMuxTristateLabel->text();
-    if(MDRECk->isChecked() && (MDREText == "1" || MDREText == "0")){
-         //If the muxer is enabled, and data can be clocked in to the register, pick an appropriate color
-        if(MDREMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
-            colorMDRE = colorScheme->combCircuitRed;
-        }
-        else if(MDREMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
-            colorMDRE = colorScheme->combCircuitYellow;
-        }
-        else if(MDREMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "1" && aluHasCorrectOutput()) {
-            colorMDRE = colorScheme->combCircuitBlue;
-        }
-        else {
-            colorMDRE = colorScheme->backgroundFill;
-        }
+     //If the muxer is enabled, pick an appropriate color
+    if(MDREMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
+        colorMDRE = colorScheme->combCircuitRed;
     }
-    if(MDROCk->isChecked() && (MDROText == "1" || MDROText == "0")) {
-         //If the muxer is enabled, and data can be clocked in to the register, pick an appropriate color
-        if(MDROMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
-            colorMDRO=colorScheme->combCircuitRed;
-        }
-        else if(MDROMuxTristateLabel->text()=="1"&&cMuxTristateLabel->text()=="0") {
-            colorMDRO=colorScheme->combCircuitYellow;
-        }
-        else if(MDROMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "1"
-                && aluHasCorrectOutput()) {
-            colorMDRO=colorScheme->combCircuitBlue;
-        }
-        else {
-            colorMDRO = colorScheme->backgroundFill;
-        }
+    else if(MDREMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
+        colorMDRE = colorScheme->combCircuitYellow;
+    }
+    else if(MDREMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "1" && aluHasCorrectOutput()) {
+        colorMDRE = colorScheme->combCircuitBlue;
+    }
+    else {
+        colorMDRE = colorScheme->backgroundFill;
+    }
+     //If the muxer is enabled,pick an appropriate color
+    if(MDROMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Enu::MemReadSecondWait) {
+        colorMDRO=colorScheme->combCircuitRed;
+    }
+    else if(MDROMuxTristateLabel->text()=="1"&&cMuxTristateLabel->text()=="0") {
+        colorMDRO=colorScheme->combCircuitYellow;
+    }
+    else if(MDROMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "1"
+            && aluHasCorrectOutput()) {
+        colorMDRO=colorScheme->combCircuitBlue;
+    }
+    else {
+        colorMDRO = colorScheme->backgroundFill;
     }
     painter->setPen(colorScheme->arrowColorOn);
     painter->setBrush(colorMDRE);
