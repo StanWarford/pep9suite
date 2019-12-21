@@ -564,7 +564,7 @@ void CpuPane::regTextFinishedEditing()
     }
     else if (lineEdit == cpuPaneItems->t2RegLineEdit) {
         emit registerChanged(12, static_cast<quint8>(regValue / 256));
-        emit registerChanged(3, static_cast<quint8>(regValue % 256));
+        emit registerChanged(13, static_cast<quint8>(regValue % 256));
     }
     else if (lineEdit == cpuPaneItems->t3RegLineEdit) {
         emit registerChanged(14, static_cast<quint8>(regValue / 256));
@@ -941,7 +941,7 @@ void CpuPane::onBusChanged()
 
 void CpuPane::onRegisterChanged(quint8 which, quint8 , quint8 newVal)
 {
-    setRegisterByte(which,newVal);
+    setRegisterByte(which, newVal);
 }
 
 void CpuPane::onMemoryRegisterChanged(EMemoryRegisters reg, quint8, quint8 newVal)
@@ -1026,6 +1026,8 @@ void CpuPane::onSimulationUpdate()
 
 void CpuPane::onSimulationFinished()
 {
+    // Update any registers changed since start.
+    onSimulationUpdate();
     clearCpuControlSignals();
     // Create a dummy microcode line that will reset CPU pane.
     // The CPU pane will never render control section signals,
