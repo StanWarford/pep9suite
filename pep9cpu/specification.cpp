@@ -26,11 +26,12 @@ Specification::Specification() noexcept
 {
 }
 
-MemSpecification::MemSpecification(AMemoryDevice* mem, int memoryAddress, int memoryValue, int numberBytes) noexcept: memDevice(mem), memAddress(memoryAddress),
+MemSpecification::MemSpecification(int memoryAddress, int memoryValue, int numberBytes) noexcept:
+    Specification(), memAddress(memoryAddress),
     memValue(memoryValue), numBytes(numberBytes) {
 }
 
-void MemSpecification::setUnitPre(CPUDataSection *) noexcept
+void MemSpecification::setUnitPre(CPUDataSection *, AMemoryDevice *memDevice) noexcept
 {
     if(numBytes == 1) {
         memDevice->setByte(static_cast<quint16>(memAddress), static_cast<quint8>(memValue));
@@ -46,7 +47,8 @@ void MemSpecification::setUnitPre(CPUDataSection *) noexcept
     }
 }
 
-bool MemSpecification::testUnitPost(const CPUDataSection *, QString &errorString) const noexcept
+bool MemSpecification::testUnitPost(const CPUDataSection *, const AMemoryDevice *memDevice,
+                                    QString &errorString) const noexcept
 {
     bool retVal;
     quint8 byte;
@@ -76,12 +78,11 @@ QString MemSpecification::getSourceCode() const noexcept {
                QString("%1").arg(memValue, 4, 16, QLatin1Char('0')).toUpper()) ;
 }
 
-RegSpecification::RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue) noexcept {
-    regAddress = registerAddress;
-    regValue = registerValue;
+RegSpecification::RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue)
+noexcept: Specification (), regAddress(registerAddress), regValue(registerValue)  {
 }
 
-void RegSpecification::setUnitPre(CPUDataSection *data) noexcept
+void RegSpecification::setUnitPre(CPUDataSection *data, AMemoryDevice *) noexcept
 {
     switch(regAddress)
     {
@@ -139,7 +140,8 @@ void RegSpecification::setUnitPre(CPUDataSection *data) noexcept
     }
 }
 
-bool RegSpecification::testUnitPost(const CPUDataSection *data, QString &errorString) const noexcept
+bool RegSpecification::testUnitPost(const CPUDataSection *data, const AMemoryDevice *,
+                                    QString &errorString) const noexcept
 {
     int reg = 0;
     switch(regAddress)
@@ -220,12 +222,13 @@ QString RegSpecification::getSourceCode() const noexcept {
     }
 }
 
-StatusBitSpecification::StatusBitSpecification(Enu::ECPUKeywords statusBitAddress, bool statusBitValue) noexcept {
-    nzvcsAddress = statusBitAddress;
-    nzvcsValue = statusBitValue;
+StatusBitSpecification::StatusBitSpecification(Enu::ECPUKeywords statusBitAddress,
+                                               bool statusBitValue) noexcept:
+    Specification(), nzvcsAddress(statusBitAddress), nzvcsValue(statusBitValue) {
 }
 
-void StatusBitSpecification::setUnitPre(CPUDataSection *data) noexcept
+void StatusBitSpecification::setUnitPre(CPUDataSection *data,
+                                        AMemoryDevice *) noexcept
 {
     Enu::EStatusBit status;
     switch(nzvcsAddress)
@@ -251,7 +254,9 @@ void StatusBitSpecification::setUnitPre(CPUDataSection *data) noexcept
     data->onSetStatusBit(status,nzvcsValue);
 }
 
-bool StatusBitSpecification::testUnitPost(const CPUDataSection *data, QString &errorString) const noexcept
+bool StatusBitSpecification::testUnitPost(const CPUDataSection *data,
+                                          const AMemoryDevice *,
+                                          QString &errorString) const noexcept
 {
     Enu::EStatusBit status;
     switch(nzvcsAddress)

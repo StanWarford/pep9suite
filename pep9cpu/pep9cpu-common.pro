@@ -22,6 +22,8 @@ HEADERS += \
     microcodepane.h \
     microcodeprogram.h \
     microobjectcodepane.h \
+    partialmicrocodedcpu.h \
+    partialmicrocodedmemoizer.h \
     pepmicrohighlighter.h \
     rotatedheaderview.h \
     shapes_one_byte_data_bus.h \
@@ -41,6 +43,8 @@ SOURCES += \
     microcodepane.cpp \
     microcodeprogram.cpp \
     microobjectcodepane.cpp \
+    partialmicrocodedcpu.cpp \
+    partialmicrocodedmemoizer.cpp \
     pepmicrohighlighter.cpp \
     rotatedheaderview.cpp \
     specification.cpp \

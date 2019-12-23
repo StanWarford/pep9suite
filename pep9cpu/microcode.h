@@ -29,6 +29,7 @@ class CpuGraphicsItems;
 class SymbolEntry;
 class Specification;
 class CPUDataSection;
+class AMemoryDevice;
 // Abstract code class
 class AMicroCode
 {
@@ -105,7 +106,7 @@ public:
     ~UnitPreCode() override;
     QString getSourceCode() const override;
     bool hasUnitPre() const override;
-    void setUnitPre(CPUDataSection* data);
+    void setUnitPre(CPUDataSection* data, AMemoryDevice* memoryDevice);
     void appendSpecification(Specification *specification);
     void setComment(QString comment);
 private:
@@ -118,7 +119,7 @@ class UnitPostCode: public AMicroCode
 public:
     ~UnitPostCode() override;
     QString getSourceCode() const override;
-    bool testPostcondition(CPUDataSection *data,QString &err);
+    bool testPostcondition(CPUDataSection *data, AMemoryDevice* memoryDevice, QString &err);
     void appendSpecification(Specification *specification);
     void setComment(QString comment);
     bool hasUnitPost() const override;

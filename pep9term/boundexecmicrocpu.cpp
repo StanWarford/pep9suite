@@ -1,4 +1,4 @@
-// File: boundedexecisacpu.cpp
+// File: boundedexecmicrocpu.cpp
 /*
     Pep9Term is a  command line tool utility for assembling Pep/9 programs to
     object code and executing object code programs.
@@ -18,38 +18,38 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "boundexecisacpu.h"
+#include "boundexecmicrocpu.h"
 
 #include <QCoreApplication>
 #include <QTimer>
 
 #include "amemorydevice.h"
-
-BoundExecIsaCpu::BoundExecIsaCpu(quint64 stepCount, const AsmProgramManager *manager,
+#include "cpudata.h"
+BoundExecMicroCpu::BoundExecMicroCpu(quint64 cycleCount, const AsmProgramManager *manager,
                                    QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
-    IsaCpu(manager, memDevice, parent), maxSteps(stepCount)
+    FullMicrocodedCPU(manager, memDevice, parent), maxCycles(cycleCount)
 
 {
     // This version of the CPU does not respond to breakpoints, and as such
     // does not register any handlers with the InterruptHandler.
 }
 
-BoundExecIsaCpu::~BoundExecIsaCpu()
+BoundExecMicroCpu::~BoundExecMicroCpu()
 {
     // All of our memory is owned by sharedpointers, so we
     // should not attempt to delete anything ourselves.
 }
 
-quint64 BoundExecIsaCpu::getDefaultMaxSteps()
+quint64 BoundExecMicroCpu::getDefaultMaxCycles()
 {
-    return defaultMaxSteps;
+    return defaultMaxCycles;
 }
 
-bool BoundExecIsaCpu::onRun()
+bool BoundExecMicroCpu::onRun()
 {
     // Execute instructions until an error occurs, the simulation finished,
     // or we exceed our step count.
-    std::function<bool(void)> cond = [this](){ if(maxSteps <=asmInstructionCounter) {
+    std::function<bool(void)> cond = [this](){ if(maxCycles <= microCycleCounter) {
             controlError = true;
             errorMessage = "Possible endless loop detected.";
             // Make sure to explicitly terminate simulation, else will be stuck in infinite loop.
@@ -58,12 +58,16 @@ bool BoundExecIsaCpu::onRun()
         }
         return !hadErrorOnStep() && !executionFinished;
     };
-    doISAStepWhile(cond);
+    doMCStepWhile(cond);
 
     //If there was an error on the control flow
     if(hadErrorOnStep()) {
-        if(IsaCpu::memory->hadError()) {
+        if(BoundExecMicroCpu::memory->hadError()) {
             qDebug() << "Memory section reporting an error";
+            return false;
+        }
+        else if (BoundExecMicroCpu::getDataSection()){
+            qDebug() << "Data section reporting an error";
             return false;
         }
         else {

@@ -38,10 +38,10 @@ class CPUDataSection;
 class MicrocodePane : public QWidget {
     Q_OBJECT
 public:
-    MicrocodePane(QWidget *parent = 0);
+    MicrocodePane(QWidget *parent = nullptr);
     ~MicrocodePane();
 
-    void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<CPUDataSection> dataSection,  QSharedPointer<AMemoryDevice> memDevice, bool fullCtrlSection);
+    void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<CPUDataSection> dataSection, bool fullCtrlSection);
     void initCPUModelState();
 
     bool microAssemble();

@@ -36,14 +36,10 @@ FORMS += \
 HEADERS += \
     cpuhelpdialog.h \
     cpumainwindow.h \
-    partialmicrocodedcpu.h \
-    partialmicrocodedmemoizer.h
 
 SOURCES += \
     cpuhelpdialog.cpp \
     cpumainwindow.cpp \
-    partialmicrocodedcpu.cpp \
-    partialmicrocodedmemoizer.cpp \
     cpumain.cpp
 
 RESOURCES += \

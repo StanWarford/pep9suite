@@ -98,7 +98,7 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     ui->memoryTracePane->init(programManager, controlSection, memDevice, controlSection->getMemoryTrace());
     ui->assemblerPane->init(programManager);
     ui->asmProgramTracePane->init(controlSection, programManager);
-    ui->microcodeWidget->init(controlSection, dataSection, memDevice, true);
+    ui->microcodeWidget->init(controlSection, dataSection, true);
     ui->microObjectCodePane->init(controlSection, true);
     redefineMnemonicsDialog->init(false);
     ui->executionStatisticsWidget->init(controlSection, true);
@@ -1081,6 +1081,8 @@ bool MicroMainWindow::initializeSimulation()
     // Don't allow the microcode pane to be edited while the program is running
     ui->microcodeWidget->setReadOnly(true);
 
+    CPUDataSection* data = this->dataSection.get();
+    AMemoryDevice* memory = this->memDevice.get();
     // If there are preconditions then apply them.
     if(ui->microcodeWidget->getMicrocodeProgram()->hasUnitPre()) {
         // Unlike Pep9CPU, do not clear all of memory. With the assembly level features,
@@ -1088,7 +1090,7 @@ bool MicroMainWindow::initializeSimulation()
         // which would break the simulator whenever microprograms contained preconditions.
         for(auto line : ui->microcodeWidget->getMicrocodeProgram()->getObjectCode()) {
             if(line->hasUnitPre()) {
-                static_cast<UnitPreCode*>(line)->setUnitPre(dataSection.get());
+                static_cast<UnitPreCode*>(line)->setUnitPre(data, memory);
             }
         }
     }
@@ -1605,9 +1607,12 @@ bool MicroMainWindow::on_actionDebug_Start_Debugging_Microcode_triggered()
         // Unlike Pep9CPU, do not clear all of memory. With the assembly level features,
         // we need to make sure that operating system / user program does not get removed from memory,
         // which would break the simulator whenever microprograms contained preconditions.
+
+        CPUDataSection* data = this->dataSection.get();
+        AMemoryDevice* memory = this->memDevice.get();
         for(auto line : ui->microcodeWidget->getMicrocodeProgram()->getObjectCode()) {
             if(line->hasUnitPre()) {
-                static_cast<UnitPreCode*>(line)->setUnitPre(dataSection.get());
+                static_cast<UnitPreCode*>(line)->setUnitPre(data, memory);
             }
         }
     }
@@ -1873,16 +1878,21 @@ void MicroMainWindow::onSimulationFinished()
 
     QVector<AMicroCode*> prog = ui->microcodeWidget->getMicrocodeProgram()->getObjectCode();
     bool hadPostTest = false;
+
+    CPUDataSection* data = this->dataSection.get();
+    AMemoryDevice* memory = this->memDevice.get();
     for (AMicroCode* x : prog) {
-        if(x->hasUnitPost()) hadPostTest = true;
-        if (x->hasUnitPost() && !static_cast<UnitPostCode*>(x)->testPostcondition(dataSection.get(), errorString)) {
-             static_cast<UnitPostCode*>(x)->testPostcondition(dataSection.get(), errorString);
-             ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
-             QMessageBox::warning(this, "Pep/9 Micro", "Failed unit test");
-             ui->microcodeWidget->getEditor()->setFocus();
-             ui->statusBar->showMessage("Failed unit test", 4000);
-             return;
-        }
+        if(x->hasUnitPost()) {
+            hadPostTest = true;
+            UnitPostCode* code = dynamic_cast<UnitPostCode*>(x);
+            if(!code->testPostcondition(data, memory, errorString)) {
+                ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
+                QMessageBox::warning(this, "Pep/9 Micro", "Failed unit test");
+                ui->microcodeWidget->getEditor()->setFocus();
+                ui->statusBar->showMessage("Failed unit test", 4000);
+                return;
+            }
+         }
     }
     if(controlSection->hadErrorOnStep()) {
         QMessageBox::critical(

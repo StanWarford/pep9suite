@@ -425,10 +425,10 @@ bool UnitPreCode::hasUnitPre() const
     return !unitPreList.isEmpty();
 }
 
-void UnitPreCode::setUnitPre(CPUDataSection *data)
+void UnitPreCode::setUnitPre(CPUDataSection *data, AMemoryDevice* memoryDevice)
 {
-    for(auto x : unitPreList) {
-        x->setUnitPre(data);
+    for(auto unitTest : unitPreList) {
+        unitTest->setUnitPre(data, memoryDevice);
     }
 }
 
@@ -464,11 +464,13 @@ QString UnitPostCode::getSourceCode() const
     return str;
 }
 
-bool UnitPostCode::testPostcondition(CPUDataSection *data, QString &err)
+bool UnitPostCode::testPostcondition(CPUDataSection *data,
+                                     AMemoryDevice* memoryDevice,
+                                     QString &err)
 {
     bool val = true;;
-    for(auto x : unitPostList){
-        val &= x->testUnitPost(data, err);
+    for(auto unitTest : unitPostList){
+        val &= unitTest->testUnitPost(data, memoryDevice, err);
         if(!val) break;
     }
     return val;

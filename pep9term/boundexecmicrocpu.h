@@ -1,4 +1,4 @@
-// File: boundedexecisacpu.h
+// File: boundedexecmicrocpu.h
 /*
     Pep9Term is a  command line tool utility for assembling Pep/9 programs to
     object code and executing object code programs.
@@ -18,14 +18,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef BOUNDEXCECISACPU_H
-#define BOUNDEXCECISACPU_H
+#ifndef BOUNDEXCECMICROCPU_H
+#define BOUNDEXCECMICROCPU_H
 
-#include "isacpu.h"
+#include "fullmicrocodedcpu.h"
 
 /*
- * This class extends the functionality of the default Pep/9 ISA level simulator
- * by checking that the number of instructions executed is less than maxSteps.
+ * This class extends the functionality of the default Pep/9Micro simulator
+ * by checking that the number of cycles executed is less than maxCycles.
  * If the condition is violated, the simulation terminates,
  * an control error is raised, and the corresponding error message indicates the
  * possible presence of an endless loop.
@@ -33,24 +33,24 @@
  * When using Pep9Term in a grading script, automatic termination prevents
  * a malformed program from crashing the script.
  */
-class BoundExecIsaCpu : public IsaCpu
+class BoundExecMicroCpu : public FullMicrocodedCPU
 {
 public:
-    explicit BoundExecIsaCpu(quint64 stepCount,const AsmProgramManager* manager,
+    explicit BoundExecMicroCpu(quint64 maxCycles,const AsmProgramManager* manager,
                      QSharedPointer<AMemoryDevice> memDevice, QObject* parent = nullptr);
-    virtual ~BoundExecIsaCpu() override;
+    virtual ~BoundExecMicroCpu() override;
 
-    // Get the default maximum number of instructions to execute.
-    static quint64 getDefaultMaxSteps();
+    // Default maximum number of cycles the simulator will execute.
+    static quint64 getDefaultMaxCycles();
 
 public slots:
     bool onRun() override;
 
 private:
-    quint64 maxSteps;
-    // Default to a large number of instructions, since
-    // system calls may take many hundreds of instructions.
-    static const quint64 defaultMaxSteps = 25000;
+    quint64 maxCycles;
+    // Default to a large number of cycles, since
+    // an instruction takes ~20 microcde instructions.
+    static const quint64 defaultMaxCycles = 250000;
 };
 
-#endif // BOUNDEXCECISACPU_H
+#endif // BOUNDEXCECMICROCPU_H
