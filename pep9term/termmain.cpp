@@ -49,7 +49,7 @@ const QString isaMaxStepText = "The maximum number of instructions executed befo
 const QString microMaxStepText = "The maximum number of CPU cycles executed before aborting. Defaults to %1";
 const QString cpuasmInputFileText = "Input Pep/9 CPU source program for microassembler.";
 const QString cpuasmOutputFileText = "Output from Pep/9 CPU microassembler. Either contains an error log or \"success\".";
-const QString cpu1or2 = "Assemble the program with assuming a 2-byte data bus (default is 1).";
+const QString cpu1or2 = "Assemble the program with a 2-byte data bus (default is 1).";
 const QString cpuPreconditions = "Pep9 Microcode file containg pre and post conditions, overriding and skipping any preconditions and postconditions in the main microcode source file. ";
 const QString cpuRunLog = "Text file that will contain \"Succes\" if the program passes unit tests, or will contain the violated unit tests.";
 
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     // the leading positional argument. However, the parser lacks this functionality.
     parser.addPositionalArgument("mode", "Mode in which Pep9Term is to be run: \
 Options are \"asm\", \"run\", \"cpuasm\", \"cpurun\", \"microasm\", and \"micorun\".  \
-Run pep9term 'mode' --help for more options.");
+Run pep9term \"mode\" --help for more options.");
     parser.addOption(QCommandLineOption("about",
                                         "Display information about Qt & developers."));
     parser.parse(QCoreApplication::arguments());
