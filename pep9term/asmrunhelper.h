@@ -72,6 +72,7 @@ public:
     // Pre: programOutput is a valid file that can be written to by the program. Will abort otherwise.
     // Post:The program is run to completion, or is terminated for taking too long.
     // Post:All program output is written to programOutput.
+
 private:
     const QString objectCodeString;
     QFileInfo programOutput, programInput;

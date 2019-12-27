@@ -58,7 +58,7 @@ class CPUBuildHelper: public QObject, public QRunnable {
     Q_OBJECT
 public:
     explicit CPUBuildHelper(Enu::CPUType type, bool useExtendedFeatures,
-                            const QString source, QFileInfo logFileInfo,
+                            const QString source, QFileInfo source_file_info,
                             QObject *parent = nullptr);
     ~CPUBuildHelper() override;
 
@@ -78,11 +78,14 @@ public:
     // Pre: logFileInfo's directory exists.
     // Post:If assembly succeeded, "success" is written to logFileInfo.
 
+    // Instead of using the output file as a base file name, manually specify
+    // error file path.
+    void set_error_file(QString error_file);
 private:
     const Enu::CPUType type;
     bool useExtendedFeatures;
     const QString source;
-    QFileInfo logFileInfo;
+    QFileInfo error_log;
     // Helper method responsible for triggering program assembly.
     bool buildMicroprogram();
 };

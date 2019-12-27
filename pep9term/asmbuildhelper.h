@@ -64,10 +64,15 @@ public:
     // Pre: The operating system has been built and installed.
     // Pre: The Pep9 mnemonic maps have been initizialized correctly.
     // Pre: objFile's directory exists.
+
+    // Instead of using the output file as a base file name, manually specify
+    // error file path.
+    void set_error_file(QString error_file);
 private:
     const QString source;
     QFileInfo objFileInfo;
     AsmProgramManager& manager;
+    QFileInfo error_log;
     // Helper method responsible for triggering program assembly.
     bool buildProgram();
 };

@@ -28,12 +28,12 @@
 #include "termhelper.h"
 
 CPUBuildHelper::CPUBuildHelper(Enu::CPUType type,bool useExtendedFeatures,
-                               const QString source, QFileInfo sourceFileInfo,
+                               const QString source, QFileInfo source_file_info,
                                QObject *parent):
     QObject(parent), QRunnable(), type(type), useExtendedFeatures(useExtendedFeatures),
-    source(source), logFileInfo(sourceFileInfo)
+    source(source)
 {
-
+    this->error_log = source_file_info.absoluteDir().absoluteFilePath(source_file_info.baseName() + "_errLog.txt");
 }
 
 CPUBuildHelper::~CPUBuildHelper()
@@ -45,8 +45,7 @@ CPUBuildHelper::~CPUBuildHelper()
 bool CPUBuildHelper::buildMicroprogram()
 {
     // Construct files that will be needed for assembly
-    QFile errorLog(QFileInfo(logFileInfo).absoluteDir().absoluteFilePath(
-                       QFileInfo(logFileInfo).baseName() + "_errLog.txt"));
+    QFile errorLog(error_log.absoluteFilePath());
 
     auto result = buildMicroprogramHelper(type, useExtendedFeatures,
                                           source);
@@ -67,8 +66,8 @@ bool CPUBuildHelper::buildMicroprogram()
                 errAsStream << textList[errorPair.first] << errorPair.second << endl;
             }
             // Error log should be flushed automatically.
-            errorLog.close();
         }
+        errorLog.close();
     }
 
     // Only open & write object code file if assembly was successful.
@@ -77,12 +76,12 @@ bool CPUBuildHelper::buildMicroprogram()
         // case of trace tag warnings. Must gaurd against this.
         if(result.elist.isEmpty()) {
             qDebug() << "Program assembled successfully.";
-            QFile output(logFileInfo.absoluteFilePath());
+            QFile output(error_log.absoluteFilePath());
             if(!output.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
                 qDebug().noquote() << errLogOpenErr.arg(output.fileName());
                 throw std::logic_error("Can't open output file.");
             }
-            output.write("success");
+            //output.write("success");
             output.close();
         }
     }
@@ -101,6 +100,11 @@ void CPUBuildHelper::run()
 
     // Application will live forever if we don't signal it to die.
     emit finished();
+}
+
+void CPUBuildHelper::set_error_file(QString error_file)
+{
+    this->error_log = error_file;
 }
 
 MicrocodeAssemblyResult buildMicroprogramHelper(Enu::CPUType type,
@@ -135,6 +139,7 @@ MicrocodeAssemblyResult buildMicroprogramHelper(Enu::CPUType type,
             result.elist.append({lineNumber, errorString});
             // Do not break now, so that we may catch all syntax errors in one pass.
             //break;
+            continue;
         }
         if(code->isMicrocode()
                 && static_cast<MicroCode*>(code)->hasControlSignal(Enu::EControlSignals::MemRead)

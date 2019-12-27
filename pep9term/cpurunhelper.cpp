@@ -35,17 +35,17 @@
 CPURunHelper::CPURunHelper(Enu::CPUType type, const QString microcodeProgram,
                            QFileInfo microcodeProgramFile,
                            const QString preconditionsProgram,
-                           QFileInfo programOutput, QObject *parent) :
+                           QObject *parent) :
     QObject(parent), QRunnable(), type(type), microcodeProgram(microcodeProgram),
     microcodeProgramFile(microcodeProgramFile),
-    preconditionsProgram(preconditionsProgram), programOutput(programOutput),
+    preconditionsProgram(preconditionsProgram),
     // Explicitly initialize both simulation objects to nullptr,
     // so that it is clear to that neither object has been allocated
     memory(nullptr), cpu(nullptr), outputFile(nullptr)
 
 {
-
-
+    this->error_log = microcodeProgramFile.absoluteDir().absoluteFilePath(
+                microcodeProgramFile.baseName() + "_errLog.txt");
 }
 
 CPURunHelper::~CPURunHelper()
@@ -72,8 +72,7 @@ void CPURunHelper::runProgram()
 {
 
     // Construct files that will be needed for assembly
-    QFile errorLog(QFileInfo(microcodeProgramFile).absoluteDir().absoluteFilePath(
-                       QFileInfo(microcodeProgramFile).baseName() + "_errLog.txt"));
+    QFile errorLog(error_log.absoluteFilePath());
 
     QVector<AMicroCode*> preconditionLines;
     auto programResult = buildMicroprogramHelper(type, false,
@@ -173,7 +172,7 @@ void CPURunHelper::runProgram()
 
     // Open up program output file if possible.
     // If output can't be opened up, abort.
-    QFile *output = new QFile(programOutput.absoluteFilePath());
+    QFile *output = new QFile(error_log.absoluteFilePath());
     if(!output->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
         qDebug().noquote() << errLogOpenErr.arg(output->fileName());
         throw std::logic_error("Can't open output file.");
@@ -216,7 +215,7 @@ void CPURunHelper::runProgram()
         // If all unit tests passed, and the CPU had no other issues,
         // we may report a success.
         if(passed) {
-            QTextStream (&*outputFile) << "success";
+            //QTextStream (&*outputFile) << "success";
             qDebug() << "Passed unit tests.";
         }
     }
@@ -252,4 +251,9 @@ void CPURunHelper::run()
 
     // Make sure any outstanding events are handled.
     QCoreApplication::processEvents();
+}
+
+void CPURunHelper::set_error_file(QString error_file)
+{
+    this->error_log = error_file;
 }

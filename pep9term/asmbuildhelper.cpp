@@ -33,7 +33,7 @@ ASMBuildHelper::ASMBuildHelper(const QString source, QFileInfo objFileInfo,
                          AsmProgramManager &manager, QObject *parent): QObject(parent),
     QRunnable(), source(source), objFileInfo(objFileInfo), manager(manager)
 {
-
+    this->error_log = objFileInfo.absoluteDir().absoluteFilePath(objFileInfo.baseName() + "_errLog.txt");
 }
 
 ASMBuildHelper::~ASMBuildHelper()
@@ -53,12 +53,16 @@ void ASMBuildHelper::run()
     emit finished();
 }
 
+void ASMBuildHelper::set_error_file(QString error_file)
+{
+    this->error_log = error_file;
+}
+
 bool ASMBuildHelper::buildProgram()
 {
     // Construct files that will be needed for assembly
     QFile objectFile(objFileInfo.absoluteFilePath());
-    QFile errorLog(QFileInfo(objectFile).absoluteDir().absoluteFilePath(
-                       QFileInfo(objectFile).baseName() + "_errLog.txt"));
+    QFile errorLog(this->error_log.absoluteFilePath());
 
     QSharedPointer<AsmProgram> program;
     auto elist = QList<QPair<int, QString>>();
