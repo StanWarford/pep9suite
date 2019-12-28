@@ -37,29 +37,30 @@ MicroStepHelper::MicroStepHelper(const quint64 maxCycleCount,
                                  const QString microcodeProgram,
                                  QFileInfo microcodeProgramFile,
                                  const QString preconditionsProgram,
-                                 QFileInfo programOutput, QObject *parent) :
+                                 QObject *parent) :
     QObject(parent), QRunnable(), maxStepCount(maxCycleCount),
     microcodeProgram(microcodeProgram), microcodeProgramFile(microcodeProgramFile),
-    preconditionsProgram(preconditionsProgram), programOutput(programOutput),
+    preconditionsProgram(preconditionsProgram),
     // Explicitly initialize both simulation objects to nullptr,
     // so that it is clear to that neither object has been allocated
-    memory(nullptr), cpu(nullptr), outputFile(nullptr)
+    memory(nullptr), cpu(nullptr)//, outputFile(nullptr)
 
 {
-
+    this->error_log = microcodeProgramFile.absoluteDir().absoluteFilePath(
+                microcodeProgramFile.baseName() + "_errLog.txt");
 
 }
 
 MicroStepHelper::~MicroStepHelper()
 {
     // If we allocated an output file, we need to perform special work to free it.
-    if(outputFile != nullptr) {
+    /*if(outputFile != nullptr) {
         outputFile->flush();
         // It might seem like we should close the file here, but it causes read / write violations to do so.
         // Instead, delete it later under the assumption that the operating system will handle that for us.
         // Schedule the output file for deletion via the event loop.
         outputFile->deleteLater();
-    }
+    }*/
 }
 
 void MicroStepHelper::onSimulationFinished()
@@ -74,25 +75,29 @@ void MicroStepHelper::runProgram()
 {
     // Open up program output file if possible.
     // If output can't be opened up, abort.
-    QFile *output = new QFile(programOutput.absoluteFilePath());
+    /*QFile *output = QFile(error_log.absoluteFilePath());
     if(!output->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
         qDebug().noquote() << errLogOpenErr.arg(output->fileName());
         throw std::logic_error("Can't open output file.");
     } else {
         // If it could be opened, map charOut to the file.
         outputFile = output;
-    }
+    }*/
 
     // Make sure to set up any last minute flags needed by CPU to perform simulation.
     cpu->onSimulationStarted();
     bool passed = true;
     QString errorString;
-
+    QFile error_log_file = QFile(error_log.absoluteFilePath());
+    if(!error_log_file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+        qDebug().noquote() << errLogOpenErr.arg(error_log.fileName());
+        throw std::logic_error("Can't open error log.");
+    }
     if(!cpu->onRun()) {
         qDebug().noquote()
                 << "The CPU failed for the following reason: "
                 << cpu->getErrorMessage();
-        QTextStream (&*outputFile)
+        QTextStream (&error_log_file)
                 << "[["
                 << cpu->getErrorMessage()
                 << "]]";
@@ -108,7 +113,7 @@ void MicroStepHelper::runProgram()
                 if(!code->testPostcondition(data, memory, errorString)) {
                     qDebug().noquote() << errorString;
                     // Write the precondition failures to the output file.
-                    QTextStream (&*outputFile) << errorString;
+                    QTextStream(&error_log_file) << errorString;
                     // If any postcondition fails, then the entire execution failed.
                     passed = false;
                 }
@@ -117,9 +122,12 @@ void MicroStepHelper::runProgram()
         // If all unit tests passed, and the CPU had no other issues,
         // we may report a success.
         if(passed) {
-            QTextStream (&*outputFile) << "success";
+            //QTextStream (&*outputFile) << "success";
             qDebug() << "Passed unit tests.";
         }
+    }
+    if(error_log_file.isOpen()) {
+        error_log_file.close();
     }
 
 }
@@ -252,6 +260,11 @@ void MicroStepHelper::run()
 
     // Make sure any outstanding events are handled.
     QCoreApplication::processEvents();
+}
+
+void MicroStepHelper::set_error_file(QString error_file)
+{
+    this->error_log = error_file;
 }
 
 void MicroStepHelper::loadAncilliaryData()

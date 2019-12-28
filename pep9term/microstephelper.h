@@ -60,7 +60,6 @@ public:
     explicit MicroStepHelper(const quint64 maxCycleCount,
                              const QString microcodeProgram, QFileInfo microcodeProgramFile,
                              const QString preconditionsProgram,
-                             QFileInfo programOutput,
                              QObject *parent = nullptr);
     ~MicroStepHelper() override;
 
@@ -83,6 +82,11 @@ public:
     // Post:The program is run to completion, or aborted if it executes for too long.
     //      If not aborted, CPU state is evaluated by any present unit tests.
     // Post:All program output is written to programOutput.
+
+    // Instead of using the output file as a base file name, manually specify
+    // error file path.
+    void set_error_file(QString error_file);
+
 protected:
     // Used to load any additional data by the program, such as assembly code
     // and OS, or unit pre conditions.
@@ -93,7 +97,7 @@ private:
    const QString microcodeProgram;
    QFileInfo microcodeProgramFile;
    const QString preconditionsProgram;
-   QFileInfo programOutput;
+   QFileInfo error_log;
 
    // Runnable will be executed in a separate thread, all objects being pointed to
    // must be constructed in this thread. The object is constructed in the main thread
@@ -107,7 +111,7 @@ private:
    QSharedPointer<BoundExecMicroCpu> cpu;
 
    // Potentially multiple output sources, but don't take time to simulate now.
-   QFile* outputFile;
+   //QFile* outputFile;
 
    // Pointer to the MicrocodeProgram that should be searched for unit pres
    // and unit posts.
