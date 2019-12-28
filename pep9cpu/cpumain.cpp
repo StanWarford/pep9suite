@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Pepperdine Computer Science Lab");
     QCoreApplication::setOrganizationDomain("cslab.pepperdine.edu");
     QCoreApplication::setApplicationName("Pep9CPU");
-    QCoreApplication::setApplicationVersion("9.2");
+    QCoreApplication::setApplicationVersion("9.3");
 
     CPUMainWindow w;
     w.show();
