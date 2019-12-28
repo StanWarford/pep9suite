@@ -33,6 +33,7 @@ CPUBuildHelper::CPUBuildHelper(Enu::CPUType type,bool useExtendedFeatures,
     QObject(parent), QRunnable(), type(type), useExtendedFeatures(useExtendedFeatures),
     source(source)
 {
+    // Default error log name to the base name of the file with an _errLog.txt extension.
     this->error_log = source_file_info.absoluteDir().absoluteFilePath(source_file_info.baseName() + "_errLog.txt");
 }
 
@@ -66,23 +67,19 @@ bool CPUBuildHelper::buildMicroprogram()
                 errAsStream << textList[errorPair.first] << errorPair.second << endl;
             }
             // Error log should be flushed automatically.
+            errorLog.close();
         }
-        errorLog.close();
     }
 
-    // Only open & write object code file if assembly was successful.
+    // Indicate to console if assembly was successful
     if(result.success) {
         // Program assembly can succeed despite the presence of errors in the
         // case of trace tag warnings. Must gaurd against this.
         if(result.elist.isEmpty()) {
             qDebug() << "Program assembled successfully.";
-            QFile output(error_log.absoluteFilePath());
-            if(!output.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-                qDebug().noquote() << errLogOpenErr.arg(output.fileName());
-                throw std::logic_error("Can't open output file.");
-            }
-            //output.write("success");
-            output.close();
+        }
+        else {
+            qDebug() << "Program assembled with warning(s).";
         }
     }
     else {
@@ -137,8 +134,7 @@ MicrocodeAssemblyResult buildMicroprogramHelper(Enu::CPUType type,
             // If it fails, add the line which
             result.success = false;
             result.elist.append({lineNumber, errorString});
-            // Do not break now, so that we may catch all syntax errors in one pass.
-            //break;
+            // Process remaning source program to detect all errors in one pass.
             continue;
         }
         if(code->isMicrocode()
@@ -147,7 +143,6 @@ MicrocodeAssemblyResult buildMicroprogramHelper(Enu::CPUType type,
             result.success = false;
             result.elist.append({lineNumber, "\\ ERROR: Can't have memread and memwrite"});
             // Do not break now, so that we may catch all syntax errors in one pass.
-            //break;
         }
         codeList.append(code);
     }

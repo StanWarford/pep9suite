@@ -63,11 +63,11 @@ bool BoundExecIsaCpu::onRun()
     //If there was an error on the control flow
     if(hadErrorOnStep()) {
         if(IsaCpu::memory->hadError()) {
-            qDebug() << "Memory section reporting an error";
+            qDebug() << "Memory section reporting an error.";
             return false;
         }
         else {
-            qDebug() << "Control section reporting an error";
+            qDebug() << "Control section reporting an error.";
             return false;
         }
     }

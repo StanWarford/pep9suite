@@ -46,9 +46,9 @@ MicroStepHelper::MicroStepHelper(const quint64 maxCycleCount,
     memory(nullptr), cpu(nullptr)//, outputFile(nullptr)
 
 {
+    // Default error log name to the base name of the file with an _errLog.txt extension.
     this->error_log = microcodeProgramFile.absoluteDir().absoluteFilePath(
                 microcodeProgramFile.baseName() + "_errLog.txt");
-
 }
 
 MicroStepHelper::~MicroStepHelper()

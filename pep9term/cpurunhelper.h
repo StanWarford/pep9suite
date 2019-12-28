@@ -106,9 +106,6 @@ private:
    // The CPU simulator that will perform the computation
    QSharedPointer<PartialMicrocodedCPU> cpu;
 
-   // Potentially multiple output sources, but don't take time to simulate now.
-   QFile* outputFile;
-
    // Helper method responsible for buffering input, opening output streams,
    // converting string object code to a byte list, and executing the object
    // code in memory.

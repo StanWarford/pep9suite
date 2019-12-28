@@ -33,6 +33,7 @@ ASMBuildHelper::ASMBuildHelper(const QString source, QFileInfo objFileInfo,
                          AsmProgramManager &manager, QObject *parent): QObject(parent),
     QRunnable(), source(source), objFileInfo(objFileInfo), manager(manager)
 {
+    // Default error log name to the base name of the file with an _errLog.txt extension.
     this->error_log = objFileInfo.absoluteDir().absoluteFilePath(objFileInfo.baseName() + "_errLog.txt");
 }
 

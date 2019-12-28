@@ -37,9 +37,9 @@
 #include "symboltable.h"
 
 // Error messages potentially used in multiple places;
-const QString errLogOpenErr = "Could not open file: %1";
-const QString hadErr        = "Errors/warnings encountered while generating output for file: %1";
-const QString assemble      = "About to assemble %1 into object file %2";
+const QString errLogOpenErr = "Could not open file: %1.";
+const QString hadErr        = "Errors/warnings encountered while generating output for file: %1.";
+const QString assemble      = "About to assemble %1 into object file %2.";
 
 QVector<quint8> convertObjectCodeToIntArray(QString program)
 {

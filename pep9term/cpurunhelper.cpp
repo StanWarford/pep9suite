@@ -41,7 +41,7 @@ CPURunHelper::CPURunHelper(Enu::CPUType type, const QString microcodeProgram,
     preconditionsProgram(preconditionsProgram),
     // Explicitly initialize both simulation objects to nullptr,
     // so that it is clear to that neither object has been allocated
-    memory(nullptr), cpu(nullptr), outputFile(nullptr)
+    memory(nullptr), cpu(nullptr)
 
 {
     this->error_log = microcodeProgramFile.absoluteDir().absoluteFilePath(
@@ -50,14 +50,7 @@ CPURunHelper::CPURunHelper(Enu::CPUType type, const QString microcodeProgram,
 
 CPURunHelper::~CPURunHelper()
 {
-    // If we allocated an output file, we need to perform special work to free it.
-    if(outputFile != nullptr) {
-        outputFile->flush();
-        // It might seem like we should close the file here, but it causes read / write violations to do so.
-        // Instead, delete it later under the assumption that the operating system will handle that for us.
-        // Schedule the output file for deletion via the event loop.
-        outputFile->deleteLater();
-    }
+
 }
 
 void CPURunHelper::onSimulationFinished()
@@ -134,8 +127,6 @@ void CPURunHelper::runProgram()
                     // and error message to the console.
                     errAsStream << textList[errorPair.first] << errorPair.second << endl;
                 }
-                // Error log should be flushed automatically.
-                errorLog.close();
             }
         }
 
@@ -170,15 +161,10 @@ void CPURunHelper::runProgram()
         }
     }
 
-    // Open up program output file if possible.
-    // If output can't be opened up, abort.
-    QFile *output = new QFile(error_log.absoluteFilePath());
-    if(!output->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-        qDebug().noquote() << errLogOpenErr.arg(output->fileName());
-        throw std::logic_error("Can't open output file.");
-    } else {
-        // Open up output so that we may indicate "success"
-        outputFile = output;
+    // Open up the error log if it is not already open.
+    if(errorLog.isOpen() && !errorLog.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+        qDebug().noquote() << errLogOpenErr.arg(errorLog.fileName());
+        return;
     }
 
     // Make sure to set up any last minute flags needed by CPU to perform simulation.
@@ -190,7 +176,7 @@ void CPURunHelper::runProgram()
         qDebug().noquote()
                 << "The CPU failed for the following reason: "
                 << cpu->getErrorMessage();
-        QTextStream (&*outputFile)
+        QTextStream (&errorLog)
                 << "[["
                 << cpu->getErrorMessage()
                 << "]]";
@@ -206,7 +192,7 @@ void CPURunHelper::runProgram()
                 if(!code->testPostcondition(data, memory, errorString)) {
                     qDebug().noquote() << errorString;
                     // Write the precondition failures to the output file.
-                    QTextStream (&*outputFile) << errorString;
+                    QTextStream (&errorLog) << errorString;
                     // If any postcondition fails, then the entire execution failed.
                     passed = false;
                 }
@@ -215,10 +201,11 @@ void CPURunHelper::runProgram()
         // If all unit tests passed, and the CPU had no other issues,
         // we may report a success.
         if(passed) {
-            //QTextStream (&*outputFile) << "success";
+            //QTextStream (&errorLog) << "success";
             qDebug() << "Passed unit tests.";
         }
     }
+    if(errorLog.isOpen()) errorLog.close();
 
 }
 
