@@ -162,8 +162,9 @@ void CPURunHelper::runProgram()
     }
 
     // Open up the error log if it is not already open.
-    if(errorLog.isOpen() && !errorLog.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+    if(!errorLog.isOpen() && !errorLog.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
         qDebug().noquote() << errLogOpenErr.arg(errorLog.fileName());
+        emit finished();
         return;
     }
 
