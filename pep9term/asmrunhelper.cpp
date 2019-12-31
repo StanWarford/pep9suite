@@ -20,6 +20,8 @@
 */
 #include "asmrunhelper.h"
 
+#include <iostream>
+
 #include "amemorychip.h"
 #include "amemorydevice.h"
 #include "asmcode.h"
@@ -97,7 +99,6 @@ void ASMRunHelper::onInputRequested(quint16 address)
     memory->onInputAborted(address);
 }
 
-static QDebug* dbg = new QDebug(QtDebugMsg);
 void ASMRunHelper::onOutputReceived(quint16 address, quint8 value)
 {
     // We do not currently support memory mapped output
@@ -108,7 +109,9 @@ void ASMRunHelper::onOutputReceived(quint16 address, quint8 value)
         QTextStream (&*outputFile) << QChar(value);
         // Try to block and make sure the IO actually completes.
         outputFile->waitForBytesWritten(300);
-        dbg->noquote().nospace() << QChar(value);
+        if(echo) {
+            std::cout << (char)value;
+        }
     }
 }
 
@@ -203,4 +206,9 @@ void ASMRunHelper::run()
 
     // Make sure any outstanding events are handled.
     QCoreApplication::processEvents();
+}
+
+void ASMRunHelper::set_echo_charout(bool echo)
+{
+    this->echo = echo;
 }

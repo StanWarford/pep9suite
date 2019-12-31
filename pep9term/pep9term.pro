@@ -63,6 +63,7 @@ HEADERS += \
     boundexecmicrocpu.h \
     cpubuildhelper.h \
     cpurunhelper.h \
+    CLI11.hpp \
     microstephelper.h \
     termhelper.h \
     boundexecisacpu.h

@@ -60,11 +60,10 @@ signals:
     void finished();
 
 public:
-    void onSimulationFinished();
     // Pre: All computations an outstanding processing events have been finished.
     // Post:The main thread has been signaled to shutdown.
+    void onSimulationFinished();
 
-    void run() override;
     // Pre: The operating system has been built and installed.
     // Pre: The Pep9 mnemonic maps have been initizialized correctly.
     // Pre: objectCodeString contains only valid space/newline separated object code bytes
@@ -72,7 +71,10 @@ public:
     // Pre: programOutput is a valid file that can be written to by the program. Will abort otherwise.
     // Post:The program is run to completion, or is terminated for taking too long.
     // Post:All program output is written to programOutput.
+    void run() override;
 
+    // Echo the values written to CharOut to the console.
+    void set_echo_charout(bool echo);
 private:
     const QString objectCodeString;
     QFileInfo programOutput, programInput;
@@ -96,6 +98,9 @@ private:
     quint16 charIn, charOut;
     // Maximum number of steps the simulator should execute before force quitting.
     quint64 maxSimSteps;
+
+    // Control if the values written to CharOut get echoed to the console.
+    bool echo = false;
 
     // Helper method responsible for buffering input, opening output streams,
     // converting string object code to a byte list, and executing the object
