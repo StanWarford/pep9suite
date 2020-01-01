@@ -193,16 +193,16 @@ int main(int argc, char *argv[])
 
     try {
         parser.parse(argc, argv);
+    } catch(const CLI::ValidationError &e){
+        std::cout <<e.what() << std::endl;
+        return e.get_exit_code();
     } catch (const CLI::ParseError &e) {
         if(values.had_about || values.had_version) return 0;
-
-        auto rval = parser.exit(e);
         if(!help || !help_all) {
             std::cout << parser.help();
         }
-        return rval;
+        return parser.exit(e);
     }
-
 
     // Assemble the default operating system from this thread, so that
     // no worker threads have to check for the presence of an operating system.
@@ -256,13 +256,13 @@ void handle_asm(command_line_values &values, QRunnable **runnable)
 {
     // Needs a assembler source program to be well defined.
     if(values.s.empty()) {
-        qDebug() << "Must set assembler input (-s).";
-        throw -1;
+        //qDebug() << "Must set assembler input (-s).";
+        throw CLI::ValidationError("Must set assembler input (-s).", -1);
     }
     // Needs an object code output to be well defined.
     else if(values.o.empty()) {
-        qDebug() << "Must set object code output (-o).";
-        throw -1;
+        //qDebug() << "Must set object code output (-o).";
+        throw CLI::ValidationError("Must set object code output (-o).", -1);
     }
 
     // File names associated with cli parameters.
@@ -273,8 +273,8 @@ void handle_asm(command_line_values &values, QRunnable **runnable)
     QString sourceText;
     // Read to assembler source, or return error that it could not be opened.
     if(!sourceFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug().noquote() << errLogOpenErr.arg(sourceFile.fileName());
-        throw -1;
+        //qDebug().noquote() << errLogOpenErr.arg(sourceFile.fileName());
+        throw CLI::ValidationError(errLogOpenErr.arg(sourceFile.fileName()).toStdString(), -1);
     }
     else {
         QTextStream sourceStream(&sourceFile);
@@ -297,13 +297,13 @@ void handle_run(command_line_values &values, QRunnable **runnable)
 {
     // Needs a source object code program to be well defined.
     if(values.s.empty()) {
-        qDebug() << "Must set object code input input (-s).";
-        throw -1;
+        //qDebug() << "Must set object code input input (-s).";
+        throw CLI::ValidationError("Must set object code input input (-s).", -1);
     }
     // Needs an output log.
     else if(values.o.empty()) {
-        qDebug() << "Must set output log file (-o).";
-        throw -1;
+        //qDebug() << "Must set output log file (-o).";
+        throw CLI::ValidationError("Must set output log file (-o).", -1);
     }
 
     // File names associated with cli parameters.
@@ -316,8 +316,8 @@ void handle_run(command_line_values &values, QRunnable **runnable)
     // Load object code string from file if possible, else print error log.
     QFile objFile(objCodeFileName);
     if(!objFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug().noquote() << errLogOpenErr.arg(objFile.fileName());
-        throw -1;
+        //qDebug().noquote() << errLogOpenErr.arg(objFile.fileName());
+        throw CLI::ValidationError(errLogOpenErr.arg(objFile.fileName()).toStdString(), -1);
     }
 
     QTextStream objStream(&objFile);
@@ -336,8 +336,8 @@ void handle_cpuasm(command_line_values &values, QRunnable **runnable)
 {
     // Needs a microcode source program to be well defined.
     if(values.mc.empty()) {
-        qDebug() << "Must set microcode input (--mc).";
-        throw -1;
+        //qDebug() << "Must set microcode input (--mc).";
+        throw CLI::ValidationError("Must set microcode input (--mc).", -1);
     }
 
     // Determine CPU type.
@@ -356,8 +356,8 @@ void handle_cpuasm(command_line_values &values, QRunnable **runnable)
 
     // Check that the file can be opened, otherwise log an error to the console.
     if(!sourceFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug().noquote() << errLogOpenErr.arg(sourceFile.fileName());
-        throw -1;
+        //qDebug().noquote() << errLogOpenErr.arg(sourceFile.fileName());
+        throw CLI::ValidationError(errLogOpenErr.arg(sourceFile.fileName()).toStdString(), -1);
     }
     else {
         // Otherwise read the file.
@@ -380,8 +380,8 @@ void handle_cpurun(command_line_values &values, QRunnable **run)
 {
     // Needs a microcode source program to be well defined.
     if(values.mc.empty()) {
-        qDebug() << "Must set microcode input (--mc).";
-        throw -1;
+        //qDebug() << "Must set microcode input (--mc).";
+        throw CLI::ValidationError("Must set microcode input (--mc).", -1);
     }
 
     // Determine CPU type.
@@ -399,8 +399,8 @@ void handle_cpurun(command_line_values &values, QRunnable **run)
     // Load object code string from file if possible, else print error log.
     QFile microcodeFile(microcodeFileName);
     if(!microcodeFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug().noquote() << errLogOpenErr.arg(microcodeFile.fileName());
-        throw -1;
+        //qDebug().noquote() << errLogOpenErr.arg(microcodeFile.fileName());
+        throw CLI::ValidationError(errLogOpenErr.arg(microcodeFile.fileName()).toStdString(), -1);
     }
 
     QTextStream microprogramStream(&microcodeFile);
@@ -414,8 +414,8 @@ void handle_cpurun(command_line_values &values, QRunnable **run)
         QFile preconditionFile(preconditionFileName);
         // If passed precondition file that can't be opened, raise an error.
         if(!preconditionFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            qDebug().noquote() << errLogOpenErr.arg(microcodeFile.fileName());
-            throw -1;
+            //qDebug().noquote() << errLogOpenErr.arg(preconditionFile.fileName());
+            throw CLI::ValidationError(errLogOpenErr.arg(preconditionFile.fileName()).toStdString(), -1);
         }
 
         QTextStream preconditionStream(&preconditionFile);
