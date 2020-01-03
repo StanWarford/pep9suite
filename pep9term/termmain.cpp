@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     // Runnable into which the executable program will be loaded by the below subcommands.
     QRunnable* run = nullptr;
 
-    CLI::App parser{"Pep9Term is a  command line tool utility for interacting with the Pep/9 virtual machine.\
+    CLI::App parser{"Pep9Term is a  command line tool utility for interacting with the Pep9 virtual machine.\
  It assembles Pep/9 programs to object code and executes object code programs.\
  Additionally, it checks microcode programs for errors and executes microcode programs with optional preconditions."};
 

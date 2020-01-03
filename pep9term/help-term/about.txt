@@ -9,9 +9,9 @@ Authors
        Emily Dimpfl (Emily.Dimpfl@gmail.com)
 
 Licensing
-       Pep9term is distributed under an  Open  Source  license.   See  the
+       Pep9Term is distributed under an  Open  Source  license.   See  the
        file "LICENSE"  in the github source distribution for information on
-       terms & conditions for accessing and otherwise using  Pep9term  and  for
+       terms & conditions for accessing and otherwise using  Pep9Term  and  for
        a  DISCLAIMER OF ALL WARRANTIES.
 CLI11
        Command Line Interface developed with CLI11 (see https://github.com/CLIUtils/CLI11).

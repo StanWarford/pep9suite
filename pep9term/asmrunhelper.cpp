@@ -110,7 +110,7 @@ void ASMRunHelper::onOutputReceived(quint16 address, quint8 value)
         // Try to block and make sure the IO actually completes.
         outputFile->waitForBytesWritten(300);
         if(echo) {
-            std::cout << (char)value;
+            std::cout << static_cast<char>(value);
         }
     }
 }
