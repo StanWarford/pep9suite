@@ -2290,7 +2290,17 @@ void MicroMainWindow::onInputRequested(quint16 address)
 {
     handleDebugButtons();
     connectViewUpdate();
-    ui->tabWidget->setCurrentWidget(ui->debuggerTab);
+    // If we are debugging the application, switch to the debugger
+    // if it is not already active to show which line is requesting the
+    // input.
+    // ONLY_MICRO modes cannot trigger memory-mapped IO, and as such
+    // do not need to be considered.
+    if(ui->ioWidget->inInteractiveMode() ||
+            this->debugState == DebugState::DEBUG_ISA ||
+            this->debugState == DebugState::DEBUG_RESUMED ||
+            this->debugState == DebugState::DEBUG_MICRO) {
+        ui->tabWidget->setCurrentWidget(ui->debuggerTab);
+    }
     // Must highlight lines with both the assembler and microcode debugger visible.
     // This is because of a bug in centerCursor() which doesn't center the cursor
     // iff the widget has never been visible.

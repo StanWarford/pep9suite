@@ -32,6 +32,7 @@ IOWidget::IOWidget(QWidget *parent) :
     ui(new Ui::IOWidget), charInAddr(0), charOutAddr(0), activePane(1)
 {
     ui->setupUi(this);
+    activePane =  ui->tabWidget->indexOf(ui->batchIOTab);
     ui->batchInput->setFocusProxy(this);
     ui->batchOutput->setFocusProxy(this);
     ui->terminalIO->setFocusProxy(this);
@@ -66,11 +67,21 @@ void IOWidget::setActivePane(Enu::EPane pane)
     }
 }
 
+bool IOWidget::inBatchMode() const
+{
+    return activePane == batch_index;
+}
+
+bool IOWidget::inInteractiveMode() const
+{
+    return activePane == terminal_index;
+}
+
 void IOWidget::cancelWaiting()
 {
     switch(activePane)
     {
-    case 1:
+    case terminal_index:
         ui->terminalIO->cancelWaiting();
         break;
     default:
@@ -252,10 +263,10 @@ void IOWidget::onOutputReceived(quint16 address, QChar data)
 
     switch(activePane)
     {
-    case 0:
+    case batch_index:
         ui->batchOutput->appendOutput(QString(data));
         break;
-    case 1:
+    case terminal_index:
         ui->terminalIO->appendOutput(QString(data));
         break;
     default:
@@ -272,12 +283,12 @@ void IOWidget::onDataRequested(quint16 address)
     }
     switch(activePane)
     {
-    case 0:
+    case batch_index:
         //If there's no input for the memory, there never will be.
         //So, let the simulation begin to error and unwind.
         memory->onInputAborted(charInAddr);
         break;
-    case 1:
+    case terminal_index:
         ui->terminalIO->waitingForInput();
         break;
     default:
@@ -292,7 +303,7 @@ void IOWidget::onSimulationStart()
     activePane = ui->tabWidget->currentIndex();
     switch(activePane)
     {
-    case 0:
+    case batch_index:
         // When the simulation starts, pass all needed input to memory's input buffer.
         // Append \n as an input terminator
         memory->onInputReceived(charInAddr, ui->batchInput->toPlainText().append('\n'));
