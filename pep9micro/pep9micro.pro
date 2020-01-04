@@ -23,7 +23,8 @@ QT += widgets webenginewidgets printsupport concurrent
 # Mac icon/plist
 ICON = images/icon.icns
 QMAKE_INFO_PLIST = app.plist
-QMAKE_MAC_SDK = macosx10.14
+# Remove version check 1/3/2020
+# QMAKE_MAC_SDK = macosx10.14
 
 #Windows RC file for icon:
 RC_FILE = pep9resources.rc
