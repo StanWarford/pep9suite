@@ -294,8 +294,19 @@ bool AsmMainWindow::eventFilter(QObject *, QEvent *event)
             ui->statusBar->showMessage("Open failed, simulator currently debugging", 4000);
             return false;
         }
-        //loadFile(static_cast<QFileOpenEvent *>(event)->file());
-        return true;
+        auto fileEvent = static_cast<QFileOpenEvent *>(event)->file();
+        if(fileEvent.endsWith("pepl", Qt::CaseInsensitive)) {
+            loadFile(fileEvent, Enu::EPane::EListing);
+            return true;
+        }
+        else if(fileEvent.endsWith("pepo", Qt::CaseInsensitive)) {
+            loadFile(fileEvent, Enu::EPane::EObject);
+            return true;
+        }
+        else if(fileEvent.endsWith("pep", Qt::CaseInsensitive)) {
+            loadFile(fileEvent, Enu::EPane::ESource);
+            return true;
+        }
     }
     return false;
 }

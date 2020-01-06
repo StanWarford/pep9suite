@@ -245,8 +245,12 @@ bool CPUMainWindow::eventFilter(QObject *, QEvent *event)
             ui->statusBar->showMessage("Open failed, simulator currently debugging", 4000);
             return false;
         }
-        //loadFile(static_cast<QFileOpenEvent *>(event)->file());
-        return true;
+        auto fileEvent = static_cast<QFileOpenEvent *>(event)->file();
+        if(fileEvent.endsWith("pepcpu", Qt::CaseInsensitive)) {
+            loadFile(fileEvent);
+            return true;
+        }
+        return false;
     }
     // Touch events are giving CPU pane focus when it should be receiving it.
     // Therefore, accept all touch events to prevent them from getting to the CPU pane.

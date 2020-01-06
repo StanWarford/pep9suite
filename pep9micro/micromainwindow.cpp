@@ -351,7 +351,27 @@ bool MicroMainWindow::eventFilter(QObject *, QEvent *event)
             ui->statusBar->showMessage("Open failed, simulator currently debugging", 4000);
             return false;
         }
-        //loadFile(static_cast<QFileOpenEvent *>(event)->file());
+        auto fileEvent = static_cast<QFileOpenEvent *>(event)->file();
+        if(fileEvent.endsWith("pepl", Qt::CaseInsensitive)) {
+            loadFile(fileEvent, Enu::EPane::EListing);
+            return true;
+        }
+        else if(fileEvent.endsWith("pepo", Qt::CaseInsensitive)) {
+            loadFile(fileEvent, Enu::EPane::EObject);
+            return true;
+        }
+        else if(fileEvent.endsWith("pepcpu", Qt::CaseInsensitive)) {
+            loadFile(fileEvent, Enu::EPane::EMicrocode);
+            return true;
+        }
+        else if(fileEvent.endsWith("pepmicro", Qt::CaseInsensitive)) {
+            loadFile(fileEvent, Enu::EPane::EMicrocode);
+            return true;
+        }
+        else if(fileEvent.endsWith("pep", Qt::CaseInsensitive)) {
+            loadFile(fileEvent, Enu::EPane::ESource);
+            return true;
+        }
         return true;
     }
     // Touch events are giving CPU pane focus when it should be receiving it.
