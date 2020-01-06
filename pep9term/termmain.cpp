@@ -423,7 +423,8 @@ void handle_cpurun(command_line_values &values, QRunnable **run)
         preconditionFile.close();
     }
 
-    if(values.had_full_control) {
+    // If not using the full control section, use the non-branch enabled CPU simulator.
+    if(!values.had_full_control) {
         CPURunHelper *helper = new CPURunHelper(type, microprogramText,
                                                QFileInfo(microcodeFile), preconditionText,
                                                nullptr);
