@@ -157,13 +157,13 @@ int main(int argc, char *argv[])
     cpuasm_subcommand->add_option("--mc", values.mc, cpuasm_input_file_text)->expected(1)->required(true);
     // Add flags to select 1-byte or 2-byte CPU data bus.
     auto cpuasm_d1_flag = cpuasm_subcommand->add_flag("--dbus-1-byte,--d1", [&](int64_t){handle_databus_size(values, false);}, cpu_1byte);
-    auto cpuasm_d2_flag = cpuasm_subcommand->add_flag("--dbus-2-byte,--d2",[&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
+    auto cpuasm_d2_flag = cpuasm_subcommand->add_flag("--dbus-2-byte,--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
     // Only allow 1-byte or 2-byte to be selected, not both at once.
     cpuasm_d1_flag->excludes(cpuasm_d2_flag);
     cpuasm_d2_flag->excludes(cpuasm_d1_flag);
     // Allow full control section to be enabled iff 2-byte data bus is enabled.
-    auto cpuasm_full_ctrl_flag = cpuasm_subcommand->add_flag("--full-control",[&](int64_t){handle_full_control(values, true);}, cpu_full_control);
-    cpuasm_full_ctrl_flag->needs(cpuasm_d2_flag);
+    // auto cpuasm_full_ctrl_flag = cpuasm_subcommand->add_flag("--full-control", [&](int64_t){handle_full_control(values, true);}, cpu_full_control);
+    // cpuasm_full_ctrl_flag->needs(cpuasm_d2_flag);
     // Create a runnable application from command line arguments
     cpuasm_subcommand->callback(std::function<void()>([&](){handle_cpuasm(values, &run);}));
 
@@ -174,16 +174,16 @@ int main(int argc, char *argv[])
     cpurun_subcommand->add_option("--mc", values.mc, cpuasm_input_file_text)->expected(1)->required(true);
     // Add flags to select 1-byte or 2-byte CPU data bus.
     auto cpurun_d1_flag = cpurun_subcommand->add_flag("--dbus-1-byte,--d1", [&](int64_t){handle_databus_size(values, false);}, cpu_1byte);
-    auto cpurun_d2_flag = cpurun_subcommand->add_flag("--dbus-2-byte,--d2",[&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
+    auto cpurun_d2_flag = cpurun_subcommand->add_flag("--dbus-2-byte,--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
     cpurun_d1_flag->excludes(cpurun_d2_flag);
     cpurun_d2_flag->excludes(cpurun_d1_flag);
     // Allow full control section to be enabled iff 2-byte data bus is enabled.
-    auto cpurun_full_ctrl_flag = cpurun_subcommand->add_flag("--full-control",[&](int64_t){handle_full_control(values, true);}, cpu_full_control);
-    cpurun_full_ctrl_flag->needs(cpurun_d2_flag);
+    //auto cpurun_full_ctrl_flag = cpurun_subcommand->add_flag("--full-control",[&](int64_t){handle_full_control(values, true);}, cpu_full_control);
+    //cpurun_full_ctrl_flag->needs(cpurun_d2_flag);
     // Maximum number of cycles to be executed.
-    std::string max_cycles_text = QString::fromStdString(microMaxStepText).arg(BoundExecMicroCpu::getDefaultMaxCycles()).toStdString();
-    cpurun_subcommand->add_option("-m", values.m, max_cycles_text)->expected(1)->needs(cpurun_full_ctrl_flag)->check(CLI::PositiveNumber)
-            ->default_val(std::to_string(BoundExecMicroCpu::getDefaultMaxCycles()));
+    //std::string max_cycles_text = QString::fromStdString(microMaxStepText).arg(BoundExecMicroCpu::getDefaultMaxCycles()).toStdString();
+    //cpurun_subcommand->add_option("-m", values.m, max_cycles_text)->expected(1)->needs(cpurun_full_ctrl_flag)->check(CLI::PositiveNumber)
+            //->default_val(std::to_string(BoundExecMicroCpu::getDefaultMaxCycles()));
     cpurun_subcommand->add_option("-p", values.p, cpu_preconditions)->expected(1);
     // Create a runnable application from command line arguments
     cpurun_subcommand->callback(std::function<void()>([&](){handle_cpurun(values, &run);}));
