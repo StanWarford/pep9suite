@@ -23,5 +23,6 @@
         <file>images/debugger_step_out.png</file>
         <file>images/load-source.png</file>
         <file>images/debugger_continue.png</file>
+        <file>images/debugger_stop.png</file>
     </qresource>
 </RCC>

@@ -25,6 +25,7 @@
 #include <QWidget>
 #include "interfaceisacpu.h"
 #include <QStandardItemModel>
+
 namespace Ui {
 class ExecutionStatisticsWidget;
 }
@@ -37,6 +38,12 @@ public:
     explicit ExecutionStatisticsWidget(QWidget *parent = nullptr);
     void init(QSharedPointer<InterfaceISACPU> cpu, bool showCycles);
     ~ExecutionStatisticsWidget();
+
+    void highlightOnFocus();
+    // Post: Highlights the label based on the label window color saved in the UI file
+
+    bool hasFocus();
+    // Post: returns if the pane has focus
 
 public slots:
     void onClear();

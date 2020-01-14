@@ -22,6 +22,9 @@
 #include "executionstatisticswidget.h"
 #include "ui_executionstatisticswidget.h"
 #include "pep.h"
+
+#include <QDebug>
+
 ExecutionStatisticsWidget::ExecutionStatisticsWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ExecutionStatisticsWidget), model(new QStandardItemModel(this))
@@ -36,6 +39,7 @@ ExecutionStatisticsWidget::ExecutionStatisticsWidget(QWidget *parent) :
     QColor col = QColor(0,0,0,0);
     pal.setColor(QPalette::Base, col);
 
+    ui->statsLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
     ui->lineEdit_Cycles->setPalette(pal);
     ui->lineEdit_Instructions->setPalette(pal);
 }
@@ -53,6 +57,22 @@ ExecutionStatisticsWidget::~ExecutionStatisticsWidget()
 {
     delete ui;
 }
+
+void ExecutionStatisticsWidget::highlightOnFocus()
+{
+    if (ui->treeView->hasFocus()) {
+        ui->statsLabel->setAutoFillBackground(true);
+    }
+    else {
+        ui->statsLabel->setAutoFillBackground(false);
+    }
+}
+
+bool ExecutionStatisticsWidget::hasFocus()
+{
+    return ui->treeView->hasFocus();
+}
+
 
 void ExecutionStatisticsWidget::onClear()
 {

@@ -1720,6 +1720,9 @@ void AsmMainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     else if (ui->ioWidget->isAncestorOf(oldFocus)) {
         ui->ioWidget->highlightOnFocus();
     }
+    else if (ui->executionStatisticsWidget->isAncestorOf(oldFocus)) {
+        ui->executionStatisticsWidget->highlightOnFocus();
+    }
 
     // Highlight the newly focused widget.
     int which = 0;
@@ -1741,6 +1744,10 @@ void AsmMainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     }
     else if (ui->asmProgramTracePane->hasFocus()) {
         ui->asmProgramTracePane->highlightOnFocus();
+        which = 0;
+    }
+    else if (ui->executionStatisticsWidget->hasFocus()) {
+        ui->executionStatisticsWidget->highlightOnFocus();
         which = 0;
     }
 

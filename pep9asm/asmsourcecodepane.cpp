@@ -45,6 +45,7 @@
 #include "symboltable.h"
 #include "symbolvalue.h"
 #include "mainmemory.h"
+
 AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
         QWidget(parent), ui(new Ui::SourceCodePane), inDarkMode(false),
         programManager(nullptr), currentProgram(nullptr), objectCode(), assemblerListingList(),

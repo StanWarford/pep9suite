@@ -197,7 +197,7 @@
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -723,7 +723,7 @@
    </property>
    <property name="icon">
     <iconset resource="../pep9common/pep9common-resources.qrc">
-     <normaloff>:/images/stop.png</normaloff>:/images/stop.png</iconset>
+     <normaloff>:/images/debugger_stop.png</normaloff>:/images/debugger_stop.png</iconset>
    </property>
    <property name="text">
     <string>Stop Debugging</string>
@@ -1265,8 +1265,6 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../pep9common/pep9common-resources.qrc"/>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9micro-resources.qrc"/>
   <include location="../pep9common/pep9common-resources.qrc"/>
  </resources>

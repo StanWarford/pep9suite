@@ -33,6 +33,7 @@
 #include "enu.h"
 #include <QSharedPointer>
 #include "asmprogrammanager.h"
+
 namespace Ui {
     class SourceCodePane;
 }
