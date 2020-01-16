@@ -27,10 +27,19 @@ public:
     std::string make_subcommands(const CLI::App *app, CLI::AppFormatMode mode) const;
     inline std::string make_description(const CLI::App *app) const override;
 private:
+    // For each subcommand (key), mantain a list of flag names (sub-key) and the pretty-print name of the value
+    // (sub-value). This allows for formatting as requested by Dr. Warford such as (-e error_file),
+    // since the default CLI11 framework does not allow custom fields.
     std::map<std::string, std::map<std::string,std::string>> &param_names;
+    // For a given subcommand (key) add an additional lengthened description of the subcommand (value).
+    // Must be passed to the custom formatter, since the formatter is responsible for "switching" descriptions.
     std::map<std::string, std::string> &detailed_descriptions;
+    // Determine if detailed_descriptions or default descriptions should be dumped to the console.
     mutable bool show_detailed_desc={false};
+    // Name of the subcommand currently being processed.
     mutable std::string subcommand_name;
+    // "Stack" of commands, the the deepest level being towards the back.
+    // Necessary to print nested commands, since CLI11 does not mantain pointers to parent commands.
     mutable std::deque<std::string> subcommand_heirarchy;
 };
 
@@ -45,6 +54,8 @@ std::string TermFormatter::make_name(const CLI::App *app, std::string name) cons
 
 std::string TermFormatter::make_usage(const CLI::App *app, std::string name) const {
     std::stringstream out;
+
+    subcommand_name = app->get_name();
 
     // Subcommands (CLI::App) do not preserve heirarchy information on their own.
     // Therefore, it would be impossible to print something like "pep9term cpuasm"

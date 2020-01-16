@@ -71,25 +71,23 @@ Supports 1- and 2-byte data buses with the 1-byte data bus as the default.";
 
 const std::string asm_input_file_text = "Input Pep/9 source program for assembler.";
 const std::string asm_output_file_text = "Output object code generated from source.";
-const std::string asm_run_log = "Override the default error log file, which contains assembly errors. \
-If no errors are present, no data will be written to the file.";
+const std::string asm_run_log = "Override the name of the default error log file.";
 const std::string obj_input_file_text = "Input Pep/9 object code program for simulator.";
-const std::string charin_file_text = "File which will be buffered behind the charIn.";
-const std::string charout_file_text = "File which charOut will be written to.";
-const std::string charout_echo_text = "Echo data written to charOut to the terminal.";
+const std::string charin_file_text = "File buffered behind the charIn input port.";
+const std::string charout_file_text = "File to which the charOut output port is streamed..";
+const std::string charout_echo_text = "Echo data written to charOut to std::out.";
 const std::string isaMaxStepText = "The maximum number of assembly instructions executed before aborting. Defaults to %1";
 const std::string microMaxStepText = "The maximum number of CPU cycles executed before aborting. Defaults to %1";
 const std::string cpuasm_input_file_text = "Input Pep/9 microcode source program for microassembler.";
-const std::string cpu_asm_log = "Override the default error log file, which contains assembly errors. \
-If no errors are present, no data will be written to the file.";
-const std::string cpu_1byte = "Assemble the microcode program with a 1-byte data bus (default is 1-byte).";
-const std::string cpu_2byte = "Assemble the microcode program with a 2-byte data bus (default is 1-byte).";
+const std::string cpu_asm_log = "Override the name of the default error log file.";
+const std::string cpu_2byte = "Assemble the microcode program with a 2-byte data bus";
+const std::string cpu_2byte_run = "Assemble and run the microcode program with a 2-byte data bus.";
+
 const std::string cpu_full_control = "Assemble the microprogram with the full control section (default is partial control section).";
 
-const std::string cpu_preconditions = "Pep/9 Microcode file containg pre- and post-conditions.\
- Using this flag overrides and skipps any pre- and post-conditions in the microcode source file provided with (--mc).";
-const std::string cpu_run_log = "Override the default error log file, which contains assembly or postcondition errors. \
-If no errors are present, no data will be written to the file.";
+const std::string cpu_preconditions = "A Pep/9 .pepcpu file containg UnitPre and UnitPost statements. \
+Using this flag overrides all UnitPre and UnitPost statements in source_file.";
+const std::string cpu_run_log = "Override the name of the default error log file.";
 
 struct command_line_values {
     bool had_version{false}, had_about{false}, had_d2{false}, had_full_control{false}, had_echo_output{false};
@@ -132,12 +130,17 @@ int main(int argc, char *argv[])
     QRunnable* run = nullptr;
 
     CLI::App parser{application_description, "pep9term"};
+    // For each subcommand (key), mantain a list of flag names (sub-key) and the pretty-print name of the value
+    // (sub-value). This allows for formatting as requested by Dr. Warford such as (-e error_file),
+    // since the default CLI11 framework does not allow custom fields.
     std::map<std::string, std::map<std::string,std::string>> parameter_formatting;
+    // For a given subcommand (key) add an additional lengthened description of the subcommand (value).
+    // Must be passed to the custom formatter, since the formatter is responsible for "switching" descriptions.
     std::map<std::string, std::string> detailed_descriptions;
     parser.formatter(std::shared_ptr<TermFormatter>::make_shared(parameter_formatting, detailed_descriptions));
     // Top level option flags
-    auto help = parser.set_help_flag("--help,-h", "Show this help information and exit.");
-    auto help_all = parser.set_help_all_flag("--help-all", "Show help information for all subcommands and exit.");
+    auto help = parser.set_help_flag("--help,-h", "Show this help information.");
+    auto help_all = parser.set_help_all_flag("--help-all", "Show help information for all subcommands.");
     std::string version_string =  "Display program version number.";
     auto version_flag = parser.add_flag("-v,--version", [&](int64_t flag){handle_version(values,flag);}, version_string);
 
@@ -145,8 +148,10 @@ int main(int argc, char *argv[])
     auto about_flag = parser.add_flag("--about", [&](int64_t flag){handle_about(values,flag);}, about_string);
 
     // Subcommands for ASSEMBLE
+    // Must create map for flag value names.
     parameter_formatting.insert_or_assign("asm", std::map<std::string,std::string>());
     auto asm_subcommand = parser.add_subcommand("asm", asm_description);
+    // Create detailed description.
     detailed_descriptions["asm"] = asm_description_detailed;
     // File where errors will be written. By default, will be written to a file based on object code file name.
     asm_subcommand->add_option("-e", values.e, asm_run_log)->expected(1);
@@ -209,7 +214,7 @@ int main(int argc, char *argv[])
     cpurun_subcommand->add_option("-e", values.e, cpu_run_log)->expected(1);
     parameter_formatting["cpurun"]["e"] = "error_file";
     // Add flags to select 1-byte or 2-byte CPU data bus.
-    auto cpurun_d2_flag = cpurun_subcommand->add_flag("--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
+    auto cpurun_d2_flag = cpurun_subcommand->add_flag("--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte_run);
     // Allow full control section to be enabled iff 2-byte data bus is enabled.
     //auto cpurun_full_ctrl_flag = cpurun_subcommand->add_flag("--full-control",[&](int64_t){handle_full_control(values, true);}, cpu_full_control);
     //cpurun_full_ctrl_flag->needs(cpurun_d2_flag);
