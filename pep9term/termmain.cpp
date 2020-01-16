@@ -39,7 +39,9 @@
 #include "memorychips.h"
 #include "microstephelper.h"
 #include "pep.h"
+#include "termformatter.h"
 
+const std::string application_description = "Translate and run Pep/9 assembly language and microcode programs.";
 const std::string asm_description = "Assemble a Pep/9 assembler source code program to object code.";
 const std::string run_description = "Run a Pep/9 object code program.";
 const std::string cpuasm_description = "Check a Pep/9 microcode program for syntax errors.\
@@ -108,10 +110,9 @@ int main(int argc, char *argv[])
     // Runnable into which the executable program will be loaded by the below subcommands.
     QRunnable* run = nullptr;
 
-    CLI::App parser{"Pep9Term is a  command line tool utility for interacting with the Pep9 virtual machine.\
- It assembles Pep/9 programs to object code and executes object code programs.\
- Additionally, it checks microcode programs for errors and executes microcode programs with optional preconditions."};
-
+    CLI::App parser{application_description,"pep9term"};
+    std::map<std::string,std::map<std::string,std::string>> parameter_formatting;
+    parser.formatter(std::shared_ptr<TermFormatter>::make_shared(parameter_formatting));
     // Top level option flags
     auto help = parser.set_help_flag("--help,-h", "Show this help information and exit.");
     auto help_all = parser.set_help_all_flag("--help-all", "Show help information for all subcommands and exit.");
@@ -122,45 +123,53 @@ int main(int argc, char *argv[])
     auto about_flag = parser.add_flag("--about", [&](int64_t flag){handle_about(values,flag);}, about_string);
 
     // Subcommands for ASSEMBLE
+    parameter_formatting.insert_or_assign("asm", std::map<std::string,std::string>());
     auto asm_subcommand = parser.add_subcommand("asm", asm_description);
     // File where errors will be written. By default, will be written to a file based on object code file name.
     asm_subcommand->add_option("-e", values.e, asm_run_log)->expected(1);
+    parameter_formatting["asm"]["e"] = "error_file";
     // File from which Pep/9 assembly code will be loaded.
     asm_subcommand->add_option("-s", values.s, asm_input_file_text)->expected(1)->required(1);
+    parameter_formatting["asm"]["s"] = "source_file";
     // File to which object code will be written.
     asm_subcommand->add_option("-o", values.o, asm_output_file_text)->expected(1)->required(1);
+    parameter_formatting["asm"]["o"] = "object_file";
     // Create a runnable application from command line arguments
     asm_subcommand->callback(std::function<void()>([&](){handle_asm(values, &run);}));
 
     // Subcommands for RUN
+   parameter_formatting.insert_or_assign("run", std::map<std::string,std::string>());
     auto run_subcommand = parser.add_subcommand("run", run_description);
-    // File from which object code will be loaded.
-    run_subcommand->add_option("-s", values.s, obj_input_file_text)->expected(1)->required(true);
     // Batch input that will be loaded into charIn.
     run_subcommand->add_option("-i", values.i, charin_file_text)->expected(1);
+    parameter_formatting["run"]["i"] = "charin_file";
     // File where values written to charOut will be stored.
     run_subcommand->add_option("-o", values.o, charout_file_text)->expected(1);
+    parameter_formatting["run"]["o"] = "charout_file";
     run_subcommand->add_flag("--echo-output", values.had_echo_output, charout_echo_text);
     //run_subcommand->add_option("-e", obj_input_file_text);
     // Maximum number of instructions to be executed.
     std::string max_steps_text = QString::fromStdString(isaMaxStepText).arg(BoundExecIsaCpu::getDefaultMaxSteps()).toStdString();
     run_subcommand->add_option("-m", values.m, max_steps_text)->expected(1)->check(CLI::PositiveNumber)
             ->default_val(std::to_string(BoundExecIsaCpu::getDefaultMaxSteps()));
+    parameter_formatting["run"]["m"] = "max_steps";
+    // File from which object code will be loaded.
+    run_subcommand->add_option("-s", values.s, obj_input_file_text)->expected(1)->required(true);
+    parameter_formatting["run"]["s"] = "object_file";
     // Create a runnable application from command line arguments
     run_subcommand->callback(std::function<void()>([&](){handle_run(values, &run);}));
 
     // Subcommands for CPUASM
+    parameter_formatting.insert_or_assign("cpuasm", std::map<std::string,std::string>());
     auto cpuasm_subcommand = parser.add_subcommand("cpuasm", cpuasm_description);
     // File where errors will be written. By default, will be written to a file based on the mc name.
     cpuasm_subcommand->add_option("-e", values.e, cpu_asm_log)->expected(1);
-    // Microcode input file.
-    cpuasm_subcommand->add_option("--mc", values.mc, cpuasm_input_file_text)->expected(1)->required(true);
+    parameter_formatting["cpuasm"]["e"] = "error_file";
     // Add flags to select 1-byte or 2-byte CPU data bus.
-    auto cpuasm_d1_flag = cpuasm_subcommand->add_flag("--dbus-1-byte,--d1", [&](int64_t){handle_databus_size(values, false);}, cpu_1byte);
-    auto cpuasm_d2_flag = cpuasm_subcommand->add_flag("--dbus-2-byte,--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
-    // Only allow 1-byte or 2-byte to be selected, not both at once.
-    cpuasm_d1_flag->excludes(cpuasm_d2_flag);
-    cpuasm_d2_flag->excludes(cpuasm_d1_flag);
+    auto cpuasm_d2_flag = cpuasm_subcommand->add_flag("--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
+    // Microcode input file.
+    cpuasm_subcommand->add_option("-s", values.mc, cpuasm_input_file_text)->expected(1)->required(true);
+    parameter_formatting["cpuasm"]["s"] = "microcode_file";
     // Allow full control section to be enabled iff 2-byte data bus is enabled.
     // auto cpuasm_full_ctrl_flag = cpuasm_subcommand->add_flag("--full-control", [&](int64_t){handle_full_control(values, true);}, cpu_full_control);
     // cpuasm_full_ctrl_flag->needs(cpuasm_d2_flag);
@@ -168,15 +177,13 @@ int main(int argc, char *argv[])
     cpuasm_subcommand->callback(std::function<void()>([&](){handle_cpuasm(values, &run);}));
 
     // Subcommands for CPURUN
+    parameter_formatting.insert_or_assign("cpurun", std::map<std::string,std::string>());
     auto cpurun_subcommand = parser.add_subcommand("cpurun", cpurun_description);
     // File where errors will be written. By default, will be written to a file based on the mc name.
     cpurun_subcommand->add_option("-e", values.e, cpu_run_log)->expected(1);
-    cpurun_subcommand->add_option("--mc", values.mc, cpuasm_input_file_text)->expected(1)->required(true);
+    parameter_formatting["cpurun"]["e"] = "error_file";
     // Add flags to select 1-byte or 2-byte CPU data bus.
-    auto cpurun_d1_flag = cpurun_subcommand->add_flag("--dbus-1-byte,--d1", [&](int64_t){handle_databus_size(values, false);}, cpu_1byte);
-    auto cpurun_d2_flag = cpurun_subcommand->add_flag("--dbus-2-byte,--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
-    cpurun_d1_flag->excludes(cpurun_d2_flag);
-    cpurun_d2_flag->excludes(cpurun_d1_flag);
+    auto cpurun_d2_flag = cpurun_subcommand->add_flag("--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
     // Allow full control section to be enabled iff 2-byte data bus is enabled.
     //auto cpurun_full_ctrl_flag = cpurun_subcommand->add_flag("--full-control",[&](int64_t){handle_full_control(values, true);}, cpu_full_control);
     //cpurun_full_ctrl_flag->needs(cpurun_d2_flag);
@@ -184,7 +191,12 @@ int main(int argc, char *argv[])
     //std::string max_cycles_text = QString::fromStdString(microMaxStepText).arg(BoundExecMicroCpu::getDefaultMaxCycles()).toStdString();
     //cpurun_subcommand->add_option("-m", values.m, max_cycles_text)->expected(1)->needs(cpurun_full_ctrl_flag)->check(CLI::PositiveNumber)
             //->default_val(std::to_string(BoundExecMicroCpu::getDefaultMaxCycles()));
+    // Precondition input file.
     cpurun_subcommand->add_option("-p", values.p, cpu_preconditions)->expected(1);
+    parameter_formatting["cpurun"]["p"] = "precondition_file";
+    // Microcode input file.
+    cpurun_subcommand->add_option("-s", values.mc, cpuasm_input_file_text)->expected(1)->required(true);
+    parameter_formatting["cpurun"]["s"] = "microcode_file";
     // Create a runnable application from command line arguments
     cpurun_subcommand->callback(std::function<void()>([&](){handle_cpurun(values, &run);}));
 

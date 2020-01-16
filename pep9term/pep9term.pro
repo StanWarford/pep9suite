@@ -66,6 +66,7 @@ HEADERS += \
     cpurunhelper.h \
     CLI11.hpp \
     microstephelper.h \
+    termformatter.h \
     termhelper.h \
     boundexecisacpu.h
 
