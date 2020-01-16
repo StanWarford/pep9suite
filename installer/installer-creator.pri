@@ -5,7 +5,7 @@
 include(installer_lib.pri)
 
 # Pre-declare any condition variables and set them all to sensible defaults
-# This prevents
+# This prevents QMake from acting strangely on empty() checks.
 DO_REPOGEN = false
 DO_PACKAGE_COPY = false
 LINUX_USE_APPIMAGE = false
@@ -53,6 +53,8 @@ contains(DEPLOY_OPT, appimg_installer): CONFIG(release) {
     DO_PACKAGE_COPY = true
 }
 # If a dmg image output type was selected.
+# Make sure to set the SIGN_KEY parameter to QMake if you want code
+# to be signed as part of the build process.
 else: contains(DEPLOY_OPT, dmg_installer): CONFIG(release) {
     debugMessage("Selecting dmg_installer installer.")
     # Installing from a DMG is only available on Mac OS.

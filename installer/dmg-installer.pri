@@ -4,6 +4,13 @@ QMAKE_POST_LINK += $${QMAKE_MKDIR} $$cleanPathQuote($$OUT_PWD/Installer/dmg-inst
 QMAKE_POST_LINK += $${QMAKE_COPY_DIR} $$cleanPathQuote($$OUT_PWD/$$TARGET""$$TARGET_EXT) $$cleanPathQuote($$OUT_PWD/Installer/dmg-installer) $$psc
 CONFIG(app_bundle) {
     QMAKE_POST_LINK += $$cleanPathQuote($$QtDir/bin/macdeployqt) $$cleanPathQuote($$OUT_PWD/Installer/dmg-installer/$$TARGET""$$TARGET_EXT) $$psc
+    #Only sign application if a SIGN_KEY is set.
+    !isEmpty(SIGN_KEY){
+        QMAKE_POST_LINK += codesign -dv --verbose=4 --deep -s \"$$SIGN_KEY\" $$OUT_PWD/Installer/dmg-installer/$$TARGET""$$TARGET_EXT $$psc
+    }
+    else {
+        message("Skipping code signing due to lack of key")
+    }
 }
 #Use HDIUtil to make a folder into a read/write image
 QMAKE_POST_LINK += hdiutil create -volname $$cleanPathQuote($$TARGET) -srcfolder $$cleanPathQuote($$OUT_PWD/Installer/dmg-installer) -attach -ov -format UDRW $$cleanPathQuote($$OUT_PWD/Installer/$$TARGET"Temp.dmg") $$psc
