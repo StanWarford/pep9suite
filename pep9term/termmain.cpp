@@ -48,6 +48,27 @@ const std::string cpuasm_description = "Check a Pep/9 microcode program for synt
  Supports 1- and 2-byte data buses as well as the extended control section detailed in Pep9Micro.";
 const std::string cpurun_description = "Run a Pep/9 microcode program with an optional list of preconditions.";
 
+const std::string asm_description_detailed = "Assemble a Pep/9 assembler source code program to object code. \
+The source_file must be a .pep file. \
+The object_file must be a .pepo file. \
+If there are assembly errors an error log file named <source_file>_errLog.txt is created with the error messages. \
+<source_file> is the name of source_file without the .pep extension. \
+If there are no errors the error log file is not created.";
+const std::string run_description_detailed = "Run a Pep/9 object code program.\
+The source_file must be a .pepo file.";
+const std::string cpuasm_description_detailed = "Check a Pep/9 microcode program for syntax errors. \
+The source_file must be a .pepcpu file. \
+If there are micro-assembly errors an error log file named <source_file>_errLog.txt is created with the error messages. \
+<source_file> is the name of source_file without the .pepcpu extension. \
+If there are no errors the error log file is not created. \
+Supports 1- and 2-byte data buses with the 1-byte data bus as the default.";
+const std::string cpurun_description_detailed = "Assemble and run a Pep/9 microcode program. \
+The source_file must be a .pepcpu file. \
+If there are micro-assembly errors or UnitPost errors an error log file named <source_file>_errLog.txt is created with the error messages. \
+<source_file> is the name of source_file without the .pepcpu extension. \
+If there are no errors the error log file is not created. \
+Supports 1- and 2-byte data buses with the 1-byte data bus as the default.";
+
 const std::string asm_input_file_text = "Input Pep/9 source program for assembler.";
 const std::string asm_output_file_text = "Output object code generated from source.";
 const std::string asm_run_log = "Override the default error log file, which contains assembly errors. \
@@ -110,9 +131,10 @@ int main(int argc, char *argv[])
     // Runnable into which the executable program will be loaded by the below subcommands.
     QRunnable* run = nullptr;
 
-    CLI::App parser{application_description,"pep9term"};
-    std::map<std::string,std::map<std::string,std::string>> parameter_formatting;
-    parser.formatter(std::shared_ptr<TermFormatter>::make_shared(parameter_formatting));
+    CLI::App parser{application_description, "pep9term"};
+    std::map<std::string, std::map<std::string,std::string>> parameter_formatting;
+    std::map<std::string, std::string> detailed_descriptions;
+    parser.formatter(std::shared_ptr<TermFormatter>::make_shared(parameter_formatting, detailed_descriptions));
     // Top level option flags
     auto help = parser.set_help_flag("--help,-h", "Show this help information and exit.");
     auto help_all = parser.set_help_all_flag("--help-all", "Show help information for all subcommands and exit.");
@@ -125,6 +147,7 @@ int main(int argc, char *argv[])
     // Subcommands for ASSEMBLE
     parameter_formatting.insert_or_assign("asm", std::map<std::string,std::string>());
     auto asm_subcommand = parser.add_subcommand("asm", asm_description);
+    detailed_descriptions["asm"] = asm_description_detailed;
     // File where errors will be written. By default, will be written to a file based on object code file name.
     asm_subcommand->add_option("-e", values.e, asm_run_log)->expected(1);
     parameter_formatting["asm"]["e"] = "error_file";
@@ -140,6 +163,7 @@ int main(int argc, char *argv[])
     // Subcommands for RUN
    parameter_formatting.insert_or_assign("run", std::map<std::string,std::string>());
     auto run_subcommand = parser.add_subcommand("run", run_description);
+    detailed_descriptions["run"] = run_description_detailed;
     // Batch input that will be loaded into charIn.
     run_subcommand->add_option("-i", values.i, charin_file_text)->expected(1);
     parameter_formatting["run"]["i"] = "charin_file";
@@ -162,6 +186,7 @@ int main(int argc, char *argv[])
     // Subcommands for CPUASM
     parameter_formatting.insert_or_assign("cpuasm", std::map<std::string,std::string>());
     auto cpuasm_subcommand = parser.add_subcommand("cpuasm", cpuasm_description);
+    detailed_descriptions["cpuasm"] = cpuasm_description_detailed;
     // File where errors will be written. By default, will be written to a file based on the mc name.
     cpuasm_subcommand->add_option("-e", values.e, cpu_asm_log)->expected(1);
     parameter_formatting["cpuasm"]["e"] = "error_file";
@@ -179,6 +204,7 @@ int main(int argc, char *argv[])
     // Subcommands for CPURUN
     parameter_formatting.insert_or_assign("cpurun", std::map<std::string,std::string>());
     auto cpurun_subcommand = parser.add_subcommand("cpurun", cpurun_description);
+    detailed_descriptions["cpurun"] = cpurun_description_detailed;
     // File where errors will be written. By default, will be written to a file based on the mc name.
     cpurun_subcommand->add_option("-e", values.e, cpu_run_log)->expected(1);
     parameter_formatting["cpurun"]["e"] = "error_file";
