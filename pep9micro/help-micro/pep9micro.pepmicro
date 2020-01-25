@@ -482,11 +482,11 @@ A=8, B=17, AMux=1, ALU=5, CMux=1, C=17; LoadCk
 // If AAA bits are non-zero, adding FF to them will cause an overflow.
 // If there was no overflow then using immediate addressing mode.
 // T ← T4<lo> plus FF; S = {carry}
-A=17, B=31, AMux=1, ALU=1; SCk; if SBit ldba_eo else ldba_i 
-// A<lo> ← T6<hi>, N ← T6<hi> < 0, Z ← T6<hi> = 0
-ldba_eo: A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto start
-// A<lo> ← T6<lo>, N ← T6<hi> < 0, Z ← T6<hi> = 0
-ldba_i: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto start
+A=17, B=31, AMux=1, ALU=1; SCk; if SBit ldba_eo else ldba_i
+// A<lo> ← T6<hi> Z ← T6<hi> = 0
+ldba_eo: A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto n_fix
+// A<lo> ← T6<lo>, Z ← T6<hi> = 0
+ldba_i: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=1; NCk, ZCk, LoadCk; goto n_fix
 
 // T4<lo> ← 7
 ldbx: A=27, B=23, AMux=1, ALU=3, CMux=1, C=17; LoadCk
@@ -496,10 +496,14 @@ A=8, B=17, AMux=1, ALU=5, CMux=1, C=17; LoadCk
 // If there was no overflow then using immediate addressing mode.
 // T ← T4<lo> plus FF; S = {carry}
 A=17, B=31, AMux=1, ALU=1; SCk; if SBit ldbx_eo else ldbx_i
-// X<lo> ← T6<hi>, N ← T6<hi> < 0, Z ← T6<hi> = 0
-ldbx_eo: A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto start
-// X<lo> ← T6<lo>, N ← T6<hi> < 0, Z ← T6<hi> = 0
-ldbx_i: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; NCk, ZCk, LoadCk; goto start
+// X<lo> ← T6<hi>, Z ← T6<hi> = 0
+ldbx_eo: A=20, AMux=1, ALU=0, AndZ=0, CMux=1, C=3;ZCk, LoadCk; goto n_fix
+// X<lo> ← T6<lo>, Z ← T6<hi> = 0
+ldbx_i: A=21, AMux=1, ALU=0, AndZ=0, CMux=1, C=3; ZCk, LoadCk
+
+// N must be set to zero, which may not happen in above addressing schemes.
+// N ← 0
+n_fix: A=22, AMux=1, ALU=0; NCk; goto start
 
 // Decoded operand value resides in T6; no computation must be performed.
 // A ← T6, N ← T6 < 0, Z ← T6 = 0
