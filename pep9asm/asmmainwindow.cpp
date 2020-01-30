@@ -1855,7 +1855,14 @@ void AsmMainWindow::onInputRequested(quint16 address)
 {
     handleDebugButtons();
     connectViewUpdate();
-    ui->tabWidget->setCurrentWidget(ui->debuggerTab);
+    // If we are debugging the application, switch to the debugger
+    // if it is not already active to show which line is requesting the
+    // input.
+    if(ui->ioWidget->inInteractiveMode() ||
+            this->debugState == DebugState::DEBUG_ISA ||
+            this->debugState == DebugState::DEBUG_RESUMED) {
+        ui->tabWidget->setCurrentWidget(ui->debuggerTab);
+    }
     // Must highlight lines with both the assembler and microcode debugger visible.
     // This is because of a bug in centerCursor() which doesn't center the cursor
     // iff the widget has never been visible.
