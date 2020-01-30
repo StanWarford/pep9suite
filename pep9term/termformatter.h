@@ -24,7 +24,7 @@ public:
     std::string make_options_names(const CLI::Option *opt, std::string group_name) const;
     std::string find_param_name(const CLI::Option *opt, std::string group_name) const;
     std::string make_option_opts(const CLI::Option *opt) const override;
-    std::string make_subcommands(const CLI::App *app, CLI::AppFormatMode mode) const;
+    std::string make_subcommands(const CLI::App *app, CLI::AppFormatMode mode) const override;
     inline std::string make_description(const CLI::App *app) const override;
 private:
     // For each subcommand (key), mantain a list of flag names (sub-key) and the pretty-print name of the value
