@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
     cpuasm_subcommand->add_option("-e", values.e, cpu_asm_log)->expected(1);
     parameter_formatting["cpuasm"]["e"] = "error_file";
     // Add flags to select 1-byte or 2-byte CPU data bus.
-    auto cpuasm_d2_flag = cpuasm_subcommand->add_flag("-d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
+    auto cpuasm_d2_flag = cpuasm_subcommand->add_flag("--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
     // Microcode input file.
     cpuasm_subcommand->add_option("-s", values.mc, cpuasm_input_file_text)->expected(1)->required(true);
     parameter_formatting["cpuasm"]["s"] = "microcode_file";
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
     cpurun_subcommand->add_option("-e", values.e, cpu_run_log)->expected(1);
     parameter_formatting["cpurun"]["e"] = "error_file";
     // Add flags to select 1-byte or 2-byte CPU data bus.
-    auto cpurun_d2_flag = cpurun_subcommand->add_flag("-d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte_run);
+    auto cpurun_d2_flag = cpurun_subcommand->add_flag("--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte_run);
     // Allow full control section to be enabled iff 2-byte data bus is enabled.
     //auto cpurun_full_ctrl_flag = cpurun_subcommand->add_flag("--full-control",[&](int64_t){handle_full_control(values, true);}, cpu_full_control);
     //cpurun_full_ctrl_flag->needs(cpurun_d2_flag);
