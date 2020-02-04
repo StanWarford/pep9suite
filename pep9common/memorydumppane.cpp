@@ -46,20 +46,7 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     ui->setupUi(this);
     ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
 
-    // Insert 1 column for address, 8 for memory bytes, and 1 for character dump
-    data->insertColumns(0, 1+8+1);
-    // Insert enough rows to hold 64k of memory
-    data->insertRows(0, (1<<16)/8);
-    // Set the addresses of every row now, as they will not change during execution of the program.
-    for(int it = 0; it < (1<<16) /8; it++) {
-        data->setData(data->index(it, 0), QString("%1").arg(it*8, 4, 16, QChar('0')).toUpper() + space);
-    }
-
-    // Hook the table view into the model, and size everything correctly
-    ui->tableView->setModel(data);
-    // Safe to use new inline, as it will be deleted when this class is destructed,
-    ui->tableView->setSelectionModel(new DisableEdgeSelectionModel(data, this));
-    ui->tableView->resizeRowsToContents();
+    // Init data model later, as we need access to the memory device to perform sizing.
 
     // Connect scrolling events
     connect(ui->pcPushButton, &QAbstractButton::clicked, this, &MemoryDumpPane::scrollToPC);
@@ -72,10 +59,40 @@ void MemoryDumpPane::init(QSharedPointer<MainMemory> memory, QSharedPointer<ACPU
 {
     this->memDevice = memory;
     this->cpu = cpu;
+
+    setNumBytesPerLine(bytesPerLine);
+
     delegate = new MemoryDumpDelegate(memDevice, ui->tableView);
     ui->tableView->setItemDelegate(delegate);
     refreshMemoryLines(0, 0);
-    ui->tableView->resizeColumnsToContents();
+}
+
+void MemoryDumpPane::setNumBytesPerLine(quint16 bytesPerLine)
+{
+    Q_ASSERT(bytesPerLine != 0);
+    // Find the nearest power of two for the line size
+    auto pow2 = log2f(bytesPerLine);
+    pow2 = roundf(pow2);
+    // Create nearest power of 2
+    auto effective_line_size = 1 << (int)pow2;
+    // Don't allow sizes larger than 16 for now
+    if(effective_line_size >= 16) effective_line_size = 16;
+    else this->bytesPerLine = (quint16) effective_line_size;
+    data->clear();
+    // Insert 1 column for address, 8 for memory bytes, and 1 for character dump
+    data->insertColumns(0, 1+bytesPerLine+1);
+    // Insert enough rows to hold 64k of memory
+    data->insertRows(0, (1<<16)/bytesPerLine);
+    // Set the addresses of every row now, as they will not change during execution of the program.
+    for(int it = 0; it < (1<<16) /bytesPerLine; it++) {
+        data->setData(data->index(it, 0), QString("%1").arg(it*bytesPerLine, 4, 16, QChar('0')).toUpper() + space);
+    }
+
+    // Hook the table view into the model, and size everything correctly
+    ui->tableView->setModel(data);
+    // Safe to use new inline, as it will be deleted when this class is destructed,
+    ui->tableView->setSelectionModel(new DisableEdgeSelectionModel(data, this));
+    ui->tableView->resizeRowsToContents();
     refreshMemory();
 }
 
@@ -114,8 +131,8 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
 {
     // There are 8 bytes per line, so divide the byte numbers by 8 to
     // get the line number.
-    quint16 firstLine = firstByte / 8;
-    quint16 lastLine = lastByte / 8;
+    quint16 firstLine = firstByte / bytesPerLine;
+    quint16 lastLine = lastByte / bytesPerLine;
     quint8 tempData;
     QChar ch;
     QString memoryDumpLine;
@@ -125,11 +142,11 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
     // Use <= comparison, so when firstLine == lastLine that the line is stil refreshed
     for(int row = firstLine; row <= lastLine; row++) {
         memoryDumpLine.clear();
-        for(int col = 0; col < 8; col++) {
+        for(int col = 0; col < bytesPerLine + 1; col++) {
             // Only access memory if it is in range
-            if(quint32(row * 8 + col) <= memDevice->maxAddress()) {
+            if(quint32(row * bytesPerLine + col) <= memDevice->maxAddress()) {
                 // Use the data in the memory section to set the value in the model.
-                memDevice->getByte(static_cast<quint16>(row * 8 + col), tempData);
+                memDevice->getByte(static_cast<quint16>(row * bytesPerLine + col), tempData);
                 data->setData(data->index(row, col + 1), QString("%1").arg(tempData, 2, 16, QChar('0')).toUpper());
                 ch = QChar(tempData);
                 if (ch.isPrint()) {
@@ -147,14 +164,15 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
 
 
         }
-        data->setData(data->index(row, 1+8), memoryDumpLine.append(space));
+        data->setData(data->index(row, 1+bytesPerLine), memoryDumpLine.append(space));
     }
     lineSize = 0;
-    for(int it = 0; it< data->columnCount(); it++) {
+    for(int it = 0; it < data->columnCount(); it++) {
         lineSize += static_cast<unsigned int>(ui->tableView->columnWidth(it));
     }
-
+    lineSize += QFontMetrics(ui->tableView->font()).boundingRect(space).width();
     ui->tableView->setUpdatesEnabled(updates);
+    ui->tableView->resizeColumnsToContents();
 }
 
 void MemoryDumpPane::clearHighlight()
@@ -225,14 +243,14 @@ void MemoryDumpPane::updateMemory()
     lastModifiedBytes = memDevice->getBytesWritten();
     list = modifiedBytes.toList();
     while(!list.isEmpty()) {
-        linesToBeUpdated.insert(list.takeFirst() / 8);
+        linesToBeUpdated.insert(list.takeFirst() / bytesPerLine);
     }
     list = linesToBeUpdated.toList();
     std::sort(list.begin(), list.end());
 
     for(auto x: list) {
         // Multiply by 8 to convert from line # to address of first byte on a line.
-        refreshMemoryLines(x * 8, x * 8);
+        refreshMemoryLines(x * bytesPerLine, x * bytesPerLine);
     }
 
 }
@@ -284,7 +302,7 @@ void MemoryDumpPane::copy()
 QSize MemoryDumpPane::sizeHint() const
 {
     int tableSize = static_cast<int>(lineSize);
-    int extraPad = 8;
+    int extraPad = 10;
     return QSize(tableSize + extraPad, QWidget::sizeHint().height());
 }
 
@@ -297,8 +315,7 @@ void MemoryDumpPane::onFontChanged(QFont font)
     for(int it = 0; it < data->columnCount(); it++) {
         lineSize += static_cast<unsigned int>(ui->tableView->columnWidth(it));
     }
-    lineSize +=
-            QFontMetrics(font).boundingRect(space).width();
+    lineSize += QFontMetrics(font).boundingRect(space).width();
     ui->tableView->adjustSize();
     setMaximumWidth(sizeHint().width());
 }
@@ -338,7 +355,7 @@ void MemoryDumpPane::highlightByte(quint16 memAddr, QColor foreground, QColor ba
 {
     // Rows contain 8 bytes of memory.
     // The first column is an address, so the first byte in a row is in column one.
-    QModelIndex index = data->index(memAddr/8, memAddr%8 +1);
+    QModelIndex index = data->index(memAddr/bytesPerLine, memAddr%bytesPerLine +1);
     // Set style data of item from parameters.
     data->setData(index, foreground ,Qt::ForegroundRole);
     data->setData(index, background, Qt::BackgroundRole);
@@ -354,7 +371,7 @@ void MemoryDumpPane::scrollToByte(quint16 address)
     // Rows contain 8 bytes of memory.
     // The first column is an address, so the first byte in a row is in column one.
     disconnect(ui->tableView->verticalScrollBar(), &QScrollBar::valueChanged, this, &MemoryDumpPane::scrollToLine);
-    ui->tableView->scrollTo(data->index(address/8, address%8 + 1), QAbstractItemView::ScrollHint::PositionAtTop);
+    ui->tableView->scrollTo(data->index(address/bytesPerLine, address%bytesPerLine + 1), QAbstractItemView::ScrollHint::PositionAtTop);
     connect(ui->tableView->verticalScrollBar(), &QScrollBar::valueChanged, this, &MemoryDumpPane::scrollToLine, Qt::UniqueConnection);
 }
 
@@ -406,7 +423,7 @@ void MemoryDumpPane::scrollToLine(int /*scrollBarValue*/)
     // table data, and returns the index of the topmost visible row.
     // Each row contains 8 bytes, so 8*index gives first byte of row
     // Also, separate 0x from rest of string, so that the x does not get capitalized.
-   QString str = "0x" + QString("%1").arg(ui->tableView->rowAt(0) * 8, 4, 16, QLatin1Char('0')).toUpper();
+   QString str = "0x" + QString("%1").arg(ui->tableView->rowAt(0) * bytesPerLine, 4, 16, QLatin1Char('0')).toUpper();
     ui->scrollToLineEdit->setText(str);
 }
 
@@ -424,7 +441,7 @@ MemoryDumpDelegate::~MemoryDumpDelegate()
 QWidget *MemoryDumpDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     // The first and last columns are not user editable, so do not create an editor.
-    if(index.column() == 0 || index.column() == 1 + 8 || !canEdit) return nullptr;
+    if(index.column() == 0 || index.column() == index.model()->columnCount() - 1 || !canEdit) return nullptr;
     // Otherwise, defer to QStyledItemDelegate's implementation, which returns a LineEdit
     QLineEdit *line = qobject_cast<QLineEdit*>(QStyledItemDelegate::createEditor(parent, option, index));
     // Apply a validator, so that a user cannot input anything other than a one byte hexadecimal constant
@@ -453,8 +470,10 @@ void MemoryDumpDelegate::setModelData(QWidget *editor, QAbstractItemModel *, con
     QString strValue = line->text();
     bool ok;
     quint64 intValue = static_cast<quint64>(strValue.toInt(&ok, 16));
+    // Number of bytes is equal to the number of columns, less the address and data column.
+    quint16 bytesPerLine = index.model()->columnCount() - 2;
     // Use column - 1 since the first column is the address.
-    quint16 addr = static_cast<quint16>(index.row()*8 + index.column() - 1);
+    quint16 addr = static_cast<quint16>(index.row()*bytesPerLine + index.column() - 1);
     // Even though there is a regexp validator in place, validate data again.
     if(ok && intValue< 1<<16) {
         // Instead of inserting data directly into the item model, notify the MemorySection of a change.
@@ -484,7 +503,7 @@ void MemoryDumpDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
         painter->drawLine(style.rect.topRight(), style.rect.bottomRight());
     }
     // The last column has a bar on the left.
-    else if(index.column() == 9) {
+    else if(index.column() == index.model()->columnCount() - 1) {
         QStyleOptionViewItem style(option);
         // Prevent text from being hidden, since the new display rectangle will be too
         // small to hold all of the text.

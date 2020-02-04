@@ -76,6 +76,8 @@ CPUMainWindow::CPUMainWindow(QWidget *parent) :
     qApp->installEventFilter(this);
 
     ui->memoryWidget->init(memDevice, controlSection);
+    // Only display 4 bytes per line, rather than the default 8;
+    ui->memoryWidget->setNumBytesPerLine(4);
     // In Pep9CPU, we don't work with assembly instructions, so disable PC based features
     ui->memoryWidget->setHighlightPC(false);
     ui->memoryWidget->showJumpToPC(false);

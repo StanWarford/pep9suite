@@ -44,6 +44,9 @@ public:
     // Needs to be called after construction but before this class can be used, otherwise the class is in an incomplete state.
     void init(QSharedPointer<MainMemory> memory, QSharedPointer<ACPUModel> cpu);
 
+    // Set the number of bytes displayed per line.
+    void setNumBytesPerLine(quint16 bytesPerLine);
+
     // Optionally disable the highlighting of the PC.
     // By default, the PC is highlighted
     void setHighlightPC(bool highlightPC);
@@ -109,6 +112,7 @@ private:
     Ui::MemoryDumpPane *ui;
     QStandardItemModel* data;
     quint32 lineSize;
+    quint16 bytesPerLine = {8};
     QSharedPointer<MainMemory> memDevice;
     QSharedPointer<ACPUModel> cpu;
     MemoryDumpDelegate *delegate;
