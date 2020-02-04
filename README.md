@@ -52,3 +52,7 @@ The programs come packaged with help documentation to describe the nature and fu
 
 # Executable Downloads
 For analytic reasons, we prefer that you download executables from the above book web site instead of GitHub.
+
+# Developers
+
+Contribute to Pep/9 development. Join the Discord chat at [https://discord.gg/Qza7QH8](https://discord.gg/Qza7QH8).
