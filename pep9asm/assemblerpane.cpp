@@ -59,15 +59,13 @@ void AssemblerPane::loadObjectFile(QString fileName, QString code)
 
 void AssemblerPane::formatAssemblerCode()
 {
-    if(output.isNull()) {
-        auto tempOutput = manager->assembleProgram(getPaneContents(Enu::EPane::ESource));
-        if(!tempOutput->success) {
-            ui->sourcePane->appendMessagesInSourceCodePane(tempOutput->errors);
-            return;
-        }
-        else {
-          output = tempOutput;
-        }
+    auto tempOutput = manager->assembleProgram(getPaneContents(Enu::EPane::ESource));
+    if(!tempOutput->success) {
+        ui->sourcePane->appendMessagesInSourceCodePane(tempOutput->errors);
+        return;
+    }
+    else {
+      output = tempOutput;
     }
     QString code = output->prog->getFormattedSourceCode();
     ui->sourcePane->setSourceCodePaneText(code);
