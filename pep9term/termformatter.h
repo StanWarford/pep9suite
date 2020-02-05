@@ -2,6 +2,7 @@
 #define TERMFORMATTER_H
 #include "CLI11.hpp"
 #include <deque>
+#include <memory>
 
 #include <QDebug>
 class TermFormatter : public CLI::Formatter {

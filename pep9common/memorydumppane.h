@@ -45,6 +45,9 @@ public:
     void init(QSharedPointer<MainMemory> memory, QSharedPointer<ACPUModel> cpu);
 
     // Set the number of bytes displayed per line.
+    // Must be a power of 2 between [1-16].
+    // A number that is not a power of two will be rounded to the nearest power,
+    // and the number will be clamped to 16.
     void setNumBytesPerLine(quint16 bytesPerLine);
 
     // Optionally disable the highlighting of the PC.

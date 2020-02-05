@@ -24,6 +24,7 @@
 #include <QThreadPool>
 
 #include <functional>
+#include <memory>
 #include <optional>
 
 #include "asmbuildhelper.h"
@@ -137,7 +138,7 @@ int main(int argc, char *argv[])
     // For a given subcommand (key) add an additional lengthened description of the subcommand (value).
     // Must be passed to the custom formatter, since the formatter is responsible for "switching" descriptions.
     std::map<std::string, std::string> detailed_descriptions;
-    parser.formatter(std::shared_ptr<TermFormatter>::make_shared(parameter_formatting, detailed_descriptions));
+    parser.formatter(std::make_shared<TermFormatter>(parameter_formatting, detailed_descriptions));
     // Top level option flags
     auto help = parser.set_help_flag("--help,-h", "Show this help information.");
     auto help_all = parser.set_help_all_flag("--help-all", "Show help information for all subcommands.");
