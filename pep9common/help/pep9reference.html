@@ -29,6 +29,7 @@ Pep/9 Reference
  <a href="#SettingN">Setting the N bit on <code>CPr</code></a>,
  <a href="#Addressing">Addressing modes</a>,
  <a href="#Register">Register field</a>,
+ <a href="#MMIO">Memory-mapped I/O</a>,
  <a href="#ALU">ALU Functions</a>.
 
 <h3><a name="Instruction">Instruction set</a></h3>
@@ -251,6 +252,16 @@ will operate as expected.
   <td><code>1</code></td> <td>Index register, X</td>
  </tr>
 </table>
+<p>
+<a href="#Topics">Scroll to topics</a>.
+
+<h3><a name="MMIO">Memory-mapped I/O</a></h3>
+
+In normal operation, the <code>STBA charOut,d</code> instruction outputs a character to the output port and the <code>LDBA charIn,d</code> instruction inputs a character from the input port.
+In the event that <code>STBA charIn,d</code> executes, which attempts to store to the input port, the value stored will be visible in the Memory Dump pane.
+However, that value will not be readable because a subsequent load will get its value from the input stream.
+In the event that <code>LDBA charOut,d</code> executes, which attempts to load from the output port, the value loaded will be the most recent character stored to the output port.
+
 <p>
 <a href="#Topics">Scroll to topics</a>.
 
