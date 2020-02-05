@@ -1554,6 +1554,10 @@ bool MicroMainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         memDevice->clearBytesSet();
         memDevice->clearBytesWritten();
         ui->cpuWidget->startDebugging();
+        // Erase and re-render memory rather then update in place via updateMemory.
+        // For small changes, updateMemory is faster, but for large changes it is much slower.
+        // When beggining debugging, all addresses in the computer are 0'ed out and then
+        // the object code program / OS is loaded. This generate 64k update entries, hence very slow.
         ui->memoryWidget->refreshMemory();
         // Force re-highlighting on memory to prevent last run's data
         // from remaining highlighted. Otherwise, if the last program

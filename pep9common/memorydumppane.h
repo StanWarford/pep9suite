@@ -66,7 +66,9 @@ public:
     virtual ~MemoryDumpPane() override;
 
     void refreshMemory();
-    // Post: the entire memory pane is refreshed
+    // Post: All memory address are re-rendered.
+    // When performing small updates (such as updating 10-20 addresses), updateMemory() is faster.
+    // However, when all of memory must be updated, this method is prefered.
 
     void refreshMemoryLines(quint16 firstByte, quint16 lastByte);
     // Post: The memory dump is refresed from the line containing startByte to the line
@@ -80,7 +82,11 @@ public:
     // The last written bytes are highlighted.
 
     void updateMemory();
-    // Post: Memory displays are updated using the changedMemoryAddrss qlist in sim
+    // Post: All memory addresses written to in internal memDevice will be updated.
+    // This method is very slow when the number of updates to be performed is large.
+    // If a significant portion of memory addresses were modified, refreshMemory() is more performant.
+    // These addressed are accessed via memDevice->getBytesSet(), memDevice->getBytesWritten().
+    // The memDevice's modified address cache will NOT be cleared.
 
     void scrollToTop();
     // Post: Memory dump is scrolled to the top left corner
