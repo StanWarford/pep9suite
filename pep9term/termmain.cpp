@@ -242,9 +242,6 @@ int main(int argc, char *argv[])
         return e.get_exit_code();
     } catch (const CLI::ParseError &e) {
         if(values.had_about || values.had_version) return 0;
-        if(!help || !help_all) {
-            std::cout << parser.help();
-        }
         return parser.exit(e);
     }
 
