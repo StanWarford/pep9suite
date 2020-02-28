@@ -6,7 +6,10 @@ QtDir = $$clean_path($$[QT_INSTALL_PREFIX])
 # Directory where the Qt installer framework is installed.
 # Choose the highest published version of the tools if possible,
 # but we support back to 3.0.
-exists($$QtDir/../../tools/Qtinstallerframework/3.1/bin) {
+exists($$QtDir/../../tools/Qtinstallerframework/3.2/bin) {
+    QtInstallerBin = $$QtDir/../../tools/Qtinstallerframework/3.2/bin
+}
+else:exists($$QtDir/../../tools/Qtinstallerframework/3.1/bin) {
     QtInstallerBin = $$QtDir/../../tools/Qtinstallerframework/3.1/bin
 }
 else {
@@ -87,8 +90,8 @@ defineReplace(extraLibArgs) {
 # Check if repository generation tools exist, warn if they do not.
 defineTest(detectRepogen) {
     !exists($$1/repogen.exe): !exists($$1//repogen) {
-        warning("Aborting repogen creation, since QT Installer Framework 3.1 is not installed.")
-        warning("Please run the QT maintence tool and install QT Installer Framework 3.1.")
+        warning("Aborting repogen creation, since QT Installer Framework 3.1/3.2 is not installed.")
+        warning("Please run the QT maintence tool and install QT Installer Framework 3.1/3.2.")
         return(false)
     }
     return(true)
@@ -104,8 +107,8 @@ defineTest(detectDeploy) {
         exists($$1/macdeployqt) {
             return(true)
         }
-        warning("Aborting installer creation, since QT Installer Framework 3.1 is not installed.")
-        warning("Please run the QT maintence tool and install QT Installer Framework 3.1.")
+        warning("Aborting installer creation, since QT Installer Framework 3.1/3.2 is not installed.")
+        warning("Please run the QT maintence tool and install QT Installer Framework 3.1/3.2.")
         return(false)
     }
     else: linux: !exists($$[QT_INSTALL_BINS]/linuxdeployqt) {
