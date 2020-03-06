@@ -70,13 +70,13 @@ public:
 
     // Returns the set of bytes the have been written / set.
     // since the last clear.
-    const QSet<quint16> getBytesWritten() const noexcept;
-    const QSet<quint16> getBytesSet() const noexcept;
+    virtual const QSet<quint16> getBytesWritten() const noexcept;
+    virtual const QSet<quint16> getBytesSet() const noexcept;
     // Call after all components have (synchronously) had a chance
     // to access these fields. The set of written / set bytes will
     // continue to grow until explicitly reset.
-    void clearBytesWritten() noexcept;
-    void clearBytesSet() noexcept;
+    virtual void clearBytesWritten() noexcept;
+    virtual void clearBytesSet() noexcept;
 
 public slots:
     // Clear the contents of memory. All addresses from 0 to size will be set to 0.

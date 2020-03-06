@@ -36,6 +36,7 @@ class ByteConverterChar;
 class ByteConverterDec;
 class ByteConverterHex;
 class ByteConverterInstr;
+class CacheMemory;
 class CpuPane;
 class AsmHelpDialog;
 class MicrocodePane;
@@ -85,6 +86,7 @@ private:
     ByteConverterInstr *byteConverterInstr;
     // Main Memory
     QSharedPointer<MainMemory> memDevice;
+    QSharedPointer<CacheMemory> cacheDevice;
     QSharedPointer<IsaCpu> controlSection;
 
     // Dialogues

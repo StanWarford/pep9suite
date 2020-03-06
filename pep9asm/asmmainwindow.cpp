@@ -53,6 +53,8 @@
 #include "byteconverterdec.h"
 #include "byteconverterhex.h"
 #include "byteconverterinstr.h"
+#include "cachememory.h"
+#include "cachealgs.h"
 #include "darkhelper.h"
 #include "asmhelpdialog.h"
 #include "isacpu.h"
@@ -69,13 +71,18 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::AsmMainWindow), debugState(DebugState::DISABLED), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
     updateChecker(new UpdateChecker()), isInDarkMode(false),
-    memDevice(new MainMemory(nullptr)), controlSection(new IsaCpu(AsmProgramManager::getInstance(), memDevice)),
+    memDevice(new MainMemory(nullptr)),
+    cacheDevice(nullptr),
+    controlSection(new IsaCpu(AsmProgramManager::getInstance(), memDevice)),
     redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),programManager(AsmProgramManager::getInstance())
 
 {
     // Initialize the memory subsystem
     QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memDevice.get()));
     memDevice->insertChip(ramChip, 0);
+    auto associativity = 4;
+    cacheDevice = QSharedPointer<CacheMemory>::create(memDevice, 8, 7, associativity, QSharedPointer<LRUFactory>::create(associativity), nullptr);
+    controlSection->setMemoryDevice(cacheDevice);
     // I/O chips will still need to be added later
 
     // Perform any additional setup needed for UI objects.

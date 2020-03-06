@@ -35,12 +35,20 @@ FORMS += \
 
 HEADERS += \
     asmmainwindow.h \
-    asmhelpdialog.h
+    asmhelpdialog.h \
+    cachealgs.h \
+    cacheline.h \
+    cachememory.h \
+    cachereplace.h
 
 SOURCES += \
     asmmainwindow.cpp \
     asmhelpdialog.cpp \
-    asmmain.cpp
+    asmmain.cpp \
+    cachealg.cpp \
+    cacheline.cpp \
+    cachememory.cpp \
+    cachereplace.cpp
 
 RESOURCES += \
     ../pep9asm/pep9asm-helpresources.qrc \
