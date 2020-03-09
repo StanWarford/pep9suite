@@ -80,8 +80,11 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     // Initialize the memory subsystem
     QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memDevice.get()));
     memDevice->insertChip(ramChip, 0);
-    auto associativity = 4;
-    cacheDevice = QSharedPointer<CacheMemory>::create(memDevice, 8, 7, associativity, QSharedPointer<LRUFactory>::create(associativity), nullptr);
+    CacheConfiguration config;
+    config.tag_bits = 8; config.index_bits = 4;
+    config.associativity = 8;
+    config.policy =  QSharedPointer<MFUFactory>::create(config.associativity);
+    cacheDevice = QSharedPointer<CacheMemory>::create(memDevice, config, nullptr);
     controlSection->setMemoryDevice(cacheDevice);
     // I/O chips will still need to be added later
 
@@ -100,6 +103,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     ui->asmCpuPane->init(controlSection, controlSection);
     redefineMnemonicsDialog->init(true);
     ui->executionStatisticsWidget->init(controlSection, false);
+    ui->cacheWidget->init(cacheDevice);
 
     // Create & connect all dialogs.
     helpDialog = new AsmHelpDialog(this);
@@ -150,6 +154,8 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     connect(this, &AsmMainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationStarted, ui->memoryWidget, &MemoryDumpPane::onSimulationStarted);
+    connect(this, &AsmMainWindow::simulationUpdate, ui->cacheWidget, &CacheView::updateMemory, Qt::UniqueConnection);
+    connect(this, &AsmMainWindow::simulationStarted, ui->cacheWidget, &CacheView::onSimulationStarted);
     connect(this, &AsmMainWindow::simulationStarted, ui->memoryTracePane, &NewMemoryTracePane::onSimulationStarted);
     connect(this, &AsmMainWindow::simulationStarted, ui->executionStatisticsWidget, &ExecutionStatisticsWidget::onSimulationStarted);
     connect(ui->actionSystem_Clear_CPU, &QAction::triggered, ui->executionStatisticsWidget, &ExecutionStatisticsWidget::onClear);
@@ -164,6 +170,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     // Post finished events to the event queue so that they are processed after simulation updates.
     connect(this, &AsmMainWindow::simulationFinished, controlSection.get(), &IsaCpu::onSimulationFinished, Qt::QueuedConnection);
     connect(this, &AsmMainWindow::simulationFinished, ui->memoryWidget, &MemoryDumpPane::onSimulationFinished, Qt::QueuedConnection);
+    connect(this, &AsmMainWindow::simulationFinished, ui->cacheWidget, &CacheView::onSimulationFinished, Qt::QueuedConnection);
     connect(this, &AsmMainWindow::simulationFinished, ui->memoryTracePane, &NewMemoryTracePane::onSimulationFinished, Qt::QueuedConnection);
     connect(this, &AsmMainWindow::simulationFinished, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::QueuedConnection);
     connect(this, &AsmMainWindow::simulationFinished, ui->executionStatisticsWidget, &ExecutionStatisticsWidget::onSimulationFinished, Qt::QueuedConnection);
@@ -181,12 +188,14 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     connect(this, &AsmMainWindow::fontChanged, ui->ioWidget, &IOWidget::onFontChanged);
     connect(this, &AsmMainWindow::fontChanged, ui->assemblerPane, &AssemblerPane::onFontChanged);
     connect(this, &AsmMainWindow::fontChanged, ui->memoryWidget, &MemoryDumpPane::onFontChanged);
+    connect(this, &AsmMainWindow::fontChanged, ui->cacheWidget, &CacheView::onFontChanged);
     connect(this, &AsmMainWindow::fontChanged, ui->asmProgramTracePane, &AsmProgramTracePane::onFontChanged);
 
     // Connect dark mode events.
     connect(qApp, &QGuiApplication::paletteChanged, this, &AsmMainWindow::onPaletteChanged);
     connect(this, &AsmMainWindow::darkModeChanged, helpDialog, &AsmHelpDialog::onDarkModeChanged);
     connect(this, &AsmMainWindow::darkModeChanged, ui->memoryWidget, &MemoryDumpPane::onDarkModeChanged);
+    connect(this, &AsmMainWindow::darkModeChanged, ui->cacheWidget, &CacheView::onDarkModeChanged);
     connect(this, &AsmMainWindow::darkModeChanged, ui->assemblerPane, &AssemblerPane::onDarkModeChanged);
     connect(this, &AsmMainWindow::darkModeChanged, ui->asmProgramTracePane, &AsmProgramTracePane::onDarkModeChanged);
     connect(this, &AsmMainWindow::darkModeChanged, ui->memoryTracePane, &NewMemoryTracePane::onDarkModeChanged);
@@ -196,6 +205,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     // but the provide no benefit when running.
     // They are reconnected at the end of execution, and the receiving widgets are manually notified that changes may have occured.
     connect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
+    connect(memDevice.get(), &MainMemory::changed, ui->cacheWidget, &CacheView::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
 
     // Connect events for breakpoints
     connect(ui->actionDebug_Remove_All_Assembly_Breakpoints, &QAction::triggered, programManager, &AsmProgramManager::onRemoveAllBreakpoints);
@@ -320,8 +330,11 @@ bool AsmMainWindow::eventFilter(QObject *, QEvent *event)
 
 void AsmMainWindow::connectViewUpdate()
 {
+    connect(memDevice.get(), &MainMemory::changed, ui->cacheWidget, &CacheView::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
     connect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
     connect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
+
+    connect(this, &AsmMainWindow::simulationUpdate, ui->cacheWidget, &CacheView::updateMemory, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationUpdate, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
@@ -333,8 +346,9 @@ void AsmMainWindow::connectViewUpdate()
 
 void AsmMainWindow::disconnectViewUpdate()
 {
-    disconnect(memDevice.get(), &MainMemory::changed, ui->memoryWidget,&MemoryDumpPane::onMemoryChanged);
+    disconnect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged);
     disconnect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged);
+    disconnect(this, &AsmMainWindow::simulationUpdate, ui->cacheWidget, &CacheView::updateMemory);
     disconnect(this, &AsmMainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory);
     disconnect(this, &AsmMainWindow::simulationUpdate, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged);
     disconnect(this, &AsmMainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate);
@@ -920,6 +934,7 @@ bool AsmMainWindow::initializeSimulation()
     // Clear data models & application views
     controlSection->onResetCPU();
     controlSection->initCPU();
+    cacheDevice->clearCache();
     ui->asmCpuPane->clearCpu();
 
     // No longer emits simulationStarted(), as this could trigger extra screen painting that is unwanted.
@@ -1122,7 +1137,7 @@ void AsmMainWindow::on_actionBuild_Load_Object_triggered()
 {
     loadOperatingSystem();
     loadObjectCodeProgram();
-    ui->memoryWidget->refreshMemory();
+    refresehMemories();
     ui->memoryWidget->clearHighlight();
 }
 
@@ -1134,7 +1149,7 @@ void AsmMainWindow::on_actionBuild_Execute_triggered()
         disconnectViewUpdate();
         emit simulationStarted();
         ui->memoryWidget->clearHighlight();
-        ui->memoryWidget->refreshMemory();
+        refresehMemories();
         controlSection->onSimulationStarted();
         controlSection->onRun();
         connectViewUpdate();
@@ -1168,7 +1183,7 @@ void AsmMainWindow::on_actionBuild_Run_triggered()
         memDevice->clearBytesSet();
         memDevice->clearBytesWritten();
         emit simulationStarted();
-        ui->memoryWidget->updateMemory();
+        updateMemories();
         ui->memoryTracePane->updateTrace();
         controlSection->onSimulationStarted();
         controlSection->onRun();
@@ -1276,7 +1291,7 @@ bool AsmMainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         // For small changes, updateMemory is faster, but for large changes it is much slower.
         // When beggining debugging, all addresses in the computer are 0'ed out and then
         // the object code program / OS is loaded. This generate 64k update entries, hence very slow.
-        ui->memoryWidget->refreshMemory();
+        refresehMemories();
         // Force re-highlighting on memory to prevent last run's data
         // from remaining highlighted. Otherwise, if the last program
         // was "run", then every byte that it modified will be highlighted
@@ -1312,7 +1327,7 @@ bool AsmMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     controlSection->getRegisterBank().writeRegisterWord(Enu::CPURegisters::PC, pc);
     controlSection->getRegisterBank().writeRegisterWord(Enu::CPURegisters::SP, sp);
     // Memory has been cleared, but will not display as such unless explicitly refreshed.
-    ui->memoryWidget->refreshMemory();
+    refresehMemories();
     // Give focus to the trace pane so that once can immediately
     // start hitting "return" to trigger single steps.
     ui->asmProgramTracePane->setFocus(Qt::FocusReason::MouseFocusReason);
@@ -1443,6 +1458,18 @@ void AsmMainWindow::onPaletteChanged(const QPalette &)
     onDarkModeChanged();
 }
 
+void AsmMainWindow::refresehMemories()
+{
+    ui->cacheWidget->refreshMemory();
+    ui->memoryWidget->refreshMemory();
+}
+
+void AsmMainWindow::updateMemories()
+{
+    ui->cacheWidget->updateMemory();
+    ui->memoryWidget->updateMemory();
+}
+
 // System MainWindow triggers
 void AsmMainWindow::on_actionSystem_Clear_CPU_triggered()
 {
@@ -1453,7 +1480,8 @@ void AsmMainWindow::on_actionSystem_Clear_CPU_triggered()
 void AsmMainWindow::on_actionSystem_Clear_Memory_triggered()
 {
     memDevice->clearMemory();
-    ui->memoryWidget->refreshMemory();
+    cacheDevice->clearCache();
+    refresehMemories();
     ui->memoryWidget->clearHighlight();
 
 }
@@ -1477,14 +1505,14 @@ void AsmMainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
         ui->statusBar->showMessage("Assembly failed, previous OS remains", 4000);
     }
     loadOperatingSystem();
-    ui->memoryWidget->refreshMemory();
+    refresehMemories();
 }
 
 void AsmMainWindow::on_actionSystem_Reinstall_Default_OS_triggered()
 {
     assembleDefaultOperatingSystem();
     loadOperatingSystem();
-    ui->memoryWidget->refreshMemory();
+    refresehMemories();
 }
 
 void AsmMainWindow::on_actionSystem_Redefine_Mnemonics_triggered()
@@ -1503,11 +1531,11 @@ void AsmMainWindow::onSimulationFinished()
 {
     QString errorString;
     on_actionDebug_Stop_Debugging_triggered();
-
+    ui->cacheWidget->refreshMemory();
     if(controlSection->hadErrorOnStep()) {
         QMessageBox::critical(
           this,
-          tr("Pep/9 Micro"),
+          tr("Pep/9"),
           controlSection->getErrorMessage());
         ui->statusBar->showMessage("Execution failed", 4000);
     }
@@ -1620,7 +1648,7 @@ void AsmMainWindow::on_actionView_Code_CPU_triggered()
 
 void AsmMainWindow::on_actionView_Code_CPU_Memory_triggered()
 {
-    ui->memoryWidget->refreshMemory();
+    refresehMemories();
     ui->horizontalSplitter->widget(0)->show();
     ui->horizontalSplitter->widget(1)->show();
     ui->horizontalSplitter->widget(2)->show();
@@ -1719,6 +1747,9 @@ void AsmMainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     if(ui->memoryWidget->isAncestorOf(oldFocus)) {
         ui->memoryWidget->highlightOnFocus();
     }
+    else if(ui->cacheWidget->isAncestorOf(oldFocus)) {
+        ui->cacheWidget->highlightOnFocus();
+    }
     else if(ui->assemblerPane->isAncestorOf(oldFocus)) {
         ui->assemblerPane->highlightOnFocus();
     }
@@ -1744,6 +1775,10 @@ void AsmMainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     else if (ui->memoryWidget->hasFocus()) {
         which = Enu::EditButton::COPY;
         ui->memoryWidget->highlightOnFocus();
+    }
+    else if (ui->cacheWidget->hasFocus()) {
+        which = Enu::EditButton::COPY;
+        ui->cacheWidget->highlightOnFocus();
     }
     else if (ui->assemblerPane->isAncestorOf(focusWidget())) {
         which = ui->assemblerPane->enabledButtons();
@@ -1895,7 +1930,7 @@ void AsmMainWindow::onInputRequested(quint16 address)
 
 void AsmMainWindow::onBreakpointHit(Enu::BreakpointTypes type)
 {
-    ui->memoryWidget->refreshMemory();
+    refresehMemories();
     ui->memoryTracePane->updateTrace();
     switch(type) {
     case Enu::BreakpointTypes::ASSEMBLER:

@@ -106,7 +106,7 @@ public:
 
 public slots:
     void onFontChanged(QFont font);
-    // Post: the font used in the memory dump
+    // Post: the font used in the memory dump is updated to be "font".
 
     // Handle switching styles to and from dark mode & potential re-highlighting
     void onDarkModeChanged(bool darkMode);

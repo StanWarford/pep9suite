@@ -1,12 +1,11 @@
 #include "cachememory.h"
 #include <cmath>
 #include <QDebug>
-CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, quint16 tag_size,
-                         quint16 index_size, quint16 associativity, QSharedPointer<AReplacementFactory> policy,
+CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, CacheConfiguration config,
                          QObject* parent):
-    AMemoryDevice(parent), memory_device(memory_device), replace_factory(policy),
-    tag_size(tag_size), index_size(index_size),
-    data_size(16 - tag_size - index_size), associativity(associativity)
+    AMemoryDevice(parent), memory_device(memory_device), replace_factory(config.policy),
+    tag_size(config.tag_bits), index_size(config.index_bits),
+    data_size(16 - tag_size - index_size), associativity(config.associativity)
 {
     // Make sure that cache won't accidentally go outside the range of accessible memory
     assert(safe_configuration(maxAddress(), tag_size, index_size, data_size, associativity));
@@ -51,10 +50,21 @@ quint16 CacheMemory::get_data_size() const
     return data_size;
 }
 
-void CacheMemory::resize_cache(quint16 tag_size, quint16 index_size, quint16 associativity,
-                               QSharedPointer<AReplacementFactory> factory)
+void CacheMemory::resize_cache(CacheConfiguration config)
 {
+    // No operation for now.
     //cache.resize()
+}
+
+void CacheMemory::clearCache()
+{
+    for(auto& line : cache) {
+        line.clear();
+    }
+
+    hit_read = 0;
+    miss_read = 0;
+    writes = 0;
 }
 
 quint32 CacheMemory::maxAddress() const noexcept
@@ -64,14 +74,7 @@ quint32 CacheMemory::maxAddress() const noexcept
 
 void CacheMemory::clearMemory()
 {
-    for(auto line : cache) {
-        line.clear();
-    }
-
-    hit_read = 0;
-    miss_read = 0;
-    writes = 0;
-
+    clearCache();
     memory_device->clearMemory();
 }
 
@@ -91,6 +94,7 @@ void CacheMemory::onCycleFinished()
 
 bool CacheMemory::readByte(quint16 address, quint8 &output) const
 {
+    addressesTouched.insert(address);
     auto addr = breakdown_address(address);
 
     // If address is present in line, notify CRP of a hit.
@@ -139,14 +143,24 @@ bool CacheMemory::setByte(quint16 address, quint8 value)
     return memory_device->setByte(address, value);
 }
 
+const QSet<quint16> CacheMemory::getBytesRead() const noexcept
+{
+    return addressesTouched;
+}
+
 const QSet<quint16> CacheMemory::getBytesWritten() const noexcept
 {
-    memory_device->getBytesWritten();
+    return memory_device->getBytesWritten();
 }
 
 const QSet<quint16> CacheMemory::getBytesSet() const noexcept
 {
-    memory_device->getBytesSet();
+    return memory_device->getBytesSet();
+}
+
+void CacheMemory::clearBytesRead() noexcept
+{
+    addressesTouched.clear();
 }
 
 void CacheMemory::clearBytesWritten() noexcept
@@ -172,6 +186,18 @@ AddressBreakdown CacheMemory::breakdown_address(quint16 address) const
     ret.index = (address >> index_shift) & (index_mask);
     // Tag is highest order bits of address.
     ret.tag = (address >> tag_shift) & tag_mask;
-    qDebug().noquote() << QString("T%1 I%2 O%3").arg(ret.tag).arg(ret.index).arg(ret.offset);
+    //qDebug().noquote() << QString("T%1 I%2 O%3").arg(ret.tag).arg(ret.index).arg(ret.offset);
     return ret;
+}
+
+std::optional<const CacheLine *> CacheMemory::get_cache_line(quint16 tag) const
+{
+    if(tag >= (1 << tag_size)) return std::nullopt;
+    else return &cache[tag];
+
+}
+
+QString CacheMemory::get_cache_algorithm() const
+{
+    return replace_factory->get_algorithm_name();
 }

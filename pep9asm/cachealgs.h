@@ -2,12 +2,30 @@
 #define LRUREPLACE_H
 
 #include <random>
+#include <deque>
 
+#include <QMetaObject>
+#include <QMetaEnum>
 #include <QVector>
 #include <QSharedPointer>
 
 #include "cachereplace.h"
 
+/*
+ * Algorithms Summary
+ */
+namespace CacheAlgorithms{
+    Q_NAMESPACE
+    enum CacheAlgorithms {
+        // Count
+        LRU, MRU,
+        LFU, MFU,
+        FIFO,
+        Random,
+    };
+    Q_ENUM_NS(CacheAlgorithms);
+    static QMap<CacheAlgorithms, AReplacementFactory*> factory;
+}
 /*
  * Least/Most Recently Used (LRU/MRU) Replacement
  */
@@ -20,7 +38,7 @@ protected:
     QVector<quint32> last_access;
 
 public:
-    typedef QVector<quint32>::iterator iterator;
+    typedef QVector<quint32>::const_iterator iterator;
     typedef std::function<iterator(iterator, iterator)> SelectFunction;
 public:
     RecentReplace(quint16 size, SelectFunction element_select);
@@ -31,9 +49,11 @@ public:
 public:
     void reference(quint16 index) override;
     quint16 evict() override;
+    quint16 supports_evicition_lookahead() const override;
+    QVector<quint16> eviction_loohahead(quint16 count) const override;
     void clear() override;
 
-private:
+protected:
    SelectFunction element_select;
 };
 
@@ -43,7 +63,7 @@ public:
     LRUReplace(quint16 size);
     virtual ~LRUReplace() override = default;
 
-    QString get_algorithm_name() const override {return "LRU";}
+    QString get_algorithm_name() const override;
 };
 
 class MRUReplace : public RecentReplace
@@ -52,7 +72,7 @@ public:
     MRUReplace(quint16 size);
     virtual ~MRUReplace() override = default;
 
-    QString get_algorithm_name() const override {return "MRU";}
+    QString get_algorithm_name() const override;
 };
 
 class LRUFactory : public AReplacementFactory
@@ -62,6 +82,9 @@ public:
     ~LRUFactory() override = default;
 
     QSharedPointer<AReplacementPolicy> create_policy() override;
+    QString get_algorithm_name() const override {return algorithm();}
+    static const QString algorithm();
+    static CacheAlgorithms::CacheAlgorithms algorithm_enum();
 };
 
 class MRUFactory : public AReplacementFactory
@@ -71,6 +94,9 @@ public:
     ~MRUFactory() override = default;
 
     QSharedPointer<AReplacementPolicy> create_policy() override;
+    QString get_algorithm_name() const override {return algorithm();}
+    static const QString algorithm();
+    static CacheAlgorithms::CacheAlgorithms algorithm_enum();
 };
 
 /*
@@ -84,7 +110,7 @@ protected:
     QVector<quint32> access_count;
 
 public:
-    typedef QVector<quint32>::iterator iterator;
+    typedef QVector<quint32>::const_iterator iterator;
     typedef std::function<iterator(iterator, iterator)> SelectFunction;
 public:
     FrequencyReplace(quint16 size, SelectFunction element_select);
@@ -95,6 +121,8 @@ public:
 public:
     void reference(quint16 index) override;
     quint16 evict() override;
+    quint16 supports_evicition_lookahead() const override;
+    QVector<quint16> eviction_loohahead(quint16 count) const override;
     void clear() override;
 
 private:
@@ -107,7 +135,7 @@ public:
     LFUReplace(quint16 size);
     virtual ~LFUReplace() override = default;
 
-    QString get_algorithm_name() const override {return "LFU";}
+    QString get_algorithm_name() const override;
 };
 
 class MFUReplace : public FrequencyReplace
@@ -116,7 +144,7 @@ public:
     MFUReplace(quint16 size);
     virtual ~MFUReplace() override = default;
 
-    QString get_algorithm_name() const override {return "MFU";}
+    QString get_algorithm_name() const override;
 };
 
 class LFUFactory : public AReplacementFactory
@@ -126,6 +154,9 @@ public:
     ~LFUFactory() override = default;
 
     QSharedPointer<AReplacementPolicy> create_policy() override;
+    QString get_algorithm_name() const override {return algorithm();}
+    static const QString algorithm();
+    static CacheAlgorithms::CacheAlgorithms algorithm_enum();
 };
 
 class MFUFactory : public AReplacementFactory
@@ -135,8 +166,45 @@ public:
     ~MFUFactory() override = default;
 
     QSharedPointer<AReplacementPolicy> create_policy() override;
+    QString get_algorithm_name() const override {return algorithm();}
+    static const QString algorithm();
+    static CacheAlgorithms::CacheAlgorithms algorithm_enum();
 };
 
+/*
+ * Order based replacement algorithms.
+ */
+
+class FIFOReplace : public AReplacementPolicy
+{
+
+protected:
+    quint16 size, next_victim;
+public:
+    FIFOReplace(quint16 size);
+    virtual ~FIFOReplace() override = default;
+
+    // AReplacementPolicy interface
+public:
+    void reference(quint16 index) override;
+    QString get_algorithm_name() const override;
+    quint16 evict() override;
+    quint16 supports_evicition_lookahead() const override;
+    QVector<quint16> eviction_loohahead(quint16 count) const override;
+    void clear() override;
+};
+
+class FIFOFactory : public AReplacementFactory
+{
+public:
+    FIFOFactory(quint16 associativity);
+    ~FIFOFactory() override = default;
+
+    QSharedPointer<AReplacementPolicy> create_policy() override;
+    QString get_algorithm_name() const override {return algorithm();}
+    static const QString algorithm();
+    static CacheAlgorithms::CacheAlgorithms algorithm_enum();
+};
 
 /*
  * Random Replacement
@@ -150,12 +218,17 @@ public:
     // AReplacementPolicy interface
 public:
     void reference(quint16 index) override;
-    QString get_algorithm_name() const override {return "Random";}
     quint16 evict() override;
+    quint16 supports_evicition_lookahead() const override;
+    QVector<quint16> eviction_loohahead(quint16 count) const override;
     void clear() override;
 
 private:
+    // Support a single look-ahead for eviction.
+    mutable bool has_next_random = false;
+    mutable quint16 next_random = 0;
     std::function<quint16()> get_random;
+    QString get_algorithm_name() const override;
 
 };
 
@@ -166,6 +239,9 @@ public:
     ~RandomFactory() override = default;
 
     QSharedPointer<AReplacementPolicy> create_policy() override;
+    QString get_algorithm_name() const override;
+    static const QString algorithm();
+    static CacheAlgorithms::CacheAlgorithms algorithm_enum();
 private:
     std::default_random_engine generator;
     std::uniform_int_distribution<quint16> distribution;

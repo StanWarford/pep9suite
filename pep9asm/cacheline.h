@@ -11,6 +11,7 @@ struct CacheEntry
 {
     bool is_present = false;
     quint16 index = 0;
+    quint32 hit_count;
 };
 
 class CacheLine
@@ -25,6 +26,9 @@ public:
     void insert(quint16 index);
     // Mark all entries in line as not-present and update replacement policy.
     void clear();
+
+    std::optional<const CacheEntry*> get_entry(quint16 position) const;
+    QSharedPointer<const AReplacementPolicy> get_replacement_policy() const;
 private:
     QVector<CacheEntry> entries;
     QSharedPointer<AReplacementPolicy> replacement_policy = nullptr;

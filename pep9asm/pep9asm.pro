@@ -24,14 +24,16 @@ QT += widgets webenginewidgets printsupport concurrent
 ICON = images/icon.icns
 QMAKE_INFO_PLIST = app.plist
 # Remove version check 1/3/2020
-# QMAKE_MAC_SDK = macosx10.14
+QMAKE_MAC_SDK = macosx10.15
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
 
 #Windows RC file for icon:
 RC_FILE = pep9resources.rc
 
 FORMS += \
     asmmainwindow.ui \
-    asmhelpdialog.ui
+    asmhelpdialog.ui \
+    cacheview.ui
 
 HEADERS += \
     asmmainwindow.h \
@@ -39,7 +41,8 @@ HEADERS += \
     cachealgs.h \
     cacheline.h \
     cachememory.h \
-    cachereplace.h
+    cachereplace.h \
+    cacheview.h
 
 SOURCES += \
     asmmainwindow.cpp \
@@ -48,7 +51,8 @@ SOURCES += \
     cachealg.cpp \
     cacheline.cpp \
     cachememory.cpp \
-    cachereplace.cpp
+    cachereplace.cpp \
+    cacheview.cpp
 
 RESOURCES += \
     ../pep9asm/pep9asm-helpresources.qrc \

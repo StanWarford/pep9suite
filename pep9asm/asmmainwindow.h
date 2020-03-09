@@ -267,6 +267,8 @@ private:
     // Helpers to seperate breakpoint logic
     void onASMBreakpointHit();
     void onPaletteChanged(const QPalette &palette);
+    void refresehMemories();
+    void updateMemories();
 
 signals:
     void beginUpdateCheck();
