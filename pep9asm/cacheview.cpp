@@ -127,7 +127,8 @@ void CacheView::refreshLine(quint16 line)
             c4_hits = entryPtr->hit_count;
         }
 
-        if(linePtr->get_replacement_policy()->eviction_loohahead() == entry) {
+        quint16 eviction_candidate = linePtr->get_replacement_policy()->eviction_loohahead();
+        if(eviction_candidate == entry) {
             c1_evict = Qt::CheckState::Checked;
         }
 

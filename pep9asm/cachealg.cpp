@@ -399,3 +399,106 @@ CacheAlgorithms::CacheAlgorithms RandomFactory::algorithm_enum()
 {
     return CacheAlgorithms::Random;
 }
+
+
+BPLRU::BPLRU(quint16 associativity, std::function<quint16 ()> &evict_left, std::function<quint16 ()> evict_right):
+    AReplacementPolicy(), associativity(associativity), evict_left(evict_left),
+    evict_right(evict_right), side(MRUSide::LEFT)
+{
+
+}
+
+void BPLRU::reference(quint16 index)
+{
+    // If the index is on the left side, protect the right side.
+    auto old_side = side;
+    if(index < associativity/2) {
+        side = MRUSide::LEFT;
+    } else {
+        side = MRUSide::RIGHT;
+    }
+    if(old_side != side) has_next_random = false;
+}
+
+QString BPLRU::get_algorithm_name() const
+{
+    return BPLRUFactory::algorithm();
+}
+
+quint16 BPLRU::evict()
+{
+    quint16 index = eviction_loohahead();
+    has_next_random = false;
+
+    // If the index is on the left side, protect the right side.
+    if(index < associativity/2) {
+        side = MRUSide::LEFT;
+    } else {
+        side = MRUSide::RIGHT;
+    }
+    return index;
+}
+
+quint16 BPLRU::supports_evicition_lookahead() const
+{
+    return 1;
+}
+
+quint16 BPLRU::eviction_loohahead() const
+{
+    if(has_next_random) return next_random;
+    else if(side == MRUSide::RIGHT) {
+        has_next_random = true;
+        next_random = evict_left();
+    } else if(side == MRUSide::LEFT) {
+        has_next_random = true;
+        next_random = evict_right();
+    }
+    return next_random;
+}
+
+QVector<quint16> BPLRU::eviction_loohahead(quint16 count) const
+{
+    return QVector<quint16>{eviction_loohahead()};
+}
+
+void BPLRU::clear()
+{
+    side = MRUSide::RIGHT;
+    has_next_random = false;
+}
+
+BPLRUFactory::BPLRUFactory(quint16 associativity): AReplacementFactory(associativity)
+{
+    // Use two separate random functions, since there is no guarantee that there is
+    // symetry between the number of cache entries on the right half and the left half.
+    evict_left = std::uniform_int_distribution<quint16>(0, (associativity/2) -1);
+    qDebug() << 0 << (associativity/2) -1;
+    evict_right = std::uniform_int_distribution<quint16>((associativity/2), associativity -1);
+    qDebug() << (associativity/2) << associativity - 1;
+
+    rand_left = std::function<quint16()>([&](){return evict_left(generator);});
+    rand_right = std::function<quint16()>([&](){return evict_right(generator);});
+}
+
+QSharedPointer<AReplacementPolicy> BPLRUFactory::create_policy()
+{
+    return QSharedPointer<BPLRU>::create(get_associativity(), rand_left, rand_right);
+}
+
+QString BPLRUFactory::get_algorithm_name() const
+{
+    return algorithm();
+}
+
+const QString BPLRUFactory::algorithm()
+{
+    QMetaObject meta = CacheAlgorithms::staticMetaObject;
+    QMetaEnum metaEnum = meta.enumerator(meta.indexOfEnumerator("CacheAlgorithms"));
+    return QString(metaEnum.key(algorithm_enum()));
+}
+
+CacheAlgorithms::CacheAlgorithms BPLRUFactory::algorithm_enum()
+{
+    return CacheAlgorithms::BPLRU;
+}

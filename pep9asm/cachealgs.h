@@ -19,6 +19,7 @@ namespace CacheAlgorithms{
     enum CacheAlgorithms {
         // Count
         LRU, MRU,
+        BPLRU,
         LFU, MFU,
         FIFO,
         Random,
@@ -221,6 +222,7 @@ public:
     // AReplacementPolicy interface
 public:
     void reference(quint16 index) override;
+    QString get_algorithm_name() const override;
     quint16 evict() override;
     quint16 supports_evicition_lookahead() const override;
     quint16 eviction_loohahead() const override;
@@ -232,7 +234,6 @@ private:
     mutable bool has_next_random = false;
     mutable quint16 next_random = 0;
     std::function<quint16()> get_random;
-    QString get_algorithm_name() const override;
 
 };
 
@@ -247,9 +248,65 @@ public:
     static const QString algorithm();
     static CacheAlgorithms::CacheAlgorithms algorithm_enum();
 private:
-    std::default_random_engine generator;
+    std::default_random_engine generator{};
     std::uniform_int_distribution<quint16> distribution;
     std::function<quint16()> random_function;
+};
+
+/*
+ * Pseudo-LRU
+ */
+
+// Implements the 1-bit Pseudo-LRU replacement policy.
+// It "remebers" which half of the cache is msot recently used,
+// and protects the entries on that side.
+// A random cache entry from the unprotected side is evicted.
+// See description, available here:
+//      https://people.kth.se/~ingo/MasterThesis/ThesisDamienGille2007.pdf
+class BPLRU : public AReplacementPolicy
+{
+public:
+    BPLRU(quint16 associativity, std::function<quint16()>& evict_left, std::function<quint16()> evict_right);
+    virtual ~BPLRU() override = default;
+
+    // AReplacementPolicy interface
+public:
+    void reference(quint16 index) override;
+    QString get_algorithm_name() const override;
+    quint16 evict() override;
+    quint16 supports_evicition_lookahead() const override;
+    quint16 eviction_loohahead() const override;
+    QVector<quint16> eviction_loohahead(quint16 count) const override;
+    void clear() override;
+protected:
+    quint16 associativity;
+
+    // Support a single look-ahead for eviction.
+    mutable bool has_next_random = false;
+    mutable quint16 next_random = 0;
+
+    // Deterimine which side to random evict from.
+    enum class MRUSide {
+        RIGHT, LEFT
+    };
+    MRUSide side = MRUSide::LEFT;
+    std::function<quint16()>& evict_left, evict_right;
+};
+class BPLRUFactory : public AReplacementFactory
+{
+public:
+    BPLRUFactory(quint16 associativity);
+    ~BPLRUFactory() override = default;
+
+    QSharedPointer<AReplacementPolicy> create_policy() override;
+    QString get_algorithm_name() const override;
+    static const QString algorithm();
+    static CacheAlgorithms::CacheAlgorithms algorithm_enum();
+
+private:
+    std::default_random_engine generator{};
+    std::uniform_int_distribution<quint16> evict_left, evict_right;
+    std::function<quint16()> rand_left, rand_right;
 };
 
 #endif // LRUREPLACE_H
