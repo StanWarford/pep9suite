@@ -21,7 +21,7 @@ void RecentReplace::reference(quint16 index)
 
 quint16 RecentReplace::evict()
 {
-    auto index = element_select(last_access.begin(), last_access.end()) - last_access.begin();
+    auto index = eviction_loohahead();
     last_access[index] = count++;
     return index;
 }
@@ -31,10 +31,15 @@ quint16 RecentReplace::supports_evicition_lookahead() const
     return 1;
 }
 
-QVector<quint16> RecentReplace::eviction_loohahead(quint16 /*count*/) const
+quint16 RecentReplace::eviction_loohahead() const
 {
     auto index = element_select(last_access.cbegin(), last_access.cend()) - last_access.cbegin();
-    return QVector<quint16>{static_cast<quint16>(index)};
+    return static_cast<quint16>(index);
+}
+
+QVector<quint16> RecentReplace::eviction_loohahead(quint16 /*count*/) const
+{
+    return QVector<quint16>{eviction_loohahead()};
 }
 
 void RecentReplace::clear()
@@ -130,16 +135,7 @@ void FrequencyReplace::reference(quint16 index)
 
 quint16 FrequencyReplace::evict()
 {
-    quint16 location;
-    // If an entry hasn't been referenced, then it is not present.
-    if(auto zero_pos = std::find(access_count.cbegin(), access_count.cend(), 0);
-            zero_pos != access_count.cend()) {
-        location = zero_pos - access_count.cbegin();
-    }
-    // Otherwise we must evict a real cache entry instead of a not-present entry.
-    else {
-        location = element_select(access_count.begin(), access_count.end()) - access_count.begin();
-    }
+    quint16 location = eviction_loohahead();
     auto init_value = *std::min(access_count.begin(), access_count.end());
     access_count[location] = init_value;
     return location;
@@ -150,7 +146,7 @@ quint16 FrequencyReplace::supports_evicition_lookahead() const
     return 1;
 }
 
-QVector<quint16> FrequencyReplace::eviction_loohahead(quint16 count) const
+quint16 FrequencyReplace::eviction_loohahead() const
 {
     quint16 location;
     // If an entry hasn't been referenced, then it is not present.
@@ -162,7 +158,13 @@ QVector<quint16> FrequencyReplace::eviction_loohahead(quint16 count) const
     else {
         location = element_select(access_count.cbegin(), access_count.cend()) - access_count.cbegin();
     }
-    return QVector<quint16>{static_cast<quint16>(location)};
+    return location;
+}
+
+QVector<quint16> FrequencyReplace::eviction_loohahead(quint16 count) const
+{
+
+    return QVector<quint16>{eviction_loohahead()};
 }
 
 void FrequencyReplace::clear()
@@ -265,6 +267,11 @@ quint16 FIFOReplace::supports_evicition_lookahead() const
     return size;
 }
 
+quint16 FIFOReplace::eviction_loohahead() const
+{
+    return next_victim;
+}
+
 QVector<quint16> FIFOReplace::eviction_loohahead(quint16 count) const
 {
     auto items = next_victim;
@@ -329,7 +336,10 @@ void RandomReplace::reference(quint16 /*index*/)
 
 quint16 RandomReplace::evict()
 {
-    if(has_next_random) return next_random;
+    if(has_next_random) {
+        has_next_random = false;
+        return next_random;
+    }
     else return get_random();
 }
 
@@ -338,17 +348,23 @@ quint16 RandomReplace::supports_evicition_lookahead() const
     return  1;
 }
 
-QVector<quint16> RandomReplace::eviction_loohahead(quint16 count) const
+quint16 RandomReplace::eviction_loohahead() const
 {
     if(!has_next_random) {
         has_next_random = true;
         next_random = get_random();
     }
-    QVector<quint16>{next_random};
+    return next_random;
+}
+
+QVector<quint16> RandomReplace::eviction_loohahead(quint16 count) const
+{
+    return QVector<quint16>{eviction_loohahead()};
 }
 
 void RandomReplace::clear()
 {
+    has_next_random = false;
     // No-operation
 }
 

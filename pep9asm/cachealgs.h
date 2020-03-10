@@ -50,6 +50,7 @@ public:
     void reference(quint16 index) override;
     quint16 evict() override;
     quint16 supports_evicition_lookahead() const override;
+    quint16 eviction_loohahead() const override;
     QVector<quint16> eviction_loohahead(quint16 count) const override;
     void clear() override;
 
@@ -122,6 +123,7 @@ public:
     void reference(quint16 index) override;
     quint16 evict() override;
     quint16 supports_evicition_lookahead() const override;
+    quint16 eviction_loohahead() const override;
     QVector<quint16> eviction_loohahead(quint16 count) const override;
     void clear() override;
 
@@ -190,6 +192,7 @@ public:
     QString get_algorithm_name() const override;
     quint16 evict() override;
     quint16 supports_evicition_lookahead() const override;
+    quint16 eviction_loohahead() const override;
     QVector<quint16> eviction_loohahead(quint16 count) const override;
     void clear() override;
 };
@@ -220,6 +223,7 @@ public:
     void reference(quint16 index) override;
     quint16 evict() override;
     quint16 supports_evicition_lookahead() const override;
+    quint16 eviction_loohahead() const override;
     QVector<quint16> eviction_loohahead(quint16 count) const override;
     void clear() override;
 

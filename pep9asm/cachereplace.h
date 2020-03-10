@@ -19,6 +19,8 @@ public:
     // How far ahead can eviction predicitions be made?
     // For example, random evicition has a lookahead of 1.
     virtual quint16 supports_evicition_lookahead() const = 0;
+    // Return the next item to be evicted from the cache.
+    virtual quint16 eviction_loohahead() const = 0;
     // Return the next "count" items to be evicted from the cache.
     // If count is greater than supports_evicition_lookahead(), the smaller of the two will be returned.
     // The returned vector is the indicies of the cache entries to be evicted, sorted
