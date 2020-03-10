@@ -75,17 +75,14 @@ public slots:
     // since the last clear.
     // TODO: Must find a way to clear bytesRead from ISA simulator, or
     // this set will grow forever. May need to move to base class.
-    const QSet<quint16> getBytesRead() const noexcept;
     const QSet<quint16> getBytesWritten() const noexcept override;
     const QSet<quint16> getBytesSet() const noexcept override;
     // Call after all components have (synchronously) had a chance
     // to access these fields. The set of written / set bytes will
     // continue to grow until explicitly reset.
-    void clearBytesRead() noexcept;
     void clearBytesWritten() noexcept override;
     void clearBytesSet() noexcept override;
 private:
-    mutable QSet<quint16> addressesTouched;
     mutable std::vector<CacheLine> cache;
     QSharedPointer<MainMemory> memory_device;
     QSharedPointer<AReplacementFactory> replace_factory;

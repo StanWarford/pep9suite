@@ -1437,8 +1437,7 @@ void MicroMainWindow::on_actionBuild_Run_triggered()
     if (initializeSimulation()) {
         ui->asmProgramTracePane->startSimulationView();
         disconnectViewUpdate();
-        memDevice->clearBytesSet();
-        memDevice->clearBytesWritten();
+        memDevice->clearAllByteCaches();
         emit simulationStarted();
         ui->memoryWidget->updateMemory();
         ui->memoryTracePane->updateTrace();
@@ -1551,8 +1550,7 @@ bool MicroMainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         controlSection->breakpointsSet(programManager->getBreakpoints());
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
         ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->assemblerDebuggerTab));
-        memDevice->clearBytesSet();
-        memDevice->clearBytesWritten();
+        memDevice->clearAllByteCaches();
         ui->cpuWidget->startDebugging();
         // Erase and re-render memory rather then update in place via updateMemory.
         // For small changes, updateMemory is faster, but for large changes it is much slower.
@@ -1649,8 +1647,7 @@ bool MicroMainWindow::on_actionDebug_Start_Debugging_Microcode_triggered()
     controlSection->breakpointsSet(programManager->getBreakpoints());
     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
-    memDevice->clearBytesSet();
-    memDevice->clearBytesWritten();
+    memDevice->clearAllByteCaches();
     ui->cpuWidget->startDebugging();
     ui->memoryWidget->refreshMemory();
     ui->asmProgramTracePane->clearSourceCode();
@@ -1805,8 +1802,7 @@ void MicroMainWindow::on_actionDebug_Single_Step_Microcode_triggered()
 
     ui->debuggerTabWidget->setCurrentIndex(ui->debuggerTabWidget->indexOf(ui->microcodeDebuggerTab));
     if(controlSection->atMicroprogramStart()) {
-            memDevice->clearBytesSet();
-            memDevice->clearBytesWritten();
+        memDevice->clearAllByteCaches();
     }
     controlSection->onMCStep();
     emit simulationUpdate();

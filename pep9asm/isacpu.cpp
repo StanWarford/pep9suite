@@ -30,8 +30,8 @@
 #include "isacpumemoizer.h"
 #include "pep.h"
 
-IsaCpu::IsaCpu(const AsmProgramManager *manager, QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
-    ACPUModel(memDevice, parent), InterfaceISACPU(memDevice.get(), manager), memoizer(new IsaCpuMemoizer(*this))
+IsaCpu::IsaCpu(const AsmProgramManager *input_manager, QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
+    ACPUModel(memDevice, parent), InterfaceISACPU(memDevice.get(), input_manager), memoizer(new IsaCpuMemoizer(*this))
 {
     // Create & register callbacks for breakpoint interrupts.
     std::function<void(void)> bpHandler = [this](){breakpointAsmHandler();};
@@ -47,6 +47,7 @@ void IsaCpu::stepOver()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
+    memory->clearBytesRead();
     int localCallDepth = getCallDepth();
     // Execute instructions until there is an error, or one is at the same depth of the call stack as prior to execution.
     std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth < getCallDepth()
@@ -69,7 +70,9 @@ void IsaCpu::stepInto()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
-    // Step into is jus texecuting a single step, as a single step would enter the trap / call.
+    memory->clearBytesRead();
+    // Step into executes a single step, as a single step would
+    // effectively enter the trap / call.
     onISAStep();
 }
 
@@ -77,6 +80,7 @@ void IsaCpu::stepOut()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
+    memory->clearBytesRead();
     int localCallDepth = getCallDepth();
     // Execute instructions until there is an error, or one is at a higher depth of the call stack as prior to execution.
     std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth <= getCallDepth()
@@ -468,7 +472,6 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
     quint16 effectiveAddress = 0;
     quint8 tempByteHi, tempByteLo;
     // Having tested it, it definitely does the wrong thing
-#pragma message("Totally untested, might very well not do what I expect")
     switch(addrMode) {
     case Enu::EAddrMode::I:
         opVal = static_cast<quint8>(operand & 0xff);
@@ -926,7 +929,6 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         registerBank.writeRegisterWord(Enu::CPURegisters::SP, sp - tempWord);
         break;
 
-#pragma message ("first to fix")
     case Enu::EMnemonic::ADDA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decoded operand specifier plus the accumulator

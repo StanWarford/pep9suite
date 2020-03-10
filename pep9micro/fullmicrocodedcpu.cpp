@@ -391,6 +391,7 @@ void FullMicrocodedCPU::stepOver()
 
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
+    memory->clearBytesRead();
     int localCallDepth = getCallDepth();
     // Execute instructions until there is an error, or one is at the same depth of the call stack as prior to execution.
     std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth < getCallDepth()
@@ -412,6 +413,7 @@ void FullMicrocodedCPU::stepInto()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
+    memory->clearBytesRead();
     // Step into is jus texecuting a single step, as a single step would enter the trap / call.
     onISAStep();
 }
@@ -420,6 +422,7 @@ void FullMicrocodedCPU::stepOut()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
     memory->clearBytesWritten();
+    memory->clearBytesRead();
     int localCallDepth = getCallDepth();
     // Execute instructions until there is an error, or one is at a higher depth of the call stack as prior to execution.
     std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth <= getCallDepth()

@@ -81,15 +81,16 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memDevice.get()));
     memDevice->insertChip(ramChip, 0);
     CacheConfiguration config;
-    config.tag_bits = 8; config.index_bits = 4;
-    config.associativity = 8;
-    config.policy =  QSharedPointer<MFUFactory>::create(config.associativity);
+    config.tag_bits = 10; config.index_bits = 3;
+    config.associativity = 2;
+    config.policy =  QSharedPointer<LRUFactory>::create(config.associativity);
     cacheDevice = QSharedPointer<CacheMemory>::create(memDevice, config, nullptr);
     controlSection->setMemoryDevice(cacheDevice);
     // I/O chips will still need to be added later
 
     // Perform any additional setup needed for UI objects.
     ui->setupUi(this);
+
     // Install this class as the global event filter.
     qApp->installEventFilter(this);
 
@@ -1180,8 +1181,8 @@ void AsmMainWindow::on_actionBuild_Run_triggered()
     if (initializeSimulation()) {
         ui->asmProgramTracePane->startSimulationView();
         disconnectViewUpdate();
-        memDevice->clearBytesSet();
-        memDevice->clearBytesWritten();
+        memDevice->clearAllByteCaches();
+        cacheDevice->clearAllByteCaches();
         emit simulationStarted();
         updateMemories();
         ui->memoryTracePane->updateTrace();
@@ -1285,8 +1286,8 @@ bool AsmMainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         controlSection->onSimulationStarted();
         controlSection->enableDebugging();
         controlSection->breakpointsSet(programManager->getBreakpoints());
-        memDevice->clearBytesSet();
-        memDevice->clearBytesWritten();
+        memDevice->clearAllByteCaches();
+        cacheDevice->clearAllByteCaches();
         // Erase and re-render memory rather then update in place via updateMemory.
         // For small changes, updateMemory is faster, but for large changes it is much slower.
         // When beggining debugging, all addresses in the computer are 0'ed out and then

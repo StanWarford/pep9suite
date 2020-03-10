@@ -94,7 +94,7 @@ void CacheMemory::onCycleFinished()
 
 bool CacheMemory::readByte(quint16 address, quint8 &output) const
 {
-    addressesTouched.insert(address);
+    bytesRead.insert(address);
     auto addr = breakdown_address(address);
 
     // If address is present in line, notify CRP of a hit.
@@ -143,11 +143,6 @@ bool CacheMemory::setByte(quint16 address, quint8 value)
     return memory_device->setByte(address, value);
 }
 
-const QSet<quint16> CacheMemory::getBytesRead() const noexcept
-{
-    return addressesTouched;
-}
-
 const QSet<quint16> CacheMemory::getBytesWritten() const noexcept
 {
     return memory_device->getBytesWritten();
@@ -156,11 +151,6 @@ const QSet<quint16> CacheMemory::getBytesWritten() const noexcept
 const QSet<quint16> CacheMemory::getBytesSet() const noexcept
 {
     return memory_device->getBytesSet();
-}
-
-void CacheMemory::clearBytesRead() noexcept
-{
-    addressesTouched.clear();
 }
 
 void CacheMemory::clearBytesWritten() noexcept

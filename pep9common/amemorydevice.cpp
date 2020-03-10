@@ -38,10 +38,25 @@ QString AMemoryDevice::getErrorMessage() const noexcept
     return errorMessage;
 }
 
+bool AMemoryDevice::getReadCachingEnabled() const noexcept
+{
+    return this->enable_read_caching;
+}
+
+void AMemoryDevice::setReadCachingEnabled(bool value) noexcept
+{
+    this->enable_read_caching = value;
+}
+
 void AMemoryDevice::clearErrors()
 {
     error = false;
     errorMessage = "";
+}
+
+const QSet<quint16> AMemoryDevice::getBytesRead() const noexcept
+{
+    return bytesRead;
 }
 
 const QSet<quint16> AMemoryDevice::getBytesWritten() const noexcept
@@ -54,6 +69,11 @@ const QSet<quint16> AMemoryDevice::getBytesSet() const noexcept
     return bytesSet;
 }
 
+void AMemoryDevice::clearBytesRead() noexcept
+{
+    bytesRead.clear();
+}
+
 void AMemoryDevice::clearBytesWritten() noexcept
 {
     bytesWritten.clear();
@@ -62,6 +82,13 @@ void AMemoryDevice::clearBytesWritten() noexcept
 void AMemoryDevice::clearBytesSet() noexcept
 {
     bytesSet.clear();
+}
+
+void AMemoryDevice::clearAllByteCaches() noexcept
+{
+    clearBytesRead();
+    clearBytesWritten();
+    clearBytesSet();
 }
 
 bool AMemoryDevice::readWord(quint16 offsetFromBase, quint16 &output) const

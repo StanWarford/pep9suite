@@ -102,6 +102,10 @@ public:
     // Copies the bytes from values into main memory starting at address.
     void loadValues(quint16 address, QVector<quint8> values) noexcept;
 
+    // In main memory, address caching on reads is disabled.
+    bool getReadCachingEnabled() const noexcept override {return false;}
+    void setReadCachingEnabled(bool /*value*/) noexcept override {}
+
 public slots:
     // Set the values in all memory chips to 0, clear all outstanding IO operations.
     void clearMemory() override;
@@ -111,6 +115,7 @@ public slots:
     void onCycleStarted() override;
     void onCycleFinished() override;
 
+    // In main memory, address caching on reads is disabled.
     bool readByte(quint16 address, quint8 &output) const override;
     bool writeByte(quint16 address, quint8 value) override;
     bool getByte(quint16 address, quint8 &output) const override;

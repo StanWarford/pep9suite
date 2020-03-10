@@ -741,8 +741,7 @@ void CPUMainWindow::on_actionBuild_Run_triggered()
         disconnectViewUpdate();
         emit simulationStarted();
         ui->memoryWidget->updateMemory();
-        memDevice->clearBytesSet();
-        memDevice->clearBytesWritten();
+        memDevice->clearAllByteCaches();
         controlSection->onSimulationStarted();
         controlSection->onRun();
         // Make sure to highlight modified memory addresses to make it clear to the user
@@ -799,8 +798,7 @@ bool CPUMainWindow::on_actionDebug_Start_Debugging_triggered()
         debugState = DebugState::DEBUG_MICRO;
         emit simulationStarted();
         controlSection->onSimulationStarted();
-        memDevice->clearBytesSet();
-        memDevice->clearBytesWritten();
+        memDevice->clearAllByteCaches();
         controlSection->enableDebugging();
         ui->cpuWidget->startDebugging();
         ui->memoryWidget->updateMemory();

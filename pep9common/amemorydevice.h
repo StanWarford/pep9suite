@@ -51,8 +51,13 @@ class AMemoryDevice : public QObject
     Q_OBJECT
 protected:
     QSet<quint16> bytesWritten, bytesSet;
+    // Bytes read must be mutable, since reading is a const operation.
+    mutable QSet<quint16> bytesRead;
     mutable QString errorMessage;
     mutable bool error;
+    // Deterimine if the addresses read during the last time slice will be recorded
+    // in bytesRead.
+    bool enable_read_caching;
 public:
     explicit AMemoryDevice(QObject *parent = nullptr) noexcept;
 
@@ -64,19 +69,29 @@ public:
     // The Pep/9 memory model should at most be 2^16 bytes, but provide
     // for potential expansion in the future.
     virtual quint32 maxAddress() const noexcept = 0;
+    // Check if addresses of reads will be cached to bytesRead, and enable
+    // or disable this functionality.
+    // This functionality is very useful for caches, but has pointless overhead
+    // for normal RAM devices.
+    virtual bool getReadCachingEnabled() const noexcept;
+    virtual void setReadCachingEnabled(bool value) noexcept;
 
     // Remove any pending errors in the memory device.
     void clearErrors();
 
-    // Returns the set of bytes the have been written / set.
+    // Returns the set of bytes the have been read / written / set.
     // since the last clear.
+    virtual const QSet<quint16> getBytesRead() const noexcept;
     virtual const QSet<quint16> getBytesWritten() const noexcept;
     virtual const QSet<quint16> getBytesSet() const noexcept;
     // Call after all components have (synchronously) had a chance
-    // to access these fields. The set of written / set bytes will
+    // to access these fields. The set of read /written / set bytes will
     // continue to grow until explicitly reset.
+    virtual void clearBytesRead() noexcept;
     virtual void clearBytesWritten() noexcept;
     virtual void clearBytesSet() noexcept;
+    // Clear all byte caches used within the class
+    virtual void clearAllByteCaches() noexcept;
 
 public slots:
     // Clear the contents of memory. All addresses from 0 to size will be set to 0.
