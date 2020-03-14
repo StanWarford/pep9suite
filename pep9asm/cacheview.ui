@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>445</width>
+    <width>459</width>
     <height>335</height>
    </rect>
   </property>
@@ -267,6 +267,9 @@
          <width>500</width>
          <height>16777215</height>
         </size>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
        </property>
       </widget>
      </item>
