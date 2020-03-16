@@ -17,11 +17,14 @@ struct AddressBreakdown
 {
     quint16 tag, index, offset;
 };
-
+enum class WriteAllocationPolicy{
+    WriteAllocate, NoWriteAllocate
+};
 struct CacheConfiguration {
     // Number of addressing bits used for the tag, index and data.
     quint16 tag_bits, index_bits, data_bits;
     quint16 associativity;
+    WriteAllocationPolicy write_allocation = WriteAllocationPolicy::NoWriteAllocate;
     QSharedPointer<AReplacementFactory> policy;
 };
 
@@ -87,6 +90,7 @@ private:
     QSharedPointer<MainMemory> memory_device;
     QSharedPointer<AReplacementFactory> replace_factory;
     quint16 tag_size, index_size, data_size, associativity;
+    WriteAllocationPolicy allocation_policy;
 
     mutable quint32 hit_read, miss_read, writes;
 
