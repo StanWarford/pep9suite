@@ -163,8 +163,7 @@ bool PartialMicrocodedCPU::onRun()
         bool rVal = !hadErrorOnStep() && !executionFinished && !(inDebug && (microBreakpointHit));
         // Don't clear written bytes on last cycle, so that the user may see what
         // the last instruction modified.
-#pragma message("TODO: Determine if read / set bytes need to be cleared.")
-        if(rVal) memory->clearBytesWritten();
+        if(rVal) memory->clearAllByteCaches();
         return rVal;
     };
     // Execute microcode steps until the condition function is false.

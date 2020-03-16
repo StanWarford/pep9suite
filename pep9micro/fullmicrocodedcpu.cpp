@@ -193,7 +193,7 @@ bool FullMicrocodedCPU::onRun()
             // Clear at start, so as to preserve highlighting AFTER finshing a write.
             // When running in debug, clear written bytes after every instruction,
             // otherwise too many writes may queue up.
-            memory->clearBytesWritten();
+            memory->clearAllByteCaches();
         }
         return rVal;
     };
@@ -390,8 +390,8 @@ void FullMicrocodedCPU::stepOver()
 {
 
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
-    memory->clearBytesWritten();
-    memory->clearBytesRead();
+    memory->clearAllByteCaches();
+
     int localCallDepth = getCallDepth();
     // Execute instructions until there is an error, or one is at the same depth of the call stack as prior to execution.
     std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth < getCallDepth()
@@ -412,8 +412,8 @@ bool FullMicrocodedCPU::canStepInto() const
 void FullMicrocodedCPU::stepInto()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
-    memory->clearBytesWritten();
-    memory->clearBytesRead();
+    memory->clearAllByteCaches();
+
     // Step into is jus texecuting a single step, as a single step would enter the trap / call.
     onISAStep();
 }
@@ -421,8 +421,8 @@ void FullMicrocodedCPU::stepInto()
 void FullMicrocodedCPU::stepOut()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
-    memory->clearBytesWritten();
-    memory->clearBytesRead();
+    memory->clearAllByteCaches();
+
     int localCallDepth = getCallDepth();
     // Execute instructions until there is an error, or one is at a higher depth of the call stack as prior to execution.
     std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth <= getCallDepth()

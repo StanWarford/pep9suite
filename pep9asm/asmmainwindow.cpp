@@ -80,10 +80,11 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     // Initialize the memory subsystem
     QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memDevice.get()));
     memDevice->insertChip(ramChip, 0);
-    CacheConfiguration config;
+    Cache::CacheConfiguration config;
     config.tag_bits = 10; config.index_bits = 3;
     config.associativity = 2;
     config.policy =  QSharedPointer<LRUFactory>::create(config.associativity);
+    config.write_allocation = Cache::WriteAllocationPolicy::NoWriteAllocate;
     cacheDevice = QSharedPointer<CacheMemory>::create(memDevice, config, nullptr);
     controlSection->setMemoryDevice(cacheDevice);
     // I/O chips will still need to be added later

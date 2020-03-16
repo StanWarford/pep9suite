@@ -5,6 +5,8 @@
 #include <QSharedPointer>
 #include <QStandardItemModel>
 
+#include "cacheline.h"
+
 static const quint16 TagColumn = 0;
 static const quint16 PresentColumn =1;
 static const quint16 Hits = 2;
@@ -73,6 +75,7 @@ private:
     QSharedPointer<CacheMemory> cache;
     bool inSimulation = false;
     void refreshLine(quint16 line);
+    void setRow(quint16 line, const CacheLine* linePtr, quint16 entry, const CacheEntry* entryPtr);
 
 };
 

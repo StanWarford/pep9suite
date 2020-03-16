@@ -1,15 +1,17 @@
 #include "cachememory.h"
 #include <cmath>
 #include <QDebug>
-CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, CacheConfiguration config,
+CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheConfiguration config,
                          QObject* parent):
     AMemoryDevice(parent), memory_device(memory_device), replace_factory(config.policy),
     tag_size(config.tag_bits), index_size(config.index_bits),
     data_size(16 - tag_size - index_size), associativity(config.associativity),
-    allocation_policy(config.write_allocation)
+    allocation_policy(config.write_allocation),
+    hit_read(0), miss_read(0), hit_writes(0), miss_writes(0),
+    cacheLinesTouched()
 {
     // Make sure that cache won't accidentally go outside the range of accessible memory
-    assert(safe_configuration(maxAddress(), tag_size, index_size, data_size, associativity));
+    assert(safeConfiguration(maxAddress(), tag_size, index_size, data_size, associativity));
 
     // Resize the cache to fit the correct number of lines.
     //resize_cache(tag_size, index_size, associativity, replace_factory);
@@ -23,7 +25,7 @@ CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, CacheConfigur
     }*/
 }
 
-bool CacheMemory::safe_configuration(quint32 memory_size, quint16 tag_size,
+bool CacheMemory::safeConfiguration(quint32 memory_size, quint16 tag_size,
                                      quint16 index_size, quint16 data_size, quint16 associativity)
 {
     bool size_match = tag_size+index_size+data_size == (int)ceil(log2(memory_size));
@@ -31,27 +33,32 @@ bool CacheMemory::safe_configuration(quint32 memory_size, quint16 tag_size,
     return size_match & used_associativty;
 }
 
-quint16 CacheMemory::get_tag_size() const
+quint16 CacheMemory::geTagSize() const
 {
     return tag_size;
 }
 
-quint16 CacheMemory::get_index_size() const
+quint16 CacheMemory::getIndexSize() const
 {
     return index_size;
 }
 
-quint16 CacheMemory::get_associativty() const
+quint16 CacheMemory::getAssociativty() const
 {
     return associativity;
 }
 
-quint16 CacheMemory::get_data_size() const
+quint16 CacheMemory::getDataSize() const
 {
     return data_size;
 }
 
-void CacheMemory::resize_cache(CacheConfiguration config)
+Cache::WriteAllocationPolicy CacheMemory::getAllocationPolicy() const
+{
+    return allocation_policy;
+}
+
+void CacheMemory::resizeCache(Cache::CacheConfiguration config)
 {
     // No operation for now.
     //cache.resize()
@@ -65,7 +72,9 @@ void CacheMemory::clearCache()
 
     hit_read = 0;
     miss_read = 0;
-    writes = 0;
+    hit_writes = 0;
+
+    clearCacheLinesTouched();
 }
 
 quint32 CacheMemory::maxAddress() const noexcept
@@ -96,47 +105,60 @@ void CacheMemory::onCycleFinished()
 bool CacheMemory::readByte(quint16 address, quint8 &output) const
 {
     bytesRead.insert(address);
-    auto addr = breakdown_address(address);
+    auto address_breakdown = breakdownAddress(address);
 
     // If address is present in line, notify CRP of a hit.
-    if(CacheLine& line = cache[addr.tag];
-            line.contains_index(addr.index)) {
+    // MUST capture line by reference, or Qt's COW will kick in, and no changes
+    // will be saved.
+    if(CacheLine& line = cache[address_breakdown.tag];
+            line.contains_index(address_breakdown.index)) {
         qDebug().noquote() << QString("Hit %1\t").arg(address);
-        line.update(addr.index);
+        line.update(address_breakdown.index);
         hit_read++;
     }
     // Otherwise must insert index associated with line.
     else {
         qDebug().noquote() << QString("Miss %1\t").arg(address);
-        line.insert(addr.index);
+        line.insert(address_breakdown.index);
         miss_read++;
     }
+    // Either if the read is a hit or a miss, the cache line associated with
+    // the current address must be updated.
+    cacheLinesTouched.insert(address_breakdown.tag);
 
     return memory_device->readByte(address, output);
 }
 
 bool CacheMemory::writeByte(quint16 address, quint8 value)
 {
-    auto addr = breakdown_address(address);
+    // No need to add to bytesWritten, this will be handled in main memory device.
+
+    auto address_breakdown = breakdownAddress(address);
 
     // If address is present in line, notify CRP of a hit.
-    if(auto line = cache[addr.tag];
-            line.contains_index(addr.index)) {
-        line.update(addr.index);
-        writes++;
+    // MUST capture line by reference, or Qt's COW will kick in, and no changes
+    // will be saved.
+    if(CacheLine& line = cache[address_breakdown.tag];
+            line.contains_index(address_breakdown.index)) {
+        // Update reference counts for the current line.
+        cacheLinesTouched.insert(address_breakdown.tag);
+        line.update(address_breakdown.index);
+        hit_writes++;
     }
-    else if(allocation_policy == WriteAllocationPolicy::WriteAllocate) {
-        line.insert(addr.index);
-        // TODO:
-        //miss_writes++;
+    else if(allocation_policy == Cache::WriteAllocationPolicy::WriteAllocate) {
+        // Perform eviction in memory dump pane.
+        line.insert(address_breakdown.index);
+        // Catch line evictions caused by write allocation.
+        cacheLinesTouched.insert(address_breakdown.tag);
+        miss_writes++;
     }
     // We perform writeback without demand paging, so no need to update for
     // entries that are not present.
     else {
-        // TODO:
-        //miss_writes++;
+        // If write is a miss with a No Write Allocation policy, do nothing
+        // other than document there was a miss.
+        miss_writes++;
     }
-
     return memory_device->writeByte(address, value);
 }
 
@@ -150,6 +172,11 @@ bool CacheMemory::setByte(quint16 address, quint8 value)
     return memory_device->setByte(address, value);
 }
 
+const QSet<quint16> CacheMemory::getCacheLinesTouched() const noexcept
+{
+    return cacheLinesTouched;
+}
+
 const QSet<quint16> CacheMemory::getBytesWritten() const noexcept
 {
     return memory_device->getBytesWritten();
@@ -158,6 +185,11 @@ const QSet<quint16> CacheMemory::getBytesWritten() const noexcept
 const QSet<quint16> CacheMemory::getBytesSet() const noexcept
 {
     return memory_device->getBytesSet();
+}
+
+void CacheMemory::clearCacheLinesTouched() noexcept
+{
+    cacheLinesTouched.clear();
 }
 
 void CacheMemory::clearBytesWritten() noexcept
@@ -170,13 +202,21 @@ void CacheMemory::clearBytesSet() noexcept
     memory_device->clearBytesSet();
 }
 
-AddressBreakdown CacheMemory::breakdown_address(quint16 address) const
+void CacheMemory::clearAllByteCaches() noexcept
 {
-    AddressBreakdown ret;
+    clearBytesRead();
+    clearBytesWritten();
+    clearBytesSet();
+    clearCacheLinesTouched();
+}
+
+Cache::CacheAddress CacheMemory::breakdownAddress(quint16 address) const
+{
+    Cache::CacheAddress ret;
     // Offset is the lowest order bits of the address
-    static int data_mask = (0x1<<data_size) - 1, data_shift=0;
-    static int index_mask = (0x1 << index_size) - 1, index_shift=data_size;
-    static int tag_mask = (0x1 << tag_size) - 1, tag_shift=(data_size + index_size);
+    static int data_mask = (0x1 << data_size) - 1, data_shift = 0;
+    static int index_mask = (0x1 << index_size) - 1, index_shift = data_size;
+    static int tag_mask = (0x1 << tag_size) - 1, tag_shift = (data_size + index_size);
 
     ret.offset = (address >> data_shift) & (data_mask);
     // Index is middle bits of address.
@@ -187,14 +227,14 @@ AddressBreakdown CacheMemory::breakdown_address(quint16 address) const
     return ret;
 }
 
-std::optional<const CacheLine *> CacheMemory::get_cache_line(quint16 tag) const
+std::optional<const CacheLine *> CacheMemory::getCacheLine(quint16 tag) const
 {
     if(tag >= (1 << tag_size)) return std::nullopt;
     else return &cache[tag];
 
 }
 
-QString CacheMemory::get_cache_algorithm() const
+QString CacheMemory::getCacheAlgorithm() const
 {
     return replace_factory->get_algorithm_name();
 }

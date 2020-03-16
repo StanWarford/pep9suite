@@ -46,7 +46,7 @@ void CacheView::init(QSharedPointer<CacheMemory> cache)
 
 void CacheView::address_changed(int value)
 {
-    auto breakdown = cache->breakdown_address(value);
+    auto breakdown = cache->breakdownAddress(value);
     ui->tagBox->setValue(breakdown.tag);
     ui->indexBox->setValue(breakdown.index);
     ui->dataBox->setValue(breakdown.offset);
@@ -54,8 +54,8 @@ void CacheView::address_changed(int value)
 
 void CacheView::cachetag_changed(int /*value*/)
 {
-    auto index_bits = cache->get_index_size();
-    auto data_bits = cache->get_data_size();
+    auto index_bits = cache->getIndexSize();
+    auto data_bits = cache->getDataSize();
 
     int address = 0;
     address += ui->tagBox->value() << (index_bits + data_bits);
@@ -67,10 +67,10 @@ void CacheView::cachetag_changed(int /*value*/)
 
 void CacheView::refreshLine(quint16 line)
 {
-    auto tag_bits = cache->get_tag_size();
-    auto index_bits = cache->get_index_size();
-    auto data_bits = cache->get_data_size();
-    auto associativity = cache->get_associativty();
+    auto tag_bits = cache->geTagSize();
+    auto index_bits = cache->getIndexSize();
+    auto data_bits = cache->getDataSize();
+    auto associativity = cache->getAssociativty();
 
     assert(line < (1<<tag_bits));
 
@@ -94,7 +94,7 @@ void CacheView::refreshLine(quint16 line)
                          .arg(line<<(index_bits+data_bits),4, 16)
                          .arg((((line+1)<<(index_bits+data_bits)) - 1), 4, 16));
 
-    auto lineEntry = cache->get_cache_line(line);
+    auto lineEntry = cache->getCacheLine(line);
     if(!lineEntry.has_value()) {
         qDebug() << "Something went horribly wrong with a line.";
     }
@@ -113,40 +113,50 @@ void CacheView::refreshLine(quint16 line)
         auto entryPtr = entryOpt.value();
         blank |= entryPtr->is_present;
 
-        // Determine which values are needed in each column
-        QString c0_name = "";
-        Qt::CheckState c1_evict = Qt::CheckState::Unchecked;
-        QString c2_address = "";
-        QVariant c4_hits = "";
-
-        if(entryPtr->is_present) {
-            c0_name = QString("%1").arg(entryPtr->index);
-            c2_address = QString("%1-%2")
-                    .arg((line<<(index_bits+data_bits)) + ((entryPtr->index)<<data_bits),4, 16)
-                    .arg((line<<(index_bits+data_bits)) + ((entryPtr->index+1)<<data_bits) - 1, 4, 16);
-            c4_hits = entryPtr->hit_count;
-        }
-
-        quint16 eviction_candidate = linePtr->get_replacement_policy()->eviction_loohahead();
-        if(eviction_candidate == entry) {
-            c1_evict = Qt::CheckState::Checked;
-        }
-
-        // Assign values to each column
-        data->itemFromIndex(data->index(entry, 0, lineIndex))->setData(c0_name, Qt::DisplayRole);
-        data->itemFromIndex(data->index(entry, 1, lineIndex))->setCheckState(c1_evict);
-        data->itemFromIndex(data->index(entry, 2, lineIndex))->setData(c2_address, Qt::DisplayRole);
-        data->itemFromIndex(data->index(entry, 3, lineIndex))->setData(entryPtr->is_present, Qt::DisplayRole);
-        data->itemFromIndex(data->index(entry, 4, lineIndex))->setData(c4_hits, Qt::DisplayRole);
+        setRow(line, linePtr, entry, entryPtr);
     }
 
     // Display the row if it is not blank.
     ui->cacheTree->setRowHidden(line, QModelIndex(), !blank);
 }
 
+void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, const CacheEntry *entryPtr)
+{
+    auto index_bits = cache->getIndexSize();
+    auto data_bits = cache->getDataSize();
+
+    // Determine which values are needed in each column
+    QString c0_name = "";
+    Qt::CheckState c1_evict = Qt::CheckState::Unchecked;
+    QString c2_address = "";
+    QVariant c4_hits = "";
+
+    if(entryPtr->is_present) {
+        c0_name = QString("%1").arg(entryPtr->index);
+        c2_address = QString("%1-%2")
+                .arg((line<<(index_bits+data_bits)) + ((entryPtr->index)<<data_bits),4, 16)
+                .arg((line<<(index_bits+data_bits)) + ((entryPtr->index+1)<<data_bits) - 1, 4, 16);
+        c4_hits = entryPtr->hit_count;
+    }
+
+
+    quint16 eviction_candidate = linePtr->get_replacement_policy()->eviction_loohahead();
+    if(eviction_candidate == entry) {
+        c1_evict = Qt::CheckState::Checked;
+    }
+
+    auto lineIndex = data->index(line, 0);
+    // Assign values to each column
+    data->itemFromIndex(data->index(entry, 0, lineIndex))->setData(c0_name, Qt::DisplayRole);
+    data->itemFromIndex(data->index(entry, 1, lineIndex))->setCheckState(c1_evict);
+    data->itemFromIndex(data->index(entry, 2, lineIndex))->setData(c2_address, Qt::DisplayRole);
+    data->itemFromIndex(data->index(entry, 3, lineIndex))->setData(entryPtr->is_present, Qt::DisplayRole);
+    data->itemFromIndex(data->index(entry, 4, lineIndex))->setData(c4_hits, Qt::DisplayRole);
+}
+
 void CacheView::refreshMemory()
 {
-    auto tag_bits = cache->get_tag_size();
+    auto tag_bits = cache->geTagSize();
 
     data->clear();
     data->insertColumns(0, 5);
@@ -167,23 +177,13 @@ void CacheView::refreshMemory()
 
 void CacheView::updateMemory()
 {
-    QList<quint16> list;
-    QSet<quint16> linesToBeUpdated;
+
     // Don't clear the memDevice's written / set bytes, since other UI components might
     // need access to them.
-    QSet<quint16> modifiedBytes;
+    QSet<quint16> modifiedLines = (cache->getCacheLinesTouched());
     // Caches also change with reads since the previous cycle.
-    modifiedBytes.unite(cache->getBytesRead());
-    modifiedBytes.unite(cache->getBytesSet());
-    modifiedBytes.unite(cache->getBytesWritten());
-    list = modifiedBytes.toList();
-    while(!list.isEmpty()) {
-        linesToBeUpdated.insert(cache->breakdown_address(list.takeFirst()).tag);
-    }
-    list = linesToBeUpdated.toList();
-    std::sort(list.begin(), list.end());
 
-    for(auto x: list) {
+    for(auto x: modifiedLines) {
         refreshLine(x);
     }
 }
@@ -215,7 +215,7 @@ void CacheView::onDarkModeChanged(bool darkMode)
 
 void CacheView::onMemoryChanged(quint16 address, quint8 /*newValue*/)
 {
-    auto breakdown = cache->breakdown_address(address);
+    auto breakdown = cache->breakdownAddress(address);
     refreshLine(breakdown.tag);
 }
 
@@ -231,10 +231,10 @@ void CacheView::onSimulationFinished()
 
 void CacheView::onCacheConfigChanged()
 {
-    auto tag_bits = cache->get_tag_size();
-    auto index_bits = cache->get_index_size();
-    auto data_bits = cache->get_data_size();
-    auto associativity = cache->get_associativty();
+    auto tag_bits = cache->geTagSize();
+    auto index_bits = cache->getIndexSize();
+    auto data_bits = cache->getDataSize();
+    auto associativity = cache->getAssociativty();
 
     ui->tagBox->setMaximum((1<<tag_bits) - 1);
     ui->tagBits->setValue(tag_bits);
@@ -243,5 +243,10 @@ void CacheView::onCacheConfigChanged()
     ui->dataBox->setMaximum((1<<data_bits) - 1);
     ui->dataBits->setValue(data_bits);
     ui->associativityNum->setValue(associativity);
-    ui->replacementCombo->setCurrentIndex(ui->replacementCombo->findText(cache->get_cache_algorithm()));
+    ui->replacementCombo->setCurrentIndex(ui->replacementCombo->findText(cache->getCacheAlgorithm()));
+    if(cache->getAllocationPolicy() == Cache::WriteAllocationPolicy::WriteAllocate) {
+        ui->writeAllocationCombo->setCurrentIndex(0);
+    } else {
+        ui->writeAllocationCombo->setCurrentIndex(1);
+    }
 }

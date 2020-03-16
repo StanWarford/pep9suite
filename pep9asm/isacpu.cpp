@@ -46,8 +46,8 @@ IsaCpu::~IsaCpu()
 void IsaCpu::stepOver()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
-    memory->clearBytesWritten();
-    memory->clearBytesRead();
+    memory->clearAllByteCaches();
+
     int localCallDepth = getCallDepth();
     // Execute instructions until there is an error, or one is at the same depth of the call stack as prior to execution.
     std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth < getCallDepth()
@@ -69,8 +69,8 @@ bool IsaCpu::canStepInto() const
 void IsaCpu::stepInto()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
-    memory->clearBytesWritten();
-    memory->clearBytesRead();
+    memory->clearAllByteCaches();
+
     // Step into executes a single step, as a single step would
     // effectively enter the trap / call.
     onISAStep();
@@ -79,8 +79,8 @@ void IsaCpu::stepInto()
 void IsaCpu::stepOut()
 {
     // Clear at start, so as to preserve highlighting AFTER finshing a write.
-    memory->clearBytesWritten();
-    memory->clearBytesRead();
+    memory->clearAllByteCaches();
+
     int localCallDepth = getCallDepth();
     // Execute instructions until there is an error, or one is at a higher depth of the call stack as prior to execution.
     std::function<bool(void)> cond = [this, &localCallDepth](){return localCallDepth <= getCallDepth()
