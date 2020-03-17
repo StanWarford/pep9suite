@@ -75,6 +75,7 @@ void CacheView::cachetag_changed(int /*value*/)
 
 void CacheView::refreshLine(quint16 line)
 {
+    // Determine cache parameters.
     auto tag_bits = cache->getTagSize();
     auto index_bits = cache->getIndexSize();
     auto data_bits = cache->getDataSize();
@@ -89,6 +90,7 @@ void CacheView::refreshLine(quint16 line)
         data->setItem(line, 0, lineItem);
     }
     auto lineIndex = data->index(line, 0);
+
     // Ensure the right number of rows / columns are in the cache line.
     if(data->columnCount(lineIndex) != 5) lineItem->setColumnCount(5);
     if(data->rowCount(lineIndex) != associativity) lineItem->setRowCount(associativity);
@@ -123,11 +125,29 @@ void CacheView::refreshLine(quint16 line)
 
         setRow(line, linePtr, entry, entryPtr);
     }
-    // When there are more lines than ways in the cache, it means that
-    if(lineItem->rowCount()>associativity){
+
+    // Render evicted cache entries for the current cache line.
+    if(auto evicted = cache->getEvictedEntry(line);
+           !evicted.empty()) {
+        auto root_item = data->item(line);
+        int entry_number = root_item->rowCount();
+        for(auto entry : evicted) {
+            QList<QStandardItem*> new_items;
+            for(int col=0; col<data->columnCount(); col++)  {
+                new_items.append(new QStandardItem());
+            }
+            root_item->appendRow(new_items);
+            setRow(line, linePtr, entry_number, &entry, true);
+            entry_number++;
+        }
+    }
+
+    // When there are more lines than ways in the cache, it means that "evicted"
+    // entries have been added, an must be removed at the start of the next simulation step.
+    if(lineItem->rowCount()>cache->getAssociativty()){
         remove_entry entry;
         entry.root_line = line;
-        entry.count = lineItem->rowCount() - associativity;
+        entry.count = lineItem->rowCount() - cache->getAssociativty();
         to_delete.insert(entry);
     }
 
@@ -135,10 +155,19 @@ void CacheView::refreshLine(quint16 line)
     ui->cacheTree->setRowHidden(line, QModelIndex(), !blank);
 }
 
-void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, const CacheEntry *entryPtr)
+void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, const CacheEntry *entryPtr, bool evicted)
 {
     auto index_bits = cache->getIndexSize();
     auto data_bits = cache->getDataSize();
+
+    /*
+     * Note: Do not perform a check that entry # is less than associativity.
+     * This method is used to populate "evicted" entries, and as such may be used
+     * fill in entry #'s above the associativty.
+     *
+     * The evicted flag indicates that no highlighting/font checks should be
+     * applied to the cache entry
+     */
 
     // Determine which values are needed in each column
     QString c0_name = "";
@@ -146,6 +175,8 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
     QString c2_address = "";
     QVariant c4_hits = "";
 
+    // If the cache entry is present, display the index # and addresses spanned by
+    // the entry in columns 0,2. Also determine hit count.
     if(entryPtr->is_present) {
         c0_name = QString("%1").arg(entryPtr->index);
         c2_address = QString("%1-%2")
@@ -154,7 +185,7 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
         c4_hits = entryPtr->hit_count;
     }
 
-
+    // Cache hit count, so that it is easier to see from debugger.
     quint16 eviction_candidate = linePtr->get_replacement_policy()->eviction_loohahead();
     if(eviction_candidate == entry) {
         c1_evict = Qt::CheckState::Checked;
@@ -162,49 +193,59 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
 
     auto lineIndex = data->index(line, 0);
 
-    // Highlight "new" items
-    if(entryPtr->is_present && data->index(entry, TagColumn, lineIndex).data() != QVariant(entry)) {
+    // Convert values in existing cells to usable types for comparisons.
+    // These conversions will fail when the box is empty, so must check
+    // ok_conv_* when attemtping to use associated integer.
+    bool ok_conv_index, ok_conv_hits;
+    int listedIndex = data->index(entry, TagColumn, lineIndex).data().toInt(&ok_conv_index);
+    int listedHits = data->index(entry, Hits, lineIndex).data().toInt(&ok_conv_hits);
+
+    // If evicted, indicate to Style Delegate to apply special evicted formatting.
+    if(evicted) {
+        // Unlike following branches, do not track properties of special entries.
+        // Tracking # of evicted entry rows is done at the point where the rows are added.
+        for(int col=0; col<data->columnCount(); col++) {
+            data->itemFromIndex(data->index(entry, col, lineIndex))->setData(true, EvictedData);
+        }
+    }
+    // Highlight "new" items.
+    // An item is "new" if it is present, and either the old value was not present,
+    // or the old entry number is not the new entry number.
+    else if(entryPtr->is_present && (!ok_conv_index || listedIndex != entryPtr->index)) {
+
+        // Make a note that special highlighting needs to be removed
+        // at end of the current simulation step.
         updated_item item;
         item.root_index = line;
         item.child_row = entry;
         this->last_updated.insert(item);
 
-        auto root_item = data->item(line);
+        // To highlight entire row must change background of each cell in row.
         for(int col=0; col<data->columnCount(); col++) {
             data->itemFromIndex(data->index(entry, col, lineIndex))->setBackground(Qt::red);
         }
-
-        // If evicting an existing row, must
-        if(root_item->child(entry, Present)->data(Qt::DisplayRole).toBool()) {
-            QList<QStandardItem*> new_items;
-            for(int col=0; col<data->columnCount(); col++)  {
-                new_items.append(new QStandardItem());
-            }
-            root_item->appendRow(new_items);
-
-            for(int col=0; col<data->columnCount(); col++)  {
-                data->itemFromIndex(data->index(entry, col, lineIndex))->setBackground(Qt::red);
-                auto line_data = data->index(entry, col, lineIndex).data();
-                data->itemFromIndex(data->index(root_item->rowCount()-1, col, lineIndex))->setData(line_data, Qt::DisplayRole);
-                data->itemFromIndex(data->index(root_item->rowCount()-1, col, lineIndex))->setData(true, EvictedData);
-            }
-        }
     }
-    else if(entryPtr->is_present && entryPtr->hit_count != data->index(entry, Hits, lineIndex).data().toInt()) {
+    // Bolds "referenced" items.
+    // An item is "referenced" if it is present and the hit count has changed
+    // since the last time the value was updated.
+    else if(entryPtr->is_present && (!ok_conv_index || entryPtr->hit_count != listedHits)) {
         QFont regularFont = activeFont;
         regularFont.setBold(true);
 
+        // Make a note that special font needs to be removed
+        // at end of the current simulation step.
         updated_item item;
         item.root_index = line;
         item.child_row = entry;
         this->last_updated.insert(item);
 
+        // To change font for entire row must change each cell's fonts.
         for(int col=0; col<data->columnCount(); col++)  {
             data->itemFromIndex(data->index(entry, col, lineIndex))->setFont(regularFont);
         }
     }
 
-    // Assign values to each column based on the present cache entry.
+    // Assign values to each column based on the current cache entry.
     data->itemFromIndex(data->index(entry, TagColumn, lineIndex))->setData(c0_name, Qt::DisplayRole);
     data->itemFromIndex(data->index(entry, EvictColumn, lineIndex))->setCheckState(c1_evict);
     data->itemFromIndex(data->index(entry, Address, lineIndex))->setData(c2_address, Qt::DisplayRole);
@@ -223,6 +264,7 @@ void CacheView::refreshMemory()
     for(int it = 0; it < data->columnCount(); it++) {
         ui->cacheTree->resizeColumnToContents(it);
     }
+
 }
 
 void CacheView::updateMemory()
@@ -230,26 +272,10 @@ void CacheView::updateMemory()
 
     // Don't clear the memDevice's written / set bytes, since other UI components might
     // need access to them.
-    QSet<quint16> modifiedLines = (cache->getCacheLinesTouched());
-    // Caches also change with reads since the previous cycle.
-    for(auto item : to_delete) {
-        auto root_item = data->item(item.root_line);
-        root_item->removeRows(cache->getAssociativty(), item.count);
-    }
-    to_delete.clear();
-
-    for(auto item : last_updated) {
-        auto root_item = data->item(item.root_index);
-        for(int col = 0; col<data->columnCount(); col++) {
-            auto* child = root_item->child(item.child_row, col);
-            child->setBackground(Qt::white);
-            QFont font = child->font();
-            font.setBold(false);
-            font.setStrikeOut(false);
-            child->setFont(font);
-        }
-    }
-    last_updated.clear();
+    QSet<quint16> modifiedLines = updated_lines;
+    modifiedLines.unite(cache->getCacheLinesTouched());
+    auto keys = cache->getAllEvictedEntries().keys();
+    modifiedLines.unite(QSet<quint16>(keys.begin(), keys.end()));
 
     for(auto x: modifiedLines) {
         refreshLine(x);
@@ -284,8 +310,16 @@ void CacheView::onDarkModeChanged(bool darkMode)
 
 void CacheView::onMemoryChanged(quint16 address, quint8 /*newValue*/)
 {
+    // This function is only triggered on writes, not reads.
+    // W do not have a write-allocate cache (by default),
+    // we really only care about reads.
+    // Updating only the line at value written to "address" is insufficient for
+    // synchronizing cache visualization and cache model--reads must be accounted for.
     auto breakdown = cache->breakdownAddress(address);
-    refreshLine(breakdown.tag);
+    // Do not refresh until simulation step completes; only track that write occured.
+    // This performance optimization was determined to be necessary from profiling.
+    updated_lines.insert(breakdown.tag);
+    //updateMemory();
 }
 
 void CacheView::onSimulationStarted()
@@ -329,6 +363,35 @@ void CacheView::onCacheConfigChanged()
     data->setHeaderData(2, Qt::Horizontal, "Address Range", Qt::DisplayRole);
     data->setHeaderData(3, Qt::Horizontal, "Present", Qt::DisplayRole);
     data->setHeaderData(4, Qt::Horizontal, "# Hits", Qt::DisplayRole);
+}
+
+void CacheView::onSimulationStep()
+{
+    // Purge cache entries that were swapped out during the previous simulation step.
+    for(auto item : to_delete) {
+        auto root_item = data->item(item.root_line);
+        root_item->removeRows(cache->getAssociativty(), item.count);
+    }
+    to_delete.clear();
+
+    // Undo stylization applied to reference, swapped in cache entries.
+    for(auto item : last_updated) {
+        auto root_item = data->item(item.root_index);
+        for(int col = 0; col<data->columnCount(); col++) {
+            auto* child = root_item->child(item.child_row, col);
+            #pragma message("TODO: make light/dark mode aware.")
+            child->setBackground(Qt::white);
+            QFont font = child->font();
+            font.setBold(false);
+            font.setStrikeOut(false);
+            child->setFont(font);
+        }
+    }
+    last_updated.clear();
+
+    // Refresh any cache lines that changed since the start of the last simulation step.
+    updateMemory();
+
 }
 
 bool CacheView::remove_entry::operator==(const CacheView::remove_entry &rhs) const

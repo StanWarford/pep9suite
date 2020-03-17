@@ -71,6 +71,10 @@ public slots:
     // Whenever the cache configuration is changed, update buttons and translation boxes.
     void onCacheConfigChanged();
 
+    // Clear the modified indicators and remove purged entries.
+    // Separates the simulation "stepping" and clearing available
+    void onSimulationStep();
+
 private slots:
     void address_changed(int value);
     void cachetag_changed(int value);
@@ -82,7 +86,7 @@ private:
     bool inSimulation = false;
     QFont activeFont;
     void refreshLine(quint16 line);
-    void setRow(quint16 line, const CacheLine* linePtr, quint16 entry, const CacheEntry* entryPtr);
+    void setRow(quint16 line, const CacheLine* linePtr, quint16 entry, const CacheEntry* entryPtr, bool evicted=false);
 
     struct updated_item {
         quint16 root_index;
@@ -100,6 +104,7 @@ private:
 
     uint friend qHash(const CacheView::remove_entry &key) {return (key.root_line<<16) + key.count;}
     QSet<remove_entry> to_delete;
+    QSet<quint16> updated_lines = {};
 
 };
 

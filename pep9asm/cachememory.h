@@ -13,7 +13,7 @@
 #include "cachereplace.h"
 #include "cacheline.h"
 #include "cache.h"
-
+#pragma message("TODO: Make eviction tracking optional for performance improvement.")
 class CacheMemory : public AMemoryDevice
 {
     Q_OBJECT
@@ -67,6 +67,7 @@ public slots:
     // this set will grow forever. May need to move to base class.
     const QSet<quint16> getCacheLinesTouched() const noexcept;
     const QList<CacheEntry> getEvictedEntry(quint16 line) const noexcept;
+    const QMap<quint16, QList<CacheEntry>> getAllEvictedEntries() const noexcept;
     const QSet<quint16> getBytesWritten() const noexcept override;
     const QSet<quint16> getBytesSet() const noexcept override;
     // Call after all components have (synchronously) had a chance

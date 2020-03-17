@@ -142,6 +142,9 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     ui->ioWidget->bindToMemorySection(memDevice.get());
     // Connect IO events
     connect(memDevice.get(), &MainMemory::inputRequested, this, &AsmMainWindow::onInputRequested, Qt::QueuedConnection);
+    // Cache view doesn't perform incremental updates, and pending IO may cause
+    // displayed cache to be incoherent with model.
+    connect(memDevice.get(), &MainMemory::inputRequested, ui->cacheWidget, &CacheView::updateMemory, Qt::QueuedConnection);
     connect(memDevice.get(), &MainMemory::outputWritten, this, &AsmMainWindow::onOutputReceived, Qt::QueuedConnection);
 
     // Connect Undo / Redo events
@@ -156,7 +159,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     connect(this, &AsmMainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationStarted, ui->memoryWidget, &MemoryDumpPane::onSimulationStarted);
-    connect(this, &AsmMainWindow::simulationUpdate, ui->cacheWidget, &CacheView::updateMemory, Qt::UniqueConnection);
+    connect(this, &AsmMainWindow::simulationUpdate, ui->cacheWidget, &CacheView::onSimulationStep, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationStarted, ui->cacheWidget, &CacheView::onSimulationStarted);
     connect(this, &AsmMainWindow::simulationStarted, ui->memoryTracePane, &NewMemoryTracePane::onSimulationStarted);
     connect(this, &AsmMainWindow::simulationStarted, ui->executionStatisticsWidget, &ExecutionStatisticsWidget::onSimulationStarted);
@@ -223,7 +226,6 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     connect(programManager, &AsmProgramManager::breakpointRemoved, ui->assemblerPane, &AssemblerPane::onBreakpointRemoved);
 
     // These aren't technically slots being bound to, but this is allowed because of the new signal / slot syntax
-#pragma message ("If breakpoints aren't being added / set correctly, this is probably why")
     connect(programManager, &AsmProgramManager::breakpointAdded,
             [&](quint16 address){controlSection->breakpointAdded(address);});
     connect(programManager, &AsmProgramManager::breakpointRemoved,
@@ -336,7 +338,7 @@ void AsmMainWindow::connectViewUpdate()
     connect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
     connect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
 
-    connect(this, &AsmMainWindow::simulationUpdate, ui->cacheWidget, &CacheView::updateMemory, Qt::UniqueConnection);
+    connect(this, &AsmMainWindow::simulationUpdate, ui->cacheWidget, &CacheView::onSimulationStep, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationUpdate, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged, Qt::UniqueConnection);
     connect(this, &AsmMainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate, Qt::UniqueConnection);
@@ -350,7 +352,7 @@ void AsmMainWindow::disconnectViewUpdate()
 {
     //disconnect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged);
     disconnect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged);
-    disconnect(this, &AsmMainWindow::simulationUpdate, ui->cacheWidget, &CacheView::updateMemory);
+    disconnect(this, &AsmMainWindow::simulationUpdate, ui->cacheWidget, &CacheView::onSimulationStep);
     disconnect(this, &AsmMainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory);
     disconnect(this, &AsmMainWindow::simulationUpdate, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged);
     disconnect(this, &AsmMainWindow::simulationUpdate, ui->asmCpuPane, &AsmCpuPane::onSimulationUpdate);

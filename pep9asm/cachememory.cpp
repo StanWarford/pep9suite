@@ -124,8 +124,10 @@ bool CacheMemory::readByte(quint16 address, quint8 &output) const
     else {
         //qDebug().noquote() << QString("Miss %1\t").arg(address);
         auto evicted = line.insert(address_breakdown);
-        if(!evictedLines.contains(address_breakdown.tag)) evictedLines.insert(address_breakdown.tag, QList<CacheEntry>());
-        evictedLines[address_breakdown.tag].append(evicted);
+        if(evicted.is_present) {
+            if(!evictedLines.contains(address_breakdown.tag)) evictedLines.insert(address_breakdown.tag, QList<CacheEntry>());
+            evictedLines[address_breakdown.tag].append(evicted);
+        }
         miss_read++;
     }
     // Either if the read is a hit or a miss, the cache line associated with
@@ -154,8 +156,10 @@ bool CacheMemory::writeByte(quint16 address, quint8 value)
     else if(allocation_policy == Cache::WriteAllocationPolicy::WriteAllocate) {
         // Perform eviction in memory dump pane.
         auto evicted = line.insert(address_breakdown);
-        if(!evictedLines.contains(address_breakdown.tag)) evictedLines.insert(address_breakdown.tag, QList<CacheEntry>());
-        evictedLines[address_breakdown.tag].append(evicted);
+        if(evicted.is_present) {
+            if(!evictedLines.contains(address_breakdown.tag)) evictedLines.insert(address_breakdown.tag, QList<CacheEntry>());
+            evictedLines[address_breakdown.tag].append(evicted);
+        }
 
         // Catch line evictions caused by write allocation.
         cacheLinesTouched.insert(address_breakdown.tag);
@@ -194,6 +198,11 @@ const QList<CacheEntry> CacheMemory::getEvictedEntry(quint16 line) const noexcep
         return *item;
     }
     return QList<CacheEntry>();
+}
+
+const QMap<quint16, QList<CacheEntry> > CacheMemory::getAllEvictedEntries() const noexcept
+{
+    return evictedLines;
 }
 
 const QSet<quint16> CacheMemory::getBytesWritten() const noexcept
