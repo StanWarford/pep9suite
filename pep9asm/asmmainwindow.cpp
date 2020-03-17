@@ -332,7 +332,7 @@ bool AsmMainWindow::eventFilter(QObject *, QEvent *event)
 
 void AsmMainWindow::connectViewUpdate()
 {
-    connect(memDevice.get(), &MainMemory::changed, ui->cacheWidget, &CacheView::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
+    //connect(memDevice.get(), &MainMemory::changed, ui->cacheWidget, &CacheView::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
     connect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
     connect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
 
@@ -348,7 +348,7 @@ void AsmMainWindow::connectViewUpdate()
 
 void AsmMainWindow::disconnectViewUpdate()
 {
-    disconnect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged);
+    //disconnect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged);
     disconnect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged);
     disconnect(this, &AsmMainWindow::simulationUpdate, ui->cacheWidget, &CacheView::updateMemory);
     disconnect(this, &AsmMainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory);
@@ -1139,7 +1139,7 @@ void AsmMainWindow::on_actionBuild_Load_Object_triggered()
 {
     loadOperatingSystem();
     loadObjectCodeProgram();
-    refresehMemories();
+    refreshMemories();
     ui->memoryWidget->clearHighlight();
 }
 
@@ -1151,7 +1151,7 @@ void AsmMainWindow::on_actionBuild_Execute_triggered()
         disconnectViewUpdate();
         emit simulationStarted();
         ui->memoryWidget->clearHighlight();
-        refresehMemories();
+        refreshMemories();
         controlSection->onSimulationStarted();
         controlSection->onRun();
         connectViewUpdate();
@@ -1293,7 +1293,7 @@ bool AsmMainWindow::on_actionDebug_Start_Debugging_Object_triggered()
         // For small changes, updateMemory is faster, but for large changes it is much slower.
         // When beggining debugging, all addresses in the computer are 0'ed out and then
         // the object code program / OS is loaded. This generate 64k update entries, hence very slow.
-        refresehMemories();
+        refreshMemories();
         // Force re-highlighting on memory to prevent last run's data
         // from remaining highlighted. Otherwise, if the last program
         // was "run", then every byte that it modified will be highlighted
@@ -1329,7 +1329,7 @@ bool AsmMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     controlSection->getRegisterBank().writeRegisterWord(Enu::CPURegisters::PC, pc);
     controlSection->getRegisterBank().writeRegisterWord(Enu::CPURegisters::SP, sp);
     // Memory has been cleared, but will not display as such unless explicitly refreshed.
-    refresehMemories();
+    refreshMemories();
     // Give focus to the trace pane so that once can immediately
     // start hitting "return" to trigger single steps.
     ui->asmProgramTracePane->setFocus(Qt::FocusReason::MouseFocusReason);
@@ -1460,7 +1460,7 @@ void AsmMainWindow::onPaletteChanged(const QPalette &)
     onDarkModeChanged();
 }
 
-void AsmMainWindow::refresehMemories()
+void AsmMainWindow::refreshMemories()
 {
     ui->cacheWidget->refreshMemory();
     ui->memoryWidget->refreshMemory();
@@ -1483,7 +1483,7 @@ void AsmMainWindow::on_actionSystem_Clear_Memory_triggered()
 {
     memDevice->clearMemory();
     cacheDevice->clearCache();
-    refresehMemories();
+    refreshMemories();
     ui->memoryWidget->clearHighlight();
 
 }
@@ -1507,14 +1507,14 @@ void AsmMainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
         ui->statusBar->showMessage("Assembly failed, previous OS remains", 4000);
     }
     loadOperatingSystem();
-    refresehMemories();
+    refreshMemories();
 }
 
 void AsmMainWindow::on_actionSystem_Reinstall_Default_OS_triggered()
 {
     assembleDefaultOperatingSystem();
     loadOperatingSystem();
-    refresehMemories();
+    refreshMemories();
 }
 
 void AsmMainWindow::on_actionSystem_Redefine_Mnemonics_triggered()
@@ -1650,7 +1650,7 @@ void AsmMainWindow::on_actionView_Code_CPU_triggered()
 
 void AsmMainWindow::on_actionView_Code_CPU_Memory_triggered()
 {
-    refresehMemories();
+    refreshMemories();
     ui->horizontalSplitter->widget(0)->show();
     ui->horizontalSplitter->widget(1)->show();
     ui->horizontalSplitter->widget(2)->show();
@@ -1932,7 +1932,7 @@ void AsmMainWindow::onInputRequested(quint16 address)
 
 void AsmMainWindow::onBreakpointHit(Enu::BreakpointTypes type)
 {
-    refresehMemories();
+    refreshMemories();
     ui->memoryTracePane->updateTrace();
     switch(type) {
     case Enu::BreakpointTypes::ASSEMBLER:

@@ -4,18 +4,23 @@
 #include <QWidget>
 #include <QSharedPointer>
 #include <QStandardItemModel>
+#include <QStyledItemDelegate>
+#include <QSet>
 
 #include "cacheline.h"
 
 static const quint16 TagColumn = 0;
-static const quint16 PresentColumn =1;
-static const quint16 Hits = 2;
-static const quint16 FirstData = 3;
+static const quint16 EvictColumn = 1;
+static const quint16 Address = 2;
+static const quint16 Present = 3;
+static const quint16 Hits = 4;
 
 class CacheMemory;
 namespace Ui {
-class CacheView;
+    class CacheView;
 }
+
+class CacheViewDelegate;
 
 class CacheView : public QWidget
 {
@@ -72,11 +77,61 @@ private slots:
 private:
     Ui::CacheView *ui;
     QStandardItemModel* data;
+    CacheViewDelegate* del;
     QSharedPointer<CacheMemory> cache;
     bool inSimulation = false;
+    QFont activeFont;
     void refreshLine(quint16 line);
     void setRow(quint16 line, const CacheLine* linePtr, quint16 entry, const CacheEntry* entryPtr);
 
+    struct updated_item {
+        quint16 root_index;
+        quint16 child_row;
+        bool operator==(const updated_item& rhs) const;
+    };
+    uint friend qHash(const CacheView::updated_item &key) {return (key.root_index<<16) + key.child_row;}
+    QSet<updated_item> last_updated;
+
+    struct remove_entry{
+        quint16 root_line;
+        quint16 count;
+        bool operator==(const remove_entry& rhs) const;
+    };
+
+    uint friend qHash(const CacheView::remove_entry &key) {return (key.root_line<<16) + key.count;}
+    QSet<remove_entry> to_delete;
+
+};
+
+/*
+ * Item delegate that handles input validation of hex constants, and disables editing of address and hex dump columns.
+ * Eventually, it can be extended to be signaled to enable or disable editing
+ */
+class CacheViewDelegate: public QStyledItemDelegate {
+private:
+    QSharedPointer<CacheMemory> memDevice;
+    bool canEdit;
+public:
+    CacheViewDelegate(QSharedPointer<CacheMemory> memory, QObject* parent = nullptr);
+    virtual ~CacheViewDelegate() override;
+    // See http://doc.qt.io/qt-5/qstyleditemdelegate.html#subclassing-qstyleditemdelegate for explanation on the methods being reimplemented.
+
+    // If the index is editable, create an editor that validates byte hex constants, otherwise return nullptr
+    virtual QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    // Provides editor widget with starting data for editing.
+    virtual void setEditorData(QWidget * editor, const QModelIndex & index) const override;
+    // Ensure that editor is displayed correctly on the item view
+    virtual void updateEditorGeometry(QWidget * editor,
+                                      const QStyleOptionViewItem & option,
+                                      const QModelIndex & index) const override;
+    // Handle updating data in the model via calling the memorySection
+    virtual void setModelData(QWidget *editor,
+                              QAbstractItemModel *model,
+                              const QModelIndex &index) const override;
+    // Override painting method to allow drawing of vertical bars in dump pane.
+    virtual void paint(QPainter *painter,
+                       const QStyleOptionViewItem &option,
+                       const QModelIndex &index ) const override;
 };
 
 #endif // CACHEVIEW_H

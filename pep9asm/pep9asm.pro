@@ -38,6 +38,7 @@ FORMS += \
 HEADERS += \
     asmmainwindow.h \
     asmhelpdialog.h \
+    cache.h \
     cachealgs.h \
     cacheline.h \
     cachememory.h \

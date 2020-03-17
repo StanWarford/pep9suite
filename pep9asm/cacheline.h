@@ -5,6 +5,9 @@
 #include <QVector>
 #include <QSharedPointer>
 
+
+#include "cache.h"
+
 class AReplacementPolicy;
 
 struct CacheEntry
@@ -21,9 +24,9 @@ public:
     CacheLine(quint8 associativity, QSharedPointer<AReplacementPolicy> replacement_policy);
     bool contains_index(quint16 index);
     // Notify the CRP that an index has been hit.
-    void update(quint16 index);
+    void update(Cache::CacheAddress& address);
     // Insert the new index into the cache. Evict using CRP if needed.
-    void insert(quint16 index);
+    CacheEntry insert(Cache::CacheAddress& address);
     // Mark all entries in line as not-present and update replacement policy.
     void clear();
 

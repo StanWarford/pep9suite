@@ -10,30 +10,10 @@
 
 #include "amemorydevice.h"
 #include "mainmemory.h"
-#include "cacheline.h"
 #include "cachereplace.h"
+#include "cacheline.h"
+#include "cache.h"
 
-namespace Cache {
-    Q_NAMESPACE
-    struct CacheAddress
-    {
-        quint16 tag, index, offset;
-    };
-
-    enum class WriteAllocationPolicy{
-        WriteAllocate, NoWriteAllocate
-    };
-    Q_ENUM_NS(WriteAllocationPolicy);
-
-    struct CacheConfiguration {
-        // Number of addressing bits used for the tag, index and data.
-        quint16 tag_bits, index_bits, data_bits;
-        quint16 associativity;
-        WriteAllocationPolicy write_allocation = WriteAllocationPolicy::NoWriteAllocate;
-        QSharedPointer<AReplacementFactory> policy;
-    };
-
-}
 class CacheMemory : public AMemoryDevice
 {
     Q_OBJECT
@@ -44,7 +24,7 @@ public:
     // Read/Change cache parameters
     bool safeConfiguration(quint32 memory_size, quint16 tag_size, quint16 index_size,
                             quint16 data_size, quint16 associativity);
-    quint16 geTagSize() const;
+    quint16 getTagSize() const;
     quint16 getIndexSize() const;
     quint16 getAssociativty() const;
     quint16 getDataSize() const;
@@ -86,12 +66,15 @@ public slots:
     // TODO: Must find a way to clear bytesRead from ISA simulator, or
     // this set will grow forever. May need to move to base class.
     const QSet<quint16> getCacheLinesTouched() const noexcept;
+    const QList<CacheEntry> getEvictedEntry(quint16 line) const noexcept;
     const QSet<quint16> getBytesWritten() const noexcept override;
     const QSet<quint16> getBytesSet() const noexcept override;
     // Call after all components have (synchronously) had a chance
     // to access these fields. The set of written / set bytes will
     // continue to grow until explicitly reset.
     void clearCacheLinesTouched() noexcept;
+    void clearEvictedEntry(quint16 line) noexcept;
+    void clearAllEvictedEntries() noexcept;
     void clearBytesWritten() noexcept override;
     void clearBytesSet() noexcept override;
     void clearAllByteCaches() noexcept override;
@@ -104,6 +87,7 @@ private:
 
     mutable quint32 hit_read, miss_read, hit_writes, miss_writes;
     mutable QSet<quint16> cacheLinesTouched;
+    mutable QMap<quint16, QList<CacheEntry>> evictedLines;
 
 };
 #endif // CACHEMEMORY_H

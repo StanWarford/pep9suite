@@ -1,6 +1,10 @@
 #include "cachememory.h"
+
 #include <cmath>
 #include <QDebug>
+
+#include "cacheline.h"
+
 CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheConfiguration config,
                          QObject* parent):
     AMemoryDevice(parent), memory_device(memory_device), replace_factory(config.policy),
@@ -33,7 +37,7 @@ bool CacheMemory::safeConfiguration(quint32 memory_size, quint16 tag_size,
     return size_match & used_associativty;
 }
 
-quint16 CacheMemory::geTagSize() const
+quint16 CacheMemory::getTagSize() const
 {
     return tag_size;
 }
@@ -112,14 +116,16 @@ bool CacheMemory::readByte(quint16 address, quint8 &output) const
     // will be saved.
     if(CacheLine& line = cache[address_breakdown.tag];
             line.contains_index(address_breakdown.index)) {
-        qDebug().noquote() << QString("Hit %1\t").arg(address);
-        line.update(address_breakdown.index);
+        //qDebug().noquote() << QString("Hit %1\t").arg(address);
+        line.update(address_breakdown);
         hit_read++;
     }
     // Otherwise must insert index associated with line.
     else {
-        qDebug().noquote() << QString("Miss %1\t").arg(address);
-        line.insert(address_breakdown.index);
+        //qDebug().noquote() << QString("Miss %1\t").arg(address);
+        auto evicted = line.insert(address_breakdown);
+        if(!evictedLines.contains(address_breakdown.tag)) evictedLines.insert(address_breakdown.tag, QList<CacheEntry>());
+        evictedLines[address_breakdown.tag].append(evicted);
         miss_read++;
     }
     // Either if the read is a hit or a miss, the cache line associated with
@@ -142,14 +148,18 @@ bool CacheMemory::writeByte(quint16 address, quint8 value)
             line.contains_index(address_breakdown.index)) {
         // Update reference counts for the current line.
         cacheLinesTouched.insert(address_breakdown.tag);
-        line.update(address_breakdown.index);
+        line.update(address_breakdown);
         hit_writes++;
     }
     else if(allocation_policy == Cache::WriteAllocationPolicy::WriteAllocate) {
         // Perform eviction in memory dump pane.
-        line.insert(address_breakdown.index);
+        auto evicted = line.insert(address_breakdown);
+        if(!evictedLines.contains(address_breakdown.tag)) evictedLines.insert(address_breakdown.tag, QList<CacheEntry>());
+        evictedLines[address_breakdown.tag].append(evicted);
+
         // Catch line evictions caused by write allocation.
         cacheLinesTouched.insert(address_breakdown.tag);
+
         miss_writes++;
     }
     // We perform writeback without demand paging, so no need to update for
@@ -177,6 +187,15 @@ const QSet<quint16> CacheMemory::getCacheLinesTouched() const noexcept
     return cacheLinesTouched;
 }
 
+const QList<CacheEntry> CacheMemory::getEvictedEntry(quint16 line) const noexcept
+{
+    if(auto item = evictedLines.find(line);
+            item != evictedLines.end()) {
+        return *item;
+    }
+    return QList<CacheEntry>();
+}
+
 const QSet<quint16> CacheMemory::getBytesWritten() const noexcept
 {
     return memory_device->getBytesWritten();
@@ -190,6 +209,16 @@ const QSet<quint16> CacheMemory::getBytesSet() const noexcept
 void CacheMemory::clearCacheLinesTouched() noexcept
 {
     cacheLinesTouched.clear();
+}
+
+void CacheMemory::clearEvictedEntry(quint16 line) noexcept
+{
+    evictedLines.remove(line);
+}
+
+void CacheMemory::clearAllEvictedEntries() noexcept
+{
+    evictedLines.clear();
 }
 
 void CacheMemory::clearBytesWritten() noexcept
@@ -208,6 +237,7 @@ void CacheMemory::clearAllByteCaches() noexcept
     clearBytesWritten();
     clearBytesSet();
     clearCacheLinesTouched();
+    clearAllEvictedEntries();
 }
 
 Cache::CacheAddress CacheMemory::breakdownAddress(quint16 address) const
