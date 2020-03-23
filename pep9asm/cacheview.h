@@ -88,6 +88,11 @@ private:
     void refreshLine(quint16 line);
     void setRow(quint16 line, const CacheLine* linePtr, quint16 entry, const CacheEntry* entryPtr, bool evicted=false);
 
+    /*
+     * Structs, functions, and members used to track which lines in the cache view
+     * have additional stylization that needs to be removed at the start of the
+     * next simulation step.
+     */
     struct updated_item {
         quint16 root_index;
         quint16 child_row;
@@ -96,6 +101,11 @@ private:
     uint friend qHash(const CacheView::updated_item &key) {return (key.root_index<<16) + key.child_row;}
     QSet<updated_item> last_updated;
 
+    /*
+     * Structs, functions, and members used to track which lines in the cache view
+     * have "evicted" entries appended to the end. These evicted entries need to be
+     * removed at the start of the next simulation step.
+     */
     struct remove_entry{
         quint16 root_line;
         quint16 count;
@@ -104,7 +114,6 @@ private:
 
     uint friend qHash(const CacheView::remove_entry &key) {return (key.root_line<<16) + key.count;}
     QSet<remove_entry> to_delete;
-    QSet<quint16> updated_lines = {};
 
 };
 

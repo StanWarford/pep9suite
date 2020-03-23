@@ -15,11 +15,7 @@ CacheView::CacheView(QWidget *parent) :
     ui(new Ui::CacheView), data(new QStandardItemModel(this)), cache(nullptr)
 {
     ui->setupUi(this);
-    QMetaObject meta = CacheAlgorithms::staticMetaObject;
-    QMetaEnum metaEnum = meta.enumerator(meta.indexOfEnumerator("CacheAlgorithms"));
-    for(auto keyIndex = 0; keyIndex < metaEnum.keyCount(); keyIndex++) {
-        ui->replacementCombo->addItem(QString(metaEnum.key(keyIndex)));
-    }
+
     ui->cacheTree->setFont(Pep::codeFont);
     // Connect address conversion spin boxes.
     connect(ui->tagBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CacheView::cachetag_changed);
@@ -27,8 +23,6 @@ CacheView::CacheView(QWidget *parent) :
     connect(ui->dataBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CacheView::cachetag_changed);
 
     connect(ui->addressBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CacheView::address_changed);
-
-    // Connect cache configuration boxes.
 
     // Create cache delegate
     del = new CacheViewDelegate(cache);
@@ -47,10 +41,15 @@ CacheView::~CacheView()
 void CacheView::init(QSharedPointer<CacheMemory> cache)
 {
     this->cache = cache;
+
+    ui->cacheConfiguration->init(cache, true);
+
+    // Connect cache configuration boxes.
+    connect(cache.get(), &CacheMemory::configurationChanged, this, &CacheView::onCacheConfigChanged);
+
     onCacheConfigChanged();
     refreshMemory();
 }
-
 
 void CacheView::address_changed(int value)
 {
@@ -198,7 +197,7 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
     // ok_conv_* when attemtping to use associated integer.
     bool ok_conv_index, ok_conv_hits;
     int listedIndex = data->index(entry, TagColumn, lineIndex).data().toInt(&ok_conv_index);
-    int listedHits = data->index(entry, Hits, lineIndex).data().toInt(&ok_conv_hits);
+    quint32 listedHits = data->index(entry, Hits, lineIndex).data().toInt(&ok_conv_hits);
 
     // If evicted, indicate to Style Delegate to apply special evicted formatting.
     if(evicted) {
@@ -272,8 +271,7 @@ void CacheView::updateMemory()
 
     // Don't clear the memDevice's written / set bytes, since other UI components might
     // need access to them.
-    QSet<quint16> modifiedLines = updated_lines;
-    modifiedLines.unite(cache->getCacheLinesTouched());
+    QSet<quint16> modifiedLines = cache->getCacheLinesTouched();
     auto keys = cache->getAllEvictedEntries().keys();
     modifiedLines.unite(QSet<quint16>(keys.begin(), keys.end()));
 
@@ -308,28 +306,28 @@ void CacheView::onDarkModeChanged(bool darkMode)
     // TODO: respond to color changes after determining how to highlight
 }
 
-void CacheView::onMemoryChanged(quint16 address, quint8 /*newValue*/)
+void CacheView::onMemoryChanged(quint16 /*address*/, quint8 /*newValue*/)
 {
     // This function is only triggered on writes, not reads.
     // W do not have a write-allocate cache (by default),
     // we really only care about reads.
     // Updating only the line at value written to "address" is insufficient for
     // synchronizing cache visualization and cache model--reads must be accounted for.
-    auto breakdown = cache->breakdownAddress(address);
     // Do not refresh until simulation step completes; only track that write occured.
     // This performance optimization was determined to be necessary from profiling.
-    updated_lines.insert(breakdown.tag);
     //updateMemory();
 }
 
 void CacheView::onSimulationStarted()
 {
     inSimulation = true;
+    ui->cacheConfiguration->setReadOnly(true);
 }
 
 void CacheView::onSimulationFinished()
 {
     inSimulation = false;
+    ui->cacheConfiguration->setReadOnly(false);
 }
 
 void CacheView::onCacheConfigChanged()
@@ -337,25 +335,19 @@ void CacheView::onCacheConfigChanged()
     auto tag_bits = cache->getTagSize();
     auto index_bits = cache->getIndexSize();
     auto data_bits = cache->getDataSize();
-    auto associativity = cache->getAssociativty();
+
+    ui->cacheConfiguration->onCacheConfigChanged();
 
     ui->tagBox->setMaximum((1<<tag_bits) - 1);
-    ui->tagBits->setValue(tag_bits);
     ui->indexBox->setMaximum((1<<index_bits) - 1);
-    ui->indexBits->setValue(index_bits);
     ui->dataBox->setMaximum((1<<data_bits) - 1);
-    ui->dataBits->setValue(data_bits);
-    ui->associativityNum->setValue(associativity);
-    ui->replacementCombo->setCurrentIndex(ui->replacementCombo->findText(cache->getCacheAlgorithm()));
-    if(cache->getAllocationPolicy() == Cache::WriteAllocationPolicy::WriteAllocate) {
-        ui->writeAllocationCombo->setCurrentIndex(0);
-    } else {
-        ui->writeAllocationCombo->setCurrentIndex(1);
-    }
 
     // Ensure that data model is properly sized for cache configuration.
-    data->insertColumns(0, 5);
+    data->setColumnCount(5);
     data->setRowCount((1 << tag_bits));
+
+    last_updated.clear();
+    to_delete.clear();
 
     // Must set headers after clearing, or headers will be removed.
     data->setHeaderData(0, Qt::Horizontal, "Tag/Index", Qt::DisplayRole);
@@ -415,13 +407,13 @@ CacheViewDelegate::~CacheViewDelegate()
 
 }
 
-QWidget *CacheViewDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+QWidget *CacheViewDelegate::createEditor(QWidget* , const QStyleOptionViewItem &, const QModelIndex &) const
 {
     // Nothing is editable by the user.
     return nullptr;
 }
 
-void CacheViewDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+void CacheViewDelegate::setEditorData(QWidget* , const QModelIndex &) const
 {
     // Nothing is editable by the ueser.
 }
@@ -432,7 +424,7 @@ void CacheViewDelegate::updateEditorGeometry(QWidget *editor, const QStyleOption
     editor->setGeometry(option.rect);
 }
 
-void CacheViewDelegate::setModelData(QWidget *editor, QAbstractItemModel *, const QModelIndex &index) const
+void CacheViewDelegate::setModelData(QWidget *, QAbstractItemModel *, const QModelIndex &) const
 {
     // Editor can't cause a change in data.
 }

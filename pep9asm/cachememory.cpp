@@ -62,10 +62,30 @@ Cache::WriteAllocationPolicy CacheMemory::getAllocationPolicy() const
     return allocation_policy;
 }
 
-void CacheMemory::resizeCache(Cache::CacheConfiguration config)
+bool CacheMemory::resizeCache(Cache::CacheConfiguration config)
 {
-    // No operation for now.
-    //cache.resize()
+    if(!safeConfiguration(maxAddress(), config.tag_bits, config.index_bits, config.data_bits, config.associativity)) {
+        return false;
+    }
+    else {
+        cache.resize(1 << tag_size);
+        tag_size = config.tag_bits;
+        index_size = config.index_bits;
+        data_size = config.data_bits;
+        associativity = config.associativity;
+        allocation_policy = config.write_allocation;
+        hit_read = 0;
+        miss_read = 0;
+        hit_writes = 0;
+        miss_writes = 0;
+        cacheLinesTouched.clear();
+        this->replace_factory = config.policy;
+        for(auto& line : cache) {
+            line = CacheLine(associativity, replace_factory->create_policy());
+        }
+        emit configurationChanged();
+        return true;
+    }
 }
 
 void CacheMemory::clearCache()
@@ -252,10 +272,11 @@ void CacheMemory::clearAllByteCaches() noexcept
 Cache::CacheAddress CacheMemory::breakdownAddress(quint16 address) const
 {
     Cache::CacheAddress ret;
-    // Offset is the lowest order bits of the address
-    static int data_mask = (0x1 << data_size) - 1, data_shift = 0;
-    static int index_mask = (0x1 << index_size) - 1, index_shift = data_size;
-    static int tag_mask = (0x1 << tag_size) - 1, tag_shift = (data_size + index_size);
+    // Offset is the lowest order bits of the address.
+    // Do not compute statically, since these values depend on cache configuration.
+    int data_mask = (0x1 << data_size) - 1, data_shift = 0;
+    int index_mask = (0x1 << index_size) - 1, index_shift = data_size;
+    int tag_mask = (0x1 << tag_size) - 1, tag_shift = (data_size + index_size);
 
     ret.offset = (address >> data_shift) & (data_mask);
     // Index is middle bits of address.

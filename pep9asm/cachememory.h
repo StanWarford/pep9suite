@@ -29,7 +29,7 @@ public:
     quint16 getAssociativty() const;
     quint16 getDataSize() const;
     Cache::WriteAllocationPolicy getAllocationPolicy() const;
-    void resizeCache(Cache::CacheConfiguration config);
+    bool resizeCache(Cache::CacheConfiguration config);
 
     // Reset cache without affecting main memory.
     void clearCache();
@@ -46,7 +46,8 @@ public:
     //void reset_statistics();
     // TODO
 
-
+signals:
+    void configurationChanged();
     // AMemoryDevice interface
 public:
     quint32 maxAddress() const noexcept override;
