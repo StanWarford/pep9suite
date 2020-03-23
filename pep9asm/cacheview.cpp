@@ -12,7 +12,8 @@ static const int EvictedData = Qt::UserRole + 1;
 
 CacheView::CacheView(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::CacheView), data(new QStandardItemModel(this)), cache(nullptr)
+    ui(new Ui::CacheView), data(new QStandardItemModel(this)),
+    colors(&PepColors::lightMode), cache(nullptr)
 {
     ui->setupUi(this);
 
@@ -25,7 +26,7 @@ CacheView::CacheView(QWidget *parent) :
     connect(ui->addressBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CacheView::address_changed);
 
     // Create cache delegate
-    del = new CacheViewDelegate(cache);
+    del = new CacheViewDelegate(cache, colors);
     ui->cacheTree->setItemDelegate(del);
 
     // Connect model to data
@@ -221,7 +222,7 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
 
         // To highlight entire row must change background of each cell in row.
         for(int col=0; col<data->columnCount(); col++) {
-            data->itemFromIndex(data->index(entry, col, lineIndex))->setBackground(Qt::red);
+            data->itemFromIndex(data->index(entry, col, lineIndex))->setBackground(colors->muxCircuitRed);
         }
     }
     // Bolds "referenced" items.
@@ -299,11 +300,28 @@ void CacheView::onFontChanged(QFont font)
 {
     // TODO: respond to font change.
     activeFont = font;
+    // DIsable font stylization used to indicate cache access.
+    // This includes bolding, italics.
+    activeFont.setBold(false);
+    activeFont.setItalic(false);
+    activeFont.setStrikeOut(false);
+    ui->cacheTree->setFont(activeFont);
+    // Propogate event to child.
+    ui->cacheConfiguration->onFontChanged(font);
 }
 
 void CacheView::onDarkModeChanged(bool darkMode)
 {
     // TODO: respond to color changes after determining how to highlight
+    if(darkMode) {
+        colors = &PepColors::darkMode;
+        del->changeColors(colors);
+    } else {
+        colors = &PepColors::lightMode;
+        del->changeColors(colors);
+    }
+    // Propogate event to child.
+    ui->cacheConfiguration->onDarkModeChanged(darkMode);
 }
 
 void CacheView::onMemoryChanged(quint16 /*address*/, quint8 /*newValue*/)
@@ -371,12 +389,18 @@ void CacheView::onSimulationStep()
         auto root_item = data->item(item.root_index);
         for(int col = 0; col<data->columnCount(); col++) {
             auto* child = root_item->child(item.child_row, col);
-            #pragma message("TODO: make light/dark mode aware.")
-            child->setBackground(Qt::white);
-            QFont font = child->font();
-            font.setBold(false);
-            font.setStrikeOut(false);
-            child->setFont(font);
+            auto roles = data->itemData(child->index());
+            // Must remove item roles from child, since setItemData(...) will
+            // not modify unlisted roles.
+            child->clearData();
+            // Prevent old / unused roles from accumulating in QMap.
+            // Accumulation of these roles hinders switching from light <-> dark mode.
+            roles.remove(Qt::FontRole);
+            roles.remove(Qt::BackgroundRole);
+            // Set the item data with the special stylization removed.
+            // Will not modify item roles not in "roles" map. See:
+            //      https://doc.qt.io/qt-5/qabstractitemmodel.html#setItemData
+            data->setItemData(child->index(), roles);
         }
     }
     last_updated.clear();
@@ -396,8 +420,9 @@ bool CacheView::updated_item::operator==(const CacheView::updated_item &rhs) con
     return (this->root_index == rhs.root_index) && (this->child_row == rhs.child_row);
 }
 
-CacheViewDelegate::CacheViewDelegate(QSharedPointer<CacheMemory> memory, QObject *parent): QStyledItemDelegate(parent),
-    memDevice(memory)
+CacheViewDelegate::CacheViewDelegate(QSharedPointer<CacheMemory> memory, const PepColors::Colors *colors,
+                                     QObject *parent): QStyledItemDelegate(parent),
+     memDevice(memory), colors(colors)
 {
 
 }
@@ -405,6 +430,11 @@ CacheViewDelegate::CacheViewDelegate(QSharedPointer<CacheMemory> memory, QObject
 CacheViewDelegate::~CacheViewDelegate()
 {
 
+}
+
+void CacheViewDelegate::changeColors(const PepColors::Colors *colors)
+{
+   this->colors = colors;
 }
 
 QWidget *CacheViewDelegate::createEditor(QWidget* , const QStyleOptionViewItem &, const QModelIndex &) const
@@ -440,9 +470,8 @@ void CacheViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 
         // Draw a solid line through the evicted cache lines.
         // Save/restore since this operation modifies painter.
-#pragma message("TODO: Handle dark/light mode.")
         painter->save();
-        painter->setPen(Qt::black);
+        painter->setPen(colors->textColor);
         painter->drawLine(option.rect.left(),  option.rect.top() + option.rect.height()/2,
                           option.rect.right(), option.rect.top() + option.rect.height()/2);
         painter->restore();

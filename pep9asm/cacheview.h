@@ -8,6 +8,7 @@
 #include <QSet>
 
 #include "cacheline.h"
+#include "colors.h"
 
 static const quint16 TagColumn = 0;
 static const quint16 EvictColumn = 1;
@@ -81,7 +82,9 @@ private slots:
 private:
     Ui::CacheView *ui;
     QStandardItemModel* data;
+
     CacheViewDelegate* del;
+    const PepColors::Colors *colors;
     QSharedPointer<CacheMemory> cache;
     bool inSimulation = false;
     QFont activeFont;
@@ -125,9 +128,11 @@ class CacheViewDelegate: public QStyledItemDelegate {
 private:
     QSharedPointer<CacheMemory> memDevice;
     bool canEdit;
+    const PepColors::Colors *colors;
 public:
-    CacheViewDelegate(QSharedPointer<CacheMemory> memory, QObject* parent = nullptr);
+    CacheViewDelegate(QSharedPointer<CacheMemory> memory, const PepColors::Colors *colors, QObject* parent = nullptr);
     virtual ~CacheViewDelegate() override;
+    void changeColors(const PepColors::Colors *colors);
     // See http://doc.qt.io/qt-5/qstyleditemdelegate.html#subclassing-qstyleditemdelegate for explanation on the methods being reimplemented.
 
     // If the index is editable, create an editor that validates byte hex constants, otherwise return nullptr

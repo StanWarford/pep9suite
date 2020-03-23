@@ -24,6 +24,9 @@ public:
 
 public slots:
     void onCacheConfigChanged();
+    // Handle font changes.
+    void onFontChanged(QFont current);
+    void onDarkModeChanged(bool darkMode);
 
 private:
     Ui::CacheConfig *ui;

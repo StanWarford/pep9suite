@@ -67,6 +67,18 @@ void CacheConfig::onCacheConfigChanged()
     valuesChanged = false;
 }
 
+void CacheConfig::onFontChanged(QFont)
+{
+    // No operation.
+    // Added to mantain consistent interface across widgets.
+}
+
+void CacheConfig::onDarkModeChanged(bool)
+{
+    // No operation.
+    // Added to mantain consistent interface across widgets.
+}
+
 void CacheConfig::updateButtonRefresh()
 {
     if(enableCacheChanges) {
