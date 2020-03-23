@@ -43,7 +43,7 @@ class MicrocodePane;
 class MicroObjectCodePane;
 class UpdateChecker;
 class RedefineMnemonicsDialog;
-
+static const bool showCacheOnStart = true;
 //WIP classes
 class IsaCpu;
 class MainMemory;
@@ -154,6 +154,8 @@ private:
 private slots:
     // Update Check
     void onUpdateCheck(int val);
+    // When font is changed, update size of memory tab widgets.
+    void resizeMemoryWidgets();
     // File
     void on_actionFile_New_Asm_triggered();
     void on_actionFile_Open_triggered();
@@ -211,6 +213,7 @@ private slots:
     void on_actionSystem_Assemble_Install_New_OS_triggered();
     void on_actionSystem_Reinstall_Default_OS_triggered();
     void on_actionSystem_Redefine_Mnemonics_triggered();
+    void on_actionSystem_Show_Cache_triggered(bool isChecked);
     // Allow main window to update highlighting rules after
     // changes to the mnemonics have been finished.
     void redefine_Mnemonics_closed();

@@ -107,6 +107,9 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     ui->executionStatisticsWidget->init(controlSection, false);
     ui->cacheWidget->init(cacheDevice);
 
+    ui->actionSystem_Show_Cache->setChecked(showCacheOnStart);
+    on_actionSystem_Show_Cache_triggered(showCacheOnStart);
+
     // Create & connect all dialogs.
     helpDialog = new AsmHelpDialog(this);
     connect(helpDialog, &AsmHelpDialog::copyToSourceClicked, this, &AsmMainWindow::helpCopyToSourceClicked);
@@ -195,6 +198,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     connect(this, &AsmMainWindow::fontChanged, ui->memoryWidget, &MemoryDumpPane::onFontChanged);
     connect(this, &AsmMainWindow::fontChanged, ui->cacheWidget, &CacheView::onFontChanged);
     connect(this, &AsmMainWindow::fontChanged, ui->asmProgramTracePane, &AsmProgramTracePane::onFontChanged);
+    connect(this, &AsmMainWindow::fontChanged, this, &AsmMainWindow::resizeMemoryWidgets);
 
     // Connect dark mode events.
     connect(qApp, &QGuiApplication::paletteChanged, this, &AsmMainWindow::onPaletteChanged);
@@ -951,6 +955,13 @@ void AsmMainWindow::onUpdateCheck(int val)
     // Dummy to handle update checking code
 }
 
+void AsmMainWindow::resizeMemoryWidgets()
+{
+    auto width = std::max(ui->memoryWidget->sizeHint().width(),
+                          ui->cacheWidget->sizeHint().width());
+    ui->memoryTabWidget->setMinimumWidth(width);
+}
+
 // File MainWindow triggers
 void AsmMainWindow::on_actionFile_New_Asm_triggered()
 {
@@ -1524,6 +1535,26 @@ void AsmMainWindow::on_actionSystem_Redefine_Mnemonics_triggered()
     redefineMnemonicsDialog->show();
 }
 
+void AsmMainWindow::on_actionSystem_Show_Cache_triggered(bool isChecked)
+{
+    #pragma message("TODO: Enable / disable cache statistics for statistics tab.")
+    // If checked, re-arrange widgets so that memory widget is inside of the
+    // main memory tab, and the tab widget is the central widget in the 3rd column.
+    if(isChecked) {
+        ui->horizontalSplitter->replaceWidget(2, ui->memoryTabWidget);
+        ui->memoryTabWidget->setHidden(false);
+        ui->memoryTab->layout()->addWidget(ui->memoryWidget);
+    }
+    // Otherwise, hide the memory tab widget, and make the main memory widget
+    // the main widget in th third column.
+    else {
+        ui->horizontalSplitter->replaceWidget(2, ui->memoryWidget);
+        ui->memoryTabWidget->setHidden(true);
+    }
+    // Resize third column to accomodate new widget configuration.
+    resizeMemoryWidgets();
+}
+
 void AsmMainWindow::redefine_Mnemonics_closed()
 {
     // Propogate ASM-level instruction definition changes across the application.
@@ -1656,13 +1687,14 @@ void AsmMainWindow::on_actionView_Code_CPU_Memory_triggered()
     ui->horizontalSplitter->widget(0)->show();
     ui->horizontalSplitter->widget(1)->show();
     ui->horizontalSplitter->widget(2)->show();
+    resizeMemoryWidgets();
     ui->actionView_Code_Only->setDisabled(false);
     ui->actionView_Code_CPU->setDisabled(false);
     ui->actionView_Code_CPU_Memory->setDisabled(true);
     QList<int> list;
     list.append(3000);
     list.append(1);
-    list.append(3000);
+    list.append(ui->horizontalSplitter->widget(2)->minimumWidth());
     ui->horizontalSplitter->setSizes(list);
 
 }

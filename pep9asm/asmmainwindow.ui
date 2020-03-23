@@ -182,7 +182,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QTabWidget" name="tabWidget_2">
+      <widget class="QTabWidget" name="memoryTabWidget">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
          <horstretch>3</horstretch>
@@ -198,7 +198,7 @@
        <property name="currentIndex">
         <number>1</number>
        </property>
-       <widget class="QWidget" name="tab_3">
+       <widget class="QWidget" name="memoryTab">
         <attribute name="title">
          <string>Memory</string>
         </attribute>
@@ -213,7 +213,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>150</width>
+             <width>10</width>
              <height>200</height>
             </size>
            </property>
@@ -221,7 +221,10 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tab_4">
+       <widget class="QWidget" name="cacheTab">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <attribute name="title">
          <string>Cache</string>
         </attribute>
@@ -305,6 +308,7 @@
     <addaction name="actionSystem_Reinstall_Default_OS"/>
     <addaction name="actionSystem_Redefine_Mnemonics"/>
     <addaction name="separator"/>
+    <addaction name="actionSystem_Show_Cache"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1070,6 +1074,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+5</string>
+   </property>
+  </action>
+  <action name="actionSystem_Show_Cache">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Cache</string>
    </property>
   </action>
  </widget>

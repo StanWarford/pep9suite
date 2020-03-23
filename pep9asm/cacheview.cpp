@@ -308,6 +308,10 @@ void CacheView::onFontChanged(QFont font)
     ui->cacheTree->setFont(activeFont);
     // Propogate event to child.
     ui->cacheConfiguration->onFontChanged(font);
+    // Adjust columns to fit new font.
+    for(int it = 0; it < data->columnCount(); it++) {
+        ui->cacheTree->resizeColumnToContents(it);
+    }
 }
 
 void CacheView::onDarkModeChanged(bool darkMode)
