@@ -34,13 +34,14 @@ public:
     void storeStateInstrEnd();
     void storeStateInstrStart();
     QString memoize();
-    QString finalStatistics();
-    quint64 getCycleCount();
-    quint64 getInstructionCount();
-    const QVector<quint32> getInstructionHistogram();
+    QString finalStatistics(bool includeOS);
+    quint64 getCycleCount(bool includeOS);
+    quint64 getInstructionCount(bool includeOS);
+    const QVector<quint32> getInstructionHistogram(bool includeOS);
 private:
     IsaCpu& cpu;
-    CPUState state;
+    bool inOS;
+    CPUState stateUser, stateOS;
 };
 
 #endif // ISACPUMEMOIZER_H

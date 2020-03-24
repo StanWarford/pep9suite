@@ -226,11 +226,11 @@ bool FullMicrocodedCPU::onRun()
 
     auto value = timer.elapsed();
     // qDebug().nospace().noquote() << memoizer->finalStatistics() << "\n";
-    qDebug().nospace().noquote() << "Executed "<< asmInstructionCounter << " instructions in "<<microCycleCounter<< " cycles.";
-    qDebug().nospace().noquote() << "Averaging " << microCycleCounter / asmInstructionCounter << " cycles per instruction.";
+    qDebug().nospace().noquote() << "Executed "<< asmStepCount << " instructions in "<<microCycleCounter<< " cycles.";
+    qDebug().nospace().noquote() << "Averaging " << microCycleCounter / asmStepCount << " cycles per instruction.";
     qDebug().nospace().noquote() << "Execution time (ms): " << value;
     qDebug().nospace().noquote() << "Cycles per second: " << microCycleCounter / (static_cast<double>(value)/1000);
-    qDebug().nospace().noquote() << "Instructions per second: " << asmInstructionCounter / ((static_cast<double>(value)/1000)) << "\n";
+    qDebug().nospace().noquote() << "Instructions per second: " << asmStepCount / ((static_cast<double>(value)/1000)) << "\n";
     //emit simulationFinished();
     return true;
 }
@@ -308,7 +308,7 @@ void FullMicrocodedCPU::onMCStep()
         memoizer->storeStateInstrEnd();
         updateAtInstructionEnd();
         emit asmInstructionFinished();
-        asmInstructionCounter++;
+        asmStepCount++;
         // qDebug().noquote().nospace() << memoizer->memoize();
         data->getRegisterBank().flattenFile();
         // If execution finished on this instruction, then restore original starting program counter,
@@ -432,19 +432,19 @@ void FullMicrocodedCPU::stepOut()
     doISAStepWhile(cond);
 }
 
-quint64 FullMicrocodedCPU::getCycleCount()
+quint64 FullMicrocodedCPU::getCycleCount(bool includeOS)
 {
-    return memoizer->getCycleCount();
+    return memoizer->getCycleCount(includeOS);
 }
 
-quint64 FullMicrocodedCPU::getInstructionCount()
+quint64 FullMicrocodedCPU::getInstructionCount(bool includeOS)
 {
-    return memoizer->getInstructionCount();
+    return memoizer->getInstructionCount(includeOS);
 }
 
-const QVector<quint32> FullMicrocodedCPU::getInstructionHistogram()
+const QVector<quint32> FullMicrocodedCPU::getInstructionHistogram(bool includeOS)
 {
-    return memoizer->getInstructionHistogram();
+    return memoizer->getInstructionHistogram(includeOS);
 }
 
 void FullMicrocodedCPU::branchHandler()

@@ -26,6 +26,7 @@
 struct CPUState
 {
     QVector<quint32> instructionsCalled = QVector<quint32>(256, 0);
+    quint32 instructionsExecuted;
   //QVector<callStack> call_tracer;
 };
 QString formatNum(quint16 number);

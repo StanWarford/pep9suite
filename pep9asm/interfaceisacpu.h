@@ -81,11 +81,11 @@ public:
 
     // Returns how many cycles were used by the CPU. For an ISA level CPU, this will be
     // equal to getInstructionCount(), but for a microcoded implementation it may be different.
-    virtual quint64 getCycleCount() = 0;
+    virtual quint64 getCycleCount(bool includeOS) = 0;
     // Returns how many ISA level instructions (including those in the OS) were executed.
-    virtual quint64 getInstructionCount() = 0;
+    virtual quint64 getInstructionCount(bool includeOS) = 0;
     // Returns a 256 element vector that indicates how many times each opcode was used.
-    virtual const QVector<quint32> getInstructionHistogram() = 0;
+    virtual const QVector<quint32> getInstructionHistogram(bool includeOS) = 0;
 protected:
     // Execute a single ISA instruction.
     virtual void onISAStep() = 0;
@@ -113,7 +113,7 @@ protected:
 
     //Breakpoint information
     QSet<quint16> breakpointsISA;
-    quint64 asmInstructionCounter;
+    quint64 asmStepCount;
     bool asmBreakpointHit, doDebug;
 
     //Stack tracing information

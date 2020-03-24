@@ -34,18 +34,39 @@
 #include <QStack>
 
 FullMicrocodedMemoizer::FullMicrocodedMemoizer(FullMicrocodedCPU& item): cpu(item),
-    state(CPUState())
+    inOS(false), cyclesLast(0), cyclesUser(0), cyclesOS(0), stateUser(CPUState()), stateOS(CPUState())
 {
 
 }
 
 void FullMicrocodedMemoizer::clear()
 {
-    state = CPUState();
+    stateUser = CPUState();
+    stateOS = CPUState();
+    inOS = false;
+    cyclesLast = 0;
+    cyclesUser = 0;
+    cyclesOS = 0;
 }
 
 void FullMicrocodedMemoizer::storeStateInstrEnd()
 {
+
+    // Determine the number of cycles elapsed during the last instruction
+    auto cyclesElapsed = cpu.microCycleCounter - cyclesLast;
+    // Increment the correct counter for who "spent" the cycles
+    if(inOS) cyclesOS += cyclesElapsed;
+    else cyclesUser += cyclesElapsed;
+    cyclesLast = cpu.microCycleCounter;
+
+    // Determine if the subsequent instruction will enter/exit operating system.
+    auto mnemon = Pep::decodeMnemonic[cpu.data->getRegisterBank().getIRCache()];
+    if(Pep::isTrapMap[mnemon]) {
+        inOS = true;
+    }
+    else if (mnemon == Enu::EMnemonic::RETTR) {
+        inOS = false;
+    }
 
 }
 
@@ -55,7 +76,14 @@ void FullMicrocodedMemoizer::storeStateInstrStart()
     // Fetch the instruction specifier, located at the memory address of PC
     cpu.getMemoryDevice()->getByte(cpu.data->getRegisterBank()
                                    .readRegisterWordStart(Enu::CPURegisters::PC), instr);
-    state.instructionsCalled[instr]++;
+    if(inOS) {
+        stateOS.instructionsCalled[instr]++;
+        stateOS.instructionsExecuted++;
+    }
+    else {
+        stateUser.instructionsCalled[instr]++;
+        stateUser.instructionsExecuted++;
+    }
     cpu.data->getRegisterBank().setIRCache(instr);
     calculateOpVal();
 }
@@ -68,7 +96,6 @@ QString FullMicrocodedMemoizer::memoize()
         symTable = cpu.manager->getProgramAt(file.readRegisterWordStart(Enu::CPURegisters::PC))
                 ->getSymbolTable().get();
     }
-    quint8 ir = 0;
     QString build, AX, NZVC;
     AX = QString(" A=%1, X=%2, SP=%3")
 
@@ -80,36 +107,24 @@ QString FullMicrocodedMemoizer::memoize()
             formatInstr(symTable, file.getIRCache(), file.readRegisterWordCurrent(Enu::CPURegisters::OS));
     build += "  " + AX;
     build += NZVC;
-    ir = cpu.data->getRegisterBank().getIRCache();
-    if(Pep::isTrapMap[Pep::decodeMnemonic[ir]]) {
-        build += generateTrapFrame(state);
-    }
-    else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::RETTR) {
-        build += generateTrapFrame(state,false);
-    }
-    else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::CALL) {
-        build += generateStackFrame(state);
-    }
-    else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::RET) {
-        build += generateStackFrame(state,false);
-    }
     return build;
 }
 
-QString FullMicrocodedMemoizer::finalStatistics()
+QString FullMicrocodedMemoizer::finalStatistics(bool includeOS)
 {
     Enu::EMnemonic mnemon = Enu::EMnemonic::STOP;
     QList<Enu::EMnemonic> mnemonList = QList<Enu::EMnemonic>();
     mnemonList.append(mnemon);
+    auto instrVector = getInstructionHistogram(includeOS);
     QList<quint32> tally = QList<quint32>();
     tally.append(0);
     int tallyIt = 0;
     for(int it = 0; it < 256; it++) {
         if(mnemon == Pep::decodeMnemonic[it]) {
-            tally[tallyIt]+= state.instructionsCalled[it];
+            tally[tallyIt]+= instrVector[it];
         }
         else {
-            tally.append(state.instructionsCalled[it]);
+            tally.append(instrVector[it]);
             tallyIt++;
             mnemon = Pep::decodeMnemonic[it];
             mnemonList.append(mnemon);
@@ -124,20 +139,24 @@ QString FullMicrocodedMemoizer::finalStatistics()
     return output;
 }
 
-quint64 FullMicrocodedMemoizer::getCycleCount()
+quint64 FullMicrocodedMemoizer::getCycleCount(bool includeOS)
 {
-    return  cpu.microCycleCounter;
+    return cyclesUser + (includeOS ? cyclesOS : 0);
 }
 
-quint64 FullMicrocodedMemoizer::getInstructionCount()
+quint64 FullMicrocodedMemoizer::getInstructionCount(bool includeOS)
 {
-    return cpu.asmInstructionCounter;
+    return stateUser.instructionsExecuted + (includeOS ? stateOS.instructionsExecuted : 0);
 }
 
-const QVector<quint32> FullMicrocodedMemoizer::getInstructionHistogram()
+const QVector<quint32> FullMicrocodedMemoizer::getInstructionHistogram(bool includeOS)
 {
-    return state.instructionsCalled;
-    //return finalStatistics();
+
+    QVector<quint32> result(256);
+    for(int it=0; it<256; it++) {
+        result[it] = stateUser.instructionsCalled[it] + (includeOS ? stateOS.instructionsCalled[it]: 0);
+    }
+    return result;
 }
 
 void FullMicrocodedMemoizer::calculateOpVal() const

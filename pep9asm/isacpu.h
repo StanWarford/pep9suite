@@ -50,9 +50,9 @@ public:
     bool canStepInto() const override;
     void stepInto() override;
     void stepOut() override;
-    quint64 getCycleCount() override;
-    quint64 getInstructionCount() override;
-    const QVector<quint32> getInstructionHistogram() override;
+    quint64 getCycleCount(bool includeOS) override;
+    quint64 getInstructionCount(bool includeOS) override;
+    const QVector<quint32> getInstructionHistogram(bool includeOS) override;
 
     RegisterFile& getRegisterBank();
     const RegisterFile& getRegisterBank() const;

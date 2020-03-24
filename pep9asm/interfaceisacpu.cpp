@@ -30,7 +30,7 @@
 #include "asmcode.h"
 InterfaceISACPU::InterfaceISACPU(const AMemoryDevice* dev, const AsmProgramManager* manager) noexcept:
     manager(manager), opValCache(0),
-    breakpointsISA(), asmInstructionCounter(0), asmBreakpointHit(false), doDebug(false),
+    breakpointsISA(), asmStepCount(0), asmBreakpointHit(false), doDebug(false),
     firstLineAfterCall(false), isTrapped(false), memTrace(QSharedPointer<MemoryTrace>::create()),
     userActions(), osActions(), activeActions(&userActions)
 {
@@ -329,7 +329,7 @@ void InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quin
 
 void InterfaceISACPU::reset() noexcept
 {
-    asmInstructionCounter = 0;
+    asmStepCount = 0;
     asmBreakpointHit = false;
     memTrace->clear();
     // Only trace the stack if trace tags are present, and no assembly time

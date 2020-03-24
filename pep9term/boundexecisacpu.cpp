@@ -49,7 +49,7 @@ bool BoundExecIsaCpu::onRun()
 {
     // Execute instructions until an error occurs, the simulation finished,
     // or we exceed our step count.
-    std::function<bool(void)> cond = [this](){ if(maxSteps <=asmInstructionCounter) {
+    std::function<bool(void)> cond = [this](){ if(maxSteps <=asmStepCount) {
             controlError = true;
             errorMessage = "Possible endless loop detected.";
             // Make sure to explicitly terminate simulation, else will be stuck in infinite loop.

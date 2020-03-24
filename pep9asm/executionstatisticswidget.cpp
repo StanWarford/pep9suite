@@ -27,7 +27,7 @@
 
 ExecutionStatisticsWidget::ExecutionStatisticsWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::ExecutionStatisticsWidget), model(new QStandardItemModel(this))
+    ui(new Ui::ExecutionStatisticsWidget), model(new QStandardItemModel(this)), containsData(false)
 {
     ui->setupUi(this);
     ui->treeView->setModel(model);
@@ -82,6 +82,7 @@ void ExecutionStatisticsWidget::onClear()
     // Sort by a non-existent column to prevent the "sorting arrow"
     // from appearing over unsorted data.
     ui->treeView->sortByColumn(-1, Qt::SortOrder::AscendingOrder);
+    containsData = false;
 }
 
 void ExecutionStatisticsWidget::onSimulationStarted()
@@ -92,10 +93,16 @@ void ExecutionStatisticsWidget::onSimulationStarted()
 
 void ExecutionStatisticsWidget::onSimulationFinished()
 {
-    // Use locale so that strings have commas in them.
-    ui->lineEdit_Cycles->setText(QLocale::system().toString(cpu->getCycleCount()));
-    ui->lineEdit_Instructions->setText(QLocale::system().toString(cpu->getInstructionCount()));
-    fillModel(cpu->getInstructionHistogram());
+    containsData = true;
+    refreshData();
+}
+
+void ExecutionStatisticsWidget::on_includeOSCheckBox_toggled(bool)
+{
+    // If the CPU currently has data to report, report statistics with new filters.
+    if(containsData) {
+        refreshData();
+    }
 }
 
 // POD class to help aggregate statistics.
@@ -180,4 +187,13 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram)
         }
     }
 
+}
+
+void ExecutionStatisticsWidget::refreshData()
+{
+    bool includeOS = ui->includeOSCheckBox->checkState() == Qt::CheckState::Checked;
+    // Use locale so that strings have commas in them.
+    ui->lineEdit_Cycles->setText(QLocale::system().toString(cpu->getCycleCount(includeOS)));
+    ui->lineEdit_Instructions->setText(QLocale::system().toString(cpu->getInstructionCount(includeOS)));
+    fillModel(cpu->getInstructionHistogram(includeOS));
 }

@@ -50,11 +50,18 @@ public slots:
     void onSimulationStarted();
     void onSimulationFinished();
 
+private slots:
+    // If data is present, refresh the data to respect the new criterion.
+    void on_includeOSCheckBox_toggled(bool);
+
 private:
     Ui::ExecutionStatisticsWidget *ui;
     QSharedPointer<InterfaceISACPU> cpu;
     QStandardItemModel* model;
+    // Does the CPU have data to report?
+    bool containsData;
     void fillModel(const QVector<quint32> histogram);
+    void refreshData();
 };
 
 #endif // EXECUTIONSTATISTICSWIDGET_H

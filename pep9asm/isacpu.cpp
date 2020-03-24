@@ -90,19 +90,19 @@ void IsaCpu::stepOut()
     doISAStepWhile(cond);
 }
 
-quint64 IsaCpu::getCycleCount()
+quint64 IsaCpu::getCycleCount(bool includeOS)
 {
-    return memoizer->getInstructionCount();
+    return memoizer->getInstructionCount(includeOS);
 }
 
-quint64 IsaCpu::getInstructionCount()
+quint64 IsaCpu::getInstructionCount(bool includeOS)
 {
-    return memoizer->getInstructionCount();
+    return memoizer->getInstructionCount(includeOS);
 }
 
-const QVector<quint32> IsaCpu::getInstructionHistogram()
+const QVector<quint32> IsaCpu::getInstructionHistogram(bool includeOS)
 {
-    return memoizer->getInstructionHistogram();
+    return memoizer->getInstructionHistogram(includeOS);
 }
 
 RegisterFile &IsaCpu::getRegisterBank()
@@ -166,7 +166,7 @@ void IsaCpu::onISAStep()
     memoizer->storeStateInstrEnd();
     updateAtInstructionEnd();
     emit asmInstructionFinished();
-    asmInstructionCounter++;
+    asmStepCount++;
 
     // qDebug().noquote().nospace() << memoizer->memoize();
 
@@ -175,7 +175,7 @@ void IsaCpu::onISAStep()
     // Modulus must be greater than 1, or there will be no gaurentee of forward progress.
     // If modulus were 1, then debug debug breakpoints that were signaled externally
     // during process events would never be cleared by branch handler.
-    if(asmInstructionCounter % 500 == 0) {
+    if(asmStepCount % 500 == 0) {
         QApplication::processEvents();
     }
 

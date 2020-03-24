@@ -38,14 +38,17 @@ public:
     // to fulfill its contract with InterfaceISACPU.
     void storeStateInstrStart();
     QString memoize();
-    QString finalStatistics();
-    quint64 getCycleCount();
-    quint64 getInstructionCount();
-    const QVector<quint32> getInstructionHistogram();
+    QString finalStatistics(bool includeOS);
+    quint64 getCycleCount(bool includeOS);
+    quint64 getInstructionCount(bool includeOS);
+    const QVector<quint32> getInstructionHistogram(bool includeOS);
 
 private:
     FullMicrocodedCPU& cpu;
-    CPUState state;
+    bool inOS;
+    quint32 cyclesLast;
+    quint32 cyclesUser, cyclesOS;
+    CPUState stateUser, stateOS;
     // The InterfaceISACPU requires that the CPU capture the value of the decoded
     // operand specifier. The below set of functions handle the different possible
     // ways an operand might need to be decoded.

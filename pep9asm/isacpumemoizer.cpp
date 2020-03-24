@@ -31,7 +31,7 @@
 #include <QDebug>
 #include <QStack>
 
-IsaCpuMemoizer::IsaCpuMemoizer(IsaCpu &cpu): cpu(cpu), state(CPUState())
+IsaCpuMemoizer::IsaCpuMemoizer(IsaCpu &cpu): cpu(cpu), inOS(false), stateUser(CPUState()), stateOS(CPUState())
 {
 
 }
@@ -43,20 +43,35 @@ IsaCpuMemoizer::~IsaCpuMemoizer()
 
 void IsaCpuMemoizer::clear()
 {
-    state = CPUState();
+    stateUser = CPUState();
+    stateOS = CPUState();
 }
 
 void IsaCpuMemoizer::storeStateInstrEnd()
 {
-
+    auto mnemon = Pep::decodeMnemonic[cpu.registerBank.getIRCache()];
+    if(Pep::isTrapMap[mnemon]) {
+        inOS = true;
+    }
+    else if (mnemon == Enu::EMnemonic::RETTR) {
+        inOS = false;
+    }
 }
 
 void IsaCpuMemoizer::storeStateInstrStart()
 {
     quint8 instr;
+
     // Fetch the instruction specifier, located at the memory address of PC
     cpu.getMemoryDevice()->getByte(cpu.registerBank.readRegisterWordStart(Enu::CPURegisters::PC), instr);
-    state.instructionsCalled[instr]++;
+    if(inOS) {
+        stateOS.instructionsCalled[instr]++;
+        stateOS.instructionsExecuted++;
+    }
+    else {
+        stateUser.instructionsCalled[instr]++;
+        stateUser.instructionsExecuted++;
+    }
     cpu.registerBank.setIRCache(instr);
 }
 
@@ -82,36 +97,24 @@ QString IsaCpuMemoizer::memoize()
     build += NZVC;
     build += "  " + AX;
     build += NZVC;
-    ir = file.getIRCache();
-    if(Pep::isTrapMap[Pep::decodeMnemonic[ir]]) {
-        build += generateTrapFrame(state);
-    }
-    else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::RETTR) {
-        build += generateTrapFrame(state,false);
-    }
-    else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::CALL) {
-        build += generateStackFrame(state);
-    }
-    else if(Pep::decodeMnemonic[ir] == Enu::EMnemonic::RET) {
-        build += generateStackFrame(state,false);
-    }
     return build;
 }
 
-QString IsaCpuMemoizer::finalStatistics()
+QString IsaCpuMemoizer::finalStatistics(bool includeOS)
 {
     Enu::EMnemonic mnemon = Enu::EMnemonic::STOP;
     QList<Enu::EMnemonic> mnemonList = QList<Enu::EMnemonic>();
     mnemonList.append(mnemon);
+    auto instrVector = getInstructionHistogram(includeOS);
     QList<quint32> tally = QList<quint32>();
     tally.append(0);
     int tallyIt = 0;
     for(int it = 0; it < 256; it++) {
         if(mnemon == Pep::decodeMnemonic[it]) {
-            tally[tallyIt]+= state.instructionsCalled[it];
+            tally[tallyIt]+= instrVector[it];
         }
         else {
-            tally.append(state.instructionsCalled[it]);
+            tally.append(instrVector[it]);
             tallyIt++;
             mnemon = Pep::decodeMnemonic[it];
             mnemonList.append(mnemon);
@@ -126,18 +129,22 @@ QString IsaCpuMemoizer::finalStatistics()
     return output;
 }
 
-quint64 IsaCpuMemoizer::getCycleCount()
+quint64 IsaCpuMemoizer::getCycleCount(bool includeOS)
 {
-    return cpu.asmInstructionCounter;
+    return stateUser.instructionsExecuted + (includeOS ? stateOS.instructionsExecuted : 0);
 }
 
-quint64 IsaCpuMemoizer::getInstructionCount()
+quint64 IsaCpuMemoizer::getInstructionCount(bool includeOS)
 {
-    return cpu.asmInstructionCounter;
+    return stateUser.instructionsExecuted + (includeOS ? stateOS.instructionsExecuted : 0);
 }
 
-const QVector<quint32> IsaCpuMemoizer::getInstructionHistogram()
+const QVector<quint32> IsaCpuMemoizer::getInstructionHistogram(bool includeOS)
 {
-    return state.instructionsCalled;
+    QVector<quint32> result(256);
+    for(int it=0; it<256; it++) {
+        result[it] = stateUser.instructionsCalled[it] + (includeOS ? stateOS.instructionsCalled[it]: 0);
+    }
+    return result;
 }
 
