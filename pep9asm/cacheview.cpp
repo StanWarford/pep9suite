@@ -109,18 +109,18 @@ void CacheView::refreshLine(quint16 line)
         qDebug() << "Something went horribly wrong with a line.";
     }
 
-    auto* linePtr = lineEntry.value();
+    auto* linePtr = *lineEntry;
     // Determine if the entire cache line is not present.
     bool blank = false;
 
     for(int entry = 0; entry < associativity; entry++) {
-        auto entryOpt = lineEntry.value()->get_entry(entry);
+        auto entryOpt = linePtr->get_entry(entry);
         if(!entryOpt.has_value()) {
             qDebug() << "Something went horribly wrong with an entry.";
         }
 
         // If any cache entry is present in the line, then the entire line is displayable.
-        auto entryPtr = entryOpt.value();
+        auto entryPtr = *entryOpt;
         blank |= entryPtr->is_present;
 
         setRow(line, linePtr, entry, entryPtr);
