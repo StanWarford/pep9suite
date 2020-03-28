@@ -262,6 +262,9 @@ void CpuPane::setRegister(Enu::ECPUKeywords reg, int value)
     case Enu::MDREREG:
         cpuPaneItems->MDRELabel->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
         break;
+    case Enu::MDRREG:
+        cpuPaneItems->MDRLabel->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
+        break;
     default:
         // the remainder of the array is 'read only' in our simulated CPU
         break;
@@ -781,11 +784,11 @@ void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
     }
 
     // 1 byte exclusive controls.
-    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+    if (cpu->getCPUType() == Enu::CPUType::OneByteDataBus &&
             cpuPaneItems->MDRCk->isChecked()) { // 1 byte bus
         code.setClockSingal(Enu::MDRCk, 1);
     }
-    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+    if (cpu->getCPUType() == Enu::CPUType::OneByteDataBus &&
             cpuPaneItems->MDRMuxTristateLabel->text() != "") { // 1 byte bus
         code.setControlSignal(Enu::MDRMux, static_cast<quint8>(cpuPaneItems->MDRMuxTristateLabel->text().toInt()));
     }
@@ -905,7 +908,7 @@ void CpuPane::onClockChanged()
         dataSection->onSetClock(Enu::MARCk,cpuPaneItems->MARCk->checkState());
     }
     else if(send==cpuPaneItems->MDRCk) {
-        dataSection->onSetClock(Enu::MDRCk,cpuPaneItems->MDRECk->checkState());
+        dataSection->onSetClock(Enu::MDRCk,cpuPaneItems->MDRCk->checkState());
     }
     else if(send==cpuPaneItems->MDRECk) {
         dataSection->onSetClock(Enu::MDRECk,cpuPaneItems->MDRECk->checkState());
