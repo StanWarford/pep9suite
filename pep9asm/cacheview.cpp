@@ -274,7 +274,11 @@ void CacheView::updateMemory()
     // need access to them.
     QSet<quint16> modifiedLines = cache->getCacheLinesTouched();
     auto keys = cache->getAllEvictedEntries().keys();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     modifiedLines.unite(QSet<quint16>(keys.begin(), keys.end()));
+#else
+    modifiedLines.unite(QSet<quint16>::fromList(keys));
+#endif
 
     for(auto x: modifiedLines) {
         refreshLine(x);

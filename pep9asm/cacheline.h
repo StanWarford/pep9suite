@@ -8,6 +8,8 @@
 
 #include "cache.h"
 
+#include <optional>
+
 class AReplacementPolicy;
 
 struct CacheEntry
