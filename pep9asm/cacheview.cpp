@@ -9,11 +9,17 @@
 #include "pep.h"
 
 static const int EvictedData = Qt::UserRole + 1;
-
+QString toAddressRange(quint16 lower, quint16 upper)
+{
+    auto ret = QString("%1-%2")
+            .arg(lower, 4, 16, QChar('0'))
+            .arg(upper, 4, 16, QChar('0'));
+    return ret;
+}
 CacheView::CacheView(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CacheView), data(new QStandardItemModel(this)),
-    colors(&PepColors::lightMode), cache(nullptr)
+    colors(&PepColors::lightMode), cache(nullptr), eviction_collate()
 {
     ui->setupUi(this);
 
@@ -100,9 +106,7 @@ void CacheView::refreshLine(quint16 line)
         addressItem = new QStandardItem();
         data->setItem(line, 2, addressItem);
     }
-    addressItem->setText(QString("%1-%2")
-                         .arg(line<<(index_bits+data_bits),4, 16)
-                         .arg((((line+1)<<(index_bits+data_bits)) - 1), 4, 16));
+    addressItem->setText(toAddressRange(line<<(index_bits+data_bits), ((line+1)<<(index_bits+data_bits)) - 1));
 
     auto lineEntry = cache->getCacheLine(line);
     if(!lineEntry.has_value()) {
@@ -131,15 +135,44 @@ void CacheView::refreshLine(quint16 line)
            !evicted.empty()) {
         auto root_item = data->item(line);
         int entry_number = root_item->rowCount();
-        for(auto entry : evicted) {
-            QList<QStandardItem*> new_items;
-            for(int col=0; col<data->columnCount(); col++)  {
-                new_items.append(new QStandardItem());
+
+        // Conditionally choose at compile time to perform eviction collation.
+        if constexpr(COLLATE_EVICTIONS) {
+            // Combine all eviction entries for the same index, and only
+            // keep the most recent eviction.
+            int time = 0;
+            for(auto entry : evicted) {
+                eviction_collate[entry.index] = {entry, time++};
             }
-            root_item->appendRow(new_items);
-            setRow(line, linePtr, entry_number, &entry, true);
-            entry_number++;
+            // Sort the items so that the most recent eviction is first
+            using item = std::tuple<CacheEntry, int>;
+            std::sort(eviction_collate.begin(), eviction_collate.end(), [](const item& lhs, const item& rhs){return std::get<1>(lhs) > std::get<1>(rhs);});
+            // Iterate over all evicted items, and append an entry to the table if an index has been marked as evicted.
+            for(auto evicted_entry : eviction_collate) {
+                auto &[entry, time] = evicted_entry;
+                if(!entry.is_present) continue;
+                QList<QStandardItem*> new_items;
+                for(int col=0; col<data->columnCount(); col++)  {
+                    new_items.append(new QStandardItem());
+                }
+                root_item->appendRow(new_items);
+                setRow(line, linePtr, entry_number, &entry, true);
+                entry_number++;
+            }
         }
+        else {
+            // Iterate over all evicted items, and append an entry to the table if an index has been marked as evicted.
+            for(auto entry : evicted) {
+                QList<QStandardItem*> new_items;
+                for(int col=0; col<data->columnCount(); col++)  {
+                    new_items.append(new QStandardItem());
+                }
+                root_item->appendRow(new_items);
+                setRow(line, linePtr, entry_number, &entry, true);
+                entry_number++;
+            }
+        }
+
     }
 
     // When there are more lines than ways in the cache, it means that "evicted"
@@ -179,9 +212,8 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
     // the entry in columns 0,2. Also determine hit count.
     if(entryPtr->is_present) {
         c0_name = QString("%1").arg(entryPtr->index);
-        c2_address = QString("%1-%2")
-                .arg((line<<(index_bits+data_bits)) + ((entryPtr->index)<<data_bits),4, 16)
-                .arg((line<<(index_bits+data_bits)) + ((entryPtr->index+1)<<data_bits) - 1, 4, 16);
+        c2_address = toAddressRange((line<<(index_bits+data_bits)) + ((entryPtr->index)<<data_bits),
+                                    (line<<(index_bits+data_bits)) + ((entryPtr->index+1)<<data_bits) - 1);
         c4_hits = entryPtr->hit_count;
     }
 
@@ -251,6 +283,13 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
     data->itemFromIndex(data->index(entry, Address, lineIndex))->setData(c2_address, Qt::DisplayRole);
     data->itemFromIndex(data->index(entry, Present, lineIndex))->setData(entryPtr->is_present, Qt::DisplayRole);
     data->itemFromIndex(data->index(entry, Hits, lineIndex))->setData(c4_hits, Qt::DisplayRole);
+}
+
+void CacheView::reset_eviction_collation()
+{
+    for(auto& item : eviction_collate) {
+        item = {CacheEntry(), 0};
+    }
 }
 
 void CacheView::refreshMemory()
@@ -381,6 +420,10 @@ void CacheView::onCacheConfigChanged()
     data->setHeaderData(2, Qt::Horizontal, "Address Range", Qt::DisplayRole);
     data->setHeaderData(3, Qt::Horizontal, "Present", Qt::DisplayRole);
     data->setHeaderData(4, Qt::Horizontal, "# Hits", Qt::DisplayRole);
+
+    // Ensure that eviction collation array is large enough to contain all evicted entries.
+    eviction_collate.resize(1<<index_bits);
+    reset_eviction_collation();
 }
 
 void CacheView::onSimulationStep()

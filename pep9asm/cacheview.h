@@ -23,6 +23,12 @@ namespace Ui {
 
 class CacheViewDelegate;
 
+/*
+ * When an index has been evicted multiple times during a single simulation step (like during a trap instruction),
+ * only the most recent eviction for each simulation step is kept. Otherwise, dozens to hundreds of eviction entries may flood the screen.
+ * This behavior may change in the future, so it may currently be enabled or disabled at compile time using the following macro.
+ */
+static const bool COLLATE_EVICTIONS = false;
 class CacheView : public QWidget
 {
     Q_OBJECT
@@ -117,6 +123,11 @@ private:
 
     uint friend qHash(const CacheView::remove_entry &key) {return (key.root_line<<16) + key.count;}
     QSet<remove_entry> to_delete;
+
+    // When an index has been evicted multiple times during a single simulation step, only show the most recent eviction.
+    // This prevents users from being overwhelmed by a large number of evictions in a single step.
+    void reset_eviction_collation();
+    mutable QVector<std::tuple<CacheEntry, int>> eviction_collate;
 
 };
 
