@@ -38,7 +38,7 @@ void CacheConfig::setReadOnly(bool readOnly)
     ui->indexBits->setEnabled(enabled);
     // # of offset bits calculated from
     //ui->offsetBits->setEnabled(false);
-    ui->writeAllocationCombo->setEnabled(enabled);
+    //ui->writeAllocationCombo->setEnabled(enabled);
     ui->replacementCombo->setEnabled(enabled);
     ui->associativityNum->setEnabled(enabled);
     ui->updateButton->setEnabled(enabled & enableCacheChanges);
@@ -56,11 +56,11 @@ void CacheConfig::onCacheConfigChanged()
     ui->offsetBits->setValue(data_bits);
     ui->associativityNum->setValue(associativity);
     ui->replacementCombo->setCurrentIndex(ui->replacementCombo->findText(cache->getCacheAlgorithm()));
-    if(cache->getAllocationPolicy() == Cache::WriteAllocationPolicy::NoWriteAllocate) {
+    /*if(cache->getAllocationPolicy() == Cache::WriteAllocationPolicy::NoWriteAllocate) {
         ui->writeAllocationCombo->setCurrentIndex(0);
     } else {
         ui->writeAllocationCombo->setCurrentIndex(1);
-    }
+    }*/
 
     // Anytime the cache is re-configured, it is cleared.
     updateButtonRefresh();
@@ -138,7 +138,7 @@ void CacheConfig::on_replacementCombo_currentIndexChanged(int)
 
 void CacheConfig::on_writeAllocationCombo_currentIndexChanged(int)
 {
-    Cache::WriteAllocationPolicy policy;
+    /*Cache::WriteAllocationPolicy policy;
     // Convert from true/false string to enumerated write allocation policy.
     if(ui->writeAllocationCombo->currentIndex() == 0) {
         policy = Cache::WriteAllocationPolicy::NoWriteAllocate;
@@ -146,7 +146,7 @@ void CacheConfig::on_writeAllocationCombo_currentIndexChanged(int)
         policy = Cache::WriteAllocationPolicy::WriteAllocate;
     }
     if(cache->getAllocationPolicy() != policy) valuesChanged |= true;
-    updateButtonRefresh();
+    updateButtonRefresh();*/
 }
 
 void CacheConfig::on_updateButton_pressed()
@@ -163,11 +163,12 @@ void CacheConfig::on_updateButton_pressed()
         config.associativity = ui->associativityNum->value();
 
         // Convert from write allocation being true / false to the enumerated value.
-        if(ui->writeAllocationCombo->currentIndex() == 0) {
+        /*if(ui->writeAllocationCombo->currentIndex() == 0) {
             config.write_allocation = Cache::WriteAllocationPolicy::NoWriteAllocate;
         } else {
             config.write_allocation = Cache::WriteAllocationPolicy::WriteAllocate;
-        }
+        }*/
+        config.write_allocation = Cache::WriteAllocationPolicy::NoWriteAllocate;
 
         // Use Qt enumeration objects to convert index in combo box to associated
         // enumerated item.
