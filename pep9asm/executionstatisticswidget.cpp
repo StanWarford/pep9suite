@@ -165,9 +165,12 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram)
 
         // If the instruction was not used, do not insert its entry.
         if(tuple.tally == 0 ) continue;
+        // Non-unary traps all have 8 available addressing modes, regardless of what the Pep mnemonic maps indicate.
+        else if(Pep::isTrapMap[mnemon] && ~Pep::isUnaryMap[mnemon]) tuple.addrModes=8;
 
         // Create entries for the mnemonic name
         QStandardItem* instrName = new QStandardItem(QString(mnemonicMetaenum.valueToKey((int)mnemon)).toLower());
+
         QStandardItem* instrCount = new QStandardItem();
         // Make a variant from an int type to ensure that sorting works correctly.
         instrCount->setData(QVariant(tuple.tally), Qt::DisplayRole);
@@ -178,7 +181,14 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram)
             if(histogram[tuple.start + offset] == 0) continue;
             // Otherwise, for every opcode between the start and number of addressing modes,
             // figure out the addressing mode associated with the instruction.
-            Enu::EAddrMode addr = Pep::decodeAddrMode[tuple.start + offset];
+            Enu::EAddrMode addr;
+            // Trap instructions don't typically have associated addressing modes, since they are considered unary.
+            // Instead, manually generate the address via knowing the bitmask
+            if(Pep::isTrapMap[mnemon]) {
+                addr = static_cast<Enu::EAddrMode>(1<<offset);
+            }
+            // If the instruction is not a trap, we can trust
+            else addr = Pep::decodeAddrMode[tuple.start + offset];
             QStandardItem* addrName = new QStandardItem(QString(addrMetaenum.valueToKey((int) addr)).toLower());
             QStandardItem* addrCount = new QStandardItem();
             addrCount->setData(QVariant(histogram[tuple.start + offset]), Qt::DisplayRole);
