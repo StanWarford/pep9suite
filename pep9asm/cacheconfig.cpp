@@ -33,7 +33,7 @@ void CacheConfig::init(QSharedPointer<CacheMemory> cache, bool enableCacheChange
 
 void CacheConfig::setReadOnly(bool readOnly)
 {
-    bool enabled = ~readOnly;
+    bool enabled = !readOnly;
     ui->tagBits->setEnabled(enabled);
     ui->indexBits->setEnabled(enabled);
     // # of offset bits calculated from
