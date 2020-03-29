@@ -105,6 +105,8 @@ public:
 
 
 public slots:
+    void highlightRangeAsCache(quint16 lower, quint16 upper);
+
     void onFontChanged(QFont font);
     // Post: the font used in the memory dump is updated to be "font".
 
@@ -129,6 +131,10 @@ private:
     QSharedPointer<ACPUModel> cpu;
     MemoryDumpDelegate *delegate;
     const PepColors::Colors *colors;
+    // Data highlighted via the highlightRangeAsCache().
+    // Highlighting for these characters must be cleared before highlighting a new block.
+    QList<quint16> cacheHighlightedData;
+    // Characters highlighted by any method NOT involving the cache.
     QList<quint16> highlightedData;
     // This is a list of bytes that are currently highlighted.
 

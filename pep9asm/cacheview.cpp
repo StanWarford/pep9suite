@@ -1,7 +1,9 @@
 #include "cacheview.h"
 #include "ui_cacheview.h"
 
+#include <QAction>
 #include <QDebug>
+#include <QMenu>
 #include <QPainter>
 
 #include "cachememory.h"
@@ -37,6 +39,10 @@ CacheView::CacheView(QWidget *parent) :
 
     // Connect model to data
     ui->cacheTree->setModel(data);
+
+    // Handle right click events.
+    ui->cacheTree->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->cacheTree, &QTreeView::customContextMenuRequested, this, &CacheView::handle_custom_menu);
 }
 
 CacheView::~CacheView()
@@ -77,6 +83,51 @@ void CacheView::cachetag_changed(int /*value*/)
     address += ui->dataBox->value();
 
     ui->addressBox->setValue(address);
+}
+
+void CacheView::handle_custom_menu(const QPoint &point)
+{
+    // If there is no item correpsonding to the selected point, return.
+    auto index = ui->cacheTree->indexAt(point);
+    if(!index.isValid()) return;
+
+    auto* item = this->data->itemFromIndex(index);
+    auto* parent = item->parent();
+    int cache_tag, cache_index;
+
+    // If parent is null, we selected a cache line, not a cache entry. Return.
+    if(parent == nullptr) {
+        return;
+    }
+    // Extract the integer tag from the parent.
+    else {
+        cache_tag  = item->parent()->data(Qt::DisplayRole).toInt();
+    }
+    // If the selected row is not present, it can't be highlighted.
+    if(!parent->child(index.row(), Present)->data(Qt::DisplayRole).toBool()) return;
+    else {
+        cache_index = parent->child(index.row(), TagColumn)->data(Qt::DisplayRole).toInt();
+    }
+
+    auto index_bits = cache->getIndexSize();
+    auto data_bits = cache->getDataSize();
+
+    // Compute the addresses spanned by the cache entry.
+    menu_tag_index = {(cache_tag<<(index_bits+data_bits)) + ((cache_index)<<data_bits),
+                      (cache_tag<<(index_bits+data_bits)) + ((cache_index+1)<<data_bits) - 1};
+
+    // Create a menu to prompt the user to show in memory pane, and make it visible.
+    QMenu contextMenu(tr("Context menu"), this);
+    QAction action("Show in Memory Dump...", this);
+    contextMenu.addAction(&action);
+    connect(&action, &QAction::triggered, this, &CacheView::accept_show_in_memory);
+    contextMenu.exec(mapToGlobal(point));
+
+}
+
+void CacheView::accept_show_in_memory()
+{
+    emit requestCacheHighlighting(std::get<0>(menu_tag_index), std::get<1>(menu_tag_index));
 }
 
 void CacheView::refreshLine(quint16 line)
@@ -138,6 +189,8 @@ void CacheView::refreshLine(quint16 line)
 
         // Conditionally choose at compile time to perform eviction collation.
         if constexpr(COLLATE_EVICTIONS) {
+            // Must clear eviction collation cache each time, or entries may leak between cache lines.
+            reset_eviction_collation();
             // Combine all eviction entries for the same index, and only
             // keep the most recent eviction.
             int time = 0;
@@ -146,10 +199,10 @@ void CacheView::refreshLine(quint16 line)
             }
             // Sort the items so that the most recent eviction is first
             using item = std::tuple<CacheEntry, int>;
-            std::sort(eviction_collate.begin(), eviction_collate.end(), [](const item& lhs, const item& rhs){return std::get<1>(lhs) > std::get<1>(rhs);});
+            std::sort(eviction_collate.begin(), eviction_collate.end(), [](const item& lhs, const item& rhs){return std::get<1>(lhs) < std::get<1>(rhs);});
             // Iterate over all evicted items, and append an entry to the table if an index has been marked as evicted.
-            for(auto evicted_entry : eviction_collate) {
-                auto &[entry, time] = evicted_entry;
+            for(auto evicted_entry = eviction_collate.rbegin(); evicted_entry!=eviction_collate.rend(); evicted_entry++) {
+                auto &[entry, time] = *evicted_entry;
                 if(!entry.is_present) continue;
                 QList<QStandardItem*> new_items;
                 for(int col=0; col<data->columnCount(); col++)  {

@@ -156,6 +156,7 @@ private slots:
     void onUpdateCheck(int val);
     // When font is changed, update size of memory tab widgets.
     void resizeMemoryWidgets();
+    void switchToMainMemoryDump();
     // File
     void on_actionFile_New_Asm_triggered();
     void on_actionFile_Open_triggered();

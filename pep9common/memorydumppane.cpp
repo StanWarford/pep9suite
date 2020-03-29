@@ -194,10 +194,21 @@ void MemoryDumpPane::clearHighlight()
         item->setData(QVariant(), Qt::BackgroundRole);
         item->setData(QVariant(), Qt::ForegroundRole);
     }
+    while (!cacheHighlightedData.isEmpty()) {
+        quint16 address = cacheHighlightedData.takeFirst();
+        QStandardItem *item = data->item(address/bytesPerLine, address%bytesPerLine +1);
+        item->setData(QVariant(), Qt::BackgroundRole);
+        item->setData(QVariant(), Qt::ForegroundRole);
+    }
 }
 
 void MemoryDumpPane::highlight()
 {
+    // Highlight bytes from the currently selected cache entry first, so that
+    // the background color may be "interupted" by more important colorings.
+    for(auto cacheByte : cacheHighlightedData) {
+        highlightByte(cacheByte, colors->altTextHighlight, colors->symbolHighlight);
+    }
     // If the SP is moved during an instruction (e.g. in microcode) it is useful
     // for the student to see where the SP is now, not where it started.
     quint16 sp = cpu->getCPURegWordCurrent(Enu::CPURegisters::SP);
@@ -313,6 +324,32 @@ QSize MemoryDumpPane::sizeHint() const
     int tableSize = static_cast<int>(lineSize);
     int extraPad = 10;
     return QSize(tableSize + extraPad, QWidget::sizeHint().height());
+}
+
+void MemoryDumpPane::highlightRangeAsCache(quint16 lower, quint16 upper)
+{
+
+    // Don't to remove BackgroundRole & ForegroundRole from data->itemData(...) map,
+    // followed by a data->setItemData(...) call.
+    // Even though items were removed from the map and both calls were successful, the tableView would not remove the old highlighting.
+    // Explicitly setting the field to QVariant (nothing) reutrns the field to default styling.
+    while (!cacheHighlightedData.isEmpty()) {
+        quint16 address = cacheHighlightedData.takeFirst();
+        QStandardItem *item = data->item(address/bytesPerLine, address%bytesPerLine +1);
+        item->setData(QVariant(), Qt::BackgroundRole);
+        item->setData(QVariant(), Qt::ForegroundRole);
+    }
+
+    for(int it=lower; it<=upper; it ++) {
+        cacheHighlightedData.append(it);
+    }
+    // Scroll to the lower bound of the address range.
+    // Separate 0x from rest of string, so that the x does not get capitalized.
+    QString str = "0x" + QString("%1").arg(lower, 4, 16, QLatin1Char('0')).toUpper();
+    ui->scrollToLineEdit->setText(str);
+    scrollToByte(lower);
+
+    highlight();
 }
 
 void MemoryDumpPane::onFontChanged(QFont font)

@@ -149,6 +149,9 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     // displayed cache to be incoherent with model.
     connect(memDevice.get(), &MainMemory::inputRequested, ui->cacheWidget, &CacheView::updateMemory, Qt::QueuedConnection);
     connect(memDevice.get(), &MainMemory::outputWritten, this, &AsmMainWindow::onOutputReceived, Qt::QueuedConnection);
+    // Handle cache highlighting on request
+    connect(ui->cacheWidget, &CacheView::requestCacheHighlighting, ui->memoryWidget, &MemoryDumpPane::highlightRangeAsCache, Qt::QueuedConnection);
+    connect(ui->cacheWidget, &CacheView::requestCacheHighlighting, this, &AsmMainWindow::switchToMainMemoryDump, Qt::QueuedConnection);
 
     // Connect Undo / Redo events
     connect(ui->assemblerPane, &AssemblerPane::undoAvailable, this, &AsmMainWindow::setUndoability);
@@ -960,6 +963,11 @@ void AsmMainWindow::resizeMemoryWidgets()
     auto width = std::max(ui->memoryWidget->sizeHint().width(),
                           ui->cacheWidget->sizeHint().width());
     ui->memoryTabWidget->setMinimumWidth(width);
+}
+
+void AsmMainWindow::switchToMainMemoryDump()
+{
+    ui->memoryTabWidget->setCurrentIndex(ui->memoryTabWidget->indexOf(ui->memoryTab));
 }
 
 // File MainWindow triggers

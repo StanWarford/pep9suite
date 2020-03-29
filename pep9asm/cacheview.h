@@ -28,7 +28,7 @@ class CacheViewDelegate;
  * only the most recent eviction for each simulation step is kept. Otherwise, dozens to hundreds of eviction entries may flood the screen.
  * This behavior may change in the future, so it may currently be enabled or disabled at compile time using the following macro.
  */
-static const bool COLLATE_EVICTIONS = false;
+static const bool COLLATE_EVICTIONS = true;
 class CacheView : public QWidget
 {
     Q_OBJECT
@@ -61,6 +61,8 @@ public:
 
     bool hasFocus();
     // Post: returns if the pane has focus
+signals:
+    void requestCacheHighlighting(quint16 lower, quint16 upper);
 
 public slots:
     void onFontChanged(QFont font);
@@ -85,6 +87,13 @@ public slots:
 private slots:
     void address_changed(int value);
     void cachetag_changed(int value);
+
+    // Determine if a right click context menu needs to be made for a cache entry.
+    // If yes, cache the addressed spanned in menu_tag_index.
+    void handle_custom_menu(const QPoint& point);
+
+    // Emit requestCacheHighlighting with the most recently selected addresses.
+    void accept_show_in_memory();
 private:
     Ui::CacheView *ui;
     QStandardItemModel* data;
@@ -128,6 +137,9 @@ private:
     // This prevents users from being overwhelmed by a large number of evictions in a single step.
     void reset_eviction_collation();
     mutable QVector<std::tuple<CacheEntry, int>> eviction_collate;
+
+    // Cache the last row that was right-clicked, since the information is hard to recover from the context menu's events.
+    std::tuple<quint16, quint16> menu_tag_index;
 
 };
 
