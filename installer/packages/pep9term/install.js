@@ -32,14 +32,21 @@ Component.prototype.createOperations = function()
 		if (installer.value("os") === "win") {
 			//win -> add startmenu shortcuts
 			component.addOperation("CreateShortcut", "@TargetDir@/@ProductName@.exe", "@StartMenuDir@/@Name@.lnk");
-            component.addOperation("Execute", "@TargetDir@\\vc_redist.x64.exe","/install","/passive", "/norestart","/quiet");
+            var vc = installer.execute("reg", ["QUERY",
+                                                 "Computer\\HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\14.0\VC\\Runtimes\\x64"]);
+            console.log("VC info: "+vc)
+            if (!vc) {
+                console.log("MSVC is not installed.")
+                component.addOperation("Execute", "@TargetDir@\\vc_redist.x64.exe","/install","/passive", "/norestart","/quiet");
+            }
+            else {
+                console.log("MSVC is already installed.")
+            }
+
 			if(installer.isOfflineOnly())
-				component.addOperation("CreateShortcut", "@TargetDir@/@MaintenanceToolName@.exe", "@StartMenuDir@/Uninstall.lnk");
+                component.addOperation("CreateShortcut", "@TargetDir@/@MaintenanceToolName@.exe", "@StartMenuDir@/Uninstall.lnk");
 			else {
 				component.addOperation("CreateShortcut", "@TargetDir@/@MaintenanceToolName@.exe", "@StartMenuDir@/@MaintenanceToolName@.lnk");
-				component.addOperation("CreateShortcut", "@TargetDir@/@MaintenanceToolName@.exe", "@StartMenuDir@/ManagePackages.lnk", "--manage-packages");
-				component.addOperation("CreateShortcut", "@TargetDir@/@MaintenanceToolName@.exe", "@StartMenuDir@/Update.lnk", "--updater");
-				component.addOperation("CreateShortcut", "@TargetDir@/@MaintenanceToolName@.exe", "@StartMenuDir@/Uninstall.lnk", "uninstallOnly=1");
 			}
 
 			//... and desktop shortcut (if requested)
