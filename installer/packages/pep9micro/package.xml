@@ -2,8 +2,8 @@
 <Package>
     <DisplayName>Pep9Micro</DisplayName>
     <Description>This is the Pep9Micro</Description>
-    <Version>9.2.0</Version>
-    <ReleaseDate>2018-02-18</ReleaseDate>
+    <Version>9.3.0</Version>
+    <ReleaseDate>2020-03-30</ReleaseDate>
     <UserInterfaces>
         <UserInterface>ShortcutPage.ui</UserInterface>
         <UserInterface>UserPage.ui</UserInterface>
