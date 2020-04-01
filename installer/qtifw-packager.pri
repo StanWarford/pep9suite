@@ -10,7 +10,8 @@ QMAKE_POST_LINK += $${QMAKE_MKDIR} $$cleanPathQuote($$OUT_PWD/Installer) $$psc \
 #Copy over files needed to create installer
 QMAKE_POST_LINK += $${QMAKE_COPY} $$INSTALLER_CONFIG_FILE $$cleanPathQuote($$OUT_PWD/Installer/config/config.xml) $$psc \ #Copy Platform dependant config file
     $${QMAKE_COPY} $$cleanPathQuote($$PWD/../installer/common/control.js) $$cleanPathQuote($$OUT_PWD/Installer/config/) $$psc #Copy over installer control script
-
+# Copy over script for uninstallation
+QMAKE_POST_LINK += $${QMAKE_COPY} $$cleanPathQuote($$PWD/../installer/common/uninstall.js) $$cleanPathQuote($$OUT_PWD/Installer/packages/$$TARGET/data) $$psc
 for(PACKAGE, TARGET_PACKAGES) {
     #For each target package, copy it over into the installer
     NAME = $$eval($$PACKAGE"."NAME)
