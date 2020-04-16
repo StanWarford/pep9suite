@@ -161,19 +161,18 @@ void CPURunHelper::runProgram()
         }
     }
 
-    // Open up the error log if it is not already open.
-    if(!errorLog.isOpen() && !errorLog.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-        qDebug().noquote() << errLogOpenErr.arg(errorLog.fileName());
-        emit finished();
-        return;
-    }
-
     // Make sure to set up any last minute flags needed by CPU to perform simulation.
     cpu->onSimulationStarted();
     bool passed = true;
     QString errorString;
 
     if(!cpu->onRun()) {
+        // Open up the error log if it is not already open.
+        if(!errorLog.isOpen() && !errorLog.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+            qDebug().noquote() << errLogOpenErr.arg(errorLog.fileName());
+            emit finished();
+            return;
+        }
         qDebug().noquote()
                 << "The CPU failed for the following reason: "
                 << cpu->getErrorMessage();
@@ -192,6 +191,12 @@ void CPURunHelper::runProgram()
                 // Check if postcondition holds. If not, errorString will be set.
                 if(!code->testPostcondition(data, memory, errorString)) {
                     qDebug().noquote() << errorString;
+                    // Open up the error log if it is not already open.
+                    if(!errorLog.isOpen() && !errorLog.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+                        qDebug().noquote() << errLogOpenErr.arg(errorLog.fileName());
+                        emit finished();
+                        return;
+                    }
                     // Write the precondition failures to the output file.
                     QTextStream (&errorLog) << errorString;
                     // If any postcondition fails, then the entire execution failed.
