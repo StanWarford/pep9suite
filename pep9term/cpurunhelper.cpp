@@ -104,7 +104,6 @@ void CPURunHelper::runProgram()
     }
     else {
         qDebug() << "Error(s) generated in microcode input. See error log.";
-        emit finished();
         return;
     }
 
@@ -142,7 +141,6 @@ void CPURunHelper::runProgram()
         }
         else {
             qDebug() << "Error(s) generated in precondition input. See error log.";
-            emit finished();
             return;
         }
     }
@@ -170,7 +168,6 @@ void CPURunHelper::runProgram()
         // Open up the error log if it is not already open.
         if(!errorLog.isOpen() && !errorLog.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
             qDebug().noquote() << errLogOpenErr.arg(errorLog.fileName());
-            emit finished();
             return;
         }
         qDebug().noquote()
@@ -194,7 +191,6 @@ void CPURunHelper::runProgram()
                     // Open up the error log if it is not already open.
                     if(!errorLog.isOpen() && !errorLog.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
                         qDebug().noquote() << errLogOpenErr.arg(errorLog.fileName());
-                        emit finished();
                         return;
                     }
                     // Write the precondition failures to the output file.
@@ -242,6 +238,10 @@ void CPURunHelper::run()
             this, &CPURunHelper::onSimulationFinished);
     runProgram();
 
+    // Sometimes the simulation doesn't properly trigger a finished event.
+    // This prevents pep9term from exiting, so we must emit it again,
+    // Duplicating this signal does not seem to cause UB.
+    emit finished();
     // Make sure any outstanding events are handled.
     QCoreApplication::processEvents();
 }
