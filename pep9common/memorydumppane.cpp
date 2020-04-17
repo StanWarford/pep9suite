@@ -183,7 +183,7 @@ void MemoryDumpPane::clearHighlight()
     // Explicitly setting the field to QVariant (nothing) reutrns the field to default styling.
     while (!highlightedData.isEmpty()) {
         quint16 address = highlightedData.takeFirst();
-        QStandardItem *item = data->item(address/8, address%8 +1);
+        QStandardItem *item = data->item(address/bytesPerLine, address%bytesPerLine +1);
         item->setData(QVariant(), Qt::BackgroundRole);
         item->setData(QVariant(), Qt::ForegroundRole);
     }
