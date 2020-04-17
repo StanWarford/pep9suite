@@ -313,7 +313,7 @@ void FullMicrocodedCPU::onMCStep()
         data->getRegisterBank().flattenFile();
         // If execution finished on this instruction, then restore original starting program counter,
         // as the instruction at the current program counter will not be executed.
-        if(executionFinished) {
+        if(executionFinished || hadErrorOnStep()) {
             data->getRegisterBank().writePCStart(progCounter);
             emit simulationFinished();
         }

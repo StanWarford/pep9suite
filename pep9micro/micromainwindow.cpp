@@ -1669,8 +1669,6 @@ void MicroMainWindow::on_actionDebug_Stop_Debugging_triggered()
     connectViewUpdate();
     highlightActiveLines();
     debugState = DebugState::DISABLED;
-    ui->microcodeWidget->clearSimulationView();
-    ui->microObjectCodePane->clearSimulationView();
     ui->microcodeWidget->setReadOnly(false);
     // Handle case of execution being canceled during IO
     memDevice->clearIO();
@@ -1678,10 +1676,14 @@ void MicroMainWindow::on_actionDebug_Stop_Debugging_triggered()
     ui->ioWidget->cancelWaiting();
     ui->cpuWidget->stopDebugging();
     ui->asmProgramTracePane->clearSimulationView();
-    QTextCursor curs = ui->microcodeWidget->getEditor()->textCursor();
-    ui->microcodeWidget->getEditor()->centerCursor();
-    curs.clearSelection();
-    ui->microcodeWidget->getEditor()->setTextCursor(curs);
+    // Don't clear selection in microcode widget, otherwise it is difficult
+    // to debug a fault microprogram.
+    //ui->microcodeWidget->clearSimulationView();
+    //ui->microObjectCodePane->clearSimulationView();
+    //QTextCursor curs = ui->microcodeWidget->getEditor()->textCursor();
+    //ui->microcodeWidget->getEditor()->centerCursor();
+    //curs.clearSelection();
+    //ui->microcodeWidget->getEditor()->setTextCursor(curs);
     handleDebugButtons();
     controlSection->onSimulationFinished();
     emit simulationFinished();
@@ -1730,13 +1732,13 @@ void MicroMainWindow::on_actionDebug_Continue_triggered()
     handleDebugButtons();
     disconnectViewUpdate();
     controlSection->onRun();
+    connectViewUpdate();
+    emit simulationUpdate();
+    QApplication::processEvents();
     if(controlSection->hadErrorOnStep()) {
         return; // we'll just return here instead of letting it fail and go to the bottom
     }
-    connectViewUpdate();
-    if(controlSection->stoppedForBreakpoint()) {
-        emit simulationUpdate();
-        QApplication::processEvents();
+    else if(controlSection->stoppedForBreakpoint()) {
         highlightActiveLines();
     }
 }
@@ -1905,19 +1907,6 @@ void MicroMainWindow::onSimulationFinished()
 
     CPUDataSection* data = this->dataSection.get();
     AMemoryDevice* memory = this->memDevice.get();
-    for (AMicroCode* x : prog) {
-        if(x->hasUnitPost()) {
-            hadPostTest = true;
-            UnitPostCode* code = dynamic_cast<UnitPostCode*>(x);
-            if(!code->testPostcondition(data, memory, errorString)) {
-                ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
-                QMessageBox::warning(this, "Pep/9 Micro", "Failed unit test");
-                ui->microcodeWidget->getEditor()->setFocus();
-                ui->statusBar->showMessage("Failed unit test", 4000);
-                return;
-            }
-         }
-    }
     if(controlSection->hadErrorOnStep()) {
         QMessageBox::critical(
           this,
@@ -1925,7 +1914,22 @@ void MicroMainWindow::onSimulationFinished()
           controlSection->getErrorMessage());
         ui->statusBar->showMessage("Execution failed", 4000);
     }
-    else if(hadPostTest) ui->statusBar->showMessage("Passed unit test", 4000);
+    else {
+        for (AMicroCode* x : prog) {
+            if(x->hasUnitPost()) {
+                hadPostTest = true;
+                UnitPostCode* code = dynamic_cast<UnitPostCode*>(x);
+                if(!code->testPostcondition(data, memory, errorString)) {
+                    ui->microcodeWidget->appendMessageInSourceCodePaneAt(-1, errorString);
+                    QMessageBox::warning(this, "Pep/9 Micro", "Failed unit test");
+                    ui->microcodeWidget->getEditor()->setFocus();
+                    ui->statusBar->showMessage("Failed unit test", 4000);
+                    return;
+                }
+            }
+        }
+    }
+    if(hadPostTest) ui->statusBar->showMessage("Passed unit test", 4000);
     else ui->statusBar->showMessage("Execution finished", 4000);
 
 }

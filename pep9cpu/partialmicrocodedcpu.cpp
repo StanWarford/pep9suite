@@ -247,10 +247,10 @@ void PartialMicrocodedCPU::onMCStep()
     microCycleCounter++;
     //qDebug().nospace().noquote() << prog->getSourceCode();
 
-    if(/*microprogramCounter == 0 ||*/ executionFinished) {
+    if(executionFinished || hadErrorOnStep()) {
         memoizer->storeStateInstrEnd();
         data->getRegisterBank().flattenFile();
-        if(executionFinished) emit simulationFinished();
+        emit simulationFinished();
 
     }
 

@@ -230,7 +230,7 @@ void MicroObjectCodePane::onSimulationFinished()
     selectionModel->onEnableSelection();
     // Set an invalid current item, which will disable item selection.
     inSimulation = false;
-    selectionModel->forceClear();
+    //selectionModel->forceClear();
 }
 
 void MicroObjectCodePane::onDarkModeChanged(bool)
