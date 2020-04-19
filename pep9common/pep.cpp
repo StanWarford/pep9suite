@@ -416,7 +416,7 @@ void Pep::initMnemonicMaps(bool NOP0IsTrap)
 
     initMnemMapHelper(EMnemonic::RET, 1, true, false, false);
     initMnemMapHelper(EMnemonic::RETTR, 2, true, false, false);
-    initMnemMapHelper(EMnemonic::ROLA, 14, false, true, false);
+    initMnemMapHelper(EMnemonic::ROLA, 14, true, false, false);
     initMnemMapHelper(EMnemonic::ROLX, 15, true, false, false);
     initMnemMapHelper(EMnemonic::RORA, 16, true, false, false);
     initMnemMapHelper(EMnemonic::RORX, 17, true, false, false);
