@@ -64,7 +64,7 @@ void MemoryDumpPane::init(QSharedPointer<MainMemory> memory, QSharedPointer<ACPU
 
     delegate = new MemoryDumpDelegate(memDevice, ui->tableView);
     ui->tableView->setItemDelegate(delegate);
-    refreshMemoryLines(0, 0);
+    refreshMemory();
 }
 
 void MemoryDumpPane::setNumBytesPerLine(quint16 bytesPerLine)
@@ -80,9 +80,9 @@ void MemoryDumpPane::setNumBytesPerLine(quint16 bytesPerLine)
     else this->bytesPerLine = (quint16) effective_line_size;
     data->clear();
     // Insert 1 column for address, 8 for memory bytes, and 1 for character dump
-    data->insertColumns(0, 1+bytesPerLine+1);
+    data->setColumnCount(1+bytesPerLine+1);
     // Insert enough rows to hold 64k of memory
-    data->insertRows(0, (1<<16)/bytesPerLine);
+    data->setRowCount((1<<16)/bytesPerLine);
     // Set the addresses of every row now, as they will not change during execution of the program.
     for(int it = 0; it < (1<<16) /bytesPerLine; it++) {
         data->setData(data->index(it, 0), QString("%1").arg(it*bytesPerLine, 4, 16, QChar('0')).toUpper() + space);
@@ -125,6 +125,7 @@ void MemoryDumpPane::refreshMemory()
     // Since refreshMemoryLines(quint16,quint16) is deffensive, just refresh the maximum
     // number of lines that could ever be had.
     refreshMemoryLines(0, 0xffff);
+    ui->tableView->resizeColumnsToContents();
 }
 
 void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
@@ -172,7 +173,6 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
     }
     lineSize += QFontMetrics(ui->tableView->font()).boundingRect(space).width();
     ui->tableView->setUpdatesEnabled(updates);
-    ui->tableView->resizeColumnsToContents();
 }
 
 void MemoryDumpPane::clearHighlight()
@@ -252,6 +252,7 @@ void MemoryDumpPane::updateMemory()
         // Multiply by 8 to convert from line # to address of first byte on a line.
         refreshMemoryLines(x * bytesPerLine, x * bytesPerLine);
     }
+    ui->tableView->resizeColumnsToContents();
 
 }
 
@@ -338,6 +339,7 @@ void MemoryDumpPane::onMemoryChanged(quint16 address, quint8)
     // Refresh memoryLines(...) will work correctly if both start and end addresses are the same.
     modifiedBytes.insert(address);
     this->refreshMemoryLines(address, address);
+    //ui->tableView->resizeColumnsToContents();
 }
 
 void MemoryDumpPane::onSimulationStarted()
@@ -423,7 +425,7 @@ void MemoryDumpPane::scrollToLine(int /*scrollBarValue*/)
     // table data, and returns the index of the topmost visible row.
     // Each row contains 8 bytes, so 8*index gives first byte of row
     // Also, separate 0x from rest of string, so that the x does not get capitalized.
-   QString str = "0x" + QString("%1").arg(ui->tableView->rowAt(0) * bytesPerLine, 4, 16, QLatin1Char('0')).toUpper();
+    QString str = "0x" + QString("%1").arg(ui->tableView->rowAt(0) * bytesPerLine, 4, 16, QLatin1Char('0')).toUpper();
     ui->scrollToLineEdit->setText(str);
 }
 
