@@ -274,8 +274,8 @@ void NewMemoryTracePane::updateHeap()
                 frame->moveBy(0, 0 - frameItemCount * MemoryCellGraphicsItem::boxHeight);
             }
             // Add the cells from this frame to the heap
-            for(auto memTag = stackFrame->begin();
-                memTag != stackFrame->end(); ++memTag) {
+            for(auto memTag = stackFrame->rbegin();
+                memTag != stackFrame->rend(); ++memTag) {
                 MemoryCellGraphicsItem* item = new MemoryCellGraphicsItem(memorySection.get(), memTag->addr,
                                                   memTag->type.second, memTag->type.first,
                                                   static_cast<int>(heapLocation.x()),
