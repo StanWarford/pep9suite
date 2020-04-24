@@ -125,14 +125,16 @@ void MemoryCellGraphicsItem::updateValue()
         else value = QChar('.');
         iValue = byte;
         break;
+    // 1 byte integers are to be displayed as unsigned.
     case Enu::ESymbolFormat::F_1D:
         memDevice->getByte(address, byte);
         value = QString("%1").arg(byte);
         iValue = byte;
         break;
+    // 2 byte integers are to be displayed as signed.
     case Enu::ESymbolFormat::F_2D:
         memDevice->getWord(address, word);
-        value = QString("%1").arg(word);
+        value = QString("%1").arg(static_cast<qint16>(word));
         iValue = word;
         break;
     case Enu::ESymbolFormat::F_1H:
