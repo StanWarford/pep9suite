@@ -106,6 +106,9 @@ include(../pep9micro/pep9micro-common.pro)
 #Include the definitions file that sets all variables needed for the InstallerConfig Script
 include("installer-config.pri")
 
-#Lastly, include and run the installer config script
+#Include and run the installer config script
 include("../installer/installer-creator.pri")
+
+#Generate SHA hash of current git commit, and make available as GIT_SHA macro.
+include("../gitversion.pri")
 

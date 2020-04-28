@@ -36,6 +36,22 @@ AboutPep::AboutPep(QString aboutText, QPixmap pixmap, QWidget *parent) :
     ui->label->setPixmap(pixmap);
     setMinimumHeight(460);
     this->resize(this->contentsRect().x(),450);
+    bool hide=true;
+    QString commitText;
+
+    #ifdef GIT_SHA
+    commitText = QString(GIT_SHA);
+    if(commitText.isEmpty()) {
+        hide = true;
+    } else {
+        hide = false;
+    }
+    #endif
+    ui->commit_label->setHidden(hide);
+    ui->commit_title->setHidden(hide);
+    if(!hide){
+        ui->commit_label->setText(commitText);
+    }
 }
 
 AboutPep::~AboutPep()
