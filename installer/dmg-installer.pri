@@ -6,7 +6,7 @@ CONFIG(app_bundle) {
     QMAKE_POST_LINK += $$cleanPathQuote($$QtDir/bin/macdeployqt) $$cleanPathQuote($$OUT_PWD/Installer/dmg-installer/$$TARGET""$$TARGET_EXT) $$psc
     #Only sign application if a SIGN_KEY is set.
     !isEmpty(SIGN_KEY){
-        QMAKE_POST_LINK += codesign -dv --verbose=4 --deep -s \"$$SIGN_KEY\" $$OUT_PWD/Installer/dmg-installer/$$TARGET""$$TARGET_EXT $$psc
+        QMAKE_POST_LINK += codesign -dv -o runtime --timestamp --verbose=4 --deep -s \"$$SIGN_KEY\" $$OUT_PWD/Installer/dmg-installer/$$TARGET""$$TARGET_EXT $$psc
     }
     else {
         message("Skipping code signing due to lack of key")
