@@ -282,6 +282,9 @@ void handle_version(command_line_values &values, int64_t)
 {
     values.had_version = true;
     std::cout << QString("%1 %2").arg(QCoreApplication::applicationName(), QCoreApplication::applicationVersion()).toStdString() << std::endl;
+#ifdef GIT_SHA
+    std::cout << "Based on commit: "<< GIT_SHA << std::endl;
+#endif
 }
 
 void handle_about(command_line_values &values, int64_t)
