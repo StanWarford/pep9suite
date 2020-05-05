@@ -83,7 +83,8 @@ QString Pep::addCycleNumbers(QString codeString) {
     int lineNumber = 1;
     QStringList microcodeList = codeString.split("\n");
     for (int i = 0; i < microcodeList.size(); i++) {
-        if (QRegExp("^//|^\\s*$|^unitpre|^unitpost", Qt::CaseInsensitive).indexIn(microcodeList.at(i)) != 0) {
+        // Skip any lines that start are empty, have a comment, unitpre, or unitpost.
+        if (QRegExp("^\\s*(//|$|unitpre|unitpost)", Qt::CaseInsensitive).indexIn(microcodeList.at(i)) != 0) {
             microcodeList[i].prepend(QString("%1. ").arg(lineNumber++));
         }
     }
