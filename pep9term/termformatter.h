@@ -13,6 +13,7 @@ public:
     {
 
     }
+
     TermFormatter(const TermFormatter &) = default;
     TermFormatter(TermFormatter &&) = default;
 
@@ -26,7 +27,7 @@ public:
     std::string find_param_name(const CLI::Option *opt, std::string group_name) const;
     std::string make_option_opts(const CLI::Option *opt) const override;
     std::string make_subcommands(const CLI::App *app, CLI::AppFormatMode mode) const override;
-    inline std::string make_description(const CLI::App *app) const override;
+
 private:
     // For each subcommand (key), mantain a list of flag names (sub-key) and the pretty-print name of the value
     // (sub-value). This allows for formatting as requested by Dr. Warford such as (-e error_file),
@@ -122,11 +123,23 @@ std::string TermFormatter::make_help(const CLI::App *app, std::string name, CLI:
             out << app->get_group() << ':';
         }
     }
+
     out << make_name(app, name);
     out << " -- ";
     out << make_description(app) << std::endl;
+
     out << get_label("Usage:") << std::endl;
-    out << make_usage(app, name) << std::endl;
+    // Name is full list of subcommands traversed to get to here.
+    // We don't differentiate between subcommands with the same names via different paths,
+    // since this should never occur within Pep/9.
+    out << make_usage(app, app->get_name()) << std::endl;
+
+    // If a detailed usage section is available, print it to the console under the "Usage" section.
+    if(auto detailed_help = detailed_descriptions.find(app->get_name());
+       detailed_help != detailed_descriptions.end()) {
+        out << detailed_help->second << std::endl;
+    }
+
     out << make_groups(app, mode);
     out << make_subcommands(app, mode) << std::endl;
     out << make_footer(app);
@@ -186,43 +199,6 @@ std::string TermFormatter::make_subcommands(const CLI::App *app, CLI::AppFormatM
     std::stringstream out;
     subcommand_name = app->get_name();
     return CLI::Formatter::make_subcommands(app, mode);
-}
-
-std::string TermFormatter::make_description(const CLI::App *app) const{
-
-    // Switch if the detailed description or normal description is used.
-    std::string desc;
-    if(auto detailed_help = detailed_descriptions.find(app->get_name());
-            show_detailed_desc && detailed_help != detailed_descriptions.end()) {
-        desc = detailed_help->second;
-    }
-    else {
-        desc = app->get_description();
-    }
-
-    // Remainder of method pulled from CLI11.hpp
-    auto min_options = app->get_require_option_min();
-    auto max_options = app->get_require_option_max();
-    if(app->get_required()) {
-        desc += " REQUIRED ";
-    }
-    if((max_options == min_options) && (min_options > 0)) {
-        if(min_options == 1) {
-            desc += " \n[Exactly 1 of the following options is required]";
-        } else {
-            desc += " \n[Exactly " + std::to_string(min_options) + "options from the following list are required]";
-        }
-    } else if(max_options > 0) {
-        if(min_options > 0) {
-            desc += " \n[Between " + std::to_string(min_options) + " and " + std::to_string(max_options) +
-                    " of the follow options are required]";
-        } else {
-            desc += " \n[At most " + std::to_string(max_options) + " of the following options are allowed]";
-        }
-    } else if(min_options > 0) {
-        desc += " \n[At least " + std::to_string(min_options) + " of the following options are required]";
-    }
-    return (!desc.empty()) ? desc + "\n" : std::string{};
 }
 
 #endif // TERMFORMATTER_H

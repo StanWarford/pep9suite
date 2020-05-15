@@ -45,30 +45,35 @@
 const std::string application_description = "Translate and run Pep/9 assembly language and microcode programs.";
 const std::string asm_description = "Assemble a Pep/9 assembler source code program to object code.";
 const std::string run_description = "Run a Pep/9 object code program.";
-const std::string cpuasm_description = "Check a Pep/9 microcode program for syntax errors.\
- Supports 1- and 2-byte data buses as well as the extended control section detailed in Pep9Micro.";
+const std::string cpuasm_description = "Check a Pep/9 microcode program for syntax errors.";
 const std::string cpurun_description = "Run a Pep/9 microcode program with an optional list of preconditions.";
 
-const std::string asm_description_detailed = "Assemble a Pep/9 assembler source code program to object code. \
-The source_file must be a .pep file. \
+const std::string asm_description_detailed = "The source_file must be a .pep file. \
 The object_file must be a .pepo file. \
 If there are assembly errors an error log file named <source_file>_errLog.txt is created with the error messages. \
 <source_file> is the name of source_file without the .pep extension. \
 If there are no errors the error log file is not created.";
-const std::string run_description_detailed = "Run a Pep/9 object code program.\
-The source_file must be a .pepo file.";
-const std::string cpuasm_description_detailed = "Check a Pep/9 microcode program for syntax errors. \
-The source_file must be a .pepcpu file. \
-If there are micro-assembly errors an error log file named <source_file>_errLog.txt is created with the error messages. \
-<source_file> is the name of source_file without the .pepcpu extension. \
+const std::string run_description_detailed = "The object_file must be a .pepo file. \
+If the program takes input, -i is required. \
+If the program produces output, -o is required. \
+As a guard against endless loops the program will abort after max_steps assembly instructions execute. \
+The default value of max_steps is %1.";
+const std::string cpuasm_description_detailed = "The microcode_file must be a .pepcpu file. \
+If there are micro-assembly errors an error log file named <microcode_file>_errLog.txt is created with the error messages. \
+<microcode_file> is the name of microcode_file without the .pepcpu extension. \
 If there are no errors the error log file is not created. \
-Supports 1- and 2-byte data buses with the 1-byte data bus as the default.";
-const std::string cpurun_description_detailed = "Assemble and run a Pep/9 microcode program. \
-The source_file must be a .pepcpu file. \
-If there are micro-assembly errors or UnitPost errors an error log file named <source_file>_errLog.txt is created with the error messages. \
-<source_file> is the name of source_file without the .pepcpu extension. \
+Supports 1- and 2-byte data buses with the 1-byte data bus as the default. \
+Supports the extended control section detailed in Pep9Micro.";
+const std::string cpurun_description_detailed = "The microcode_file must be a .pepcpu file. \
+If there are micro-assembly errors or UnitPost errors an error log file named <microcode_file>_errLog.txt is created with the error messages. \
+<microcode_file> is the name of source_file without the .pepcpu extension. \
 If there are no errors the error log file is not created. \
-Supports 1- and 2-byte data buses with the 1-byte data bus as the default.";
+Supports 1- and 2-byte data buses with the 1-byte data bus as the default. \
+If -p is specified then all UnitPre and UnitPost statements in microcode_file are ignored. \
+The UnitPre and UnitPost statments from precondition_file will be used instead. \
+The precondition_file must be a .pepcpu file.\n\n\
+As a guard against endless loops the program will abort after max_steps assembly instructions execute. \
+The default value of max_steps is %1.";
 
 const std::string asm_input_file_text = "Input Pep/9 source program for assembler.";
 const std::string asm_output_file_text = "Output object code generated from source.";
@@ -141,7 +146,9 @@ int main(int argc, char *argv[])
     parser.formatter(std::make_shared<TermFormatter>(parameter_formatting, detailed_descriptions));
     // Top level option flags
     auto help = parser.set_help_flag("--help,-h", "Show this help information.");
-    auto help_all = parser.set_help_all_flag("--help-all", "Show help information for all subcommands.");
+    // Setting help all flag to empty prevents it from being generated.
+    auto help_all = parser.set_help_all_flag("", "");
+    //auto help_all = parser.set_help_all_flag("--help-all", "Show help information for all subcommands.");
     std::string version_string =  "Display program version number.";
     auto version_flag = parser.add_flag("-v,--version", [&](int64_t flag){handle_version(values,flag);}, version_string);
 
@@ -169,7 +176,7 @@ int main(int argc, char *argv[])
     // Subcommands for RUN
    parameter_formatting.insert_or_assign("run", std::map<std::string,std::string>());
     auto run_subcommand = parser.add_subcommand("run", run_description);
-    detailed_descriptions["run"] = run_description_detailed;
+    detailed_descriptions["run"] = QString::fromStdString(run_description_detailed).arg(BoundExecIsaCpu::getDefaultMaxSteps()).toStdString();;
     // Batch input that will be loaded into charIn.
     run_subcommand->add_option("-i", values.i, charin_file_text)->expected(1);
     parameter_formatting["run"]["i"] = "charin_file";
@@ -179,7 +186,7 @@ int main(int argc, char *argv[])
     run_subcommand->add_flag("--echo-output", values.had_echo_output, charout_echo_text);
     //run_subcommand->add_option("-e", obj_input_file_text);
     // Maximum number of instructions to be executed.
-    std::string max_steps_text = QString::fromStdString(isaMaxStepText).arg(BoundExecIsaCpu::getDefaultMaxSteps()).toStdString();
+    std::string max_steps_text = isaMaxStepText;
     run_subcommand->add_option("-m", values.m, max_steps_text)->expected(1)->check(CLI::PositiveNumber)
             ->default_val(std::to_string(BoundExecIsaCpu::getDefaultMaxSteps()));
     parameter_formatting["run"]["m"] = "max_steps";
