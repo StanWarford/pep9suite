@@ -46,7 +46,7 @@ const std::string application_description = "Translate and run Pep/9 assembly la
 const std::string asm_description = "Assemble a Pep/9 assembler source code program to object code.";
 const std::string run_description = "Run a Pep/9 object code program.";
 const std::string cpuasm_description = "Check a Pep/9 microcode program for syntax errors.";
-const std::string cpurun_description = "Run a Pep/9 microcode program with an optional list of preconditions.";
+const std::string cpurun_description = " Run a Pep/9 microcode program";
 
 const std::string asm_description_detailed = "The source_file must be a .pep file. \
 The object_file must be a .pepo file. \
@@ -71,19 +71,17 @@ If there are no errors the error log file is not created. \
 Supports 1- and 2-byte data buses with the 1-byte data bus as the default. \
 If -p is specified then all UnitPre and UnitPost statements in microcode_file are ignored. \
 The UnitPre and UnitPost statments from precondition_file will be used instead. \
-The precondition_file must be a .pepcpu file.\n\n\
-As a guard against endless loops the program will abort after max_steps assembly instructions execute. \
-The default value of max_steps is %1.";
+The precondition_file must be a .pepcpu file.";
 
 const std::string asm_input_file_text = "Input Pep/9 source program for assembler.";
 const std::string asm_output_file_text = "Output object code generated from source.";
 const std::string asm_run_log = "Override the name of the default error log file.";
 const std::string obj_input_file_text = "Input Pep/9 object code program for simulator.";
 const std::string charin_file_text = "File buffered behind the charIn input port.";
-const std::string charout_file_text = "File to which the charOut output port is streamed..";
+const std::string charout_file_text = "File to which the charOut output port is streamed.";
 const std::string charout_echo_text = "Echo data written to charOut to std::out.";
-const std::string isaMaxStepText = "The maximum number of assembly instructions executed before aborting. Defaults to %1";
-const std::string microMaxStepText = "The maximum number of CPU cycles executed before aborting. Defaults to %1";
+const std::string isaMaxStepText = "Override the default value of max_steps.";
+const std::string microMaxStepText = "Override the default value of max_steps.";
 const std::string cpuasm_input_file_text = "Input Pep/9 microcode source program for microassembler.";
 const std::string cpu_asm_log = "Override the name of the default error log file.";
 const std::string cpu_2byte = "Assemble the microcode program with a 2-byte data bus";
@@ -91,8 +89,7 @@ const std::string cpu_2byte_run = "Assemble and run the microcode program with a
 
 const std::string cpu_full_control = "Assemble the microprogram with the full control section (default is partial control section).";
 
-const std::string cpu_preconditions = "A Pep/9 .pepcpu file containg UnitPre and UnitPost statements. \
-Using this flag overrides all UnitPre and UnitPost statements in source_file.";
+const std::string cpu_preconditions = "Input Pep/9 microcode source program for microassembler.";
 const std::string cpu_run_log = "Override the name of the default error log file.";
 
 struct command_line_values {

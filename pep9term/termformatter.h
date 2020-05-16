@@ -20,7 +20,7 @@ public:
     /// This displays the usage line
     std::string make_name(const CLI::App *app, std::string name) const;
     /// This displays the usage line
-    std::string make_usage(const CLI::App *app, std::string name) const override;
+    std::string make_heirarchical_usage(const CLI::App *app, std::string name, std::string fully_qualified_name) const;
     /// This puts everything together
     std::string make_help(const CLI::App *, std::string, CLI::AppFormatMode) const override;
     std::string make_options_names(const CLI::Option *opt, std::string group_name) const;
@@ -54,10 +54,8 @@ std::string TermFormatter::make_name(const CLI::App *app, std::string name) cons
     return out.str();
 }
 
-std::string TermFormatter::make_usage(const CLI::App *app, std::string name) const {
+std::string TermFormatter::make_heirarchical_usage(const CLI::App *app, std::string name, std::string fully_qualified_name) const {
     std::stringstream out;
-
-    subcommand_name = app->get_name();
 
     // Subcommands (CLI::App) do not preserve heirarchy information on their own.
     // Therefore, it would be impossible to print something like "pep9term cpuasm"
@@ -67,14 +65,8 @@ std::string TermFormatter::make_usage(const CLI::App *app, std::string name) con
 
     // If there are no options, skip straight to subcommands.
     if(!options.empty()) {
-        auto subcommand_copy = subcommand_heirarchy;
-        // Iteratively construct name from list of subcommands
-        while(!subcommand_copy.empty()) {
-            out << subcommand_copy.front() << " ";
-            subcommand_copy.pop_front();
-        }
         // Appended with the name of the current application.
-        out << name << " ";
+        out << fully_qualified_name << " ";
 
         for (auto option : options) {
             // --help-all is redundant at lower levels, so don't generate it
@@ -93,7 +85,8 @@ std::string TermFormatter::make_usage(const CLI::App *app, std::string name) con
     // subcommands can print out parent's names (i.e. pep9term cpuasm)
     subcommand_heirarchy.push_back(name);
     for(const auto command : subcom) {
-        out << make_usage(command, command->get_name());
+        std::string cat_name = fully_qualified_name + " " + command->get_name();
+        out << make_heirarchical_usage(command, command->get_name(), cat_name);
     }
     // Pop the current subcommand name.
     subcommand_heirarchy.pop_back();
@@ -132,7 +125,7 @@ std::string TermFormatter::make_help(const CLI::App *app, std::string name, CLI:
     // Name is full list of subcommands traversed to get to here.
     // We don't differentiate between subcommands with the same names via different paths,
     // since this should never occur within Pep/9.
-    out << make_usage(app, app->get_name()) << std::endl;
+    out << make_heirarchical_usage(app, app->get_name(), name) << std::endl;
 
     // If a detailed usage section is available, print it to the console under the "Usage" section.
     if(auto detailed_help = detailed_descriptions.find(app->get_name());
