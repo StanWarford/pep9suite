@@ -96,6 +96,9 @@ std::string TermFormatter::make_heirarchical_usage(const CLI::App *app, std::str
 
 std::string TermFormatter::make_help(const CLI::App *app, std::string name, CLI::AppFormatMode mode) const {
 
+    // Need to store name of current subcommand so it is accessible when looking up option's flags.
+    subcommand_name = app->get_name();
+
     // This immediately forwards to the make_expanded method.
     // This is done this way so that subcommands can
     // have overridden formatters.
@@ -146,6 +149,7 @@ std::string TermFormatter::make_options_names(const CLI::Option *opt, std::strin
     out << opt->get_name(false, false);
     if(auto str = find_param_name(opt, group_name);
             !str.empty()) {
+
         out << " " << str;
     }
 
