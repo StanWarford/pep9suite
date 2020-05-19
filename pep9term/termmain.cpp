@@ -46,7 +46,7 @@ const std::string application_description = "Translate and run Pep/9 assembly la
 const std::string asm_description = "Assemble a Pep/9 assembler source code program to object code.";
 const std::string run_description = "Run a Pep/9 object code program.";
 const std::string cpuasm_description = "Check a Pep/9 microcode program for syntax errors.";
-const std::string cpurun_description = " Run a Pep/9 microcode program.";
+const std::string cpurun_description = "Run a Pep/9 microcode program.";
 
 const std::string asm_description_detailed = "The source_file must be a .pep file. \
 The object_file must be a .pepo file. \
