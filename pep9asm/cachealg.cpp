@@ -7,7 +7,7 @@ static QMap<CacheAlgorithms::CacheAlgorithms, AReplacementFactory*> factory = {
 
 #include <deque>
 RecentReplace::RecentReplace(quint16 size, SelectFunction element_select)
-: last_access(size, 0), count(0), element_select(element_select)
+: count(0), last_access(size, 0), element_select(element_select)
 {
 
 }
@@ -161,7 +161,7 @@ quint16 FrequencyReplace::eviction_loohahead() const
     return location;
 }
 
-QVector<quint16> FrequencyReplace::eviction_loohahead(quint16 count) const
+QVector<quint16> FrequencyReplace::eviction_loohahead(quint16 /*count*/) const
 {
 
     return QVector<quint16>{eviction_loohahead()};
@@ -245,12 +245,12 @@ CacheAlgorithms::CacheAlgorithms MFUFactory::algorithm_enum()
  */
 
 FIFOReplace::FIFOReplace(quint16 size)
-: next_victim(0), size(size)
+: size(size), next_victim(0)
 {
 
 }
 
-void FIFOReplace::reference(quint16 index)
+void FIFOReplace::reference(quint16 /*index*/)
 {
     // NOP
 }
@@ -357,7 +357,7 @@ quint16 RandomReplace::eviction_loohahead() const
     return next_random;
 }
 
-QVector<quint16> RandomReplace::eviction_loohahead(quint16 count) const
+QVector<quint16> RandomReplace::eviction_loohahead(quint16 /*count*/) const
 {
     return QVector<quint16>{eviction_loohahead()};
 }
@@ -402,8 +402,8 @@ CacheAlgorithms::CacheAlgorithms RandomFactory::algorithm_enum()
 
 
 BPLRU::BPLRU(quint16 associativity, std::function<quint16 ()> &evict_left, std::function<quint16 ()> evict_right):
-    AReplacementPolicy(), associativity(associativity), evict_left(evict_left),
-    evict_right(evict_right), side(MRUSide::LEFT)
+    AReplacementPolicy(), associativity(associativity), side(MRUSide::LEFT),
+    evict_left(evict_left), evict_right(evict_right)
 {
 
 }
@@ -457,7 +457,7 @@ quint16 BPLRU::eviction_loohahead() const
     return next_random;
 }
 
-QVector<quint16> BPLRU::eviction_loohahead(quint16 count) const
+QVector<quint16> BPLRU::eviction_loohahead(quint16 /*count*/) const
 {
     return QVector<quint16>{eviction_loohahead()};
 }

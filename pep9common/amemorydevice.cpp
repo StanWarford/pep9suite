@@ -91,23 +91,23 @@ void AMemoryDevice::clearAllByteCaches() noexcept
     clearBytesSet();
 }
 
-bool AMemoryDevice::readWord(quint16 offsetFromBase, quint16 &output) const
+bool AMemoryDevice::readWord(quint16 offsetFromBase, quint16 &output, ACCESS_MODE mode) const
 {
     quint8 temp = 0;
-    bool retVal = readByte(offsetFromBase, temp);
+    bool retVal = readByte(offsetFromBase, temp, mode);
     // Store the high order byte in output, but must first shift it over
     output = static_cast<quint16>(quint16{temp} << 8);
     // Read is succesful if the first and second bytes are fetched succesfully
-    retVal &= readByte(offsetFromBase+1, temp);
+    retVal &= readByte(offsetFromBase+1, temp, mode);
     // Store the low order byte in output
     output |= temp;
     return retVal;
 }
 
-bool AMemoryDevice::writeWord(quint16 offsetFromBase, quint16 value)
+bool AMemoryDevice::writeWord(quint16 offsetFromBase, quint16 value, ACCESS_MODE mode)
 {
-    bool retVal = writeByte(offsetFromBase, value >> 8);
-    retVal &= writeByte(offsetFromBase+1, value & 0xff);
+    bool retVal = writeByte(offsetFromBase, value >> 8, mode);
+    retVal &= writeByte(offsetFromBase+1, value & 0xff, mode);
     return retVal;
 }
 

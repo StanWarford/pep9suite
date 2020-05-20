@@ -59,6 +59,9 @@ protected:
     // in bytesRead.
     bool enable_read_caching;
 public:
+    enum class ACCESS_MODE {
+        INSTRUCTION, DATA, NA
+    };
     explicit AMemoryDevice(QObject *parent = nullptr) noexcept;
 
     // Returns true if a fatal error affected memory.
@@ -97,16 +100,17 @@ public slots:
     // Clear the contents of memory. All addresses from 0 to size will be set to 0.
     virtual void clearMemory() = 0;
     // Methods (currently unused) that are useful for implementing a cache
-    // replacmenet policy using dynamic aging.
+    // replacement policy using dynamic aging.
     virtual void onCycleStarted() = 0;
     virtual void onCycleFinished() = 0;
 
     // Read / Write functions that may trap for IO or generate errors from writing to readonly storage.
-    virtual bool readByte(quint16 address, quint8& output) const = 0;
-    virtual bool writeByte(quint16 address, quint8 value) = 0;
+    virtual bool readByte(quint16 address, quint8& output, ACCESS_MODE mode=ACCESS_MODE::NA) const = 0;
+    virtual bool writeByte(quint16 address, quint8 value, ACCESS_MODE mode=ACCESS_MODE::NA) = 0;
+
     // Read / Write of words as two read / write byte operations and bitmath.
-    virtual bool readWord(quint16 address, quint16& output) const;
-    virtual bool writeWord(quint16 address, quint16 value);
+    virtual bool readWord(quint16 address, quint16& output, ACCESS_MODE mode=ACCESS_MODE::NA) const;
+    virtual bool writeWord(quint16 address, quint16 value, ACCESS_MODE mode=ACCESS_MODE::NA);
 
     // Get / Set functions that are guarenteed not to trap for IO and will not error.
     virtual bool getByte(quint16 address, quint8& output) const = 0;

@@ -116,8 +116,8 @@ public slots:
     void onCycleFinished() override;
 
     // In main memory, address caching on reads is disabled.
-    bool readByte(quint16 address, quint8 &output) const override;
-    bool writeByte(quint16 address, quint8 value) override;
+    bool readByte(quint16 address, quint8 &output, ACCESS_MODE mode=ACCESS_MODE::NA) const override;
+    bool writeByte(quint16 address, quint8 value, ACCESS_MODE mode=ACCESS_MODE::NA) override;
     bool getByte(quint16 address, quint8 &output) const override;
     bool setByte(quint16 address, quint8 value) override;
 

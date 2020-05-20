@@ -14,12 +14,13 @@
 #include "cacheline.h"
 #include "cache.h"
 #pragma message("TODO: Make eviction tracking optional for performance improvement.")
+
 class CacheMemory : public AMemoryDevice
 {
     Q_OBJECT
 public:
     CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheConfiguration config,
-                QObject* parent = nullptr);
+                bool track_reads=true, QObject* parent = nullptr);
 
     // Read/Change cache parameters
     bool safeConfiguration(quint32 memory_size, quint16 tag_size, quint16 index_size,
@@ -40,9 +41,8 @@ public:
     QString getCacheAlgorithm() const;
 
     // Get/Reset cache statistics
-    //quint32 get_hits() const;
-    //quint32 get_misses() const;
-    //quint32 get_accesses() const;
+    quint32 get_hits() const;
+    quint32 get_misses() const;
     //void reset_statistics();
     // TODO
 
@@ -51,13 +51,18 @@ signals:
     // AMemoryDevice interface
 public:
     quint32 maxAddress() const noexcept override;
+    bool getTrackReads() const;
+    void setTrackReads(bool val);
 public slots:
     void clearMemory() override;
     void onCycleStarted() override;
     void onCycleFinished() override;
     // Update existing items in cache.
-    bool readByte(quint16 address, quint8 &output) const override;
-    bool writeByte(quint16 address, quint8 value) override;
+    bool readByte(quint16 address, quint8 &output, ACCESS_MODE mode=ACCESS_MODE::NA) const override;
+    bool writeByte(quint16 address, quint8 value, ACCESS_MODE mode=ACCESS_MODE::NA) override;
+    // Read / Write of words as two read / write byte operations and bitmath.
+    virtual bool readWord(quint16 address, quint16& output, ACCESS_MODE mode=ACCESS_MODE::NA) const override;
+    virtual bool writeWord(quint16 address, quint16 value, ACCESS_MODE mode=ACCESS_MODE::NA) override;
     // GET/SET bypass cache access, since they aren't "real" operations.
     bool getByte(quint16 address, quint8 &output) const override;
     bool setByte(quint16 address, quint8 value) override;
@@ -81,14 +86,22 @@ public slots:
     void clearBytesSet() noexcept override;
     void clearAllByteCaches() noexcept override;
 private:
+    bool track_reads{true};
     mutable std::vector<CacheLine> cache;
     QSharedPointer<MainMemory> memory_device;
     QSharedPointer<AReplacementFactory> replace_factory;
     quint16 tag_size, index_size, data_size, associativity;
     Cache::WriteAllocationPolicy allocation_policy;
 
-    mutable quint32 hit_read, miss_read, hit_writes, miss_writes;
     mutable QSet<quint16> cacheLinesTouched;
+
+    struct Stats {
+        quint32 hit{0}, miss{0};
+        void clear();
+    };
+
+    mutable Stats instr_read, data_read, data_writes, misc_read, misc_write;
+
     mutable QMap<quint16, QList<CacheEntry>> evictedLines;
 
 };

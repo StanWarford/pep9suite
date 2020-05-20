@@ -129,7 +129,7 @@ void IsaCpu::onISAStep()
     quint16 startPC = pc;
     quint8 is;
 
-    bool okay = memory->readByte(pc, is);
+    bool okay = memory->readByte(pc, is, AMemoryDevice::ACCESS_MODE::INSTRUCTION);
 
     registerBank.writeRegisterByte(Enu::CPURegisters::IS, is);
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[is];
@@ -144,7 +144,7 @@ void IsaCpu::onISAStep()
         executeUnary(mnemon);
     }
     else {
-        okay &= memory->readWord(pc, opSpec);
+        okay &= memory->readWord(pc, opSpec, AMemoryDevice::ACCESS_MODE::INSTRUCTION);
         registerBank.writeRegisterWord(Enu::CPURegisters::OS, opSpec);
         addrMode = Pep::decodeAddrMode[is];
         pc += 2;
@@ -417,7 +417,7 @@ void IsaCpu::onResetCPU()
 }
 
 bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
-                               bool (AMemoryDevice::*readFunc)(quint16, quint16 &) const,
+                               bool (AMemoryDevice::*readFunc)(quint16, quint16 &, AMemoryDevice::ACCESS_MODE) const,
                                quint16 &opVal)
 {
     bool rVal = true;
@@ -428,37 +428,37 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
         break;
     case Enu::EAddrMode::D:
         effectiveAddress = operand;
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::S:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::X:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SX:
         effectiveAddress = operand
                 + getCPURegWordCurrent(Enu::CPURegisters::SP)
                 + getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::N:
         effectiveAddress = operand;
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, effectiveAddress);
-        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, effectiveAddress, AMemoryDevice::ACCESS_MODE::DATA);
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SF:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, effectiveAddress);
-        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, effectiveAddress, AMemoryDevice::ACCESS_MODE::DATA);
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SFX:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, effectiveAddress);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, effectiveAddress, AMemoryDevice::ACCESS_MODE::DATA);
         effectiveAddress += getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     default:
         break;
@@ -466,7 +466,7 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
     return rVal;
 }
 
-bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bool (AMemoryDevice::*readFunc)(quint16, quint8 &) const, quint8 &opVal)
+bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bool (AMemoryDevice::*readFunc)(quint16, quint8 &, AMemoryDevice::ACCESS_MODE) const, quint8 &opVal)
 {
     bool rVal = true;
     quint16 effectiveAddress = 0;
@@ -478,43 +478,43 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
         break;
     case Enu::EAddrMode::D:
         effectiveAddress = operand;
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::S:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::X:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SX:
         effectiveAddress = operand
                 + getCPURegWordCurrent(Enu::CPURegisters::SP)
                 + getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::N:
         effectiveAddress = operand;
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
-        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi, AMemoryDevice::ACCESS_MODE::DATA);
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo, AMemoryDevice::ACCESS_MODE::DATA);
         effectiveAddress = static_cast<quint16>(tempByteHi << 8 | tempByteLo);
-        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress , opVal);
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress , opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SF:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
-        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi, AMemoryDevice::ACCESS_MODE::DATA);
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo, AMemoryDevice::ACCESS_MODE::DATA);
         effectiveAddress = static_cast<quint16>(tempByteHi << 8 | tempByteLo);
-        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SFX:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
-        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
+        rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi, AMemoryDevice::ACCESS_MODE::DATA);
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo, AMemoryDevice::ACCESS_MODE::DATA);
         effectiveAddress = static_cast<quint16>(tempByteHi << 8 | tempByteLo);
         effectiveAddress += getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
+        rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     default:
         break;
@@ -532,37 +532,37 @@ bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
         break;
     case Enu::EAddrMode::D:
         effectiveAddress = operand;
-        rVal = memory->writeWord(effectiveAddress, value);
+        rVal = memory->writeWord(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::S:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal = memory->writeWord(effectiveAddress, value);
+        rVal = memory->writeWord(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::X:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal = memory->writeWord(effectiveAddress, value);
+        rVal = memory->writeWord(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SX:
         effectiveAddress = operand
                 + getCPURegWordCurrent(Enu::CPURegisters::SP)
                 + getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal = memory->writeWord(effectiveAddress, value);
+        rVal = memory->writeWord(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::N:
         effectiveAddress = operand;
-        rVal = memory->readWord(effectiveAddress, effectiveAddress);
-        rVal &= memory->writeWord(effectiveAddress, value);
+        rVal = memory->readWord(effectiveAddress, effectiveAddress, AMemoryDevice::ACCESS_MODE::DATA);
+        rVal &= memory->writeWord(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SF:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal = memory->readWord(effectiveAddress, effectiveAddress);
-        rVal &= memory->writeWord(effectiveAddress, value);
+        rVal = memory->readWord(effectiveAddress, effectiveAddress, AMemoryDevice::ACCESS_MODE::DATA);
+        rVal &= memory->writeWord(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SFX:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal = memory->readWord(effectiveAddress, effectiveAddress);
+        rVal = memory->readWord(effectiveAddress, effectiveAddress, AMemoryDevice::ACCESS_MODE::DATA);
         effectiveAddress += getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal &= memory->writeWord(effectiveAddress, value);
+        rVal &= memory->writeWord(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     default:
         rVal = false;
@@ -588,37 +588,37 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
         break;
     case Enu::EAddrMode::D:
         effectiveAddress = operand;
-        rVal = memory->writeByte(effectiveAddress, value);
+        rVal = memory->writeByte(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::S:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal = memory->writeByte(effectiveAddress, value);
+        rVal = memory->writeByte(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::X:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal = memory->writeByte(effectiveAddress, value);
+        rVal = memory->writeByte(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SX:
         effectiveAddress = operand
                 + getCPURegWordCurrent(Enu::CPURegisters::SP)
                 + getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal = memory->writeByte(effectiveAddress, value);
+        rVal = memory->writeByte(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::N:
         effectiveAddress = operand;
-        rVal = memory->readWord(effectiveAddress, effectiveAddress);
-        rVal &= memory->writeByte(effectiveAddress, value);
+        rVal = memory->readWord(effectiveAddress, effectiveAddress, AMemoryDevice::ACCESS_MODE::DATA);
+        rVal &= memory->writeByte(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SF:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal = memory->readWord(effectiveAddress, effectiveAddress);
-        rVal &= memory->writeByte(effectiveAddress, value);
+        rVal = memory->readWord(effectiveAddress, effectiveAddress, AMemoryDevice::ACCESS_MODE::DATA);
+        rVal &= memory->writeByte(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     case Enu::EAddrMode::SFX:
         effectiveAddress = operand + getCPURegWordCurrent(Enu::CPURegisters::SP);
-        rVal = memory->readWord(effectiveAddress, effectiveAddress);
+        rVal = memory->readWord(effectiveAddress, effectiveAddress, AMemoryDevice::ACCESS_MODE::DATA);
         effectiveAddress += getCPURegWordCurrent(Enu::CPURegisters::X);
-        rVal &= memory->writeByte(effectiveAddress, value);
+        rVal &= memory->writeByte(effectiveAddress, value, AMemoryDevice::ACCESS_MODE::DATA);
         break;
     default:
         rVal = false;
@@ -646,23 +646,23 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         break;
 
     case Enu::EMnemonic::RET:
-        memory->readWord(sp, temp);
+        memory->readWord(sp, temp, AMemoryDevice::ACCESS_MODE::DATA);
         registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
         sp += 2;
         registerBank.writeRegisterWord(Enu::CPURegisters::SP, sp);
         break;
 
     case Enu::EMnemonic::RETTR:
-        memory->readByte(sp, tempByte);
+        memory->readByte(sp, tempByte, AMemoryDevice::ACCESS_MODE::DATA);
         // Function will automatically mask out bits that don't matter
         registerBank.writeStatusBits(tempByte);
-        memory->readWord(sp + 1, temp);
+        memory->readWord(sp + 1, temp, AMemoryDevice::ACCESS_MODE::DATA);
         registerBank.writeRegisterWord(Enu::CPURegisters::A, temp);
-        memory->readWord(sp + 3, temp);
+        memory->readWord(sp + 3, temp, AMemoryDevice::ACCESS_MODE::DATA);
         registerBank.writeRegisterWord(Enu::CPURegisters::X, temp);
-        memory->readWord(sp + 5, temp);
+        memory->readWord(sp + 5, temp, AMemoryDevice::ACCESS_MODE::DATA);
         registerBank.writeRegisterWord(Enu::CPURegisters::PC, temp);
-        memory->readWord(sp + 7, temp);
+        memory->readWord(sp + 7, temp, AMemoryDevice::ACCESS_MODE::DATA);
         registerBank.writeRegisterWord(Enu::CPURegisters::SP, temp);
         break;
 

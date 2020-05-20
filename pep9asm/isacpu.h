@@ -23,6 +23,7 @@
 #include "interfaceisacpu.h"
 #include <QElapsedTimer>
 #include "registerfile.h"
+#include "amemorydevice.h"
 
 /* Though not part of the specification, the trap mechanism  must
  * set the index register to 0 to prevent a bug in OS where
@@ -92,9 +93,9 @@ private:
     QElapsedTimer timer;
     IsaCpuMemoizer* memoizer;
     bool operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
-                           bool (AMemoryDevice::*readFunc)(quint16, quint16&) const, quint16& opVal);
+                         bool (AMemoryDevice::*readFunc)(quint16, quint16 &, AMemoryDevice::ACCESS_MODE) const, quint16& opVal);
     bool operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode,
-                         bool (AMemoryDevice::*readFunc)(quint16, quint8&) const, quint8& opVal);
+                         bool (AMemoryDevice::*readFunc)(quint16, quint8&, AMemoryDevice::ACCESS_MODE) const, quint8& opVal);
     bool writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode addrMode);
     bool writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addrMode);
     void executeUnary(Enu::EMnemonic mnemon);

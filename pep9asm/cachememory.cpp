@@ -5,15 +5,15 @@
 
 #include "cacheline.h"
 
-CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheConfiguration config,
+CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheConfiguration config, bool track_reads,
                          QObject* parent):
-    AMemoryDevice(parent), memory_device(memory_device), replace_factory(config.policy),
+    track_reads(track_reads), AMemoryDevice(parent), memory_device(memory_device), replace_factory(config.policy),
     tag_size(config.tag_bits), index_size(config.index_bits),
     data_size(16 - tag_size - index_size), associativity(config.associativity),
-    allocation_policy(config.write_allocation),
-    hit_read(0), miss_read(0), hit_writes(0), miss_writes(0),
-    cacheLinesTouched()
+    allocation_policy(config.write_allocation), instr_read(), data_read(), data_writes(),
+    misc_read(), misc_write(), cacheLinesTouched()
 {
+
     // Make sure that cache won't accidentally go outside the range of accessible memory
     assert(safeConfiguration(maxAddress(), tag_size, index_size, data_size, associativity));
 
@@ -74,11 +74,15 @@ bool CacheMemory::resizeCache(Cache::CacheConfiguration config)
         data_size = config.data_bits;
         associativity = config.associativity;
         allocation_policy = config.write_allocation;
-        hit_read = 0;
-        miss_read = 0;
-        hit_writes = 0;
-        miss_writes = 0;
         cacheLinesTouched.clear();
+
+        // Reset statistics objects
+        instr_read.clear();
+        data_read.clear();
+        data_writes.clear();
+        misc_read.clear();
+        misc_write.clear();
+
         this->replace_factory = config.policy;
         for(auto& line : cache) {
             line = CacheLine(associativity, replace_factory->create_policy());
@@ -94,9 +98,12 @@ void CacheMemory::clearCache()
         line.clear();
     }
 
-    hit_read = 0;
-    miss_read = 0;
-    hit_writes = 0;
+    // TODO: Reset stats objects
+    instr_read.clear();
+    data_read.clear();
+    data_writes.clear();
+    misc_read.clear();
+    misc_write.clear();
 
     clearCacheLinesTouched();
 }
@@ -104,6 +111,16 @@ void CacheMemory::clearCache()
 quint32 CacheMemory::maxAddress() const noexcept
 {
     return memory_device->maxAddress();
+}
+
+bool CacheMemory::getTrackReads() const
+{
+    return track_reads;
+}
+
+void CacheMemory::setTrackReads(bool val)
+{
+    this->track_reads = val;
 }
 
 void CacheMemory::clearMemory()
@@ -126,10 +143,26 @@ void CacheMemory::onCycleFinished()
     memory_device->onCycleFinished();
 }
 
-bool CacheMemory::readByte(quint16 address, quint8 &output) const
+bool CacheMemory::readByte(quint16 address, quint8 &output, ACCESS_MODE mode) const
 {
-    bytesRead.insert(address);
+    if(track_reads) {
+        bytesRead.insert(address);
+    }
     auto address_breakdown = breakdownAddress(address);
+
+    // Increment the stats associated with each kind of memory access
+    Stats* stat;
+    switch(mode) {
+    case AMemoryDevice::ACCESS_MODE::INSTRUCTION:
+        stat = &this->instr_read;
+        break;
+    case AMemoryDevice::ACCESS_MODE::DATA:
+        stat = &this->data_read;
+        break;
+    case AMemoryDevice::ACCESS_MODE::NA:
+        stat = &this->misc_read;
+        break;
+    }
 
     // If address is present in line, notify CRP of a hit.
     // MUST capture line by reference, or Qt's COW will kick in, and no changes
@@ -138,17 +171,17 @@ bool CacheMemory::readByte(quint16 address, quint8 &output) const
             line.contains_index(address_breakdown.index)) {
         //qDebug().noquote() << QString("Hit %1\t").arg(address);
         line.update(address_breakdown);
-        hit_read++;
+        stat->hit++;
     }
     // Otherwise must insert index associated with line.
     else {
         //qDebug().noquote() << QString("Miss %1\t").arg(address);
         auto evicted = line.insert(address_breakdown);
-        if(evicted.is_present) {
+        if(track_reads && evicted.is_present) {
             if(!evictedLines.contains(address_breakdown.tag)) evictedLines.insert(address_breakdown.tag, QList<CacheEntry>());
             evictedLines[address_breakdown.tag].append(evicted);
         }
-        miss_read++;
+        stat->miss++;
     }
     // Either if the read is a hit or a miss, the cache line associated with
     // the current address must be updated.
@@ -157,11 +190,23 @@ bool CacheMemory::readByte(quint16 address, quint8 &output) const
     return memory_device->readByte(address, output);
 }
 
-bool CacheMemory::writeByte(quint16 address, quint8 value)
+bool CacheMemory::writeByte(quint16 address, quint8 value, ACCESS_MODE mode)
 {
     // No need to add to bytesWritten, this will be handled in main memory device.
 
     auto address_breakdown = breakdownAddress(address);
+
+    // Increment the stats associated with each kind of memory access
+    Stats* stat;
+    switch(mode) {
+    case AMemoryDevice::ACCESS_MODE::DATA:
+        stat = &this->data_writes;
+        break;
+    // Instructions can't be written to.
+    default:
+        stat = &this->misc_write;
+        break;
+    }
 
     // If address is present in line, notify CRP of a hit.
     // MUST capture line by reference, or Qt's COW will kick in, and no changes
@@ -171,29 +216,92 @@ bool CacheMemory::writeByte(quint16 address, quint8 value)
         // Update reference counts for the current line.
         cacheLinesTouched.insert(address_breakdown.tag);
         line.update(address_breakdown);
-        hit_writes++;
+        stat->hit++;
     }
     else if(allocation_policy == Cache::WriteAllocationPolicy::WriteAllocate) {
         // Perform eviction in memory dump pane.
         auto evicted = line.insert(address_breakdown);
-        if(evicted.is_present) {
+        if(track_reads && evicted.is_present) {
             if(!evictedLines.contains(address_breakdown.tag)) evictedLines.insert(address_breakdown.tag, QList<CacheEntry>());
             evictedLines[address_breakdown.tag].append(evicted);
         }
 
         // Catch line evictions caused by write allocation.
         cacheLinesTouched.insert(address_breakdown.tag);
-
-        miss_writes++;
+        stat->miss++;
     }
     // We perform writeback without demand paging, so no need to update for
     // entries that are not present.
     else {
         // If write is a miss with a No Write Allocation policy, do nothing
         // other than document there was a miss.
-        miss_writes++;
+        stat->miss++;
     }
     return memory_device->writeByte(address, value);
+}
+
+bool CacheMemory::readWord(quint16 address, quint16 &output, AMemoryDevice::ACCESS_MODE mode) const
+{
+    auto first_addr = breakdownAddress(address);
+    auto second_addr = breakdownAddress(address + 1 % 0xffff);
+
+    auto retVal = AMemoryDevice::readWord(address, output, mode);
+
+    // If both addresses are in the same cache line, readByte will increment hit twice.
+    // Rather than make hit tracking optional in readByte, undo on increment here.
+    if(first_addr.index == second_addr.index && first_addr.tag == second_addr.tag) {
+        // Increment the stats associated with each kind of memory access
+        Stats* stat;
+        switch(mode) {
+        case AMemoryDevice::ACCESS_MODE::INSTRUCTION:
+            stat = &this->instr_read;
+            break;
+        case AMemoryDevice::ACCESS_MODE::DATA:
+            stat = &this->data_read;
+            break;
+        case AMemoryDevice::ACCESS_MODE::NA:
+            stat = &this->misc_read;
+            break;
+        }
+        // Don't accidentally wrap around to INT_MAX.
+        if(stat->hit != 0) stat->hit--;
+        else {
+            qDebug() << "Hit counter wrapped around below 0. Please debug.";
+        }
+    }
+
+    return retVal;
+}
+
+bool CacheMemory::writeWord(quint16 address, quint16 value, AMemoryDevice::ACCESS_MODE mode)
+{
+    auto first_addr = breakdownAddress(address);
+    auto second_addr = breakdownAddress(address + 1 % 0xffff);
+
+    auto retVal = AMemoryDevice::writeWord(address, value, mode);
+
+    // If both addresses are in the same cache line, writeByte will increment hit twice.
+    // Rather than make hit tracking optional in writeByte, undo on increment here.
+    if(first_addr.index == second_addr.index && first_addr.tag == second_addr.tag) {
+        // Increment the stats associated with each kind of memory access
+        Stats* stat;
+        switch(mode) {
+        case AMemoryDevice::ACCESS_MODE::DATA:
+            stat = &this->data_writes;
+            break;
+        // Instructions can't be written to.
+        default:
+            stat = &this->misc_write;
+            break;
+        }
+        // Don't accidentally wrap around to INT_MAX.
+        if(stat->hit != 0) stat->hit--;
+        else {
+            qDebug() << "Hit counter wrapped around below 0. Please debug.";
+        }
+    }
+
+    return retVal;
 }
 
 bool CacheMemory::getByte(quint16 address, quint8 &output) const
@@ -297,4 +405,22 @@ std::optional<const CacheLine *> CacheMemory::getCacheLine(quint16 tag) const
 QString CacheMemory::getCacheAlgorithm() const
 {
     return replace_factory->get_algorithm_name();
+}
+
+quint32 CacheMemory::get_hits() const
+{
+    qDebug() << instr_read.hit << data_read.hit << misc_read.hit;
+    return 0;
+}
+
+quint32 CacheMemory::get_misses() const
+{
+    qDebug() << data_writes.hit << misc_write.hit;
+    return 0;
+}
+
+void CacheMemory::Stats::clear()
+{
+    this->hit = 0;
+    this->miss = 0;
 }

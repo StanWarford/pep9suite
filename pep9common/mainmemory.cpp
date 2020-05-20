@@ -229,8 +229,9 @@ void MainMemory::onCycleFinished()
     // Main memory doesn't have any per-cycle internal updates.
 }
 
-bool MainMemory::readByte(quint16 address, quint8 &output) const
+bool MainMemory::readByte(quint16 address, quint8 &output, ACCESS_MODE /*mode*/) const
 {
+    // May safely ignore access type, main memory doesn't care why memory is being accessed.
     const AMemoryChip *chip = chipAt(address);
     // Since IO can fail, wrap it in a try-catch.
     try {
@@ -258,8 +259,9 @@ bool MainMemory::readByte(quint16 address, quint8 &output) const
 
 }
 
-bool MainMemory::writeByte(quint16 address, quint8 value)
+bool MainMemory::writeByte(quint16 address, quint8 value, ACCESS_MODE /*mode*/)
 {
+    // May safely ignore access type, main memory doesn't care why memory is being accessed.
     AMemoryChip *chip = chipAt(address);
     try {
         bool retVal = chip->writeByte(address - chip->getBaseAddress(), value);
