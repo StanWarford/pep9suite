@@ -8,6 +8,7 @@ include(installer_lib.pri)
 # This prevents QMake from acting strangely on empty() checks.
 DO_REPOGEN = false
 DO_PACKAGE_COPY = false
+LINUX_DEPLOY_FHS = false
 LINUX_USE_APPIMAGE = false
 MAC_USE_DMG = false
 ALL_USE_QTIFW_INSTALLER = false
@@ -32,7 +33,6 @@ else: contains(DEPLOY_OPT, linux_fhs): CONFIG(release) {
     LINUX_DEPLOY_FHS = true
 
 }
-
 
 # Detect if multiple installer types were picked.
 # If multiples were selected, warn user and default to qtifw_installer
@@ -168,7 +168,7 @@ else: win32: $$ALL_USE_QTIFW_INSTALLER {
 }
 
 # Create Filesystem Heirarchy Standard, and optionally an AppImage.
-else: linux: $$LINUX_USE_APPIMAGE | $$LINUX_DEPLOY_FHS {
+else: linux: if($$LINUX_USE_APPIMAGE |$$LINUX_DEPLOY_FHS ) {
     debugMessage("Creating Linux FHS & AppImage installer.")
     # No additional deploy args needed.
     include(appimage-installer.pri)
