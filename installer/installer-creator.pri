@@ -26,6 +26,13 @@ contains(DEPLOY_OPT, repogen): CONFIG(release) {
 
 }
 
+# Should online updater repositories be generated?
+else: contains(DEPLOY_OPT, linux_fhs): CONFIG(release) {
+    debugMessage("Initializing FHS deployment.")
+    LINUX_DEPLOY_FHS = true
+
+}
+
 
 # Detect if multiple installer types were picked.
 # If multiples were selected, warn user and default to qtifw_installer
@@ -49,6 +56,7 @@ contains(DEPLOY_OPT, appimg_installer): CONFIG(release) {
         error("Aborting due to failure to find linuxdeployqt executable.")
     }
     LINUX_USE_APPIMAGE = true
+    LINUX_DEPLOY_FHS = true
     ALL_USE_QTIFW_INSTALLER = false
     DO_PACKAGE_COPY = true
 }
@@ -159,10 +167,10 @@ else: win32: $$ALL_USE_QTIFW_INSTALLER {
     include(qtifw-installer.pri)
 }
 
-# If configured, use linuxdeployqt & AppImage to construct a working Linux application.
-else: linux: $$LINUX_USE_APPIMAGE {
-    debugMessage("Creating Linux AppImage installer.")
-    # No need to set DEPLOY_ARGS, as
+# Create Filesystem Heirarchy Standard, and optionally an AppImage.
+else: linux: $$LINUX_USE_APPIMAGE | $$LINUX_DEPLOY_FHS {
+    debugMessage("Creating Linux FHS & AppImage installer.")
+    # No additional deploy args needed.
     include(appimage-installer.pri)
 }
 # Default QT-IFW installer is not supported at this time.

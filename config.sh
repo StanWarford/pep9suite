@@ -1,7 +1,14 @@
 sudo apt install -y cmake
-sudo apt-get -y install git g++ libgl1-mesa-dev
+# Install Qt dependencies
+sudo apt install -y git g++ libgl1-mesa-dev
+# Install LinuxDeployQt dependencies
+sudo apt install -y libicu-dev
+
+# Download linux deploy QT
 cd ..  
 git clone  https://github.com/probonopd/linuxdeployqt
+
+# Get elf patcher, needed by linux deploy Qt
 wget https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2
 tar xf patchelf-0.9.tar.bz2
 ( cd patchelf-0.9/ && ./configure  && make && sudo make install )
