@@ -7,6 +7,7 @@
 #include <QVector>
 
 #include <optional>
+#include <set>
 
 #include "amemorydevice.h"
 #include "mainmemory.h"
@@ -15,12 +16,24 @@
 #include "cache.h"
 #pragma message("TODO: Make eviction tracking optional for performance improvement.")
 
+struct Stat_Me
+{
+    quint32 read_hit{0}, read_miss{0};
+    quint32 write_hit{0}, write_miss{0};
+    void clear();
+};
+
+struct Transaction : public Stat_Me{
+    AMemoryDevice::ACCESS_MODE transaction_mode;
+};
+
+
 class CacheMemory : public AMemoryDevice
 {
     Q_OBJECT
 public:
     CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheConfiguration config,
-                bool track_reads=true, QObject* parent = nullptr);
+                QObject* parent = nullptr);
 
     // Read/Change cache parameters
     bool safeConfiguration(quint32 memory_size, quint16 tag_size, quint16 index_size,
@@ -40,29 +53,30 @@ public:
     std::optional<const CacheLine*> getCacheLine(quint16 tag) const;
     QString getCacheAlgorithm() const;
 
-    // Get/Reset cache statistics
-    quint32 get_hits() const;
-    quint32 get_misses() const;
-    //void reset_statistics();
-    // TODO
-
 signals:
     void configurationChanged();
-    // AMemoryDevice interface
+
+// AMemoryDevice interface
 public:
     quint32 maxAddress() const noexcept override;
-    bool getTrackReads() const;
-    void setTrackReads(bool val);
+
 public slots:
     void clearMemory() override;
     void onCycleStarted() override;
     void onCycleFinished() override;
+    void onInstructionFinished(quint8 instruction_spec) override;
+
+    // Enable or disable tracking of addresses that have been read from in the current instruction.
+    // Also disables eviction tracking, since it is related to read tracking.
+    bool getReadCachingEnabled() const noexcept override;
+    void setReadCachingEnabled(bool value) noexcept override;
+
+    // Transaction tracking.
+    void beginTransaction(ACCESS_MODE mode) const override;
+    void endTransaction() const override;
     // Update existing items in cache.
-    bool readByte(quint16 address, quint8 &output, ACCESS_MODE mode=ACCESS_MODE::NA) const override;
-    bool writeByte(quint16 address, quint8 value, ACCESS_MODE mode=ACCESS_MODE::NA) override;
-    // Read / Write of words as two read / write byte operations and bitmath.
-    virtual bool readWord(quint16 address, quint16& output, ACCESS_MODE mode=ACCESS_MODE::NA) const override;
-    virtual bool writeWord(quint16 address, quint16 value, ACCESS_MODE mode=ACCESS_MODE::NA) override;
+    bool readByte(quint16 address, quint8 &output) const override;
+    bool writeByte(quint16 address, quint8 value) override;
     // GET/SET bypass cache access, since they aren't "real" operations.
     bool getByte(quint16 address, quint8 &output) const override;
     bool setByte(quint16 address, quint8 value) override;
@@ -95,12 +109,20 @@ private:
 
     mutable QSet<quint16> cacheLinesTouched;
 
-    struct Stats {
-        quint32 hit{0}, miss{0};
-        void clear();
-    };
+    // Statistics collection
 
-    mutable Stats instr_read, data_read, data_writes, misc_read, misc_write;
+    void clearStats();
+    // TODO: fill stats;
+    QVector<Stat_Me> stats;
+
+    // Transaction tracking.
+
+    mutable bool in_tx = false;
+    mutable Transaction tx;
+    mutable std::set<std::tuple<quint16, quint16>> transactionLines;
+    mutable QList<Transaction> instruction_txs;
+
+    // Eviction tracking
 
     mutable QMap<quint16, QList<CacheEntry>> evictedLines;
 

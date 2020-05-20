@@ -106,6 +106,10 @@ public:
     bool getReadCachingEnabled() const noexcept override {return false;}
     void setReadCachingEnabled(bool /*value*/) noexcept override {}
 
+    // Device does not provide memory access statistics, so it does not need to
+    // group multiple memory accesses together.
+    void beginTransaction(ACCESS_MODE /*mode*/) const override {}
+    void endTransaction() const override {}
 public slots:
     // Set the values in all memory chips to 0, clear all outstanding IO operations.
     void clearMemory() override;
@@ -114,10 +118,11 @@ public slots:
     // so these methods do nothing.
     void onCycleStarted() override;
     void onCycleFinished() override;
+    void onInstructionFinished(quint8 instruction_spec) override;
 
     // In main memory, address caching on reads is disabled.
-    bool readByte(quint16 address, quint8 &output, ACCESS_MODE mode=ACCESS_MODE::NA) const override;
-    bool writeByte(quint16 address, quint8 value, ACCESS_MODE mode=ACCESS_MODE::NA) override;
+    bool readByte(quint16 address, quint8 &output) const override;
+    bool writeByte(quint16 address, quint8 value) override;
     bool getByte(quint16 address, quint8 &output) const override;
     bool setByte(quint16 address, quint8 value) override;
 
@@ -143,6 +148,7 @@ protected slots:
 
 private:
     void calculateAddressToChip() noexcept;
+    bool inTransaction;
 };
 
 #endif // MAINMEMORY_H

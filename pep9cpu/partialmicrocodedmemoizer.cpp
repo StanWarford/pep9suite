@@ -49,7 +49,7 @@ void PartialMicrocodedMemoizer::storeStateInstrEnd()
 
 void PartialMicrocodedMemoizer::storeStateInstrStart()
 {
-
+    cpu.getMemoryDevice()->onInstructionFinished(cpu.data->getRegisterBank().getIRCache());
 }
 
 QString PartialMicrocodedMemoizer::memoize()

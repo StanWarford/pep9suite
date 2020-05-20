@@ -648,6 +648,9 @@ void CPUDataSection::stepTwoByte() noexcept
         else onSetRegisterByte(controlSignals[Enu::C], c);
     }
 
+#pragma message("TODO: Determine the fate of completed + ignored memreads.")
+    // Determining the fate of memreads would transacting with memory.
+    bool in_tx = false;
     // MDRECk
     if(clockSignals[Enu::MDRECk]) {
         switch(controlSignals[Enu::MDREMux])
@@ -663,6 +666,8 @@ void CPUDataSection::stepTwoByte() noexcept
                 return;
             }
             else {
+                memDevice->beginTransaction(AMemoryDevice::ACCESS_MODE::NA);
+                in_tx = true;
                 memSigError = memDevice->readByte(address, temp);
                 if(!memSigError) {
                     hadDataError = true;
@@ -704,6 +709,10 @@ void CPUDataSection::stepTwoByte() noexcept
                 return;
             }
             else {
+                if(!in_tx) {
+                    memDevice->beginTransaction(AMemoryDevice::ACCESS_MODE::NA);
+                    in_tx = true;
+                }
                 memSigError = memDevice->readByte(address, temp);
                 if(!memSigError) {
                     hadDataError = true;
@@ -727,6 +736,10 @@ void CPUDataSection::stepTwoByte() noexcept
             break;
         }
 
+    }
+#pragma message("TODO: Determine transact fate.")
+    if(in_tx) {
+        memDevice->endTransaction();
     }
 
     //NCk

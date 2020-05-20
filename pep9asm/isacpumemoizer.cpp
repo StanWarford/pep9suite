@@ -56,6 +56,7 @@ void IsaCpuMemoizer::storeStateInstrEnd()
     else if (mnemon == Enu::EMnemonic::RETTR) {
         inOS = false;
     }
+    cpu.getMemoryDevice()->onInstructionFinished(cpu.registerBank.getIRCache());
 }
 
 void IsaCpuMemoizer::storeStateInstrStart()

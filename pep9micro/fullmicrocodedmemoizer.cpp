@@ -67,6 +67,7 @@ void FullMicrocodedMemoizer::storeStateInstrEnd()
     else if (mnemon == Enu::EMnemonic::RETTR) {
         inOS = false;
     }
+    cpu.getMemoryDevice()->onInstructionFinished(cpu.data->getRegisterBank().getIRCache());
 
 }
 

@@ -104,13 +104,21 @@ public slots:
     virtual void onCycleStarted() = 0;
     virtual void onCycleFinished() = 0;
 
+    // Notify memory that an instruction has finished executing.
+    virtual void onInstructionFinished(quint8 instruction_spec) = 0;
+
+    // Indicate to main memory that the following sequence of memory operations are
+    // part of the same "operation", like loading a 3-byte instruction operand.
+    virtual void beginTransaction(ACCESS_MODE mode) const = 0;
+    virtual void endTransaction() const = 0;
+
     // Read / Write functions that may trap for IO or generate errors from writing to readonly storage.
-    virtual bool readByte(quint16 address, quint8& output, ACCESS_MODE mode=ACCESS_MODE::NA) const = 0;
-    virtual bool writeByte(quint16 address, quint8 value, ACCESS_MODE mode=ACCESS_MODE::NA) = 0;
+    virtual bool readByte(quint16 address, quint8& output) const = 0;
+    virtual bool writeByte(quint16 address, quint8 value) = 0;
 
     // Read / Write of words as two read / write byte operations and bitmath.
-    virtual bool readWord(quint16 address, quint16& output, ACCESS_MODE mode=ACCESS_MODE::NA) const;
-    virtual bool writeWord(quint16 address, quint16 value, ACCESS_MODE mode=ACCESS_MODE::NA);
+    virtual bool readWord(quint16 address, quint16& output) const;
+    virtual bool writeWord(quint16 address, quint16 value);
 
     // Get / Set functions that are guarenteed not to trap for IO and will not error.
     virtual bool getByte(quint16 address, quint8& output) const = 0;

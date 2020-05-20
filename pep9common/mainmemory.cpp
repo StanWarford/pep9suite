@@ -28,7 +28,8 @@
 #include "mainmemory.h"
 
 MainMemory::MainMemory(QObject* parent) noexcept: AMemoryDevice (parent), updateMemMap(true),
-    endChip(new NilChip(0xffff, 0, this)), addressToChipLookupTable(1 << 16), maxAddr(0)
+    endChip(new NilChip(0xffff, 0, this)), addressToChipLookupTable(1 << 16),
+    maxAddr(0), inTransaction(false)
 {
 
 }
@@ -189,6 +190,7 @@ void MainMemory::autoUpdateMemoryMap(bool update) noexcept
     updateMemMap = update;
     // If updates are re-enabled, refresh the address lookup table.
     if(updateMemMap) calculateAddressToChip();
+    inTransaction = false;
 }
 
 void MainMemory::loadValues(quint16 address, QVector<quint8> values) noexcept
@@ -217,6 +219,7 @@ void MainMemory::clearMemory()
     // Remove pending error messages and pending IO.
     clearErrors();
     clearIO();
+    inTransaction = false;
 }
 
 void MainMemory::onCycleStarted()
@@ -229,9 +232,13 @@ void MainMemory::onCycleFinished()
     // Main memory doesn't have any per-cycle internal updates.
 }
 
-bool MainMemory::readByte(quint16 address, quint8 &output, ACCESS_MODE /*mode*/) const
+void MainMemory::onInstructionFinished(quint8 instruction_spec)
 {
-    // May safely ignore access type, main memory doesn't care why memory is being accessed.
+    // Main memory provides no per-instruction statistics.
+}
+
+bool MainMemory::readByte(quint16 address, quint8 &output) const
+{
     const AMemoryChip *chip = chipAt(address);
     // Since IO can fail, wrap it in a try-catch.
     try {
@@ -259,9 +266,8 @@ bool MainMemory::readByte(quint16 address, quint8 &output, ACCESS_MODE /*mode*/)
 
 }
 
-bool MainMemory::writeByte(quint16 address, quint8 value, ACCESS_MODE /*mode*/)
+bool MainMemory::writeByte(quint16 address, quint8 value)
 {
-    // May safely ignore access type, main memory doesn't care why memory is being accessed.
     AMemoryChip *chip = chipAt(address);
     try {
         bool retVal = chip->writeByte(address - chip->getBaseAddress(), value);
