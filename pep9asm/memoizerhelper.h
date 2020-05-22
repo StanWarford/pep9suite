@@ -29,6 +29,19 @@ struct CPUState
     quint32 instructionsExecuted;
   //QVector<callStack> call_tracer;
 };
+struct MemoryAccessStatistics
+{
+    quint32 read_hit{0}, read_miss{0};
+    quint32 write_hit{0}, write_miss{0};
+    void clear();
+};
+
+struct CacheHitrates
+{
+    QVector<MemoryAccessStatistics> instructions = QVector<MemoryAccessStatistics>(256);
+    QVector<MemoryAccessStatistics> data = QVector<MemoryAccessStatistics>(256);
+};
+
 QString formatNum(quint16 number);
 QString formatNum(quint8 number);
 QString formatAddress(quint16 address);

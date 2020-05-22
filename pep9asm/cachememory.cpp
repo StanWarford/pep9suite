@@ -10,7 +10,7 @@ CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheC
     track_reads(true), AMemoryDevice(parent), memory_device(memory_device), replace_factory(config.policy),
     tag_size(config.tag_bits), index_size(config.index_bits),
     data_size(16 - tag_size - index_size), associativity(config.associativity),
-    allocation_policy(config.write_allocation), cacheLinesTouched(), stats(256)
+    allocation_policy(config.write_allocation), cacheLinesTouched(), transactionLines()
 {
 
     // Make sure that cache won't accidentally go outside the range of accessible memory
@@ -75,8 +75,6 @@ bool CacheMemory::resizeCache(Cache::CacheConfiguration config)
         allocation_policy = config.write_allocation;
         cacheLinesTouched.clear();
 
-        clearStats();
-
         this->replace_factory = config.policy;
         for(auto& line : cache) {
             line = CacheLine(associativity, replace_factory->create_policy());
@@ -91,8 +89,6 @@ void CacheMemory::clearCache()
     for(auto& line : cache) {
         line.clear();
     }
-
-    clearStats();
 
     clearCacheLinesTouched();
 }
@@ -123,14 +119,6 @@ void CacheMemory::onCycleFinished()
 
 void CacheMemory::onInstructionFinished(quint8 instruction_spec)
 {
-    auto& at = stats[instruction_spec];
-    for(auto tx : instruction_txs) {
-        at.read_hit  += tx.read_hit;
-        at.read_miss += tx.read_miss;
-        at.write_hit += tx.write_hit;
-        at.write_miss += tx.write_miss;
-    }
-    qDebug() << at.read_hit << at.read_miss <<at.write_hit << at.write_miss;
     instruction_txs.clear();
 }
 
@@ -160,7 +148,7 @@ bool CacheMemory::readByte(quint16 address, quint8 &output) const
         line.update(address_breakdown);
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
-        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) != transactionLines.end()) {
+        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) == transactionLines.end()) {
             tx.read_hit++;
         }
     }
@@ -174,7 +162,7 @@ bool CacheMemory::readByte(quint16 address, quint8 &output) const
         }
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
-        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) != transactionLines.end()) {
+        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) == transactionLines.end()) {
             tx.read_miss++;
         }
     }
@@ -202,7 +190,7 @@ bool CacheMemory::writeByte(quint16 address, quint8 value)
         line.update(address_breakdown);
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
-        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) != transactionLines.end()) {
+        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) == transactionLines.end()) {
             tx.write_hit++;
         }
     }
@@ -219,7 +207,7 @@ bool CacheMemory::writeByte(quint16 address, quint8 value)
 
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
-        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) != transactionLines.end()) {
+        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) == transactionLines.end()) {
             tx.write_miss++;
         }
 
@@ -232,7 +220,7 @@ bool CacheMemory::writeByte(quint16 address, quint8 value)
 
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
-        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) != transactionLines.end()) {
+        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) == transactionLines.end()) {
             tx.write_miss++;
         }
     }
@@ -314,13 +302,6 @@ void CacheMemory::clearAllByteCaches() noexcept
     clearAllEvictedEntries();
 }
 
-void CacheMemory::clearStats()
-{
-    for(auto& a : stats) {
-        a.clear();
-    }
-}
-
 void CacheMemory::beginTransaction(AMemoryDevice::ACCESS_MODE mode) const
 {
     assert(in_tx == false);
@@ -336,7 +317,6 @@ void CacheMemory::endTransaction() const
     instruction_txs.append(tx);
     transactionLines.clear();
 }
-
 
 Cache::CacheAddress CacheMemory::breakdownAddress(quint16 address) const
 {
@@ -368,7 +348,17 @@ QString CacheMemory::getCacheAlgorithm() const
     return replace_factory->get_algorithm_name();
 }
 
-void Stat_Me::clear()
+QList<Transaction> CacheMemory::getTransactions()
+{
+    return instruction_txs;
+}
+
+void CacheMemory::clearTransactionInfo()
+{
+    instruction_txs.clear();
+}
+
+void MemoryAccessStatistics::clear()
 {
     this->read_hit = 0;
     this->read_miss = 0;

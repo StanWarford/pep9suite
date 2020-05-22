@@ -101,7 +101,8 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     ui->microcodeWidget->init(controlSection, dataSection, true);
     ui->microObjectCodePane->init(controlSection, true);
     redefineMnemonicsDialog->init(false);
-    ui->executionStatisticsWidget->init(controlSection, true);
+    // Pep/9's CPU model does not integrate with the cache, so the cache should not be shown.
+    ui->executionStatisticsWidget->init(controlSection, true, false);
 
     // Create & connect all dialogs.
     helpDialog = new MicroHelpDialog(this);

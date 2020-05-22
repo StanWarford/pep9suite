@@ -70,6 +70,8 @@ public:
     quint64 getCycleCount(bool includeOS) override;
     quint64 getInstructionCount(bool includeOS) override;
     const QVector<quint32> getInstructionHistogram(bool includeOS) override;
+    bool hasCacheStats() override {return false;}
+    const CacheHitrates getCacheHitRates(bool /*includeOS*/) override {return {};}
 
 public slots:
     void onSimulationStarted() override;
@@ -121,6 +123,7 @@ private:
     // map the instruction to the first line of microcode that implements it.
     void calculateInstrJT();
     void calculateAddrJT();
+
 };
 
 #endif // FULLMICROCODEDCPU_H

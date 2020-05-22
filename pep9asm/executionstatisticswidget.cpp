@@ -31,7 +31,8 @@ ExecutionStatisticsWidget::ExecutionStatisticsWidget(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->treeView->setModel(model);
-    model->setHorizontalHeaderLabels({"Instruction", "Frequency"});
+    model->setHorizontalHeaderLabels({"Instruction", "Frequency", "Instruction Hit %",
+                                      "Data Read Hit %", "Data Write Hit %"});
 
     // Use the default palette of one of the line editors as a starting point,
     // and set its background color to be entirely transparent.
@@ -44,9 +45,10 @@ ExecutionStatisticsWidget::ExecutionStatisticsWidget(QWidget *parent) :
     ui->lineEdit_Instructions->setPalette(pal);
 }
 
-void ExecutionStatisticsWidget::init(QSharedPointer<InterfaceISACPU> cpu, bool showCycles)
+void ExecutionStatisticsWidget::init(QSharedPointer<InterfaceISACPU> cpu, bool showCycles, bool showCacheStats)
 {
     this->cpu = cpu;
+    this->showCacheStats = showCacheStats;
     if(!showCycles) {
         ui->label->hide();
         ui->lineEdit_Cycles->hide();
@@ -97,6 +99,12 @@ void ExecutionStatisticsWidget::onSimulationFinished()
     refreshData();
 }
 
+void ExecutionStatisticsWidget::onShowCacheStates(bool newValue)
+{
+    this->showCacheStats = newValue;
+    refreshData();
+}
+
 void ExecutionStatisticsWidget::on_includeOSCheckBox_toggled(bool)
 {
     // If the CPU currently has data to report, report statistics with new filters.
@@ -114,9 +122,12 @@ struct lookup {
     // How many addressing modes does this instruction have?
     // Options are 0 (unary), 2(non-unary a field), and 8 (non-unary aaa field).
     quint8 addrModes;
+    quint32 iread_hit{0}, iread_miss{0};
+    quint32 dread_hit{0}, dread_miss{0};
+    quint32 dwrite_hit{0}, dwrite_miss{0};
 };
 
-void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram)
+void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram, const std::optional<CacheHitrates> rates)
 {
     // Make sure the model has no existing items.
     // Model will make sure to delete any extra items
@@ -153,6 +164,16 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram)
             entry.addrModes = 0;
             mnemonicMap[mnemon] = entry;
         }
+
+        // Now that the mnemonic lookup entry has been created, fill in cache stats if available.
+        if(rates.has_value()) {
+            mnemonicMap[mnemon].iread_hit   += (*rates).instructions[it].read_hit;
+            mnemonicMap[mnemon].iread_miss  += (*rates).instructions[it].read_miss;
+            mnemonicMap[mnemon].dread_hit   += (*rates).data[it].read_hit;
+            mnemonicMap[mnemon].dread_miss  += (*rates).data[it].read_miss;
+            mnemonicMap[mnemon].dwrite_hit  += (*rates).data[it].write_hit;
+            mnemonicMap[mnemon].dwrite_miss += (*rates).data[it].write_miss;
+        }
     }
     // Metaobjects to help convert enums to QStrings.
     static QMetaEnum mnemonicMetaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
@@ -172,9 +193,30 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram)
         QStandardItem* instrName = new QStandardItem(QString(mnemonicMetaenum.valueToKey((int)mnemon)).toLower());
 
         QStandardItem* instrCount = new QStandardItem();
+        QStandardItem* mnemonIReadHits = new QStandardItem();
+        QStandardItem* mnemonDReadHits = new QStandardItem();
+        QStandardItem* mnemonDWriteHits = new QStandardItem();
+
         // Make a variant from an int type to ensure that sorting works correctly.
         instrCount->setData(QVariant(tuple.tally), Qt::DisplayRole);
-        model->insertRow(model->rowCount(), {instrName, instrCount});
+
+        if(rates.has_value()) {
+            if(tuple.iread_hit + tuple.iread_miss > 0) {
+                mnemonIReadHits->setData(tuple.iread_hit / ((float)tuple.iread_hit + tuple.iread_miss),
+                                         Qt::DisplayRole);
+            }
+            if(tuple.dread_hit + tuple.dread_miss > 0) {
+                mnemonDReadHits->setData(tuple.dread_hit / ((float)tuple.dread_hit + tuple.dread_miss),
+                                         Qt::DisplayRole);
+            }
+            if(tuple.dwrite_hit + tuple.dwrite_miss > 0) {
+                mnemonDWriteHits->setData(tuple.dwrite_hit / ((float)tuple.dwrite_hit + tuple.dwrite_miss),
+                                         Qt::DisplayRole);
+            }
+        }
+
+        model->insertRow(model->rowCount(), {instrName, instrCount,
+                                             mnemonIReadHits, mnemonDReadHits, mnemonDWriteHits});
 
         for(int offset = 0;  offset < tuple.addrModes; offset++) {
             // If the addressing mode was not used, do not insert the entry.
@@ -191,10 +233,52 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram)
             else addr = Pep::decodeAddrMode[tuple.start + offset];
             QStandardItem* addrName = new QStandardItem(QString(addrMetaenum.valueToKey((int) addr)).toLower());
             QStandardItem* addrCount = new QStandardItem();
+            QStandardItem* iReadHits = new QStandardItem();
+            QStandardItem* dReadHits = new QStandardItem();
+            QStandardItem* dWriteHits = new QStandardItem();
+            if(rates.has_value()) {
+                auto instr = (*rates).instructions[tuple.start + offset];
+                if(instr.read_hit + instr.read_miss > 0) {
+                    iReadHits->setData(instr.read_hit / ((float)instr.read_hit + instr.read_miss),
+                                       Qt::DisplayRole);
+                    qDebug() << tuple.start+offset << instr.read_hit << instr.read_miss;
+                } else {
+                    iReadHits->setData({}, Qt::DisplayRole);
+                }
+
+
+                auto data = (*rates).data[tuple.start + offset];
+                if(data.read_hit + data.read_miss>0) {
+                    dReadHits->setData(data.read_hit / ((float)data.read_hit + data.read_miss),
+                                       Qt::DisplayRole);
+                    qDebug() << tuple.start+offset << data.read_hit << data.read_miss;
+                }
+                else {
+                    dReadHits->setData({}, Qt::DisplayRole);
+                }
+                if(data.write_hit + data.write_miss>0) {
+                    dWriteHits->setData(data.write_hit / ((float)data.write_hit + data.write_miss),
+                                        Qt::DisplayRole);
+                    qDebug() << tuple.start+offset << data.write_hit << data.write_miss;
+                } else {
+                    dWriteHits->setData({}, Qt::DisplayRole);
+                }
+
+
+            }
             addrCount->setData(QVariant(histogram[tuple.start + offset]), Qt::DisplayRole);
 
-            instrName->appendRow({addrName, addrCount});
+            instrName->appendRow({addrName, addrCount, iReadHits, dReadHits, dWriteHits});
         }
+    }
+
+    bool hide = true;
+    if(rates.has_value() && showCacheStats) {
+        hide = false;
+    }
+
+    for(int col=2; col<model->columnCount(); col++) {
+        ui->treeView->setColumnHidden(col, hide);
     }
 
 }
@@ -205,5 +289,9 @@ void ExecutionStatisticsWidget::refreshData()
     // Use locale so that strings have commas in them.
     ui->lineEdit_Cycles->setText(QLocale::system().toString(cpu->getCycleCount(includeOS)));
     ui->lineEdit_Instructions->setText(QLocale::system().toString(cpu->getInstructionCount(includeOS)));
-    fillModel(cpu->getInstructionHistogram(includeOS));
+    std::optional<CacheHitrates> rates = std::nullopt;
+    if(showCacheStats && cpu->hasCacheStats()) {
+        rates = cpu->getCacheHitRates(includeOS);
+    }
+    fillModel(cpu->getInstructionHistogram(includeOS), rates);
 }

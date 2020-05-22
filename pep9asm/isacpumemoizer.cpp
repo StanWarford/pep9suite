@@ -25,6 +25,7 @@
 #include "asmprogrammanager.h"
 #include "amemorydevice.h"
 #include "registerfile.h"
+#include "cachememory.h"
 #include <assert.h>
 #include <QString>
 #include <QtCore>
@@ -33,12 +34,31 @@
 
 IsaCpuMemoizer::IsaCpuMemoizer(IsaCpu &cpu): cpu(cpu), inOS(false), stateUser(CPUState()), stateOS(CPUState())
 {
-
+    //TODO: Get memory device of CPU, and see if it is a cache memory.
+    // If so, store it in a class member var typed correctly. Otherwise null member var.
+    if(auto* asPtr = dynamic_cast<CacheMemory*>(cpu.getMemoryDevice());
+       asPtr != nullptr) {
+        cacheDevice = asPtr;
+    } else {
+        cacheDevice = std::nullopt;
+    }
 }
 
 IsaCpuMemoizer::~IsaCpuMemoizer()
 {
 
+}
+
+void IsaCpuMemoizer::onSimultationStarted()
+{
+    //TODO: Get memory device of CPU, and see if it is a cache memory.
+    // If so, store it in a class member var typed correctly. Otherwise null member var.
+    if(auto* asPtr = dynamic_cast<CacheMemory*>(cpu.getMemoryDevice());
+       asPtr != nullptr) {
+        cacheDevice = asPtr;
+    } else {
+        cacheDevice = std::nullopt;
+    }
 }
 
 void IsaCpuMemoizer::clear()
@@ -49,14 +69,44 @@ void IsaCpuMemoizer::clear()
 
 void IsaCpuMemoizer::storeStateInstrEnd()
 {
-    auto mnemon = Pep::decodeMnemonic[cpu.registerBank.getIRCache()];
+    quint8 instr = cpu.registerBank.getIRCache();
+
+    // TODO:
+    // Check if we have a pointer to a cache device. If we do, then accumulate cache statistics for user / os.
+    if(cacheDevice.has_value()) {
+        auto& state = inOS ? cacheOS : cacheUser;
+        auto transactions = (*cacheDevice)->getTransactions();
+        for(auto tx : transactions) {
+            MemoryAccessStatistics* stats;
+            switch(tx.transaction_mode)
+            {
+            case AMemoryDevice::ACCESS_MODE::INSTRUCTION:
+                stats = & state.instructions[instr];
+                break;
+            case AMemoryDevice::ACCESS_MODE::DATA:
+                stats = & state.data[instr];
+                break;
+            default:
+                throw std::invalid_argument("Access must have a type");
+                break;
+            }
+            stats->read_hit   += tx.read_hit;
+            stats->read_miss  += tx.read_miss;
+            stats->write_hit  += tx.write_hit;
+            stats->write_miss += tx.write_miss;
+        }
+
+    }
+
+    auto mnemon = Pep::decodeMnemonic[instr];
     if(Pep::isTrapMap[mnemon]) {
         inOS = true;
     }
     else if (mnemon == Enu::EMnemonic::RETTR) {
         inOS = false;
     }
-    cpu.getMemoryDevice()->onInstructionFinished(cpu.registerBank.getIRCache());
+
+    cpu.getMemoryDevice()->onInstructionFinished(instr);
 }
 
 void IsaCpuMemoizer::storeStateInstrStart()
@@ -146,6 +196,21 @@ const QVector<quint32> IsaCpuMemoizer::getInstructionHistogram(bool includeOS)
     for(int it=0; it<256; it++) {
         result[it] = stateUser.instructionsCalled[it] + (includeOS ? stateOS.instructionsCalled[it]: 0);
     }
+    return result;
+}
+
+const CacheHitrates IsaCpuMemoizer::getCacheHitRates(bool includeOS)
+{
+    CacheHitrates result;
+    for(int it=0; it<256; it++) {
+        result.instructions[it].read_hit = cacheUser.instructions[it].read_hit + (includeOS ? cacheOS.instructions[it].read_hit: 0);
+        result.instructions[it].read_miss = cacheUser.instructions[it].read_miss + (includeOS ? cacheOS.instructions[it].read_miss: 0);
+        result.data[it].read_hit = cacheUser.data[it].read_hit + (includeOS ? cacheOS.data[it].read_hit: 0);
+        result.data[it].read_miss = cacheUser.data[it].read_miss + (includeOS ? cacheOS.data[it].read_miss: 0);
+        result.data[it].write_hit = cacheUser.data[it].write_hit + (includeOS ? cacheOS.data[it].write_hit: 0);
+        result.data[it].write_miss = cacheUser.data[it].write_miss + (includeOS ? cacheOS.data[it].write_miss: 0);
+    }
+
     return result;
 }
 

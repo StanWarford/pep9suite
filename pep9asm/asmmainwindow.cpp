@@ -104,7 +104,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     ui->asmProgramTracePane->init(controlSection, programManager);
     ui->asmCpuPane->init(controlSection, controlSection);
     redefineMnemonicsDialog->init(true);
-    ui->executionStatisticsWidget->init(controlSection, false);
+    ui->executionStatisticsWidget->init(controlSection, false, showCacheOnStart);
     ui->cacheWidget->init(cacheDevice);
 
     ui->actionSystem_Show_Cache->setChecked(showCacheOnStart);
@@ -1545,20 +1545,24 @@ void AsmMainWindow::on_actionSystem_Redefine_Mnemonics_triggered()
 
 void AsmMainWindow::on_actionSystem_Show_Cache_triggered(bool isChecked)
 {
-    #pragma message("TODO: Enable / disable cache statistics for statistics tab.")
     // If checked, re-arrange widgets so that memory widget is inside of the
     // main memory tab, and the tab widget is the central widget in the 3rd column.
     if(isChecked) {
         ui->horizontalSplitter->replaceWidget(2, ui->memoryTabWidget);
         ui->memoryTabWidget->setHidden(false);
         ui->memoryTab->layout()->addWidget(ui->memoryWidget);
+        controlSection->setMemoryDevice(cacheDevice);
     }
     // Otherwise, hide the memory tab widget, and make the main memory widget
     // the main widget in th third column.
     else {
         ui->horizontalSplitter->replaceWidget(2, ui->memoryWidget);
         ui->memoryTabWidget->setHidden(true);
+        // Switch over to main memory when cache is not enabled--no need for the performance penalty.
+        controlSection->setMemoryDevice(memDevice);
     }
+    // Only display caching statistics if the cache has been enabled by the user.
+    ui->executionStatisticsWidget->onShowCacheStates(isChecked);
     // Resize third column to accomodate new widget configuration.
     resizeMemoryWidgets();
 }

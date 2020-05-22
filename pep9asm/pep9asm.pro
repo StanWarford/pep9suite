@@ -32,31 +32,16 @@ RC_FILE = pep9resources.rc
 
 FORMS += \
     asmmainwindow.ui \
-    asmhelpdialog.ui \
-    cacheconfig.ui \
-    cacheview.ui
+    asmhelpdialog.ui
 
 HEADERS += \
     asmmainwindow.h \
-    asmhelpdialog.h \
-    cache.h \
-    cachealgs.h \
-    cacheconfig.h \
-    cacheline.h \
-    cachememory.h \
-    cachereplace.h \
-    cacheview.h
+    asmhelpdialog.h
 
 SOURCES += \
     asmmainwindow.cpp \
     asmhelpdialog.cpp \
-    asmmain.cpp \
-    cachealg.cpp \
-    cacheconfig.cpp \
-    cacheline.cpp \
-    cachememory.cpp \
-    cachereplace.cpp \
-    cacheview.cpp
+    asmmain.cpp
 
 RESOURCES += \
     ../pep9asm/pep9asm-helpresources.qrc \

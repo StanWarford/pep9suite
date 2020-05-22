@@ -25,6 +25,8 @@
 #include <QtCore>
 #include <ostream>
 #include "stacktrace.h"
+#include "memoizerhelper.h"
+
 class AMemoryDevice;
 class AsmProgramManager;
 enum class stackAction {
@@ -86,6 +88,9 @@ public:
     virtual quint64 getInstructionCount(bool includeOS) = 0;
     // Returns a 256 element vector that indicates how many times each opcode was used.
     virtual const QVector<quint32> getInstructionHistogram(bool includeOS) = 0;
+    // Return a 256 element array describing the cacge stats for each instruction
+    virtual bool hasCacheStats() {return false;}
+    virtual const CacheHitrates getCacheHitRates(bool includeOS) = 0;
 protected:
     // Execute a single ISA instruction.
     virtual void onISAStep() = 0;

@@ -65,3 +65,25 @@ SOURCES += \
     asmprogramtracepane.cpp \
     asmprogramlistingpane.cpp \
     assemblerpane.cpp
+
+# Cache components
+FORMS += \
+    cacheconfig.ui \
+    cacheview.ui
+
+HEADERS += \
+    cache.h \
+    cachealgs.h \
+    cacheconfig.h \
+    cacheline.h \
+    cachememory.h \
+    cachereplace.h \
+    cacheview.h
+
+SOURCES += \
+    cachealg.cpp \
+    cacheconfig.cpp \
+    cacheline.cpp \
+    cachememory.cpp \
+    cachereplace.cpp \
+    cacheview.cpp

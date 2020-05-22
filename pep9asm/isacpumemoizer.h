@@ -24,12 +24,14 @@
 #include "enu.h"
 #include "memoizerhelper.h"
 class IsaCpu;
+class CacheMemory;
 class IsaCpuMemoizer
 {
 
 public:
     explicit IsaCpuMemoizer(IsaCpu& cpu);
     ~IsaCpuMemoizer();
+    void onSimultationStarted();
     void clear();
     void storeStateInstrEnd();
     void storeStateInstrStart();
@@ -38,10 +40,13 @@ public:
     quint64 getCycleCount(bool includeOS);
     quint64 getInstructionCount(bool includeOS);
     const QVector<quint32> getInstructionHistogram(bool includeOS);
+    const CacheHitrates getCacheHitRates(bool includeOS);
 private:
     IsaCpu& cpu;
     bool inOS;
     CPUState stateUser, stateOS;
+    CacheHitrates cacheUser, cacheOS;
+    std::optional<CacheMemory*> cacheDevice;
 };
 
 #endif // ISACPUMEMOIZER_H

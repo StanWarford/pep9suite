@@ -36,7 +36,7 @@ class ExecutionStatisticsWidget : public QWidget
 
 public:
     explicit ExecutionStatisticsWidget(QWidget *parent = nullptr);
-    void init(QSharedPointer<InterfaceISACPU> cpu, bool showCycles);
+    void init(QSharedPointer<InterfaceISACPU> cpu, bool showCycles, bool showCacheStats);
     ~ExecutionStatisticsWidget();
 
     void highlightOnFocus();
@@ -49,6 +49,7 @@ public slots:
     void onClear();
     void onSimulationStarted();
     void onSimulationFinished();
+    void onShowCacheStates(bool newValue);
 
 private slots:
     // If data is present, refresh the data to respect the new criterion.
@@ -60,7 +61,9 @@ private:
     QStandardItemModel* model;
     // Does the CPU have data to report?
     bool containsData;
-    void fillModel(const QVector<quint32> histogram);
+    // Should cache statistics be reported and shown?
+    bool showCacheStats;
+    void fillModel(const QVector<quint32> histogram, const std::optional<CacheHitrates> rates);
     void refreshData();
 };
 

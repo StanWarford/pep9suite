@@ -29,6 +29,7 @@
 #include "interrupthandler.h"
 #include "isacpumemoizer.h"
 #include "pep.h"
+#include "cachememory.h"
 
 IsaCpu::IsaCpu(const AsmProgramManager *input_manager, QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
     ACPUModel(memDevice, parent), InterfaceISACPU(memDevice.get(), input_manager), memoizer(new IsaCpuMemoizer(*this))
@@ -103,6 +104,16 @@ quint64 IsaCpu::getInstructionCount(bool includeOS)
 const QVector<quint32> IsaCpu::getInstructionHistogram(bool includeOS)
 {
     return memoizer->getInstructionHistogram(includeOS);
+}
+
+bool IsaCpu::hasCacheStats()
+{
+    return dynamic_cast<CacheMemory*>(memory.get()) != nullptr;
+}
+
+const CacheHitrates IsaCpu::getCacheHitRates(bool includeOS)
+{
+    return memoizer->getCacheHitRates(includeOS);
 }
 
 RegisterFile &IsaCpu::getRegisterBank()
@@ -345,6 +356,7 @@ void IsaCpu::onSimulationStarted()
     executionFinished = false;
     asmBreakpointHit = false;
     memoizer->clear();
+    memoizer->onSimultationStarted();
     memory->clearErrors();
     ACPUModel::handler->clearQueuedInterrupts();
 }

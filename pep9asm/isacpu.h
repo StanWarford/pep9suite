@@ -55,6 +55,8 @@ public:
     quint64 getCycleCount(bool includeOS) override;
     quint64 getInstructionCount(bool includeOS) override;
     const QVector<quint32> getInstructionHistogram(bool includeOS) override;
+    bool hasCacheStats() override;
+    const CacheHitrates getCacheHitRates(bool includeOS) override;
 
     RegisterFile& getRegisterBank();
     const RegisterFile& getRegisterBank() const;
@@ -104,6 +106,7 @@ private:
     void executeTrap(Enu::EMnemonic mnemon);
     // Callback function to handle InteruptHandler's BREAKPOINT_ASM.
     void breakpointAsmHandler();
+
 };
 
 #endif // ISACPU_H

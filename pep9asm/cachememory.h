@@ -11,22 +11,15 @@
 
 #include "amemorydevice.h"
 #include "mainmemory.h"
+#include "memoizerhelper.h"
 #include "cachereplace.h"
 #include "cacheline.h"
 #include "cache.h"
 #pragma message("TODO: Make eviction tracking optional for performance improvement.")
 
-struct Stat_Me
-{
-    quint32 read_hit{0}, read_miss{0};
-    quint32 write_hit{0}, write_miss{0};
-    void clear();
-};
-
-struct Transaction : public Stat_Me{
+struct Transaction : public MemoryAccessStatistics{
     AMemoryDevice::ACCESS_MODE transaction_mode;
 };
-
 
 class CacheMemory : public AMemoryDevice
 {
@@ -52,6 +45,10 @@ public:
     Cache::CacheAddress breakdownAddress(quint16 address) const;
     std::optional<const CacheLine*> getCacheLine(quint16 tag) const;
     QString getCacheAlgorithm() const;
+
+    // Get transaction info
+    QList<Transaction> getTransactions();
+    void clearTransactionInfo();
 
 signals:
     void configurationChanged();
@@ -109,17 +106,12 @@ private:
 
     mutable QSet<quint16> cacheLinesTouched;
 
-    // Statistics collection
-
-    void clearStats();
-    // TODO: fill stats;
-    QVector<Stat_Me> stats;
-
     // Transaction tracking.
 
     mutable bool in_tx = false;
     mutable Transaction tx;
     mutable std::set<std::tuple<quint16, quint16>> transactionLines;
+    // At the end of every instruction, clear transaction lines.
     mutable QList<Transaction> instruction_txs;
 
     // Eviction tracking

@@ -232,7 +232,7 @@ void MainMemory::onCycleFinished()
     // Main memory doesn't have any per-cycle internal updates.
 }
 
-void MainMemory::onInstructionFinished(quint8 instruction_spec)
+void MainMemory::onInstructionFinished(quint8 /*instruction_spec*/)
 {
     // Main memory provides no per-instruction statistics.
 }
