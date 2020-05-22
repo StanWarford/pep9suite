@@ -38,12 +38,12 @@ QString AMemoryDevice::getErrorMessage() const noexcept
     return errorMessage;
 }
 
-bool AMemoryDevice::getReadCachingEnabled() const noexcept
+bool AMemoryDevice::getReadTrackingEnabled() const noexcept
 {
     return this->enable_read_caching;
 }
 
-void AMemoryDevice::setReadCachingEnabled(bool value) noexcept
+void AMemoryDevice::setReadTrackingEnabled(bool value) noexcept
 {
     this->enable_read_caching = value;
 }

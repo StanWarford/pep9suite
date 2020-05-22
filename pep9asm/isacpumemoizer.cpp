@@ -80,10 +80,10 @@ void IsaCpuMemoizer::storeStateInstrEnd()
             MemoryAccessStatistics* stats;
             switch(tx.transaction_mode)
             {
-            case AMemoryDevice::ACCESS_MODE::INSTRUCTION:
+            case AMemoryDevice::AccessType::INSTRUCTION:
                 stats = & state.instructions[instr];
                 break;
-            case AMemoryDevice::ACCESS_MODE::DATA:
+            case AMemoryDevice::AccessType::DATA:
                 stats = & state.data[instr];
                 break;
             default:

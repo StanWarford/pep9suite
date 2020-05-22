@@ -254,6 +254,7 @@ void PartialMicrocodedCPU::onMCStep()
 
     }
 
+    memory->onCycleFinished();
     // Upon entering an instruction that is going to trap
     // If running in debug mode, first check if this line has any microcode breakpoints.
     if(inDebug && sharedProgram->getCodeLine(microprogramCounter)->hasBreakpoint()) {

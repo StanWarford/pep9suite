@@ -72,6 +72,12 @@ std::optional<const CacheEntry *> CacheLine::get_entry(quint16 position) const
     else return &entries[position];
 }
 
+QSharedPointer<AReplacementPolicy> CacheLine::get_replacement_policy()
+{
+    return replacement_policy;
+}
+
+
 QSharedPointer<const AReplacementPolicy> CacheLine::get_replacement_policy() const
 {
     return replacement_policy;

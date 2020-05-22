@@ -143,3 +143,11 @@ QString attemptAddrReplace(SymbolTable *symTable, quint16 number)
     if(count == 1) return name;
     else return formatNum(number);
 }
+
+void MemoryAccessStatistics::clear()
+{
+    this->read_hit = 0;
+    this->read_miss = 0;
+    this->write_hit = 0;
+    this->write_miss = 0;
+}

@@ -666,7 +666,7 @@ void CPUDataSection::stepTwoByte() noexcept
                 return;
             }
             else {
-                memDevice->beginTransaction(AMemoryDevice::ACCESS_MODE::NA);
+                memDevice->beginTransaction(AMemoryDevice::AccessType::NONE);
                 in_tx = true;
                 memSigError = memDevice->readByte(address, temp);
                 if(!memSigError) {
@@ -710,7 +710,7 @@ void CPUDataSection::stepTwoByte() noexcept
             }
             else {
                 if(!in_tx) {
-                    memDevice->beginTransaction(AMemoryDevice::ACCESS_MODE::NA);
+                    memDevice->beginTransaction(AMemoryDevice::AccessType::NONE);
                     in_tx = true;
                 }
                 memSigError = memDevice->readByte(address, temp);

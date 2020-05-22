@@ -116,7 +116,9 @@ private:
         quint16 child_row;
         bool operator==(const updated_item& rhs) const;
     };
-    uint friend qHash(const CacheView::updated_item &key) {return (key.root_index<<16) + key.child_row;}
+    uint friend qHash(const CacheView::updated_item &key) {return
+                static_cast<uint>((key.root_index<<16) + key.child_row);
+    }
     QSet<updated_item> last_updated;
 
     /*
@@ -130,7 +132,9 @@ private:
         bool operator==(const remove_entry& rhs) const;
     };
 
-    uint friend qHash(const CacheView::remove_entry &key) {return (key.root_line<<16) + key.count;}
+    uint friend qHash(const CacheView::remove_entry &key) {
+        return static_cast<uint>((key.root_line<<16) + key.count);
+    }
     QSet<remove_entry> to_delete;
 
     // When an index has been evicted multiple times during a single simulation step, only show the most recent eviction.
@@ -150,7 +154,6 @@ private:
 class CacheViewDelegate: public QStyledItemDelegate {
 private:
     QSharedPointer<CacheMemory> memDevice;
-    bool canEdit;
     const PepColors::Colors *colors;
 public:
     CacheViewDelegate(QSharedPointer<CacheMemory> memory, const PepColors::Colors *colors, QObject* parent = nullptr);

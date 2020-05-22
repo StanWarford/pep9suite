@@ -33,6 +33,7 @@ public:
     void clear();
 
     std::optional<const CacheEntry*> get_entry(quint16 position) const;
+    QSharedPointer<AReplacementPolicy> get_replacement_policy();
     QSharedPointer<const AReplacementPolicy> get_replacement_policy() const;
 private:
     QVector<CacheEntry> entries;

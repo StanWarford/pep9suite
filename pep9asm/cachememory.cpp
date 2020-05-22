@@ -112,35 +112,46 @@ void CacheMemory::onCycleStarted()
 
 void CacheMemory::onCycleFinished()
 {
-    //TODO: Cycle based cache reporting.
-
     memory_device->onCycleFinished();
-}
 
+    // Apply dynamic aging to cache replacement policies that support it.
+    for(auto& line : this->cache) {
+        if(line.get_replacement_policy()->canAge()) {
+            line.get_replacement_policy()->age();
+        }
+        // All replacement policies in a cache should be the same, so if any policy can't
+        // age, all policies will not age, so abort aging loop
+        else {
+            break;
+        }
+    }
+}
 void CacheMemory::onInstructionFinished(quint8 instruction_spec)
 {
     instruction_txs.clear();
+    memory_device->onInstructionFinished(instruction_spec);
 }
 
-bool CacheMemory::getReadCachingEnabled() const noexcept
+bool CacheMemory::getReadTrackingEnabled() const noexcept
 {
     return track_reads;
 }
 
-void CacheMemory::setReadCachingEnabled(bool value) noexcept
+void CacheMemory::setReadTrackingEnabled(bool value) noexcept
 {
     this->track_reads = value;
 }
 
 bool CacheMemory::readByte(quint16 address, quint8 &output) const
 {
+    // Only track read bytes when read tracking has been enabled.
     if(track_reads) {
         bytesRead.insert(address);
     }
     auto address_breakdown = breakdownAddress(address);
 
-    // If address is present in line, notify CRP of a hit.
-    // MUST capture line by reference, or Qt's COW will kick in, and no changes
+    // If address is present in line, notify cache replacement policy (CRP) of a hit.
+    // MUST capture line by reference, or Qt's CoW will kick in; no changes
     // will be saved.
     if(CacheLine& line = cache[address_breakdown.tag];
             line.contains_index(address_breakdown.index)) {
@@ -271,6 +282,7 @@ const QSet<quint16> CacheMemory::getBytesSet() const noexcept
 void CacheMemory::clearCacheLinesTouched() noexcept
 {
     cacheLinesTouched.clear();
+    transactionLines.clear();
 }
 
 void CacheMemory::clearEvictedEntry(quint16 line) noexcept
@@ -302,8 +314,11 @@ void CacheMemory::clearAllByteCaches() noexcept
     clearAllEvictedEntries();
 }
 
-void CacheMemory::beginTransaction(AMemoryDevice::ACCESS_MODE mode) const
+void CacheMemory::beginTransaction(AMemoryDevice::AccessType mode) const
 {
+    // Notify wrapped memory device that a new transaction has begun.
+    memory_device->beginTransaction(mode);
+    // Require that we not already be in a transaction.
     assert(in_tx == false);
     in_tx = true;
     tx.clear();
@@ -312,17 +327,22 @@ void CacheMemory::beginTransaction(AMemoryDevice::ACCESS_MODE mode) const
 
 void CacheMemory::endTransaction() const
 {
+    // Require that we be in a transaction
     assert(in_tx == true);
     in_tx = false;
+    // Push the current transaction onto a list. The list can be querried with
+    // ::getTransactions().
     instruction_txs.append(tx);
     transactionLines.clear();
+    // Notify wrapped memory device that transaction has ended.
+    memory_device->endTransaction();
 }
 
 Cache::CacheAddress CacheMemory::breakdownAddress(quint16 address) const
 {
     Cache::CacheAddress ret;
     // Offset is the lowest order bits of the address.
-    // Do not compute statically, since these values depend on cache configuration.
+    // Must compute masks each time, since these values depend on cache configuration.
     int data_mask = (0x1 << data_size) - 1, data_shift = 0;
     int index_mask = (0x1 << index_size) - 1, index_shift = data_size;
     int tag_mask = (0x1 << tag_size) - 1, tag_shift = (data_size + index_size);
@@ -356,12 +376,4 @@ QList<Transaction> CacheMemory::getTransactions()
 void CacheMemory::clearTransactionInfo()
 {
     instruction_txs.clear();
-}
-
-void MemoryAccessStatistics::clear()
-{
-    this->read_hit = 0;
-    this->read_miss = 0;
-    this->write_hit = 0;
-    this->write_miss = 0;
 }

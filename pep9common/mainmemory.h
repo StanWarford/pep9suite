@@ -103,12 +103,12 @@ public:
     void loadValues(quint16 address, QVector<quint8> values) noexcept;
 
     // In main memory, address caching on reads is disabled.
-    bool getReadCachingEnabled() const noexcept override {return false;}
-    void setReadCachingEnabled(bool /*value*/) noexcept override {}
+    bool getReadTrackingEnabled() const noexcept override {return false;}
+    void setReadTrackingEnabled(bool /*value*/) noexcept override {}
 
     // Device does not provide memory access statistics, so it does not need to
     // group multiple memory accesses together.
-    void beginTransaction(ACCESS_MODE /*mode*/) const override {}
+    void beginTransaction(AccessType /*mode*/) const override {}
     void endTransaction() const override {}
 public slots:
     // Set the values in all memory chips to 0, clear all outstanding IO operations.

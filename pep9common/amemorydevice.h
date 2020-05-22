@@ -59,8 +59,11 @@ protected:
     // in bytesRead.
     bool enable_read_caching;
 public:
-    enum class ACCESS_MODE {
-        INSTRUCTION, DATA, NA
+    // Categorize memory transactions into those affecting data/instructions.
+    // Simulators like Pep9CPU and Pep9Micro do not have a way to distinguish between
+    // instruction/data access, and should therefore use the NONE type.
+    enum class AccessType {
+        INSTRUCTION, DATA, NONE
     };
     explicit AMemoryDevice(QObject *parent = nullptr) noexcept;
 
@@ -72,12 +75,13 @@ public:
     // The Pep/9 memory model should at most be 2^16 bytes, but provide
     // for potential expansion in the future.
     virtual quint32 maxAddress() const noexcept = 0;
-    // Check if addresses of reads will be cached to bytesRead, and enable
-    // or disable this functionality.
-    // This functionality is very useful for caches, but has pointless overhead
-    // for normal RAM devices.
-    virtual bool getReadCachingEnabled() const noexcept;
-    virtual void setReadCachingEnabled(bool value) noexcept;
+
+    // Read tracking mantains a list of all addresses that have been read during the
+    // current instruction. This is helpful for rendering changes in mutable memory devices, like
+    // caches. Disabling read caching will improve performance, but will make visualizations
+    // of mutable memory devices unreliable.
+    virtual bool getReadTrackingEnabled() const noexcept;
+    virtual void setReadTrackingEnabled(bool value) noexcept;
 
     // Remove any pending errors in the memory device.
     void clearErrors();
@@ -87,8 +91,9 @@ public:
     virtual const QSet<quint16> getBytesRead() const noexcept;
     virtual const QSet<quint16> getBytesWritten() const noexcept;
     virtual const QSet<quint16> getBytesSet() const noexcept;
+
     // Call after all components have (synchronously) had a chance
-    // to access these fields. The set of read /written / set bytes will
+    // to access these fields. The set of read/written/set bytes will
     // continue to grow until explicitly reset.
     virtual void clearBytesRead() noexcept;
     virtual void clearBytesWritten() noexcept;
@@ -107,9 +112,13 @@ public slots:
     // Notify memory that an instruction has finished executing.
     virtual void onInstructionFinished(quint8 instruction_spec) = 0;
 
-    // Indicate to main memory that the following sequence of memory operations are
-    // part of the same "operation", like loading a 3-byte instruction operand.
-    virtual void beginTransaction(ACCESS_MODE mode) const = 0;
+    // Transactions are indications from the simulation that a group of memory accesses
+    // are meant to be combined during statistics reporting / generation. This is necessary
+    // because instructions may be 3-bytes long, but the entire instruction fetch should
+    // be evaluated as a single load for the purposes of reporting hits/misses.
+    // Transactions shall not be nested. A transaction must be finished before a new one
+    // may begin.
+    virtual void beginTransaction(AccessType mode) const = 0;
     virtual void endTransaction() const = 0;
 
     // Read / Write functions that may trap for IO or generate errors from writing to readonly storage.

@@ -27,6 +27,10 @@ public:
     // from soonesrt eviction to latest eviction.
     virtual QVector<quint16> eviction_loohahead(quint16 count) const = 0;
 
+    // Report if the algorithm supports dynamic aging, and provide the interface to age (if applicable).
+    virtual bool canAge() const {return false;}
+    virtual void age() {}
+
     virtual void clear() = 0;
 };
 

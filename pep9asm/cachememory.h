@@ -18,7 +18,7 @@
 #pragma message("TODO: Make eviction tracking optional for performance improvement.")
 
 struct Transaction : public MemoryAccessStatistics{
-    AMemoryDevice::ACCESS_MODE transaction_mode;
+    AMemoryDevice::AccessType transaction_mode;
 };
 
 class CacheMemory : public AMemoryDevice
@@ -59,18 +59,25 @@ public:
 
 public slots:
     void clearMemory() override;
+
     void onCycleStarted() override;
     void onCycleFinished() override;
+
+    // In the future, when there is a cache implementation in hardware, dynamic aging
+    // will need to be based on cycles rather than instructions. However, the Pep/9 CPU specification cannot be ammended.
     void onInstructionFinished(quint8 instruction_spec) override;
 
-    // Enable or disable tracking of addresses that have been read from in the current instruction.
-    // Also disables eviction tracking, since it is related to read tracking.
-    bool getReadCachingEnabled() const noexcept override;
-    void setReadCachingEnabled(bool value) noexcept override;
+    // Read tracking mantains a list of all addresses that have been read during the
+    // current instruction. This is helpful for rendering changes in mutable memory devices, like
+    // caches. Disabling read caching will improve performance, but will make visualizations
+    // of mutable memory devices unreliable.
+    bool getReadTrackingEnabled() const noexcept override;
+    void setReadTrackingEnabled(bool value) noexcept override;
 
     // Transaction tracking.
-    void beginTransaction(ACCESS_MODE mode) const override;
+    void beginTransaction(AccessType mode) const override;
     void endTransaction() const override;
+
     // Update existing items in cache.
     bool readByte(quint16 address, quint8 &output) const override;
     bool writeByte(quint16 address, quint8 value) override;
@@ -96,8 +103,11 @@ public slots:
     void clearBytesWritten() noexcept override;
     void clearBytesSet() noexcept override;
     void clearAllByteCaches() noexcept override;
+
 private:
     bool track_reads{true};
+    // It is assumed that all CacheLines use the same size / replacement policy.
+    // Violating this assumption will cause dynamic aging to fail.
     mutable std::vector<CacheLine> cache;
     QSharedPointer<MainMemory> memory_device;
     QSharedPointer<AReplacementFactory> replace_factory;

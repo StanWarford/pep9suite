@@ -295,7 +295,7 @@ void FullMicrocodedCPU::onMCStep()
     data->onStep();
     branchHandler();
     microCycleCounter++;
-
+    memory->onCycleFinished();
     // If we just finished an entire ISA level instruction, perform additional
     // simulation logic needed to mantain ISA level state.
     if(microprogramCounter == startLine || executionFinished) {
