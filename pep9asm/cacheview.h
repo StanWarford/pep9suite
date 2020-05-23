@@ -1,3 +1,23 @@
+// File: cacheview.h
+/*
+    Pep9 is a virtual machine for writing machine language and assembly
+    language programs.
+
+    Copyright (C) 2020  Matthew McRaven & J. Stanley Warford, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef CACHEVIEW_H
 #define CACHEVIEW_H
 
@@ -29,6 +49,10 @@ class CacheViewDelegate;
  * This behavior may change in the future, so it may currently be enabled or disabled at compile time using the following macro.
  */
 static const bool COLLATE_EVICTIONS = true;
+
+/*
+ * The following class graphically represents the state of a cache device.
+ */
 class CacheView : public QWidget
 {
     Q_OBJECT
@@ -63,6 +87,7 @@ public:
     // Post: returns if the pane has focus
 signals:
     void requestCacheHighlighting(quint16 lower, quint16 upper);
+    // Signal to other memory views that a range of addresses has been highlighted.
 
 public slots:
     void onFontChanged(QFont font);
@@ -124,16 +149,17 @@ private:
     /*
      * Structs, functions, and members used to track which lines in the cache view
      * have "evicted" entries appended to the end. These evicted entries need to be
-     * removed at the start of the next simulation step.
+     * removed at the start of the next simulation step. It indicates to remove the last
+     * "count_to_remove" lines from the corresponding root entry.
      */
     struct remove_entry{
         quint16 root_line;
-        quint16 count;
+        quint16 count_to_remove;
         bool operator==(const remove_entry& rhs) const;
     };
-
+    // Must define qHash to use QSet.
     uint friend qHash(const CacheView::remove_entry &key) {
-        return static_cast<uint>((key.root_line<<16) + key.count);
+        return static_cast<uint>((key.root_line<<16) + key.count_to_remove);
     }
     QSet<remove_entry> to_delete;
 

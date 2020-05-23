@@ -1,3 +1,24 @@
+// File: cachememory.cpp
+/*
+    Pep9 is a virtual machine for writing machine language and assembly
+    language programs.
+
+    Copyright (C) 2020  Matthew McRaven & J. Stanley Warford, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "cachememory.h"
 
 #include <cmath>
@@ -10,7 +31,7 @@ CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheC
     track_reads(true), AMemoryDevice(parent), memory_device(memory_device), replace_factory(config.policy),
     tag_size(config.tag_bits), index_size(config.index_bits),
     data_size(16 - tag_size - index_size), associativity(config.associativity),
-    allocation_policy(config.write_allocation), cacheLinesTouched(), transactionLines()
+    allocation_policy(config.write_allocation), cacheTagsTouched(), transactionLines()
 {
 
     // Make sure that cache won't accidentally go outside the range of accessible memory
@@ -22,15 +43,12 @@ CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheC
     for(auto& line : cache) {
         line = CacheLine(associativity, replace_factory->create_policy());
     }
-    /*for(int it=0; it<65536; it++) {
-        qDebug() << it;
-        breakdown_address(it);
-    }*/
 }
 
 bool CacheMemory::safeConfiguration(quint32 memory_size, quint16 tag_size,
                                      quint16 index_size, quint16 data_size, quint16 associativity)
 {
+    #pragma message("TODO: Handle non-power of two memory sizes more elegantly")
     bool size_match = tag_size+index_size+data_size == (int)ceil(log2(memory_size));
     bool used_associativty = (1 << index_size) >= associativity;
     return size_match & used_associativty;
@@ -73,7 +91,7 @@ bool CacheMemory::resizeCache(Cache::CacheConfiguration config)
         data_size = config.data_bits;
         associativity = config.associativity;
         allocation_policy = config.write_allocation;
-        cacheLinesTouched.clear();
+        cacheTagsTouched.clear();
 
         this->replace_factory = config.policy;
         for(auto& line : cache) {
@@ -126,6 +144,7 @@ void CacheMemory::onCycleFinished()
         }
     }
 }
+
 void CacheMemory::onInstructionFinished(quint8 instruction_spec)
 {
     instruction_txs.clear();
@@ -179,7 +198,7 @@ bool CacheMemory::readByte(quint16 address, quint8 &output) const
     }
     // Either if the read is a hit or a miss, the cache line associated with
     // the current address must be updated.
-    cacheLinesTouched.insert(address_breakdown.tag);
+    cacheTagsTouched.insert(address_breakdown.tag);
     // Prevent line cache entry from being counted in statistics again.
     transactionLines.insert({address_breakdown.tag, address_breakdown.index});
     return memory_device->readByte(address, output);
@@ -197,7 +216,7 @@ bool CacheMemory::writeByte(quint16 address, quint8 value)
     if(CacheLine& line = cache[address_breakdown.tag];
             line.contains_index(address_breakdown.index)) {
         // Update reference counts for the current line.
-        cacheLinesTouched.insert(address_breakdown.tag);
+        cacheTagsTouched.insert(address_breakdown.tag);
         line.update(address_breakdown);
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
@@ -214,7 +233,7 @@ bool CacheMemory::writeByte(quint16 address, quint8 value)
         }
 
         // Catch line evictions caused by write allocation.
-        cacheLinesTouched.insert(address_breakdown.tag);
+        cacheTagsTouched.insert(address_breakdown.tag);
 
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
@@ -252,7 +271,7 @@ bool CacheMemory::setByte(quint16 address, quint8 value)
 
 const QSet<quint16> CacheMemory::getCacheLinesTouched() const noexcept
 {
-    return cacheLinesTouched;
+    return cacheTagsTouched;
 }
 
 const QList<CacheEntry> CacheMemory::getEvictedEntry(quint16 line) const noexcept
@@ -281,7 +300,7 @@ const QSet<quint16> CacheMemory::getBytesSet() const noexcept
 
 void CacheMemory::clearCacheLinesTouched() noexcept
 {
-    cacheLinesTouched.clear();
+    cacheTagsTouched.clear();
     transactionLines.clear();
 }
 

@@ -1,3 +1,24 @@
+// File: cacheconfig.cpp
+/*
+    Pep9 is a virtual machine for writing machine language and assembly
+    language programs.
+
+    Copyright (C) 2020  Matthew McRaven & J. Stanley Warford, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "cacheconfig.h"
 #include "ui_cacheconfig.h"
 #include "cachealgs.h"
@@ -56,6 +77,7 @@ void CacheConfig::onCacheConfigChanged()
     ui->offsetBits->setValue(data_bits);
     ui->associativityNum->setValue(associativity);
     ui->replacementCombo->setCurrentIndex(ui->replacementCombo->findText(cache->getCacheAlgorithm()));
+    // At the moment, only no-write-allocate makes sense to show users, but keep more advanced functionality present.
     /*if(cache->getAllocationPolicy() == Cache::WriteAllocationPolicy::NoWriteAllocate) {
         ui->writeAllocationCombo->setCurrentIndex(0);
     } else {
@@ -168,6 +190,7 @@ void CacheConfig::on_updateButton_pressed()
         } else {
             config.write_allocation = Cache::WriteAllocationPolicy::WriteAllocate;
         }*/
+        // As per discussion with Stan Warford, only provide no-write-allocate for now.
         config.write_allocation = Cache::WriteAllocationPolicy::NoWriteAllocate;
 
         // Use Qt enumeration objects to convert index in combo box to associated
@@ -177,34 +200,7 @@ void CacheConfig::on_updateButton_pressed()
         using algorithm = CacheAlgorithms::CacheAlgorithms;
         algorithm alg = static_cast<algorithm>(metaEnum.value(ui->replacementCombo->currentIndex()));
 
-        // Should be moved to a factory in CacheAlgs, but so far this code is only needed in
-        // this place.
-        switch(alg){
-        case algorithm::LRU:
-            config.policy = QSharedPointer<LRUFactory>::create(config.associativity);
-            break;
-        case algorithm::MRU:
-            config.policy = QSharedPointer<MRUFactory>::create(config.associativity);
-            break;
-        case algorithm::BPLRU:
-            config.policy = QSharedPointer<BPLRUFactory>::create(config.associativity);
-            break;
-        case algorithm::LFU:
-            config.policy = QSharedPointer<LFUFactory>::create(config.associativity);
-            break;
-        case algorithm::LFUDA:
-            config.policy = QSharedPointer<LFUDAFactory>::create(config.associativity);
-            break;
-        case algorithm::MFU:
-            config.policy = QSharedPointer<MFUFactory>::create(config.associativity);
-            break;
-        case algorithm::FIFO:
-            config.policy = QSharedPointer<FIFOFactory>::create(config.associativity);
-            break;
-        case algorithm::Random:
-            config.policy = QSharedPointer<RandomFactory>::create(config.associativity);
-            break;
-        }
+        config.policy = getPolicyFactory(alg, config.associativity);
 
         bool success = cache->resizeCache(config);
         if(!success) {

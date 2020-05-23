@@ -1,3 +1,23 @@
+// File: cachereplace.cpp
+/*
+    Pep9 is a virtual machine for writing machine language and assembly
+    language programs.
+
+    Copyright (C) 2020  Matthew McRaven & J. Stanley Warford, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "cacheview.h"
 #include "ui_cacheview.h"
 
@@ -11,6 +31,8 @@
 #include "pep.h"
 
 static const int EvictedData = Qt::UserRole + 1;
+
+// Convert an address range to a well-padded string.
 QString toAddressRange(quint16 lower, quint16 upper)
 {
     auto ret = QString("%1-%2")
@@ -168,7 +190,7 @@ void CacheView::refreshLine(quint16 line)
     // Determine if the entire cache line is not present.
     bool blank = false;
 
-    for(int entry = 0; entry < associativity; entry++) {
+    for(quint16 entry = 0; entry < associativity; entry++) {
         auto entryOpt = linePtr->get_entry(entry);
         if(!entryOpt.has_value()) {
             qDebug() << "Something went horribly wrong with an entry.";
@@ -178,14 +200,18 @@ void CacheView::refreshLine(quint16 line)
         auto entryPtr = *entryOpt;
         blank |= entryPtr->is_present;
 
-        setRow(line, linePtr, entry, entryPtr);
+        // Update the current row.
+        setRow(line, linePtr, entry, entryPtr, false);
     }
 
     // Render evicted cache entries for the current cache line.
     if(auto evicted = cache->getEvictedEntry(line);
-           !evicted.empty()) {
+       !evicted.empty()) {
         auto root_item = data->item(line);
-        int entry_number = root_item->rowCount();
+        int entry_number = associativity;
+        // If associativty differs from row count, strikethrough will fail.
+        // Ensure that this never happens.
+        assert(root_item->rowCount() == associativity);
 
         // Conditionally choose at compile time to perform eviction collation.
         if constexpr(COLLATE_EVICTIONS) {
@@ -233,7 +259,7 @@ void CacheView::refreshLine(quint16 line)
     if(lineItem->rowCount()>cache->getAssociativty()){
         remove_entry entry;
         entry.root_line = line;
-        entry.count = lineItem->rowCount() - cache->getAssociativty();
+        entry.count_to_remove = lineItem->rowCount() - cache->getAssociativty();
         to_delete.insert(entry);
     }
 
@@ -283,20 +309,19 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
     // ok_conv_* when attemtping to use associated integer.
     bool ok_conv_index, ok_conv_hits;
     int listedIndex = data->index(entry, TagColumn, lineIndex).data().toInt(&ok_conv_index);
-    quint32 listedHits = data->index(entry, Hits, lineIndex).data().toInt(&ok_conv_hits);
+    int listedHits = data->index(entry, Hits, lineIndex).data().toInt(&ok_conv_hits);
 
     // If evicted, indicate to Style Delegate to apply special evicted formatting.
-    if(evicted) {
-        // Unlike following branches, do not track properties of special entries.
-        // Tracking # of evicted entry rows is done at the point where the rows are added.
-        for(int col=0; col<data->columnCount(); col++) {
-            data->itemFromIndex(data->index(entry, col, lineIndex))->setData(true, EvictedData);
-        }
+    // Otherwise, clear evicted flags. When increasing the associativity, failing to clear
+    // previous iterations' evicted flags will cause incorret strike-throughs.
+    for(int col=0; col<data->columnCount(); col++) {
+        data->itemFromIndex(data->index(entry, col, lineIndex))->setData(evicted, EvictedData);
     }
+
     // Highlight "new" items.
     // An item is "new" if it is present, and either the old value was not present,
     // or the old entry number is not the new entry number.
-    else if(entryPtr->is_present && (!ok_conv_index || listedIndex != entryPtr->index)) {
+    if(!evicted && entryPtr->is_present && (!ok_conv_index || listedIndex != entryPtr->index)) {
 
         // Make a note that special highlighting needs to be removed
         // at end of the current simulation step.
@@ -313,7 +338,7 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
     // Bolds "referenced" items.
     // An item is "referenced" if it is present and the hit count has changed
     // since the last time the value was updated.
-    else if(entryPtr->is_present && (!ok_conv_index || entryPtr->hit_count != listedHits)) {
+    else if(!evicted && entryPtr->is_present && (!ok_conv_index || entryPtr->hit_count != listedHits)) {
         QFont regularFont = activeFont;
         regularFont.setBold(true);
 
@@ -347,7 +372,8 @@ void CacheView::reset_eviction_collation()
 
 void CacheView::refreshMemory()
 {
-    // Refresh each cache line individually.
+    // Iteratively refresh each cache line, and ensure columns
+    // are large enough to fit line.
     auto tag_bits = cache->getTagSize();
 
     for(int line = 0; line < 1<<tag_bits; line++) {
@@ -366,6 +392,7 @@ void CacheView::updateMemory()
     // need access to them.
     QSet<quint16> modifiedLines = cache->getCacheLinesTouched();
     auto keys = cache->getAllEvictedEntries().keys();
+    // Qt has a new method for joining sets and is deprecating the old method.
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     modifiedLines.unite(QSet<quint16>(keys.begin(), keys.end()));
 #else
@@ -394,9 +421,8 @@ bool CacheView::hasFocus()
 
 void CacheView::onFontChanged(QFont font)
 {
-    // TODO: respond to font change.
     activeFont = font;
-    // DIsable font stylization used to indicate cache access.
+    // Disable font stylization used to indicate cache access.
     // This includes bolding, italics.
     activeFont.setBold(false);
     activeFont.setItalic(false);
@@ -412,7 +438,6 @@ void CacheView::onFontChanged(QFont font)
 
 void CacheView::onDarkModeChanged(bool darkMode)
 {
-    // TODO: respond to color changes after determining how to highlight
     if(darkMode) {
         colors = &PepColors::darkMode;
         del->changeColors(colors);
@@ -427,7 +452,7 @@ void CacheView::onDarkModeChanged(bool darkMode)
 void CacheView::onMemoryChanged(quint16 /*address*/, quint8 /*newValue*/)
 {
     // This function is only triggered on writes, not reads.
-    // W do not have a write-allocate cache (by default),
+    // We do not have a write-allocate cache (by default),
     // we really only care about reads.
     // Updating only the line at value written to "address" is insufficient for
     // synchronizing cache visualization and cache model--reads must be accounted for.
@@ -463,6 +488,8 @@ void CacheView::onCacheConfigChanged()
     // Ensure that data model is properly sized for cache configuration.
     data->setColumnCount(5);
     data->setRowCount((1 << tag_bits));
+    // Note: Each row in data must be resized to match the associativity of the cache,
+    // but this will be handled within ::setRow(...).
 
     last_updated.clear();
     to_delete.clear();
@@ -484,7 +511,7 @@ void CacheView::onSimulationStep()
     // Purge cache entries that were swapped out during the previous simulation step.
     for(auto item : to_delete) {
         auto root_item = data->item(item.root_line);
-        root_item->removeRows(cache->getAssociativty(), item.count);
+        root_item->removeRows(cache->getAssociativty(), item.count_to_remove);
     }
     to_delete.clear();
 
@@ -507,6 +534,7 @@ void CacheView::onSimulationStep()
             data->setItemData(child->index(), roles);
         }
     }
+    // Now that items has been updated, may clear list.
     last_updated.clear();
 
     // Refresh any cache lines that changed since the start of the last simulation step.
@@ -516,11 +544,13 @@ void CacheView::onSimulationStep()
 
 bool CacheView::remove_entry::operator==(const CacheView::remove_entry &rhs) const
 {
-    return (this->root_line == rhs.root_line) && (this->count == rhs.count);
+    // Removal entries are equvilant if they describe the same root item and remove the same number of rows.
+    return (this->root_line == rhs.root_line) && (this->count_to_remove == rhs.count_to_remove);
 }
 
 bool CacheView::updated_item::operator==(const CacheView::updated_item &rhs) const
 {
+    // items are equivilant if they share the same root and row,
     return (this->root_index == rhs.root_index) && (this->child_row == rhs.child_row);
 }
 

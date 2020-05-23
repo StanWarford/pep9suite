@@ -1,9 +1,61 @@
+// File: cachealg.cpp
+/*
+    Pep9 is a virtual machine for writing machine language and assembly
+    language programs.
+
+    Copyright (C) 2020  Matthew McRaven & J. Stanley Warford, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "cachealgs.h"
 #include <algorithm>
 #include <QDebug>
-static QMap<CacheAlgorithms::CacheAlgorithms, AReplacementFactory*> factory = {
-    {CacheAlgorithms::LRU, new LRUFactory(0)}
-};
+
+QSharedPointer<AReplacementFactory> getPolicyFactory(CacheAlgorithms::CacheAlgorithms alg, quint16 size)
+{
+    using algorithm = CacheAlgorithms::CacheAlgorithms;
+    QSharedPointer<AReplacementFactory> retVal;
+    switch(alg){
+    case algorithm::LRU:
+        retVal = QSharedPointer<LRUFactory>::create(size);
+        break;
+    case algorithm::MRU:
+        retVal = QSharedPointer<MRUFactory>::create(size);
+        break;
+    case algorithm::BPLRU:
+        retVal = QSharedPointer<BPLRUFactory>::create(size);
+        break;
+    case algorithm::LFU:
+        retVal = QSharedPointer<LFUFactory>::create(size);
+        break;
+    case algorithm::LFUDA:
+        retVal = QSharedPointer<LFUDAFactory>::create(size);
+        break;
+    case algorithm::MFU:
+        retVal = QSharedPointer<MFUFactory>::create(size);
+        break;
+    case algorithm::FIFO:
+        retVal = QSharedPointer<FIFOFactory>::create(size);
+        break;
+    case algorithm::Random:
+        retVal = QSharedPointer<RandomFactory>::create(size);
+        break;
+    }
+    return retVal;
+}
+
 
 #include <deque>
 RecentReplace::RecentReplace(quint16 size, SelectFunction element_select)

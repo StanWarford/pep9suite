@@ -178,6 +178,6 @@
         <file>help-micro/images/viewicon.png</file>
         <file>help-micro/images/floatingmemory.png</file>
         <file>help-micro/images/missingmemory.png</file>
-        <file>help-micro/executionstatistics.html</file>
+		<file>help-micro/executionstatistics.html</file>
     </qresource>
 </RCC>

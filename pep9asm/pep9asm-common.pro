@@ -48,6 +48,7 @@ SOURCES += \
     asmprogram.cpp \
     asmprogrammanager.cpp \
     asmsourcecodepane.cpp \
+    cachealgs.cpp \
     cpphighlighter.cpp \
     executionstatisticswidget.cpp \
     interfaceisacpu.cpp \
@@ -81,7 +82,6 @@ HEADERS += \
     cacheview.h
 
 SOURCES += \
-    cachealg.cpp \
     cacheconfig.cpp \
     cacheline.cpp \
     cachememory.cpp \

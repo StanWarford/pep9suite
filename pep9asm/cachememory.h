@@ -1,3 +1,23 @@
+// File: cachememory.h
+/*
+    Pep9 is a virtual machine for writing machine language and assembly
+    language programs.
+
+    Copyright (C) 2020  Matthew McRaven & J. Stanley Warford, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef CACHEMEMORY_H
 #define CACHEMEMORY_H
 
@@ -15,12 +35,23 @@
 #include "cachereplace.h"
 #include "cacheline.h"
 #include "cache.h"
-#pragma message("TODO: Make eviction tracking optional for performance improvement.")
 
+// Print debug messages to the console.
+static const bool DEBUG_MESSAGES = true;
+
+/*
+ * This struct is used to track data / instruction memory accesses over the
+ * course of an instruction.
+ */
 struct Transaction : public MemoryAccessStatistics{
     AMemoryDevice::AccessType transaction_mode;
 };
 
+/*
+ * This class implements a highly-configurable form of cache memory.
+ * It is a write-through cache with configurable replacement policies as well
+ * as address tag breakdowns. It comes with minimal performance cost over MainMemory/
+ */
 class CacheMemory : public AMemoryDevice
 {
     Q_OBJECT
@@ -28,14 +59,22 @@ public:
     CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheConfiguration config,
                 QObject* parent = nullptr);
 
-    // Read/Change cache parameters
+    // Determine if a given cache configuration creates a working cache.
     bool safeConfiguration(quint32 memory_size, quint16 tag_size, quint16 index_size,
                             quint16 data_size, quint16 associativity);
+    // Get the number of bits allocated to each part of an address.
     quint16 getTagSize() const;
     quint16 getIndexSize() const;
-    quint16 getAssociativty() const;
     quint16 getDataSize() const;
+
+    quint16 getAssociativty() const;
+
+    // Cache supports write-allocate or no-write-allocate, but should default to
+    // no-allocate.
     Cache::WriteAllocationPolicy getAllocationPolicy() const;
+    // If given a valid cache configuration, the cache will be changed in place, and
+    // true is returned. If given an invalid configuration, then false is returned,
+    // and the cache configuration is not changed.
     bool resizeCache(Cache::CacheConfiguration config);
 
     // Reset cache without affecting main memory.
@@ -46,7 +85,7 @@ public:
     std::optional<const CacheLine*> getCacheLine(quint16 tag) const;
     QString getCacheAlgorithm() const;
 
-    // Get transaction info
+    // Return the list of emmory transactions that have occurred this cycle.
     QList<Transaction> getTransactions();
     void clearTransactionInfo();
 
@@ -60,6 +99,7 @@ public:
 public slots:
     void clearMemory() override;
 
+    // Track operations that happen each CPU cycle. Useful for dyanmic aging.
     void onCycleStarted() override;
     void onCycleFinished() override;
 
@@ -87,8 +127,6 @@ public slots:
 
     // Returns the set of bytes the have been written / set.
     // since the last clear.
-    // TODO: Must find a way to clear bytesRead from ISA simulator, or
-    // this set will grow forever. May need to move to base class.
     const QSet<quint16> getCacheLinesTouched() const noexcept;
     const QList<CacheEntry> getEvictedEntry(quint16 line) const noexcept;
     const QMap<quint16, QList<CacheEntry>> getAllEvictedEntries() const noexcept;
@@ -114,18 +152,20 @@ private:
     quint16 tag_size, index_size, data_size, associativity;
     Cache::WriteAllocationPolicy allocation_policy;
 
-    mutable QSet<quint16> cacheLinesTouched;
+    // Cache lines touched indicates which cache tags were read / written this cycle.
+    // Must be manually cleared with ::clearCacheLinesTouched().
+    mutable QSet<quint16> cacheTagsTouched;
 
     // Transaction tracking.
-
     mutable bool in_tx = false;
     mutable Transaction tx;
+    // Contains {tag, index} pairs. These uniquely identify each line in the cache.
     mutable std::set<std::tuple<quint16, quint16>> transactionLines;
     // At the end of every instruction, clear transaction lines.
     mutable QList<Transaction> instruction_txs;
 
-    // Eviction tracking
-
+    // Eviction tracking. Disabled if tracke_reads is false.
+    // For a given cache tag, contains the list of all
     mutable QMap<quint16, QList<CacheEntry>> evictedLines;
 
 };

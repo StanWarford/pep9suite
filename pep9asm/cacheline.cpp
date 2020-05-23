@@ -1,3 +1,24 @@
+// File: cacheline.cpp
+/*
+    Pep9 is a virtual machine for writing machine language and assembly
+    language programs.
+
+    Copyright (C) 2020  Matthew McRaven & J. Stanley Warford, Pepperdine University
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "cacheline.h"
 
 #include <QDebug>
@@ -39,16 +60,17 @@ void CacheLine::update(Cache::CacheAddress &address)
 CacheEntry CacheLine::insert(Cache::CacheAddress &address)
 {
     CacheEntry evicted_entry;
-    // TODO: get replacement index for CRP.
+    // CRP tells us what item we need to evict next.
     quint16 evict_index = replacement_policy->evict();
 
     evicted_entry = entries[evict_index];
 
-    qDebug().noquote() << QString("Evicting bin %1 (containing %2) for index %3 in line %4")
+    // Print out what is being evicted, and what is swapping in.
+    /*qDebug().noquote() << QString("Evicting bin %1 (containing %2) for index %3 in line %4")
                           .arg(evict_index)
                           .arg(entries[evict_index].is_present ? QString("%1").arg(entries[evict_index].index) : "NA")
                           .arg(address.index)
-                          .arg(address.tag);
+                          .arg(address.tag);*/
     entries[evict_index].is_present = true;
     entries[evict_index].index = address.index;
     entries[evict_index].hit_count = 1;
