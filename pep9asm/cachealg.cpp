@@ -120,8 +120,8 @@ CacheAlgorithms::CacheAlgorithms MRUFactory::algorithm_enum()
 /*
  * Frequency Replacement
  */
-FrequencyReplace::FrequencyReplace(quint16 size, SelectFunction element_select)
-: access_count(size, 0), element_select(element_select)
+FrequencyReplace::FrequencyReplace(quint16 size, SelectFunction element_select, InitFunction init_function)
+: access_count(size, 0), element_select(element_select), init_function(init_function)
 {
 
 }
@@ -136,7 +136,7 @@ void FrequencyReplace::reference(quint16 index)
 quint16 FrequencyReplace::evict()
 {
     quint16 location = eviction_loohahead();
-    auto init_value = *std::min(access_count.begin(), access_count.end());
+    auto init_value = init_function(access_count.begin(), access_count.end()); //*std::min(access_count.begin(), access_count.end());
     access_count[location] = init_value;
     return location;
 }
@@ -175,7 +175,9 @@ void FrequencyReplace::clear()
 }
 
 LFUReplace::LFUReplace(quint16 size):
-    FrequencyReplace(size, FrequencyReplace::SelectFunction(std::min_element<FrequencyReplace::iterator>))
+    FrequencyReplace(size,
+                     FrequencyReplace::SelectFunction(std::min_element<FrequencyReplace::iterator>),
+                     FrequencyReplace::InitFunction([](FrequencyReplace::iterator, FrequencyReplace::iterator){return 0;}))
 {
 
 }
@@ -186,7 +188,11 @@ QString LFUReplace::get_algorithm_name() const
 }
 
 LFUDAReplace::LFUDAReplace(quint16 size, quint16 age_steps):
-    LFUReplace(size), age_after(age_steps)
+    FrequencyReplace(size,
+                     FrequencyReplace::SelectFunction(std::min_element<FrequencyReplace::iterator>),
+                     FrequencyReplace::InitFunction([](FrequencyReplace::iterator start, FrequencyReplace::iterator end){
+                        return *std::min(start, end);})),
+    age_after(age_steps)
 {
 
 }
@@ -213,7 +219,9 @@ void LFUDAReplace::age()
 }
 
 MFUReplace::MFUReplace(quint16 size):
-    FrequencyReplace(size, FrequencyReplace::SelectFunction(std::max_element<FrequencyReplace::iterator>))
+    FrequencyReplace(size,
+                     FrequencyReplace::SelectFunction(std::max_element<FrequencyReplace::iterator>),
+                     FrequencyReplace::InitFunction([](FrequencyReplace::iterator, FrequencyReplace::iterator){return 0;}))
 {
 
 }

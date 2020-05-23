@@ -114,8 +114,12 @@ protected:
 public:
     typedef QVector<quint32>::const_iterator iterator;
     typedef std::function<iterator(iterator, iterator)> SelectFunction;
+    typedef std::function<quint32(iterator,iterator)> InitFunction;
 public:
-    FrequencyReplace(quint16 size, SelectFunction element_select);
+    // Init function determines what the initial value for an item is.
+    // It is given the begin and end iterators for access count, and computes the starting value
+    // over the access count array.
+    FrequencyReplace(quint16 size, SelectFunction element_select, InitFunction init_function);
     virtual ~FrequencyReplace() override = 0 ;
 
 
@@ -130,6 +134,7 @@ public:
 
 private:
    SelectFunction element_select;
+   InitFunction init_function;
 };
 
 class LFUReplace : public FrequencyReplace
@@ -141,7 +146,7 @@ public:
     QString get_algorithm_name() const override;
 };
 
-class LFUDAReplace : public LFUReplace
+class LFUDAReplace : public FrequencyReplace
 {
 public:
    LFUDAReplace(quint16 size, quint16 age_steps=10);
