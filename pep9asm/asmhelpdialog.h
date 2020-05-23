@@ -39,13 +39,8 @@ public:
     explicit AsmHelpDialog(QWidget *parent = nullptr);
     virtual ~AsmHelpDialog();
 
-    void machineLanguageClicked();
-    void assemblyLanguageClicked();
-    void debuggingProgramsClicked();
-    void writingTrapHandlersClicked();
-    void pep9ReferenceClicked();
-    void examplesClicked();
-    void operatingSystemClicked();
+    void selectItem(QString string);
+
     QString getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString &input);
 
     bool hasFocus();
@@ -57,8 +52,6 @@ public:
     void setCopyButtonDisabled(bool b);
     // Post: the enabled state of the copy to source/object code button is set to b
 
-    void selectItem(QString string);
-
 private:
     Ui::HelpDialog *ui;
 
@@ -69,11 +62,13 @@ private:
     enum Row {
         eWRITING = 0,
         eDEBUGGING = 1,
-        eTRAP = 2,
-        eREFERENCE = 3,
-        eEXAMPLES = 4,
-        ePROBLEMS = 5,
-        eOS = 6,
+        eTRAP =2,
+        eSTATS = 3,
+        eREFERENCE = 4,
+        eEXAMPLES = 5,
+        ePROBLEMS = 6,
+        eOS = 7,
+        eCACHE = 8,
 
         eMACHINE = 0,
         eASSEMBLY = 1,

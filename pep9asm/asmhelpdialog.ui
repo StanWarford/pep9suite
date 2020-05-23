@@ -153,6 +153,11 @@
       </item>
       <item>
        <property name="text">
+        <string>Execution Statistics</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>Pep/9 Reference</string>
        </property>
        <property name="flags">
@@ -425,6 +430,11 @@
         <set>ItemIsSelectable|ItemIsEnabled</set>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>Pep/9 Cache</string>
+       </property>
+      </item>
      </widget>
      <widget class="QSplitter" name="helpSplitter">
       <property name="orientation">
@@ -591,6 +601,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QWebEngineView</class>
+   <extends>QWidget</extends>
+   <header>qwebengineview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

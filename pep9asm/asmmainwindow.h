@@ -226,11 +226,13 @@ private slots:
     void on_actionHelp_Assembly_Language_triggered();
     void on_actionHelp_Debugging_Assembly_triggered();
     void on_actionHelp_Writing_Trap_Handlers_triggered();
+    void on_actionHelp_Execution_Statistics_triggered();
     void on_actionHelp_Pep9Reference_triggered();
     void on_actionHelp_Examples_triggered();
     void on_actionHelp_Pep9_Operating_System_triggered();
     void on_actionHelp_About_Pep9_triggered();
     void on_actionHelp_About_Qt_triggered();
+    void on_actionHelp_Pep_9_Cache_triggered();
 
     // View
     void onDarkModeChanged();

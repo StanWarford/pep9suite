@@ -245,6 +245,7 @@ private slots:
     void on_actionHelp_Assembly_Language_triggered();
     void on_actionHelp_Debugging_Assembly_triggered();
     void on_actionHelp_Writing_Trap_Handlers_triggered();
+    void on_actionHelp_Execution_Statistics_triggered();
     void on_actionHelp_Using_Pep_9_CPU_triggered();
     void on_actionHelp_Interactive_Use_triggered();
     void on_actionHelp_Microcode_Use_triggered();

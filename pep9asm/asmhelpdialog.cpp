@@ -116,6 +116,11 @@ void AsmHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->webView->show();
         ui->webView->load(QUrl("qrc:/help-asm/writingtraphandlers.html"));
     }
+    else if (!isHelpSubCat && row == eSTATS) {  // Execution Statistics
+        ui->helpSplitter->widget(1)->hide();
+        ui->webView->show();
+        ui->webView->load(QUrl("qrc:/help-asm/executionstatistics.html"));
+    }
     else if ((!isHelpSubCat && row == eREFERENCE)) {
         ui->helpSplitter->widget(1)->hide();
         ui->webView->show();
@@ -485,43 +490,11 @@ void AsmHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->rightPepTextEdit->hide();
         ui->figureLabel->setText("<b>Figures 8.2, 8.3, 8.6, 8.8, 8.10, 8.11</b><code>  </code> The Pep/9 operating system.");
     }
-}
-
-// Public functions called by main window help menu items:
-
-void AsmHelpDialog::machineLanguageClicked()
-{
-    selectItem("Machine Language");
-}
-
-void AsmHelpDialog::assemblyLanguageClicked()
-{
-    selectItem("Assembly Language");
-}
-
-void AsmHelpDialog::debuggingProgramsClicked()
-{
-    selectItem("Debugging Programs");
-}
-
-void AsmHelpDialog::writingTrapHandlersClicked()
-{
-    selectItem("Writing Trap Handlers");
-}
-
-void AsmHelpDialog::pep9ReferenceClicked()
-{
-    selectItem("Pep/9 Reference");
-}
-
-void AsmHelpDialog::examplesClicked()
-{
-    selectItem("Examples");
-}
-
-void AsmHelpDialog::operatingSystemClicked()
-{
-    selectItem("Pep/9 Operating System");
+    else if(!isHelpSubCat && row == eCACHE) {
+        ui->helpSplitter->widget(1)->hide();
+        ui->webView->show();
+        ui->webView->load(QUrl("qrc:/help-asm/cache.html"));
+    }
 }
 
 // Helper Functions

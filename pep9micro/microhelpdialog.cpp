@@ -267,6 +267,11 @@ void MicroHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->helpTopWebView->show();
         ui->helpTopWebView->load(QUrl("qrc:/help-micro/debuggingprograms.html"));
     }
+    else if (!isHelpSubCat && row == eSTATS) {
+        ui->helpSplitter->widget(1)->hide();
+        ui->helpTopWebView->show();
+        ui->helpTopWebView->load(QUrl("qrc:/help-micro/executionstatistics.html"));
+    }
     if (!isHelpSubCat && row == eUSINGPEP9CPU) { // Using Pep/9 CPU
         ui->helpSplitter->widget(1)->hide();
         ui->helpTopWebView->show();

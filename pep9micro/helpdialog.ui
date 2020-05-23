@@ -138,6 +138,11 @@
       </item>
       <item>
        <property name="text">
+        <string>Execution Statistics</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>Using Pep/9 Micro</string>
        </property>
        <item>

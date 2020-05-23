@@ -68,6 +68,7 @@ private:
         eWRITINGASM = 0,
         eDEBUGGINGASM,
         eTRAPS,
+        eSTATS,
         eUSINGPEP9CPU,
         ePEP9REFERENCE,
         eMICROEXAMPLES,

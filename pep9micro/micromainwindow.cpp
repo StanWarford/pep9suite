@@ -1995,6 +1995,12 @@ void MicroMainWindow::on_actionHelp_Writing_Trap_Handlers_triggered()
     helpDialog->selectItem("Writing Trap Handlers");
 }
 
+void MicroMainWindow::on_actionHelp_Execution_Statistics_triggered()
+{
+    helpDialog->show();
+    helpDialog->selectItem("Execution Statistics");
+}
+
 void MicroMainWindow::on_actionHelp_Using_Pep_9_CPU_triggered()
 {
     helpDialog->show();

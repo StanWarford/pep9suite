@@ -179,5 +179,7 @@
         <file>help-asm/images/osinstalledmsg.png</file>
         <file>help-asm/images/relocatedos2.png</file>
         <file>help-asm/images/relocatedos3.png</file>
+        <file>help-asm/executionstatistics.html</file>
+        <file>help-asm/cache.html</file>
     </qresource>
 </RCC>

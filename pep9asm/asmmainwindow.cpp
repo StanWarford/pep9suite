@@ -1640,6 +1640,12 @@ void AsmMainWindow::on_actionHelp_Writing_Trap_Handlers_triggered()
     helpDialog->selectItem("Writing Trap Handlers");
 }
 
+void AsmMainWindow::on_actionHelp_Execution_Statistics_triggered()
+{
+    helpDialog->show();
+    helpDialog->selectItem("Execution Statistics");
+}
+
 void AsmMainWindow::on_actionHelp_Pep9Reference_triggered()
 {
     helpDialog->show();
@@ -1666,6 +1672,12 @@ void AsmMainWindow::on_actionHelp_About_Pep9_triggered()
 void AsmMainWindow::on_actionHelp_About_Qt_triggered()
 {
     QDesktopServices::openUrl(QUrl("http://www.qt.io/"));
+}
+
+void AsmMainWindow::on_actionHelp_Pep_9_Cache_triggered()
+{
+    helpDialog->show();
+    helpDialog->selectItem("Pep/9 Cache");
 }
 
 //Handle hiding and showing of different sections of the application.
