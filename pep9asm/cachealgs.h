@@ -36,6 +36,7 @@ class RecentReplace : public AReplacementPolicy
 
 protected:
     quint32 count;
+    int index_last;
     QVector<quint32> last_access;
 
 public:
@@ -44,6 +45,9 @@ public:
 public:
     RecentReplace(quint16 size, SelectFunction element_select);
     virtual ~RecentReplace() override = 0 ;
+
+    bool canAge() const override { return true;}
+    void age() override;
 
 
     // AReplacementPolicy interface

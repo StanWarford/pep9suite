@@ -7,16 +7,36 @@ static QMap<CacheAlgorithms::CacheAlgorithms, AReplacementFactory*> factory = {
 
 #include <deque>
 RecentReplace::RecentReplace(quint16 size, SelectFunction element_select)
-: count(0), last_access(size, 0), element_select(element_select)
+: count(0), last_access(size, 0), index_last(-1), element_select(element_select)
 {
 
+}
+
+void RecentReplace::age()
+{
+    auto min = *std::min_element(last_access.begin(), last_access.end());
+    if(min == 0) return;
+    // Timer increases monotonically towards infinity.
+    // This will cause an overflow on the 2^32nd memory access.
+    // By rescaling the values such that the smallest (oldest) value is 0,
+    // overflow is less likely to occur.
+    count -= min;
+    for(auto & value : last_access) {
+        value -= min;
+    }
 }
 
 RecentReplace::~RecentReplace() = default;
 
 void RecentReplace::reference(quint16 index)
 {
-    last_access[index] = count++;
+    // If re-accessing MRU element, then there is no need to update
+    // count, as MRU item will remain the MRU. This will help prevent overflow
+    // when combined with aging.
+    if(index != index_last) {
+        last_access[index] = count++;
+        index_last=index;
+    }
 }
 
 quint16 RecentReplace::evict()
@@ -211,10 +231,12 @@ void LFUDAReplace::age()
 
     // Reset timer so it is below the aging threshold.
     timer = 0;
-
-    // Age all values by decrementing access counts.
-    for(auto& value : access_count) {
-        value = value == 0 ? 0 : value - 1;
+    auto min = *std::min(access_count.begin(), access_count.end());
+    if(min == 0) return;
+    // Access counts will tend toward infinity, since the min is constantly raised.
+    // Subtraction preservers ordering, and normalizes the "least" accessed element to 0.
+    for(auto & value : access_count) {
+        value -= min;
     }
 }
 
