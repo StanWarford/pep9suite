@@ -20,7 +20,7 @@ namespace CacheAlgorithms{
         // Count
         LRU, MRU,
         BPLRU,
-        LFU, MFU,
+        LFU, LFUDA, MFU,
         FIFO,
         Random,
     };
@@ -141,6 +141,18 @@ public:
     QString get_algorithm_name() const override;
 };
 
+class LFUDAReplace : public LFUReplace
+{
+public:
+   LFUDAReplace(quint16 size, quint16 age_steps=10);
+   virtual ~LFUDAReplace() override = default;
+   QString get_algorithm_name() const override;
+   bool canAge() const override { return true;}
+   void age() override;
+private:
+   int timer, age_after;
+};
+
 class MFUReplace : public FrequencyReplace
 {
 public:
@@ -160,6 +172,20 @@ public:
     QString get_algorithm_name() const override {return algorithm();}
     static const QString algorithm();
     static CacheAlgorithms::CacheAlgorithms algorithm_enum();
+};
+
+class LFUDAFactory : public AReplacementFactory
+{
+public:
+    LFUDAFactory(quint16 associativity, quint16 age_after=10);
+    ~LFUDAFactory() override = default;
+
+    QSharedPointer<AReplacementPolicy> create_policy() override;
+    QString get_algorithm_name() const override {return algorithm();}
+    static const QString algorithm();
+    static CacheAlgorithms::CacheAlgorithms algorithm_enum();
+private:
+    quint16 age_after;
 };
 
 class MFUFactory : public AReplacementFactory

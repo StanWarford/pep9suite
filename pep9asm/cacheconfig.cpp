@@ -192,6 +192,9 @@ void CacheConfig::on_updateButton_pressed()
         case algorithm::LFU:
             config.policy = QSharedPointer<LFUFactory>::create(config.associativity);
             break;
+        case algorithm::LFUDA:
+            config.policy = QSharedPointer<LFUDAFactory>::create(config.associativity);
+            break;
         case algorithm::MFU:
             config.policy = QSharedPointer<MFUFactory>::create(config.associativity);
             break;

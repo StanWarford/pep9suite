@@ -185,6 +185,33 @@ QString LFUReplace::get_algorithm_name() const
     return LFUFactory::algorithm();
 }
 
+LFUDAReplace::LFUDAReplace(quint16 size, quint16 age_steps):
+    LFUReplace(size), age_after(age_steps)
+{
+
+}
+
+QString LFUDAReplace::get_algorithm_name() const
+{
+    return LFUDAFactory::algorithm();
+}
+
+void LFUDAReplace::age()
+{
+    timer++;
+
+    // If the timer has not reached the next aging epoch, don't age yet.
+    if(timer <= age_after) return;
+
+    // Reset timer so it is below the aging threshold.
+    timer = 0;
+
+    // Age all values by decrementing access counts.
+    for(auto& value : access_count) {
+        value = value == 0 ? 0 : value - 1;
+    }
+}
+
 MFUReplace::MFUReplace(quint16 size):
     FrequencyReplace(size, FrequencyReplace::SelectFunction(std::max_element<FrequencyReplace::iterator>))
 {
@@ -217,6 +244,30 @@ CacheAlgorithms::CacheAlgorithms LFUFactory::algorithm_enum()
 {
     return CacheAlgorithms::LFU;
 }
+
+LFUDAFactory::LFUDAFactory(quint16 associativity, quint16 age_after): AReplacementFactory(associativity),
+    age_after(age_after)
+{
+
+}
+
+QSharedPointer<AReplacementPolicy> LFUDAFactory::create_policy()
+{
+    return QSharedPointer<LFUDAReplace>::create(get_associativity(), age_after);
+}
+
+const QString LFUDAFactory::algorithm()
+{
+    QMetaObject meta = CacheAlgorithms::staticMetaObject;
+    QMetaEnum metaEnum = meta.enumerator(meta.indexOfEnumerator("CacheAlgorithms"));
+    return QString(metaEnum.key(CacheAlgorithms::LFUDA));
+}
+
+CacheAlgorithms::CacheAlgorithms LFUDAFactory::algorithm_enum()
+{
+    return CacheAlgorithms::LFUDA;
+}
+
 
 MFUFactory::MFUFactory(quint16 associativity): AReplacementFactory(associativity)
 {
