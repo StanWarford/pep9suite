@@ -108,7 +108,8 @@ const QVector<quint32> IsaCpu::getInstructionHistogram(bool includeOS)
 
 bool IsaCpu::hasCacheStats()
 {
-    return dynamic_cast<CacheMemory*>(memory.get()) != nullptr;
+    //return dynamic_cast<CacheMemory*>(memory.get()) != nullptr;
+    return memoizer->hasCacheStats();
 }
 
 const CacheHitrates IsaCpu::getCacheHitRates(bool includeOS)

@@ -40,6 +40,7 @@ public:
     quint64 getCycleCount(bool includeOS);
     quint64 getInstructionCount(bool includeOS);
     const QVector<quint32> getInstructionHistogram(bool includeOS);
+    bool hasCacheStats() const;
     const CacheHitrates getCacheHitRates(bool includeOS);
 private:
     IsaCpu& cpu;

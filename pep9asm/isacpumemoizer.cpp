@@ -199,6 +199,11 @@ const QVector<quint32> IsaCpuMemoizer::getInstructionHistogram(bool includeOS)
     return result;
 }
 
+bool IsaCpuMemoizer::hasCacheStats() const
+{
+    return cacheDevice.has_value();
+}
+
 const CacheHitrates IsaCpuMemoizer::getCacheHitRates(bool includeOS)
 {
     CacheHitrates result;
