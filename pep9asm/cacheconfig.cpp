@@ -62,7 +62,7 @@ void CacheConfig::setReadOnly(bool readOnly)
     //ui->writeAllocationCombo->setEnabled(enabled);
     ui->replacementCombo->setEnabled(enabled);
     ui->associativityNum->setEnabled(enabled);
-    ui->updateButton->setEnabled(enabled & enableCacheChanges);
+    ui->updateButton->setEnabled(enabled & enableCacheChanges & valuesChanged);
 }
 
 void CacheConfig::onCacheConfigChanged()

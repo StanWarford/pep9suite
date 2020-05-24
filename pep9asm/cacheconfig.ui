@@ -18,6 +18,9 @@
     <layout class="QGridLayout" name="gridLayout">
      <item row="3" column="3" colspan="3">
       <widget class="QPushButton" name="updateButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Update Configuration</string>
        </property>
