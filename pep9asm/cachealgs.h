@@ -58,10 +58,10 @@ class RecentReplace : public AReplacementPolicy
 protected:
     quint32 count;
     int index_last;
-    QVector<quint32> last_access;
+    QVector<std::tuple<bool, quint32>> last_access;
 
 public:
-    typedef QVector<quint32>::const_iterator iterator;
+    typedef QVector<std::tuple<bool, quint32>>::const_iterator iterator;
     typedef std::function<iterator(iterator, iterator)> SelectFunction;
 public:
     RecentReplace(quint16 size, SelectFunction element_select);

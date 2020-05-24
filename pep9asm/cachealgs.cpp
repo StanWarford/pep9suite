@@ -59,21 +59,21 @@ QSharedPointer<AReplacementFactory> getPolicyFactory(CacheAlgorithms::CacheAlgor
 
 #include <deque>
 RecentReplace::RecentReplace(quint16 size, SelectFunction element_select)
-: count(0), last_access(size, 0), index_last(-1), element_select(element_select)
+    : count(0), last_access(size, {false, 0}), index_last(-1), element_select(element_select)
 {
 
 }
 
 void RecentReplace::age()
 {
-    auto min = *std::min_element(last_access.begin(), last_access.end());
+    auto [present, min] = *std::min_element(last_access.begin(), last_access.end());
     if(min == 0) return;
     // Timer increases monotonically towards infinity.
     // This will cause an overflow on the 2^32nd memory access.
     // By rescaling the values such that the smallest (oldest) value is 0,
     // overflow is less likely to occur.
     count -= min;
-    for(auto & value : last_access) {
+    for(auto & [present, value] : last_access) {
         value -= min;
     }
 }
@@ -86,7 +86,7 @@ void RecentReplace::reference(quint16 index)
     // count, as MRU item will remain the MRU. This will help prevent overflow
     // when combined with aging.
     if(index != index_last) {
-        last_access[index] = count++;
+        last_access[index] = {true, count++};
         index_last=index;
     }
 }
@@ -94,7 +94,7 @@ void RecentReplace::reference(quint16 index)
 quint16 RecentReplace::evict()
 {
     auto index = eviction_loohahead();
-    last_access[index] = count++;
+    last_access[index] = {true, count++};
     return index;
 }
 
@@ -105,6 +105,14 @@ quint16 RecentReplace::supports_evicition_lookahead() const
 
 quint16 RecentReplace::eviction_loohahead() const
 {
+    using item = std::tuple<bool, quint32>;
+
+    // Determine if any "not present" items are still in the cache.
+    // If so, evict the first one.
+    auto index_absent = std::find_if(last_access.cbegin(), last_access.cend(), [](const item&it){return !std::get<0>(it);});
+    // Notice the trick of subtracting the cbegin iterator. This converts from an iterator to an index.
+    if(index_absent != last_access.cend()) return static_cast<quint16>(index_absent - last_access.cbegin());
+    // Otherwise, evict the first element that matches our selection criteria.
     auto index = element_select(last_access.cbegin(), last_access.cend()) - last_access.cbegin();
     return static_cast<quint16>(index);
 }
@@ -118,7 +126,7 @@ void RecentReplace::clear()
 {
     count = 0;
     for(auto& index: last_access) {
-        index = 0;
+        index = {false, 0};
     }
 }
 
@@ -208,7 +216,7 @@ void FrequencyReplace::reference(quint16 index)
 quint16 FrequencyReplace::evict()
 {
     quint16 location = eviction_loohahead();
-    auto init_value = init_function(access_count.begin(), access_count.end()); //*std::min(access_count.begin(), access_count.end());
+    auto init_value = init_function(access_count.cbegin(), access_count.cend()); //*std::min(access_count.begin(), access_count.end());
     access_count[location] = init_value;
     return location;
 }
@@ -263,7 +271,7 @@ LFUDAReplace::LFUDAReplace(quint16 size, quint16 age_steps):
     FrequencyReplace(size,
                      FrequencyReplace::SelectFunction(std::min_element<FrequencyReplace::iterator>),
                      FrequencyReplace::InitFunction([](FrequencyReplace::iterator start, FrequencyReplace::iterator end){
-                        return *std::min(start, end);})),
+                        return *std::min_element(start, end);})),
     age_after(age_steps)
 {
 
@@ -283,7 +291,7 @@ void LFUDAReplace::age()
 
     // Reset timer so it is below the aging threshold.
     timer = 0;
-    auto min = *std::min(access_count.begin(), access_count.end());
+    auto min = *std::min_element(access_count.begin(), access_count.end());
     if(min == 0) return;
     // Access counts will tend toward infinity, since the min is constantly raised.
     // Subtraction preservers ordering, and normalizes the "least" accessed element to 0.

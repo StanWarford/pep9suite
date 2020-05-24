@@ -238,28 +238,34 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram, cons
             QStandardItem* dWriteHits = new QStandardItem();
             if(rates.has_value()) {
                 auto instr = (*rates).instructions[tuple.start + offset];
+
+                // Record instruction read %, if any reads occured for this instruction,
                 if(instr.read_hit + instr.read_miss > 0) {
                     iReadHits->setData(instr.read_hit / ((float)instr.read_hit + instr.read_miss),
                                        Qt::DisplayRole);
-                    qDebug() << tuple.start+offset << instr.read_hit << instr.read_miss;
+                    //qDebug() << tuple.start+offset << instr.read_hit << instr.read_miss;
                 } else {
                     iReadHits->setData({}, Qt::DisplayRole);
                 }
 
 
                 auto data = (*rates).data[tuple.start + offset];
+
+                // Record data read %, if any reads occured for this instruction.
                 if(data.read_hit + data.read_miss>0) {
                     dReadHits->setData(data.read_hit / ((float)data.read_hit + data.read_miss),
                                        Qt::DisplayRole);
-                    qDebug() << tuple.start+offset << data.read_hit << data.read_miss;
+                    //qDebug() << tuple.start+offset << data.read_hit << data.read_miss;
                 }
                 else {
                     dReadHits->setData({}, Qt::DisplayRole);
                 }
+
+                // Record data write %, if any writes occured for this instruction.
                 if(data.write_hit + data.write_miss>0) {
                     dWriteHits->setData(data.write_hit / ((float)data.write_hit + data.write_miss),
                                         Qt::DisplayRole);
-                    qDebug() << tuple.start+offset << data.write_hit << data.write_miss;
+                    //qDebug() << tuple.start+offset << data.write_hit << data.write_miss;
                 } else {
                     dWriteHits->setData({}, Qt::DisplayRole);
                 }
