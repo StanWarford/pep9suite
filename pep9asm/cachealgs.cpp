@@ -66,16 +66,32 @@ RecentReplace::RecentReplace(quint16 size, SelectFunction element_select)
 
 void RecentReplace::age()
 {
-    auto [present, min] = *std::min_element(last_access.begin(), last_access.end());
-    if(min == 0) return;
-    // Timer increases monotonically towards infinity.
-    // This will cause an overflow on the 2^32nd memory access.
-    // By rescaling the values such that the smallest (oldest) value is 0,
-    // overflow is less likely to occur.
-    count -= min;
-    for(auto & [present, value] : last_access) {
-        value -= min;
+    // Re-number cache entries is gaurenteed to preserve ordering of memory accesses.
+    // For derived replacement algorithms, the magnitude of the difference in access times
+    // is considered to be irrelevant. If relative magnitudes must be preserved,
+    // subclasses must implement own aging algorithm.
+    if(count > renumber_threshold) {
+        // Last access time is unique, so no need to de-duplicate data first
+        QList<quint32> asList;
+        for(auto & [present, count] : last_access) {
+            asList.append(count);
+        }
+        // Order access times from least to greatest.
+        std::sort(asList.begin(), asList.end());
+        // Construct a mapping from old times to new times, preserving order.
+        quint32 start=0;
+        std::map<quint32, quint32> renumber;
+        for(auto val : asList) {
+            renumber.insert({val, start++});
+        }
+        // Re-number access times, and preserve if the value is present or not.
+        for(int it=0; it<last_access.size();it++) {
+            last_access[it] = {std::get<0>(last_access[it]), renumber[std::get<1>(last_access[it])]};
+        }
+        // Reset counter.
+        count = start;
     }
+
 }
 
 RecentReplace::~RecentReplace() = default;

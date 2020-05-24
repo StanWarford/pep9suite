@@ -56,6 +56,10 @@ class RecentReplace : public AReplacementPolicy
 {
 
 protected:
+    // Fully-renumber all entries after count accesses have elapsed.
+    // Necessary to prevent overflow on count. Re-numbering may be expensive,
+    // so perform the operation very rarely.
+    static const quint32 renumber_threshold = 0x10'000;
     quint32 count;
     int index_last;
     QVector<std::tuple<bool, quint32>> last_access;
@@ -68,6 +72,9 @@ public:
     virtual ~RecentReplace() override = 0 ;
 
     bool canAge() const override { return true;}
+    // For derived replacement algorithms, the magnitude of the difference in access times
+    // is considered to be irrelevant. If the magnitude of age differences is important,
+    // rather than just ordering, override it.
     void age() override;
 
 
