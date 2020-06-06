@@ -158,6 +158,11 @@
       </item>
       <item>
        <property name="text">
+        <string>Pep/9 Cache</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>Pep/9 Reference</string>
        </property>
        <property name="flags">
@@ -428,11 +433,6 @@
        </property>
        <property name="flags">
         <set>ItemIsSelectable|ItemIsEnabled</set>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Pep/9 Cache</string>
        </property>
       </item>
      </widget>

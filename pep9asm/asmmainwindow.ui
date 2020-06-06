@@ -47,7 +47,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <property name="documentMode">
         <bool>false</bool>
@@ -191,7 +191,7 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>500</width>
+         <width>16777215</width>
          <height>16777215</height>
         </size>
        </property>
@@ -204,20 +204,11 @@
         </attribute>
         <layout class="QGridLayout" name="gridLayout_7">
          <item row="0" column="0">
-          <widget class="MemoryDumpPane" name="memoryWidget" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>10</width>
-             <height>200</height>
-            </size>
-           </property>
-          </widget>
+          <layout class="QGridLayout" name="gridLayout_9">
+           <item row="0" column="0">
+            <widget class="MemoryDumpPane" name="memoryWidget" native="true"/>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
@@ -230,20 +221,11 @@
         </attribute>
         <layout class="QGridLayout" name="gridLayout_8">
          <item row="0" column="0">
-          <widget class="CacheView" name="cacheWidget" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>0</height>
-            </size>
-           </property>
-          </widget>
+          <layout class="QGridLayout" name="gridLayout_10">
+           <item row="0" column="0">
+            <widget class="CacheView" name="cacheWidget" native="true"/>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
@@ -323,10 +305,10 @@
     <addaction name="actionHelp_Debugging_Assembly"/>
     <addaction name="actionHelp_Writing_Trap_Handlers"/>
     <addaction name="actionHelp_Execution_Statistics"/>
+    <addaction name="actionHelp_Pep_9_Cache"/>
     <addaction name="actionHelp_Pep9Reference"/>
     <addaction name="actionHelp_Examples"/>
     <addaction name="actionHelp_Pep9_Operating_System"/>
-    <addaction name="actionHelp_Pep_9_Cache"/>
     <addaction name="separator"/>
     <addaction name="actionHelp_About_Pep9"/>
     <addaction name="actionHelp_About_Qt"/>
