@@ -20,7 +20,7 @@
    <string>Pep/9</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="../pep9micro/pep9micro-resources.qrc">
     <normaloff>:/images/Pep9micro-icon.png</normaloff>:/images/Pep9micro-icon.png</iconset>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
@@ -47,7 +47,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>2</number>
        </property>
        <property name="documentMode">
         <bool>false</bool>
@@ -304,7 +304,6 @@
     <addaction name="actionHelp_Machine_Language"/>
     <addaction name="actionHelp_Debugging_Assembly"/>
     <addaction name="actionHelp_Writing_Trap_Handlers"/>
-    <addaction name="actionHelp_Execution_Statistics"/>
     <addaction name="actionHelp_Pep_9_Cache"/>
     <addaction name="actionHelp_Pep9Reference"/>
     <addaction name="actionHelp_Examples"/>
@@ -1066,11 +1065,6 @@
    </property>
    <property name="text">
     <string>Enable Cache</string>
-   </property>
-  </action>
-  <action name="actionHelp_Execution_Statistics">
-   <property name="text">
-    <string>Execution Statistics</string>
    </property>
   </action>
   <action name="actionHelp_Pep_9_Cache">

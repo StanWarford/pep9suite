@@ -1640,12 +1640,6 @@ void AsmMainWindow::on_actionHelp_Writing_Trap_Handlers_triggered()
     helpDialog->selectItem("Writing Trap Handlers");
 }
 
-void AsmMainWindow::on_actionHelp_Execution_Statistics_triggered()
-{
-    helpDialog->show();
-    helpDialog->selectItem("Execution Statistics");
-}
-
 void AsmMainWindow::on_actionHelp_Pep9Reference_triggered()
 {
     helpDialog->show();

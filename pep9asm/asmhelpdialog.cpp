@@ -116,11 +116,6 @@ void AsmHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->webView->show();
         ui->webView->load(QUrl("qrc:/help-asm/writingtraphandlers.html"));
     }
-    else if (!isHelpSubCat && row == eSTATS) {  // Execution Statistics
-        ui->helpSplitter->widget(1)->hide();
-        ui->webView->show();
-        ui->webView->load(QUrl("qrc:/help-asm/executionstatistics.html"));
-    }
     else if ((!isHelpSubCat && row == eREFERENCE)) {
         ui->helpSplitter->widget(1)->hide();
         ui->webView->show();

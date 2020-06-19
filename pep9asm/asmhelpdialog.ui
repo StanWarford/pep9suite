@@ -153,11 +153,6 @@
       </item>
       <item>
        <property name="text">
-        <string>Execution Statistics</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
         <string>Pep/9 Cache</string>
        </property>
       </item>
