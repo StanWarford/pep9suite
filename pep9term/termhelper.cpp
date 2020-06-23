@@ -74,7 +74,7 @@ void buildDefaultOperatingSystem(AsmProgramManager &manager)
             qDebug() << "OS failed to assemble.";
             auto textList = defaultOSText.split("\n");
             for(auto errorPair : elist) {
-                qDebug() << textList[errorPair.first] << errorPair.second << endl;
+                qDebug() << textList[errorPair.first] << errorPair.second << "\n";
             }
             throw std::logic_error("The default operating system failed to assemble.");
         }

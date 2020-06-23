@@ -599,9 +599,7 @@ void CpuPane::regTextFinishedEditing()
 
 void CpuPane::zoomFactorChanged(int factor)
 {
-    QMatrix matrix;
-    matrix.scale(factor * .01, factor * .01);
-    ui->graphicsView->setMatrix(matrix);
+    ui->graphicsView->scale(factor * .01, factor * .01);
     ui->graphicsView->update();
 }
 

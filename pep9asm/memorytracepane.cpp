@@ -472,7 +472,5 @@ void NewMemoryTracePane::mouseDoubleClickEvent(QMouseEvent *)
 
 void NewMemoryTracePane::zoomFactorChanged(int factor)
 {
-    QMatrix matrix;
-    matrix.scale(factor * .01, factor * .01);
-    ui->graphicsView->setMatrix(matrix);
+    ui->graphicsView->scale(factor * .01, factor * .01);
 }

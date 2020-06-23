@@ -20,6 +20,8 @@
 */
 #include "cpubuildhelper.h"
 
+#include <iostream>
+
 #include "microasm.h"
 #include "microcode.h"
 #include "microcodeprogram.h"
@@ -64,7 +66,7 @@ bool CPUBuildHelper::buildMicroprogram()
                 // The first element of the error pair is the line number which
                 // caused the error, allowing us to write the offending line
                 // and error message to the console.
-                errAsStream << textList[errorPair.first] << errorPair.second << endl;
+                errAsStream << textList[errorPair.first] << errorPair.second << "\n";
             }
             // Error log should be flushed automatically.
             errorLog.close();

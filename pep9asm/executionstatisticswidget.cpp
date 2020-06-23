@@ -187,7 +187,7 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram, cons
         // If the instruction was not used, do not insert its entry.
         if(tuple.tally == 0 ) continue;
         // Non-unary traps all have 8 available addressing modes, regardless of what the Pep mnemonic maps indicate.
-        else if(Pep::isTrapMap[mnemon] && ~Pep::isUnaryMap[mnemon]) tuple.addrModes=8;
+        else if(Pep::isTrapMap[mnemon] && !Pep::isUnaryMap[mnemon]) tuple.addrModes=8;
 
         // Create entries for the mnemonic name
         QStandardItem* instrName = new QStandardItem(QString(mnemonicMetaenum.valueToKey((int)mnemon)).toLower());

@@ -20,6 +20,8 @@
 */
 #include "cpurunhelper.h"
 
+#include <iostream>
+
 #include "amemorychip.h"
 #include "amemorydevice.h"
 #include "cpubuildhelper.h"
@@ -87,7 +89,7 @@ void CPURunHelper::runProgram()
                 // The first element of the error pair is the line number which
                 // caused the error, allowing us to write the offending line
                 // and error message to the console.
-                errAsStream << textList[errorPair.first] << errorPair.second << endl;
+                errAsStream << textList[errorPair.first] << errorPair.second << "\n";
             }
             // Error log should be flushed automatically.
             errorLog.close();
@@ -124,7 +126,7 @@ void CPURunHelper::runProgram()
                     // The first element of the error pair is the line number which
                     // caused the error, allowing us to write the offending line
                     // and error message to the console.
-                    errAsStream << textList[errorPair.first] << errorPair.second << endl;
+                    errAsStream << textList[errorPair.first] << errorPair.second << "\n";
                 }
             }
         }

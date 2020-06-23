@@ -23,7 +23,7 @@
 #ifndef AMEMORYCHIP_H
 #define AMEMORYCHIP_H
 
-#include <exception>
+#include  <stdexcept>
 #include <QObject>
 
 /*

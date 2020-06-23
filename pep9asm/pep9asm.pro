@@ -8,7 +8,7 @@ CONFIG -= debug_and_release \
     debug_and_release_target
 #Flag for enabling C++17 features.
 #Due to support for C++17 features being added before the standard was finalized, and the placeholder text of "C++1z" has remained
-CONFIG += c++1z
+CONFIG += c++17
 win32{
     #MSVC doesn't recognize c++1z flag, so use the MSVC specific flag here
     win32-msvc*: QMAKE_CXXFLAGS += /std:c++17

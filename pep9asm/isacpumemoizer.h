@@ -20,6 +20,7 @@
 */
 #ifndef ISACPUMEMOIZER_H
 #define ISACPUMEMOIZER_H
+#include <optional>
 #include <QtCore>
 #include "enu.h"
 #include "memoizerhelper.h"

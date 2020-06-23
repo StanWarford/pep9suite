@@ -23,6 +23,7 @@
 #define EXECUTIONSTATISTICSWIDGET_H
 
 #include <QWidget>
+#include <optional>
 #include "interfaceisacpu.h"
 #include <QStandardItemModel>
 
