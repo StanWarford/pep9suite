@@ -495,7 +495,7 @@ void CacheView::onCacheConfigChanged()
     to_delete.clear();
 
     // Must set headers after clearing, or headers will be removed.
-    data->setHeaderData(0, Qt::Horizontal, "Tag/Index", Qt::DisplayRole);
+    data->setHeaderData(0, Qt::Horizontal, "Tag", Qt::DisplayRole);
     data->setHeaderData(1, Qt::Horizontal, "Next Eviction", Qt::DisplayRole);
     data->setHeaderData(2, Qt::Horizontal, "Address Range", Qt::DisplayRole);
     data->setHeaderData(3, Qt::Horizontal, "Present", Qt::DisplayRole);
