@@ -21,33 +21,76 @@ Pep/9 Cache
 <p>
 Reference: <i>Computer Systems</i>, Chapter 12, Section 12.2.
 <p>
- Intro material for Pep/9 cache goes here
- 
+The Pep/9 system provides a cache simulator that visually displays the content of a cache.
+It can simulate the direct-mapped cache in Figure 12.28 of <i>Computer Systems</i> and set-associtive caches like the one in Figure 12.30.
+The cache write policy for a cache hit is <i>write through</i> as in Figure 12.31(a).
+The cache write policy for a cache miss is <i>without write allocation</i> as in Figure 12.32(a).
 <p>
  <a name = "Topics">Topics:</a>
- <a href="#Topic1">Topic1</a>,
- <a href="#Topic2">Topic2</a>.
+ <a href="#Using">Using the cache simulator</a>,
+ <a href="#Fully">Fully associative caches</a>.
+ <a href="#Policies">Cache replacement policies</a>.
 
-<h3><a name="Topic1">Topic1</a></h3>
+<h3><a name="Using">Using the cache simulator</a></h3>
 
- Topic1 material for Pep/9 cache goes here
+Access the cache simulator by clicking the Cache tab on the Memory pane.
 <p>
+<img src="qrc:/help-asm/images/cachetab.png" alt="cachetab" hspace=10 vspace=10>
+<p>
+Configure the cache by setting the number of bits in the Tag field and the number of bits in the Line field.
+Because Pep/9 is a 16-bit computer, the number of bits in the Byte field is computed so that the sum of the number of bits in the three fields is 16.
+The associativity of the cache is set independently of the number of bits in the three fields.
+The following figure shows the settings for the four-way set-associative cache in Figure 12.30 of <i>Computer Systems</i>.
+<p>
+<img src="qrc:/help-asm/images/cacheconfiguration.png" alt="cacheconfiguration" hspace=10 vspace=10>
+<p>
+Set the cache replacement policy with the dropdown menu.
+LRU is the Least Recently Used replacement policy.
+See  <a href="#Policies">Cache replacement policies</a> for a description of each policy.
+<p>
+<img src="qrc:/help-asm/images/cachereplacement.png" alt="cachereplacement" hspace=10 vspace=10>
+<p>
+The following is a sequence of single steps in Debug mode of Figure 6.42 that explains the visual display of the cache after each step.
+Here is the state at the beginning of the trace.
+<p>
+<img src="qrc:/help-asm/images/cachetrace01.png" alt="cachetrace01" hspace=10 vspace=10>
+<p>
+The <code>BR</code> instruction at 0000 is about to execute.
 <h4>Step 1.</h4>
-Decide on your mnemonic for your new instruction.
-It will replace one of <code>NOP0</code>, <code>NOP1</code>,
-<code>NOP</code>, <code>DECI</code>, <code>DECO</code>, <code>HEXO</code>, or <code>STRO</code>.
-Select the menu option System&rarr;Redefine Mnemonics to change the mnemonics of one of the instructions.
 <p>
-<img src="qrc:/help-asm/images/redefinemnemonicsmenu.png" alt="redefinemnemonicsmenu" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/cachetrace02.png" alt="cachetrace02" hspace=10 vspace=10>
 <p>
-The dialog box requires you to enter a mnemonic and its allowed addressing modes if it is nonunary.
-For example, change the mnemonic for the unary instruction <code>NOP0</code> to <code>ECHO</code>.
+The <code>BR</code> instruction at 0000 executes.
+The <code>LDWA</code> instruction at 0009 will execute next.
+More commentary describing the cache.
 <p>
-<img src="qrc:/help-asm/images/redefinemnemonics.png" alt="redefinemnemonics" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/cachetrace03.png" alt="cachetrace03" hspace=10 vspace=10>
+<p>
+<h4>Step 2.</h4>
+<p>
+<img src="qrc:/help-asm/images/cachetrace04.png" alt="cachetrace04" hspace=10 vspace=10>
+<p>
+The <code>LDWA</code> instruction at 0009 executes.
+The <code>CALL</code> instruction at 000C will execute next.
+More commentary describing the cache.
+<p>
+<img src="qrc:/help-asm/images/cachetrace05.png" alt="cachetrace05" hspace=10 vspace=10>
+<p>
+
 <p>
 <a href="#Topics">Scroll to topics</a>.
 
-<h3><a name="Topic2">Topic2</a></h3>
+<h3><a name="Fully">Fully associative caches</a></h3>
+
+Fully associative caches material for Pep/9 cache goes here
+<p>
+More topic2 material for Pep/9 cache goes here
+<p>
+<img src="qrc:/help-asm/images/relocatedos3.png" alt="relocatedos3" hspace=10 vspace=10>
+<p>
+<a href="#Topics">Scroll to topics</a>.
+
+<h3><a name="Policies">Cache replacement policies</a></h3>
 
 Topic2 material for Pep/9 cache goes here
 <p>
