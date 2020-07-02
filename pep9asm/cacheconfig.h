@@ -50,6 +50,7 @@ public slots:
     // Handle font changes.
     void onFontChanged(QFont current);
     void onDarkModeChanged(bool darkMode);
+    void onSimulationStarted();
 
 private:
     Ui::CacheConfig *ui;

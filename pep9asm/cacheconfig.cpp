@@ -85,8 +85,8 @@ void CacheConfig::onCacheConfigChanged()
     }*/
 
     // Anytime the cache is re-configured, it is cleared.
-    updateButtonRefresh();
     valuesChanged = false;
+    updateButtonRefresh();
 }
 
 void CacheConfig::onFontChanged(QFont)
@@ -99,6 +99,11 @@ void CacheConfig::onDarkModeChanged(bool)
 {
     // No operation.
     // Added to mantain consistent interface across widgets.
+}
+
+void CacheConfig::onSimulationStarted()
+{
+    onCacheConfigChanged();
 }
 
 void CacheConfig::updateButtonRefresh()

@@ -477,6 +477,7 @@ void CacheView::onSimulationStarted()
 {
     inSimulation = true;
     ui->cacheConfiguration->setReadOnly(true);
+    ui->cacheConfiguration->onSimulationStarted();
 }
 
 void CacheView::onSimulationFinished()
