@@ -39,7 +39,7 @@ class AReplacementPolicy;
 struct CacheEntry
 {
     bool is_present = false;
-    quint16 index = 0;
+    quint16 tag = 0;
     quint32 hit_count;
 };
 
@@ -53,7 +53,7 @@ public:
     CacheLine();
     CacheLine(quint8 associativity, QSharedPointer<AReplacementPolicy> replacement_policy);
     // Check if an entry with the corresponding index is present in the line.
-    bool contains_index(quint16 index);
+    bool contains_index(quint16 tag);
     // Notify the CRP that an index has been hit.
     void update(Cache::CacheAddress& address);
     // Insert the new index into the cache. Evict using CRP if needed.

@@ -123,12 +123,12 @@ void CacheView::handle_custom_menu(const QPoint &point)
     }
     // Extract the integer tag from the parent.
     else {
-        cache_tag  = item->parent()->data(Qt::DisplayRole).toInt();
+        cache_index  = parent->data(Qt::DisplayRole).toInt();
     }
     // If the selected row is not present, it can't be highlighted.
-    if(!parent->child(index.row(), Present)->data(Qt::DisplayRole).toBool()) return;
+    if(!parent->child(index.row(), static_cast<int>(Columns::PresentColumn))->data(Qt::DisplayRole).toBool()) return;
     else {
-        cache_index = parent->child(index.row(), TagColumn)->data(Qt::DisplayRole).toInt();
+        cache_tag = parent->child(index.row(), static_cast<int>(Columns::TagColumn))->data(Qt::DisplayRole).toInt();
     }
 
     auto index_bits = cache->getIndexSize();
@@ -157,29 +157,31 @@ void CacheView::refreshLine(quint16 line)
     // Determine cache parameters.
     auto tag_bits = cache->getTagSize();
     auto index_bits = cache->getIndexSize();
-    auto data_bits = cache->getDataSize();
     auto associativity = cache->getAssociativty();
 
-    assert(line < (1<<tag_bits));
+    assert(line < (1<<index_bits));
 
     // Make sure cache line is present, name correctly, and has the right address.
-    auto* lineItem = data->item(line, 0);
+    constexpr int index_column = static_cast<int>(Columns::IndexColumn);
+    auto* lineItem = data->item(line, index_column);
     if(lineItem == nullptr) {
         lineItem = new QStandardItem(QString("%1").arg(line));
-        data->setItem(line, 0, lineItem);
+        data->setItem(line, index_column, lineItem);
     }
-    auto lineIndex = data->index(line, 0);
+    auto lineIndex = data->index(line, index_column);
 
     // Ensure the right number of rows / columns are in the cache line.
-    if(data->columnCount(lineIndex) != 5) lineItem->setColumnCount(5);
+    constexpr int column_count = static_cast<int>(Columns::ColumnCount);
+    if(data->columnCount(lineIndex) != column_count) lineItem->setColumnCount(column_count);
     if(data->rowCount(lineIndex) != associativity) lineItem->setRowCount(associativity);
 
-    auto* addressItem = data->item(line, 2);
+    constexpr int address_column = static_cast<int>(Columns::AddressColumn);
+    auto* addressItem = data->item(line, address_column);
     if(addressItem == nullptr) {
         addressItem = new QStandardItem();
-        data->setItem(line, 2, addressItem);
+        data->setItem(line, address_column, addressItem);
     }
-    addressItem->setText(toAddressRange(line<<(index_bits+data_bits), ((line+1)<<(index_bits+data_bits)) - 1));
+    addressItem->clearData();
 
     auto lineEntry = cache->getCacheLine(line);
     if(!lineEntry.has_value()) {
@@ -221,7 +223,7 @@ void CacheView::refreshLine(quint16 line)
             // keep the most recent eviction.
             int time = 0;
             for(auto entry : evicted) {
-                eviction_collate[entry.index] = {entry, time++};
+                eviction_collate[entry.tag] = {entry, time++};
             }
             // Sort the items so that the most recent eviction is first
             using item = std::tuple<CacheEntry, int>;
@@ -269,6 +271,14 @@ void CacheView::refreshLine(quint16 line)
 
 void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, const CacheEntry *entryPtr, bool evicted)
 {
+    //Extract column numbers from enum at compile time.
+    constexpr int index_column = static_cast<int>(Columns::IndexColumn);
+    constexpr int tag_column = static_cast<int>(Columns::TagColumn);
+    constexpr int eviction_column = static_cast<int>(Columns::EvictColumn);
+    constexpr int address_column = static_cast<int>(Columns::AddressColumn);
+    constexpr int present_column = static_cast<int>(Columns::PresentColumn);
+    constexpr int hits_column = static_cast<int>(Columns::HitsColumn);
+
     auto index_bits = cache->getIndexSize();
     auto data_bits = cache->getDataSize();
 
@@ -282,34 +292,36 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
      */
 
     // Determine which values are needed in each column
-    QString c0_name = "";
-    Qt::CheckState c1_evict = Qt::CheckState::Unchecked;
-    QString c2_address = "";
-    QVariant c4_hits = "";
+    QString c1_tag = "";
+    Qt::CheckState c2_evict = Qt::CheckState::Unchecked;
+    QString c3_address = "";
+    QVariant c5_hits = "";
 
     // If the cache entry is present, display the index # and addresses spanned by
     // the entry in columns 0,2. Also determine hit count.
     if(entryPtr->is_present) {
-        c0_name = QString("%1").arg(entryPtr->index);
-        c2_address = toAddressRange((line<<(index_bits+data_bits)) + ((entryPtr->index)<<data_bits),
-                                    (line<<(index_bits+data_bits)) + ((entryPtr->index+1)<<data_bits) - 1);
-        c4_hits = entryPtr->hit_count;
+        auto tag = entryPtr->tag;
+        c1_tag = QString("%1").arg(tag);
+        c3_address = toAddressRange((line<<(index_bits+data_bits)) + ((entryPtr->tag)<<data_bits),
+                                    (line<<(index_bits+data_bits)) + ((entryPtr->tag+1)<<data_bits) - 1);
+        c5_hits = entryPtr->hit_count;
     }
 
     // Cache hit count, so that it is easier to see from debugger.
     quint16 eviction_candidate = linePtr->get_replacement_policy()->eviction_loohahead();
     if(eviction_candidate == entry) {
-        c1_evict = Qt::CheckState::Checked;
+        c2_evict = Qt::CheckState::Checked;
     }
 
-    auto lineIndex = data->index(line, 0);
+
+    auto lineIndex = data->index(line, index_column);
 
     // Convert values in existing cells to usable types for comparisons.
     // These conversions will fail when the box is empty, so must check
     // ok_conv_* when attemtping to use associated integer.
     bool ok_conv_index, ok_conv_hits;
-    int listedIndex = data->index(entry, TagColumn, lineIndex).data().toInt(&ok_conv_index);
-    int listedHits = data->index(entry, Hits, lineIndex).data().toInt(&ok_conv_hits);
+    int listedIndex = data->index(entry, tag_column, lineIndex).data().toInt(&ok_conv_index);
+    int listedHits = data->index(entry, hits_column, lineIndex).data().toInt(&ok_conv_hits);
 
     // If evicted, indicate to Style Delegate to apply special evicted formatting.
     // Otherwise, clear evicted flags. When increasing the associativity, failing to clear
@@ -321,7 +333,7 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
     // Highlight "new" items.
     // An item is "new" if it is present, and either the old value was not present,
     // or the old entry number is not the new entry number.
-    if(!evicted && entryPtr->is_present && (!ok_conv_index || listedIndex != entryPtr->index)) {
+    if(!evicted && entryPtr->is_present && (!ok_conv_index || listedIndex != entryPtr->tag)) {
 
         // Make a note that special highlighting needs to be removed
         // at end of the current simulation step.
@@ -356,11 +368,11 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
     }
 
     // Assign values to each column based on the current cache entry.
-    data->itemFromIndex(data->index(entry, TagColumn, lineIndex))->setData(c0_name, Qt::DisplayRole);
-    data->itemFromIndex(data->index(entry, EvictColumn, lineIndex))->setCheckState(c1_evict);
-    data->itemFromIndex(data->index(entry, Address, lineIndex))->setData(c2_address, Qt::DisplayRole);
-    data->itemFromIndex(data->index(entry, Present, lineIndex))->setData(entryPtr->is_present, Qt::DisplayRole);
-    data->itemFromIndex(data->index(entry, Hits, lineIndex))->setData(c4_hits, Qt::DisplayRole);
+    data->itemFromIndex(data->index(entry, tag_column, lineIndex))->setData(c1_tag, Qt::DisplayRole);
+    data->itemFromIndex(data->index(entry, eviction_column, lineIndex))->setCheckState(c2_evict);
+    data->itemFromIndex(data->index(entry, address_column, lineIndex))->setData(c3_address, Qt::DisplayRole);
+    data->itemFromIndex(data->index(entry, present_column, lineIndex))->setData(entryPtr->is_present, Qt::DisplayRole);
+    data->itemFromIndex(data->index(entry, hits_column, lineIndex))->setData(c5_hits, Qt::DisplayRole);
 }
 
 void CacheView::reset_eviction_collation()
@@ -374,9 +386,9 @@ void CacheView::refreshMemory()
 {
     // Iteratively refresh each cache line, and ensure columns
     // are large enough to fit line.
-    auto tag_bits = cache->getTagSize();
+    auto index_bits = cache->getIndexSize();
 
-    for(int line = 0; line < 1<<tag_bits; line++) {
+    for(int line = 0; line < 1<<index_bits; line++) {
         refreshLine(line);
     }
     for(int it = 0; it < data->columnCount(); it++) {
@@ -486,8 +498,8 @@ void CacheView::onCacheConfigChanged()
     ui->dataBox->setMaximum((1<<data_bits) - 1);
 
     // Ensure that data model is properly sized for cache configuration.
-    data->setColumnCount(5);
-    data->setRowCount((1 << tag_bits));
+    data->setColumnCount(static_cast<int>(Columns::ColumnCount));
+    data->setRowCount((1 << index_bits));
     // Note: Each row in data must be resized to match the associativity of the cache,
     // but this will be handled within ::setRow(...).
 
@@ -495,14 +507,15 @@ void CacheView::onCacheConfigChanged()
     to_delete.clear();
 
     // Must set headers after clearing, or headers will be removed.
-    data->setHeaderData(0, Qt::Horizontal, "Tag", Qt::DisplayRole);
-    data->setHeaderData(1, Qt::Horizontal, "Next Eviction", Qt::DisplayRole);
-    data->setHeaderData(2, Qt::Horizontal, "Address Range", Qt::DisplayRole);
-    data->setHeaderData(3, Qt::Horizontal, "Present", Qt::DisplayRole);
-    data->setHeaderData(4, Qt::Horizontal, "# Hits", Qt::DisplayRole);
+    data->setHeaderData(static_cast<int>(Columns::IndexColumn), Qt::Horizontal, "Index", Qt::DisplayRole);
+    data->setHeaderData(static_cast<int>(Columns::TagColumn), Qt::Horizontal, "Tag", Qt::DisplayRole);
+    data->setHeaderData(static_cast<int>(Columns::EvictColumn), Qt::Horizontal, "Next Victim", Qt::DisplayRole);
+    data->setHeaderData(static_cast<int>(Columns::AddressColumn), Qt::Horizontal, "Address Range", Qt::DisplayRole);
+    data->setHeaderData(static_cast<int>(Columns::PresentColumn), Qt::Horizontal, "Valid", Qt::DisplayRole);
+    data->setHeaderData(static_cast<int>(Columns::HitsColumn), Qt::Horizontal, "# References", Qt::DisplayRole);
 
     // Ensure that eviction collation array is large enough to contain all evicted entries.
-    eviction_collate.resize(1<<index_bits);
+    eviction_collate.resize(1<<tag_bits);
     reset_eviction_collation();
 }
 

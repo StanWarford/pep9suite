@@ -37,10 +37,10 @@ CacheLine::CacheLine(quint8 associativity, QSharedPointer<AReplacementPolicy> re
 
 }
 
-bool CacheLine::contains_index(quint16 index)
+bool CacheLine::contains_index(quint16 tag)
 {
     for(auto entry : entries) {
-        if(entry.is_present && entry.index == index) return true;
+        if(entry.is_present && entry.tag == tag) return true;
     }
     return false;
 }
@@ -49,7 +49,7 @@ void CacheLine::update(Cache::CacheAddress &address)
 {
     for(int it = 0; it < entries.size(); it++) {
         auto& entry = entries[it];
-        if(entry.is_present && entry.index == address.index) {
+        if(entry.is_present && entry.tag == address.tag) {
             // TODO: Perform cache replacement policy update on present entry.
             replacement_policy->reference(it);
             entry.hit_count++;
@@ -72,7 +72,7 @@ CacheEntry CacheLine::insert(Cache::CacheAddress &address)
                           .arg(address.index)
                           .arg(address.tag);*/
     entries[evict_index].is_present = true;
-    entries[evict_index].index = address.index;
+    entries[evict_index].tag = address.tag;
     entries[evict_index].hit_count = 1;
 
     return evicted_entry;
@@ -83,7 +83,7 @@ void CacheLine::clear()
     replacement_policy->clear();
     for(auto& entry : entries) {
         entry.is_present = false;
-        entry.index = 0;
+        entry.tag = 0;
         entry.hit_count = 0;
     }
 }

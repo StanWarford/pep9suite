@@ -39,7 +39,7 @@ CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheC
 
     // Resize the cache to fit the correct number of lines.
     //resize_cache(tag_size, index_size, associativity, replace_factory);
-    cache.resize(1 << tag_size);
+    cache.resize(1 << index_size);
     for(auto& line : cache) {
         line = CacheLine(associativity, replace_factory->create_policy());
     }
@@ -85,9 +85,9 @@ bool CacheMemory::resizeCache(Cache::CacheConfiguration config)
         return false;
     }
     else {
-        cache.resize(1 << tag_size);
         tag_size = config.tag_bits;
         index_size = config.index_bits;
+        cache.resize(1 << index_size);
         data_size = config.data_bits;
         associativity = config.associativity;
         allocation_policy = config.write_allocation;
@@ -172,13 +172,13 @@ bool CacheMemory::readByte(quint16 address, quint8 &output) const
     // If address is present in line, notify cache replacement policy (CRP) of a hit.
     // MUST capture line by reference, or Qt's CoW will kick in; no changes
     // will be saved.
-    if(CacheLine& line = cache[address_breakdown.tag];
-            line.contains_index(address_breakdown.index)) {
+    if(CacheLine& line = cache[address_breakdown.index];
+            line.contains_index(address_breakdown.tag)) {
         //qDebug().noquote() << QString("Hit %1\t").arg(address);
         line.update(address_breakdown);
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
-        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) == transactionLines.end()) {
+        if(transactionLines.find({address_breakdown.index, address_breakdown.tag}) == transactionLines.end()) {
             tx.read_hit++;
         }
     }
@@ -187,20 +187,20 @@ bool CacheMemory::readByte(quint16 address, quint8 &output) const
         //qDebug().noquote() << QString("Miss %1\t").arg(address);
         auto evicted = line.insert(address_breakdown);
         if(track_reads && evicted.is_present) {
-            if(!evictedLines.contains(address_breakdown.tag)) evictedLines.insert(address_breakdown.tag, QList<CacheEntry>());
-            evictedLines[address_breakdown.tag].append(evicted);
+            if(!evictedLines.contains(address_breakdown.index)) evictedLines.insert(address_breakdown.index, QList<CacheEntry>());
+            evictedLines[address_breakdown.index].append(evicted);
         }
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
-        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) == transactionLines.end()) {
+        if(transactionLines.find({address_breakdown.index, address_breakdown.tag}) == transactionLines.end()) {
             tx.read_miss++;
         }
     }
     // Either if the read is a hit or a miss, the cache line associated with
     // the current address must be updated.
-    cacheTagsTouched.insert(address_breakdown.tag);
+    cacheTagsTouched.insert(address_breakdown.index);
     // Prevent line cache entry from being counted in statistics again.
-    transactionLines.insert({address_breakdown.tag, address_breakdown.index});
+    transactionLines.insert({address_breakdown.index, address_breakdown.tag});
     return memory_device->readByte(address, output);
 }
 
@@ -213,14 +213,14 @@ bool CacheMemory::writeByte(quint16 address, quint8 value)
     // If address is present in line, notify CRP of a hit.
     // MUST capture line by reference, or Qt's COW will kick in, and no changes
     // will be saved.
-    if(CacheLine& line = cache[address_breakdown.tag];
-            line.contains_index(address_breakdown.index)) {
+    if(CacheLine& line = cache[address_breakdown.index];
+            line.contains_index(address_breakdown.tag)) {
         // Update reference counts for the current line.
-        cacheTagsTouched.insert(address_breakdown.tag);
+        cacheTagsTouched.insert(address_breakdown.index);
         line.update(address_breakdown);
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
-        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) == transactionLines.end()) {
+        if(transactionLines.find({address_breakdown.index, address_breakdown.tag}) == transactionLines.end()) {
             tx.write_hit++;
         }
     }
@@ -228,16 +228,16 @@ bool CacheMemory::writeByte(quint16 address, quint8 value)
         // Perform eviction in memory dump pane.
         auto evicted = line.insert(address_breakdown);
         if(track_reads && evicted.is_present) {
-            if(!evictedLines.contains(address_breakdown.tag)) evictedLines.insert(address_breakdown.tag, QList<CacheEntry>());
-            evictedLines[address_breakdown.tag].append(evicted);
+            if(!evictedLines.contains(address_breakdown.index)) evictedLines.insert(address_breakdown.index, QList<CacheEntry>());
+            evictedLines[address_breakdown.index].append(evicted);
         }
 
         // Catch line evictions caused by write allocation.
-        cacheTagsTouched.insert(address_breakdown.tag);
+        cacheTagsTouched.insert(address_breakdown.index);
 
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
-        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) == transactionLines.end()) {
+        if(transactionLines.find({address_breakdown.index, address_breakdown.tag}) == transactionLines.end()) {
             tx.write_miss++;
         }
 
@@ -250,12 +250,12 @@ bool CacheMemory::writeByte(quint16 address, quint8 value)
 
         // Only increment statistics if this transaction hasn't already "touched"
         // the current cache line.
-        if(transactionLines.find({address_breakdown.tag, address_breakdown.index}) == transactionLines.end()) {
+        if(transactionLines.find({address_breakdown.index, address_breakdown.tag}) == transactionLines.end()) {
             tx.write_miss++;
         }
     }
     // Prevent line cache entry from being counted in statistics again.
-    transactionLines.insert({address_breakdown.tag, address_breakdown.index});
+    transactionLines.insert({address_breakdown.index, address_breakdown.tag});
     return memory_device->writeByte(address, value);
 }
 

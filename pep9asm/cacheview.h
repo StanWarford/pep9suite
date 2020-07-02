@@ -30,11 +30,7 @@
 #include "cacheline.h"
 #include "colors.h"
 
-static const quint16 TagColumn = 0;
-static const quint16 EvictColumn = 1;
-static const quint16 Address = 2;
-static const quint16 Present = 3;
-static const quint16 Hits = 4;
+
 
 class CacheMemory;
 namespace Ui {
@@ -55,6 +51,11 @@ static const bool COLLATE_EVICTIONS = true;
  */
 class CacheView : public QWidget
 {
+    enum class Columns {
+        IndexColumn = 0,
+        TagColumn=1, EvictColumn=2, AddressColumn=3,
+        PresentColumn=4, HitsColumn=5, ColumnCount
+    };
     Q_OBJECT
 
 public:
