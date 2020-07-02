@@ -26,6 +26,7 @@
 #include <QMenu>
 #include <QPainter>
 
+#include "cacheaddresstranslator.h"
 #include "cachememory.h"
 #include "cachealgs.h"
 #include "pep.h"
@@ -48,12 +49,6 @@ CacheView::CacheView(QWidget *parent) :
     ui->setupUi(this);
 
     ui->cacheTree->setFont(Pep::codeFont);
-    // Connect address conversion spin boxes.
-    connect(ui->tagBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CacheView::cachetag_changed);
-    connect(ui->indexBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CacheView::cachetag_changed);
-    connect(ui->dataBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CacheView::cachetag_changed);
-
-    connect(ui->addressBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CacheView::address_changed);
 
     // Create cache delegate
     del = new CacheViewDelegate(cache, colors);
@@ -78,33 +73,13 @@ void CacheView::init(QSharedPointer<CacheMemory> cache)
     this->cache = cache;
 
     ui->cacheConfiguration->init(cache, true);
+    ui->cacheAddressTranslation->init(cache);
 
     // Connect cache configuration boxes.
     connect(cache.get(), &CacheMemory::configurationChanged, this, &CacheView::onCacheConfigChanged);
 
     onCacheConfigChanged();
     refreshMemory();
-}
-
-void CacheView::address_changed(int value)
-{
-    auto breakdown = cache->breakdownAddress(value);
-    ui->tagBox->setValue(breakdown.tag);
-    ui->indexBox->setValue(breakdown.index);
-    ui->dataBox->setValue(breakdown.offset);
-}
-
-void CacheView::cachetag_changed(int /*value*/)
-{
-    auto index_bits = cache->getIndexSize();
-    auto data_bits = cache->getDataSize();
-
-    int address = 0;
-    address += ui->tagBox->value() << (index_bits + data_bits);
-    address += ui->indexBox->value() << (data_bits);
-    address += ui->dataBox->value();
-
-    ui->addressBox->setValue(address);
 }
 
 void CacheView::handle_custom_menu(const QPoint &point)
@@ -490,13 +465,8 @@ void CacheView::onCacheConfigChanged()
 {
     auto tag_bits = cache->getTagSize();
     auto index_bits = cache->getIndexSize();
-    auto data_bits = cache->getDataSize();
 
     ui->cacheConfiguration->onCacheConfigChanged();
-
-    ui->tagBox->setMaximum((1<<tag_bits) - 1);
-    ui->indexBox->setMaximum((1<<index_bits) - 1);
-    ui->dataBox->setMaximum((1<<data_bits) - 1);
 
     // Ensure that data model is properly sized for cache configuration.
     data->setColumnCount(static_cast<int>(Columns::ColumnCount));

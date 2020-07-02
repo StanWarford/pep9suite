@@ -111,8 +111,6 @@ public slots:
     void onSimulationStep();
 
 private slots:
-    void address_changed(int value);
-    void cachetag_changed(int value);
 
     // Determine if a right click context menu needs to be made for a cache entry.
     // If yes, cache the addressed spanned in menu_tag_index.

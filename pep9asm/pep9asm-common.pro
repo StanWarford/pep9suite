@@ -8,6 +8,7 @@ VPATH += $$PWD\..\pep9common
 FORMS += \
     asmobjectcodepane.ui \
     asmsourcecodepane.ui \
+    cacheaddresstranslator.ui \
     executionstatisticswidget.ui \
     memorytracepane.ui \
     redefinemnemonicsdialog.ui \
@@ -23,6 +24,7 @@ HEADERS += \
     asmprogram.h \
     asmprogrammanager.h \
     asmsourcecodepane.h \
+    cacheaddresstranslator.h \
     cpphighlighter.h \
     executionstatisticswidget.h \
     interfaceisacpu.h \
@@ -48,6 +50,7 @@ SOURCES += \
     asmprogram.cpp \
     asmprogrammanager.cpp \
     asmsourcecodepane.cpp \
+    cacheaddresstranslator.cpp \
     cachealgs.cpp \
     cpphighlighter.cpp \
     executionstatisticswidget.cpp \
