@@ -72,9 +72,11 @@ void CacheConfig::onCacheConfigChanged()
     auto data_bits = cache->getDataSize();
     auto associativity = cache->getAssociativty();
 
+
     ui->tagBits->setValue(tag_bits);
     ui->indexBits->setValue(index_bits);
-    ui->byteFieldBits->setText(QString("Byte Field Bits: %1").arg(data_bits));
+    updateAddressBits();
+
     ui->associativityNum->setValue(associativity);
     ui->replacementCombo->setCurrentIndex(ui->replacementCombo->findText(cache->getCacheAlgorithm()));
     // At the moment, only no-write-allocate makes sense to show users, but keep more advanced functionality present.
@@ -126,7 +128,7 @@ void CacheConfig::updateAddressBits()
     // Place upper bound on index.
     ui->indexBits->setMaximum(index + remaining - 1);
     // Set number of data bits.
-    ui->byteFieldBits->setText(QString("Byte Field Bits: %1").arg(remaining));
+    ui->byteFieldBits->setText(QString("Byte Bits: %1").arg(remaining));
 }
 
 void CacheConfig::on_tagBits_valueChanged(int newValue)
