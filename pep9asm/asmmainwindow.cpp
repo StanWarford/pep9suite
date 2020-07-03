@@ -341,6 +341,7 @@ bool AsmMainWindow::eventFilter(QObject *, QEvent *event)
 
 void AsmMainWindow::connectViewUpdate()
 {
+    // If cache implements write-back replacement, this signal will need to be connected.
     //connect(memDevice.get(), &MainMemory::changed, ui->cacheWidget, &CacheView::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
     connect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
     connect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged, Qt::ConnectionType::UniqueConnection);
@@ -357,8 +358,13 @@ void AsmMainWindow::connectViewUpdate()
 
 void AsmMainWindow::disconnectViewUpdate()
 {
-    //disconnect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged);
+    // These signals are emitted for every memory address that is touched. I.e., a two-byte write would trigger this signal twice.
+    //  Profiling indicates significant time is wasted updating the screen when executing instructions sequentially, e.g stepping over a DECI.
+    disconnect(memDevice.get(), &MainMemory::changed, ui->memoryWidget, &MemoryDumpPane::onMemoryChanged);
     disconnect(memDevice.get(), &MainMemory::changed, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged);
+    // If cache implements write-back replacement, this signal will need to be disconnected.
+    //disconnect(memDevice.get(), &MainMemory::changed, ui->cacheWidget, &CacheView::onMemoryChanged);
+
     disconnect(this, &AsmMainWindow::simulationUpdate, ui->cacheWidget, &CacheView::onSimulationStep);
     disconnect(this, &AsmMainWindow::simulationUpdate, ui->memoryWidget, &MemoryDumpPane::updateMemory);
     disconnect(this, &AsmMainWindow::simulationUpdate, ui->memoryTracePane, &NewMemoryTracePane::onMemoryChanged);

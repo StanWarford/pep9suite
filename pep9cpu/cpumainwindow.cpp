@@ -281,7 +281,10 @@ void CPUMainWindow::connectViewUpdate()
 
 void CPUMainWindow::disconnectViewUpdate()
 {
+    // These signals are emitted for every memory address that is touched. I.e., a two-byte write would trigger this signal twice.
+    //  Profiling indicates significant time is wasted updating the screen when executing instructions sequentially, e.g stepping over a DECI.
     disconnect(memDevice.get(), &MainMemory::changed, ui->memoryWidget,&MemoryDumpPane::onMemoryChanged);
+
     disconnect(ui->cpuWidget, &CpuPane::registerChanged, dataSection.get(), &CPUDataSection::onSetRegisterByte);
     disconnect(dataSection.get(), &CPUDataSection::statusBitChanged, ui->cpuWidget, &CpuPane::onStatusBitChanged);
     disconnect(dataSection.get(), &CPUDataSection::registerChanged, ui->cpuWidget, &CpuPane::onRegisterChanged);
