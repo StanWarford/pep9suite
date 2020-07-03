@@ -197,7 +197,7 @@
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -280,7 +280,6 @@
     <addaction name="actionHelp_Assembly_Language"/>
     <addaction name="actionHelp_Debugging_Assembly"/>
     <addaction name="actionHelp_Writing_Trap_Handlers"/>
-    <addaction name="actionHelp_Execution_Statistics"/>
     <addaction name="separator"/>
     <addaction name="actionHelp_Using_Pep_9_CPU"/>
     <addaction name="actionHelp_Interactive_Use"/>
