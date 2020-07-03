@@ -468,6 +468,8 @@ void CacheView::onCacheConfigChanged()
 
     ui->cacheConfiguration->onCacheConfigChanged();
 
+    // Clear previous runs' results, so as not to confuse the user about the state of the cache.
+    data->clear();
     // Ensure that data model is properly sized for cache configuration.
     data->setColumnCount(static_cast<int>(Columns::ColumnCount));
     data->setRowCount((1 << index_bits));
