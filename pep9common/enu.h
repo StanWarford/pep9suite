@@ -227,7 +227,7 @@ namespace Enu {
         uBRNE = 6, uBRV = 7, uBRC = 8, uBRS = 9,
         IsPrefetchValid = 10,
         IsUnary = 11,
-        IsPCEven = 12,
+        PCisOdd = 12,
         AddressingModeDecoder = 13, // Adressing modes jump table
         InstructionSpecifierDecoder = 14, // Instruction jump table
         Stop = 15,

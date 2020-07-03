@@ -24,7 +24,7 @@ EOMux=1, AMux=0, ALU=0, CMux=1, C=5; LoadCk; goto start
 // ================
 
 // Decide if the program counter is even, and select instruction specifier fetch logic.
-start: if isPCEven is_fetch_e else is_fetch_o 
+start: if PCisOdd is_fetch_o else is_fetch_e
 
 // ----------------
 // Even Instruction Specifier fetch w/ prefetch

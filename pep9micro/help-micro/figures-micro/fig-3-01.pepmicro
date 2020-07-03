@@ -7,7 +7,7 @@ UnitPre: Mem[0x0200]=0xAABB, Mem[0x0202]=0xCCDD,Mem[0x0204]=0xEEFF
 // ================
 
 // Decide if the program counter is even, and select instruction specifier fetch logic.
-start: if isPCEven is_fetch_e else is_fetch_o 
+start: if PCisOdd is_fetch_o else is_fetch_e
 
 // ----------------
 // Even Instruction Specifier fetch w/ prefetch

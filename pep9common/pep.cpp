@@ -134,7 +134,7 @@ void Pep::initMicroEnumMnemonMaps(CPUType cpuType, bool fullCtrlSection)
         mnemonToBranchFuncMap.insert("SBIT",uBRS); branchFuncToMnemonMap.insert(uBRS,"SBIt");
         mnemonToBranchFuncMap.insert("HASPREFETCH",IsPrefetchValid); branchFuncToMnemonMap.insert(IsPrefetchValid,"HasPrefetch");
         mnemonToBranchFuncMap.insert("ISUNARY",IsUnary); branchFuncToMnemonMap.insert(IsUnary,"IsUnary");
-        mnemonToBranchFuncMap.insert("ISPCEVEN",IsPCEven); branchFuncToMnemonMap.insert(IsPCEven,"IsPCEven");
+        mnemonToBranchFuncMap.insert("PCISODD",PCisOdd); branchFuncToMnemonMap.insert(PCisOdd,"PCisOdd");
         mnemonToBranchFuncMap.insert("DECODEADDRSPEC",AddressingModeDecoder); branchFuncToMnemonMap.insert(AddressingModeDecoder,"DecodeAddrMode");
         mnemonToBranchFuncMap.insert("DECODEINSTRSPEC",InstructionSpecifierDecoder); branchFuncToMnemonMap.insert(InstructionSpecifierDecoder,"DecodeInstrSpec");
         mnemonToBranchFuncMap.insert("STOPCPU",Stop); branchFuncToMnemonMap.insert(Stop,"StopCPU");

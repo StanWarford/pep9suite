@@ -554,8 +554,9 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::IsPCEven:
-        if(data->getRegisterBankByte(7)%2 == 0) {
+    // 2020-07-02: Test for odd instead of even, will require inverting if .. else .. clauses in existing microcode.
+    case Enu::PCisOdd:
+        if(data->getRegisterBankByte(7)%2 == 1) {
             temp = prog->getTrueTarget()->getValue();
         }
         else {

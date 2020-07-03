@@ -22,11 +22,11 @@ EOMux=1, AMux=0, ALU=0, CMux=1, C=5; LoadCk; goto start
 // ================
 
 // Decide if the program counter is even, and select instruction specifier fetch logic.
-start: if isPCEven is_fetch_e else is_fetch_o 
+start: if PCisOdd is_fetch_o else is_fetch_e
 
 // ----------------
 // Even Instruction Specifier fetch w/ prefetch
-// ----------------
+// ----------------F
 
 is_fetch_e: A=6, B=7, MARMux=1; MARCk
 // Initiate fetch, PC ← PC plus 1.
@@ -70,7 +70,7 @@ unary_dispatch: DecodeInstrSpec
 // ----------------
 
 // Decide if the program counter is even, and select operand specifier fetch logic.
-os_fetch: if isPCEven os_even else os_odd 
+os_fetch: if PCisOdd os_odd else os_even
 
 // PC is even, so there is no prefetch to use. Fetch from Mem[PC].
 os_even: A=6, B=7, MARMux=1; MARCk
