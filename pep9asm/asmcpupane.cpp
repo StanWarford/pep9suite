@@ -136,7 +136,7 @@ void AsmCpuPane::updateCpu() {
     else {
         ui->oprndSpecHexLabel->setText(QString("0x") + QString("%1").arg(opsc, 4,
                                                                          16, QLatin1Char('0')).toUpper());
-        ui->oprndSpecDecLabel->setText(QString("%1").arg(static_cast<qint16>(opsc)));
+        ui->oprndSpecDecLabel->setText(QString("%1").arg(static_cast<quint16>(opsc)));
 
         quint16 opVal = isacpu->getOperandValue();
 
