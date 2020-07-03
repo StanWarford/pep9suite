@@ -53,6 +53,8 @@ void ExecutionStatisticsWidget::init(QSharedPointer<InterfaceISACPU> cpu, bool s
         ui->label->hide();
         ui->lineEdit_Cycles->hide();
     }
+    // Refresh data adjusts visible headers.
+    refreshData();
 }
 
 ExecutionStatisticsWidget::~ExecutionStatisticsWidget()
