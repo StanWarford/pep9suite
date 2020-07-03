@@ -173,7 +173,6 @@ private slots:
     void handleDebugButtons();
     bool on_actionDebug_Start_Debugging_triggered();
 
-    void on_actionDebug_Interupt_Execution_triggered();
     void on_actionDebug_Continue_triggered();
     void on_actionDebug_Stop_Debugging_triggered();
 

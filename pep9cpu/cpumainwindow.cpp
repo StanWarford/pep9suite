@@ -835,11 +835,6 @@ void CPUMainWindow::on_actionDebug_Stop_Debugging_triggered()
     emit simulationFinished();
 }
 
-void CPUMainWindow::on_actionDebug_Interupt_Execution_triggered()
-{
-    on_actionDebug_Stop_Debugging_triggered();
-}
-
 void CPUMainWindow::on_actionDebug_Continue_triggered()
 {
     debugState = DebugState::DEBUG_RESUMED;

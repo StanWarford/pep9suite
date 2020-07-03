@@ -69,10 +69,10 @@ private:
 private slots:
     void on_tagBits_valueChanged(int newValue);
     void on_indexBits_valueChanged(int newValue);
-    void on_offsetBits_valueChanged(int newValue);
     void on_associativityNum_valueChanged(int newValue);
     void on_replacementCombo_currentIndexChanged(int);
-    void on_writeAllocationCombo_currentIndexChanged(int);
+    // Re-enable if we decide to allow change write-allocation policy.
+    //void on_writeAllocationCombo_currentIndexChanged(int);
     void on_updateButton_pressed();
 };
 

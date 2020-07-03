@@ -145,11 +145,6 @@ void CacheConfig::on_indexBits_valueChanged(int newValue)
     updateAddressBits();
 }
 
-void CacheConfig::on_offsetBits_valueChanged(int /*newValue*/)
-{
-    // No operation, since offset is computed from tag, index bits.
-}
-
 void CacheConfig::on_associativityNum_valueChanged(int newValue)
 {
     if(cache->getAssociativty() != newValue) valuesChanged |= true;
@@ -165,9 +160,11 @@ void CacheConfig::on_replacementCombo_currentIndexChanged(int)
     updateButtonRefresh();
 }
 
+// Re-enable if we decide to allow for different write-allocation policies.
+/*
 void CacheConfig::on_writeAllocationCombo_currentIndexChanged(int)
 {
-    /*Cache::WriteAllocationPolicy policy;
+    Cache::WriteAllocationPolicy policy;
     // Convert from true/false string to enumerated write allocation policy.
     if(ui->writeAllocationCombo->currentIndex() == 0) {
         policy = Cache::WriteAllocationPolicy::NoWriteAllocate;
@@ -175,9 +172,9 @@ void CacheConfig::on_writeAllocationCombo_currentIndexChanged(int)
         policy = Cache::WriteAllocationPolicy::WriteAllocate;
     }
     if(cache->getAllocationPolicy() != policy) valuesChanged |= true;
-    updateButtonRefresh();*/
+    updateButtonRefresh();
 }
-
+*/
 void CacheConfig::on_updateButton_pressed()
 {
     if(valuesChanged) {
