@@ -20,7 +20,7 @@
    <string>Pep/9</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../pep9micro/pep9micro-resources.qrc">
+   <iconset>
     <normaloff>:/images/Pep9micro-icon.png</normaloff>:/images/Pep9micro-icon.png</iconset>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
@@ -47,7 +47,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <property name="documentMode">
         <bool>false</bool>
@@ -240,7 +240,7 @@
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -355,7 +355,7 @@
     <addaction name="separator"/>
     <addaction name="actionView_Assembler_Tab"/>
     <addaction name="actionView_Debugger_Tab"/>
-    <addaction name="separator"/>
+    <addaction name="actionView_Statistics_Tab"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -1072,6 +1072,14 @@
     <string>Pep/9 Cache</string>
    </property>
   </action>
+  <action name="actionView_Statistics_Tab">
+   <property name="text">
+    <string>Statistics Tab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+6</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -1100,12 +1108,6 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>AsmCpuPane</class>
-   <extends>QWidget</extends>
-   <header>asmcpupane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>AssemblerPane</class>
    <extends>QWidget</extends>
    <header>assemblerpane.h</header>
@@ -1118,6 +1120,12 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>AsmCpuPane</class>
+   <extends>QWidget</extends>
+   <header>asmcpupane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>CacheView</class>
    <extends>QWidget</extends>
    <header>cacheview.h</header>
@@ -1125,8 +1133,8 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../pep9common/pep9common-resources.qrc"/>
   <include location="pep9asm-resources.qrc"/>
+  <include location="../pep9common/pep9common-resources.qrc"/>
  </resources>
  <connections>
   <connection>

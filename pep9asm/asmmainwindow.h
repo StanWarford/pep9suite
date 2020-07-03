@@ -240,6 +240,7 @@ private slots:
     void on_actionView_Code_CPU_Memory_triggered();
     void on_actionView_Assembler_Tab_triggered();
     void on_actionView_Debugger_Tab_triggered();
+    void on_actionView_Statistics_Tab_triggered();
 
     //Run events
     void onSimulationFinished();

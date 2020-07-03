@@ -101,7 +101,6 @@
     <addaction name="actionFile_Save_Microcode"/>
     <addaction name="actionFile_Save_Microcode_As"/>
     <addaction name="separator"/>
-    <addaction name="separator"/>
     <addaction name="actionFile_Print_Microcode"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -178,7 +177,6 @@
     </property>
     <addaction name="actionView_CPU_Code"/>
     <addaction name="actionView_CPU_Code_Memory"/>
-    <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>

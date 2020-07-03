@@ -1734,6 +1734,11 @@ void AsmMainWindow::on_actionView_Debugger_Tab_triggered()
     ui->tabWidget->setCurrentWidget(ui->debuggerTab);
 }
 
+void AsmMainWindow::on_actionView_Statistics_Tab_triggered()
+{
+    ui->tabWidget->setCurrentWidget(ui->statsTab);
+}
+
 // Byte Converter slots
 
 void AsmMainWindow::slotByteConverterBinEdited(const QString &str)

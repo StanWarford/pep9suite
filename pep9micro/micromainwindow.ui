@@ -340,7 +340,6 @@
     <addaction name="actionView_Assembler_Tab"/>
     <addaction name="actionView_Debugger_Tab"/>
     <addaction name="actionView_Statistics_Tab"/>
-    <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -1187,28 +1186,17 @@
     <string>Ctrl+4</string>
    </property>
   </action>
-  <action name="actionView_Statistics_Tab">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Statistics Tab</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+5</string>
-   </property>
-   <property name="visible">
-    <bool>false</bool>
-   </property>
-  </action>
   <action name="actionDebug_Start_Debugging_Microcode">
    <property name="text">
     <string>Start Debugging Microcode</string>
    </property>
   </action>
-  <action name="actionHelp_Execution_Statistics">
+  <action name="actionView_Statistics_Tab">
    <property name="text">
-    <string>Execution Statistics</string>
+    <string>Statistics Tab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+5</string>
    </property>
   </action>
  </widget>
