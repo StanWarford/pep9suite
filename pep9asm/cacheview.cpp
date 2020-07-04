@@ -33,6 +33,9 @@
 
 static const int EvictedData = Qt::UserRole + 1;
 
+// Record a boolean if the user has manually expanded / closed a row.
+static const int UserExpandedRow = Qt::UserRole + 2;
+
 // Convert an address range to a well-padded string.
 QString toAddressRange(quint16 lower, quint16 upper)
 {
@@ -60,6 +63,10 @@ CacheView::CacheView(QWidget *parent) :
     // Handle right click events.
     ui->cacheTree->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->cacheTree, &QTreeView::customContextMenuRequested, this, &CacheView::handle_custom_menu);
+
+    // Handle expand / contract events.
+    connect(ui->cacheTree, &QTreeView::collapsed, this, &CacheView::onExpandChanged);
+    connect(ui->cacheTree, &QTreeView::expanded, this, &CacheView::onExpandChanged);
 }
 
 CacheView::~CacheView()
@@ -127,6 +134,15 @@ void CacheView::accept_show_in_memory()
     emit requestCacheHighlighting(std::get<0>(menu_tag_index), std::get<1>(menu_tag_index));
 }
 
+void CacheView::onExpandChanged(const QModelIndex &index)
+{
+    // A child item was expaned (which should be impossible), so return.
+    if(index.parent() != QModelIndex()) return;
+
+    data->itemFromIndex(index)->setData(true, UserExpandedRow);
+
+}
+
 void CacheView::refreshLine(quint16 line)
 {
     // Determine cache parameters.
@@ -141,8 +157,10 @@ void CacheView::refreshLine(quint16 line)
     auto* lineItem = data->item(line, index_column);
     if(lineItem == nullptr) {
         lineItem = new QStandardItem(QString("%1").arg(line));
+        lineItem->setData(false, UserExpandedRow);
         data->setItem(line, index_column, lineItem);
     }
+    const bool interacted_with = lineItem->data(UserExpandedRow).toBool();
     auto lineIndex = data->index(line, index_column);
 
     // Ensure the right number of rows / columns are in the cache line.
@@ -242,6 +260,12 @@ void CacheView::refreshLine(quint16 line)
 
     // Display the row if it is not blank.
     ui->cacheTree->setRowHidden(line, QModelIndex(), !blank);
+
+    // Expand rows by default.
+    // Will trigger onExpandChange(), which will prevent the row from being auto-expanded again.
+    if(!blank && !interacted_with) {
+        ui->cacheTree->expand(lineIndex);
+    }
 }
 
 void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, const CacheEntry *entryPtr, bool evicted)
@@ -287,6 +311,7 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
     if(eviction_candidate == entry) {
         c2_evict = Qt::CheckState::Checked;
     }
+
 
 
     auto lineIndex = data->index(line, index_column);
@@ -344,10 +369,24 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
 
     // Assign values to each column based on the current cache entry.
     data->itemFromIndex(data->index(entry, tag_column, lineIndex))->setData(c1_tag, Qt::DisplayRole);
-    data->itemFromIndex(data->index(entry, eviction_column, lineIndex))->setCheckState(c2_evict);
     data->itemFromIndex(data->index(entry, address_column, lineIndex))->setData(c3_address, Qt::DisplayRole);
-    data->itemFromIndex(data->index(entry, present_column, lineIndex))->setData(entryPtr->is_present, Qt::DisplayRole);
     data->itemFromIndex(data->index(entry, hits_column, lineIndex))->setData(c5_hits, Qt::DisplayRole);
+
+
+
+    if(!evicted) {
+        data->itemFromIndex(data->index(entry, present_column, lineIndex))->setData(entryPtr->is_present, Qt::DisplayRole);
+        // Only display "next victim" checkbox if the row is present.
+        data->itemFromIndex(data->index(entry, eviction_column, lineIndex))->setCheckable(entryPtr->is_present);
+        if(entryPtr->is_present) {
+            data->itemFromIndex(data->index(entry, eviction_column, lineIndex))->setCheckState(c2_evict);
+        }
+    }
+    // Hide check boxes / valid bits on evicted entries.
+    else {
+        data->itemFromIndex(data->index(entry, present_column, lineIndex))->setData("", Qt::DisplayRole);
+        data->itemFromIndex(data->index(entry, eviction_column, lineIndex))->setCheckable(false);
+    }
 }
 
 void CacheView::reset_eviction_collation()
@@ -480,7 +519,7 @@ void CacheView::onCacheConfigChanged()
     to_delete.clear();
 
     // Must set headers after clearing, or headers will be removed.
-    data->setHeaderData(static_cast<int>(Columns::IndexColumn), Qt::Horizontal, "Index", Qt::DisplayRole);
+    data->setHeaderData(static_cast<int>(Columns::IndexColumn), Qt::Horizontal, "Line", Qt::DisplayRole);
     data->setHeaderData(static_cast<int>(Columns::TagColumn), Qt::Horizontal, "Tag", Qt::DisplayRole);
     data->setHeaderData(static_cast<int>(Columns::EvictColumn), Qt::Horizontal, "Next Victim", Qt::DisplayRole);
     data->setHeaderData(static_cast<int>(Columns::AddressColumn), Qt::Horizontal, "Address Range", Qt::DisplayRole);

@@ -68,6 +68,8 @@ public:
     // Rescale the cache view to the new cache parameters.
     void rebuild();
 
+    void clearOldHighlights();
+
     // Re-render cache based on memory updates.
     void refreshMemory();
     // Post: All memory address are re-rendered.
@@ -118,6 +120,8 @@ private slots:
 
     // Emit requestCacheHighlighting with the most recently selected addresses.
     void accept_show_in_memory();
+
+    void onExpandChanged(const QModelIndex &index);
 private:
     Ui::CacheView *ui;
     QStandardItemModel* data;
