@@ -26,7 +26,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="tagBits"/>
+        <widget class="QSpinBox" name="tagBits">
+         <property name="minimumSize">
+          <size>
+           <width>45</width>
+           <height>0</height>
+          </size>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="horizontalSpacer">
@@ -53,7 +60,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="indexBits"/>
+        <widget class="QSpinBox" name="indexBits">
+         <property name="minimumSize">
+          <size>
+           <width>45</width>
+           <height>0</height>
+          </size>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="horizontalSpacer_2">
@@ -107,7 +121,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="associativityNum"/>
+        <widget class="QSpinBox" name="associativityNum">
+         <property name="minimumSize">
+          <size>
+           <width>45</width>
+           <height>0</height>
+          </size>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="horizontalSpacer_3">
@@ -134,22 +155,39 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="5" colspan="2">
-      <widget class="QPushButton" name="updateButton">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Update Configuration</string>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="5" colspan="2">
       <widget class="QLabel" name="byteFieldBits">
        <property name="text">
         <string/>
        </property>
       </widget>
+     </item>
+     <item row="3" column="5" colspan="2">
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <spacer name="horizontalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="updateButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Update Configuration</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
