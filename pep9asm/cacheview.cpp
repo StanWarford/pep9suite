@@ -52,6 +52,7 @@ CacheView::CacheView(QWidget *parent) :
     ui->setupUi(this);
 
     ui->cacheTree->setFont(Pep::codeFont);
+    ui->cacheTree->header()->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
 
     // Create cache delegate
     del = new CacheViewDelegate(cache, colors);
@@ -67,6 +68,8 @@ CacheView::CacheView(QWidget *parent) :
     // Handle expand / contract events.
     connect(ui->cacheTree, &QTreeView::collapsed, this, &CacheView::onExpandChanged);
     connect(ui->cacheTree, &QTreeView::expanded, this, &CacheView::onExpandChanged);
+
+    ui->cacheLabel->setFont(Pep::labelFont);
 }
 
 CacheView::~CacheView()

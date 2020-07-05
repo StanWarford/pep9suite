@@ -24,6 +24,8 @@
 #include "cachealgs.h"
 #include "cachememory.h"
 
+#include "pep.h"
+
 #include <QMessageBox>
 
 CacheConfig::CacheConfig(QWidget *parent) :
@@ -50,6 +52,18 @@ void CacheConfig::init(QSharedPointer<CacheMemory> cache, bool enableCacheChange
     for(auto keyIndex = 0; keyIndex < metaEnum.keyCount(); keyIndex++) {
         ui->replacementCombo->addItem(QString(metaEnum.key(keyIndex)));
     }
+
+    ui->updateButton->setFont(Pep::labelFont);
+    ui->tagBits->setFont(Pep::labelFont);
+    ui->tagLabel->setFont(Pep::labelFont);
+    ui->indexBits->setFont(Pep::labelFont);
+    ui->lineLabel->setFont(Pep::labelFont);
+    ui->byteFieldBits->setFont(Pep::labelFont);
+    ui->replacementLabel->setFont(Pep::labelFont);
+    ui->replacementCombo->setFont(Pep::labelFont);
+    ui->associativityNum->setFont(Pep::labelFont);
+    ui->associativtyLabel->setFont(Pep::labelFont);
+    ui->widgetLabel->setFont(Pep::labelFont);
 }
 
 void CacheConfig::setReadOnly(bool readOnly)

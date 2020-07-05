@@ -2,6 +2,7 @@
 #include "ui_cacheaddresstranslator.h"
 
 #include "cachememory.h"
+#include "pep.h"
 CacheAddressTranslator::CacheAddressTranslator(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CacheAddressTranslator), cache(nullptr)
@@ -13,6 +14,15 @@ CacheAddressTranslator::CacheAddressTranslator(QWidget *parent) :
     connect(ui->offsetBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CacheAddressTranslator::cache_address_changed);
 
     connect(ui->addressBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &CacheAddressTranslator::address_changed);
+
+    ui->widgetLabel->setFont(Pep::labelFont);
+    ui->tagLabel->setFont(Pep::labelFont);
+    ui->tagBox->setFont(Pep::labelFont);
+    ui->lineLabel->setFont(Pep::labelFont);
+    ui->lineBox->setFont(Pep::labelFont);
+    ui->offsetBox->setFont(Pep::labelFont);
+    ui->addressLabel->setFont(Pep::labelFont);
+    ui->addressBox->setFont(Pep::labelFont);
 }
 
 void CacheAddressTranslator::init(QSharedPointer<CacheMemory> cache)

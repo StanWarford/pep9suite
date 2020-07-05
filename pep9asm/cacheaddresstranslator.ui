@@ -19,7 +19,7 @@
      <item row="1" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QLabel" name="label_2">
+        <widget class="QLabel" name="tagLabel">
          <property name="text">
           <string>Tag</string>
          </property>
@@ -51,7 +51,7 @@
       </layout>
      </item>
      <item row="0" column="0" colspan="3">
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="widgetLabel">
        <property name="text">
         <string>Address Translation Calculator</string>
        </property>
@@ -63,7 +63,7 @@
      <item row="1" column="1">
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
-        <widget class="QLabel" name="label_3">
+        <widget class="QLabel" name="lineLabel">
          <property name="text">
           <string>Line</string>
          </property>
@@ -97,7 +97,7 @@
      <item row="1" column="2">
       <layout class="QHBoxLayout" name="horizontalLayout_6">
        <item>
-        <widget class="QLabel" name="label_5">
+        <widget class="QLabel" name="byteLabel">
          <property name="text">
           <string>Byte Offset</string>
          </property>
@@ -131,7 +131,7 @@
      <item row="2" column="1">
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item>
-        <widget class="QLabel" name="label_4">
+        <widget class="QLabel" name="addressLabel">
          <property name="text">
           <string>Address</string>
          </property>
