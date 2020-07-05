@@ -29,7 +29,7 @@
         <widget class="QSpinBox" name="tagBox">
          <property name="minimumSize">
           <size>
-           <width>45</width>
+           <width>55</width>
            <height>0</height>
           </size>
          </property>
@@ -73,7 +73,7 @@
         <widget class="QSpinBox" name="lineBox">
          <property name="minimumSize">
           <size>
-           <width>45</width>
+           <width>55</width>
            <height>0</height>
           </size>
          </property>
@@ -107,7 +107,7 @@
         <widget class="QSpinBox" name="offsetBox">
          <property name="minimumSize">
           <size>
-           <width>45</width>
+           <width>55</width>
            <height>0</height>
           </size>
          </property>
@@ -141,7 +141,7 @@
         <widget class="QSpinBox" name="addressBox">
          <property name="minimumSize">
           <size>
-           <width>45</width>
+           <width>55</width>
            <height>0</height>
           </size>
          </property>

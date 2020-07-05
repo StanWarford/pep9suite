@@ -29,7 +29,7 @@
         <widget class="QSpinBox" name="tagBits">
          <property name="minimumSize">
           <size>
-           <width>45</width>
+           <width>55</width>
            <height>0</height>
           </size>
          </property>
@@ -63,7 +63,7 @@
         <widget class="QSpinBox" name="indexBits">
          <property name="minimumSize">
           <size>
-           <width>45</width>
+           <width>55</width>
            <height>0</height>
           </size>
          </property>
@@ -124,7 +124,7 @@
         <widget class="QSpinBox" name="associativityNum">
          <property name="minimumSize">
           <size>
-           <width>45</width>
+           <width>55</width>
            <height>0</height>
           </size>
          </property>
