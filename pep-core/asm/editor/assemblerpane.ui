@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AssemblerPane</class>
+ <widget class="QWidget" name="AssemblerPane">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>1</number>
+   </property>
+   <property name="topMargin">
+    <number>1</number>
+   </property>
+   <property name="rightMargin">
+    <number>1</number>
+   </property>
+   <property name="bottomMargin">
+    <number>1</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <widget class="AsmSourceCodePane" name="sourcePane" native="true"/>
+     <widget class="AsmObjectCodePane" name="objectPane" native="true"/>
+     <widget class="AsmProgramListingPane" name="listingPane" native="true"/>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>AsmProgramListingPane</class>
+   <extends>QWidget</extends>
+   <header>editor/asmprogramlistingpane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AsmSourceCodePane</class>
+   <extends>QWidget</extends>
+   <header>editor/asmsourcecodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AsmObjectCodePane</class>
+   <extends>QWidget</extends>
+   <header>editor/asmobjectcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

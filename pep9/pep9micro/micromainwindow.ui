@@ -1,0 +1,1285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MicroMainWindow</class>
+ <widget class="QMainWindow" name="MicroMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>960</width>
+    <height>553</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Pep/9 Micro</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>:/images/Pep9micro-icon.png</normaloff>:/images/Pep9micro-icon.png</iconset>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>6</number>
+    </property>
+    <property name="topMargin">
+     <number>6</number>
+    </property>
+    <property name="rightMargin">
+     <number>6</number>
+    </property>
+    <property name="bottomMargin">
+     <number>6</number>
+    </property>
+    <item row="0" column="0">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>5</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777208</height>
+       </size>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <property name="documentMode">
+       <bool>false</bool>
+      </property>
+      <property name="movable">
+       <bool>true</bool>
+      </property>
+      <property name="tabBarAutoHide">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="assemblerTab">
+       <attribute name="title">
+        <string>Assembler</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="assemblerGridLayout">
+          <item row="0" column="0">
+           <widget class="QSplitter" name="codeSplitter">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="opaqueResize">
+             <bool>true</bool>
+            </property>
+            <widget class="AssemblerPane" name="assemblerPane" native="true"/>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="debuggerTab">
+       <attribute name="title">
+        <string>Debugger</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="QSplitter" name="debuggerSplitter">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="CpuPane" name="cpuWidget" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+             <horstretch>2</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
+          <widget class="QTabWidget" name="debuggerTabWidget">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="currentIndex">
+            <number>0</number>
+           </property>
+           <widget class="QWidget" name="microcodeDebuggerTab">
+            <attribute name="title">
+             <string>Microcode</string>
+            </attribute>
+            <layout class="QGridLayout" name="gridLayout_3">
+             <item row="0" column="0">
+              <widget class="QSplitter" name="splitter">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <widget class="MicrocodePane" name="microcodeWidget" native="true">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>2</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+               <widget class="MicroObjectCodePane" name="microObjectCodePane" native="true">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>1</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>350</height>
+                 </size>
+                </property>
+               </widget>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="assemblerDebuggerTab">
+            <attribute name="title">
+             <string>Assembler</string>
+            </attribute>
+            <layout class="QGridLayout" name="gridLayout_9">
+             <item row="0" column="0">
+              <widget class="AsmProgramTracePane" name="asmProgramTracePane" native="true"/>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="statsTab">
+       <attribute name="title">
+        <string>Statistics</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_10">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_8">
+          <item row="0" column="0">
+           <widget class="ExecutionStatisticsWidget" name="executionStatisticsWidget" native="true"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>960</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionFile_New_Asm"/>
+    <addaction name="actionFile_New_Microcode"/>
+    <addaction name="actionFile_Open"/>
+    <addaction name="separator"/>
+    <addaction name="actionFile_Save_Asm"/>
+    <addaction name="actionFile_Save_Microcode"/>
+    <addaction name="separator"/>
+    <addaction name="actionFile_Save_Asm_Source_As"/>
+    <addaction name="actionFile_Save_Object_Code_As"/>
+    <addaction name="actionFile_Save_Assembler_Listing_As"/>
+    <addaction name="actionFile_Save_Microcode_As"/>
+    <addaction name="separator"/>
+    <addaction name="actionFile_Print_Assembler_Source"/>
+    <addaction name="actionFile_Print_Object_Code"/>
+    <addaction name="actionFile_Print_Assembler_Listing"/>
+    <addaction name="actionFile_Print_Microcode"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <widget class="QMenu" name="menuFormat">
+     <property name="title">
+      <string>Assemble &amp;&amp; Format...</string>
+     </property>
+     <addaction name="actionEdit_Format_Assembler"/>
+     <addaction name="actionEdit_Format_Microcode"/>
+    </widget>
+    <widget class="QMenu" name="menuRemove_Error_Messages">
+     <property name="title">
+      <string>Remove Error Messages</string>
+     </property>
+     <addaction name="actionEdit_Remove_Error_Assembler"/>
+     <addaction name="actionEdit_Remove_Error_Microcode"/>
+    </widget>
+    <addaction name="actionEdit_Undo"/>
+    <addaction name="actionEdit_Redo"/>
+    <addaction name="separator"/>
+    <addaction name="actionEdit_Cut"/>
+    <addaction name="actionEdit_Copy"/>
+    <addaction name="actionEdit_Paste"/>
+    <addaction name="separator"/>
+    <addaction name="actionEdit_UnComment_Line"/>
+    <addaction name="menuFormat"/>
+    <addaction name="menuRemove_Error_Messages"/>
+    <addaction name="separator"/>
+    <addaction name="actionEdit_Font"/>
+    <addaction name="actionEdit_Reset_font_to_Default"/>
+   </widget>
+   <widget class="QMenu" name="menuSystem">
+    <property name="title">
+     <string>System</string>
+    </property>
+    <addaction name="actionSystem_Clear_CPU"/>
+    <addaction name="actionSystem_Clear_Memory"/>
+    <addaction name="separator"/>
+    <addaction name="actionSystem_Assemble_Install_New_OS"/>
+    <addaction name="actionSystem_Reinstall_Default_OS"/>
+    <addaction name="actionSystem_Redefine_Mnemonics"/>
+    <addaction name="separator"/>
+    <addaction name="actionSystem_Code_Fragment"/>
+    <addaction name="actionSystem_Complete_Microcode"/>
+    <addaction name="separator"/>
+    <addaction name="actionSystem_Redefine_Decoder_Tables"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionHelp_Writing_Assembly_Programs"/>
+    <addaction name="actionHelp_Machine_Language"/>
+    <addaction name="actionHelp_Assembly_Language"/>
+    <addaction name="actionHelp_Debugging_Assembly"/>
+    <addaction name="actionHelp_Writing_Trap_Handlers"/>
+    <addaction name="separator"/>
+    <addaction name="actionHelp_Using_Pep_9_CPU"/>
+    <addaction name="actionHelp_Interactive_Use"/>
+    <addaction name="actionHelp_Microcode_Use"/>
+    <addaction name="actionHelp_Debugging_Use"/>
+    <addaction name="separator"/>
+    <addaction name="actionHelp_Pep9Reference"/>
+    <addaction name="actionHelp_Examples"/>
+    <addaction name="actionHelp_Pep9_Operating_System"/>
+    <addaction name="actionHelp_Pep9_Microcode_Implementation"/>
+    <addaction name="separator"/>
+    <addaction name="actionHelp_About_Pep9Micro"/>
+    <addaction name="actionHelp_About_Qt"/>
+   </widget>
+   <widget class="QMenu" name="menuBuild">
+    <property name="title">
+     <string>Build</string>
+    </property>
+    <addaction name="actionBuild_Microcode"/>
+    <addaction name="actionBuild_Assemble"/>
+    <addaction name="actionBuild_Load_Object"/>
+    <addaction name="actionBuild_Execute"/>
+    <addaction name="separator"/>
+    <addaction name="actionBuild_Run"/>
+    <addaction name="actionBuild_Run_Object"/>
+   </widget>
+   <widget class="QMenu" name="menuDebug_2">
+    <property name="title">
+     <string>Debug</string>
+    </property>
+    <addaction name="actionDebug_Start_Debugging"/>
+    <addaction name="actionDebug_Start_Debugging_Object"/>
+    <addaction name="actionDebug_Start_Debugging_Loader"/>
+    <addaction name="separator"/>
+    <addaction name="actionDebug_Start_Debugging_Microcode"/>
+    <addaction name="separator"/>
+    <addaction name="actionDebug_Interupt_Execution"/>
+    <addaction name="actionDebug_Continue"/>
+    <addaction name="actionDebug_Stop_Debugging"/>
+    <addaction name="separator"/>
+    <addaction name="actionDebug_Single_Step_Assembler"/>
+    <addaction name="actionDebug_Step_Over_Assembler"/>
+    <addaction name="actionDebug_Step_Into_Assembler"/>
+    <addaction name="actionDebug_Step_Out_Assembler"/>
+    <addaction name="separator"/>
+    <addaction name="actionDebug_Single_Step_Microcode"/>
+    <addaction name="separator"/>
+    <addaction name="actionDebug_Remove_All_Assembly_Breakpoints"/>
+    <addaction name="actionDebug_Remove_All_Microcode_Breakpoints"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <property name="separatorsCollapsible">
+     <bool>false</bool>
+    </property>
+    <addaction name="actionView_Assembler_Tab"/>
+    <addaction name="actionView_Debugger_Tab"/>
+    <addaction name="actionView_Statistics_Tab"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuBuild"/>
+   <addaction name="menuDebug_2"/>
+   <addaction name="menuSystem"/>
+   <addaction name="menuView"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="windowTitle">
+    <string>Main Toolbar</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionHelp"/>
+   <addaction name="actionBuild_Microcode"/>
+   <addaction name="actionBuild_Assemble"/>
+   <addaction name="actionBuild_Run"/>
+   <addaction name="actionDebug_Start_Debugging"/>
+  </widget>
+  <widget class="QToolBar" name="byteConverterToolBar">
+   <property name="windowTitle">
+    <string>Byte Converter</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionDebug_Continue"/>
+   <addaction name="actionDebug_Stop_Debugging"/>
+   <addaction name="actionDebug_Single_Step_Assembler"/>
+   <addaction name="actionDebug_Step_Over_Assembler"/>
+   <addaction name="actionDebug_Step_Into_Assembler"/>
+   <addaction name="actionDebug_Step_Out_Assembler"/>
+   <addaction name="separator"/>
+   <addaction name="actionDebug_Single_Step_Microcode"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="debugToolBar">
+   <property name="windowTitle">
+    <string>Debug Tools</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QDockWidget" name="memoryDockWdget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>8</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>174</width>
+     <height>246</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>Memory Dump</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="0">
+      <widget class="MemoryDumpPane" name="memoryWidget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>1</horstretch>
+         <verstretch>8</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>200</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="ioDockWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>4</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="windowTitle">
+    <string>IO Pane</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QGridLayout" name="gridLayout_5">
+     <item row="0" column="0">
+      <widget class="IOWidget" name="ioWidget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>1</horstretch>
+         <verstretch>3</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>110</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="memoryTraceDockWidget">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="windowTitle">
+    <string>Memory Trace</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_3">
+    <layout class="QGridLayout" name="gridLayout_7">
+     <item row="0" column="0">
+      <widget class="NewMemoryTracePane" name="memoryTracePane" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="actionFile_New_Asm">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Assembly Program</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionFile_Open">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionFile_Save_Asm">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Assembler Source</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionFile_Save_Asm_Source_As">
+   <property name="text">
+    <string>Save Assembler Source As...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Undo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/undo.png</normaloff>:/images/undo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Redo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/redo.png</normaloff>:/images/redo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Cut">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/cut.png</normaloff>:/images/cut.png</iconset>
+   </property>
+   <property name="text">
+    <string>Cut</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Copy">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/copy.png</normaloff>:/images/copy.png</iconset>
+   </property>
+   <property name="text">
+    <string>Copy</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Paste">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/paste.png</normaloff>:/images/paste.png</iconset>
+   </property>
+   <property name="text">
+    <string>Paste</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionEdit_Font">
+   <property name="text">
+    <string>Font...</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionSystem_Clear_CPU">
+   <property name="text">
+    <string>Clear CPU</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionSystem_Clear_Memory">
+   <property name="text">
+    <string>Clear Memory</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionBuild_Run">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/run.png</normaloff>:/images/run.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run Source</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionDebug_Start_Debugging">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/debugger_start.png</normaloff>:/images/debugger_start.png</iconset>
+   </property>
+   <property name="text">
+    <string>Start Debugging</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionDebug_Stop_Debugging">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/debugger_stop.png</normaloff>:/images/debugger_stop.png</iconset>
+   </property>
+   <property name="text">
+    <string>Stop Debugging</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/help.png</normaloff>:/images/help.png</iconset>
+   </property>
+   <property name="text">
+    <string>Help</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+  </action>
+  <action name="actionFile_Print_Microcode">
+   <property name="text">
+    <string>Print Microcode...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+P</string>
+   </property>
+  </action>
+  <action name="actionFile_Print_Object_Code">
+   <property name="text">
+    <string>Print Object Code...</string>
+   </property>
+  </action>
+  <action name="actionHelp_About_Pep9Micro">
+   <property name="text">
+    <string>About Pep9Micro</string>
+   </property>
+   <property name="toolTip">
+    <string>About Pep9Micro</string>
+   </property>
+  </action>
+  <action name="actionHelp_About_Qt">
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+  </action>
+  <action name="actionEdit_UnComment_Line">
+   <property name="text">
+    <string>Un/Comment Microcode Line</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+/</string>
+   </property>
+  </action>
+  <action name="actionHelp_Pep9Reference">
+   <property name="text">
+    <string>Pep/9 Reference</string>
+   </property>
+  </action>
+  <action name="actionHelp_Examples">
+   <property name="text">
+    <string>Examples</string>
+   </property>
+  </action>
+  <action name="actionEdit_Reset_font_to_Default">
+   <property name="text">
+    <string>Reset Font to Default</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset Font to Default</string>
+   </property>
+  </action>
+  <action name="actionEdit_Format_Assembler">
+   <property name="text">
+    <string>Assembler Source</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionEdit_Format_Microcode">
+   <property name="text">
+    <string>Microcode Source</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+L</string>
+   </property>
+  </action>
+  <action name="actionEdit_Remove_Error_Assembler">
+   <property name="text">
+    <string>Assembler Source</string>
+   </property>
+  </action>
+  <action name="actionEdit_Remove_Error_Microcode">
+   <property name="text">
+    <string>Microcode Source</string>
+   </property>
+  </action>
+  <action name="actionBuild_Assemble">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/assemble.png</normaloff>:/images/assemble.png</iconset>
+   </property>
+   <property name="text">
+    <string>Assemble Source</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+A</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionBuild_Load_Object">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/load-source.png</normaloff>:/images/load-source.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load Object Code</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionBuild_Microcode">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/flash.svg</normaloff>:/images/flash.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Build Microcode</string>
+   </property>
+   <property name="toolTip">
+    <string>Build Microcode</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+M</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionDebug_Interupt_Execution">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Interupt Execution</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+.</string>
+   </property>
+  </action>
+  <action name="actionDebug_Step_Over_Assembler">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/debugger_step_over.png</normaloff>:/images/debugger_step_over.png</iconset>
+   </property>
+   <property name="text">
+    <string>Step Over - Assembler</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionDebug_Step_Into_Assembler">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/debugger_step_into.png</normaloff>:/images/debugger_step_into.png</iconset>
+   </property>
+   <property name="text">
+    <string>Step Into - Assembler</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionDebug_Step_Out_Assembler">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/debugger_step_out.png</normaloff>:/images/debugger_step_out.png</iconset>
+   </property>
+   <property name="text">
+    <string>Step Out - Assembler</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionDebug_Single_Step_Microcode">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/debug_single_step_micro.png</normaloff>:/images/debug_single_step_micro.png</iconset>
+   </property>
+   <property name="text">
+    <string>Single Step - Microcode</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+Return</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionDebug_Restart_Debugging">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/debugger_restart.png</normaloff>:/images/debugger_restart.png</iconset>
+   </property>
+   <property name="text">
+    <string>Restart Debugging</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionDebug_Continue">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/debugger_continue.png</normaloff>:/images/debugger_continue.png</iconset>
+   </property>
+   <property name="text">
+    <string>Continue Debugging</string>
+   </property>
+   <property name="toolTip">
+    <string>Continue Debugging</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionBuild_Execute">
+   <property name="text">
+    <string>Execute</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+R</string>
+   </property>
+  </action>
+  <action name="actionDebug_Start_Debugging_Object">
+   <property name="text">
+    <string>Start Debugging Object</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+D</string>
+   </property>
+  </action>
+  <action name="actionDebug_Start_Debugging_Loader">
+   <property name="text">
+    <string>Start Debugging Loader</string>
+   </property>
+  </action>
+  <action name="actionFile_Print_Assembler_Source">
+   <property name="text">
+    <string>Print Assembler Source...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionFile_Print_Assembler_Listing">
+   <property name="text">
+    <string>Print Assembler Listing...</string>
+   </property>
+  </action>
+  <action name="actionFile_Save_Object_Code_As">
+   <property name="text">
+    <string>Save Object Code As...</string>
+   </property>
+  </action>
+  <action name="actionFile_Save_Assembler_Listing_As">
+   <property name="text">
+    <string>Save Assembler Listing As..</string>
+   </property>
+  </action>
+  <action name="actionFile_Save_Microcode_As">
+   <property name="text">
+    <string>Save Microcode As..</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionFile_New_Microcode">
+   <property name="text">
+    <string>New Microcode Program</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+N</string>
+   </property>
+  </action>
+  <action name="actionFile_Save_Microcode">
+   <property name="text">
+    <string>Save Microcode</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+S</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionDebug_Remove_All_Assembly_Breakpoints">
+   <property name="text">
+    <string>Remove All Assembly Breakpoints</string>
+   </property>
+  </action>
+  <action name="actionDebug_Remove_All_Microcode_Breakpoints">
+   <property name="text">
+    <string>Remove All Microcode Breakpoints</string>
+   </property>
+  </action>
+  <action name="actionSystem_Code_Fragment">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Code Fragment</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="actionSystem_Complete_Microcode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Complete Microcode</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="actionDebug_Single_Step_Assembler">
+   <property name="icon">
+    <iconset resource="../../pep-core/common/common-resources.qrc">
+     <normaloff>:/images/debug_single_step_asm.png</normaloff>:/images/debug_single_step_asm.png</iconset>
+   </property>
+   <property name="text">
+    <string>Single Step - Assembler</string>
+   </property>
+   <property name="toolTip">
+    <string>Single Step - Assembler</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Return</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionSystem_Redefine_Mnemonics">
+   <property name="text">
+    <string>Redefine Mnemonics...</string>
+   </property>
+  </action>
+  <action name="actionSystem_Assemble_Install_New_OS">
+   <property name="text">
+    <string>Assemble &amp;&amp; Install New OS</string>
+   </property>
+  </action>
+  <action name="actionSystem_Reinstall_Default_OS">
+   <property name="text">
+    <string>Reinstall Default OS</string>
+   </property>
+  </action>
+  <action name="actionHelp_Microcode_Use">
+   <property name="text">
+    <string>Microcode Use</string>
+   </property>
+  </action>
+  <action name="actionHelp_Debugging_Use">
+   <property name="text">
+    <string>Debugging Use</string>
+   </property>
+  </action>
+  <action name="actionHelp_Interactive_Use">
+   <property name="text">
+    <string>Interactive Use</string>
+   </property>
+  </action>
+  <action name="actionHelp_Pep9_Operating_System">
+   <property name="text">
+    <string>Pep/9 Operating System</string>
+   </property>
+  </action>
+  <action name="actionHelp_Pep9_Microcode_Implementation">
+   <property name="text">
+    <string>Pep/9 Microcode Implementation</string>
+   </property>
+  </action>
+  <action name="actionHelp_Debugging_Assembly">
+   <property name="text">
+    <string>Debugging Assembly</string>
+   </property>
+  </action>
+  <action name="actionHelp_Writing_Trap_Handlers">
+   <property name="text">
+    <string>Writing Trap Handlers</string>
+   </property>
+  </action>
+  <action name="actionHelp_Machine_Language">
+   <property name="text">
+    <string>Machine Language</string>
+   </property>
+  </action>
+  <action name="actionHelp_Assembly_Language">
+   <property name="text">
+    <string>Assembly Language</string>
+   </property>
+  </action>
+  <action name="actionHelp_Using_Pep_9_CPU">
+   <property name="text">
+    <string>Using Pep/9 Micro</string>
+   </property>
+  </action>
+  <action name="actionHelp_Writing_Assembly_Programs">
+   <property name="text">
+    <string>Writing Assembly Programs</string>
+   </property>
+  </action>
+  <action name="actionSystem_Redefine_Decoder_Tables">
+   <property name="text">
+    <string>Redefine Decoder Tables</string>
+   </property>
+  </action>
+  <action name="actionBuild_Run_Object">
+   <property name="text">
+    <string>Run Object</string>
+   </property>
+   <property name="toolTip">
+    <string>Run Object Code</string>
+   </property>
+  </action>
+  <action name="actionView_Assembler_Tab">
+   <property name="text">
+    <string>Assembler Tab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
+  </action>
+  <action name="actionView_Debugger_Tab">
+   <property name="text">
+    <string>Debugger Tab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+4</string>
+   </property>
+  </action>
+  <action name="actionDebug_Start_Debugging_Microcode">
+   <property name="text">
+    <string>Start Debugging Microcode</string>
+   </property>
+  </action>
+  <action name="actionView_Statistics_Tab">
+   <property name="text">
+    <string>Statistics Tab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+5</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>MemoryDumpPane</class>
+   <extends>QWidget</extends>
+   <header>memory/memorydumppane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>IOWidget</class>
+   <extends>QWidget</extends>
+   <header>io/iowidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>NewMemoryTracePane</class>
+   <extends>QWidget</extends>
+   <header>stack/memorytracepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AsmProgramTracePane</class>
+   <extends>QWidget</extends>
+   <header>debugger/asmprogramtracepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AssemblerPane</class>
+   <extends>QWidget</extends>
+   <header>editor/assemblerpane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ExecutionStatisticsWidget</class>
+   <extends>QWidget</extends>
+   <header>stats/executionstatisticswidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MicrocodePane</class>
+   <extends>QWidget</extends>
+   <header>editor/microcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MicroObjectCodePane</class>
+   <extends>QWidget</extends>
+   <header>object-viewer/microobjectcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CpuPane</class>
+   <extends>QWidget</extends>
+   <header>cpupane.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../../pep-core/common/common-resources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>actionExit</sender>
+   <signal>triggered(bool)</signal>
+   <receiver>MicroMainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>517</x>
+     <y>370</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>defaultFonts()</signal>
+  <slot>on_actionEdit_Font_Default_triggered()</slot>
+ </slots>
+</ui>
