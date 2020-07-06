@@ -26,6 +26,8 @@
 
 #include "pep/enu.h"
 
+#include "pep/constants.h"
+
 class AMemoryDevice;
 class InterruptHandler;
 /*
@@ -96,7 +98,7 @@ public slots:
     // late enabling of debugging might occur when "interupt execution" is executed.
     virtual void enableDebugging() = 0;
     // Force the CPU to undergo a "one shot" breakpoint. Useful for interupting an infinite loop.
-    virtual void forceBreakpoint(Enu::BreakpointTypes) = 0;
+    virtual void forceBreakpoint(PepCore::BreakpointTypes) = 0;
     // Cancel execution (and clean up) without raising any warnings.
     virtual void onCancelExecution() = 0;
 
@@ -109,7 +111,7 @@ public slots:
 
 signals:
     void simulationFinished();
-    void hitBreakpoint(Enu::BreakpointTypes type);
+    void hitBreakpoint(PepCore::BreakpointTypes type);
     // If a simulator does not support assembler (Pep9CPU), then this will not be emitted.
     void asmInstructionFinished();
 

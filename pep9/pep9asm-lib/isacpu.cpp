@@ -379,10 +379,10 @@ void IsaCpu::enableDebugging()
     inDebug = true;
 }
 
-void IsaCpu::forceBreakpoint(Enu::BreakpointTypes breakpoint)
+void IsaCpu::forceBreakpoint(PepCore::BreakpointTypes breakpoint)
 {
     switch(breakpoint){
-    case Enu::BreakpointTypes::ASSEMBLER:
+    case PepCore::BreakpointTypes::ASSEMBLER:
         ACPUModel::handler->interupt(Interrupts::BREAKPOINT_ASM);
         break;
     default:
@@ -1356,6 +1356,6 @@ void IsaCpu::breakpointAsmHandler()
 {
     // Callback function
     asmBreakpointHit = true;
-    emit hitBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
+    emit hitBreakpoint(PepCore::BreakpointTypes::ASSEMBLER);
     return;
 }

@@ -1209,11 +1209,11 @@ void CPUMainWindow::onCopyToMicrocodeClicked()
     ui->microobjectWidget->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
 }
 
-void CPUMainWindow::onBreakpointHit(Enu::BreakpointTypes type)
+void CPUMainWindow::onBreakpointHit(PepCore::BreakpointTypes type)
 {
     ui->memoryWidget->refreshMemory();
     switch(type) {
-    case Enu::BreakpointTypes::MICROCODE:
+    case PepCore::BreakpointTypes::MICROCODE:
         onMicroBreakpointHit();
         break;
     default:

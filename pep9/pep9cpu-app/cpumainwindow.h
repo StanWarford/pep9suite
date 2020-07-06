@@ -24,6 +24,7 @@
 #include <QDir>
 #include <QtWidgets/QMainWindow>
 
+#include "pep/constants.h"
 #include "pep/enu.h"
 #include "pep/pep.h"
 
@@ -225,7 +226,7 @@ private slots:
 
     // Handle a breakpoint in the model, and determine the correct handler based
     // on breakpoint type.
-    void onBreakpointHit(Enu::BreakpointTypes type);
+    void onBreakpointHit(PepCore::BreakpointTypes type);
 
 private:
     // Helpers to seperate breakpoint logic

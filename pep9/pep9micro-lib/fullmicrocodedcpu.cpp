@@ -164,13 +164,13 @@ void FullMicrocodedCPU::enableDebugging()
     inDebug = true;
 }
 
-void FullMicrocodedCPU::forceBreakpoint(Enu::BreakpointTypes breakpoint)
+void FullMicrocodedCPU::forceBreakpoint(PepCore::BreakpointTypes breakpoint)
 {
     switch(breakpoint){
-    case Enu::BreakpointTypes::ASSEMBLER:
+    case PepCore::BreakpointTypes::ASSEMBLER:
         ACPUModel::handler->interupt(Interrupts::BREAKPOINT_ASM);
         break;
-    case Enu::BreakpointTypes::MICROCODE:
+    case PepCore::BreakpointTypes::MICROCODE:
         ACPUModel::handler->interupt(Interrupts::BREAKPOINT_MICRO);
         break;
     }
@@ -700,14 +700,14 @@ void FullMicrocodedCPU::calculateAddrJT()
 void FullMicrocodedCPU::breakpointAsmHandler()
 {
     asmBreakpointHit = true;
-    emit hitBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
+    emit hitBreakpoint(PepCore::BreakpointTypes::ASSEMBLER);
     return;
 }
 
 void FullMicrocodedCPU::breakpointMicroHandler()
 {
     microBreakpointHit = true;
-    emit hitBreakpoint(Enu::BreakpointTypes::MICROCODE);
+    emit hitBreakpoint(PepCore::BreakpointTypes::MICROCODE);
     return;
 }
 

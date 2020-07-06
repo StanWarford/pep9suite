@@ -1713,7 +1713,7 @@ void MicroMainWindow::on_actionDebug_Interupt_Execution_triggered()
 {
     // Enable debugging in CPU and then temporarily pause execution.
     controlSection->enableDebugging();
-    controlSection->forceBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
+    controlSection->forceBreakpoint(PepCore::BreakpointTypes::ASSEMBLER);
     connectViewUpdate();
     debugState = DebugState::DEBUG_ISA;
     highlightActiveLines();
@@ -2353,15 +2353,15 @@ void MicroMainWindow::onInputRequested(quint16 address)
     disconnectViewUpdate();
 }
 
-void MicroMainWindow::onBreakpointHit(Enu::BreakpointTypes type)
+void MicroMainWindow::onBreakpointHit(PepCore::BreakpointTypes type)
 {
     ui->memoryWidget->refreshMemory();
     ui->memoryTracePane->updateTrace();
     switch(type) {
-    case Enu::BreakpointTypes::ASSEMBLER:
+    case PepCore::BreakpointTypes::ASSEMBLER:
         onASMBreakpointHit();
         break;
-    case Enu::BreakpointTypes::MICROCODE:
+    case PepCore::BreakpointTypes::MICROCODE:
         onMicroBreakpointHit();
         break;
     }

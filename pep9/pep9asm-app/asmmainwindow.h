@@ -25,6 +25,7 @@
 #include <QtWidgets/QMainWindow>
 
 #include "assembler/isaasm.h"
+#include "pep/constants.h"
 #include "pep/pep.h"
 
 namespace Ui {
@@ -265,7 +266,7 @@ private slots:
 
     // Handle a breakpoint in the model, and determine the correct handler based
     // on breakpoint type.
-    void onBreakpointHit(Enu::BreakpointTypes type);
+    void onBreakpointHit(PepCore::BreakpointTypes type);
 private:
     // Helper function for onInputReceived(...) that
     // reenables any disabled window components after IO completion,

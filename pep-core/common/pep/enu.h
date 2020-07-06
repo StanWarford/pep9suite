@@ -51,10 +51,7 @@ namespace Enu {
         T1=11
     };
 
-    enum class BreakpointTypes: int
-    {
-        MICROCODE = 1<<0, ASSEMBLER = 1<<1,
-    };
+
 
     // Bit masks that signal which editing actions should be available through context menus
     enum EditButton: int

@@ -1403,7 +1403,7 @@ void AsmMainWindow::on_actionDebug_Interupt_Execution_triggered()
 {
     // Enable debugging in CPU and then temporarily pause execution.
     controlSection->enableDebugging();
-    controlSection->forceBreakpoint(Enu::BreakpointTypes::ASSEMBLER);
+    controlSection->forceBreakpoint(PepCore::BreakpointTypes::ASSEMBLER);
     connectViewUpdate();
     debugState = DebugState::DEBUG_ISA;
     highlightActiveLines();
@@ -1997,12 +1997,12 @@ void AsmMainWindow::onInputRequested(quint16 address)
     disconnectViewUpdate();
 }
 
-void AsmMainWindow::onBreakpointHit(Enu::BreakpointTypes type)
+void AsmMainWindow::onBreakpointHit(PepCore::BreakpointTypes type)
 {
     refreshMemories();
     ui->memoryTracePane->updateTrace();
     switch(type) {
-    case Enu::BreakpointTypes::ASSEMBLER:
+    case PepCore::BreakpointTypes::ASSEMBLER:
         onASMBreakpointHit();
         break;
     default:

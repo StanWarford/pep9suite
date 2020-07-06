@@ -24,6 +24,7 @@
 #include <QElapsedTimer>
 
 #include "cpu/interfacemccpu.h"
+#include "pep/constants.h"
 
 class CPUDataSection;
 class PartialMicrocodedMemoizer;
@@ -59,7 +60,7 @@ public slots:
     void onSimulationStarted() override;
     void onSimulationFinished() override;
     void enableDebugging() override;
-    void forceBreakpoint(Enu::BreakpointTypes) override;
+    void forceBreakpoint(PepCore::BreakpointTypes) override;
     void onCancelExecution() override;
     bool onRun() override;
     void onResetCPU() override;

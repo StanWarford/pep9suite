@@ -139,10 +139,10 @@ void PartialMicrocodedCPU::enableDebugging()
     inDebug = true;
 }
 
-void PartialMicrocodedCPU::forceBreakpoint(Enu::BreakpointTypes breakpoint)
+void PartialMicrocodedCPU::forceBreakpoint(PepCore::BreakpointTypes breakpoint)
 {
     switch(breakpoint){
-    case Enu::BreakpointTypes::MICROCODE:
+    case PepCore::BreakpointTypes::MICROCODE:
         ACPUModel::handler->interupt(Interrupts::BREAKPOINT_MICRO);
         break;
     default:
@@ -292,6 +292,6 @@ void PartialMicrocodedCPU::branchHandler()
 void PartialMicrocodedCPU::breakpointMicroHandler()
 {
     microBreakpointHit = true;
-    emit hitBreakpoint(Enu::BreakpointTypes::MICROCODE);
+    emit hitBreakpoint(PepCore::BreakpointTypes::MICROCODE);
     return;
 }

@@ -1,4 +1,5 @@
 HEADERS += \
+    $$PWD/constants.h \
     $$PWD/enu.h \
     $$PWD/pep.h
 
