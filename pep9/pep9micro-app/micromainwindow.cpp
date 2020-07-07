@@ -66,7 +66,9 @@
 #include "object-viewer/microobjectcodepane.h"
 #include "style/darkhelper.h"
 #include "update/updatechecker.h"
+#include "style/fonts.h"
 #include "symbol/symboltable.h"
+
 
 #include "cpupane.h"
 #include "decodertabledialog.h"
@@ -77,10 +79,10 @@
 
 
 MicroMainWindow::MicroMainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MicroMainWindow), debugState(DebugState::DISABLED), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
+    QMainWindow(parent), pep_version(new Pep9()),
+    ui(new Ui::MicroMainWindow), debugState(DebugState::DISABLED), codeFont(QFont(PepCore::codeFont, PepCore::codeFontSize)),
     updateChecker(new UpdateChecker()), isInDarkMode(false),
-    memDevice(new MainMemory(nullptr)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), memDevice)),
+    memDevice(new MainMemory(nullptr)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), pep_version, memDevice)),
     dataSection(controlSection->getDataSection()), redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),
     decoderTableDialog(new DecoderTableDialog(nullptr)), programManager(AsmProgramManager::getInstance())
 
@@ -95,12 +97,12 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     // Install this class as the global event filter.
     qApp->installEventFilter(this);
 
-    ui->memoryWidget->init(memDevice, controlSection);
+    ui->memoryWidget->init(pep_version, memDevice, controlSection);
     ui->memoryWidget->showTitleLabel(false);
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
     ui->memoryTracePane->init(programManager, controlSection, memDevice, controlSection->getMemoryTrace());
     ui->assemblerPane->init(programManager);
-    ui->asmProgramTracePane->init(controlSection, programManager);
+    ui->asmProgramTracePane->init(pep_version, controlSection, programManager);
     ui->microcodeWidget->init(controlSection, dataSection, true);
     ui->microObjectCodePane->init(controlSection, true);
     redefineMnemonicsDialog->init(false);
@@ -1354,7 +1356,7 @@ void MicroMainWindow::on_actionEdit_Font_triggered()
 
 void MicroMainWindow::on_actionEdit_Reset_font_to_Default_triggered()
 {
-    codeFont = QFont(Pep::codeFont, Pep::codeFontSize);
+    codeFont = QFont(PepCore::codeFont, PepCore::codeFontSize);
     emit fontChanged(codeFont);
 }
 
@@ -1594,9 +1596,11 @@ bool MicroMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 9, sp);
     memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 3, pc);
     // Write SP, PC to simulator
-    controlSection->getDataSection()->getRegisterBank().writePCStart(pc);
-    controlSection->getDataSection()->getRegisterBank().writeRegisterWord(Enu::CPURegisters::PC, pc);
-    controlSection->getDataSection()->getRegisterBank().writeRegisterWord(Enu::CPURegisters::SP, sp);
+    auto pc_reg = to_uint8_t(Pep9::CPURegisters::PC);
+    auto sp_reg = to_uint8_t(Pep9::CPURegisters::SP);
+    controlSection->getDataSection()->getRegisterBank().overwriteRegisterWordStart(pc_reg, pc);
+    controlSection->getDataSection()->getRegisterBank().writeRegisterWord(pc_reg, pc);
+    controlSection->getDataSection()->getRegisterBank().writeRegisterWord(sp_reg, sp);
     // Memory has been cleared, but will not display as such unless explicitly refreshed.
     ui->memoryWidget->refreshMemory();
     emit simulationUpdate();
@@ -1696,7 +1700,7 @@ void MicroMainWindow::on_actionDebug_Stop_Debugging_triggered()
 void MicroMainWindow::on_actionDebug_Single_Step_Assembler_triggered()
 {
     quint8 is;
-    quint16 addr = controlSection->getCPURegWordStart(Enu::CPURegisters::PC);
+    quint16 addr = controlSection->getCPURegWordStart(Pep9::CPURegisters::PC);
     memDevice->getByte(addr, is);
     if(controlSection->canStepInto()
             && Pep::isTrapMap[Pep::decodeMnemonic[is]]) {

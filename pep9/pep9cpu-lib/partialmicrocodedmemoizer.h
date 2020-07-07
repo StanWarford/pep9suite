@@ -23,8 +23,6 @@
 
 #include <QString>
 
-#include "pep/enu.h"
-
 class CPUControlSection;
 struct callStack
 {

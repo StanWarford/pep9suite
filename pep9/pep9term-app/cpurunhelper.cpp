@@ -224,8 +224,8 @@ void CPURunHelper::run()
         memory = QSharedPointer<MainMemory>::create(nullptr);
         QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memory.get()));
         memory->insertChip(ramChip, 0);
-
-        cpu = QSharedPointer<PartialMicrocodedCPU>::create(type, memory, nullptr);
+        auto version = QSharedPointer<Pep9>::create();
+        cpu = QSharedPointer<PartialMicrocodedCPU>::create(type, version, memory, nullptr);
     }
 
     // Clear & initialize all values in CPU before starting simulation.

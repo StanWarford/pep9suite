@@ -29,8 +29,11 @@
 namespace Ui {
     class AsmCpuPane;
 }
+
 class ACPUModel;
+class APepVersion;
 class InterfaceISACPU;
+
 class AsmCpuPane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmCpuPane)
@@ -40,7 +43,8 @@ public:
     // Must capture a pointer to ACPUModel to read register values.
     // Even though both pointers are probably to the same CPU, must also capture
     // InterfaceISACPU to have access to decoded operand value.
-    void init(QSharedPointer<ACPUModel> acpu, QSharedPointer<InterfaceISACPU> isacpu);
+    void init(QSharedPointer<APepVersion> pep_version,
+              QSharedPointer<ACPUModel> acpu, QSharedPointer<InterfaceISACPU> isacpu);
 
     void updateCpu();
     // Post: Updates CPU pane labels
@@ -62,6 +66,7 @@ public slots:
 
 private:
     Ui::AsmCpuPane *ui;
+    QSharedPointer<APepVersion> pep_version;
     QSharedPointer<ACPUModel> acpu;
     QSharedPointer<InterfaceISACPU> isacpu;
     bool inSimulation;

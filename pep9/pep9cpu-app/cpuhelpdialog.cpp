@@ -27,6 +27,7 @@
 
 #include "pep/pep.h"
 #include "style/colors.h"
+#include "style/fonts.h"
 
 CPUHelpDialog::CPUHelpDialog(QWidget *parent) :
     QDialog(parent),
@@ -50,9 +51,9 @@ CPUHelpDialog::CPUHelpDialog(QWidget *parent) :
 
     leftHighlighter = new PepMicroHighlighter(Enu::CPUType::OneByteDataBus, false, PepColors::lightMode, ui->helpTextEdit->document());
     leftHighlighter->forceAllFeatures(true);
-    ui->helpTreeWidget->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
+    ui->helpTreeWidget->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
 
-    ui->helpTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    ui->helpTextEdit->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
 }
 
 CPUHelpDialog::~CPUHelpDialog()

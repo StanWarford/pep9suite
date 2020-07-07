@@ -27,8 +27,10 @@
 
 #include "cpu/acpumodel.h"
 #include "cpu/interfaceisacpu.h"
+#include "pep/apepversion.h"
 #include "pep/pep.h"
 #include "pep/enu.h"
+#include "style/fonts.h"
 
 AsmCpuPane::AsmCpuPane(QWidget *parent) :
         QWidget(parent),
@@ -37,45 +39,45 @@ AsmCpuPane::AsmCpuPane(QWidget *parent) :
     ui->setupUi(this);
 
     clearCpu();
-    ui->cpuLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
+    ui->cpuLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
 
-    ui->accLabel->setFont(QFont(Pep::labelFont));
-    ui->xLabel->setFont(QFont(Pep::labelFont));
-    ui->spLabel->setFont(QFont(Pep::labelFont));
-    ui->pcLabel->setFont(QFont(Pep::labelFont));
-    ui->instrSpecLabel->setFont(QFont(Pep::labelFont));
-    ui->oprndSpecLabel->setFont(QFont(Pep::labelFont));
-    ui->oprndLabel->setFont(QFont(Pep::labelFont));
+    ui->accLabel->setFont(QFont(PepCore::labelFont));
+    ui->xLabel->setFont(QFont(PepCore::labelFont));
+    ui->spLabel->setFont(QFont(PepCore::labelFont));
+    ui->pcLabel->setFont(QFont(PepCore::labelFont));
+    ui->instrSpecLabel->setFont(QFont(PepCore::labelFont));
+    ui->oprndSpecLabel->setFont(QFont(PepCore::labelFont));
+    ui->oprndLabel->setFont(QFont(PepCore::labelFont));
 
-    ui->pepNLabel->setFont(QFont(Pep::labelFont));
-    ui->pepZLabel->setFont(QFont(Pep::labelFont));
-    ui->pepVLabel->setFont(QFont(Pep::labelFont));
-    ui->pepCLabel->setFont(QFont(Pep::labelFont));
+    ui->pepNLabel->setFont(QFont(PepCore::labelFont));
+    ui->pepZLabel->setFont(QFont(PepCore::labelFont));
+    ui->pepVLabel->setFont(QFont(PepCore::labelFont));
+    ui->pepCLabel->setFont(QFont(PepCore::labelFont));
 
-    ui->nLabel->setFont(QFont(Pep::labelFont));
-    ui->zLabel->setFont(QFont(Pep::labelFont));
-    ui->vLabel->setFont(QFont(Pep::labelFont));
-    ui->cLabel->setFont(QFont(Pep::labelFont));
+    ui->nLabel->setFont(QFont(PepCore::labelFont));
+    ui->zLabel->setFont(QFont(PepCore::labelFont));
+    ui->vLabel->setFont(QFont(PepCore::labelFont));
+    ui->cLabel->setFont(QFont(PepCore::labelFont));
 
-    ui->accHexLabel->setFont(QFont(Pep::labelFont));
-    ui->accDecLabel->setFont(QFont(Pep::labelFont));
+    ui->accHexLabel->setFont(QFont(PepCore::labelFont));
+    ui->accDecLabel->setFont(QFont(PepCore::labelFont));
 
-    ui->xHexLabel->setFont(QFont(Pep::labelFont));
-    ui->xDecLabel->setFont(QFont(Pep::labelFont));
+    ui->xHexLabel->setFont(QFont(PepCore::labelFont));
+    ui->xDecLabel->setFont(QFont(PepCore::labelFont));
 
-    ui->spHexLabel->setFont(QFont(Pep::labelFont));
-    ui->spDecLabel->setFont(QFont(Pep::labelFont));
+    ui->spHexLabel->setFont(QFont(PepCore::labelFont));
+    ui->spDecLabel->setFont(QFont(PepCore::labelFont));
 
-    ui->pcHexLabel->setFont(QFont(Pep::labelFont));
-    ui->pcDecLabel->setFont(QFont(Pep::labelFont));
+    ui->pcHexLabel->setFont(QFont(PepCore::labelFont));
+    ui->pcDecLabel->setFont(QFont(PepCore::labelFont));
 
-    ui->instrSpecBinLabel->setFont(QFont(Pep::labelFont));
-    ui->instrSpecMnemonLabel->setFont(QFont(Pep::labelFont));
+    ui->instrSpecBinLabel->setFont(QFont(PepCore::labelFont));
+    ui->instrSpecMnemonLabel->setFont(QFont(PepCore::labelFont));
 
-    ui->oprndSpecHexLabel->setFont(QFont(Pep::labelFont));
-    ui->oprndSpecDecLabel->setFont(QFont(Pep::labelFont));
-    ui->oprndHexLabel->setFont(QFont(Pep::labelFont));
-    ui->oprndDecLabel->setFont(QFont(Pep::labelFont));
+    ui->oprndSpecHexLabel->setFont(QFont(PepCore::labelFont));
+    ui->oprndSpecDecLabel->setFont(QFont(PepCore::labelFont));
+    ui->oprndHexLabel->setFont(QFont(PepCore::labelFont));
+    ui->oprndDecLabel->setFont(QFont(PepCore::labelFont));
 }
 
 AsmCpuPane::~AsmCpuPane()
@@ -83,14 +85,17 @@ AsmCpuPane::~AsmCpuPane()
     delete ui;
 }
 
-void AsmCpuPane::init(QSharedPointer<ACPUModel> cpu, QSharedPointer<InterfaceISACPU> isacpu)
+void AsmCpuPane::init(QSharedPointer<APepVersion> pep_version,
+                      QSharedPointer<ACPUModel> cpu, QSharedPointer<InterfaceISACPU> isacpu)
 {
+    this->pep_version = pep_version;
     this->acpu = cpu;
     this->isacpu = isacpu;
 }
 
 void AsmCpuPane::updateCpu() {
-    Enu::EAddrMode addrMode = Pep::decodeAddrMode[acpu->getCPURegByteCurrent(Enu::CPURegisters::IS)];
+    auto is_reg = pep_version->get_global_register_number(APepVersion::global_registers::IS);
+    Enu::EAddrMode addrMode = Pep::decodeAddrMode[acpu->getCPURegByteCurrent(is_reg)];
 
     ui->nLabel->setText(acpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_N) ? "1" : "0");
     ui->zLabel->setText(acpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_Z) ? "1" : "0");
@@ -99,12 +104,18 @@ void AsmCpuPane::updateCpu() {
 
     quint16 acc, idx, sp, pc, opsc;
     quint8 is;
-    acc = acpu->getCPURegWordCurrent(Enu::CPURegisters::A);
-    idx = acpu->getCPURegWordCurrent(Enu::CPURegisters::X);
-    sp = acpu->getCPURegWordCurrent(Enu::CPURegisters::SP);
-    pc = acpu->getCPURegWordCurrent(Enu::CPURegisters::PC);
-    opsc = acpu->getCPURegWordCurrent(Enu::CPURegisters::OS);
-    is = acpu->getCPURegByteCurrent(Enu::CPURegisters::IS);
+    auto a_reg = pep_version->get_global_register_number(APepVersion::global_registers::A);
+    acc = acpu->getCPURegWordCurrent(a_reg);
+    auto x_reg = pep_version->get_global_register_number(APepVersion::global_registers::X);
+    idx = acpu->getCPURegWordCurrent(x_reg);
+    auto sp_reg = pep_version->get_global_register_number(APepVersion::global_registers::SP);
+    sp = acpu->getCPURegWordCurrent(sp_reg);
+    auto pc_reg = pep_version->get_global_register_number(APepVersion::global_registers::PC);
+    pc = acpu->getCPURegWordCurrent(pc_reg);
+    auto os_reg = pep_version->get_global_register_number(APepVersion::global_registers::OS);
+    opsc = acpu->getCPURegWordCurrent(os_reg);
+    is = acpu->getCPURegByteCurrent(is_reg);
+
     ui->accHexLabel->setText(QString("0x") + QString("%1").arg(acc, 4, 16, QLatin1Char('0')).toUpper());
     ui->accDecLabel->setText(QString("%1").arg(static_cast<qint16>(acc)));
 

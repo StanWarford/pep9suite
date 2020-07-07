@@ -34,9 +34,9 @@
 
 #include "cpu/acpumodel.h"
 #include "memory/mainmemory.h"
-#include "pep/enu.h"
-#include "pep/pep.h"
+#include "pep/apepversion.h"
 #include "style/colors.h"
+#include "style/fonts.h"
 
 
 static QString space = "   ";
@@ -50,7 +50,7 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     delayLastStepClear(false), inSimulation(false), highlightPC(true)
 {
     ui->setupUi(this);
-    ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
+    ui->label->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
 
     // Init data model later, as we need access to the memory device to perform sizing.
 
@@ -61,8 +61,10 @@ MemoryDumpPane::MemoryDumpPane(QWidget *parent) :
     connect(ui->tableView->verticalScrollBar(), &QScrollBar::valueChanged, this, &MemoryDumpPane::scrollToLine);
 }
 
-void MemoryDumpPane::init(QSharedPointer<MainMemory> memory, QSharedPointer<ACPUModel> cpu)
+void MemoryDumpPane::init(QSharedPointer<APepVersion> pep_version,
+                          QSharedPointer<MainMemory> memory, QSharedPointer<ACPUModel> cpu)
 {
+    this->pep_version = pep_version;
     this->memDevice = memory;
     this->cpu = cpu;
 
@@ -214,10 +216,12 @@ void MemoryDumpPane::highlight()
     }
     // If the SP is moved during an instruction (e.g. in microcode) it is useful
     // for the student to see where the SP is now, not where it started.
-    quint16 sp = cpu->getCPURegWordCurrent(Enu::CPURegisters::SP);
+    auto sp_reg = pep_version->get_global_register_number(APepVersion::global_registers::SP);
+    quint16 sp = cpu->getCPURegWordCurrent(sp_reg);
     // Since the PC is modified as part of an instruction, make sure
     // to highlight the instruction being executed, not necessarily the current value
-    quint16 pc = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
+    auto pc_reg = pep_version->get_global_register_number(APepVersion::global_registers::PC);
+    quint16 pc = cpu->getCPURegWordStart(pc_reg);
     quint8 is;
     memDevice->getByte(pc, is);
     // Stack pointer highlighting
@@ -232,7 +236,7 @@ void MemoryDumpPane::highlight()
     if(!highlightPC) {
         // Don't preform any PC highlighting
     }
-    else if(!Pep::isUnaryMap[Pep::decodeMnemonic[is]]) {
+    else if(!pep_version->isInstructionUnary(is)) {
         for(int it = 0; it < 3; it++) {
             quint16 as16 = static_cast<quint16>(pc + it);
             highlightByte(as16, colors->altTextHighlight, colors->memoryHighlightPC);
@@ -435,7 +439,8 @@ void MemoryDumpPane::scrollToByte(quint16 address)
 
 void MemoryDumpPane::scrollToPC()
 {
-    quint16 value = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
+    auto pc_reg  = pep_version->get_global_register_number(APepVersion::global_registers::PC);
+    quint16 value = cpu->getCPURegWordStart(pc_reg);
     // Separate 0x from rest of string, so that the x does not get capitalized.
     QString str = "0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper();
     ui->scrollToLineEdit->setText(str);
@@ -444,7 +449,8 @@ void MemoryDumpPane::scrollToPC()
 
 void MemoryDumpPane::scrollToSP()
 {
-    quint16 value = cpu->getCPURegWordCurrent(Enu::CPURegisters::SP);
+    auto sp_reg  = pep_version->get_global_register_number(APepVersion::global_registers::SP);
+    quint16 value = cpu->getCPURegWordCurrent(sp_reg);
     // Separate 0x from rest of string, so that the x does not get capitalized.
     QString str = "0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper();
     ui->scrollToLineEdit->setText(str);

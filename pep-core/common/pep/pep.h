@@ -31,19 +31,6 @@
 class Pep
 {
 public:
-    // Fonts:
-    static const QString codeFont;
-    static const int codeFontSize;
-    static const int codeFontSizeSmall;
-    static const int codeFontSizeLarge;
-    static const int ioFontSize;
-    static const QString labelFont;
-    static const int labelFontSize;
-    static const int labelFontSizeCPUPane;
-    static const int labelFontSizeSmall;
-    static const QString cpuFont;
-    static const int cpuFontSize;
-    static QString getSystem();
 
     // Function to read text from a resource file
     static QString resToString(QString fileName, bool removeLineNumbers);

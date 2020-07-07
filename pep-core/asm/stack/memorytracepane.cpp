@@ -32,9 +32,9 @@
 #include "cpu/acpumodel.h"
 #include "memory/amemorydevice.h"
 #include "memory/mainmemory.h"
-#include "pep/pep.h"
 #include "stack/stacktrace.h"
 #include "style/colors.h"
+#include "style/fonts.h"
 
 NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent), ui(new Ui::MemoryTracePane),
     colors(&PepColors::lightMode), globalVars(), runtimeStack(), heap(), extraItems(),
@@ -45,9 +45,9 @@ NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent), ui(ne
 {
     ui->setupUi(this);
 
-    ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
+    ui->label->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
     ui->warningLabel->setWordWrap(true);
-    ui->graphicsView->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    ui->graphicsView->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
 
     connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(zoomFactorChanged(int)));
     ui->spinBox->hide();

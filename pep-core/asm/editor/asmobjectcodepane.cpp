@@ -25,7 +25,7 @@
 #include <QFontDialog>
 #include <QFileInfo>
 
-#include "pep/pep.h"
+#include "style/fonts.h"
 
 AsmObjectCodePane::AsmObjectCodePane(QWidget *parent) :
     QWidget(parent),
@@ -38,8 +38,8 @@ AsmObjectCodePane::AsmObjectCodePane(QWidget *parent) :
     connect(ui->plainTextEdit, SIGNAL(undoAvailable(bool)), this, SIGNAL(undoAvailable(bool)));
     connect(ui->plainTextEdit, SIGNAL(redoAvailable(bool)), this, SIGNAL(redoAvailable(bool)));
 
-    ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
-    ui->plainTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    ui->label->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
+    ui->plainTextEdit->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
 }
 
 AsmObjectCodePane::~AsmObjectCodePane()

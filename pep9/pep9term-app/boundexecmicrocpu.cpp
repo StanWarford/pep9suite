@@ -27,8 +27,9 @@
 #include "memory/amemorydevice.h"
 
 BoundExecMicroCpu::BoundExecMicroCpu(quint64 cycleCount, const AsmProgramManager *manager,
-                                   QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
-    FullMicrocodedCPU(manager, memDevice, parent), maxCycles(cycleCount)
+                                     QSharedPointer<const Pep9> pep_version,
+                                     QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
+    FullMicrocodedCPU(manager, pep_version, memDevice, parent), maxCycles(cycleCount)
 
 {
     // This version of the CPU does not respond to breakpoints, and as such

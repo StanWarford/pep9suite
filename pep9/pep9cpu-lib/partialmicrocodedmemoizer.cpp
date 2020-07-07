@@ -29,7 +29,7 @@
 #include "cpu/cpudata.h"
 #include "cpu/registerfile.h"
 #include "memory/amemorydevice.h"
-#include "pep/pep.h"
+#include "pep/pep9.h"
 
 #include "partialmicrocodedcpu.h"
 
@@ -60,13 +60,12 @@ void PartialMicrocodedMemoizer::storeStateInstrStart()
 QString PartialMicrocodedMemoizer::memoize()
 {
     QString build, AX, NZVC;
-    const RegisterFile& file = cpu.data->getRegisterBank();
     AX = QString(" A=%1, X=%2, SP=%3, ")
 
-            .arg(formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::A)),
-                 formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::X)),
-                 formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::SP)));
-    NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(file.readStatusBitsCurrent(), 2), 5, '0');
+            .arg(formatNum(cpu.getCPURegWordCurrent(Pep9::CPURegisters::A)),
+                 formatNum(cpu.getCPURegWordCurrent(Pep9::CPURegisters::X)),
+                 formatNum(cpu.getCPURegWordCurrent(Pep9::CPURegisters::SP)));
+    NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(cpu.data->getRegisterBank().readStatusBitsCurrent(), 2), 5, '0');
     build = AX;
     build += NZVC;
     return build;

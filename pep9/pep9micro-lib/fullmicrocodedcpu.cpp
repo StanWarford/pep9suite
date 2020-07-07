@@ -35,11 +35,14 @@
 #include "symbol/symbolentry.h"
 
 #include "fullmicrocodedmemoizer.h"
-FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
-    InterfaceMCCPU(Enu::CPUType::TwoByteDataBus),
-    InterfaceISACPU(memoryDev.get(), manager), memoizer(new FullMicrocodedMemoizer(*this))
+FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager,
+                                     QSharedPointer<const Pep9> pep_version,
+                                     QSharedPointer<AMemoryDevice> memoryDev,
+                                     QObject* parent) noexcept: ACPUModel (memoryDev, parent),
+    InterfaceMCCPU(Enu::CPUType::TwoByteDataBus), InterfaceISACPU(memoryDev.get(), manager),
+    pep_version(pep_version), memoizer(new FullMicrocodedMemoizer(*this))
 {
-    data = new CPUDataSection(Enu::CPUType::TwoByteDataBus, memoryDev, parent);
+    data = new CPUDataSection(Enu::CPUType::TwoByteDataBus, pep_version, memoryDev, parent);
     dataShared = QSharedPointer<CPUDataSection>(data);
     // Create & register callbacks for breakpoint interrupts.
     std::function<void(void)> mcHandler = [this](){this->breakpointMicroHandler();};
@@ -72,6 +75,26 @@ void FullMicrocodedCPU::setMicroPCToStart() noexcept
     microprogramCounter = startLine;
 }
 
+quint8 FullMicrocodedCPU::getCPURegByteCurrent(Pep9::CPURegisters reg) const
+{
+    return getCPURegByteCurrent(to_uint8_t(reg));
+}
+
+quint16 FullMicrocodedCPU::getCPURegWordCurrent(Pep9::CPURegisters reg) const
+{
+    return getCPURegWordCurrent(to_uint8_t(reg));
+}
+
+quint8 FullMicrocodedCPU::getCPURegByteStart(Pep9::CPURegisters reg) const
+{
+    return getCPURegByteStart(to_uint8_t(reg));
+}
+
+quint16 FullMicrocodedCPU::getCPURegWordStart(Pep9::CPURegisters reg) const
+{
+    return getCPURegWordStart(to_uint8_t(reg));
+}
+
 bool FullMicrocodedCPU::getStatusBitCurrent(Enu::EStatusBit bit) const
 {
     return data->getRegisterBank().readStatusBitCurrent(bit);
@@ -82,22 +105,22 @@ bool FullMicrocodedCPU::getStatusBitStart(Enu::EStatusBit bit) const
     return data->getRegisterBank().readStatusBitStart(bit);
 }
 
-quint8 FullMicrocodedCPU::getCPURegByteCurrent(Enu::CPURegisters reg) const
+quint8 FullMicrocodedCPU::getCPURegByteCurrent(PepCore::CPURegisters_number_t reg) const
 {
     return data->getRegisterBank().readRegisterByteCurrent(reg);
 }
 
-quint16 FullMicrocodedCPU::getCPURegWordCurrent(Enu::CPURegisters reg) const
+quint16 FullMicrocodedCPU::getCPURegWordCurrent(PepCore::CPURegisters_number_t reg) const
 {
     return data->getRegisterBank().readRegisterWordCurrent(reg);
 }
 
-quint8 FullMicrocodedCPU::getCPURegByteStart(Enu::CPURegisters reg) const
+quint8 FullMicrocodedCPU::getCPURegByteStart(PepCore::CPURegisters_number_t reg) const
 {
     return data->getRegisterBank().readRegisterByteStart(reg);
 }
 
-quint16 FullMicrocodedCPU::getCPURegWordStart(Enu::CPURegisters reg) const
+quint16 FullMicrocodedCPU::getCPURegWordStart(PepCore::CPURegisters_number_t reg) const
 {
     return data->getRegisterBank().readRegisterWordStart(reg);
 }
@@ -268,7 +291,7 @@ void FullMicrocodedCPU::onMCStep()
         // to fulfill its contract with InterfaceISACPU.
         memoizer->storeStateInstrStart();
         memory->onCycleStarted();
-        InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Enu::CPURegisters::IS));
+        InterfaceISACPU::calculateStackChangeStart(getCPURegByteStart(Pep9::CPURegisters::IS));
     }
 
     // Do step logic
@@ -300,12 +323,12 @@ void FullMicrocodedCPU::onMCStep()
     // If we just finished an entire ISA level instruction, perform additional
     // simulation logic needed to mantain ISA level state.
     if(microprogramCounter == startLine || executionFinished) {
-        quint16 progCounter = getCPURegWordStart(Enu::CPURegisters::PC);
-        InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteCurrent(Enu::CPURegisters::IS),
-                                                 this->getCPURegWordCurrent(Enu::CPURegisters::OS),
-                                                 this->getCPURegWordStart(Enu::CPURegisters::SP),
-                                                 this->getCPURegWordStart(Enu::CPURegisters::PC),
-                                                 this->getCPURegWordCurrent(Enu::CPURegisters::A));
+        quint16 progCounter = getCPURegWordStart(Pep9::CPURegisters::PC);
+        InterfaceISACPU::calculateStackChangeEnd(getCPURegByteCurrent(Pep9::CPURegisters::IS),
+                                                 getCPURegWordCurrent(Pep9::CPURegisters::OS),
+                                                 getCPURegWordStart(Pep9::CPURegisters::SP),
+                                                 getCPURegWordStart(Pep9::CPURegisters::PC),
+                                                 getCPURegWordCurrent(Pep9::CPURegisters::A));
         memoizer->storeStateInstrEnd();
         updateAtInstructionEnd();
         emit asmInstructionFinished();
@@ -315,7 +338,8 @@ void FullMicrocodedCPU::onMCStep()
         // If execution finished on this instruction, then restore original starting program counter,
         // as the instruction at the current program counter will not be executed.
         if(executionFinished || hadErrorOnStep()) {
-            data->getRegisterBank().writePCStart(progCounter);
+            auto pc_reg = to_uint8_t(Pep9::CPURegisters::PC);
+            data->getRegisterBank().overwriteRegisterWordStart(pc_reg, progCounter);
             emit simulationFinished();
         }
 
@@ -338,7 +362,8 @@ void FullMicrocodedCPU::onMCStep()
     // If running in debug mode, first check if this line has any microcode breakpoints.
     if(inDebug) {
         // Only trap assembly breakpoints once on the first line of microcode.
-        if((microprogramCounter == startLine) && breakpointsISA.contains(data->getRegisterBankWord(Enu::CPURegisters::PC))) {
+        if((microprogramCounter == startLine) &&
+                breakpointsISA.contains(getCPURegWordCurrent(Pep9::CPURegisters::PC))) {
             ACPUModel::handler->interupt(Interrupts::BREAKPOINT_ASM);
         }
         // Trap on micrcode breakpoints
@@ -405,7 +430,7 @@ void FullMicrocodedCPU::stepOver()
 bool FullMicrocodedCPU::canStepInto() const
 {
     quint8 byte;
-    memory->getByte(getCPURegWordStart(Enu::CPURegisters::PC), byte);
+    memory->getByte(getCPURegWordStart(Pep9::CPURegisters::PC), byte);
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[byte];
     return (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
 }
@@ -634,17 +659,18 @@ void FullMicrocodedCPU::branchHandler()
 
 void FullMicrocodedCPU::updateAtInstructionEnd()
 {
+    auto is = getCPURegByteCurrent(Pep9::CPURegisters::IS);
     // Handle changing of call stack depth if the executed instruction affects the call stack.
-    if(Pep::decodeMnemonic[data->getRegisterBankByte(Enu::CPURegisters::IS)] == Enu::EMnemonic::CALL){
+    if(Pep::decodeMnemonic[is] == Enu::EMnemonic::CALL){
         callDepth++;
     }
-    else if(Pep::isTrapMap[Pep::decodeMnemonic[data->getRegisterBankByte(Enu::CPURegisters::IS)]]){
+    else if(Pep::isTrapMap[Pep::decodeMnemonic[is]]){
         callDepth++;
     }
-    else if(Pep::decodeMnemonic[data->getRegisterBankByte(Enu::CPURegisters::IS)] == Enu::EMnemonic::RET){
+    else if(Pep::decodeMnemonic[is] == Enu::EMnemonic::RET){
         callDepth--;
     }
-    else if(Pep::decodeMnemonic[data->getRegisterBankByte(Enu::CPURegisters::IS)] == Enu::EMnemonic::RETTR){
+    else if(Pep::decodeMnemonic[is] == Enu::EMnemonic::RETTR){
         callDepth--;
     }
 }

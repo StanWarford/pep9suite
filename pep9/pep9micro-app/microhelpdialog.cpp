@@ -31,6 +31,7 @@
 #include "highlight/cpphighlighter.h"
 #include "pep/pep.h"
 #include "style/colors.h"
+#include "style/fonts.h"
 
 const int MicroHelpDialog::defaultHelpTreeWidth = 225;
 
@@ -59,7 +60,7 @@ MicroHelpDialog::MicroHelpDialog(QWidget *parent) :
 
     rightCppHighlighter = new CppHighlighter(PepColors::lightMode, ui->rightCppTextEdit->document());
 
-    ui->helpTreeWidget->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
+    ui->helpTreeWidget->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
 
     // Manual size allocation to prevent help web view from being hidden.
     QList<int> helpBalance;

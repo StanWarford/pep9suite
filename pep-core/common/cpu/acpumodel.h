@@ -25,6 +25,7 @@
 #include <QObject>
 
 #include "pep/enu.h"
+#include "pep/types.h"
 
 #include "pep/constants.h"
 
@@ -76,11 +77,11 @@ public:
      * Return the current value of the named register. On implementations with non-atomic instructions
      * (e.g. micrcoded CPU's) the value of a register might vary over the course of executing an instruction.
      */
-    virtual quint8 getCPURegByteCurrent(Enu::CPURegisters reg) const = 0;
-    virtual quint16 getCPURegWordCurrent(Enu::CPURegisters reg) const = 0;
+    virtual quint8 getCPURegByteCurrent(PepCore::CPURegisters_number_t reg) const = 0;
+    virtual quint16 getCPURegWordCurrent(PepCore::CPURegisters_number_t reg) const = 0;
     // Return the value of a register at the start of an instruction.
-    virtual quint8 getCPURegByteStart(Enu::CPURegisters reg) const = 0;
-    virtual quint16 getCPURegWordStart(Enu::CPURegisters reg) const = 0;
+    virtual quint8 getCPURegByteStart(PepCore::CPURegisters_number_t reg) const = 0;
+    virtual quint16 getCPURegWordStart(PepCore::CPURegisters_number_t reg) const = 0;
     // Did any part of the CPU simulation cause an error?
     virtual QString getErrorMessage() const noexcept = 0;
     virtual bool hadErrorOnStep() const noexcept = 0;

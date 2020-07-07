@@ -120,7 +120,8 @@ void IsaCpuMemoizer::storeStateInstrStart()
     quint8 instr;
 
     // Fetch the instruction specifier, located at the memory address of PC
-    cpu.getMemoryDevice()->getByte(cpu.registerBank.readRegisterWordStart(Enu::CPURegisters::PC), instr);
+
+    cpu.getMemoryDevice()->getByte(cpu.getCPURegWordStart(Pep9::CPURegisters::PC), instr);
     if(inOS) {
         stateOS.instructionsCalled[instr]++;
         stateOS.instructionsExecuted++;
@@ -136,20 +137,21 @@ QString IsaCpuMemoizer::memoize()
 {
     const RegisterFile& file = cpu.registerBank;
     SymbolTable* symTable = nullptr;
-    if(cpu.manager->getProgramAt(file.readRegisterWordStart(Enu::CPURegisters::PC)) != nullptr) {
-        symTable = cpu.manager->getProgramAt(file.readRegisterWordStart(Enu::CPURegisters::PC))
+    auto pc = cpu.getCPURegWordStart(Pep9::CPURegisters::PC);
+    if(cpu.manager->getProgramAt(pc) != nullptr) {
+        symTable = cpu.manager->getProgramAt(pc)
                 ->getSymbolTable().get();
     }
     quint8 ir = 0;
     QString build, AX, NZVC;
     AX = QString(" A=%1, X=%2, SP=%3")
 
-            .arg(formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::A)),
-                 formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::X)),
-                 formatNum(file.readRegisterWordCurrent(Enu::CPURegisters::SP)));
+            .arg(formatNum(cpu.getCPURegWordCurrent(Pep9::CPURegisters::A)),
+                 formatNum(cpu.getCPURegWordCurrent(Pep9::CPURegisters::X)),
+                 formatNum(cpu.getCPURegWordCurrent(Pep9::CPURegisters::SP)));
     NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(file.readStatusBitsCurrent(), 2), 5, '0');
-    build = (attemptAddrReplace(symTable, file.readRegisterWordStart(Enu::CPURegisters::PC)) + QString(":")).leftJustified(10) %
-            formatInstr(symTable, file.getIRCache(), file.readRegisterWordCurrent(Enu::CPURegisters::OS));
+    build = (attemptAddrReplace(symTable, pc) + QString(":")).leftJustified(10) %
+            formatInstr(symTable, file.getIRCache(), cpu.getCPURegWordCurrent(Pep9::CPURegisters::OS));
     build += "  " + AX;
     build += NZVC;
     build += "  " + AX;

@@ -24,7 +24,7 @@
 
 #include <QPainter>
 
-#include "pep/pep.h"
+#include "style/fonts.h"
 
 RotatedHeaderView::RotatedHeaderView(Qt::Orientation orientation, QWidget *parent): QHeaderView(orientation, parent)
 {
@@ -40,7 +40,7 @@ void RotatedHeaderView::paintSection(QPainter *painter, const QRect &rect, int l
     qint32 newy = rect.x();
     QRect nRect = QRect(newx, newy, rect.height(), rect.width());
     painter->rotate(angle);
-    painter->setFont(QFont(Pep::codeFont,Pep::codeFontSize));
+    painter->setFont(QFont(PepCore::codeFont,PepCore::codeFontSize));
     // Ask parent for brush to color text.
     painter->setBrush(QBrush(parentWidget()->palette().windowText()));
     painter->drawText(nRect, this->model()->headerData(logicalIndex, Qt::Horizontal).toString());

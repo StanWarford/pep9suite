@@ -28,6 +28,7 @@
 #include "assembler/isaasm.h"
 #include "pep/constants.h"
 #include "pep/pep.h"
+#include "pep/pep9.h"
 
 namespace Ui {
     class MicroMainWindow;
@@ -77,6 +78,7 @@ protected:
 
 private:
     Ui::MicroMainWindow *ui;
+    QSharedPointer<Pep9> pep_version;
     DebugState debugState;
     QString curPath;
     QFont codeFont;

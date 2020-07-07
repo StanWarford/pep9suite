@@ -34,10 +34,11 @@
 
 #include "partialmicrocodedmemoizer.h"
 
-PartialMicrocodedCPU::PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
+PartialMicrocodedCPU::PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<const Pep9> pep_version,
+                                           QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
     InterfaceMCCPU(type), memoizer(new PartialMicrocodedMemoizer(*this))
 {
-    data = new CPUDataSection(type, memoryDev, parent);
+    data = new CPUDataSection(type, pep_version, memoryDev, parent);
     dataShared = QSharedPointer<CPUDataSection>(data);
     // Create & register callbacks for breakpoint interrupts.
     std::function<void(void)> bpHandler = [this](){breakpointMicroHandler();};
@@ -65,24 +66,44 @@ bool PartialMicrocodedCPU::getStatusBitStart(Enu::EStatusBit bit) const
     return data->getRegisterBank().readStatusBitStart(bit);
 }
 
-quint8 PartialMicrocodedCPU::getCPURegByteCurrent(Enu::CPURegisters reg) const
+quint8 PartialMicrocodedCPU::getCPURegByteCurrent(PepCore::CPURegisters_number_t reg) const
 {
     return data->getRegisterBank().readRegisterByteCurrent(reg);
 }
 
-quint16 PartialMicrocodedCPU::getCPURegWordCurrent(Enu::CPURegisters reg) const
+quint16 PartialMicrocodedCPU::getCPURegWordCurrent(PepCore::CPURegisters_number_t reg) const
 {
     return data->getRegisterBank().readRegisterWordCurrent(reg);
 }
 
-quint8 PartialMicrocodedCPU::getCPURegByteStart(Enu::CPURegisters reg) const
+quint8 PartialMicrocodedCPU::getCPURegByteStart(PepCore::CPURegisters_number_t reg) const
 {
     return data->getRegisterBank().readRegisterByteStart(reg);
 }
 
-quint16 PartialMicrocodedCPU::getCPURegWordStart(Enu::CPURegisters reg) const
+quint16 PartialMicrocodedCPU::getCPURegWordStart(PepCore::CPURegisters_number_t reg) const
 {
     return data->getRegisterBank().readRegisterWordStart(reg);
+}
+
+quint8 PartialMicrocodedCPU::getCPURegByteCurrent(Pep9::CPURegisters reg) const
+{
+    return getCPURegByteCurrent(to_uint8_t(reg));
+}
+
+quint16 PartialMicrocodedCPU::getCPURegWordCurrent(Pep9::CPURegisters reg) const
+{
+    return getCPURegWordCurrent(to_uint8_t(reg));
+}
+
+quint8 PartialMicrocodedCPU::getCPURegByteStart(Pep9::CPURegisters reg) const
+{
+    return getCPURegByteStart(to_uint8_t(reg));
+}
+
+quint16 PartialMicrocodedCPU::getCPURegWordStart(Pep9::CPURegisters reg) const
+{
+    return getCPURegWordStart(to_uint8_t(reg));
 }
 
 void PartialMicrocodedCPU::initCPU()

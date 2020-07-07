@@ -21,13 +21,13 @@
 */
 #include "registerfile.h"
 
-RegisterFile::RegisterFile(): registersStart(),
-    registersCurrent(),
+RegisterFile::RegisterFile(quint8 max_registers): max_register_number(max_registers),
+    registersStart(max_registers + 1, 0),
+    registersCurrent(max_registers + 1, 0),
     statusBitsStart(0),
     statusBitsCurrent(0), irCache(0)
 {
-    registersStart.fill(0);
-    registersCurrent.fill(0);
+
 }
 
 quint8 RegisterFile::readStatusBitsStart() const
@@ -91,85 +91,57 @@ void RegisterFile::clearStatusBits()
    statusBitsCurrent = 0;
 }
 
-quint16 RegisterFile::readRegisterWordCurrent(quint8 reg) const
+quint16 RegisterFile::readRegisterWordCurrent(PepCore::CPURegisters_number_t reg) const
 {
-    if(reg + 1 <= Enu::maxRegisterNumber) return static_cast<quint16>(registersCurrent[reg] << 8 | registersCurrent[reg + 1]);
+    if(reg + 1 <= max_register_number) return static_cast<quint16>(registersCurrent[reg] << 8 | registersCurrent[reg + 1]);
     else return 0;
 }
 
-quint16 RegisterFile::readRegisterWordCurrent(Enu::CPURegisters reg) const
+quint16 RegisterFile::readRegisterWordStart(PepCore::CPURegisters_number_t reg) const
 {
-    return readRegisterWordCurrent(convertRegister(reg));
-}
-
-quint16 RegisterFile::readRegisterWordStart(quint8 reg) const
-{
-    if(reg + 1 <= Enu::maxRegisterNumber) return static_cast<quint16>(registersStart[reg] << 8 | registersStart[reg + 1]);
+    if(reg + 1 <= max_register_number) return static_cast<quint16>(registersStart[reg] << 8 | registersStart[reg + 1]);
     else return 0;
 }
 
-quint16 RegisterFile::readRegisterWordStart(Enu::CPURegisters reg) const
+quint8 RegisterFile::readRegisterByteCurrent(PepCore::CPURegisters_number_t reg) const
 {
-    return readRegisterWordStart(convertRegister(reg));
-}
-
-quint8 RegisterFile::readRegisterByteCurrent(quint8 reg) const
-{
-    if(reg <= Enu::maxRegisterNumber) return registersCurrent[reg];
+    if(reg <= max_register_number) return registersCurrent[reg];
     else return 0;
 }
 
-quint8 RegisterFile::readRegisterByteCurrent(Enu::CPURegisters reg) const
+quint8 RegisterFile::readRegisterByteStart(PepCore::CPURegisters_number_t reg) const
 {
-    return readRegisterByteCurrent(convertRegister(reg));
-}
-
-quint8 RegisterFile::readRegisterByteStart(quint8 reg) const
-{
-    if(reg <= Enu::maxRegisterNumber) return registersStart[reg];
+    if(reg <= max_register_number) return registersStart[reg];
     else return 0;
-}
-
-quint8 RegisterFile::readRegisterByteStart(Enu::CPURegisters reg) const
-{
-    return readRegisterByteStart(convertRegister(reg));
 }
 
 void RegisterFile::writeRegisterWord(quint8 reg, quint16 val)
 {
-    if(reg + 1 <= Enu::maxRegisterNumber) {
+    if(reg + 1 <= max_register_number) {
         registersCurrent[reg] = static_cast<quint8>(val >> 8);
         registersCurrent[reg + 1] = static_cast<quint8>(val & 0xff);
     }
 }
 
-void RegisterFile::writeRegisterWord(Enu::CPURegisters reg, quint16 val)
-{
-    writeRegisterWord(convertRegister(reg), val);
-}
 
-void RegisterFile::writeRegisterByte(quint8 reg, quint8 val)
+void RegisterFile::writeRegisterByte(PepCore::CPURegisters_number_t reg, quint8 val)
 {
-    if(reg <= Enu::maxRegisterNumber) {
+    if(reg <= max_register_number) {
         registersCurrent[reg] = val;
     }
 }
 
-void RegisterFile::writeRegisterByte(Enu::CPURegisters reg, quint8 val)
-{
-    writeRegisterByte(convertRegister(reg), val);
-}
-
 void RegisterFile::clearRegisters()
 {
-    registersStart.fill(0);
-    registersCurrent.fill(0);
+    for(size_t it = 0; it<max_register_number; it++) {
+        registersStart[it] = 0;
+        registersCurrent[it] = 0;
+    }
 }
 
-void RegisterFile::writePCStart(quint16 val)
+void RegisterFile::overwriteRegisterWordStart(quint8 reg, quint16 val)
 {
-    quint8 reg = convertRegister(Enu::CPURegisters::PC);
-    if(reg + 1 < Enu::maxRegisterNumber) {
+    if(reg + 1 <= max_register_number) {
         registersStart[reg] = static_cast<quint8>(val >> 8);
         registersStart[reg + 1] = static_cast<quint8>(val & 0xff);
     }

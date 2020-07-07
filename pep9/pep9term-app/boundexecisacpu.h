@@ -36,8 +36,8 @@
 class BoundExecIsaCpu : public IsaCpu
 {
 public:
-    explicit BoundExecIsaCpu(quint64 stepCount,const AsmProgramManager* manager,
-                     QSharedPointer<AMemoryDevice> memDevice, QObject* parent = nullptr);
+    explicit BoundExecIsaCpu(quint64 stepCount, const AsmProgramManager* manager, QSharedPointer<const Pep9> pep_version,
+                             QSharedPointer<AMemoryDevice> memDevice, QObject* parent = nullptr);
     virtual ~BoundExecIsaCpu() override;
 
     // Get the default maximum number of instructions to execute.

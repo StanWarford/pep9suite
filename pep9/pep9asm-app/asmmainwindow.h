@@ -27,6 +27,7 @@
 #include "assembler/isaasm.h"
 #include "pep/constants.h"
 #include "pep/pep.h"
+#include "pep/pep9.h"
 
 namespace Ui {
     class AsmMainWindow;
@@ -74,6 +75,7 @@ protected:
 
 private:
     Ui::AsmMainWindow *ui;
+    QSharedPointer<Pep9> pep_version;
     DebugState debugState;
     QString curPath;
     QFont codeFont;

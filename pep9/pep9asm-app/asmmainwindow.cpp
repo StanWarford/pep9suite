@@ -61,6 +61,7 @@
 #include "memory/memorychips.h"
 #include "memory/memorydumppane.h"
 #include "style/darkhelper.h"
+#include "style/fonts.h"
 #include "symbol/symboltable.h"
 #include "update/updatechecker.h"
 
@@ -72,11 +73,12 @@
 
 AsmMainWindow::AsmMainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::AsmMainWindow), debugState(DebugState::DISABLED), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
+    ui(new Ui::AsmMainWindow), pep_version(new Pep9()),
+    debugState(DebugState::DISABLED), codeFont(QFont(PepCore::codeFont, PepCore::codeFontSize)),
     updateChecker(new UpdateChecker()), isInDarkMode(false),
     memDevice(new MainMemory(nullptr)),
     cacheDevice(nullptr),
-    controlSection(new IsaCpu(AsmProgramManager::getInstance(), memDevice)),
+    controlSection(new IsaCpu(AsmProgramManager::getInstance(), pep_version, memDevice)),
     redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),programManager(AsmProgramManager::getInstance())
 
 {
@@ -98,14 +100,14 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     // Install this class as the global event filter.
     qApp->installEventFilter(this);
 
-    ui->memoryWidget->init(memDevice, controlSection);
+    ui->memoryWidget->init(pep_version, memDevice, controlSection);
     ui->memoryTracePane->init(programManager, controlSection, memDevice, controlSection->getMemoryTrace());
     // Start with the memory trace pane being invisible, as it is not needed unless
     // a program with a valid stack trace is being debugged.
     ui->memoryTracePane->setVisible(false);
     ui->assemblerPane->init(programManager);
-    ui->asmProgramTracePane->init(controlSection, programManager);
-    ui->asmCpuPane->init(controlSection, controlSection);
+    ui->asmProgramTracePane->init(pep_version, controlSection, programManager);
+    ui->asmCpuPane->init(pep_version, controlSection, controlSection);
     redefineMnemonicsDialog->init(true);
     ui->executionStatisticsWidget->init(controlSection, false, showCacheOnStart);
     ui->cacheWidget->init(cacheDevice);
@@ -1134,7 +1136,7 @@ void AsmMainWindow::on_actionEdit_Font_triggered()
 
 void AsmMainWindow::on_actionEdit_Reset_font_to_Default_triggered()
 {
-    codeFont = QFont(Pep::codeFont, Pep::codeFontSize);
+    codeFont = QFont(PepCore::codeFont, PepCore::codeFontSize);
     emit fontChanged(codeFont);
 }
 
@@ -1356,9 +1358,11 @@ bool AsmMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 9, sp);
     memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 3, pc);
     // Write SP, PC to simulator
-    controlSection->getRegisterBank().writePCStart(pc);
-    controlSection->getRegisterBank().writeRegisterWord(Enu::CPURegisters::PC, pc);
-    controlSection->getRegisterBank().writeRegisterWord(Enu::CPURegisters::SP, sp);
+    auto pc_reg = to_uint8_t(Pep9::CPURegisters::PC);
+    auto sp_reg = to_uint8_t(Pep9::CPURegisters::SP);
+    controlSection->getRegisterBank().overwriteRegisterWordStart(pc_reg, pc);
+    controlSection->getRegisterBank().writeRegisterWord(pc_reg, pc);
+    controlSection->getRegisterBank().writeRegisterWord(sp_reg, sp);
     // Memory has been cleared, but will not display as such unless explicitly refreshed.
     refreshMemories();
     // Give focus to the trace pane so that once can immediately
@@ -1385,8 +1389,9 @@ void AsmMainWindow::on_actionDebug_Stop_Debugging_triggered()
 
 void AsmMainWindow::on_actionDebug_Single_Step_Assembler_triggered()
 {
+    auto pc_reg = to_uint8_t(Pep9::CPURegisters::PC);
     quint8 is;
-    quint16 addr = controlSection->getCPURegWordStart(Enu::CPURegisters::PC);
+    quint16 addr = controlSection->getCPURegWordStart(pc_reg);
     memDevice->getByte(addr, is);
     if(controlSection->canStepInto()
             && Pep::isTrapMap[Pep::decodeMnemonic[is]]) {

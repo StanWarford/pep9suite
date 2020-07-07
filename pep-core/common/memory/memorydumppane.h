@@ -34,6 +34,7 @@
 namespace Ui {
     class MemoryDumpPane;
 }
+class APepVersion;
 class MainMemory;
 class ACPUModel;
 class MemoryDumpDelegate;
@@ -44,7 +45,7 @@ public:
     explicit MemoryDumpPane(QWidget *parent = nullptr);
 
     // Needs to be called after construction but before this class can be used, otherwise the class is in an incomplete state.
-    void init(QSharedPointer<MainMemory> memory, QSharedPointer<ACPUModel> cpu);
+    void init(QSharedPointer<APepVersion> pep_version, QSharedPointer<MainMemory> memory, QSharedPointer<ACPUModel> cpu);
 
     // Set the number of bytes displayed per line.
     // Must be a power of 2 between [1-16].
@@ -129,6 +130,7 @@ private:
     QStandardItemModel* data;
     quint32 lineSize;
     quint16 bytesPerLine = {8};
+    QSharedPointer<APepVersion> pep_version;
     QSharedPointer<MainMemory> memDevice;
     QSharedPointer<ACPUModel> cpu;
     MemoryDumpDelegate *delegate;

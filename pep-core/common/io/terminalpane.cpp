@@ -25,7 +25,7 @@
 #include <QFontDialog>
 #include <QScrollBar>
 
-#include "pep/pep.h"
+#include "style/fonts.h"
 
 TerminalPane::TerminalPane(QWidget *parent) :
     QWidget(parent),
@@ -38,8 +38,8 @@ TerminalPane::TerminalPane(QWidget *parent) :
     connect(ui->plainTextEdit, &QPlainTextEdit::undoAvailable, this, &TerminalPane::undoAvailable);
     connect(ui->plainTextEdit, &QPlainTextEdit::redoAvailable, this, &TerminalPane::redoAvailable);
 
-    ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
-    ui->plainTextEdit->setFont(QFont(Pep::codeFont, Pep::ioFontSize));
+    ui->label->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
+    ui->plainTextEdit->setFont(QFont(PepCore::codeFont, PepCore::ioFontSize));
 
     installEventFilter(this);
     ui->plainTextEdit->installEventFilter(this);

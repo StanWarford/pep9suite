@@ -31,6 +31,7 @@
 #include <QVector>
 
 #include "pep/pep.h"
+#include "style/fonts.h"
 
 class Arrow {
 public:
@@ -286,10 +287,10 @@ const QPolygon NZVCDataPath = QPolygon(QVector<QPoint>() << QPoint(310,513)
 
 
 
-const int regNumberOffset = Pep::getSystem() == "Mac" ? 65 : 65; // 54 in some spots?
+const int regNumberOffset = PepCore::getSystem() == "Mac" ? 65 : 65; // 54 in some spots?
 const int regLabelOffset  = 24;
 const QSize regLabelSize  = QSize(20,22);
-const QSize regNumberSize = Pep::getSystem() == "Mac" ? QSize(42, 22) : QSize(42, 22);
+const QSize regNumberSize = PepCore::getSystem() == "Mac" ? QSize(42, 22) : QSize(42, 22);
 const QRect aRegLineEdit  = QRect(Col1X, Row1Y, regLineEditW, regLineEditH);
 const QRect xRegLineEdit  = QRect(Col1X, Row2Y, regLineEditW, regLineEditH);
 const QRect spRegLineEdit = QRect(Col1X, Row3Y, regLineEditW, regLineEditH);

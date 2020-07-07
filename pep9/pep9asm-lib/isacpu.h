@@ -26,6 +26,7 @@
 #include "cpu/interfaceisacpu.h"
 #include "cpu/registerfile.h"
 #include "memory/amemorydevice.h"
+#include "pep/pep9.h"
 
 /* Though not part of the specification, the trap mechanism  must
  * set the index register to 0 to prevent a bug in OS where
@@ -46,7 +47,8 @@ class IsaCpu: public ACPUModel, public InterfaceISACPU
 {
     friend class IsaCpuMemoizer;
 public:
-    explicit IsaCpu(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice>, QObject* parent = nullptr);
+    explicit IsaCpu(const AsmProgramManager* manager, QSharedPointer<const Pep9> pep_version,
+                    QSharedPointer<AMemoryDevice>, QObject* parent = nullptr);
     virtual ~IsaCpu() override;
     // InterfaceISACPU interface
 public:
@@ -63,6 +65,11 @@ public:
     RegisterFile& getRegisterBank();
     const RegisterFile& getRegisterBank() const;
 
+    quint8 getCPURegByteCurrent(Pep9::CPURegisters reg) const;
+    quint16 getCPURegWordCurrent(Pep9::CPURegisters reg) const;
+    quint8 getCPURegByteStart(Pep9::CPURegisters reg) const;
+    quint16 getCPURegWordStart(Pep9::CPURegisters reg) const;
+
 protected:
     void onISAStep() override;
     void updateAtInstructionEnd() override;
@@ -75,11 +82,12 @@ public:
     void initCPU() override;
     bool getStatusBitCurrent(Enu::EStatusBit) const override;
     bool getStatusBitStart(Enu::EStatusBit) const override;
-    quint8 getCPURegByteCurrent(Enu::CPURegisters reg) const override;
-    quint16 getCPURegWordCurrent(Enu::CPURegisters reg) const override;
-    quint8 getCPURegByteStart(Enu::CPURegisters reg) const override;
-    quint16 getCPURegWordStart(Enu::CPURegisters reg) const override;
     QString getErrorMessage() const noexcept override;
+    quint8 getCPURegByteCurrent(PepCore::CPURegisters_number_t reg) const override;
+    quint16 getCPURegWordCurrent(PepCore::CPURegisters_number_t reg) const override;
+    // Return the value of a register at the start of an instruction.
+    quint8 getCPURegByteStart(PepCore::CPURegisters_number_t reg) const override;
+    quint16 getCPURegWordStart(PepCore::CPURegisters_number_t reg) const override;
     bool hadErrorOnStep() const noexcept override;
     bool stoppedForBreakpoint() const noexcept override;
 
@@ -94,6 +102,7 @@ public slots:
 
 
 private:
+    QSharedPointer<const APepVersion> pep_version;
     RegisterFile registerBank;
     QElapsedTimer timer;
     IsaCpuMemoizer* memoizer;
@@ -108,6 +117,10 @@ private:
     void executeTrap(Enu::EMnemonic mnemon);
     // Callback function to handle InteruptHandler's BREAKPOINT_ASM.
     void breakpointAsmHandler();
+
+    const PepCore::CPURegisters_number_t a_reg, x_reg, sp_reg, pc_reg, is_reg, os_reg;
+
+
 
 };
 

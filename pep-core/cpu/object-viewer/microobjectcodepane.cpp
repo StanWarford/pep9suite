@@ -34,6 +34,7 @@
 #include "microassembler/microcodeprogram.h"
 #include "object-viewer/rotatedheaderview.h"
 #include "pep/pep.h"
+#include "style/fonts.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symboltable.h"
 #include "symbol/symbolvalue.h"
@@ -42,8 +43,8 @@ MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
     rowCount(0), model(new QStandardItemModel()), inSimulation(false), showCtrlSectionSignals(false)
 {
     ui->setupUi(this);
-    QFont font(Pep::codeFont);
-    font.setPointSize(Pep::codeFontSize);
+    QFont font(PepCore::codeFont);
+    font.setPointSize(PepCore::codeFontSize);
     font.setStyleHint(QFont::TypeWriter);
     ui->codeTable->setModel(model);
     rotatedHeaderView = new RotatedHeaderView(Qt::Horizontal,ui->codeTable);
@@ -151,8 +152,11 @@ void MicroObjectCodePane::setObjectCode(QSharedPointer<MicrocodeProgram> prog, Q
             // Header ignores a font when given one at header level, so we have to do it per line
             // Must add 1 to rowNum, since the microcode pane line numbers start at 1,
             // and rowNum starts at 0.
-            ui->codeTable->model()->setHeaderData(rowNum, Qt::Vertical, QString("%1").arg(rowNum + 1), Qt::EditRole);
-            ui->codeTable->model()->setHeaderData(rowNum, Qt::Vertical, QFont(Pep::codeFont, Pep::codeFontSize), Qt::FontRole);
+            ui->codeTable->model()->setHeaderData(rowNum, Qt::Vertical, QString("%1").arg(rowNum + 1),
+                                                  Qt::EditRole);
+            ui->codeTable->model()->setHeaderData(rowNum, Qt::Vertical,
+                                                  QFont(PepCore::codeFont, PepCore::codeFontSize),
+                                                  Qt::FontRole);
             rowNum++;
         }
     }

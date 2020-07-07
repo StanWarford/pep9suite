@@ -28,8 +28,8 @@
 
 #include "assembler/asmprogram.h"
 #include "highlight/pepasmhighlighter.h"
-#include "pep/pep.h"
 #include "style/colors.h"
+#include "style/fonts.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symboltable.h"
 #include "symbol/symbolvalue.h"
@@ -42,8 +42,8 @@ AsmProgramListingPane::AsmProgramListingPane(QWidget *parent) :
 
     pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->plainTextEdit->document());
 
-    ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
-    ui->plainTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    ui->label->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
+    ui->plainTextEdit->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
     ui->plainTextEdit->setReadOnly(true);
 }
 

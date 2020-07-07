@@ -179,7 +179,8 @@ void ASMRunHelper::run()
         QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memory.get()));
         memory->insertChip(ramChip, 0);
 
-        cpu = QSharedPointer<BoundExecIsaCpu>::create(maxSimSteps, &manager, memory, nullptr);
+        auto version = QSharedPointer<Pep9>::create();
+        cpu = QSharedPointer<BoundExecIsaCpu>::create(maxSimSteps, &manager, version, memory, nullptr);
 
         // Connect IO events. IO *MUST* complete before execution moves forward.
         // Use a blocking connection to serialize IO. Use asynchronous connection

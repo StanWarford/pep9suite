@@ -25,7 +25,7 @@
 #include <QFontDialog>
 #include <QKeyEvent>
 
-#include "pep/pep.h"
+#include "style/fonts.h"
 
 InputPane::InputPane(QWidget *parent) :
         QWidget(parent),
@@ -36,8 +36,8 @@ InputPane::InputPane(QWidget *parent) :
     connect(ui->plainTextEdit, SIGNAL(undoAvailable(bool)), this, SIGNAL(undoAvailable(bool)));
     connect(ui->plainTextEdit, SIGNAL(redoAvailable(bool)), this, SIGNAL(redoAvailable(bool)));
 
-    ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
-    ui->plainTextEdit->setFont(QFont(Pep::codeFont, Pep::ioFontSize));
+    ui->label->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
+    ui->plainTextEdit->setFont(QFont(PepCore::codeFont, PepCore::ioFontSize));
 }
 
 InputPane::~InputPane()

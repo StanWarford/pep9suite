@@ -27,6 +27,7 @@
 #include "pep/constants.h"
 #include "pep/enu.h"
 #include "pep/pep.h"
+#include "pep/pep9.h"
 
 namespace Ui {
     class CPUMainWindow;
@@ -72,6 +73,7 @@ protected:
 
 private:
     Ui::CPUMainWindow *ui;
+    QSharedPointer<Pep9> pep_version;
     DebugState debugState;
     QString curPath;
     QFont codeFont;

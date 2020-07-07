@@ -40,8 +40,8 @@
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
 #include "memory/mainmemory.h"
-#include "pep/pep.h"
 #include "style/colors.h"
+#include "style/fonts.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symboltable.h"
 #include "symbol/symbolvalue.h"
@@ -59,8 +59,8 @@ AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
     connect(ui->textEdit, &QPlainTextEdit::undoAvailable, this, &AsmSourceCodePane::undoAvailable);
     connect(ui->textEdit, &QPlainTextEdit::redoAvailable, this, &AsmSourceCodePane::redoAvailable);
 
-    ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
-    ui->textEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    ui->label->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
+    ui->textEdit->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
 
     connect(static_cast<AsmSourceTextEdit*>(ui->textEdit), &AsmSourceTextEdit::breakpointAdded, this, &AsmSourceCodePane::onBreakpointAddedProp);
     connect(static_cast<AsmSourceTextEdit*>(ui->textEdit), &AsmSourceTextEdit::breakpointRemoved, this, &AsmSourceCodePane::onBreakpointRemovedProp);

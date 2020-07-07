@@ -28,8 +28,8 @@
 #include "cpu/cpudata.h"
 #include "microassembler/microcode.h"
 #include "microassembler/microcodeprogram.h"
-#include "pep/pep.h"
 #include "style/colors.h"
+#include "style/fonts.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symbolvalue.h"
 #include "symbol/symboltable.h"
@@ -42,7 +42,7 @@ MicrocodePane::MicrocodePane(QWidget *parent) :
 
     editor = new MicrocodeEditor(true,false, this);
 
-    editor->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    editor->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
     editor->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     editor->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 

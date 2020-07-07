@@ -20,7 +20,10 @@
 */
 #include "redefinemnemonicsdialog.h"
 #include "ui_redefinemnemonicsdialog.h"
+
 #include <QRegExpValidator>
+
+#include "style/fonts.h"
 using namespace Enu;
 
 RedefineMnemonicsDialog::RedefineMnemonicsDialog(QWidget *parent) :
@@ -31,37 +34,37 @@ RedefineMnemonicsDialog::RedefineMnemonicsDialog(QWidget *parent) :
     restoreDefaults();
     connect(this, &RedefineMnemonicsDialog::closed, this, &RedefineMnemonicsDialog::onDone);
 
-    ui->unaryOpCodeLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
-    ui->unaryOpCode0Label->setFont(QFont(Pep::codeFont));
-    ui->unaryOpCode1Label->setFont(QFont(Pep::codeFont));
+    ui->unaryOpCodeLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
+    ui->unaryOpCode0Label->setFont(QFont(PepCore::codeFont));
+    ui->unaryOpCode1Label->setFont(QFont(PepCore::codeFont));
 
-    ui->unaryMnemonicLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
-    ui->unaryMnemonic0LineEdit->setFont(QFont(Pep::codeFont));
-    ui->unaryMnemonic1LineEdit->setFont(QFont(Pep::codeFont));
+    ui->unaryMnemonicLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
+    ui->unaryMnemonic0LineEdit->setFont(QFont(PepCore::codeFont));
+    ui->unaryMnemonic1LineEdit->setFont(QFont(PepCore::codeFont));
 
-    ui->nonunaryMnemonicLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
-    ui->iLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
-    ui->dLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
-    ui->nLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
-    ui->sLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
-    ui->sfLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
-    ui->xLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
-    ui->sxLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
-    ui->sfxLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
+    ui->nonunaryMnemonicLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
+    ui->iLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
+    ui->dLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
+    ui->nLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
+    ui->sLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
+    ui->sfLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
+    ui->xLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
+    ui->sxLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
+    ui->sfxLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
 
-    ui->nonunaryOpCodeLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize, QFont::Bold));
+    ui->nonunaryOpCodeLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize, QFont::Bold));
 
-    ui->nonunaryOpCode1Label->setFont(QFont(Pep::codeFont));
-    ui->nonunaryOpCode2Label->setFont(QFont(Pep::codeFont));
-    ui->nonunaryOpCode3Label->setFont(QFont(Pep::codeFont));
-    ui->nonunaryOpCode4Label->setFont(QFont(Pep::codeFont));
-    ui->nonunaryOpCode5Label->setFont(QFont(Pep::codeFont));
+    ui->nonunaryOpCode1Label->setFont(QFont(PepCore::codeFont));
+    ui->nonunaryOpCode2Label->setFont(QFont(PepCore::codeFont));
+    ui->nonunaryOpCode3Label->setFont(QFont(PepCore::codeFont));
+    ui->nonunaryOpCode4Label->setFont(QFont(PepCore::codeFont));
+    ui->nonunaryOpCode5Label->setFont(QFont(PepCore::codeFont));
 
-    ui->nonUnaryMnemonic0LineEdit->setFont(QFont(Pep::codeFont));
-    ui->nonUnaryMnemonic1LineEdit->setFont(QFont(Pep::codeFont));
-    ui->nonUnaryMnemonic2LineEdit->setFont(QFont(Pep::codeFont));
-    ui->nonUnaryMnemonic3LineEdit->setFont(QFont(Pep::codeFont));
-    ui->nonUnaryMnemonic4LineEdit->setFont(QFont(Pep::codeFont));
+    ui->nonUnaryMnemonic0LineEdit->setFont(QFont(PepCore::codeFont));
+    ui->nonUnaryMnemonic1LineEdit->setFont(QFont(PepCore::codeFont));
+    ui->nonUnaryMnemonic2LineEdit->setFont(QFont(PepCore::codeFont));
+    ui->nonUnaryMnemonic3LineEdit->setFont(QFont(PepCore::codeFont));
+    ui->nonUnaryMnemonic4LineEdit->setFont(QFont(PepCore::codeFont));
 
     connect(ui->defaultMnemonicsButton, SIGNAL(clicked()), this, SLOT(restoreDefaults()));
 

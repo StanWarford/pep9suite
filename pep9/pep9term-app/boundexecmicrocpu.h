@@ -36,8 +36,9 @@
 class BoundExecMicroCpu : public FullMicrocodedCPU
 {
 public:
-    explicit BoundExecMicroCpu(quint64 maxCycles,const AsmProgramManager* manager,
-                     QSharedPointer<AMemoryDevice> memDevice, QObject* parent = nullptr);
+    explicit BoundExecMicroCpu(quint64 maxCycles,
+                               const AsmProgramManager* manager, QSharedPointer<const Pep9> pep_version,
+                               QSharedPointer<AMemoryDevice> memDevice, QObject* parent = nullptr);
     virtual ~BoundExecMicroCpu() override;
 
     // Default maximum number of cycles the simulator will execute.

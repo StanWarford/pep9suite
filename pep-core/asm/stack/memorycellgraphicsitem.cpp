@@ -25,6 +25,7 @@
 
 #include "memory/amemorydevice.h"
 #include "pep/pep.h"
+#include "style/fonts.h"
 
 const int MemoryCellGraphicsItem::boxHeight = 22;
 const int MemoryCellGraphicsItem::boxWidth = 50;
@@ -82,7 +83,7 @@ void MemoryCellGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphics
 
     painter->setPen(colors->textColor);
     painter->setRenderHint(QPainter::TextAntialiasing);
-    painter->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    painter->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
 
     painter->drawText(QRectF(x - addressWidth - bufferWidth, y, addressWidth, boxHeight), Qt::AlignVCenter | Qt::AlignRight, QString("%1").arg(address, 4, 16, QLatin1Char('0')).toUpper());
 

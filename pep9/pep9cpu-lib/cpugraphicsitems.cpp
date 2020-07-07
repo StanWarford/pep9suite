@@ -39,7 +39,7 @@ void addLabelToScene(QLabel** labelLoc, QGraphicsScene *scene, QString name, con
 {
     *labelLoc = new QLabel(name);
     (*labelLoc)->setGeometry(geometry);
-    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSizeCPUPane));
+    (*labelLoc)->setFont (QFont(PepCore::labelFont, PepCore::labelFontSizeCPUPane));
     scene->addWidget(*labelLoc);
 }
 
@@ -54,7 +54,7 @@ void addDLabelToScene(QLabel** labelLoc, QGraphicsScene *scene, QString name, co
     *labelLoc = new QLabel(name);
     (*labelLoc)->setGeometry(geometry);
     (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSizeCPUPane));
+    (*labelLoc)->setFont (QFont(PepCore::labelFont, PepCore::labelFontSizeCPUPane));
     scene->addWidget(*labelLoc);
 }
 
@@ -62,7 +62,7 @@ void addTLabel(TristateLabel** labelLoc, QGraphicsScene *scene, const QRect& geo
     (*labelLoc) = new TristateLabel(nullptr, TristateLabel::Tristate);
     (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     (*labelLoc)->setGeometry(geometry);
-    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSizeCPUPane));
+    (*labelLoc)->setFont (QFont(PepCore::labelFont, PepCore::labelFontSizeCPUPane));
     scene->addWidget(*labelLoc);
 }
 
@@ -71,7 +71,7 @@ void addStatusLabel(TristateLabel** labelLoc, QGraphicsScene* scene, const QRect
     (*labelLoc)->setText("0");
     (*labelLoc)->setGeometry(geometry);
     (*labelLoc)->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    (*labelLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSizeCPUPane));
+    (*labelLoc)->setFont (QFont(PepCore::labelFont, PepCore::labelFontSizeCPUPane));
     scene->addWidget(*labelLoc);
 }
 
@@ -80,7 +80,7 @@ void addRegisterText(QVector<QLabel*> &labelVec, QGraphicsScene* scene, QString 
     ph->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     ph->setPalette(QPalette(colorScheme->seqCircuitColor));
     ph->setGeometry(geometry);
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
+    ph->setFont (QFont(PepCore::codeFont, PepCore::codeFontSize));
     scene->addWidget(ph);
     ph->raise();
     labelVec.append(ph);
@@ -94,7 +94,7 @@ void addEditableRegister(QLineEdit** edit, QVector<QLineEdit*> &editorVector, QG
     (*edit)->setValidator(new QRegExpValidator(regex,*edit));
     (*edit)->setPalette(QPalette(colorScheme->seqCircuitColor));
     (*edit)->setFrame(false);
-    (*edit)->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
+    (*edit)->setFont (QFont(PepCore::codeFont, PepCore::codeFontSize));
     scene->addWidget(*edit);
     editorVector.append(*edit);
 }
@@ -104,7 +104,7 @@ void addStaticRegister(QVector<QLabel*> &labelVec, QGraphicsScene* scene, QStrin
     ph->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     ph->setGeometry(geometry);
     ph->setPalette(QPalette(PepColors::transparent));
-    ph->setFont (QFont(Pep::codeFont, Pep::codeFontSize));
+    ph->setFont (QFont(PepCore::codeFont, PepCore::codeFontSize));
     scene->addWidget(ph);
     labelVec.append(ph);
 }
@@ -113,7 +113,7 @@ void addCheckToScene(QCheckBox** checkLoc, QVector<QCheckBox*> &checkVector, QGr
 {
     *checkLoc = new QCheckBox(name);
     (*checkLoc)->setGeometry(geometry);
-    (*checkLoc)->setFont (QFont(Pep::labelFont, Pep::labelFontSizeCPUPane));
+    (*checkLoc)->setFont (QFont(PepCore::labelFont, PepCore::labelFontSizeCPUPane));
     checkVector.append(*checkLoc);
     scene->addWidget(*checkLoc);
 }

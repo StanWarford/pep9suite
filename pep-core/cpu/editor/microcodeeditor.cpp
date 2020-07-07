@@ -27,7 +27,7 @@
 
 #include "cpu/interfacemccpu.h"
 #include "microassembler/microcodeprogram.h"
-#include "pep/pep.h"
+#include "style/fonts.h"
 
 
 
@@ -392,7 +392,7 @@ void MicrocodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
             // Determine the line number text, or the empty string otherwise
             QString number = !blockToCycle.contains(blockNumber) ? QString("") : QString::number(blockToCycle[blockNumber]);
             painter.setPen(colors->lineAreaText); // grey
-            painter.setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+            painter.setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
             // Render the line number
             painter.drawText(-1, top, lineNumberArea->width(), fontMetrics().height(), Qt::AlignRight | Qt::AlignVCenter, number);
         }

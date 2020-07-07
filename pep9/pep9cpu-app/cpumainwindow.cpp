@@ -51,6 +51,7 @@
 #include "microassembler/microcodeprogram.h"
 #include "object-viewer/microobjectcodepane.h"
 #include "style/darkhelper.h"
+#include "style/fonts.h"
 #include "symbol/symboltable.h"
 #include "update/updatechecker.h"
 
@@ -61,9 +62,11 @@
 
 CPUMainWindow::CPUMainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::CPUMainWindow), debugState(DebugState::DISABLED), codeFont(QFont(Pep::codeFont, Pep::codeFontSize)),
+    ui(new Ui::CPUMainWindow), pep_version(new Pep9()),
+    debugState(DebugState::DISABLED), codeFont(QFont(PepCore::codeFont, PepCore::codeFontSize)),
     updateChecker(new UpdateChecker()),  isInDarkMode(false),
-    memDevice(new MainMemory(nullptr)), controlSection(new PartialMicrocodedCPU(Enu::CPUType::OneByteDataBus, memDevice)),
+    memDevice(new MainMemory(nullptr)),
+    controlSection(new PartialMicrocodedCPU(Enu::CPUType::OneByteDataBus, pep_version, memDevice)),
     dataSection(controlSection->getDataSection()),
     cpuModesGroup(new QActionGroup(this))
 {
@@ -77,7 +80,7 @@ CPUMainWindow::CPUMainWindow(QWidget *parent) :
     // Install this class as the global event filter.
     qApp->installEventFilter(this);
 
-    ui->memoryWidget->init(memDevice, controlSection);
+    ui->memoryWidget->init(pep_version, memDevice, controlSection);
     // Only display 4 bytes per line, rather than the default 8;
     ui->memoryWidget->setNumBytesPerLine(4);
     // In Pep9CPU, we don't work with assembly instructions, so disable PC based features
@@ -719,7 +722,7 @@ void CPUMainWindow::on_actionEdit_Font_triggered()
 
 void CPUMainWindow::on_actionEdit_Reset_font_to_Default_triggered()
 {
-    codeFont = QFont(Pep::codeFont, Pep::codeFontSize);
+    codeFont = QFont(PepCore::codeFont, PepCore::codeFontSize);
     emit fontChanged(codeFont);
 }
 
@@ -767,9 +770,6 @@ void CPUMainWindow::on_actionBuild_Run_triggered()
 
 void CPUMainWindow::handleDebugButtons()
 {
-    quint8 byte;
-    memDevice->getByte(controlSection->getCPURegWordStart(Enu::CPURegisters::PC), byte);
-
     int enabledButtons = 0;
     switch(debugState)
     {

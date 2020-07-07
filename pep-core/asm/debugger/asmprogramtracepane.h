@@ -40,13 +40,15 @@ class AsmProgram;
 class AsmProgramManager;
 
 class ACPUModel;
+class APepVersion;
 class AsmProgramTraceTextEdit;
 class AsmProgramTracePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmProgramTracePane)
 public:
     explicit AsmProgramTracePane(QWidget *parent = nullptr);
-    void init(QSharedPointer<const ACPUModel> controlSection, AsmProgramManager* programManager);
+    void init(QSharedPointer<const APepVersion> pep_version,
+              QSharedPointer<const ACPUModel> controlSection, AsmProgramManager* programManager);
     virtual ~AsmProgramTracePane();
 
     // Optionally, add a label to the top of the memory dump pane displaying the
@@ -96,6 +98,7 @@ private:
     Ui::AsmProgramTracePane *ui;
     QSharedPointer<AsmProgram> activeProgram;
     AsmProgramManager* programManager;
+    QSharedPointer<const APepVersion> pep_version;
     QSharedPointer<const ACPUModel> cpu;
     PepASMHighlighter *pepHighlighter;
     bool inDarkMode;

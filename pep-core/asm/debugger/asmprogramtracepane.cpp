@@ -29,21 +29,26 @@
 #include "assembler/asmprogrammanager.h"
 #include "cpu/acpumodel.h"
 #include "highlight/pepasmhighlighter.h"
+#include "pep/apepversion.h"
+#include "style/fonts.h"
 
 AsmProgramTracePane::AsmProgramTracePane(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::AsmProgramTracePane), inDarkMode(false)
 {
     ui->setupUi(this);
-    ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
+    ui->label->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
     pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->tracePaneTextEdit->document());
-    ui->tracePaneTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    ui->tracePaneTextEdit->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
     connect(((AsmProgramTraceTextEdit*)ui->tracePaneTextEdit), &AsmProgramTraceTextEdit::breakpointAdded, this, &AsmProgramTracePane::onBreakpointAddedProp);
     connect(((AsmProgramTraceTextEdit*)ui->tracePaneTextEdit), &AsmProgramTraceTextEdit::breakpointRemoved, this, &AsmProgramTracePane::onBreakpointRemovedProp);
 }
 
-void AsmProgramTracePane::init(QSharedPointer<const ACPUModel> controlSection, AsmProgramManager* programManager)
+void AsmProgramTracePane::init(QSharedPointer<const APepVersion> pep_version,
+                               QSharedPointer<const ACPUModel> controlSection,
+                               AsmProgramManager* programManager)
 {
+    this->pep_version = pep_version;
     this->cpu = controlSection;
     this->programManager = programManager;
 }
@@ -119,7 +124,8 @@ void AsmProgramTracePane::startSimulationView()
 
 void AsmProgramTracePane::updateSimulationView()
 {
-    quint16 pc = cpu->getCPURegWordStart(Enu::CPURegisters::PC);
+    auto pc_reg = pep_version->get_global_register_number(APepVersion::global_registers::PC);
+    quint16 pc = cpu->getCPURegWordStart(pc_reg);
     if(activeProgram.data() != programManager->getProgramAt(pc)) {
 
         if(programManager->getOperatingSystem()->getProgramBounds().first <= pc &&

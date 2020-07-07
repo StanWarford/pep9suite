@@ -29,7 +29,7 @@
 #include "cache/cacheaddresstranslator.h"
 #include "cache/cachememory.h"
 #include "cache/cachealgs.h"
-#include "pep/pep.h"
+#include "style/fonts.h"
 
 static const int EvictedData = Qt::UserRole + 1;
 
@@ -51,8 +51,8 @@ CacheView::CacheView(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->cacheTree->setFont(Pep::codeFont);
-    ui->cacheTree->header()->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
+    ui->cacheTree->setFont(PepCore::codeFont);
+    ui->cacheTree->header()->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
 
     // Create cache delegate
     del = new CacheViewDelegate(cache, colors);
@@ -69,7 +69,7 @@ CacheView::CacheView(QWidget *parent) :
     connect(ui->cacheTree, &QTreeView::collapsed, this, &CacheView::onExpandChanged);
     connect(ui->cacheTree, &QTreeView::expanded, this, &CacheView::onExpandChanged);
 
-    ui->cacheLabel->setFont(Pep::labelFont);
+    ui->cacheLabel->setFont(PepCore::labelFont);
 }
 
 CacheView::~CacheView()

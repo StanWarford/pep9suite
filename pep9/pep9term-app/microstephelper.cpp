@@ -237,10 +237,10 @@ void MicroStepHelper::run()
         QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memory.get()));
         memory->insertChip(ramChip, 0);
 
-
+        auto version = QSharedPointer<Pep9>::create();
         cpu = QSharedPointer<BoundExecMicroCpu>::create(maxStepCount,
                                                         AsmProgramManager::getInstance(),
-                                                        memory, nullptr);
+                                                        version, memory, nullptr);
     }
 
     // Clear & initialize all values in CPU before starting simulation.

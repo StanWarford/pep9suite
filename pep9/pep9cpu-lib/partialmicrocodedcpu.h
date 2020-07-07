@@ -25,6 +25,7 @@
 
 #include "cpu/interfacemccpu.h"
 #include "pep/constants.h"
+#include "pep/pep9.h"
 
 class CPUDataSection;
 class PartialMicrocodedMemoizer;
@@ -34,17 +35,25 @@ class PartialMicrocodedCPU : public ACPUModel, public InterfaceMCCPU
     friend class CPUMemoizer;
     friend class PartialMicrocodedMemoizer;
 public:
-    PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
+    PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<const Pep9> pep_version,
+                         QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~PartialMicrocodedCPU() override;
     QSharedPointer<CPUDataSection> getDataSection();
+
+    quint8 getCPURegByteCurrent(Pep9::CPURegisters reg) const;
+    quint16 getCPURegWordCurrent(Pep9::CPURegisters reg) const;
+    quint8 getCPURegByteStart(Pep9::CPURegisters reg) const;
+    quint16 getCPURegWordStart(Pep9::CPURegisters reg) const;
 
     // ACPUModel interface
     bool getStatusBitCurrent(Enu::EStatusBit) const override;
     bool getStatusBitStart(Enu::EStatusBit) const override;
-    quint8 getCPURegByteCurrent(Enu::CPURegisters reg) const override;
-    quint16 getCPURegWordCurrent(Enu::CPURegisters reg) const override;
-    quint8 getCPURegByteStart(Enu::CPURegisters reg) const override;
-    quint16 getCPURegWordStart(Enu::CPURegisters reg) const override;
+
+    quint8 getCPURegByteCurrent(PepCore::CPURegisters_number_t reg) const override;
+    quint16 getCPURegWordCurrent(PepCore::CPURegisters_number_t reg) const override;
+    quint8 getCPURegByteStart(PepCore::CPURegisters_number_t reg) const override;
+    quint16 getCPURegWordStart(PepCore::CPURegisters_number_t reg) const override;
+
     void initCPU() override;
     bool stoppedForBreakpoint() const noexcept override;
     QString getErrorMessage() const noexcept override;
@@ -66,6 +75,7 @@ public slots:
     void onResetCPU() override;
 
 private:
+    QSharedPointer<const Pep9> pep_version;
     CPUDataSection *data;
     QSharedPointer<CPUDataSection> dataShared;
     PartialMicrocodedMemoizer *memoizer;

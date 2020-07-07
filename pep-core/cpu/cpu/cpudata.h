@@ -26,20 +26,23 @@
 #include <QString>
 #include <QVector>
 
+#include "cpu/registerfile.h"
 #include "pep/enu.h"
+#include "pep/pep9.h"
 
 class AMemoryDevice;
 class InterfaceMCCPU;
 class MemorySection;
 class MicroCode;
-class RegisterFile;
+
 class CPUDataSection: public QObject
 {
     Q_OBJECT
     friend class CPUControlSection;
     friend class InterfaceMCCPU;
 public:
-    CPUDataSection(Enu::CPUType type, QSharedPointer<AMemoryDevice> memDevice, QObject *parent = nullptr );
+    CPUDataSection(Enu::CPUType type, QSharedPointer<const APepVersion> pep_version,
+                   QSharedPointer<AMemoryDevice> memDevice, QObject *parent = nullptr );
     virtual ~CPUDataSection();
 
 
@@ -49,8 +52,8 @@ public:
     const RegisterFile& getRegisterBank() const;
     quint8 getRegisterBankByte(quint8 registerNumber) const;
     quint16 getRegisterBankWord(quint8 registerNumber) const; //Follows even/odd conventions of pep/9
-    quint8 getRegisterBankByte(Enu::CPURegisters registerNumber) const;
-    quint16 getRegisterBankWord(Enu::CPURegisters registerNumber) const; //Follows even/odd conventions of pep/9
+    //quint8 getRegisterBankByte(Enu::CPURegisters registerNumber) const;
+    //quint16 getRegisterBankWord(Enu::CPURegisters registerNumber) const; //Follows even/odd conventions of pep/9
     quint8 getMemoryRegister(Enu::EMemoryRegisters registerNumber)const;
 
     //Access register & Memory Buses

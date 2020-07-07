@@ -25,6 +25,7 @@
 #include <QDebug>
 
 #include "pep/pep.h"
+#include "style/fonts.h"
 
 ExecutionStatisticsWidget::ExecutionStatisticsWidget(QWidget *parent) :
     QWidget(parent),
@@ -41,7 +42,7 @@ ExecutionStatisticsWidget::ExecutionStatisticsWidget(QWidget *parent) :
     QColor col = QColor(0,0,0,0);
     pal.setColor(QPalette::Base, col);
 
-    ui->statsLabel->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
+    ui->statsLabel->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
     ui->lineEdit_Cycles->setPalette(pal);
     ui->lineEdit_Instructions->setPalette(pal);
 }

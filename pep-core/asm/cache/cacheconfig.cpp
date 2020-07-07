@@ -26,7 +26,7 @@
 
 #include "cache/cachealgs.h"
 #include "cache/cachememory.h"
-#include "pep/pep.h"
+#include "style/fonts.h"
 
 
 CacheConfig::CacheConfig(QWidget *parent) :
@@ -54,17 +54,17 @@ void CacheConfig::init(QSharedPointer<CacheMemory> cache, bool enableCacheChange
         ui->replacementCombo->addItem(QString(metaEnum.key(keyIndex)));
     }
 
-    ui->updateButton->setFont(Pep::labelFont);
-    ui->tagBits->setFont(Pep::labelFont);
-    ui->tagLabel->setFont(Pep::labelFont);
-    ui->indexBits->setFont(Pep::labelFont);
-    ui->lineLabel->setFont(Pep::labelFont);
-    ui->byteFieldBits->setFont(Pep::labelFont);
-    ui->replacementLabel->setFont(Pep::labelFont);
-    ui->replacementCombo->setFont(Pep::labelFont);
-    ui->associativityNum->setFont(Pep::labelFont);
-    ui->associativtyLabel->setFont(Pep::labelFont);
-    ui->widgetLabel->setFont(Pep::labelFont);
+    ui->updateButton->setFont(PepCore::labelFont);
+    ui->tagBits->setFont(PepCore::labelFont);
+    ui->tagLabel->setFont(PepCore::labelFont);
+    ui->indexBits->setFont(PepCore::labelFont);
+    ui->lineLabel->setFont(PepCore::labelFont);
+    ui->byteFieldBits->setFont(PepCore::labelFont);
+    ui->replacementLabel->setFont(PepCore::labelFont);
+    ui->replacementCombo->setFont(PepCore::labelFont);
+    ui->associativityNum->setFont(PepCore::labelFont);
+    ui->associativtyLabel->setFont(PepCore::labelFont);
+    ui->widgetLabel->setFont(PepCore::labelFont);
 }
 
 void CacheConfig::setReadOnly(bool readOnly)

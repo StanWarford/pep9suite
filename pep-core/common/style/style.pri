@@ -6,10 +6,12 @@ DISTFILES += \
 
 HEADERS += \
     $$PWD/colors.h \
-    $$PWD/darkhelper.h
+    $$PWD/darkhelper.h \
+    $$PWD/fonts.h
 
 SOURCES += \
     $$PWD/colors.cpp \
+    $$PWD/fonts.cpp
 
 macx {
     QT += macextras

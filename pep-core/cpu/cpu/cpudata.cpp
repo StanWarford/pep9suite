@@ -28,9 +28,11 @@
 #include "microassembler/microcode.h"
 #include "microassembler/microcodeprogram.h"
 #include "pep/pep.h"
-CPUDataSection::CPUDataSection(Enu::CPUType type, QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
+CPUDataSection::CPUDataSection(Enu::CPUType type, QSharedPointer<const APepVersion> pep_version,
+                               QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
     cpuFeatures(type), mainBusState(Enu::None),
-    registerBank(QSharedPointer<RegisterFile>::create()), memoryRegisters(6), controlSignals(Pep::numControlSignals()),
+    registerBank(QSharedPointer<RegisterFile>::create(pep_version->maxRegisterNumber())),
+    memoryRegisters(6), controlSignals(Pep::numControlSignals()),
     clockSignals(Pep::numClockSignals()), emitEvents(true), hadDataError(false), errorMessage(""),
     isALUCacheValid(false), ALUHasOutputCache(false), ALUOutputCache(0), ALUStatusBitCache(0)
 {
@@ -232,16 +234,6 @@ quint8 CPUDataSection::getRegisterBankByte(quint8 registerNumber) const
 }
 
 quint16 CPUDataSection::getRegisterBankWord(quint8 registerNumber) const
-{
-    return registerBank->readRegisterWordCurrent(registerNumber);
-}
-
-quint8 CPUDataSection::getRegisterBankByte(Enu::CPURegisters registerNumber) const
-{
-    return registerBank->readRegisterByteCurrent(registerNumber);
-}
-
-quint16 CPUDataSection::getRegisterBankWord(Enu::CPURegisters registerNumber) const
 {
     return registerBank->readRegisterWordCurrent(registerNumber);
 }

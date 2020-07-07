@@ -25,7 +25,7 @@
 #include <QFontDialog>
 #include <QScrollBar>
 
-#include "pep/pep.h"
+#include "style/fonts.h"
 
 OutputPane::OutputPane(QWidget *parent) :
     QWidget(parent),
@@ -33,8 +33,8 @@ OutputPane::OutputPane(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->label->setFont(QFont(Pep::labelFont, Pep::labelFontSize));
-    ui->plainTextEdit->setFont(QFont(Pep::codeFont, Pep::ioFontSize));
+    ui->label->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
+    ui->plainTextEdit->setFont(QFont(PepCore::codeFont, PepCore::ioFontSize));
 }
 
 OutputPane::~OutputPane()

@@ -26,8 +26,9 @@
 #include "memory/amemorydevice.h"
 
 BoundExecIsaCpu::BoundExecIsaCpu(quint64 stepCount, const AsmProgramManager *manager,
-                                   QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
-    IsaCpu(manager, memDevice, parent), maxSteps(stepCount)
+                                 QSharedPointer<const Pep9> pep_version,
+                                 QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
+    IsaCpu(manager, pep_version, memDevice, parent), maxSteps(stepCount)
 
 {
     // This version of the CPU does not respond to breakpoints, and as such

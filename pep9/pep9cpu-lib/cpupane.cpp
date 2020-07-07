@@ -33,7 +33,7 @@
 #include "cpu/cpudata.h"
 #include "cpu-diagram/tristatelabel.h"
 #include "microassembler/microcode.h"
-#include "pep/pep.h"
+#include "style/fonts.h"
 
 
 using namespace Enu;
@@ -47,7 +47,7 @@ CpuPane::CpuPane( QWidget *parent) :
     scene = new QGraphicsScene(nullptr);
     ui->graphicsView->setScene(scene);
 
-    ui->graphicsView->setFont(QFont(Pep::cpuFont, Pep::cpuFontSize));
+    ui->graphicsView->setFont(QFont(PepCore::cpuFont, PepCore::cpuFontSize));
 
     ui->spinBox->hide();
     ui->graphicsView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
@@ -1000,18 +1000,19 @@ void CpuPane::repaintOnScroll(int distance)
 
 void CpuPane::onSimulationUpdate()
 {
-    setRegister(Enu::Acc, dataSection->getRegisterBankWord(CPURegisters::A));
-    setRegister(Enu::X, dataSection->getRegisterBankWord(CPURegisters::X));
-    setRegister(Enu::SP, dataSection->getRegisterBankWord(CPURegisters::SP));
-    setRegister(Enu::PC, dataSection->getRegisterBankWord(CPURegisters::PC));
-    setRegister(Enu::IR, static_cast<int>(dataSection->getRegisterBankByte(CPURegisters::IS)<<16) +
-                dataSection->getRegisterBankWord(CPURegisters::OS));
-    setRegister(Enu::T1, dataSection->getRegisterBankByte(CPURegisters::T1));
-    setRegister(Enu::T2, dataSection->getRegisterBankWord(CPURegisters::T2));
-    setRegister(Enu::T3, dataSection->getRegisterBankWord(CPURegisters::T3));
-    setRegister(Enu::T4, dataSection->getRegisterBankWord(CPURegisters::T4));
-    setRegister(Enu::T5, dataSection->getRegisterBankWord(CPURegisters::T5));
-    setRegister(Enu::T6, dataSection->getRegisterBankWord(CPURegisters::T6));
+
+    setRegister(Enu::Acc, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::A)));
+    setRegister(Enu::X, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::X)));
+    setRegister(Enu::SP, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::SP)));
+    setRegister(Enu::PC, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::PC)));
+    setRegister(Enu::IR, static_cast<int>(dataSection->getRegisterBankByte(to_uint8_t(Pep9::CPURegisters::IS))<<16) +
+                dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::OS)));
+    setRegister(Enu::T1, dataSection->getRegisterBankByte(to_uint8_t(Pep9::CPURegisters::T1)));
+    setRegister(Enu::T2, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::T2)));
+    setRegister(Enu::T3, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::T3)));
+    setRegister(Enu::T4, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::T4)));
+    setRegister(Enu::T5, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::T5)));
+    setRegister(Enu::T6, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::T6)));
     setRegister(Enu::MARAREG, dataSection->getMemoryRegister(Enu::MEM_MARA));
     setRegister(Enu::MARBREG, dataSection->getMemoryRegister(Enu::MEM_MARB));
     setRegister(Enu::MDRREG, dataSection->getMemoryRegister(Enu::MEM_MDR));

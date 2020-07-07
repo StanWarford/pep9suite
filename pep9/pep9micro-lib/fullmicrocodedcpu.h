@@ -30,6 +30,8 @@
 
 #include "cpu/interfacemccpu.h"
 #include "cpu/interfaceisacpu.h"
+
+#include "pep/pep9.h"
 class CPUDataSection;
 class FullMicrocodedMemoizer;
 class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public InterfaceISACPU
@@ -38,7 +40,8 @@ class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public Interf
     friend class CPUMemoizer;
     friend class FullMicrocodedMemoizer;
 public:
-    FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
+    FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<const Pep9> pep_version,
+                      QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~FullMicrocodedCPU() override;
     QSharedPointer<CPUDataSection> getDataSection();
     // Returns true if the microprogram counter is at the
@@ -48,14 +51,18 @@ public:
     // This can be used to skip the initialization steps at the top
     // of a microcode program.
     void setMicroPCToStart() noexcept;
+    quint8 getCPURegByteCurrent(Pep9::CPURegisters reg) const;
+    quint16 getCPURegWordCurrent(Pep9::CPURegisters reg) const;
+    quint8 getCPURegByteStart(Pep9::CPURegisters reg) const;
+    quint16 getCPURegWordStart(Pep9::CPURegisters reg) const;
 
     // ACPUModel interface
     bool getStatusBitCurrent(Enu::EStatusBit) const override;
     bool getStatusBitStart(Enu::EStatusBit) const override;
-    quint8 getCPURegByteCurrent(Enu::CPURegisters reg) const override;
-    quint16 getCPURegWordCurrent(Enu::CPURegisters reg) const override;
-    quint8 getCPURegByteStart(Enu::CPURegisters reg) const override;
-    quint16 getCPURegWordStart(Enu::CPURegisters reg) const override;
+    quint8 getCPURegByteCurrent(PepCore::CPURegisters_number_t reg) const override;
+    quint16 getCPURegWordCurrent(PepCore::CPURegisters_number_t reg) const override;
+    quint8 getCPURegByteStart(PepCore::CPURegisters_number_t reg) const override;
+    quint16 getCPURegWordStart(PepCore::CPURegisters_number_t reg) const override;
     void initCPU() override;
     bool stoppedForBreakpoint() const noexcept override;
     QString getErrorMessage() const noexcept override;
@@ -92,6 +99,7 @@ protected:
 
 private:
     bool isPrefetchValid;
+    QSharedPointer<const Pep9> pep_version;
     QElapsedTimer timer;
     CPUDataSection *data;
     QSharedPointer<CPUDataSection> dataShared;

@@ -25,6 +25,7 @@
 
 #include "pep/pep.h"
 #include "style/colors.h"
+#include "style/fonts.h"
 
 const int AsmHelpDialog::defaultHelpTreeWidth = 200;
 AsmHelpDialog::AsmHelpDialog(QWidget *parent) :
@@ -48,17 +49,17 @@ AsmHelpDialog::AsmHelpDialog(QWidget *parent) :
     rightCppHighlighter = new CppHighlighter(PepColors::lightMode, ui->rightCppTextEdit->document());
     rightPepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->rightPepTextEdit->document());
 
-    ui->copyToSourceButton->setFont(QFont(Pep::labelFont));
-    if (Pep::getSystem() == "Linux") {
-        ui->treeWidget->setFont(QFont(Pep::labelFont, 8));
+    ui->copyToSourceButton->setFont(QFont(PepCore::labelFont));
+    if (PepCore::getSystem() == "Linux") {
+        ui->treeWidget->setFont(QFont(PepCore::labelFont, 8));
     }
-    else if (Pep::getSystem() == "Windows") {
-        ui->treeWidget->setFont(QFont(Pep::labelFont, 8)); // I don't know if this is the proper font size.
+    else if (PepCore::getSystem() == "Windows") {
+        ui->treeWidget->setFont(QFont(PepCore::labelFont, 8)); // I don't know if this is the proper font size.
     }
 
-    ui->rightCppTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
-    ui->rightPepTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
-    ui->leftTextEdit->setFont(QFont(Pep::codeFont, Pep::codeFontSize));
+    ui->rightCppTextEdit->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
+    ui->rightPepTextEdit->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
+    ui->leftTextEdit->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
 
     // Manual size allocation to prevent help web view from being hidden.
     QList<int> helpBalance;
