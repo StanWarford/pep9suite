@@ -311,7 +311,9 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
 
     // Cache hit count, so that it is easier to see from debugger.
     quint16 eviction_candidate = linePtr->get_replacement_policy()->eviction_loohahead();
-    if(eviction_candidate == entry) {
+    // If an entry is to-be-evicted, but it is not present, it's not really an evicition.
+    // Therefore non-present entires don't get a check in the eviction box.
+    if(eviction_candidate == entry && entryPtr->is_present) {
         c2_evict = Qt::CheckState::Checked;
     }
 
@@ -374,21 +376,17 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
     data->itemFromIndex(data->index(entry, tag_column, lineIndex))->setData(c1_tag, Qt::DisplayRole);
     data->itemFromIndex(data->index(entry, address_column, lineIndex))->setData(c3_address, Qt::DisplayRole);
     data->itemFromIndex(data->index(entry, hits_column, lineIndex))->setData(c5_hits, Qt::DisplayRole);
-
+    data->itemFromIndex(data->index(entry, eviction_column, lineIndex))->setCheckable(false);
+    data->itemFromIndex(data->index(entry, eviction_column, lineIndex))->setCheckState(c2_evict);
 
 
     if(!evicted) {
         data->itemFromIndex(data->index(entry, present_column, lineIndex))->setData(entryPtr->is_present, Qt::DisplayRole);
-        // Only display "next victim" checkbox if the row is present.
-        data->itemFromIndex(data->index(entry, eviction_column, lineIndex))->setCheckable(entryPtr->is_present);
-        if(entryPtr->is_present) {
-            data->itemFromIndex(data->index(entry, eviction_column, lineIndex))->setCheckState(c2_evict);
-        }
     }
-    // Hide check boxes / valid bits on evicted entries.
+    // Valid bits on evicted entries.
     else {
         data->itemFromIndex(data->index(entry, present_column, lineIndex))->setData("", Qt::DisplayRole);
-        data->itemFromIndex(data->index(entry, eviction_column, lineIndex))->setCheckable(false);
+        data->itemFromIndex(data->index(entry, eviction_column, lineIndex))->setData(QVariant(), Qt::CheckStateRole);
     }
 }
 
