@@ -53,8 +53,8 @@ class CacheView : public QWidget
 {
     enum class Columns {
         IndexColumn = 0,
-        TagColumn=1, EvictColumn=2, AddressColumn=3,
-        PresentColumn=4, HitsColumn=5, ColumnCount
+        PresentColumn=1, TagColumn=2,  AddressColumn=3,
+        HitsColumn=4, EvictColumn=5, ColumnCount
     };
     Q_OBJECT
 
