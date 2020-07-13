@@ -5,7 +5,7 @@
 
 AssemblerPane::AssemblerPane(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::AssemblerPane), manager(nullptr), output(nullptr)
+    ui(new Ui::AssemblerPane), manager(nullptr)
 {
     ui->setupUi(this);
     //Connect assembler pane widgets
@@ -38,9 +38,7 @@ void AssemblerPane::newProject()
     ui->objectPane->setCurrentFile("");
     ui->listingPane->clearAssemblerListing();
     ui->listingPane->setCurrentFile("");
-    // Set output to nullptr, as a new project does
-    // not have any output until assembled.
-    output.clear();
+
 }
 
 void AssemblerPane::loadSourceFile(QString fileName, QString code)
@@ -59,18 +57,9 @@ void AssemblerPane::loadObjectFile(QString fileName, QString code)
     ui->objectPane->setFocus();
 }
 
-void AssemblerPane::formatAssemblerCode()
+void AssemblerPane::addErrorsToSource(QList<QPair<int, QString> > errors)
 {
-    auto tempOutput = manager->assembleProgram(getPaneContents(Enu::EPane::ESource));
-    if(!tempOutput->success) {
-        ui->sourcePane->appendMessagesInSourceCodePane(tempOutput->errors);
-        return;
-    }
-    else {
-      output = tempOutput;
-    }
-    QString code = output->prog->getFormattedSourceCode();
-    ui->sourcePane->setSourceCodePaneText(code);
+    ui->sourcePane->appendMessagesInSourceCodePane(errors);
 }
 
 void AssemblerPane::removeErrorMessages()
@@ -150,12 +139,37 @@ QString AssemblerPane::getPaneContents(Enu::EPane which) const
     }
 }
 
-void AssemblerPane::setPanesFromProgram(const AsmProgramManager::AsmOutput &assemblerOutput)
+void AssemblerPane::setPaneContents(Enu::EPane which, QString text)
+{
+    switch(which) {
+    case Enu::EPane::ESource:
+        ui->sourcePane->setSourceCodePaneText(text);
+        break;
+    case Enu::EPane::EObject:
+        ui->objectPane->setObjectCodePaneText(text);
+        break;
+    case Enu::EPane::EListing:
+        throw std::invalid_argument("Can't set text of listing pane.");
+        break;
+    default:
+        throw std::invalid_argument("Can't set text of non-source code pane.");
+        break;
+    }
+}
+
+void AssemblerPane::setPanesFromProgram(const AsmOutput &assemblerOutput)
 {
     ui->sourcePane->displayAssemblerOutput(assemblerOutput);
-    ui->objectPane->setObjectCode(assemblerOutput.prog->getObjectCode());
-    ui->listingPane->setAssemblerListing(assemblerOutput.prog,
-                                         assemblerOutput.prog->getSymbolTable());
+    if(assemblerOutput.prog.isNull()) {
+        ui->objectPane->clearObjectCode();
+        ui->listingPane->clearAssemblerListing();
+    }
+    else {
+        ui->objectPane->setObjectCode(assemblerOutput.prog->getObjectCode());
+        ui->listingPane->setAssemblerListing(assemblerOutput.prog,
+                                             assemblerOutput.prog->getSymbolTable());
+    }
+
 }
 
 void AssemblerPane::clearPane(Enu::EPane which)
@@ -177,10 +191,6 @@ void AssemblerPane::clearPane(Enu::EPane which)
 
 }
 
-QSharedPointer<AsmProgramManager::AsmOutput> AssemblerPane::getAssemblerOutput()
-{
-    return output;
-}
 
 bool AssemblerPane::isModified(Enu::EPane which) const
 {
@@ -212,36 +222,6 @@ void AssemblerPane::setModified(Enu::EPane which, bool val)
     default:
         // Can't modify any other panes from this class.
         break;
-    }
-}
-
-void AssemblerPane::assembleAsOS(bool forceBurnAt0xFFFF)
-{
-    // Clean up any global state from previous compilation attempts
-    removeErrorMessages();
-    output = manager->assembleOS(ui->sourcePane->toPlainText(), forceBurnAt0xFFFF);
-    if(output->success) {
-        setPanesFromProgram(*output);
-    }
-    else {
-        ui->sourcePane->displayAssemblerOutput(*output);
-        clearPane(Enu::EPane::EObject);
-        clearPane(Enu::EPane::EListing);
-    }
-}
-
-void AssemblerPane::assembleAsProgram()
-{
-    // Clean up any global state from previous compilation attempts
-    removeErrorMessages();
-    output = manager->assembleProgram(ui->sourcePane->toPlainText());
-    if(output->success) {
-        setPanesFromProgram(*output);
-    }
-    else {
-        ui->sourcePane->displayAssemblerOutput(*output);
-        clearPane(Enu::EPane::EObject);
-        clearPane(Enu::EPane::EListing);
     }
 }
 

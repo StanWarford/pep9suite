@@ -84,7 +84,7 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     updateChecker(new UpdateChecker()), isInDarkMode(false),
     memDevice(new MainMemory(nullptr)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), pep_version, memDevice)),
     dataSection(controlSection->getDataSection()), redefineMnemonicsDialog(new RedefineMnemonicsDialog(this)),
-    decoderTableDialog(new DecoderTableDialog(nullptr)), programManager(AsmProgramManager::getInstance())
+    decoderTableDialog(new DecoderTableDialog(nullptr)), programManager(AsmProgramManager::getInstance()), assembler(*programManager)
 
 {
     // Initialize the memory subsystem
@@ -1324,7 +1324,34 @@ void MicroMainWindow::on_actionEdit_UnComment_Line_triggered()
 
 void MicroMainWindow::on_actionEdit_Format_Assembler_triggered()
 {
-    ui->assemblerPane->formatAssemblerCode();
+    ui->assemblerPane->removeErrorMessages();
+    auto out = AsmOutput();
+    out.success = assembler.assembleUserProgram(ui->assemblerPane->getPaneContents(Enu::EPane::ESource), out.prog, out.errors);
+
+    if(out.errors.size() != 0) {
+        ui->assemblerPane->addErrorsToSource(out.errors);
+    }
+    if(out.success){
+        ui->assemblerPane->setPanesFromProgram(out);
+        programManager->setUserProgram(out.prog);
+        ui->asmProgramTracePane->onRemoveAllBreakpoints();
+        controlSection->breakpointsRemoveAll();
+        ui->asmProgramTracePane->setProgram(out.prog);
+        set_Obj_Listing_filenames_from_Source();
+        ui->statusBar->showMessage("Assembly succeeded", 4000);
+        handleDebugButtons();
+    }
+    else {
+        ui->assemblerPane->clearPane(Enu::EPane::EObject);
+        ui->assemblerPane->clearPane(Enu::EPane::EListing);
+        ui->asmProgramTracePane->clearSourceCode();
+        ui->asmProgramTracePane->onRemoveAllBreakpoints();
+        loadObjectCodeProgram();
+        ui->statusBar->showMessage("Assembly failed", 4000);
+    }
+
+    QString code = out.prog->getFormattedSourceCode();
+    ui->assemblerPane->setPaneContents(Enu::EPane::ESource, code);
 }
 
 void MicroMainWindow::on_actionEdit_Format_Microcode_triggered()
@@ -1374,24 +1401,29 @@ void MicroMainWindow::on_actionBuild_Microcode_triggered()
 //Build Events
 bool MicroMainWindow::on_actionBuild_Assemble_triggered()
 {
-    ui->assemblerPane->assembleAsProgram();
-    if(ui->assemblerPane->getAssemblerOutput()->success){
-        programManager->setUserProgram(ui->assemblerPane->getAssemblerOutput()->prog);
+    ui->assemblerPane->removeErrorMessages();
+    auto out = AsmOutput();
+    out.success = assembler.assembleUserProgram(ui->assemblerPane->getPaneContents(Enu::EPane::ESource), out.prog, out.errors);
+
+    if(out.errors.size() != 0) {
+        ui->assemblerPane->addErrorsToSource(out.errors);
+    }
+    if(out.success){
+        ui->assemblerPane->setPanesFromProgram(out);
+        programManager->setUserProgram(out.prog);
         ui->asmProgramTracePane->onRemoveAllBreakpoints();
         controlSection->breakpointsRemoveAll();
-        ui->asmProgramTracePane->setProgram(ui->assemblerPane->getAssemblerOutput()->prog);
+        ui->asmProgramTracePane->setProgram(out.prog);
         set_Obj_Listing_filenames_from_Source();
         ui->statusBar->showMessage("Assembly succeeded", 4000);
         handleDebugButtons();
         return true;
     }
     else {
-#pragma message("May be redundant")
         ui->assemblerPane->clearPane(Enu::EPane::EObject);
         ui->assemblerPane->clearPane(Enu::EPane::EListing);
         ui->asmProgramTracePane->clearSourceCode();
         ui->asmProgramTracePane->onRemoveAllBreakpoints();
-        // ui->pepCodeTraceTab->setCurrentIndex(0); // Make source code pane visible
         loadObjectCodeProgram();
         ui->statusBar->showMessage("Assembly failed", 4000);
         return false;
@@ -1859,10 +1891,15 @@ void MicroMainWindow::on_actionSystem_Clear_Memory_triggered()
 
 void MicroMainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
 {
-    auto output = programManager->assembleOS(ui->assemblerPane->getPaneContents(Enu::EPane::ESource),false);
-    if(output->success) {
-        programManager->setOperatingSystem(output->prog);
-        ui->assemblerPane->setPanesFromProgram(*output);
+    ui->assemblerPane->removeErrorMessages();
+    auto out = AsmOutput();
+    out.success = assembler.assembleUserProgram(ui->assemblerPane->getPaneContents(Enu::EPane::ESource), out.prog, out.errors);
+    if(out.errors.size() != 0) {
+        ui->assemblerPane->addErrorsToSource(out.errors);
+    }
+    if(out.success) {
+        ui->assemblerPane->setPanesFromProgram(out);
+        programManager->setOperatingSystem(out.prog);
         ui->asmProgramTracePane->onRemoveAllBreakpoints();
         controlSection->breakpointsRemoveAll();
         set_Obj_Listing_filenames_from_Source();

@@ -48,8 +48,7 @@
 
 AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
         QWidget(parent), ui(new Ui::SourceCodePane), inDarkMode(false),
-        programManager(nullptr), currentProgram(nullptr), objectCode(), assemblerListingList(),
-        addressToIndex(), currentFile()
+        current_program(nullptr), addressToIndex(), currentFile()
 {
     ui->setupUi(this);
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this, &AsmSourceCodePane::setLabelToModified);
@@ -69,9 +68,9 @@ AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
     ui->textEdit->installEventFilter(this);
 }
 
-void AsmSourceCodePane::init(AsmProgramManager *manager)
+void AsmSourceCodePane::init()
 {
-    programManager = manager;
+
 }
 
 AsmSourceCodePane::~AsmSourceCodePane()
@@ -79,7 +78,7 @@ AsmSourceCodePane::~AsmSourceCodePane()
     delete ui;
 }
 
-void AsmSourceCodePane::displayAssemblerOutput(AsmProgramManager::AsmOutput output)
+void AsmSourceCodePane::displayAssemblerOutput(AsmOutput output)
 {
     // Clean up any global state from previous compilation attempts
     addressToIndex.clear();
@@ -89,19 +88,21 @@ void AsmSourceCodePane::displayAssemblerOutput(AsmProgramManager::AsmOutput outp
     appendMessagesInSourceCodePane(output.errors);
     // If assemble failed, don't perform any more work
     if(!output.success) {
+        current_program = nullptr;
         return;
     }
+    current_program = output.prog;
     for (int i = 0; i < output.prog->getProgram().size(); i++) {
-        if(output.prog->getProgram()[i]->getMemoryAddress() >=0) {
-            addressToIndex[output.prog->getProgram()[i]->getMemoryAddress()] = i;
+        if(current_program->getProgram()[i]->getMemoryAddress() >=0) {
+            addressToIndex[current_program->getProgram()[i]->getMemoryAddress()] = i;
         }
         if(ui->textEdit->lineHasBreakpoint(i)) {
-            output.prog->getProgram()[i]->setBreakpoint(true);
+            current_program->getProgram()[i]->setBreakpoint(true);
         }
     }
 }
 
-bool AsmSourceCodePane::assemble()
+/*bool AsmSourceCodePane::assemble()
 {
     // Clean up any global state from previous compilation attempts
     removeErrorMessages();
@@ -169,7 +170,7 @@ bool AsmSourceCodePane::assembleOS(bool forceBurnAt0xFFFF)
     }
     currentProgram = prog;
     return true;
-}
+}*/
 
 void AsmSourceCodePane::removeErrorMessages()
 {
@@ -245,7 +246,7 @@ void AsmSourceCodePane::setSourceCodePaneText(QString string)
 void AsmSourceCodePane::clearSourceCode()
 {
     ui->textEdit->clear();
-    currentProgram.clear(); //Should be safe, since we are using shared pointers
+    //currentProgram.clear(); //Should be safe, since we are using shared pointers
 }
 
 bool AsmSourceCodePane::isModified()
@@ -422,16 +423,6 @@ void AsmSourceCodePane::backTab()
     }
 }
 
-QSharedPointer<AsmProgram> AsmSourceCodePane::getAsmProgram()
-{
-    return currentProgram;
-}
-
-const QSharedPointer<AsmProgram> AsmSourceCodePane::getAsmProgram() const
-{
-    return currentProgram;
-}
-
 void AsmSourceCodePane::writeSettings(QSettings &settings)
 {
     settings.beginGroup("SourceCodePane");
@@ -501,16 +492,16 @@ void AsmSourceCodePane::setLabelToModified(bool modified)
 
 void AsmSourceCodePane::onBreakpointAddedProp(quint16 line)
 {
-    if(currentProgram.isNull()) return;
-    else if(currentProgram->getProgram().length()<line) return;
-    else emit breakpointAdded(currentProgram->getProgram().at(line)->getMemoryAddress());
+    if(current_program.isNull()) return;
+    else if(current_program->getProgram().length()<line) return;
+    else emit breakpointAdded(current_program->getProgram().at(line)->getMemoryAddress());
 }
 
 void AsmSourceCodePane::onBreakpointRemovedProp(quint16 line)
 {
-    if(currentProgram.isNull()) return;
-    else if(currentProgram->getProgram().length()<line) return;
-    else emit breakpointRemoved(currentProgram->getProgram().at(line)->getMemoryAddress());
+    if(current_program.isNull()) return;
+    else if(current_program->getProgram().length()<line) return;
+    else emit breakpointRemoved(current_program->getProgram().at(line)->getMemoryAddress());
 }
 
 bool AsmSourceCodePane::eventFilter(QObject *, QEvent *event)

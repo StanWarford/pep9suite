@@ -29,7 +29,7 @@
 namespace Ui {
 class AssemblerPane;
 }
-
+struct AsmOutput;
 
 class AssemblerPane : public QWidget
 {
@@ -43,7 +43,7 @@ public:
     void newProject();
     void loadSourceFile(QString fileName, QString code);
     void loadObjectFile(QString fileName, QString code);
-    void formatAssemblerCode();
+    void addErrorsToSource(QList<QPair<int, QString>> errors);
     void removeErrorMessages();
 
     // Return the fully qualified file path associated with a pane.
@@ -54,15 +54,12 @@ public:
     void setFilesFromSource();
 
     QString getPaneContents(Enu::EPane which) const;
-    void setPanesFromProgram(const AsmProgramManager::AsmOutput &assemblerOutput);
+    void setPaneContents(Enu::EPane which, QString text);
+    void setPanesFromProgram(const AsmOutput &assemblerOutput);
     void clearPane(Enu::EPane which);
 
-    QSharedPointer<AsmProgramManager::AsmOutput> getAssemblerOutput();
     bool isModified(Enu::EPane which) const;
     void setModified(Enu::EPane which, bool val);
-
-    void assembleAsOS(bool forceBurnAt0xFFFF = false);
-    void assembleAsProgram();
 
     void rebuildHighlightingRules();
     void highlightOnFocus();
@@ -115,7 +112,6 @@ private slots:
 private:
     Ui::AssemblerPane *ui;
     AsmProgramManager* manager;
-    QSharedPointer<AsmProgramManager::AsmOutput> output;
 };
 
 #endif // ASSEMBLERPANE_H

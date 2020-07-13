@@ -89,30 +89,9 @@ class AsmSourceCodePane : public QWidget {
 public:
     explicit AsmSourceCodePane(QWidget *parent = nullptr);
     virtual ~AsmSourceCodePane() override;
-    void init(AsmProgramManager* manager);
+    void init();
 
-    void displayAssemblerOutput(AsmProgramManager::AsmOutput output);
-
-    bool assemble();
-    // Pre: The source code pane contains a Pep/9 source program.
-    // Post: If the program assembles correctly, true is returned, and codeList is populated
-    // with the code objects. Otherwise false is returned and codeList is partially populated.
-    // Post: Pep::symbolTable is populated with values not adjusted for .BURN.
-    // Post: Pep::byteCount is the byte count for the object code not adjusted for .BURN.
-    // Post: Pep::burnCount is the number of .BURN instructions encountered in the source program.
-
-    QList<int> getObjectCode();
-    // Pre: codeList is populated with code from a complete correct Pep/9 source program.
-    // Post: objectCode is populated with the object code, one byte per entry, and returned.
-
-    QStringList getAssemblerListingList();
-    // Pre: codeList is populated with code from a complete correct Pep/9 source program.
-    // Post: assemlberListingList is populated with the assembler listing.
-    // Post: listingTraceList is populated with the object code.
-    // Post: hasCheckBox is populated with the checkBox list that specifies whether a trace line can have a break point.
-    // Post: assemblerListingList is returned.
-
-    bool assembleOS(bool forceBurnAt0xFFFF);
+    void displayAssemblerOutput(AsmOutput output);
 
     void removeErrorMessages();
     // Post: Searces for the string ";ERROR: " on each line and removes the end of the line.
@@ -179,9 +158,6 @@ public:
     void tab();
     void backTab();
 
-    QSharedPointer<AsmProgram> getAsmProgram();
-    const QSharedPointer<AsmProgram> getAsmProgram() const;
-
     void writeSettings(QSettings& settings);
     void readSettings(QSettings& settings);
     bool eventFilter(QObject *, QEvent * event) override;
@@ -199,10 +175,7 @@ public slots:
 private:
     Ui::SourceCodePane *ui;
     bool inDarkMode;
-    AsmProgramManager* programManager;
-    QSharedPointer<AsmProgram> currentProgram;
-    QList<int> objectCode;
-    QStringList assemblerListingList;
+    QSharedPointer<const AsmProgram> current_program;
     QMap<quint16, quint16> addressToIndex;
     PepASMHighlighter *pepHighlighter;
     QFile currentFile;

@@ -26,6 +26,14 @@
 
 #include "pep/enu.h"
 
+class AsmProgram;
+
+struct AsmOutput {
+    QSharedPointer<AsmProgram> prog;
+    QList<QPair<int, QString>> errors;
+    bool success;
+};
+
 class AsmCode; // Forward declaration for argument of processSourceLine.
 class AsmProgram;
 class AsmProgramManager;

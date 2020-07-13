@@ -25,7 +25,7 @@
 #include <QObject>
 #include <QSharedPointer>
 #include <QSet>
-#include "isaasm.h"
+
 class AsmProgram;
 class SymbolTable;
 /*
@@ -38,13 +38,6 @@ class AsmProgramManager: public QObject
 {
     Q_OBJECT
 public:
-    struct AsmOutput {
-        QSharedPointer<AsmProgram> prog;
-        QList<QPair<int, QString>> errors;
-        bool success;
-    };
-    QSharedPointer<AsmOutput> assembleOS(QString sourceCode, bool forceBurnAt0xFFFF);
-    QSharedPointer<AsmOutput> assembleProgram(QString sourceCode);
     /*
      * The Pep/9 virtual machine specifies multiple address at the bottom of memory
      * that contain useful addresses.

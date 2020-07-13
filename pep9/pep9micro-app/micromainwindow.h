@@ -103,6 +103,7 @@ private:
     DecoderTableDialog *decoderTableDialog;
 
     AsmProgramManager* programManager;
+    IsaAsm assembler;
 
     // Disconnect or reconnect events that notify views of changes in model,
     // Disconnecting these events allow for faster execution when running or continuing.
