@@ -7,7 +7,7 @@
 DEFINES += QT_DEPRECATED_WARNINGS
 
 # Console application specific configuration.
-QT -= gui
+# QT -= gui
 CONFIG += c++17 console
 
 TARGET = Pep9Term

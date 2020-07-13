@@ -1,8 +1,6 @@
 # -------------------------------------------------
 # Project created by Matthew McRaven, 07/05/2020
 # -------------------------------------------------
-QT -= gui
-
 TEMPLATE = lib
 CONFIG += staticlib
 TARGET = pep-core-term

@@ -1,7 +1,6 @@
 # -------------------------------------------------
 # Project created by Matthew McRaven, 07/05/2020
 # -------------------------------------------------
-QT -= gui
 QT += widgets printsupport concurrent
 
 TEMPLATE = lib
