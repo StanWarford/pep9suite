@@ -28,7 +28,8 @@ The cache write policy for a cache miss is <i>without write allocation</i> as in
 <p>
  <a name = "Topics">Topics:</a>
  <a href="#Using">Using the cache simulator</a>,
- <a href="#Fully">Fully associative caches</a>.
+ <a href="#Fully">Fully associative caches</a>,
+ <a href="#Stats">Cache statistics</a>,
  <a href="#Policies">Cache replacement policies</a>.
 
 <h3><a name="Using">Using the cache simulator</a></h3>
@@ -47,6 +48,7 @@ The following figure shows the settings for the four-way set-associative cache i
 Set the cache replacement policy with the dropdown menu.
 LRU is the Least Recently Used replacement policy.
 See  <a href="#Policies">Cache replacement policies</a> for a description of each policy.
+Click the Update Configuration button after setting the configuration.
 <p>
 <img src="qrc:/help-asm/images/cachereplacement.png" alt="cachereplacement" hspace=10 vspace=10>
 <p>
@@ -62,9 +64,34 @@ The <code>BR</code> instruction at 0000 is about to execute.
 <p>
 The <code>BR</code> instruction at 0000 executes.
 The <code>LDWA</code> instruction at 0009 will execute next.
-More commentary describing the cache.
+Before execution of <code>BR</code>, the cache is empty.
+Execution of <code>BR</code> consists of one von Neumann cycle: fetch instruction into IR, decode instruction, increment PC, execute instruction stored in IR.
+<p>
+In the fetch part of the cycle, the CPU requests the instruction specifier, which is the first byte of the 3-byte instruction.
+The first byte is a cache miss, because the cache is initially empty, which triggers a memory read of the 16-byte block from address 0000 into the first set of the 4-way set-associative cache.
+When the instruction is decoded, the CPU detects that <code>BR</code> is a nonunary 3-byte instruction.
+Therefore, it requests the operand specifier bytes at addresses 0001 and 0002.
+These two bytes were just prefetched into the cache, and so additional memory references are not required.
+<p>
+In the execution part of the von Neumann cycle, no memory accesses are required because the RTL specification of <code>BR</code> is PC&larr;Oprnd.
+<code>BR</code> uses immediate addressing.
+So, the operand specifier <i>is</i> the operand, which is already contained in the IR, and no additional memory accesses are required.
+<p>
+Here is the cache view after the first step.
 <p>
 <img src="qrc:/help-asm/images/cachetrace03.png" alt="cachetrace03" hspace=10 vspace=10>
+<p>
+The first column displays the Line number.
+Because there are three line bits and 2<sup>3</sup>=8, the chache table has 8 entries and the cache line number will be a value in the range 0..7.
+In this step, the line number is 0.
+<p>
+The second column displays the Tag number.
+Because there are 9 tag bits and 2<sup>9</sup>=512, there are 512 16-byte blocks in main memory that map into each entry of the cache table, and the Tag number will be a value in the range 0..511.
+In this step, the tag number is 0.
+<p>
+Because this is a 4-way set-associative cache, each entry (<i>i.e.</i> Line) in the cache table is a set of four blocks from memory.
+Each block in the above cache view is on a separate row.
+Each row contains the Tag for that block, the
 <p>
 <h4>Step 2.</h4>
 <p>
@@ -84,19 +111,35 @@ More commentary describing the cache.
 
 Fully associative caches material for Pep/9 cache goes here
 <p>
-More topic2 material for Pep/9 cache goes here
+More fully associative caches material for Pep/9 cache goes here
 <p>
-<img src="qrc:/help-asm/images/relocatedos3.png" alt="relocatedos3" hspace=10 vspace=10>
+More fully associative caches material for Pep/9 cache goes here
+<p>
+More fully associative caches material for Pep/9 cache goes here
+<p>
+<a href="#Topics">Scroll to topics</a>.
+
+<h3><a name="Stats">Cache statistics</a></h3>
+
+Cache statistics material for Pep/9 cache goes here
+<p>
+More cache statistics material for Pep/9 cache goes here
+<p>
+More cache statistics material for Pep/9 cache goes here
+<p>
+More cache statistics material for Pep/9 cache goes here
 <p>
 <a href="#Topics">Scroll to topics</a>.
 
 <h3><a name="Policies">Cache replacement policies</a></h3>
 
-Topic2 material for Pep/9 cache goes here
+Cache replacement material for Pep/9 cache goes here
 <p>
-More topic2 material for Pep/9 cache goes here
+More cache replacement material for Pep/9 cache goes here
 <p>
-<img src="qrc:/help-asm/images/relocatedos3.png" alt="relocatedos3" hspace=10 vspace=10>
+More cache replacement material for Pep/9 cache goes here
+<p>
+More cache replacement material for Pep/9 cache goes here
 <p>
 <a href="#Topics">Scroll to topics</a>.
 <p>
