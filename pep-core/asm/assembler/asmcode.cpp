@@ -25,7 +25,7 @@
 #include <QSharedPointer>
 
 #include "assembler/asmargument.h"
-#include "assembler/isaasm.h"
+#include "assembler/asmparserhelper.h"
 #include "pep/pep.h"
 #include "symbol/symbolvalue.h"
 #include "symbol/symbolentry.h"
@@ -112,7 +112,7 @@ void DotAscii::appendObjectCode(QList<int> &objectCode) const
         str.remove(0, 1); // Remove the leftmost double quote.
         str.chop(1); // Remove the rightmost double quote.
         while (str.length() > 0) {
-            IsaParserHelper::unquotedStringToInt(str, value);
+            unquotedStringToInt(str, value);
             objectCode.append(value);
         }
 }
@@ -382,7 +382,7 @@ QString DotAscii::getAssemblerListing() const
     // Potentially skip codegen
     QString codeStr = "";
     while (emitObjectCode && (str.length() > 0) && (codeStr.length() < 6)) {
-        IsaParserHelper::unquotedStringToInt(str, value);
+        unquotedStringToInt(str, value);
         codeStr.append(QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
     }
 
@@ -402,7 +402,7 @@ QString DotAscii::getAssemblerListing() const
     while (str.length() > 0) {
         codeStr = "";
         while ((str.length() > 0) && (codeStr.length() < 6)) {
-            IsaParserHelper::unquotedStringToInt(str, value);
+            unquotedStringToInt(str, value);
             codeStr.append(QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
         }
         lineStr.append(QString("      %1").arg(codeStr, -7, QLatin1Char(' '))%"\n");

@@ -19,11 +19,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "asmargument.h"
+
 #include <QString>
 #include <QSharedPointer>
 #include <QWidget>
 
-#include "asmargument.h"
+
+#include "assembler/asmparserhelper.h"
 #include "symbol/symboltable.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symbolvalue.h"
@@ -75,7 +78,7 @@ StringArgument::StringArgument(QString sValue): stringValue(sValue)
 
 int StringArgument::getArgumentValue() const
 {
-    return IsaParserHelper::string2ArgumentToInt(stringValue);
+    return string2ArgumentToInt(stringValue);
 }
 
 QString StringArgument::getArgumentString() const
@@ -90,7 +93,7 @@ CharArgument::CharArgument(QString cValue) : charValue(cValue)
 
 int CharArgument::getArgumentValue() const
 {
-    return IsaParserHelper::charStringToInt(charValue);
+    return charStringToInt(charValue);
 }
 
 QString CharArgument::getArgumentString() const
@@ -128,3 +131,5 @@ QString UnsignedDecArgument::getArgumentString() const
 {
     return QString("%1").arg(decValue);
 }
+
+
