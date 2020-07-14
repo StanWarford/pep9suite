@@ -26,8 +26,6 @@
 #include "assembler/asmcode.h"
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
-#include "pep/pep.h"
-#include "pep/enu.h"
 #include "stack/typetags.h"
 #include "symbol/symbolentry.h"
 
@@ -118,15 +116,15 @@ void InterfaceISACPU::reset() noexcept
 
     // Store globals, if there were no trace tag errors
     if(!memTrace->hasTraceWarnings()) {
-        QList<QPair<quint16,QPair<Enu::ESymbolFormat,QString>>> lst;
+        QList<QPair<quint16,QPair<ESymbolFormat,QString>>> lst;
         QMap<QSharedPointer<const SymbolEntry>, QSharedPointer<AType>> map =
                 manager->getUserProgram()->getTraceInfo()->staticAllocSymbolTypes;
         for(auto global : map.keys()) {
-            QList<QPair<Enu::ESymbolFormat,QString>> innerPairs = map[global]->toPrimitives();
+            QList<QPair<ESymbolFormat,QString>> innerPairs = map[global]->toPrimitives();
             quint16 addr = global->getValue();
             for(auto primitive : innerPairs) {
                 lst.append({addr,{primitive}});
-                addr += Enu::tagNumBytes(primitive.first);
+                addr += tagNumBytes(primitive.first);
             }
 
         }

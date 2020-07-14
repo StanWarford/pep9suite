@@ -76,27 +76,6 @@ void AsmObjectCodePane::setObjectCodePaneText(QString string)
         ui->plainTextEdit->setPlainText(string);
 }
 
-bool AsmObjectCodePane::getObjectCode(QList<int> &objectCodeList)
-{
-    QString objectString = ui->plainTextEdit->toPlainText();
-    while (objectString.length() > 0) {
-        if (objectString.at(1) == QChar('z')) {
-            return true;
-        }
-        if (objectString.length() < 3) {
-            return false;
-        }
-        QString s = objectString.left(2); // Get the two-char hex number
-        objectString.remove(0, 3); // Removes the number and trailing whitespace
-        bool ok;
-        objectCodeList.append(s.toInt(&ok, 16));
-        if (!ok) {
-            return false;
-        }
-    }
-    return false;
-}
-
 void AsmObjectCodePane::clearObjectCode()
 {
     ui->plainTextEdit->clear();

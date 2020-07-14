@@ -25,6 +25,7 @@
 #include <QRegExp>
 
 #include "pep/enu.h"
+#include "symbol/symboltypes.h"
 
 class AsmProgram;
 
@@ -153,10 +154,10 @@ private:
     // Returns if formatTag could be a valid struct type tag,
     // or is a symbol list for ADDSP/SUBSP
     static bool hasSymbolTag(QString formatTag);
-    static Enu::ESymbolFormat primitiveType(QString formatTag);
+    static ESymbolFormat primitiveType(QString formatTag);
     // Pre: formatTag is a valid format trace tag.
     // Post: Returns the enumerated trace tag format type.
-    static QPair<quint8,  Enu::ESymbolFormat> arrayType(QString formatTag);
+    static QPair<quint8,  ESymbolFormat> arrayType(QString formatTag);
     // Pre: formatTag is a valid format array trace tag.
     // Post: Returns a pair of the array's length and the enumerated trace tag format type.
 

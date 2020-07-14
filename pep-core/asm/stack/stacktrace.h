@@ -26,6 +26,7 @@
 #include <QStack>
 
 #include "pep/enu.h"
+#include "symbol/symboltypes.h"
 
 class AType;
 class AMemoryDevice;
@@ -33,7 +34,7 @@ class AMemoryDevice;
 struct MemTag
 {
     quint16 addr;
-    QPair<Enu::ESymbolFormat, QString> type;
+    QPair<ESymbolFormat, QString> type;
     operator QString() const;
 };
 
@@ -101,8 +102,8 @@ public:
     void call(quint16 sp);
     void clear();
     bool ret();
-    void pushLocals(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items);
-    void pushParams(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items);
+    void pushLocals(quint16 start, QList<QPair<ESymbolFormat, QString> > items);
+    void pushParams(quint16 start, QList<QPair<ESymbolFormat, QString> > items);
     bool popLocals(quint16 size);
     bool popParams(quint16 size);
     bool popAndOrphan(quint16 size);
@@ -146,7 +147,7 @@ public:
     const_reverse_iterator crend() const;
 
     explicit HeapTrace();
-    void pushHeap(quint16 start, QList<QPair<Enu::ESymbolFormat, QString> > items);
+    void pushHeap(quint16 start, QList<QPair<ESymbolFormat, QString> > items);
     void clear();
     void setCanAddNew(bool val);
     void setHeapIntact(bool val);
@@ -166,7 +167,7 @@ class GlobalTrace
 public:
     explicit GlobalTrace();
     void setTags(QList<QPair<quint16 /*address*/,
-                  QPair<Enu::ESymbolFormat, QString> /*tag*/ > > items);
+                  QPair<ESymbolFormat, QString> /*tag*/ > > items);
     void clear();
     const QMap<quint16, MemTag> getMemTags() const;
 };

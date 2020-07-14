@@ -34,7 +34,7 @@ const int MemoryCellGraphicsItem::symbolWidth = 96;
 const int MemoryCellGraphicsItem::bufferWidth = 14;
 
 MemoryCellGraphicsItem::MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int addr, QString sym,
-                                               Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc): memDevice(memDevice), x(xLoc), y(yLoc),
+                                               ESymbolFormat eSymFrmt, int xLoc, int yLoc): memDevice(memDevice), x(xLoc), y(yLoc),
     address(quint16(addr)), eSymbolFormat(eSymFrmt), colors(&PepColors::lightMode), isModified(false)
 {
     if (sym.length() > 0 && sym.at(0).isDigit()) {
@@ -56,7 +56,7 @@ QRectF MemoryCellGraphicsItem::boundingRect() const
                   QSizeF(addressWidth + bufferWidth * 2 + boxWidth + symbolWidth + Margin * 2, boxHeight + Margin * 2));
 }
 
-void MemoryCellGraphicsItem::updateContents(int newAddr, QString newSymbol, Enu::ESymbolFormat newFmt, int newY)
+void MemoryCellGraphicsItem::updateContents(int newAddr, QString newSymbol, ESymbolFormat newFmt, int newY)
 {
     this->address = quint16(newAddr);
     if (newSymbol.length() > 0 && newSymbol.at(0).isDigit()) {
@@ -119,7 +119,7 @@ void MemoryCellGraphicsItem::updateValue()
     quint8 byte;
     quint16 word;
     switch (eSymbolFormat) {
-    case Enu::ESymbolFormat::F_1C:
+    case ESymbolFormat::F_1C:
         memDevice->getByte(address, byte);
         if(QChar::isPrint(byte)) {
             value = QChar(byte);
@@ -128,23 +128,23 @@ void MemoryCellGraphicsItem::updateValue()
         iValue = byte;
         break;
     // 1 byte integers are to be displayed as unsigned.
-    case Enu::ESymbolFormat::F_1D:
+    case ESymbolFormat::F_1D:
         memDevice->getByte(address, byte);
         value = QString("%1").arg(byte);
         iValue = byte;
         break;
     // 2 byte integers are to be displayed as signed.
-    case Enu::ESymbolFormat::F_2D:
+    case ESymbolFormat::F_2D:
         memDevice->getWord(address, word);
         value = QString("%1").arg(static_cast<qint16>(word));
         iValue = word;
         break;
-    case Enu::ESymbolFormat::F_1H:
+    case ESymbolFormat::F_1H:
         memDevice->getByte(address, byte);
         value = QString("%1").arg(byte, 2, 16, QLatin1Char('0')).toUpper();
         iValue = byte;
         break;
-    case Enu::ESymbolFormat::F_2H:
+    case ESymbolFormat::F_2H:
         memDevice->getWord(address, word);
         value = QString("%1").arg(word, 4, 16, QLatin1Char('0')).toUpper();
         iValue = word;
@@ -167,18 +167,18 @@ quint16 MemoryCellGraphicsItem::getNumBytes() const
     return cellSize(eSymbolFormat);
 }
 
-quint16 cellSize(Enu::ESymbolFormat symbolFormat)
+quint16 cellSize(ESymbolFormat symbolFormat)
 {
     switch (symbolFormat) {
-    case Enu::ESymbolFormat::F_1C:
+    case ESymbolFormat::F_1C:
         return 1;
-    case Enu::ESymbolFormat::F_1D:
+    case ESymbolFormat::F_1D:
         return 1;
-    case Enu::ESymbolFormat::F_2D:
+    case ESymbolFormat::F_2D:
         return 2;
-    case Enu::ESymbolFormat::F_1H:
+    case ESymbolFormat::F_1H:
         return 1;
-    case Enu::ESymbolFormat::F_2H:
+    case ESymbolFormat::F_2H:
         return 2;
     default:
         // Should not occur

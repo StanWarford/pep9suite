@@ -93,17 +93,6 @@ namespace Enu {
     };
     Q_ENUM_NS(EAddrMode);
 
-    // Format for symbols
-    enum class ESymbolFormat: int
-    {
-        F_NONE, F_1C, F_1D, F_2D, F_1H, F_2H
-    };
-    Q_ENUM_NS(ESymbolFormat);
-
-    quint16 tagNumBytes(Enu::ESymbolFormat symbolFormat);
-    // Pre: symbolFormat is a valid format trace tag type.
-    // Post: Returns the corresponding integer number of bytes.
-
     enum class EExecState
     {
         EStart,

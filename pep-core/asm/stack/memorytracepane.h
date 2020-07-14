@@ -27,7 +27,6 @@
 #include <QStack>
 #include <QWidget>
 
-#include "pep/enu.h"
 #include "stack/memorycellgraphicsitem.h"
 
 namespace Ui {

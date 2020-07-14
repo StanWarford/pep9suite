@@ -22,7 +22,6 @@
 #define MEMOIZERHELPER_H
 #include <QtCore>
 
-#include "pep/enu.h"
 #include "symbol/symboltable.h"
 
 struct CPUState
@@ -48,7 +47,6 @@ QString formatNum(quint16 number);
 QString formatNum(quint8 number);
 QString formatAddress(quint16 address);
 QString mnemonDecode(quint8 instrSpec);
-QString mnemonDecode(Enu::EMnemonic instrSpec);
 QString formatIS(quint8 instrSpec);
 QString formatUnary(quint8 instrSpec);
 QString formatNonUnary(SymbolTable* symTable, quint8 instrSpec, quint16 oprSpec);

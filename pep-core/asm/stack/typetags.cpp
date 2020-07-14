@@ -27,7 +27,7 @@ AType::~AType()
 
 }
 
-PrimitiveType::PrimitiveType(QSharedPointer<const SymbolEntry> symbol, Enu::ESymbolFormat format):
+PrimitiveType::PrimitiveType(QSharedPointer<const SymbolEntry> symbol, ESymbolFormat format):
     symbol(symbol), format(format)
 {
 
@@ -38,9 +38,9 @@ PrimitiveType::~PrimitiveType()
 
 }
 
-QList<QPair<Enu::ESymbolFormat, QString> > PrimitiveType::toPrimitives(QString prefix) const
+QList<QPair<ESymbolFormat, QString> > PrimitiveType::toPrimitives(QString prefix) const
 {
-    return QList<QPair<Enu::ESymbolFormat, QString>>{{format, prefix+symbol->getName()}};
+    return QList<QPair<ESymbolFormat, QString>>{{format, prefix+symbol->getName()}};
 }
 
 QString PrimitiveType::toString(QString prefix) const
@@ -52,7 +52,7 @@ QString PrimitiveType::toString(QString prefix) const
 
 quint16 PrimitiveType::size() const
 {
-    return Enu::tagNumBytes(format);
+    return tagNumBytes(format);
 }
 
 PrimitiveType::operator QString() const
@@ -72,9 +72,9 @@ StructType::~StructType()
 
 }
 
-QList<QPair<Enu::ESymbolFormat, QString> > StructType::toPrimitives(QString prefix) const
+QList<QPair<ESymbolFormat, QString> > StructType::toPrimitives(QString prefix) const
 {
-    auto out = QList<QPair<Enu::ESymbolFormat, QString>>();
+    auto out = QList<QPair<ESymbolFormat, QString>>();
     QString runningPrefix = QString("%1%2.")
             .arg(prefix)
             .arg(symbol->getName());
@@ -110,7 +110,7 @@ StructType::operator QString() const
     return toString("");
 }
 
-ArrayType::ArrayType(QSharedPointer<const SymbolEntry> symbol, Enu::ESymbolFormat format, quint16 len):
+ArrayType::ArrayType(QSharedPointer<const SymbolEntry> symbol, ESymbolFormat format, quint16 len):
     symbol(symbol), format(format), len(len)
 {
 
@@ -121,9 +121,9 @@ ArrayType::~ArrayType()
 
 }
 
-QList<QPair<Enu::ESymbolFormat, QString> > ArrayType::toPrimitives(QString prefix) const
+QList<QPair<ESymbolFormat, QString> > ArrayType::toPrimitives(QString prefix) const
 {
-    auto out = QList<QPair<Enu::ESymbolFormat, QString>>();
+    auto out = QList<QPair<ESymbolFormat, QString>>();
     QString runningPrefix = QString("%1%2")
             .arg(prefix)
             .arg(symbol->getName());
@@ -143,7 +143,7 @@ QString ArrayType::toString(QString prefix) const
 
 quint16 ArrayType::size() const
 {
-    return static_cast<quint16>(Enu::tagNumBytes(format) * len);
+    return static_cast<quint16>(tagNumBytes(format) * len);
 }
 
 ArrayType::operator QString() const
@@ -151,7 +151,7 @@ ArrayType::operator QString() const
     return toString();
 }
 
-LiteralArrayType::LiteralArrayType(Enu::ESymbolFormat format, quint16 len):
+LiteralArrayType::LiteralArrayType(ESymbolFormat format, quint16 len):
     format(format), len(len)
 {
 
@@ -162,9 +162,9 @@ LiteralArrayType::~LiteralArrayType()
 
 }
 
-QList<QPair<Enu::ESymbolFormat, QString> > LiteralArrayType::toPrimitives(QString prefix) const
+QList<QPair<ESymbolFormat, QString> > LiteralArrayType::toPrimitives(QString prefix) const
 {
-    auto out = QList<QPair<Enu::ESymbolFormat, QString>>();
+    auto out = QList<QPair<ESymbolFormat, QString>>();
     QString runningPrefix = QString("%1")
             .arg(prefix);
     for(int it=0; it< this->len; it++) {
@@ -182,7 +182,7 @@ QString LiteralArrayType::toString(QString prefix) const
 
 quint16 LiteralArrayType::size() const
 {
-    return static_cast<quint16>(Enu::tagNumBytes(format) * len);
+    return static_cast<quint16>(tagNumBytes(format) * len);
 }
 
 LiteralArrayType::operator QString() const
@@ -190,7 +190,7 @@ LiteralArrayType::operator QString() const
     return toString();
 }
 
-LiteralPrimitiveType::LiteralPrimitiveType(QString name, Enu::ESymbolFormat format): name(name), format(format)
+LiteralPrimitiveType::LiteralPrimitiveType(QString name, ESymbolFormat format): name(name), format(format)
 {
 
 }
@@ -200,9 +200,9 @@ LiteralPrimitiveType::~LiteralPrimitiveType()
 
 }
 
-QList<QPair<Enu::ESymbolFormat, QString> > LiteralPrimitiveType::toPrimitives(QString prefix) const
+QList<QPair<ESymbolFormat, QString> > LiteralPrimitiveType::toPrimitives(QString prefix) const
 {
-    return QList<QPair<Enu::ESymbolFormat, QString>>{{format, prefix+name}};
+    return QList<QPair<ESymbolFormat, QString>>{{format, prefix+name}};
 }
 
 QString LiteralPrimitiveType::toString(QString prefix) const
@@ -214,7 +214,7 @@ QString LiteralPrimitiveType::toString(QString prefix) const
 
 quint16 LiteralPrimitiveType::size() const
 {
-    return Enu::tagNumBytes(format);
+    return tagNumBytes(format);
 }
 
 LiteralPrimitiveType::operator QString() const

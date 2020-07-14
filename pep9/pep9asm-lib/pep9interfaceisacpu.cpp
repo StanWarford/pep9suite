@@ -81,7 +81,7 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
             // A call with no symbol traces listed is ignored.
             else if(manager->getUserProgram()->getTraceInfo()->instrToSymlist.contains(pc)) {
                 memTrace->heapTrace.setInMalloc(true);
-                QList<QPair<Enu::ESymbolFormat, QString>> primList;
+                QList<QPair<ESymbolFormat, QString>> primList;
                 for(auto item : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
                     primList.append(item->toPrimitives());
                 }
@@ -135,7 +135,7 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
         }
         if(firstLineAfterCall) {
             if(manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist.contains(pc)) {
-                QList<QPair<Enu::ESymbolFormat,QString>> primList;
+                QList<QPair<ESymbolFormat,QString>> primList;
                 for(auto item : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
                     primList.append(item->toPrimitives());
                 }
@@ -146,7 +146,7 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
         }
         else {
             if(manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist.contains(pc)) {
-                QList<QPair<Enu::ESymbolFormat,QString>> primList;
+                QList<QPair<ESymbolFormat,QString>> primList;
                 for(auto item : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
                     primList.append(item->toPrimitives());
                 }
@@ -247,4 +247,11 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
         firstLineAfterCall = false;
         break;
     }
+}
+
+// Convert a mnemonic into its string
+QString mnemonDecode(Enu::EMnemonic instrSpec)
+{
+    static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
+    return QString(metaenum.valueToKey((int)instrSpec)).toLower();
 }

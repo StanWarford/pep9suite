@@ -26,21 +26,22 @@
 
 #include "pep/enu.h"
 #include "style/colors.h"
+#include "symbol/symboltypes.h"
 
 class AMemoryDevice;
 
-quint16 cellSize(Enu::ESymbolFormat symbolFormat);
+quint16 cellSize(ESymbolFormat symbolFormat);
 // This is used exclusively in the memoryTracePane/memoryCellGraphicsItem
 class MemoryCellGraphicsItem : public QGraphicsItem
 {
 public:
     // Take a non-owning pointer to a memory device.
-    MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int addr, QString sym, Enu::ESymbolFormat eSymFrmt, int xLoc, int yLoc);
+    MemoryCellGraphicsItem(const AMemoryDevice *memDevice, int addr, QString sym, ESymbolFormat eSymFrmt, int xLoc, int yLoc);
     ~MemoryCellGraphicsItem() override;
 
     QRectF boundingRect() const override;
 
-    void updateContents(int newAddr, QString newSymbol, Enu::ESymbolFormat newFmt, int newY);
+    void updateContents(int newAddr, QString newSymbol, ESymbolFormat newFmt, int newY);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
     // Cell changes background color if it has been modified.
     void setModified(bool value);
@@ -64,7 +65,7 @@ private:
     const AMemoryDevice *memDevice;
     int x, y;
     quint16 address, iValue;
-    Enu::ESymbolFormat eSymbolFormat;
+    ESymbolFormat eSymbolFormat;
     QString symbol, value;
     QRectF box;
     const PepColors::Colors * colors;

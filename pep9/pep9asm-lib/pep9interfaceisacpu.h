@@ -13,5 +13,5 @@ protected:
     void calculateStackChangeStart(quint8 instr) override;
     void calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc, quint16 acc) override;
 };
-
+QString mnemonDecode(Enu::EMnemonic instrSpec);
 #endif // PEP9INTERFACEISACPU_H

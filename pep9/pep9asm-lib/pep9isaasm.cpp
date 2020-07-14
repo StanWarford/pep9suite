@@ -35,6 +35,7 @@
 #include "symbol/symbolentry.h"
 #include "symbol/symbolvalue.h"
 #include "stack/typetags.h"
+#include "symbol/symboltypes.h"
 
 #include "pep9asmcode.h"
 
@@ -1417,7 +1418,7 @@ bool IsaAsm::hasTypeTag(QString comment)
         return false;
     }
     // If the comment contains a primitive type (e.g. #2d, #2da), then it has a type.
-    else if(primitiveType(comment.mid(comment.indexOf(IsaParserHelper::rxFormatTag))) != Enu::ESymbolFormat::F_NONE) {
+    else if(primitiveType(comment.mid(comment.indexOf(IsaParserHelper::rxFormatTag))) != ESymbolFormat::F_NONE) {
         return true;
     }
     else {
@@ -1539,16 +1540,16 @@ bool IsaAsm::getToken(QString &sourceLine, IsaParserHelper::ELexicalToken &token
     return false;
 }
 
-Enu::ESymbolFormat IsaAsm::primitiveType(QString formatTag) {
-    if (formatTag.startsWith("#1c")) return Enu::ESymbolFormat::F_1C;
-    if (formatTag.startsWith("#1d")) return Enu::ESymbolFormat::F_1D;
-    if (formatTag.startsWith("#2d")) return Enu::ESymbolFormat::F_2D;
-    if (formatTag.startsWith("#1h")) return Enu::ESymbolFormat::F_1H;
-    if (formatTag.startsWith("#2h")) return Enu::ESymbolFormat::F_2H;
-    return Enu::ESymbolFormat::F_NONE; // Should not occur
+ESymbolFormat IsaAsm::primitiveType(QString formatTag) {
+    if (formatTag.startsWith("#1c")) return ESymbolFormat::F_1C;
+    if (formatTag.startsWith("#1d")) return ESymbolFormat::F_1D;
+    if (formatTag.startsWith("#2d")) return ESymbolFormat::F_2D;
+    if (formatTag.startsWith("#1h")) return ESymbolFormat::F_1H;
+    if (formatTag.startsWith("#2h")) return ESymbolFormat::F_2H;
+    return ESymbolFormat::F_NONE; // Should not occur
 }
 
-QPair<quint8, Enu::ESymbolFormat> IsaAsm::arrayType(QString formatTag)
+QPair<quint8, ESymbolFormat> IsaAsm::arrayType(QString formatTag)
 {
     auto type = primitiveType(formatTag);
     QRegularExpression matcher(IsaParserHelper::rxArrayMultiplier.pattern());

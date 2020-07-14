@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "memoizerhelper.h"
-
+#include "pep/enu.h"
 #include "pep/pep.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symbolvalue.h"
@@ -55,13 +55,6 @@ QString mnemonDecode(quint8 instrSpec)
 {
     static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
     return QString(metaenum.valueToKey((int)Pep::decodeMnemonic[instrSpec])).toLower();
-}
-
-// Convert a mnemonic into its string
-QString mnemonDecode(Enu::EMnemonic instrSpec)
-{
-    static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
-    return QString(metaenum.valueToKey((int)instrSpec)).toLower();
 }
 
 QString formatIS(quint8 instrSpec)

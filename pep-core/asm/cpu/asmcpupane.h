@@ -24,8 +24,6 @@
 
 #include <QWidget>
 
-#include "pep/enu.h"
-
 namespace Ui {
     class AsmCpuPane;
 }

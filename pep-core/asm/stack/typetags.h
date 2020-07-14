@@ -24,6 +24,7 @@
 #include <QtCore>
 
 #include "pep/enu.h"
+#include "symbol/symbolentry.h"
 
 class SymbolEntry;
 /*
@@ -40,7 +41,7 @@ class SymbolEntry;
 class AType {
 public:
     virtual ~AType();
-    virtual QList<QPair<Enu::ESymbolFormat, QString>> toPrimitives(QString prefix = "") const = 0;
+    virtual QList<QPair<ESymbolFormat, QString>> toPrimitives(QString prefix = "") const = 0;
     virtual QString toString(QString prefix = QString("")) const = 0;
     virtual quint16 size() const = 0;
     virtual operator QString() const = 0;
@@ -52,11 +53,11 @@ public:
  */
 class PrimitiveType: public AType {
     QSharedPointer<const SymbolEntry> symbol;
-    Enu::ESymbolFormat format;
+    ESymbolFormat format;
 public:
-    explicit PrimitiveType(QSharedPointer<const SymbolEntry> symbol, Enu::ESymbolFormat format);
+    explicit PrimitiveType(QSharedPointer<const SymbolEntry> symbol, ESymbolFormat format);
     ~PrimitiveType() override;
-    QList<QPair<Enu::ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
+    QList<QPair<ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
     QString toString(QString prefix = QString("")) const override;
     quint16 size() const override;
     operator QString() const override;
@@ -68,11 +69,11 @@ public:
  */
 class LiteralPrimitiveType: public AType {
     QString name;
-    Enu::ESymbolFormat format;
+    ESymbolFormat format;
 public:
-    explicit LiteralPrimitiveType(QString name, Enu::ESymbolFormat format);
+    explicit LiteralPrimitiveType(QString name, ESymbolFormat format);
     ~LiteralPrimitiveType() override;
-    QList<QPair<Enu::ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
+    QList<QPair<ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
     QString toString(QString prefix = QString("")) const override;
     quint16 size() const override;
     operator QString() const override;
@@ -87,7 +88,7 @@ class StructType: public AType {
 public:
     explicit StructType(QSharedPointer<const SymbolEntry> symbol, QList<QSharedPointer<AType>> members);
     ~StructType() override;
-    QList<QPair<Enu::ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
+    QList<QPair<ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
     QString toString(QString prefix = QString("")) const override;
     quint16 size() const override;
     operator QString() const override;
@@ -96,12 +97,12 @@ public:
  * Class to represent an array of primitive types
  */
 class LiteralArrayType : public AType {
-    Enu::ESymbolFormat format;
+    ESymbolFormat format;
     quint16 len;
 public:
-    explicit LiteralArrayType(Enu::ESymbolFormat format, quint16 len);
+    explicit LiteralArrayType(ESymbolFormat format, quint16 len);
     ~LiteralArrayType() override;
-    QList<QPair<Enu::ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
+    QList<QPair<ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
     QString toString(QString prefix = QString("")) const override;
     quint16 size() const override;
     operator QString() const override;
@@ -112,12 +113,12 @@ public:
  */
 class ArrayType : public AType {
     QSharedPointer<const SymbolEntry> symbol;
-    Enu::ESymbolFormat format;
+    ESymbolFormat format;
     quint16 len;
 public:
-    explicit ArrayType(QSharedPointer<const SymbolEntry> symbol, Enu::ESymbolFormat format, quint16 len);
+    explicit ArrayType(QSharedPointer<const SymbolEntry> symbol, ESymbolFormat format, quint16 len);
     ~ArrayType() override;
-    QList<QPair<Enu::ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
+    QList<QPair<ESymbolFormat, QString>> toPrimitives(QString prefix = "") const override;
     QString toString(QString prefix = QString("")) const override;
     quint16 size() const override;
     operator QString() const override;

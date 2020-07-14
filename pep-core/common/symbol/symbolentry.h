@@ -24,8 +24,9 @@
 
 #include <qstring.h>
 
-#include "pep/enu.h"
 #include "symbol/symboltable.h"
+#include "symbol/symboltypes.h"
+
 
 /*
  * A symbol can either be:
@@ -40,7 +41,7 @@ enum class DefStates
 
 struct SymbolFormat
 {
-    Enu::ESymbolFormat spec = Enu::ESymbolFormat::F_NONE;
+    ESymbolFormat spec = ESymbolFormat::F_NONE;
     quint8 size = 0;
 };
 
