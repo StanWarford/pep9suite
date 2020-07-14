@@ -44,7 +44,6 @@
 #include "assembler/asmcode.h"
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
-#include "assembler/isaasm.h"
 #include "cache/cachememory.h"
 #include "cache/cachealgs.h"
 #include "converters/byteconverterbin.h"

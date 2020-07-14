@@ -298,8 +298,7 @@ void AsmProgramTraceTextEdit::setTextFromCode(QSharedPointer<AsmProgram> code)
     {
         codePtr = code->getCodeAtIndex(it);
         traceList = codePtr->getAssemblerListing().split("\n");
-        if(dynamic_cast<const UnaryInstruction*>(codePtr) != nullptr ||
-                dynamic_cast<const NonUnaryInstruction*>(codePtr) != nullptr)
+        if(codePtr->isCode())
         {
             lineToAddr[visualIt] = codePtr->getMemoryAddress();
             addrToLine[codePtr->getMemoryAddress()] = visualIt;

@@ -36,7 +36,7 @@
 
 IsaCpu::IsaCpu(const AsmProgramManager *input_manager, QSharedPointer<const Pep9> pep_version,
                QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
-    ACPUModel(memDevice, parent), InterfaceISACPU(memDevice.get(), input_manager),
+    ACPUModel(memDevice, parent), Pep9InterfaceISACPU(memDevice.get(), input_manager),
     registerBank(pep_version->maxRegisterNumber()), memoizer(new IsaCpuMemoizer(*this)),
     a_reg(pep_version->get_global_register_number(APepVersion::global_registers::A)),
     x_reg(pep_version->get_global_register_number(APepVersion::global_registers::X)),
@@ -145,7 +145,7 @@ void IsaCpu::onISAStep()
     // Also store any other values needed for detailed statistics
     memoizer->storeStateInstrStart();
     memory->onCycleStarted();
-    InterfaceISACPU::calculateStackChangeStart(this->getCPURegByteStart(Pep9::CPURegisters::IS));
+    calculateStackChangeStart(this->getCPURegByteStart(Pep9::CPURegisters::IS));
 
     // Load PC from register bank, allocate space for operand if it exists.
     quint16 opSpec, pc = registerBank.readRegisterWordCurrent(to_uint8_t(Pep9::CPURegisters::PC));
@@ -185,7 +185,7 @@ void IsaCpu::onISAStep()
     }
 
     // Post instruction execution cleanup
-    InterfaceISACPU::calculateStackChangeEnd(this->getCPURegByteCurrent(Pep9::CPURegisters::IS),
+    calculateStackChangeEnd(this->getCPURegByteCurrent(Pep9::CPURegisters::IS),
                                              this->getCPURegWordCurrent(Pep9::CPURegisters::OS),
                                              this->getCPURegWordStart(Pep9::CPURegisters::SP),
                                              this->getCPURegWordStart(Pep9::CPURegisters::PC),

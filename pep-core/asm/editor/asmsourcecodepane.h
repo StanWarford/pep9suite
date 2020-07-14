@@ -30,9 +30,7 @@
 #include <QTextEdit>
 #include <QWidget>
 
-
-#include "assembler/isaasm.h"
-#include "assembler/asmprogrammanager.h"
+#include "assembler/asmprogram.h"
 #include "highlight/pepasmhighlighter.h"
 #include "pep/enu.h"
 

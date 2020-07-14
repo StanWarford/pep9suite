@@ -29,12 +29,14 @@
 #include <QObject>
 
 #include "cpu/interfacemccpu.h"
-#include "cpu/interfaceisacpu.h"
+
 
 #include "pep/pep9.h"
+
+#include "pep9interfaceisacpu.h"
 class CPUDataSection;
 class FullMicrocodedMemoizer;
-class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public InterfaceISACPU
+class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public Pep9InterfaceISACPU
 {
     Q_OBJECT
     friend class CPUMemoizer;

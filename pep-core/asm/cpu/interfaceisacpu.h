@@ -109,8 +109,8 @@ protected:
 
     // Update simulation state at the start of a assembly level instruction
     virtual void updateAtInstructionEnd() = 0;
-    void calculateStackChangeStart(quint8 instr);
-    void calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc, quint16 acc);
+    virtual void calculateStackChangeStart(quint8 instr) = 0;
+    virtual void calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc, quint16 acc) = 0;
 
     const AsmProgramManager* manager;
     // Decoded operand value. The UI needs this value to render properly,

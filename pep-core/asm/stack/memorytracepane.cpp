@@ -26,7 +26,6 @@
 #include <QMessageBox>
 #include <QRgb>
 
-#include "assembler/isaasm.h"
 #include "assembler/asmprogrammanager.h"
 #include "assembler/asmprogram.h"
 #include "cpu/acpumodel.h"

@@ -28,6 +28,8 @@
 #include "memory/amemorydevice.h"
 #include "pep/pep9.h"
 
+#include "pep9interfaceisacpu.h"
+
 /* Though not part of the specification, the trap mechanism  must
  * set the index register to 0 to prevent a bug in OS where
  * non-unary instructions fail due to junk in the high order byte of the index
@@ -43,7 +45,7 @@
 class CPUDataSection;
 class IsaCpuMemoizer;
 
-class IsaCpu: public ACPUModel, public InterfaceISACPU
+class IsaCpu: public ACPUModel, public Pep9InterfaceISACPU
 {
     friend class IsaCpuMemoizer;
 public:

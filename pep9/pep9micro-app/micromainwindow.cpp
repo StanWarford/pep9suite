@@ -45,7 +45,6 @@
 #include "assembler/asmcode.h"
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
-#include "assembler/isaasm.h"
 #include "converters/byteconverterbin.h"
 #include "converters/byteconverterchar.h"
 #include "converters/byteconverterdec.h"

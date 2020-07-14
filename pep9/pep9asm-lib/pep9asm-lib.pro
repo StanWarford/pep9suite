@@ -48,11 +48,17 @@ RESOURCES += \
 HEADERS += \
     isacpu.h \
     isacpumemoizer.h \
+    pep9asmcode.h \
+    pep9interfaceisacpu.h \
+    pep9isaasm.h \
     redefinemnemonicsdialog.h
 
 SOURCES += \
     isacpu.cpp \
     isacpumemoizer.cpp \
+    pep9asmcode.cpp \
+    pep9interfaceisacpu.cpp \
+    pep9isaasm.cpp \
     redefinemnemonicsdialog.cpp
 
 # Link against Pep core code

@@ -2,7 +2,7 @@
 /*
     Pep9 is a virtual machine for writing machine language and assembly
     language programs.
-    
+
     Copyright (C) 2019  J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
@@ -27,12 +27,6 @@
 #include "pep/enu.h"
 
 class AsmProgram;
-
-struct AsmOutput {
-    QSharedPointer<AsmProgram> prog;
-    QList<QPair<int, QString>> errors;
-    bool success;
-};
 
 class AsmCode; // Forward declaration for argument of processSourceLine.
 class AsmProgram;

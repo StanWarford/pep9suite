@@ -83,3 +83,19 @@ DEPENDPATH += $$PWD/../../pep-core/asm
 
 win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/asm/pep-core-asm.lib
 else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/asm/libpep-core-asm.a
+
+unix|win32: LIBS += -L$$OUT_PWD/../pep9cpu-lib/ -lpep9cpu-lib
+
+INCLUDEPATH += $$PWD/../pep9cpu-lib
+DEPENDPATH += $$PWD/../pep9cpu-lib
+
+win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../pep9cpu-lib/pep9cpu-lib.lib
+else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../pep9cpu-lib/libpep9cpu-lib.a
+
+unix|win32: LIBS += -L$$OUT_PWD/../pep9asm-lib/ -lpep9asm-lib
+
+INCLUDEPATH += $$PWD/../pep9asm-lib
+DEPENDPATH += $$PWD/../pep9asm-lib
+
+win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../pep9asm-lib/pep9asm-lib.lib
+else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../pep9asm-lib/libpep9asm-lib.a

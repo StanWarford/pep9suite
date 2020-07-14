@@ -39,7 +39,7 @@ FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager,
                                      QSharedPointer<const Pep9> pep_version,
                                      QSharedPointer<AMemoryDevice> memoryDev,
                                      QObject* parent) noexcept: ACPUModel (memoryDev, parent),
-    InterfaceMCCPU(Enu::CPUType::TwoByteDataBus), InterfaceISACPU(memoryDev.get(), manager),
+    InterfaceMCCPU(Enu::CPUType::TwoByteDataBus), Pep9InterfaceISACPU(memoryDev.get(), manager),
     pep_version(pep_version), memoizer(new FullMicrocodedMemoizer(*this))
 {
     data = new CPUDataSection(Enu::CPUType::TwoByteDataBus, pep_version, memoryDev, parent);
@@ -291,7 +291,7 @@ void FullMicrocodedCPU::onMCStep()
         // to fulfill its contract with InterfaceISACPU.
         memoizer->storeStateInstrStart();
         memory->onCycleStarted();
-        InterfaceISACPU::calculateStackChangeStart(getCPURegByteStart(Pep9::CPURegisters::IS));
+        calculateStackChangeStart(getCPURegByteStart(Pep9::CPURegisters::IS));
     }
 
     // Do step logic
@@ -324,7 +324,7 @@ void FullMicrocodedCPU::onMCStep()
     // simulation logic needed to mantain ISA level state.
     if(microprogramCounter == startLine || executionFinished) {
         quint16 progCounter = getCPURegWordStart(Pep9::CPURegisters::PC);
-        InterfaceISACPU::calculateStackChangeEnd(getCPURegByteCurrent(Pep9::CPURegisters::IS),
+        calculateStackChangeEnd(getCPURegByteCurrent(Pep9::CPURegisters::IS),
                                                  getCPURegWordCurrent(Pep9::CPURegisters::OS),
                                                  getCPURegWordStart(Pep9::CPURegisters::SP),
                                                  getCPURegWordStart(Pep9::CPURegisters::PC),

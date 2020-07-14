@@ -23,7 +23,6 @@
 #include "assembler/asmcode.h"
 #include "assembler/asmprogrammanager.h"
 #include "assembler/asmprogram.h"
-#include "assembler/isaasm.h"
 #include "memory/amemorychip.h"
 #include "memory/amemorydevice.h"
 #include "memory/mainmemory.h"
@@ -36,6 +35,7 @@
 
 #include "boundexecisacpu.h"
 #include "isacpu.h"
+#include "pep9isaasm.h"
 
 // Error messages potentially used in multiple places;
 const QString errLogOpenErr = "Could not open file: %1.";

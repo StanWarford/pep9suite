@@ -2,7 +2,7 @@
 /*
     Pep9 is a virtual machine for writing machine language and assembly
     language programs.
-    
+
     Copyright (C) 2019  J. Stanley Warford & Matthew McRaven, Pepperdine University
 
     This program is free software: you can redistribute it and/or modify
@@ -18,11 +18,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "pep9isaasm.h"
 
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 
-#include "assembler/isaasm.h"
+
 #include "assembler/asmargument.h"
 #include "assembler/asmcode.h"
 #include "assembler/asmparserhelper.h"
@@ -33,6 +34,8 @@
 #include "symbol/symbolentry.h"
 #include "symbol/symbolvalue.h"
 #include "stack/typetags.h"
+
+#include "pep9asmcode.h"
 
 // Regular expressions for lexical analysis
 QRegExp IsaParserHelper::rxAddrMode("^((,)(\\s*)(i|d|x|n|s(?![fx])|sx(?![f])|sf|sfx){1}){1}");

@@ -23,11 +23,11 @@
 #include "assembler/asmcode.h"
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
-#include "assembler/isaasm.h"
 #include "pep/pep.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symboltable.h"
 
+#include "pep9isaasm.h"
 #include "termhelper.h"
 
 ASMBuildHelper::ASMBuildHelper(const QString source, QFileInfo objFileInfo,

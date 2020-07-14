@@ -25,7 +25,6 @@
 #include "assembler/asmcode.h"
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
-#include "assembler/isaasm.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symboltable.h"
 #include "memory/amemorychip.h"
@@ -36,6 +35,7 @@
 
 #include "boundexecisacpu.h"
 #include "isacpu.h"
+#include "pep9isaasm.h"
 #include "termhelper.h"
 
 ASMRunHelper::ASMRunHelper(const QString objectCodeString,quint64 maxSimSteps,

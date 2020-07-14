@@ -25,10 +25,11 @@
 #include <QDir>
 #include <QtWidgets/QMainWindow>
 
-#include "assembler/isaasm.h"
 #include "pep/constants.h"
 #include "pep/pep.h"
 #include "pep/pep9.h"
+
+#include "pep9isaasm.h"
 
 namespace Ui {
     class MicroMainWindow;

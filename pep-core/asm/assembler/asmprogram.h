@@ -49,7 +49,6 @@ struct StaticTraceInfo
     QSharedPointer<const SymbolEntry> heapPtr, mallocPtr;
 };
 
-
 class AsmProgram
 {
 public:
@@ -98,6 +97,12 @@ private:
 
     bool burn;
     quint16 burnAddress, burnValue;
+};
+
+struct AsmOutput {
+    QSharedPointer<AsmProgram> prog;
+    QList<QPair<int, QString>> errors;
+    bool success;
 };
 
 #endif // ASMPROGRAM_H
