@@ -1123,12 +1123,12 @@ void CPUMainWindow::focusChanged(QWidget *oldFocus, QWidget *)
     // Highlight the newly focused widget.
     int which = 0;
     if (ui->microcodeWidget->hasFocus()) {
-        which = Enu::EditButton::COPY | Enu::EditButton::CUT | Enu::EditButton::PASTE;
-        which |= Enu::EditButton::UNDO*ui->microcodeWidget->isUndoable() | Enu::EditButton::REDO*ui->microcodeWidget->isRedoable();
+        which = PepCore::EditButton::COPY | PepCore::EditButton::CUT | PepCore::EditButton::PASTE;
+        which |= PepCore::EditButton::UNDO*ui->microcodeWidget->isUndoable() | PepCore::EditButton::REDO*ui->microcodeWidget->isRedoable();
         ui->microcodeWidget->highlightOnFocus();
     }
     else if (ui->memoryWidget->hasFocus()) {
-        which = Enu::EditButton::COPY;
+        which = PepCore::EditButton::COPY;
         ui->memoryWidget->highlightOnFocus();
     }
     else if (ui->cpuWidget->hasFocus()) {
@@ -1136,15 +1136,15 @@ void CPUMainWindow::focusChanged(QWidget *oldFocus, QWidget *)
         ui->cpuWidget->highlightOnFocus();
     }
     else if (ui->microobjectWidget->hasFocus()) {
-        which = Enu::EditButton::COPY;
+        which = PepCore::EditButton::COPY;
         ui->microobjectWidget->highlightOnFocus();
     }
 
-    ui->actionEdit_Undo->setEnabled(which & Enu::EditButton::UNDO);
-    ui->actionEdit_Redo->setEnabled(which & Enu::EditButton::REDO);
-    ui->actionEdit_Cut->setEnabled(which & Enu::EditButton::CUT);
-    ui->actionEdit_Copy->setEnabled(which & Enu::EditButton::COPY);
-    ui->actionEdit_Paste->setEnabled(which & Enu::EditButton::PASTE);
+    ui->actionEdit_Undo->setEnabled(which & PepCore::EditButton::UNDO);
+    ui->actionEdit_Redo->setEnabled(which & PepCore::EditButton::REDO);
+    ui->actionEdit_Cut->setEnabled(which & PepCore::EditButton::CUT);
+    ui->actionEdit_Copy->setEnabled(which & PepCore::EditButton::COPY);
+    ui->actionEdit_Paste->setEnabled(which & PepCore::EditButton::PASTE);
 }
 
 void CPUMainWindow::setUndoability(bool b)

@@ -27,7 +27,7 @@
 #include <QStack>
 #include <QWidget>
 
-#include "pep/enu.h"
+#include "pep/constants.h"
 #include "stack/memorycellgraphicsitem.h"
 
 namespace Ui {
@@ -109,7 +109,7 @@ private slots:
     void zoomFactorChanged(int factor);
 
 signals:
-    void labelDoubleClicked(Enu::EPane pane);
+    void labelDoubleClicked(PepCore::EPane pane);
 };
 
 #endif // MEMORYTRACEPANE_H

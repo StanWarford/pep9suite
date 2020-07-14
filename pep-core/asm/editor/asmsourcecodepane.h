@@ -32,7 +32,7 @@
 
 #include "assembler/asmprogram.h"
 #include "highlight/pepasmhighlighter.h"
-#include "pep/enu.h"
+#include "pep/constants.h"
 
 namespace Ui {
     class SourceCodePane;
@@ -194,7 +194,7 @@ signals:
     void breakpointAdded(quint16 address);
     // Propogates event from AsmSourceTextEdit
     void breakpointRemoved(quint16 address);
-    void labelDoubleClicked(Enu::EPane pane);
+    void labelDoubleClicked(PepCore::EPane pane);
 };
 
 class AsmSourceBreakpointArea : public QWidget

@@ -34,29 +34,6 @@ namespace Enu {
     static const quint8 signalDisabled = 255;
 
 
-
-
-    // Bit masks that signal which editing actions should be available through context menus
-    enum EditButton: int
-    {
-        COPY = 1<<0, CUT = 1<<1, PASTE = 1<<2, UNDO = 1<<3, REDO = 1<<4
-    };
-
-    enum class EPane
-    {
-        ESource,
-        EObject,
-        EListing,
-        EListingTrace,
-        EMemoryTrace,
-        EBatchIO,
-        ETerminal,
-        EMicrocode,
-        EDataSection,
-    };
-    Q_ENUM_NS(EPane);
-
-
     /*
      * Enumerations for Pep9
      */

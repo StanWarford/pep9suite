@@ -114,18 +114,18 @@ private:
 
     // Save methods
     // Save a pane if it is associated with a file. If not, it switches to saveAsFile(which)
-    bool save(Enu::EPane which);
+    bool save(PepCore::EPane which);
     // Try to save all modified panes.
     bool maybeSave();
-    bool maybeSave(Enu::EPane which);
-    void loadFile(const QString &fileName, Enu::EPane which);
-    bool saveFile(Enu::EPane which);
-    bool saveFile(const QString& fileName, Enu::EPane which);
-    bool saveAsFile(Enu::EPane which);
+    bool maybeSave(PepCore::EPane which);
+    void loadFile(const QString &fileName, PepCore::EPane which);
+    bool saveFile(PepCore::EPane which);
+    bool saveFile(const QString& fileName, PepCore::EPane which);
+    bool saveAsFile(PepCore::EPane which);
     QString strippedName(const QString &fullFileName);
 
     //Print a pane to file using a print dialog
-    void print(Enu::EPane which);
+    void print(PepCore::EPane which);
 
     //Methods to load user compiled code
     void assembleDefaultOperatingSystem();

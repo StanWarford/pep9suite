@@ -180,7 +180,7 @@ void AsmObjectCodePane::mouseReleaseEvent(QMouseEvent *)
 
 void AsmObjectCodePane::mouseDoubleClickEvent(QMouseEvent *)
 {
-    emit labelDoubleClicked(Enu::EPane::EObject);
+    emit labelDoubleClicked(PepCore::EPane::EObject);
 }
 
 void AsmObjectCodePane::setLabelToModified(bool modified)

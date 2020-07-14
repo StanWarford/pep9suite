@@ -74,7 +74,7 @@ MicroHelpDialog::~MicroHelpDialog()
     delete ui;
 }
 
-QString MicroHelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString &input)
+QString MicroHelpDialog::getCode(PepCore::EPane &destPane, PepCore::EPane &inputDest, QString &input)
 {
     bool isHelpSubCat = ui->helpTreeWidget->currentIndex().parent().isValid();
     int row = ui->helpTreeWidget->currentIndex().row();
@@ -85,105 +85,105 @@ QString MicroHelpDialog::getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QS
         return ui->leftTextEdit->toPlainText();
     }*/
     if(parentRow == eMICROEXAMPLES) {
-        destPane = Enu::EPane::EMicrocode;
+        destPane = PepCore::EPane::EMicrocode;
         return ui->microTextEdit->toPlainText();
     }
     else if (parentRow == eASMEXAMPLES) {
         if (row == eFIG433) {
-            destPane = Enu::EPane::EObject;
+            destPane = PepCore::EPane::EObject;
             return Pep::resToString(":/help-micro/figures-asm/fig0433.pepo", false);
         }
         else if (row == eFIG435) {
-            destPane = Enu::EPane::EObject;
+            destPane = PepCore::EPane::EObject;
             input = "up";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
             return Pep::resToString(":/help-micro/figures-asm/fig0435.pepo", false);
         }
         else if (row == eFIG436) {
-            destPane = Enu::EPane::EObject;
+            destPane = PepCore::EPane::EObject;
             return Pep::resToString(":/help-micro/figures-asm/fig0436.pepo", false);
         }
         else if (row == eFIG437) {
-            destPane = Enu::EPane::EObject;
+            destPane = PepCore::EPane::EObject;
             return Pep::resToString(":/help-micro/figures-asm/fig0437.pepo", false);
         }
         else if (row == eFIG506) {
             input = "up";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG511) {
             input = "-479";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG512) {
             input = "-479";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG515) {
             input = "-479";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG522) {
             input = "M 419";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG527 || row == eFIG604) {
             input = "68 84";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG606) {
             input = "-25";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG608) {
             input = "75";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG610) {
             input = "Hello, world!*";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG616) {
             input = "3 -15 25";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG621 || row == eFIG623) {
             input = "12  3 13 17 34 27 23 25 29 16 10 0 2";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG632) {
             input = "25";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG634) {
             input = "60 70 80 90";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG636) {
             input = "2 26 -3 9";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG638) {
             input = "5  40 50 60 70 80";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG646) {
             input = "bj 32 m";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG648) {
             input = "10 20 30 40 -9999";
-            inputDest = Enu::EPane::EBatchIO;
+            inputDest = PepCore::EPane::EBatchIO;
         }
         else if (row == eFIG627 || row == eFIG629 || row == eFIG640) {
-            inputDest = Enu::EPane::ETerminal;
+            inputDest = PepCore::EPane::ETerminal;
         }
     }
     else if(parentRow == eMICROIMPL || row == eMICROIMPL) {
-        destPane = Enu::EPane::EMicrocode;
+        destPane = PepCore::EPane::EMicrocode;
         return ui->microTextEdit->toPlainText();
     }
-    destPane = Enu::EPane::ESource;
+    destPane = PepCore::EPane::ESource;
     return ui->leftPepTextEdit->toPlainText();
 }
 

@@ -29,7 +29,6 @@
 #include "io/outputpane.h"
 #include "io/terminalpane.h"
 #include "memory/mainmemory.h"
-#include "pep/enu.h"
 
 #include <QSplitter>
 IOWidget::IOWidget(QWidget *parent) :
@@ -62,12 +61,12 @@ void IOWidget::setBatchInput(QString text)
     ui->batchInput->setText(text);
 }
 
-void IOWidget::setActivePane(Enu::EPane pane)
+void IOWidget::setActivePane(PepCore::EPane pane)
 {
-    if(pane == Enu::EPane::EBatchIO) {
+    if(pane == PepCore::EPane::EBatchIO) {
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->batchIOTab));
     }
-    else if(pane == Enu::EPane::ETerminal) {
+    else if(pane == PepCore::EPane::ETerminal) {
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->terminalIOTab));
     }
 }
@@ -136,14 +135,14 @@ bool IOWidget::isRedoable() const
 
 int IOWidget::editActions() const
 {
-    int ret = Enu::EditButton::COPY;
+    int ret = PepCore::EditButton::COPY;
     if(ui->batchInput->hasFocus()) {
-        ret |= Enu::EditButton::CUT | Enu::EditButton::PASTE;
-        ret |= Enu::EditButton::REDO * ui->batchInput->isRedoable() | Enu::EditButton::UNDO * ui->batchInput->isUndoable();
+        ret |= PepCore::EditButton::CUT | PepCore::EditButton::PASTE;
+        ret |= PepCore::EditButton::REDO * ui->batchInput->isRedoable() | PepCore::EditButton::UNDO * ui->batchInput->isUndoable();
     }
     else if(ui->terminalIO->hasFocus()) {
-        ret |= Enu::EditButton::CUT | Enu::EditButton::PASTE;
-        ret |= Enu::EditButton::REDO * ui->terminalIO->isRedoable() | Enu::EditButton::UNDO * ui->terminalIO->isUndoable();
+        ret |= PepCore::EditButton::CUT | PepCore::EditButton::PASTE;
+        ret |= PepCore::EditButton::REDO * ui->terminalIO->isRedoable() | PepCore::EditButton::UNDO * ui->terminalIO->isUndoable();
     }
     return ret;
 }

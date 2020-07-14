@@ -26,7 +26,7 @@
 #include <QTreeWidgetItem>
 
 #include "editor/microcodeeditor.h"
-#include "pep/pep.h"
+#include "pep/constants.h"
 
 namespace Ui {
     class HelpDialog;
@@ -40,7 +40,7 @@ public:
     MicroHelpDialog(QWidget *parent = nullptr);
     ~MicroHelpDialog();
 
-    QString getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString &input);
+    QString getCode(PepCore::EPane &destPane, PepCore::EPane &inputDest, QString &input);
 
     bool hasFocus();
     // Post: returns true if either of the text edits have focus

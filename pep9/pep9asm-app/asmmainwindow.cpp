@@ -329,15 +329,15 @@ bool AsmMainWindow::eventFilter(QObject *, QEvent *event)
         }
         auto fileEvent = static_cast<QFileOpenEvent *>(event)->file();
         if(fileEvent.endsWith("pepl", Qt::CaseInsensitive)) {
-            loadFile(fileEvent, Enu::EPane::EListing);
+            loadFile(fileEvent, PepCore::EPane::EListing);
             return true;
         }
         else if(fileEvent.endsWith("pepo", Qt::CaseInsensitive)) {
-            loadFile(fileEvent, Enu::EPane::EObject);
+            loadFile(fileEvent, PepCore::EPane::EObject);
             return true;
         }
         else if(fileEvent.endsWith("pep", Qt::CaseInsensitive)) {
-            loadFile(fileEvent, Enu::EPane::ESource);
+            loadFile(fileEvent, PepCore::EPane::ESource);
             return true;
         }
     }
@@ -419,7 +419,7 @@ void AsmMainWindow::writeSettings()
 }
 
 // Save methods
-bool AsmMainWindow::save(Enu::EPane which)
+bool AsmMainWindow::save(PepCore::EPane which)
 {
     bool retVal = true;
     /* For each pane, first check if there is already a file associated with the pane.
@@ -427,22 +427,22 @@ bool AsmMainWindow::save(Enu::EPane which)
      * If there is a file, then attempt save to it, then remove any modified flags from the pane if it succeded.
      */
     switch(which) {
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         if(ui->assemblerPane->getFileName(which).absoluteFilePath().isEmpty()) {
             retVal = saveAsFile(which);
         }
         else retVal = saveFile(ui->assemblerPane->getFileName(which).absoluteFilePath(), which);
         if(retVal) ui->assemblerPane->setModified(which, false);
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         if(ui->assemblerPane->getFileName(which).absoluteFilePath().isEmpty()) {
             retVal = saveAsFile(which);
         }
         if(retVal) ui->assemblerPane->setModified(which, false);
         break;
-    case Enu::EPane::EListing:
-        if(ui->assemblerPane->getFileName(Enu::EPane::EListing).absoluteFilePath().isEmpty()) {
-            retVal = saveAsFile(Enu::EPane::EListing);
+    case PepCore::EPane::EListing:
+        if(ui->assemblerPane->getFileName(PepCore::EPane::EListing).absoluteFilePath().isEmpty()) {
+            retVal = saveAsFile(PepCore::EPane::EListing);
         }
         break;
     default:
@@ -455,16 +455,16 @@ bool AsmMainWindow::save(Enu::EPane which)
 
 bool AsmMainWindow::maybeSave()
 {
-    static QMetaEnum metaenum = QMetaEnum::fromType<Enu::EPane>();
+    static QMetaEnum metaenum = QMetaEnum::fromType<PepCore::EPane>();
     bool retVal = true;
     // Iterate over all the panes, and attempt to save any modified panes before closing.
     for(int it = 0; it < metaenum.keyCount(); it++) {
-        retVal = retVal && maybeSave(static_cast<Enu::EPane>(metaenum.value(it)));
+        retVal = retVal && maybeSave(static_cast<PepCore::EPane>(metaenum.value(it)));
     }
     return retVal;
 }
 
-bool AsmMainWindow::maybeSave(Enu::EPane which)
+bool AsmMainWindow::maybeSave(PepCore::EPane which)
 {
     const QString dlgTitle = "Pep/9 Micro";
     const QString msgEnd = "The %1 has been modified.\nDo you want to save your changes?";
@@ -479,20 +479,20 @@ bool AsmMainWindow::maybeSave(Enu::EPane which)
     /*
      * There is no attempt to save the listing pane, since it can be recreated from the source code.
      */
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         if(ui->assemblerPane->isModified(which)) {
             ret = QMessageBox::warning(this, dlgTitle, sourceText, buttons);
             if (ret == QMessageBox::Save)
-                retVal = save(Enu::EPane::ESource);
+                retVal = save(PepCore::EPane::ESource);
             else if (ret == QMessageBox::Cancel)
                 retVal = false;
         }
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         if(ui->assemblerPane->isModified(which)) {
             ret = QMessageBox::warning(this, dlgTitle, objectText, buttons);
             if (ret == QMessageBox::Save)
-                retVal = save(Enu::EPane::EObject);
+                retVal = save(PepCore::EPane::EObject);
             else if (ret == QMessageBox::Cancel)
                 retVal = false;
         }
@@ -503,7 +503,7 @@ bool AsmMainWindow::maybeSave(Enu::EPane which)
     return retVal;
 }
 
-void AsmMainWindow::loadFile(const QString &fileName, Enu::EPane which)
+void AsmMainWindow::loadFile(const QString &fileName, PepCore::EPane which)
 {
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
@@ -522,12 +522,12 @@ void AsmMainWindow::loadFile(const QString &fileName, Enu::EPane which)
      * Ensure that the modified (*) flag is not set.
      */
     switch(which) {
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
         ui->assemblerPane->loadSourceFile(fileName, in.readAll());
         emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
         ui->assemblerPane->loadObjectFile(fileName, in.readAll());
         break;
@@ -541,18 +541,18 @@ void AsmMainWindow::loadFile(const QString &fileName, Enu::EPane which)
     QApplication::restoreOverrideCursor();
 }
 
-bool AsmMainWindow::saveFile(Enu::EPane which)
+bool AsmMainWindow::saveFile(PepCore::EPane which)
 {
     QString fileName;
     switch(which)
     {
     //Get the filename associated with the dialog
     // With new assembler source pane, all work inside that class.
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         [[fallthrough]];
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         [[fallthrough]];
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         fileName = ui->assemblerPane->getFileName(which).absoluteFilePath();
         break;
     default:
@@ -563,7 +563,7 @@ bool AsmMainWindow::saveFile(Enu::EPane which)
     return saveFile(fileName, which);
 }
 
-bool AsmMainWindow::saveFile(const QString &fileName, Enu::EPane which)
+bool AsmMainWindow::saveFile(const QString &fileName, PepCore::EPane which)
 {
 
     QFile file(fileName);
@@ -588,15 +588,15 @@ bool AsmMainWindow::saveFile(const QString &fileName, Enu::EPane which)
     switch(which)
     {
     // Set the output text & the pointer to the status bar message.
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         out << ui->assemblerPane->getPaneContents(which);
         msgOutput = &msgSource;
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         out << ui->assemblerPane->getPaneContents(which);
         msgOutput = &msgObject;
         break;
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         out << ui->assemblerPane->getPaneContents(which);
         msgOutput = &msgListing;
         break;
@@ -612,7 +612,7 @@ bool AsmMainWindow::saveFile(const QString &fileName, Enu::EPane which)
     return true;
 }
 
-bool AsmMainWindow::saveAsFile(Enu::EPane which)
+bool AsmMainWindow::saveAsFile(PepCore::EPane which)
 {
     // Default filenames for each pane.
     static const QString defSourceFile = "untitled.pep";
@@ -640,7 +640,7 @@ bool AsmMainWindow::saveAsFile(Enu::EPane which)
      */
     switch(which)
     {
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         file = ui->assemblerPane->getFileName(which);
         if(file.fileName().isEmpty()) {
             usingFile = QDir(curPath).absoluteFilePath(defSourceFile);
@@ -649,7 +649,7 @@ bool AsmMainWindow::saveAsFile(Enu::EPane which)
         usingTitle = &sourceTitle;
         usingTypes = &sourceTypes;
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         file = ui->assemblerPane->getFileName(which);
         if(file.fileName().isEmpty()) {
             usingFile = QDir(curPath).absoluteFilePath(defObjectFile);
@@ -658,7 +658,7 @@ bool AsmMainWindow::saveAsFile(Enu::EPane which)
         usingTitle = &objectTitle;
         usingTypes = &objectTypes;
         break;
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         file = ui->assemblerPane->getFileName(which);
         if(file.fileName().isEmpty()) {
             usingFile = QDir(curPath).absoluteFilePath(defListingFile);
@@ -687,13 +687,13 @@ bool AsmMainWindow::saveAsFile(Enu::EPane which)
         QFileInfo fileInfo = QFileInfo(fileName);
         switch(which)
         {
-        case Enu::EPane::ESource:
+        case PepCore::EPane::ESource:
             ui->assemblerPane->setFileName(which, fileInfo);
             break;
-        case Enu::EPane::EObject:
+        case PepCore::EPane::EObject:
             ui->assemblerPane->setFileName(which, fileInfo);
             break;
-        case Enu::EPane::EListing:
+        case PepCore::EPane::EListing:
             ui->assemblerPane->setFileName(which, fileInfo);
             break;
         default:
@@ -711,7 +711,7 @@ QString AsmMainWindow::strippedName(const QString &fullFileName)
     return QFileInfo(fullFileName).fileName();
 }
 
-void AsmMainWindow::print(Enu::EPane which)
+void AsmMainWindow::print(PepCore::EPane which)
 {
     //Don't use a pointer for the text, because toPlainText() returns a temporary object
     QString text;
@@ -732,18 +732,18 @@ void AsmMainWindow::print(Enu::EPane which)
     PepASMHighlighter* asHi;
     switch(which)
     {
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         title = &source;
         document.setPlainText(ui->assemblerPane->getPaneContents(which));
         asHi = new PepASMHighlighter(PepColors::lightMode, &document);
         hi = asHi;
         hi->rehighlight();
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         title = &object;
         document.setPlainText(ui->assemblerPane->getPaneContents(which));
         break;
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         title = &listing;
         document.setPlainText(ui->assemblerPane->getPaneContents(which));
         asHi = new PepASMHighlighter(PepColors::lightMode, &document);
@@ -858,7 +858,7 @@ void AsmMainWindow::loadOperatingSystem()
 bool AsmMainWindow::loadObjectCodeProgram()
 {
     // Get the object code, and convert it to an integer array.
-    QString lines = ui->assemblerPane->getPaneContents(Enu::EPane::EObject);
+    QString lines = ui->assemblerPane->getPaneContents(PepCore::EPane::EObject);
     QVector<quint8> data;
     // Temp to track each conversion, and tracker for cumulative success.
     bool temp, convertSuccess = true;
@@ -986,7 +986,7 @@ void AsmMainWindow::switchToMainMemoryDump()
 void AsmMainWindow::on_actionFile_New_Asm_triggered()
 {
     // Try to save source code before clearing it, the object code pane, and the listing pane.
-    if (maybeSave(Enu::EPane::ESource)) {
+    if (maybeSave(PepCore::EPane::ESource)) {
         ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
         ui->assemblerPane->newProject();
@@ -1006,12 +1006,12 @@ void AsmMainWindow::on_actionFile_Open_triggered()
                 curPath,
                 "Pep/9 files (*.pep *.pepo *.pepl *.txt)");
     // If we don't recognize an extension, assume it is an assembler source document
-    Enu::EPane which = Enu::EPane::ESource;
+    PepCore::EPane which = PepCore::EPane::ESource;
     // Depending on the file ending, change which pane will be loaded into.
     if (!fileName.isEmpty()) {
-        if(fileName.endsWith("pep", Qt::CaseInsensitive)) which = Enu::EPane::ESource;
-        else if(fileName.endsWith("pepo", Qt::CaseInsensitive)) which = Enu::EPane::EObject;
-        else if(fileName.endsWith("pepl", Qt::CaseInsensitive)) which = Enu::EPane::EListing;
+        if(fileName.endsWith("pep", Qt::CaseInsensitive)) which = PepCore::EPane::ESource;
+        else if(fileName.endsWith("pepo", Qt::CaseInsensitive)) which = PepCore::EPane::EObject;
+        else if(fileName.endsWith("pepl", Qt::CaseInsensitive)) which = PepCore::EPane::EListing;
         if(maybeSave(which)) {
             loadFile(fileName, which);
         }
@@ -1021,37 +1021,37 @@ void AsmMainWindow::on_actionFile_Open_triggered()
 
 bool AsmMainWindow::on_actionFile_Save_Asm_triggered()
 {
-    return save(Enu::EPane::ESource);
+    return save(PepCore::EPane::ESource);
 }
 
 bool AsmMainWindow::on_actionFile_Save_Asm_Source_As_triggered()
 {
-    return saveAsFile(Enu::EPane::ESource);
+    return saveAsFile(PepCore::EPane::ESource);
 }
 
 bool AsmMainWindow::on_actionFile_Save_Object_Code_As_triggered()
 {
-    return saveAsFile(Enu::EPane::EObject);
+    return saveAsFile(PepCore::EPane::EObject);
 }
 
 bool AsmMainWindow::on_actionFile_Save_Assembler_Listing_As_triggered()
 {
-    return saveAsFile(Enu::EPane::EListing);
+    return saveAsFile(PepCore::EPane::EListing);
 }
 
 void AsmMainWindow::on_actionFile_Print_Assembler_Source_triggered()
 {
-    print(Enu::EPane::ESource);
+    print(PepCore::EPane::ESource);
 }
 
 void AsmMainWindow::on_actionFile_Print_Object_Code_triggered()
 {
-    print(Enu::EPane::EObject);
+    print(PepCore::EPane::EObject);
 }
 
 void AsmMainWindow::on_actionFile_Print_Assembler_Listing_triggered()
 {
-    print(Enu::EPane::EListing);
+    print(PepCore::EPane::EListing);
 }
 
 // Edit MainWindow triggers
@@ -1118,7 +1118,7 @@ void AsmMainWindow::on_actionEdit_Format_Assembler_triggered()
 {
     ui->assemblerPane->removeErrorMessages();
     auto out = AsmOutput();
-    out.success = assembler.assembleUserProgram(ui->assemblerPane->getPaneContents(Enu::EPane::ESource), out.prog, out.errors);
+    out.success = assembler.assembleUserProgram(ui->assemblerPane->getPaneContents(PepCore::EPane::ESource), out.prog, out.errors);
 
     if(out.errors.size() != 0) {
         ui->assemblerPane->addErrorsToSource(out.errors);
@@ -1134,8 +1134,8 @@ void AsmMainWindow::on_actionEdit_Format_Assembler_triggered()
         handleDebugButtons();
     }
     else {
-        ui->assemblerPane->clearPane(Enu::EPane::EObject);
-        ui->assemblerPane->clearPane(Enu::EPane::EListing);
+        ui->assemblerPane->clearPane(PepCore::EPane::EObject);
+        ui->assemblerPane->clearPane(PepCore::EPane::EListing);
         ui->asmProgramTracePane->clearSourceCode();
         ui->asmProgramTracePane->onRemoveAllBreakpoints();
         loadObjectCodeProgram();
@@ -1143,7 +1143,7 @@ void AsmMainWindow::on_actionEdit_Format_Assembler_triggered()
     }
 
     QString code = out.prog->getFormattedSourceCode();
-    ui->assemblerPane->setPaneContents(Enu::EPane::ESource, code);
+    ui->assemblerPane->setPaneContents(PepCore::EPane::ESource, code);
 
 
 }
@@ -1174,7 +1174,7 @@ bool AsmMainWindow::on_actionBuild_Assemble_triggered()
 {
     ui->assemblerPane->removeErrorMessages();
     auto out = AsmOutput();
-    out.success = assembler.assembleUserProgram(ui->assemblerPane->getPaneContents(Enu::EPane::ESource), out.prog, out.errors);
+    out.success = assembler.assembleUserProgram(ui->assemblerPane->getPaneContents(PepCore::EPane::ESource), out.prog, out.errors);
 
     if(out.errors.size() != 0) {
         ui->assemblerPane->addErrorsToSource(out.errors);
@@ -1191,8 +1191,8 @@ bool AsmMainWindow::on_actionBuild_Assemble_triggered()
         return true;
     }
     else {
-        ui->assemblerPane->clearPane(Enu::EPane::EObject);
-        ui->assemblerPane->clearPane(Enu::EPane::EListing);
+        ui->assemblerPane->clearPane(PepCore::EPane::EObject);
+        ui->assemblerPane->clearPane(PepCore::EPane::EListing);
         ui->asmProgramTracePane->clearSourceCode();
         ui->asmProgramTracePane->onRemoveAllBreakpoints();
         loadObjectCodeProgram();
@@ -1381,11 +1381,11 @@ bool AsmMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     memDevice->clearMemory();
     loadOperatingSystem();
     // Copy object code to batch input pane and make it the active input pane
-    QString objcode = ui->assemblerPane->getPaneContents(Enu::EPane::EObject);
+    QString objcode = ui->assemblerPane->getPaneContents(PepCore::EPane::EObject);
     // Replace all new line characters with spaces
     objcode = objcode.replace('\n', ' ');
     ui->ioWidget->setBatchInput(objcode);
-    ui->ioWidget->setActivePane(Enu::EPane::EBatchIO);
+    ui->ioWidget->setActivePane(PepCore::EPane::EBatchIO);
     if(!on_actionDebug_Start_Debugging_Object_triggered()) return false;
     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->debuggerTab));
     quint16 sp, pc;
@@ -1562,7 +1562,7 @@ void AsmMainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
 {
     ui->assemblerPane->removeErrorMessages();
     auto out = AsmOutput();
-    out.success = assembler.assembleUserProgram(ui->assemblerPane->getPaneContents(Enu::EPane::ESource), out.prog, out.errors);
+    out.success = assembler.assembleUserProgram(ui->assemblerPane->getPaneContents(PepCore::EPane::ESource), out.prog, out.errors);
     if(out.errors.size() != 0) {
         ui->assemblerPane->addErrorsToSource(out.errors);
     }
@@ -1575,8 +1575,8 @@ void AsmMainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
         ui->statusBar->showMessage("Assembly succeeded, OS installed", 4000);
     }
     else {
-        ui->assemblerPane->clearPane(Enu::EPane::EObject);
-        ui->assemblerPane->clearPane(Enu::EPane::EListing);
+        ui->assemblerPane->clearPane(PepCore::EPane::EObject);
+        ui->assemblerPane->clearPane(PepCore::EPane::EListing);
         ui->asmProgramTracePane->clearSourceCode();
         ui->asmProgramTracePane->onRemoveAllBreakpoints();
         ui->statusBar->showMessage("Assembly failed, previous OS remains", 4000);
@@ -1886,11 +1886,11 @@ void AsmMainWindow::focusChanged(QWidget *oldFocus, QWidget *)
         ui->asmCpuPane->highlightOnFocus();
     }
     else if (ui->memoryWidget->hasFocus()) {
-        which = Enu::EditButton::COPY;
+        which = PepCore::EditButton::COPY;
         ui->memoryWidget->highlightOnFocus();
     }
     else if (ui->cacheWidget->hasFocus()) {
-        which = Enu::EditButton::COPY;
+        which = PepCore::EditButton::COPY;
         ui->cacheWidget->highlightOnFocus();
     }
     else if (ui->assemblerPane->isAncestorOf(focusWidget())) {
@@ -1910,11 +1910,11 @@ void AsmMainWindow::focusChanged(QWidget *oldFocus, QWidget *)
         which = 0;
     }
 
-    ui->actionEdit_Undo->setEnabled(which & Enu::EditButton::UNDO);
-    ui->actionEdit_Redo->setEnabled(which & Enu::EditButton::REDO);
-    ui->actionEdit_Cut->setEnabled(which & Enu::EditButton::CUT);
-    ui->actionEdit_Copy->setEnabled(which & Enu::EditButton::COPY);
-    ui->actionEdit_Paste->setEnabled(which & Enu::EditButton::PASTE);
+    ui->actionEdit_Undo->setEnabled(which & PepCore::EditButton::UNDO);
+    ui->actionEdit_Redo->setEnabled(which & PepCore::EditButton::REDO);
+    ui->actionEdit_Cut->setEnabled(which & PepCore::EditButton::CUT);
+    ui->actionEdit_Copy->setEnabled(which & PepCore::EditButton::COPY);
+    ui->actionEdit_Paste->setEnabled(which & PepCore::EditButton::PASTE);
 }
 
 void AsmMainWindow::setUndoability(bool b)
@@ -1959,7 +1959,7 @@ void AsmMainWindow::helpCopyToSourceClicked()
 {
     helpDialog->hide();
     ui->ioWidget->onClear();
-    Enu::EPane destPane, inputPane;
+    PepCore::EPane destPane, inputPane;
     QString input;
     QString code = helpDialog->getCode(destPane, inputPane, input);
     if(code.isEmpty()) {
@@ -1968,16 +1968,16 @@ void AsmMainWindow::helpCopyToSourceClicked()
     else {
         switch(destPane)
         {
-        case Enu::EPane::ESource:
-            if(maybeSave(Enu::EPane::ESource)) {
+        case PepCore::EPane::ESource:
+            if(maybeSave(PepCore::EPane::ESource)) {
                 ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
                 ui->assemblerPane->loadSourceFile("", code);
                 emit ui->actionDebug_Remove_All_Assembly_Breakpoints->trigger();
                 statusBar()->showMessage("Copied to assembler source code", 4000);
             }
             break;
-        case Enu::EPane::EObject:
-            if(maybeSave(Enu::EPane::EObject)) {
+        case PepCore::EPane::EObject:
+            if(maybeSave(PepCore::EPane::EObject)) {
                 ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->assemblerTab));
                 ui->assemblerPane->loadObjectFile("", code);
                 statusBar()->showMessage("Copied to assembler object code", 4000);
@@ -1992,13 +1992,13 @@ void AsmMainWindow::helpCopyToSourceClicked()
 
     switch(inputPane)
     {
-    case Enu::EPane::ETerminal:
+    case PepCore::EPane::ETerminal:
         // It doesn't make sense to put input text into a terminal, so ignore input text.
-        ui->ioWidget->setActivePane(Enu::EPane::ETerminal);
+        ui->ioWidget->setActivePane(PepCore::EPane::ETerminal);
         break;
-    case Enu::EPane::EBatchIO:
+    case PepCore::EPane::EBatchIO:
         ui->ioWidget->setBatchInput(input);
-        ui->ioWidget->setActivePane(Enu::EPane::EBatchIO);
+        ui->ioWidget->setActivePane(PepCore::EPane::EBatchIO);
         break;
     default:
         break;

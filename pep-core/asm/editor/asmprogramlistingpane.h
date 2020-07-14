@@ -26,7 +26,7 @@
 #include <QSharedPointer>
 
 #include "highlight/pepasmhighlighter.h"
-#include "pep/enu.h"
+#include "pep/constants.h"
 
 namespace Ui {
     class AsmProgramListingPane;
@@ -86,7 +86,7 @@ private:
 
 signals:
 
-    void labelDoubleClicked(Enu::EPane pane);
+    void labelDoubleClicked(PepCore::EPane pane);
 };
 
 #endif // ASSEMBLERLISTINGPANE_H

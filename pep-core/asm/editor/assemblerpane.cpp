@@ -67,17 +67,17 @@ void AssemblerPane::removeErrorMessages()
     ui->sourcePane->removeErrorMessages();
 }
 
-QFileInfo AssemblerPane::getFileName(Enu::EPane which) const
+QFileInfo AssemblerPane::getFileName(PepCore::EPane which) const
 {
     QFileInfo fInfo;
     switch(which) {
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         fInfo = QFileInfo(ui->sourcePane->getCurrentFile());
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         fInfo = QFileInfo(ui->objectPane->getCurrentFile());
         break;
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         fInfo = QFileInfo(ui->listingPane->getCurrentFile());
         break;
     default:
@@ -87,16 +87,16 @@ QFileInfo AssemblerPane::getFileName(Enu::EPane which) const
     return fInfo;
 }
 
-void AssemblerPane::setFileName(Enu::EPane which, QFileInfo fileName)
+void AssemblerPane::setFileName(PepCore::EPane which, QFileInfo fileName)
 {
     switch(which) {
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         ui->sourcePane->setCurrentFile(fileName.absoluteFilePath());
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         ui->objectPane->setCurrentFile(fileName.absoluteFilePath());
         break;
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         ui->listingPane->setCurrentFile(fileName.absoluteFilePath());
         break;
     default:
@@ -124,14 +124,14 @@ void AssemblerPane::setFilesFromSource()
     ui->listingPane->setCurrentFile(listing);
 }
 
-QString AssemblerPane::getPaneContents(Enu::EPane which) const
+QString AssemblerPane::getPaneContents(PepCore::EPane which) const
 {
     switch(which) {
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         return ui->sourcePane->toPlainText();
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         return ui->objectPane->toPlainText();
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         return ui->listingPane->toPlainText();
     default:
         // Other panes may not be read from this class.
@@ -139,16 +139,16 @@ QString AssemblerPane::getPaneContents(Enu::EPane which) const
     }
 }
 
-void AssemblerPane::setPaneContents(Enu::EPane which, QString text)
+void AssemblerPane::setPaneContents(PepCore::EPane which, QString text)
 {
     switch(which) {
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         ui->sourcePane->setSourceCodePaneText(text);
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         ui->objectPane->setObjectCodePaneText(text);
         break;
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         throw std::invalid_argument("Can't set text of listing pane.");
         break;
     default:
@@ -172,16 +172,16 @@ void AssemblerPane::setPanesFromProgram(const AsmOutput &assemblerOutput)
 
 }
 
-void AssemblerPane::clearPane(Enu::EPane which)
+void AssemblerPane::clearPane(PepCore::EPane which)
 {
     switch(which) {
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         ui->sourcePane->clearSourceCode();
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         ui->objectPane->clearObjectCode();
         break;
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         ui->listingPane->clearAssemblerListing();
         break;
     default:
@@ -192,14 +192,14 @@ void AssemblerPane::clearPane(Enu::EPane which)
 }
 
 
-bool AssemblerPane::isModified(Enu::EPane which) const
+bool AssemblerPane::isModified(PepCore::EPane which) const
 {
     switch(which) {
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         return ui->sourcePane->isModified();
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         return ui->objectPane->isModified();
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         return ui->listingPane->isModified();
     default:
         // Can't check if any other panes are modified from this class.
@@ -207,16 +207,16 @@ bool AssemblerPane::isModified(Enu::EPane which) const
     }
 }
 
-void AssemblerPane::setModified(Enu::EPane which, bool val)
+void AssemblerPane::setModified(PepCore::EPane which, bool val)
 {
     switch(which) {
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         ui->sourcePane->setModified(val);
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         ui->objectPane->setModified(val);
         break;
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         // The assembler listing can't be modified.
         break;
     default:
@@ -339,15 +339,15 @@ int AssemblerPane::enabledButtons() const
 {
     int which = 0;
     if (ui->sourcePane->hasFocus()) {
-        which = Enu::EditButton::COPY | Enu::EditButton::CUT | Enu::EditButton::PASTE;
-        which |= Enu::EditButton::UNDO * ui->sourcePane->isUndoable() | Enu::EditButton::REDO * ui->sourcePane->isRedoable();
+        which = PepCore::EditButton::COPY | PepCore::EditButton::CUT | PepCore::EditButton::PASTE;
+        which |= PepCore::EditButton::UNDO * ui->sourcePane->isUndoable() | PepCore::EditButton::REDO * ui->sourcePane->isRedoable();
     }
     else if (ui->objectPane->hasFocus()) {
-        which = Enu::EditButton::COPY | Enu::EditButton::CUT | Enu::EditButton::PASTE;
-        which |= Enu::EditButton::UNDO * ui->objectPane->isUndoable() | Enu::EditButton::REDO * ui->objectPane->isRedoable();
+        which = PepCore::EditButton::COPY | PepCore::EditButton::CUT | PepCore::EditButton::PASTE;
+        which |= PepCore::EditButton::UNDO * ui->objectPane->isUndoable() | PepCore::EditButton::REDO * ui->objectPane->isRedoable();
     }
     else if (ui->listingPane->hasFocus()) {
-        which = Enu::EditButton::COPY;
+        which = PepCore::EditButton::COPY;
     }
     return which;
 }
@@ -414,7 +414,7 @@ void AssemblerPane::onBreakpointRemoved(quint16 address)
     ui->sourcePane->onBreakpointRemoved(address);
 }
 
-void AssemblerPane::doubleClickedCodeLabel(Enu::EPane which)
+void AssemblerPane::doubleClickedCodeLabel(PepCore::EPane which)
 {
     QList<int> list, defaultList = {1,1,1};
     QList<int> old = ui->splitter->sizes();
@@ -424,7 +424,7 @@ void AssemblerPane::doubleClickedCodeLabel(Enu::EPane which)
     switch(which)
     {
     // Give the selected pane the majority of the screen space.
-    case Enu::EPane::ESource:
+    case PepCore::EPane::ESource:
         if(old[0] == *max.second && !sameSize) {
             list = defaultList;
         }
@@ -434,7 +434,7 @@ void AssemblerPane::doubleClickedCodeLabel(Enu::EPane which)
             list.append(smallSize);
         }
         break;
-    case Enu::EPane::EObject:
+    case PepCore::EPane::EObject:
         if(old[1] == *max.second && !sameSize) {
             list = defaultList;
         }
@@ -444,7 +444,7 @@ void AssemblerPane::doubleClickedCodeLabel(Enu::EPane which)
             list.append(smallSize);
         }
         break;
-    case Enu::EPane::EListing:
+    case PepCore::EPane::EListing:
         if(old[2] == *max.second && !sameSize) {
             list = defaultList;
         }

@@ -467,7 +467,7 @@ void NewMemoryTracePane::mouseReleaseEvent(QMouseEvent *)
 
 void NewMemoryTracePane::mouseDoubleClickEvent(QMouseEvent *)
 {
-    emit labelDoubleClicked(Enu::EPane::EMemoryTrace);
+    emit labelDoubleClicked(PepCore::EPane::EMemoryTrace);
 }
 
 void NewMemoryTracePane::zoomFactorChanged(int factor)

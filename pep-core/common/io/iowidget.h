@@ -23,7 +23,7 @@
 #define IOWIDGET_H
 
 #include <QWidget>
-#include "pep/enu.h"
+#include "pep/constants.h"
 
 namespace Ui {
 class IOWidget;
@@ -40,7 +40,7 @@ public:
     // Set the text in the batch input pane. Needed to pass
     void setBatchInput(QString text);
     // Select which tab (batch, terminal) is presented to the user.
-    void setActivePane(Enu::EPane pane);
+    void setActivePane(PepCore::EPane pane);
     // Return if the widget is using batch IO.
     bool inBatchMode() const;
     // Return if the widget is using interactive IO.

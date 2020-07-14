@@ -150,5 +150,5 @@ void AsmProgramListingPane::mouseReleaseEvent(QMouseEvent *)
 
 void AsmProgramListingPane::mouseDoubleClickEvent(QMouseEvent *)
 {
-    emit labelDoubleClicked(Enu::EPane::EListing);
+    emit labelDoubleClicked(PepCore::EPane::EListing);
 }

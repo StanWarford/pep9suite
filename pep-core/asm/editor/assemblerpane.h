@@ -21,11 +21,12 @@
 #ifndef ASSEMBLERPANE_H
 #define ASSEMBLERPANE_H
 
+#include <QFileInfo>
 #include <QSettings>
 #include <QWidget>
 
 #include "assembler/asmprogrammanager.h"
-#include "pep/enu.h"
+#include "pep/constants.h"
 namespace Ui {
 class AssemblerPane;
 }
@@ -47,19 +48,19 @@ public:
     void removeErrorMessages();
 
     // Return the fully qualified file path associated with a pane.
-    QFileInfo getFileName(Enu::EPane which) const;
+    QFileInfo getFileName(PepCore::EPane which) const;
     // Associate a pane with a file.
-    void setFileName(Enu::EPane which, QFileInfo fileName);
+    void setFileName(PepCore::EPane which, QFileInfo fileName);
     // Set the file names of the object & listing panes from the file name of the source code pane.
     void setFilesFromSource();
 
-    QString getPaneContents(Enu::EPane which) const;
-    void setPaneContents(Enu::EPane which, QString text);
+    QString getPaneContents(PepCore::EPane which) const;
+    void setPaneContents(PepCore::EPane which, QString text);
     void setPanesFromProgram(const AsmOutput &assemblerOutput);
-    void clearPane(Enu::EPane which);
+    void clearPane(PepCore::EPane which);
 
-    bool isModified(Enu::EPane which) const;
-    void setModified(Enu::EPane which, bool val);
+    bool isModified(PepCore::EPane which) const;
+    void setModified(PepCore::EPane which, bool val);
 
     void rebuildHighlightingRules();
     void highlightOnFocus();
@@ -105,7 +106,7 @@ public slots:
     void onBreakpointRemoved(quint16 address);
 
 private slots:
-    void doubleClickedCodeLabel(Enu::EPane which);
+    void doubleClickedCodeLabel(PepCore::EPane which);
     void onChildUndoAvailable(bool);
     void onChildRedoAvailable(bool);
 

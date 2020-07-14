@@ -27,7 +27,7 @@
 
 #include "highlight/cpphighlighter.h"
 #include "highlight/pepasmhighlighter.h" // For syntax highlighting
-#include "pep/enu.h"
+#include "pep/constants.h"
 
 namespace Ui {
     class HelpDialog;
@@ -42,7 +42,7 @@ public:
 
     void selectItem(QString string);
 
-    QString getCode(Enu::EPane &destPane, Enu::EPane &inputDest, QString &input);
+    QString getCode(PepCore::EPane &destPane, PepCore::EPane &inputDest, QString &input);
 
     bool hasFocus();
     // Post: returns true if either of the text edits have focus

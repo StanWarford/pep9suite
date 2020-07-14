@@ -475,7 +475,7 @@ void AsmSourceCodePane::mouseReleaseEvent(QMouseEvent *)
 
 void AsmSourceCodePane::mouseDoubleClickEvent(QMouseEvent *)
 {
-    emit labelDoubleClicked(Enu::EPane::ESource);
+    emit labelDoubleClicked(PepCore::EPane::ESource);
 }
 
 void AsmSourceCodePane::setLabelToModified(bool modified)

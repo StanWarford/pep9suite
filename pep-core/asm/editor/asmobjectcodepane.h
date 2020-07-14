@@ -25,7 +25,7 @@
 #include <QFile>
 #include <QWidget>
 
-#include "pep/enu.h"
+#include "pep/constants.h"
 
 namespace Ui {
     class ObjectCodePane;
@@ -111,7 +111,7 @@ signals:
     void undoAvailable(bool);
     void redoAvailable(bool);
 
-    void labelDoubleClicked(Enu::EPane pane);
+    void labelDoubleClicked(PepCore::EPane pane);
 };
 
 #endif // OBJECTCODEPANE_H
