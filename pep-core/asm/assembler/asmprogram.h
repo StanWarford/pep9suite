@@ -26,8 +26,6 @@
 #include <QtCore>
 #include <QSharedPointer>
 
-#include "pep/enu.h"
-
 class AType;
 class AsmCode;
 class SymbolEntry;

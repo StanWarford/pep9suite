@@ -287,18 +287,16 @@ bool IsaAsm::assembleOperatingSystem(const QString &progText, bool forceBurnAt0x
             // The instruction is known to be an ALIGN directive, so just cast it.
             DotAlign* asAlign = static_cast<DotAlign*>(programList[it].get());
             // The address of the .ALIGN.
-            int startAddr = asAlign->memAddress;
+            int startAddr = asAlign->getMemoryAddress();
             // The address of the last byte of the .ALIGN.
-            int endAddr = startAddr + asAlign->numBytesGenerated->getArgumentValue();
+            int endAddr = startAddr + asAlign->getNumBytesGenerated();
             // Based on the ending byte, calculate where the first byte needs to be for proper alignment.
-            int blockStart = endAddr - endAddr % asAlign->argument->getArgumentValue();
-            // We can't change an AsmArgument in place, so we must construct a new one.
-            delete asAlign->numBytesGenerated;
+            int blockStart = endAddr - endAddr % asAlign->getArgument()->getArgumentValue();
             // The align must still reach down to endAddr, but now must span up to blockStart.
-            asAlign->numBytesGenerated = new UnsignedDecArgument(blockStart - endAddr);
+            asAlign->setNumBytesGenerated(blockStart - endAddr);
             // Other instructions will be shifter by the change in starting address.
             rollingOffset += blockStart - startAddr;
-            asAlign->memAddress = blockStart;
+            asAlign->setMemoryAddress(blockStart);
         }
     }
 
@@ -352,7 +350,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
         // If a line is a non-unary instruction & the program has trace tags.
         if(traceInfo.hadTraceTags && dynamic_cast<NonUnaryInstruction*>(line.get()) != nullptr) {
             NonUnaryInstruction* instr = dynamic_cast<NonUnaryInstruction*>(line.get());
-            switch(instr->mnemonic) {
+            switch(instr->getMnemonic()) {
             case Enu::EMnemonic::CALL:
                 [[fallthrough]];
             case Enu::EMnemonic::ADDSP:
@@ -425,10 +423,10 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
             if(dynamic_cast<DotBlock*>(line.second.get()) != nullptr) {
                 DotBlock* instr = dynamic_cast<DotBlock*>(line.second.get());
                 // Check that the allocated size of a global struct is the same size as the type tag.
-                if(instr->argument->getArgumentValue() != rVal.first->size()) {
+                if(instr->getArgument()->getArgumentValue() != rVal.first->size()) {
                     traceInfo.staticTraceError = true;
                     errList.append({line.first, bytesAllocMismatch
-                                    .arg(instr->argument->getArgumentValue())
+                                    .arg(instr->getArgument()->getArgumentValue())
                                     .arg(rVal.first->size())});
                 }
                 else {
@@ -495,13 +493,13 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
             }
             }
             else if(hasArrayType(line.second->getComment())) {
-                auto array = arrayType(extractTypeTags(line.second->comment));
+                auto array = arrayType(extractTypeTags(line.second->getComment()));
                 for(int it = 0; it < array.first; it++) {
                     lineTypes.append(QSharedPointer<LiteralPrimitiveType>::create("", array.second));
                 }
             }
             else if(hasPrimitiveType(line.second->getComment())) {
-                auto type = extractTypeTags(line.second->comment);
+                auto type = extractTypeTags(line.second->getComment());
                 lineTypes.append(QSharedPointer<LiteralPrimitiveType>::create("", primitiveType(type)));
 
             }
@@ -521,18 +519,18 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
             }
             switch(instr->getMnemonic()) {
             case Enu::EMnemonic::ADDSP:
-                if(instr->argument->getArgumentValue() != size) {
+                if(instr->getArgument()->getArgumentValue() != size) {
                     traceInfo.staticTraceError = true;
-                    errList.append({line.first, bytesAllocMismatch.arg(instr->argument->getArgumentValue()).arg(size)});
+                    errList.append({line.first, bytesAllocMismatch.arg(instr->getArgument()->getArgumentValue()).arg(size)});
                 }
                 else {
                     traceInfo.instrToSymlist[address] = lineTypes;
                 }
                 break;
             case Enu::EMnemonic::SUBSP:
-                if(instr->argument->getArgumentValue() != size) {
+                if(instr->getArgument()->getArgumentValue() != size) {
                     traceInfo.staticTraceError = true;
-                    errList.append({line.first, bytesAllocMismatch.arg(instr->argument->getArgumentValue()).arg(size)});
+                    errList.append({line.first, bytesAllocMismatch.arg(instr->getArgument()->getArgumentValue()).arg(size)});
                 }
                 else {
                     traceInfo.instrToSymlist[address] = lineTypes;
@@ -625,19 +623,19 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                     localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
                     if (Pep::isUnaryMap.value(localEnumMnemonic)) {
                         unaryInstruction = new UnaryInstruction;
-                        unaryInstruction->mnemonic = localEnumMnemonic;
-                        unaryInstruction->breakpoint = hasBreakpoint;
+                        unaryInstruction->setMnemonic(localEnumMnemonic);
+                        unaryInstruction->setBreakpoint(hasBreakpoint);
                         code = unaryInstruction;
-                        code->memAddress = byteCount;
+                        code->setMemoryAddress(byteCount);
                         byteCount += 1; // One byte generated for unary instruction.
                         state = IsaParserHelper::PS_CLOSE;
                     }
                     else {
                         nonUnaryInstruction = new NonUnaryInstruction;
-                        nonUnaryInstruction->mnemonic = localEnumMnemonic;
-                        nonUnaryInstruction->breakpoint = hasBreakpoint;
+                        nonUnaryInstruction->setMnemonic(localEnumMnemonic);
+                        nonUnaryInstruction->setBreakpoint(hasBreakpoint);
                         code = nonUnaryInstruction;
-                        code->memAddress = byteCount;
+                        code->setMemoryAddress(byteCount);
                         byteCount += 3; // Three bytes generated for nonunary instruction.
                         state = IsaParserHelper::PS_INSTRUCTION;
                     }
@@ -653,57 +651,57 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 if (tokenString == "ADDRSS") {
                     dotAddrss = new DotAddrss;
                     code = dotAddrss;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_ADDRSS;
                 }
                 else if (tokenString == "ALIGN") {
                     dotAlign = new DotAlign;
                     code = dotAlign;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_ALIGN;
                 }
                 else if (tokenString == "ASCII") {
                     dotAscii = new DotAscii;
                     code = dotAscii;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_ASCII;
                 }
                 else if (tokenString == "BLOCK") {
                     dotBlock = new DotBlock;
                     code = dotBlock;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_BLOCK;
                 }
                 else if (tokenString == "BURN") {
                     dotBurn = new DotBurn;
                     code = dotBurn;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_BURN;
                 }
                 else if (tokenString == "BYTE") {
                     dotByte = new DotByte;
                     code = dotByte;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_BYTE;
                 }
                 else if (tokenString == "END") {
                     dotEnd = new DotEnd;
                     code = dotEnd;
                     // End symbol does not have a memory address
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     dotEndDetected = true;
                     state = IsaParserHelper::PS_DOT_END;
                 }
                 else if (tokenString == "EQUATE") {
                     dotEquate = new DotEquate;
                     code = dotEquate;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_EQUATE;
                 }
                 else if (tokenString == "WORD") {
                     dotWord = new DotWord;
                     code = dotWord;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_WORD;
                 }
                 else {
@@ -730,19 +728,20 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
             }
             else if (token == IsaParserHelper::LT_COMMENT) {
                 commentOnly = new CommentOnly;
-                commentOnly->hasCom = true;
-                commentOnly->comment = tokenString;
+                // Assignmed implicitly in setComment.
+                // commentOnly->hasCom = true;
+                commentOnly->setComment(tokenString);
                 code = commentOnly;
                 // Comments don't have a memory address
-                code->memAddress = -1;
+                code->setMemoryAddress(-1);
                 state = IsaParserHelper::PS_COMMENT;
             }
             else if (token == IsaParserHelper::LT_EMPTY) {
                 blankLine = new BlankLine;
                 code = blankLine;
                 // Neither do empty lines
-                code->memAddress = -1;
-                code->sourceCodeLine = lineNum;
+                code->setMemoryAddress(-1);
+                code->setSourceLineNumber(lineNum);
                 state = IsaParserHelper::PS_FINISH;
             }
             else {
@@ -757,21 +756,21 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                     localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
                     if (Pep::isUnaryMap.value(localEnumMnemonic)) {
                         unaryInstruction = new UnaryInstruction;
-                        unaryInstruction->symbolEntry = symTable->getValue(localSymbolDef);
-                        unaryInstruction->mnemonic = localEnumMnemonic;
-                        unaryInstruction->breakpoint = hasBreakpoint;
+                        unaryInstruction->setSymbolEntry(symTable->getValue(localSymbolDef));
+                        unaryInstruction->setMnemonic(localEnumMnemonic);
+                        unaryInstruction->setBreakpoint(hasBreakpoint);
                         code = unaryInstruction;
-                        code->memAddress = byteCount;
+                        code->setMemoryAddress(byteCount);
                         byteCount += 1; // One byte generated for unary instruction.
                         state = IsaParserHelper::PS_CLOSE;
                     }
                     else {
                         nonUnaryInstruction = new NonUnaryInstruction;
-                        nonUnaryInstruction->symbolEntry = symTable->getValue(localSymbolDef);
-                        nonUnaryInstruction->mnemonic = localEnumMnemonic;
-                        nonUnaryInstruction->breakpoint = hasBreakpoint;
+                        nonUnaryInstruction->setSymbolEntry(symTable->getValue(localSymbolDef));
+                        nonUnaryInstruction->setMnemonic(localEnumMnemonic);
+                        nonUnaryInstruction->setBreakpoint(hasBreakpoint);
                         code = nonUnaryInstruction;
-                        code->memAddress = byteCount;
+                        code->setMemoryAddress(byteCount);
                         byteCount += 3; // Three bytes generated for unary instruction.
                         state = IsaParserHelper::PS_INSTRUCTION;
                     }
@@ -786,59 +785,59 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 tokenString = tokenString.toUpper();
                 if (tokenString == "ADDRSS") {
                     dotAddrss = new DotAddrss;
-                    dotAddrss->symbolEntry = symTable->getValue(localSymbolDef);
+                    dotAddrss->setSymbolEntry(symTable->getValue(localSymbolDef));
                     code = dotAddrss;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_ADDRSS;
                 }
                 else if (tokenString == "ASCII") {
                     dotAscii = new DotAscii;
-                    dotAscii->symbolEntry = symTable->getValue(localSymbolDef);
+                    dotAscii->setSymbolEntry(symTable->getValue(localSymbolDef));
                     code = dotAscii;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_ASCII;
                 }
                 else if (tokenString == "BLOCK") {
                     dotBlock = new DotBlock;
-                    dotBlock->symbolEntry = symTable->getValue(localSymbolDef);
+                    dotBlock->setSymbolEntry(symTable->getValue(localSymbolDef));
                     code = dotBlock;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_BLOCK;
                 }
                 else if (tokenString == "BURN") {
                     dotBurn = new DotBurn;
-                    dotBurn->symbolEntry = symTable->getValue(localSymbolDef);
+                    dotBurn->setSymbolEntry(symTable->getValue(localSymbolDef));
                     code = dotBurn;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_BURN;
                 }
                 else if (tokenString == "BYTE") {
                     dotByte = new DotByte;
-                    dotByte->symbolEntry = symTable->getValue(localSymbolDef);
+                    dotByte->setSymbolEntry(symTable->getValue(localSymbolDef));
                     code = dotByte;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_BYTE;
                 }
                 else if (tokenString == "END") {
                     dotEnd = new DotEnd;
-                    dotEnd->symbolEntry = symTable->getValue(localSymbolDef);
+                    dotEnd->setSymbolEntry(symTable->getValue(localSymbolDef));
                     code = dotEnd;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     dotEndDetected = true;
                     state = IsaParserHelper::PS_DOT_END;
                 }
                 else if (tokenString == "EQUATE") {
                     dotEquate = new DotEquate;
-                    dotEquate->symbolEntry = symTable->getValue(localSymbolDef);
+                    dotEquate->setSymbolEntry(symTable->getValue(localSymbolDef));
                     code = dotEquate;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_EQUATE;
                 }
                 else if (tokenString == "WORD") {
                     dotWord = new DotWord;
-                    dotWord->symbolEntry = symTable->getValue(localSymbolDef);
+                    dotWord->setSymbolEntry(symTable->getValue(localSymbolDef));
                     code = dotWord;
-                    code->memAddress = byteCount;
+                    code->setMemoryAddress(byteCount);
                     state = IsaParserHelper::PS_DOT_WORD;
                 }
                 else {
@@ -859,7 +858,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                     return false;
                 }
                 if(!symTable->exists(tokenString)) symTable->insertSymbol(tokenString);
-                nonUnaryInstruction->argument = new SymbolRefArgument(symTable->getValue(tokenString));
+                nonUnaryInstruction->setArgument(QSharedPointer<SymbolRefArgument>::create(symTable->getValue(tokenString)));
                 state = IsaParserHelper::PS_ADDRESSING_MODE;
             }
             else if (token == IsaParserHelper::LT_STRING_CONSTANT) {
@@ -867,7 +866,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                     errorString = ";ERROR: String operands must have length at most two.";
                     return false;
                 }
-                nonUnaryInstruction->argument = new StringArgument(tokenString);
+                nonUnaryInstruction->setArgument(QSharedPointer<StringArgument>::create(tokenString));
                 state = IsaParserHelper::PS_ADDRESSING_MODE;
             }
             else if (token == IsaParserHelper::LT_HEX_CONSTANT) {
@@ -875,7 +874,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
-                    nonUnaryInstruction->argument = new HexArgument(value);
+                    nonUnaryInstruction->setArgument(QSharedPointer<HexArgument>::create(value));
                     state = IsaParserHelper::PS_ADDRESSING_MODE;
                 }
                 else {
@@ -889,10 +888,10 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 if ((-32768 <= value) && (value <= 65535)) {
                     if (value < 0) {
                         value += 65536; // Stored as two-byte unsigned.
-                        nonUnaryInstruction->argument = new DecArgument(value);
+                        nonUnaryInstruction->setArgument(QSharedPointer<DecArgument>::create(value));
                     }
                     else {
-                        nonUnaryInstruction->argument = new UnsignedDecArgument(value);
+                        nonUnaryInstruction->setArgument(QSharedPointer<UnsignedDecArgument>::create(value));
                     }
                     state = IsaParserHelper::PS_ADDRESSING_MODE;
                 }
@@ -902,7 +901,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 }
             }
             else if (token == IsaParserHelper::LT_CHAR_CONSTANT) {
-                nonUnaryInstruction->argument = new CharArgument(tokenString);
+                nonUnaryInstruction->setArgument(QSharedPointer<CharArgument>::create(tokenString));
                 state = IsaParserHelper::PS_ADDRESSING_MODE;
             }
             else {
@@ -918,7 +917,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                     errorString = ";ERROR: Illegal addressing mode for this instruction.";
                     return false;
                 }
-                nonUnaryInstruction->addressingMode = addrMode;
+                nonUnaryInstruction->setAddressingMode(addrMode);
                 state = IsaParserHelper::PS_CLOSE;
             }
             else if (Pep::addrModeRequiredMap.value(localEnumMnemonic)) {
@@ -926,14 +925,13 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 return false;
             }
             else { // Must be branch type instruction with no addressing mode. Assign default addressing mode.
-                nonUnaryInstruction->addressingMode = Enu::EAddrMode::I;
+                nonUnaryInstruction->setAddressingMode(Enu::EAddrMode::I);
                 if (token == IsaParserHelper::LT_COMMENT) {
-                    code->hasCom = true;
-                    code->comment = tokenString;
+                    code->setComment(tokenString);
                     state = IsaParserHelper::PS_COMMENT;
                 }
                 else if (token == IsaParserHelper::LT_EMPTY) {
-                    code->sourceCodeLine = lineNum;
+                    code->setSourceLineNumber(lineNum);
                     state = IsaParserHelper::PS_FINISH;
                 }
                 else {
@@ -950,7 +948,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                     return false;
                 }
                 if(!symTable->exists(tokenString)) symTable->insertSymbol(tokenString);
-                dotAddrss->argument = new SymbolRefArgument(symTable->getValue(tokenString));
+                dotAddrss->setArgument(QSharedPointer<SymbolRefArgument>::create(symTable->getValue(tokenString)));
                 byteCount += 2;
                 state = IsaParserHelper::PS_CLOSE;
             }
@@ -966,8 +964,8 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 int value = tokenString.toInt(&ok, 10);
                 if (value == 2 || value == 4 || value == 8) {
                     int numBytes = (value - byteCount % value) % value;
-                    dotAlign->argument = new UnsignedDecArgument(value);
-                    dotAlign->numBytesGenerated = new UnsignedDecArgument(numBytes);
+                    dotAlign->setArgument(QSharedPointer<UnsignedDecArgument>::create(value));
+                    dotAlign->setNumBytesGenerated(numBytes);
                     byteCount += numBytes;
                     state = IsaParserHelper::PS_CLOSE;
                 }
@@ -984,7 +982,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
         case IsaParserHelper::PS_DOT_ASCII:
             if (token == IsaParserHelper::LT_STRING_CONSTANT) {
-                dotAscii->argument = new StringArgument(tokenString);
+                dotAscii->setArgument(QSharedPointer<StringArgument>::create(tokenString));
                 byteCount += byteStringLength(tokenString);
                 state = IsaParserHelper::PS_CLOSE;
             }
@@ -1001,10 +999,10 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 if ((0 <= value) && (value <= 65535)) {
                     if (value < 0) {
                         value += 65536; // Stored as two-byte unsigned.
-                        dotBlock->argument = new DecArgument(value);
+                        dotBlock->setArgument(QSharedPointer<DecArgument>::create(value));
                     }
                     else {
-                        dotBlock->argument = new UnsignedDecArgument(value);
+                        dotBlock->setArgument(QSharedPointer<UnsignedDecArgument>::create(value));
                     }
                     byteCount += value;
                     state = IsaParserHelper::PS_CLOSE;
@@ -1019,7 +1017,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
-                    dotBlock->argument = new HexArgument(value);
+                    dotBlock->setArgument(QSharedPointer<HexArgument>::create(value));
                     byteCount += value;
                     state = IsaParserHelper::PS_CLOSE;
                 }
@@ -1040,7 +1038,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
-                    dotBurn->argument = new HexArgument(value);
+                    dotBurn->setArgument(QSharedPointer<HexArgument>::create(value));
                     info.burnCount++;
                     info.burnValue = value;
                     info.burnAddress = byteCount;
@@ -1061,7 +1059,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
         case IsaParserHelper::PS_DOT_BYTE:
             if (token == IsaParserHelper::LT_CHAR_CONSTANT) {
-                dotByte->argument = new CharArgument(tokenString);
+                dotByte->setArgument(QSharedPointer<CharArgument>::create(tokenString));
                 byteCount += 1;
                 state = IsaParserHelper::PS_CLOSE;
             }
@@ -1072,7 +1070,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                     if (value < 0) {
                         value += 256; // value stored as one-byte unsigned.
                     }
-                    dotByte->argument = new DecArgument(value);
+                    dotByte->setArgument(QSharedPointer<DecArgument>::create(value));
                     byteCount += 1;
                     state = IsaParserHelper::PS_CLOSE;
                 }
@@ -1086,7 +1084,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 256) {
-                    dotByte->argument = new HexArgument(value);
+                    dotByte->setArgument(QSharedPointer<HexArgument>::create(value));
                     byteCount += 1;
                     state = IsaParserHelper::PS_CLOSE;
                 }
@@ -1100,7 +1098,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                     errorString = ";ERROR: .BYTE string operands must have length one.";
                     return false;
                 }
-                dotByte->argument = new StringArgument(tokenString);
+                dotByte->setArgument(QSharedPointer<StringArgument>::create(tokenString));
                 byteCount += 1;
                 state = IsaParserHelper::PS_CLOSE;
             }
@@ -1112,15 +1110,13 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
         case IsaParserHelper::PS_DOT_END:
             if (token == IsaParserHelper::LT_COMMENT) {
-                dotEnd->hasCom = true;
-                dotEnd->comment = tokenString;
-                code->sourceCodeLine = lineNum;
+                dotEnd->setComment(tokenString);
+                code->setSourceLineNumber(lineNum);
                 state = IsaParserHelper::PS_FINISH;
             }
             else if (token == IsaParserHelper::LT_EMPTY) {
-                dotEnd->hasCom = false;
-                dotEnd->comment = "";
-                code->sourceCodeLine = lineNum;
+                dotEnd->setComment(QString());
+                code->setSourceLineNumber(lineNum);
                 state = IsaParserHelper::PS_FINISH;
             }
             else {
@@ -1130,7 +1126,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
             break;
 
         case IsaParserHelper::PS_DOT_EQUATE:
-            if (dotEquate->symbolEntry == nullptr) {
+            if (dotEquate->getSymbolEntry() == nullptr) {
                 errorString = ";ERROR: .EQUATE must have a symbol definition.";
                 return false;
             }
@@ -1141,12 +1137,12 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
                     if (value < 0) {
                         value += 65536; // Stored as two-byte unsigned.
-                        dotEquate->argument = new DecArgument(value);
+                        dotEquate->setArgument(QSharedPointer<DecArgument>::create(value));
                     }
                     else {
-                        dotEquate->argument = new UnsignedDecArgument(value);
+                        dotEquate->setArgument(QSharedPointer<UnsignedDecArgument>::create(value));
                     }
-                    dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(value));
+                    dotEquate->getSymbolEntry()->setValue( QSharedPointer<SymbolValueNumeric>::create(value));
                     state = IsaParserHelper::PS_CLOSE;
                 }
                 else {
@@ -1159,8 +1155,8 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
-                    dotEquate->argument = new HexArgument(value);
-                    dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(value));
+                    dotEquate->setArgument(QSharedPointer<HexArgument>::create(value));
+                    dotEquate->getSymbolEntry()->setValue( QSharedPointer<SymbolValueNumeric>::create(value));
                     state = IsaParserHelper::PS_CLOSE;
                 }
                 else {
@@ -1173,13 +1169,13 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                     errorString = ";ERROR: .EQUATE string operand must have length at most two.";
                     return false;
                 }
-                dotEquate->argument = new StringArgument(tokenString);
-                dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(string2ArgumentToInt(tokenString)));
+                dotEquate->setArgument(QSharedPointer<StringArgument>::create(tokenString));
+                dotEquate->getSymbolEntry()->setValue( QSharedPointer<SymbolValueNumeric>::create(string2ArgumentToInt(tokenString)));
                 state = IsaParserHelper::PS_CLOSE;
             }
             else if (token == IsaParserHelper::LT_CHAR_CONSTANT) {
-                dotEquate->argument = new CharArgument(tokenString);
-                dotEquate->symbolEntry->setValue( QSharedPointer<SymbolValueNumeric>::create(charStringToInt(tokenString)));
+                dotEquate->setArgument(QSharedPointer<CharArgument>::create(tokenString));
+                dotEquate->getSymbolEntry()->setValue( QSharedPointer<SymbolValueNumeric>::create(charStringToInt(tokenString)));
                 state = IsaParserHelper::PS_CLOSE;
             }
             else {
@@ -1190,7 +1186,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
         case IsaParserHelper::PS_DOT_WORD:
             if (token == IsaParserHelper::LT_CHAR_CONSTANT) {
-                dotWord->argument = new CharArgument(tokenString);
+                dotWord->setArgument(QSharedPointer<CharArgument>::create(tokenString));
                 byteCount += 2;
                 state = IsaParserHelper::PS_CLOSE;
             }
@@ -1201,10 +1197,10 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
                     if (value < 0) {
                         value += 65536; // Stored as two-byte unsigned.
-                        dotWord->argument = new DecArgument(value);
+                        dotWord->setArgument(QSharedPointer<DecArgument>::create(value));
                     }
                     else {
-                        dotWord->argument = new UnsignedDecArgument(value);
+                        dotWord->setArgument(QSharedPointer<UnsignedDecArgument>::create(value));
                     }
                     byteCount += 2;
                     state = IsaParserHelper::PS_CLOSE;
@@ -1219,7 +1215,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                 bool ok;
                 int value = tokenString.toInt(&ok, 16);
                 if (value < 65536) {
-                    dotWord->argument = new HexArgument(value);
+                    dotWord->setArgument(QSharedPointer<HexArgument>::create(value));
                     byteCount += 2;
                     state = IsaParserHelper::PS_CLOSE;
                 }
@@ -1233,7 +1229,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                     errorString = ";ERROR: .WORD string operands must have length at most two.";
                     return false;
                 }
-                dotWord->argument = new StringArgument(tokenString);
+                dotWord->setArgument(QSharedPointer<StringArgument>::create(tokenString));
                 byteCount += 2;
                 state = IsaParserHelper::PS_CLOSE;
             }
@@ -1245,12 +1241,11 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
         case IsaParserHelper::PS_CLOSE:
             if (token == IsaParserHelper::LT_EMPTY) {
-                code->sourceCodeLine = lineNum;
+                code->setSourceLineNumber(lineNum);
                 state = IsaParserHelper::PS_FINISH;
             }
             else if (token == IsaParserHelper::LT_COMMENT) {
-                code->hasCom = true;
-                code->comment = tokenString;
+                code->setComment(tokenString);
                 state = IsaParserHelper::PS_COMMENT;
             }
             else {
@@ -1261,7 +1256,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
         case IsaParserHelper::PS_COMMENT:
             if (token == IsaParserHelper::LT_EMPTY) {
-                code->sourceCodeLine = lineNum;
+                code->setSourceLineNumber(lineNum);
                 state = IsaParserHelper::PS_FINISH;
             }
             else {
@@ -1295,16 +1290,16 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
             dynamic_cast<DotEquate*>(code) == nullptr &&
             dynamic_cast<DotByte*>(code) == nullptr &&
             (nui == nullptr || (
-            nui->mnemonic != Enu::EMnemonic::CALL &&
-            nui->mnemonic != Enu::EMnemonic::SUBSP &&
-            nui->mnemonic != Enu::EMnemonic::ADDSP))) {
+            nui->getMnemonic() != Enu::EMnemonic::CALL &&
+            nui->getMnemonic() != Enu::EMnemonic::SUBSP &&
+            nui->getMnemonic() != Enu::EMnemonic::ADDSP))) {
     }
     else if(hasArrayType(tag)) {
         traceInfo.hadTraceTags = true;
         auto aTag = arrayType(tag);
         if(nui != nullptr &&
-           nui->mnemonic == Enu::EMnemonic::CALL &&
-           nui->argument->getArgumentString() == "malloc") {
+           nui->getMnemonic() == Enu::EMnemonic::CALL &&
+           nui->getArgument()->getArgumentString() == "malloc") {
             auto item = QSharedPointer<LiteralArrayType>::create(aTag.second, aTag.first);
             traceInfo.dynamicAllocSymbolTypes.insert(code->getSymbolEntry(), item);
             return true;
@@ -1319,10 +1314,10 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
         // Global arrays - static alloacation
         if(dotBlock != nullptr) {
             // Check that size of allocated memory matches trace tag size
-            if(dotBlock->argument->getArgumentValue() != item->size()) {
+            if(dotBlock->getArgument()->getArgumentValue() != item->size()) {
                 traceInfo.staticTraceError = true;
                 errorString =   bytesAllocMismatch
-                                .arg(dotBlock->argument->getArgumentValue())
+                                .arg(dotBlock->getArgument()->getArgumentValue())
                                 .arg(item->size());
                return true;
             }
@@ -1339,8 +1334,8 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
         traceInfo.hadTraceTags = true;
         auto pTag = primitiveType(tag);
         if(nui != nullptr &&
-           nui->mnemonic == Enu::EMnemonic::CALL &&
-           nui->argument->getArgumentString() == "malloc") {
+           nui->getMnemonic() == Enu::EMnemonic::CALL &&
+           nui->getArgument()->getArgumentString() == "malloc") {
             // It's alright for a call to malloc to have a primitive type tag.
             auto item = QSharedPointer<LiteralPrimitiveType>::create("", pTag);
             traceInfo.dynamicAllocSymbolTypes.insert(code->getSymbolEntry(), item);
@@ -1357,10 +1352,10 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
         // Global Primitives - static allocation
         if(dotBlock != nullptr) {
             // Check that size of allocated memory matches trace tag size
-            if(dotBlock->argument->getArgumentValue() != item->size()) {
+            if(dotBlock->getArgument()->getArgumentValue() != item->size()) {
                 traceInfo.staticTraceError = true;
                 errorString =   bytesAllocMismatch
-                                .arg(dotBlock->argument->getArgumentValue())
+                                .arg(dotBlock->getArgument()->getArgumentValue())
                                 .arg(item->size());
                return true;
             }
@@ -1373,7 +1368,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
             if(2 != item->size()) {
                 traceInfo.staticTraceError = true;
                 errorString =   bytesAllocMismatch
-                                .arg(dotWord->argument->getArgumentValue())
+                                .arg(dotWord->getArgument()->getArgumentValue())
                                 .arg(item->size());
                return true;
             }
@@ -1386,7 +1381,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
             if(1 != item->size()) {
                 traceInfo.staticTraceError = true;
                 errorString =   bytesAllocMismatch
-                                .arg(dotByte->argument->getArgumentValue())
+                                .arg(dotByte->getArgument()->getArgumentValue())
                                 .arg(item->size());
                return true;
             }
