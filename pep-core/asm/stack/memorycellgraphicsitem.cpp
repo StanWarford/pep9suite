@@ -24,7 +24,6 @@
 #include <QPainter>
 
 #include "memory/amemorydevice.h"
-#include "pep/pep.h"
 #include "style/fonts.h"
 
 const int MemoryCellGraphicsItem::boxHeight = 22;

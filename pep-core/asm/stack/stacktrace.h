@@ -25,7 +25,6 @@
 #include <QSharedPointer>
 #include <QStack>
 
-#include "pep/enu.h"
 #include "symbol/symboltypes.h"
 
 class AType;

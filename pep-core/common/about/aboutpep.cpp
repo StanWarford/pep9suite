@@ -23,7 +23,6 @@
 #include "aboutpep.h"
 #include "ui_aboutpep.h"
 
-#include "pep/pep.h"
 
 AboutPep::AboutPep(QString aboutText, QPixmap pixmap, QWidget *parent) :
     QDialog(parent),

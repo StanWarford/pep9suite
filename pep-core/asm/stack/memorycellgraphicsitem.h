@@ -24,7 +24,6 @@
 
 #include <QGraphicsItem>
 
-#include "pep/enu.h"
 #include "style/colors.h"
 #include "symbol/symboltypes.h"
 

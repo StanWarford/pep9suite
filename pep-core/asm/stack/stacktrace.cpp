@@ -23,7 +23,6 @@
 #include <QTextStream>
 
 #include "memory/amemorydevice.h"
-#include "pep/enu.h"
 #include "stack/typetags.h"
 #include "symbol/symbolentry.h"
 
