@@ -98,6 +98,7 @@ public:
 
     virtual void appendObjectCode(QList<int> &) const { return; }
 
+    virtual bool hasMemoryAddress() { return objectCodeLength() != 0;}
     virtual int getMemoryAddress() const;
     void setMemoryAddress(quint16 address);
     virtual void adjustMemAddress(int addressDelta);
@@ -120,6 +121,7 @@ public:
     virtual void setBreakpoint(bool) {}
 
     virtual bool isCode() const { return false;}
+
 
     virtual bool hasSymbolicOperand() const {return false;}
     virtual QSharedPointer<const SymbolEntry> getSymbolicOperand() const { return nullptr;}

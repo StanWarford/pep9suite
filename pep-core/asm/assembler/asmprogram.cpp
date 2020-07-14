@@ -21,6 +21,8 @@
 
 #include "asmprogram.h"
 
+#include <optional>
+
 #include "assembler/asmcode.h"
 #include "symbol/symboltable.h"
 #include "symbol/symbolentry.h"
@@ -42,14 +44,17 @@ AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPoint
     indexToMemAddress(), memAddressToIndex(), symTable(symbolTable), traceInfo(traceInfo), burn(false), burnAddress(0), burnValue(0)
 {
     programByteLength = 0;
-    int start = -1;
+    std::optional<int> start = std::nullopt;
     for(int it = 0; it < programList.length(); it++) {
-        if(start == -1 && programList[it]->getMemoryAddress() >= 0) start = static_cast<quint16>(programList[it]->getMemoryAddress());
+        if(!start.has_value() && programList[it]->hasMemoryAddress() ) {
+            start = static_cast<quint16>(programList[it]->getMemoryAddress());
+        }
         indexToMemAddress.insert(it, static_cast<quint16>(programList[it]->getMemoryAddress()));
         memAddressToIndex.insert(static_cast<quint16>(programList[it]->getMemoryAddress()), it);
         programByteLength += programList[it]->objectCodeLength();
     }
-    programBounds = {static_cast<quint16>(start), static_cast<quint16>(start-1+programByteLength)};
+    assert(start != -1);
+    programBounds = {static_cast<quint16>(start.value()), static_cast<quint16>(start.value()-1+programByteLength)};
 }
 
 AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable,
