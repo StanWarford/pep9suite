@@ -28,7 +28,6 @@
 #include "assembler/asmcode.h"
 #include "assembler/asmargument.h"
 #include "assembler/asmparserhelper.h"
-#include "pep/pep.h"
 #include "symbol/symbolvalue.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symboltable.h"

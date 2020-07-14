@@ -30,6 +30,7 @@
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
 #include "memory/mainmemory.h"
+#include "pep/pep.h"
 #include "symbol/symboltable.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symbolvalue.h"

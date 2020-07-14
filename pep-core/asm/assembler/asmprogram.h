@@ -23,6 +23,7 @@
 #define ASMPROGRAM_H
 
 #include <ostream>
+
 #include <QtCore>
 #include <QSharedPointer>
 

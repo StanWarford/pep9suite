@@ -25,8 +25,6 @@
 #include <QSharedPointer>
 #include <QSet>
 
-#include "pep/pep.h"
-
 class AsmArgument; // Forward declaration for attributes of code classes.
 class SymbolRefArgument;
 class SymbolEntry;

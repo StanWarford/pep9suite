@@ -22,6 +22,7 @@
 
 #ifndef ASMPROGRAMMANAGER_H
 #define ASMPROGRAMMANAGER_H
+
 #include <QObject>
 #include <QSharedPointer>
 #include <QSet>

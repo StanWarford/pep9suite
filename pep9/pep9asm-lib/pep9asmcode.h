@@ -1,6 +1,8 @@
 #ifndef PEP9ASMCODE_H
 #define PEP9ASMCODE_H
 
+#include "pep/enu.h"
+
 #include "assembler/asmcode.h"
 // Concrete code classes
 class UnaryInstruction: public AsmCode
