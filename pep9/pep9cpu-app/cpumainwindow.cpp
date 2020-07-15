@@ -42,7 +42,6 @@
 #include "converters/byteconverterchar.h"
 #include "converters/byteconverterdec.h"
 #include "converters/byteconverterhex.h"
-#include "cpu/cpudata.h"
 #include "editor/microcodepane.h"
 #include "memory/mainmemory.h"
 #include "memory/memorychips.h"
@@ -54,10 +53,11 @@
 #include "symbol/symboltable.h"
 #include "update/updatechecker.h"
 
+#include "cpudata.h"
+#include "cpuhelpdialog.h"
+#include "cpupane.h"
 #include "microobjectcodepane.h"
 #include "partialmicrocodedcpu.h"
-#include "cpupane.h"
-#include "cpuhelpdialog.h"
 
 CPUMainWindow::CPUMainWindow(QWidget *parent) :
     QMainWindow(parent),

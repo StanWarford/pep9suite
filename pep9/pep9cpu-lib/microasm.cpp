@@ -31,6 +31,9 @@
 #include "symbol/symbolvalue.h"
 #include "symbol/symbolentry.h"
 
+#include "pep9microcode.h"
+#include "pep9specification.h"
+
 // Regular expressions for lexical analysis
 const QSet<MicroAsm::ELexicalToken> MicroAsm::extendedTokens = {LTE_SYMBOL,LTE_GOTO,LTE_IF,LTE_ELSE,LTE_STOP, LTE_AMD, LTE_ISD};
 const QSet<MicroAsm::ParseState> MicroAsm::extendedParseStates = {        PSE_SYMBOL,

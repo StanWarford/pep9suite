@@ -94,7 +94,7 @@ QSharedPointer<const MicrocodeProgram> InterfaceMCCPU::getProgram() const noexce
     return sharedProgram;
 }
 
-const MicroCode* InterfaceMCCPU::getCurrentMicrocodeLine() const noexcept
+const AExecutableMicrocode* InterfaceMCCPU::getCurrentMicrocodeLine() const noexcept
 {
     return sharedProgram->getCodeLine(microprogramCounter);
 }

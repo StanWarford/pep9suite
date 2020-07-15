@@ -26,11 +26,11 @@
 #include <QString>
 #include <QtCore>
 
-#include "cpu/cpudata.h"
 #include "cpu/registerfile.h"
 #include "memory/amemorydevice.h"
 #include "pep/pep9.h"
 
+#include "cpudata.h"
 #include "partialmicrocodedcpu.h"
 
 const QString stackFrameEnter("%1\n===CALL===\n");

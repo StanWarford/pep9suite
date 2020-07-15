@@ -25,7 +25,6 @@
 #include <QTimer>
 
 #include "assembler/asmprogrammanager.h"
-#include "cpu/cpudata.h"
 #include "cpu/interrupthandler.h"
 #include "cpu/registerfile.h"
 #include "memory/amemorydevice.h"
@@ -34,7 +33,9 @@
 #include "pep/pep.h"
 #include "symbol/symbolentry.h"
 
+#include "cpudata.h"
 #include "fullmicrocodedmemoizer.h"
+
 FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager,
                                      QSharedPointer<const Pep9> pep_version,
                                      QSharedPointer<AMemoryDevice> memoryDev,
@@ -295,7 +296,7 @@ void FullMicrocodedCPU::onMCStep()
     }
 
     // Do step logic
-    const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
+    const MicroCode* prog = static_cast<const MicroCode*>(sharedProgram->getCodeLine(microprogramCounter));
     if(prog == nullptr) {
         auto ptr = sharedProgram;
         assert(0);
@@ -482,7 +483,7 @@ void FullMicrocodedCPU::branchHandler()
     // If execution is already finished, then nothing to update.
     if(executionFinished) return;
     else if(hadErrorOnStep()) executionFinished = true;
-    const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
+    const MicroCode* prog = static_cast<const MicroCode*>(sharedProgram->getCodeLine(microprogramCounter));
     int temp = microprogramCounter;
     quint8 byte = 0;
     QString tempString;

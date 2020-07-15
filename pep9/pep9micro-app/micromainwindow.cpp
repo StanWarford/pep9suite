@@ -51,7 +51,6 @@
 #include "converters/byteconverterhex.h"
 #include "converters/byteconverterinstr.h"
 #include "cpu/asmcpupane.h"
-#include "cpu/cpudata.h"
 #include "cpu/registerfile.h"
 #include "editor/asmprogramlistingpane.h"
 #include "editor/asmsourcecodepane.h"
@@ -67,7 +66,7 @@
 #include "style/fonts.h"
 #include "symbol/symboltable.h"
 
-
+#include "cpudata.h"
 #include "cpupane.h"
 #include "decodertabledialog.h"
 #include "fullmicrocodedcpu.h"

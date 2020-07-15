@@ -46,22 +46,28 @@ FORMS += \
     microobjectcodepane.ui
 
 HEADERS += \
+    cpudata.h \
     cpugraphicsitems.h \
     cpupane.h \
     microasm.h \
     microobjectcodepane.h \
     partialmicrocodedcpu.h \
     partialmicrocodedmemoizer.h \
+    pep9microcode.h \
+    pep9specification.h \
     shapes_one_byte_data_bus.h \
     shapes_two_byte_data_bus.h
 
 SOURCES += \
+    cpudata.cpp \
     cpugraphicsitems.cpp \
     cpupane.cpp \
     microasm.cpp \
     microobjectcodepane.cpp \
     partialmicrocodedcpu.cpp \
-    partialmicrocodedmemoizer.cpp
+    partialmicrocodedmemoizer.cpp \
+    pep9microcode.cpp \
+    pep9specification.cpp
 
 # Link against Pep core code
 unix|win32: LIBS += -L$$OUT_PWD/../../pep-core/common/ -lpep-core-common

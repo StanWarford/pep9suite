@@ -38,6 +38,9 @@
 #include "symbol/symbolentry.h"
 #include "symbol/symboltable.h"
 #include "symbol/symbolvalue.h"
+
+#include "pep9microcode.h"
+
 MicroObjectCodePane::MicroObjectCodePane(QWidget *parent) :
     QWidget(parent), ui(new Ui::MicroObjectCodePane), cpu(nullptr),
     rowCount(0), model(new QStandardItemModel()), inSimulation(false), showCtrlSectionSignals(false)

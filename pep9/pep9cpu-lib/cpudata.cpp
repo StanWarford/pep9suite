@@ -28,6 +28,8 @@
 #include "microassembler/microcode.h"
 #include "microassembler/microcodeprogram.h"
 #include "pep/pep.h"
+
+#include "pep9microcode.h"
 CPUDataSection::CPUDataSection(Enu::CPUType type, QSharedPointer<const APepVersion> pep_version,
                                QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
     cpuFeatures(type), mainBusState(Enu::None),

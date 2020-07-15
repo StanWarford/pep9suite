@@ -23,7 +23,6 @@
 #include <QApplication>
 #include <QTimer>
 
-#include "cpu/cpudata.h"
 #include "cpu/interrupthandler.h"
 #include "cpu/registerfile.h"
 #include "memory/amemorydevice.h"
@@ -32,7 +31,9 @@
 #include "pep/pep.h"
 #include "symbol/symbolentry.h"
 
+#include "cpudata.h"
 #include "partialmicrocodedmemoizer.h"
+#include "pep9microcode.h"
 
 PartialMicrocodedCPU::PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<const Pep9> pep_version,
                                            QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
@@ -245,7 +246,7 @@ void PartialMicrocodedCPU::onMCStep()
     }
 
     // Do step logic
-    const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
+    const MicroCode* prog = static_cast<MicroCode*>(sharedProgram->getCodeLine(microprogramCounter));
 
     try {
         data->setSignalsFromMicrocode(prog);
@@ -299,7 +300,8 @@ void PartialMicrocodedCPU::onClock()
 
 void PartialMicrocodedCPU::branchHandler()
 {
-    if(sharedProgram->getCodeLine(microprogramCounter)->getBranchFunction() == Enu::EBranchFunctions::Stop) {
+    const MicroCode* prog = static_cast<MicroCode*>(sharedProgram->getCodeLine(microprogramCounter));
+    if(prog->getBranchFunction() == Enu::EBranchFunctions::Stop) {
         executionFinished = true;
     }
     else if(executionFinished) {

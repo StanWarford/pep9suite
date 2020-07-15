@@ -24,7 +24,7 @@
 #include "cpu/acpumodel.h"
 #include "pep/enu.h"
 
-class MicroCode;
+class AExecutableMicrocode;
 class MicrocodeProgram;
 /*
  * InterfaceMCCPU describes the operations that may be performed on a microcoded
@@ -52,7 +52,7 @@ public:
 
     // May be nullptr if no program has been loaded
     QSharedPointer<const MicrocodeProgram> getProgram() const noexcept;
-    const MicroCode* getCurrentMicrocodeLine() const noexcept;
+    const AExecutableMicrocode *getCurrentMicrocodeLine() const noexcept;
 
 
     void setMicrocodeProgram(QSharedPointer<MicrocodeProgram> sharedProgram);

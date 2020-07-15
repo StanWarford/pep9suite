@@ -29,9 +29,9 @@
 #include <QGraphicsScene>
 #include <QPainter>
 
-#include "cpu/cpudata.h"
 #include "pep/pep.h"
 
+#include "cpudata.h"
 #include "shapes_two_byte_data_bus.h"
 
 

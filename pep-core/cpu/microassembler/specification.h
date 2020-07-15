@@ -23,8 +23,6 @@
 
 #include <QString>
 
-#include "pep/enu.h"
-
 class AMemoryDevice;
 class CPUDataSection; //Forward declare CPUDataSection to avoid inclusion loops
 class Specification
@@ -38,41 +36,5 @@ public:
     virtual QString getSourceCode() const noexcept = 0;
 };
 
-class MemSpecification: public Specification {    
-public:
-    MemSpecification(int memoryAddress, int memoryValue, int numberBytes) noexcept;
-    void setUnitPre(CPUDataSection*, AMemoryDevice*) noexcept override;
-    bool testUnitPost(const CPUDataSection *data, const AMemoryDevice*,
-                      QString &errString) const noexcept override;
-    QString getSourceCode() const noexcept override;
-private:
-    int memAddress;
-    int memValue;
-    int numBytes;
-};
-
-class RegSpecification: public Specification {
-public:
-    RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue) noexcept;
-    void setUnitPre(CPUDataSection*, AMemoryDevice*) noexcept override;
-    bool testUnitPost(const CPUDataSection *data, const AMemoryDevice*,
-                      QString &errString) const noexcept override;
-    QString getSourceCode() const noexcept override;
-private:
-    Enu::ECPUKeywords regAddress;
-    int regValue;
-};
-
-class StatusBitSpecification: public Specification {
-public:
-    StatusBitSpecification(Enu::ECPUKeywords statusBitAddress, bool statusBitValue) noexcept;
-    void setUnitPre(CPUDataSection*, AMemoryDevice*) noexcept override;
-    bool testUnitPost(const CPUDataSection *data, const AMemoryDevice*,
-                      QString &errString) const noexcept override;
-    QString getSourceCode() const noexcept override;
-private:
-    Enu::ECPUKeywords nzvcsAddress;
-    bool nzvcsValue;
-};
 
 #endif // SPECIFICATION_H

@@ -27,9 +27,10 @@
 #include <QLineEdit>
 
 #include "cpu-diagram/tristatelabel.h"
-#include "microassembler/microcode.h"
 #include "pep/enu.h"
 #include "style/colors.h"
+
+#include "pep9microcode.h"
 
 class CPUDataSection;
 class CpuGraphicsItems : public QGraphicsItem

@@ -26,7 +26,7 @@
 
 
 class AMicroCode;
-class MicroCode;
+class AExecutableMicrocode;
 class SymbolTable;
 class MicrocodeProgram
 {
@@ -44,8 +44,8 @@ public:
     int codeLineToProgramLine(int codeLine) const;
     bool hasMicrocode() const;
     bool hasUnitPre() const;
-    const MicroCode* getCodeLine(quint16 codeLine) const;
-    MicroCode* getCodeLine(quint16 codeLine);
+    const AExecutableMicrocode* getCodeLine(quint16 codeLine) const;
+    AExecutableMicrocode* getCodeLine(quint16 codeLine);
     int codeLength() const;
 };
 

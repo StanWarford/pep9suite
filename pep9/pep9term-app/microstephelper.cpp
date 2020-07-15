@@ -21,7 +21,6 @@
 #include "microstephelper.h"
 
 #include "assembler/asmprogrammanager.h"
-#include "cpu/cpudata.h"
 #include "memory/amemorychip.h"
 #include "memory/amemorydevice.h"
 #include "memory/mainmemory.h"
@@ -32,6 +31,7 @@
 
 #include "boundexecmicrocpu.h"
 #include "cpubuildhelper.h"
+#include "cpudata.h"
 #include "termhelper.h"
 
 MicroStepHelper::MicroStepHelper(const quint64 maxCycleCount,

@@ -23,8 +23,9 @@
 #include <QCoreApplication>
 #include <QTimer>
 
-#include "cpu/cpudata.h"
 #include "memory/amemorydevice.h"
+
+#include "cpudata.h"
 
 BoundExecMicroCpu::BoundExecMicroCpu(quint64 cycleCount, const AsmProgramManager *manager,
                                      QSharedPointer<const Pep9> pep_version,

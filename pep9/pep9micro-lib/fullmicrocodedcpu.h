@@ -29,11 +29,11 @@
 #include <QObject>
 
 #include "cpu/interfacemccpu.h"
-
-
 #include "pep/pep9.h"
 
 #include "pep9interfaceisacpu.h"
+#include "pep9microcode.h"
+
 class CPUDataSection;
 class FullMicrocodedMemoizer;
 class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public Pep9InterfaceISACPU

@@ -22,7 +22,6 @@
 
 #include <iostream>
 
-#include "cpu/cpudata.h"
 #include "memory/amemorychip.h"
 #include "memory/amemorydevice.h"
 #include "memory/memorychips.h"
@@ -33,8 +32,12 @@
 
 
 #include "cpubuildhelper.h"
+#include "cpudata.h"
 #include "partialmicrocodedcpu.h"
+#include "pep9microcode.h"
+#include "pep9specification.h"
 #include "termhelper.h"
+
 CPURunHelper::CPURunHelper(Enu::CPUType type, const QString microcodeProgram,
                            QFileInfo microcodeProgramFile,
                            const QString preconditionsProgram,

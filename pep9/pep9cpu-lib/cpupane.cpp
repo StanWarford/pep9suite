@@ -30,11 +30,12 @@
 #include <QScrollBar>
 
 #include "cpu/interfacemccpu.h"
-#include "cpu/cpudata.h"
 #include "cpu-diagram/tristatelabel.h"
 #include "microassembler/microcode.h"
 #include "style/fonts.h"
 
+#include "cpudata.h"
+#include "pep9microcode.h"
 
 using namespace Enu;
 CpuPane::CpuPane( QWidget *parent) :
@@ -205,7 +206,7 @@ void CpuPane::startDebugging()
     initRegisters();
     ui->clockPushButton->setEnabled(false);
     ui->copyToMicrocodePushButton->setEnabled(false);
-    const MicroCode *code = cpu->getCurrentMicrocodeLine();
+    const MicroCode *code = static_cast<const MicroCode *>(cpu->getCurrentMicrocodeLine());
     cpuPaneItems->setCPULabels(code);
     //code->setCpuLabels(cpuPaneItems);
 }

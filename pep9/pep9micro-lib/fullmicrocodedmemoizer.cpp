@@ -31,11 +31,11 @@
 
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
-#include "cpu/cpudata.h"
 #include "cpu/registerfile.h"
 #include "memory/amemorydevice.h"
 #include "pep/pep.h"
 
+#include "cpudata.h"
 #include "fullmicrocodedcpu.h"
 
 FullMicrocodedMemoizer::FullMicrocodedMemoizer(FullMicrocodedCPU& item): cpu(item),

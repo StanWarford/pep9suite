@@ -85,19 +85,19 @@ bool MicrocodeProgram::hasUnitPre() const
     return !preconditionsVec.empty();
 }
 
-const MicroCode *MicrocodeProgram::getCodeLine(quint16 codeLine) const
+const AExecutableMicrocode *MicrocodeProgram::getCodeLine(quint16 codeLine) const
 {
     if(codeLine<microcodeVec.size()) {
-        auto rval = static_cast<MicroCode*>(programVec[microcodeVec[codeLine]]);
+        auto rval = static_cast<AExecutableMicrocode*>(programVec[microcodeVec[codeLine]]);
         return rval;
     }
     return nullptr;
 }
 
-MicroCode *MicrocodeProgram::getCodeLine(quint16 codeLine)
+AExecutableMicrocode *MicrocodeProgram::getCodeLine(quint16 codeLine)
 {
     if(codeLine<microcodeVec.size()) {
-        auto rval = static_cast<MicroCode*>(programVec[microcodeVec[codeLine]]);
+        auto rval = static_cast<AExecutableMicrocode*>(programVec[microcodeVec[codeLine]]);
         return rval;
     }
     return nullptr;
