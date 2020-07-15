@@ -19,8 +19,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "disableselectionmodel.h"
+
 #include <QObject>
 #include <QItemSelectionModel>
+
 DisableSelectionModel::DisableSelectionModel(QAbstractItemModel *model) noexcept: QItemSelectionModel(model), disableSelection(false)
 {
 

@@ -20,7 +20,7 @@
    <string>Pep/9 CPU</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="pep9cpu-resources.qrc">
+   <iconset resource="../pep9cpu-lib/pep9cpu-resources.qrc">
     <normaloff>:/images/Pep9cpu-icon.png</normaloff>:/images/Pep9cpu-icon.png</iconset>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
@@ -89,7 +89,7 @@
      <x>0</x>
      <y>0</y>
      <width>1179</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -675,7 +675,7 @@
   </action>
   <action name="actionView_CPU_Code">
    <property name="icon">
-    <iconset resource="pep9cpu-resources.qrc">
+    <iconset resource="../pep9cpu-lib/pep9cpu-resources.qrc">
      <normaloff>:/images/microcodeCPUOnly.png</normaloff>:/images/microcodeCPUOnly.png</iconset>
    </property>
    <property name="text">
@@ -690,7 +690,7 @@
   </action>
   <action name="actionView_CPU_Code_Memory">
    <property name="icon">
-    <iconset resource="pep9cpu-resources.qrc">
+    <iconset resource="../pep9cpu-lib/pep9cpu-resources.qrc">
      <normaloff>:/images/microcodeCPUMem.png</normaloff>:/images/microcodeCPUMem.png</iconset>
    </property>
    <property name="text">
@@ -721,7 +721,7 @@
   <customwidget>
    <class>MicroObjectCodePane</class>
    <extends>QWidget</extends>
-   <header>object-viewer/microobjectcodepane.h</header>
+   <header>microobjectcodepane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -733,7 +733,8 @@
  </customwidgets>
  <resources>
   <include location="../../pep-core/common/common-resources.qrc"/>
-  <include location="pep9cpu-resources.qrc"/>
+  <include location="../pep9cpu-lib/pep9cpu-resources.qrc"/>
+  <include location="../../pep-core/common/common-resources.qrc"/>
  </resources>
  <connections>
   <connection>

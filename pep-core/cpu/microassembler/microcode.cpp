@@ -29,10 +29,12 @@
 #include "symbol/symbolentry.h"
 
 AMicroCode::~AMicroCode() = default;
+AExecutableMicrocode::~AExecutableMicrocode() = default;
 
-MicroCode::MicroCode(Enu::CPUType cpuType, bool extendedFeatures): cpuType(cpuType), controlSignals(Pep::numControlSignals(), Enu::signalDisabled),
-    clockSignals(Pep::numClockSignals(), false), breakpoint(false), extendedFeatures(extendedFeatures), branchFunc(Enu::Assembler_Assigned),
-    symbol(nullptr), trueTargetAddr(nullptr), falseTargetAddr(nullptr)
+MicroCode::MicroCode(Enu::CPUType cpuType, bool extendedFeatures): AExecutableMicrocode(false,QString(), nullptr),
+    cpuType(cpuType), controlSignals(Pep::numControlSignals(), Enu::signalDisabled),
+    clockSignals(Pep::numClockSignals(), false), extendedFeatures(extendedFeatures), branchFunc(Enu::Assembler_Assigned),
+    trueTargetAddr(nullptr), falseTargetAddr(nullptr)
 {
     // Initialize all memory controls, normal controls, and clocklines to disabled.
     for(auto memLines : Pep::memControlToMnemonMap.keys()) {
@@ -44,11 +46,6 @@ MicroCode::MicroCode(Enu::CPUType cpuType, bool extendedFeatures): cpuType(cpuTy
     for(auto clockLines : Pep::clockControlToMnemonMap.keys()) {
         clockSignals[clockLines] = 0;
     }
-}
-
-bool MicroCode::isMicrocode() const
-{
-    return true;
 }
 
 QString MicroCode::getObjectCode() const
@@ -240,9 +237,45 @@ QString MicroCode::getSourceCode() const
     return symbolString;
 }
 
-bool MicroCode::hasSymbol() const
+AExecutableMicrocode::AExecutableMicrocode(bool hasBreakpoint, QString comment, const SymbolEntry* symbol):
+    breakpoint(hasBreakpoint), cComment(comment), symbol(symbol)
+{
+
+}
+
+bool AExecutableMicrocode::isMicrocode() const
+{
+    return true;
+}
+
+void AExecutableMicrocode::setComment(QString comment)
+{
+    this->cComment = comment;
+}
+
+bool AExecutableMicrocode::hasSymbol() const
 {
     return symbol != nullptr;
+}
+
+const SymbolEntry *AExecutableMicrocode::getSymbol() const
+{
+    return symbol;
+}
+
+void AExecutableMicrocode::setSymbol(const SymbolEntry * symbol)
+{
+    this->symbol = symbol;
+}
+
+bool AExecutableMicrocode::hasBreakpoint() const
+{
+    return breakpoint;
+}
+
+void AExecutableMicrocode::setBreakpoint(bool breakpoint)
+{
+    this->breakpoint = breakpoint;
 }
 
 bool MicroCode::hasControlSignal(Enu::EControlSignals field) const
@@ -255,16 +288,6 @@ bool MicroCode::hasClockSignal(Enu::EClockSignals field) const
     return clockSignals[field] == true;
 }
 
-const SymbolEntry* MicroCode::getSymbol() const
-{
-    return symbol;
-}
-
-SymbolEntry* MicroCode::getSymbol()
-{
-    return symbol;
-}
-
 void MicroCode::setControlSignal(Enu::EControlSignals field, quint8 value)
 {
     controlSignals[field] = value;
@@ -273,11 +296,6 @@ void MicroCode::setControlSignal(Enu::EControlSignals field, quint8 value)
 void MicroCode::setClockSingal(Enu::EClockSignals field, bool value)
 {
     clockSignals[field] = value;
-}
-
-void MicroCode::setBreakpoint(bool breakpoint)
-{
-    this->breakpoint = breakpoint;
 }
 
 void MicroCode::setBranchFunction(Enu::EBranchFunctions branch)
@@ -315,11 +333,6 @@ const QVector<bool> MicroCode::getClockSignals() const
     return clockSignals;
 }
 
-bool MicroCode::hasBreakpoint() const
-{
-    return breakpoint;
-}
-
 Enu::EBranchFunctions MicroCode::getBranchFunction() const
 {
     return branchFunc;
@@ -353,11 +366,6 @@ bool MicroCode::inRange(Enu::EControlSignals field, int value) const
     case Enu::EOMux: return 0 <= value && value <= 1;
     default: return true;
     }
-}
-
-void MicroCode::setSymbol(SymbolEntry* symbol)
-{
-    this->symbol = symbol;
 }
 
 CommentOnlyCode::CommentOnlyCode(QString comment)

@@ -41,10 +41,10 @@ win32{
 }
 
 include(cpu/cpu.pri)
-include(cpu-diagram/cpu-diagram.pri)
 include(editor/editor.pri)
 include(highlight/highlight.pri)
 include(microassembler/microassembler.pri)
+include(cpu-diagram/cpu-diagram.pri)
 include(object-viewer/object-viewer.pri)
 
 

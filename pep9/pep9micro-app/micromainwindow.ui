@@ -20,7 +20,7 @@
    <string>Pep/9 Micro</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="../pep9micro-lib/pep9micro-resources.qrc">
     <normaloff>:/images/Pep9micro-icon.png</normaloff>:/images/Pep9micro-icon.png</iconset>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
@@ -197,7 +197,7 @@
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1209,6 +1209,24 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>MicrocodePane</class>
+   <extends>QWidget</extends>
+   <header>editor/microcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MicroObjectCodePane</class>
+   <extends>QWidget</extends>
+   <header>microobjectcodepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CpuPane</class>
+   <extends>QWidget</extends>
+   <header>cpupane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>IOWidget</class>
    <extends>QWidget</extends>
    <header>io/iowidget.h</header>
@@ -1238,27 +1256,12 @@
    <header>stats/executionstatisticswidget.h</header>
    <container>1</container>
   </customwidget>
-  <customwidget>
-   <class>MicrocodePane</class>
-   <extends>QWidget</extends>
-   <header>editor/microcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MicroObjectCodePane</class>
-   <extends>QWidget</extends>
-   <header>object-viewer/microobjectcodepane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CpuPane</class>
-   <extends>QWidget</extends>
-   <header>cpupane.h</header>
-   <container>1</container>
-  </customwidget>
  </customwidgets>
  <resources>
   <include location="../../pep-core/common/common-resources.qrc"/>
+  <include location="../../pep-core/common/common-resources.qrc"/>
+  <include location="../pep9micro-lib/pep9micro-resources.qrc"/>
+  <include location="../pep9micro-lib/pep9micro-resources.qrc"/>
  </resources>
  <connections>
   <connection>

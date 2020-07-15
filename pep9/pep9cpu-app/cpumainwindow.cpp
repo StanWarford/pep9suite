@@ -49,13 +49,12 @@
 #include "memory/memorydumppane.h"
 #include "microassembler/microcode.h"
 #include "microassembler/microcodeprogram.h"
-#include "object-viewer/microobjectcodepane.h"
 #include "style/darkhelper.h"
 #include "style/fonts.h"
 #include "symbol/symboltable.h"
 #include "update/updatechecker.h"
 
-
+#include "microobjectcodepane.h"
 #include "partialmicrocodedcpu.h"
 #include "cpupane.h"
 #include "cpuhelpdialog.h"

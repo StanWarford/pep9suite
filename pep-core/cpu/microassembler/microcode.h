@@ -36,25 +36,46 @@ class AMemoryDevice;
 class AMicroCode
 {
 public:
-    virtual ~AMicroCode();
+    virtual ~AMicroCode() = 0;
     virtual bool isMicrocode() const { return false; }
     virtual QString getObjectCode() const { return ""; }
     virtual QString getSourceCode() const { return ""; }
     virtual bool hasUnitPre() const { return false; }
     virtual bool hasUnitPost() const{return false;}
+
+};
+
+class AExecutableMicrocode : public AMicroCode
+{
+public:
+    AExecutableMicrocode(bool hasBreakpoint, QString comment, const SymbolEntry* symbol=nullptr);
+    virtual ~AExecutableMicrocode() = 0;
+
+    bool hasBreakpoint() const;
+    void setBreakpoint(bool breakpoint);
+    bool isMicrocode() const override;
+
+    void setComment(QString comment);
+
+    bool hasSymbol() const;
+    const SymbolEntry* getSymbol() const;
+    void setSymbol(const SymbolEntry*);
+protected:
+    bool breakpoint;
+    QString cComment;
+    const SymbolEntry* symbol;
 };
 
 // Concrete code classes
 // Code is the union of the elements of the one-byte bus model and two-byte bus model
-class MicroCode: public AMicroCode
+class MicroCode: public AExecutableMicrocode
 {
-    friend class MicroAsm;
 public:
     MicroCode(Enu::CPUType cpuType, bool useExtendedFatures);
-    bool isMicrocode() const override;
+
     QString getObjectCode() const override;
     QString getSourceCode() const override;
-    bool hasSymbol() const;
+
     bool hasControlSignal(Enu::EControlSignals field) const;
     bool hasClockSignal(Enu::EClockSignals field) const;
 
@@ -63,19 +84,17 @@ public:
     bool getClockSignal(Enu::EClockSignals field) const;
     const QVector<bool> getClockSignals() const;
 
-    bool hasBreakpoint() const;
+
     Enu::EBranchFunctions getBranchFunction() const;
-    const SymbolEntry* getSymbol() const;
+
     const SymbolEntry* getTrueTarget() const;
     const SymbolEntry* getFalseTarget() const;
 
     bool inRange(Enu::EControlSignals field, int value) const;
     void setControlSignal(Enu::EControlSignals field, quint8 value);
     void setClockSingal(Enu::EClockSignals field,bool value);
-    void setBreakpoint(bool breakpoint);
+
     void setBranchFunction(Enu::EBranchFunctions branch);
-    void setSymbol(SymbolEntry* symbol);
-    SymbolEntry* getSymbol();
     void setTrueTarget(const SymbolEntry* target);
     void setFalseTarget(const SymbolEntry* target);
 
@@ -83,10 +102,8 @@ private:
     Enu::CPUType cpuType;
     QVector<quint8> controlSignals;
     QVector<bool> clockSignals;
-    QString cComment;
-    bool breakpoint, extendedFeatures;
+    bool extendedFeatures;
     Enu::EBranchFunctions branchFunc = Enu::Unconditional;
-    SymbolEntry* symbol;
     const SymbolEntry* trueTargetAddr;
     const SymbolEntry* falseTargetAddr;
 };

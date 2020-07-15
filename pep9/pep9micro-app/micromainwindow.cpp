@@ -62,7 +62,6 @@
 #include "memory/memorydumppane.h"
 #include "microassembler/microcode.h"
 #include "microassembler/microcodeprogram.h"
-#include "object-viewer/microobjectcodepane.h"
 #include "style/darkhelper.h"
 #include "update/updatechecker.h"
 #include "style/fonts.h"
@@ -73,6 +72,7 @@
 #include "decodertabledialog.h"
 #include "fullmicrocodedcpu.h"
 #include "microhelpdialog.h"
+#include "microobjectcodepane.h"
 #include "redefinemnemonicsdialog.h"
 
 

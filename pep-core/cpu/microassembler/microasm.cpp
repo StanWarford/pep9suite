@@ -405,7 +405,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
                 state = MicroAsm::PS_START_POST_SEMICOLON;
             }
             else if (token == MicroAsm::LT_COMMENT) {
-                microCode->cComment = tokenString;
+                microCode->setComment(tokenString);
                 state = MicroAsm::PS_COMMENT;
             }
             else if (token == MicroAsm::LT_EMPTY) {
@@ -469,7 +469,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
                 return false;
             }
             else if (token == MicroAsm::LT_COMMENT) {
-                microCode->cComment = tokenString;
+                microCode->setComment(tokenString);
                 state = MicroAsm::PS_COMMENT;
             }
             else if (token == MicroAsm::LT_EMPTY) {
@@ -534,7 +534,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
                 return false;
             }
             else if (token == MicroAsm::LT_COMMENT) {
-                microCode->cComment = tokenString;
+                microCode->setComment(tokenString);
                 state = MicroAsm::PS_COMMENT;
             }
             else if (token == MicroAsm::LT_EMPTY) {
@@ -579,7 +579,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
                 state = MicroAsm::PSE_AFTER_SEMI;
             }
             else if (token == MicroAsm::LT_COMMENT) {
-                microCode->cComment = tokenString;
+                microCode->setComment(tokenString);
                 state = MicroAsm::PS_COMMENT;
             }
             else if (token == MicroAsm::LT_EMPTY) {
@@ -938,7 +938,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
 
         case MicroAsm::PSE_OPTIONAL_COMMENT:
             if (token == MicroAsm::LT_COMMENT) {
-                microCode->cComment = tokenString;
+                microCode->setComment(tokenString);
                 state = MicroAsm::PSE_EXPECT_EMPTY;
             }
             else if (token == MicroAsm::LT_EMPTY) {

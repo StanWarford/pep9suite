@@ -28,7 +28,6 @@
 
 #include "editor/microcodeeditor.h"
 #include "highlight/pepmicrohighlighter.h"
-#include "microassembler/microasm.h"
 
 namespace Ui {
     class MicrocodePane;

@@ -42,11 +42,13 @@ win32{
 }
 
 FORMS += \
-    cpupane.ui
+    cpupane.ui \
+    microobjectcodepane.ui
 
 HEADERS += \
     cpugraphicsitems.h \
     cpupane.h \
+    microobjectcodepane.h \
     partialmicrocodedcpu.h \
     partialmicrocodedmemoizer.h \
     shapes_one_byte_data_bus.h \
@@ -55,6 +57,7 @@ HEADERS += \
 SOURCES += \
     cpugraphicsitems.cpp \
     cpupane.cpp \
+    microobjectcodepane.cpp \
     partialmicrocodedcpu.cpp \
     partialmicrocodedmemoizer.cpp
 
