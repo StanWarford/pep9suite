@@ -6,7 +6,7 @@ QT += widgets printsupport concurrent
 
 TEMPLATE = lib
 CONFIG += staticlib
-TARGET = pep9asm-lib
+TARGET = pep9def-lib
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -41,28 +41,13 @@ win32{
     QMAKE_LFLAGS_RELEASE +=/debug /opt:ref
 }
 
-RESOURCES += \
-    pep9asm-helpresources.qrc \
-    pep9asm-resources.qrc
-
-FORMS += \
-    redefinemnemonicsdialog.ui
-
 HEADERS += \
-    isacpu.h \
-    isacpumemoizer.h \
-    pep9asmcode.h \
-    pep9interfaceisacpu.h \
-    pep9isaasm.h \
-    redefinemnemonicsdialog.h
+    cpudefs.h \
+    pep9.h
 
 SOURCES += \
-    isacpu.cpp \
-    isacpumemoizer.cpp \
-    pep9asmcode.cpp \
-    pep9interfaceisacpu.cpp \
-    pep9isaasm.cpp \
-    redefinemnemonicsdialog.cpp
+    cpudefs.cpp \
+    pep9.cpp
 
 # Link against Pep core code
 unix|win32: LIBS += -L$$OUT_PWD/../../pep-core/common/ -lpep-core-common
@@ -73,20 +58,19 @@ DEPENDPATH += $$PWD/../../pep-core/common
 win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/common/pep-core-common.lib
 else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/common/libpep-core-common.a
 
-unix|win32: LIBS += -L$$OUT_PWD/../../pep-core/asm/ -lpep-core-asm
 
-INCLUDEPATH += $$PWD/../../pep-core/asm
-DEPENDPATH += $$PWD/../../pep-core/asm
+#unix|win32: LIBS += -L$$OUT_PWD/../../pep-core/cpu/ -lpep-core-cpu
 
-win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/asm/pep-core-asm.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/asm/libpep-core-asm.a
+#INCLUDEPATH += $$PWD/../../pep-core/cpu
+#DEPENDPATH += $$PWD/../../pep-core/cpu
 
+#win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/cpu/pep-core-cpu.lib
+#else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/cpu/libpep-core-cpu.a
 
-# Link against shared code for Pep9.
-unix|win32: LIBS += -L$$OUT_PWD/../pep9def-lib/ -lpep9def-lib
+#unix|win32: LIBS += -L$$OUT_PWD/../../pep-core/asm/ -lpep-core-asm
 
-INCLUDEPATH += $$PWD/../pep9def-lib
-DEPENDPATH += $$PWD/../pep9def-lib
+#INCLUDEPATH += $$PWD/../../pep-core/asm
+#DEPENDPATH += $$PWD/../../pep-core/asm
 
-win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../pep9def-lib/pep9def-lib.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../pep9def-lib/libpep9def-lib.a
+#win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/asm/pep-core-asm.lib
+#else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/asm/libpep-core-asm.a

@@ -28,10 +28,9 @@
 #include "pep/constants.h"
 #include "pep/enu.h"
 #include "pep/pep.h"
-#include "pep/pep9.h"
 
 #include "microasm.h"
-
+#include "pep9.h"
 
 namespace Ui {
     class CPUMainWindow;

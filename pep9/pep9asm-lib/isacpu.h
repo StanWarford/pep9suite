@@ -26,8 +26,8 @@
 #include "cpu/interfaceisacpu.h"
 #include "cpu/registerfile.h"
 #include "memory/amemorydevice.h"
-#include "pep/pep9.h"
 
+#include "pep9.h"
 #include "pep9interfaceisacpu.h"
 
 /* Though not part of the specification, the trap mechanism  must

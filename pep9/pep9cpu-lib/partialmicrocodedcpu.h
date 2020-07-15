@@ -25,7 +25,8 @@
 
 #include "cpu/interfacemccpu.h"
 #include "pep/constants.h"
-#include "pep/pep9.h"
+
+#include "pep9.h"
 
 class CPUDataSection;
 class PartialMicrocodedMemoizer;

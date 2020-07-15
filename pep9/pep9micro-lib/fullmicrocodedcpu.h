@@ -29,8 +29,8 @@
 #include <QObject>
 
 #include "cpu/interfacemccpu.h"
-#include "pep/pep9.h"
 
+#include "pep9.h"
 #include "pep9interfaceisacpu.h"
 #include "pep9microcode.h"
 

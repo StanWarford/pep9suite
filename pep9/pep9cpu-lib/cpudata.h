@@ -29,9 +29,10 @@
 #include "cpu/registerfile.h"
 #include "pep/constants.h"
 #include "pep/enu.h"
-#include "pep/pep9.h"
+
 
 #include "cpudefs.h"
+#include "pep9.h"
 
 class AMemoryDevice;
 class InterfaceMCCPU;

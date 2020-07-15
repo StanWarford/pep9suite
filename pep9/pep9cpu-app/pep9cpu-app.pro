@@ -73,6 +73,15 @@ win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/cpu/pep-core-cpu.li
 else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../../pep-core/cpu/libpep-core-cpu.a
 
 # Link against shared code for Pep9CPU.
+
+unix|win32: LIBS += -L$$OUT_PWD/../pep9def-lib/ -lpep9def-lib
+
+INCLUDEPATH += $$PWD/../pep9def-lib
+DEPENDPATH += $$PWD/../pep9def-lib
+
+win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../pep9def-lib/pep9def-lib.lib
+else:unix|win32-g++: PRE_TARGETDEPS += $$OUT_PWD/../pep9def-lib/libpep9def-lib.a
+
 unix|win32: LIBS += -L$$OUT_PWD/../pep9cpu-lib/ -lpep9cpu-lib
 
 INCLUDEPATH += $$PWD/../pep9cpu-lib

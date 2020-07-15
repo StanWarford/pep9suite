@@ -28,10 +28,10 @@
 
 #include "cpu/registerfile.h"
 #include "memory/amemorydevice.h"
-#include "pep/pep9.h"
 
 #include "cpudata.h"
 #include "partialmicrocodedcpu.h"
+#include "pep9.h"
 
 const QString stackFrameEnter("%1\n===CALL===\n");
 const QString stackFrameLeave("%1\n===RET====\n");
