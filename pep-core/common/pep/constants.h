@@ -30,6 +30,11 @@ namespace PepCore {
     };
     Q_ENUM_NS(EPane)
 
+    enum class CPUType {
+        OneByteDataBus,
+        TwoByteDataBus,
+    };
+
 }
 
 #endif // CONSTANTS_H

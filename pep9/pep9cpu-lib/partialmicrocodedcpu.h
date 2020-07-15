@@ -35,7 +35,7 @@ class PartialMicrocodedCPU : public ACPUModel, public InterfaceMCCPU
     friend class CPUMemoizer;
     friend class PartialMicrocodedMemoizer;
 public:
-    PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<const Pep9> pep_version,
+    PartialMicrocodedCPU(PepCore::CPUType type, QSharedPointer<const Pep9> pep_version,
                          QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~PartialMicrocodedCPU() override;
     QSharedPointer<CPUDataSection> getDataSection();
@@ -60,7 +60,7 @@ public:
     bool hadErrorOnStep() const noexcept override;
 
     // InterfaceMCCPU interface
-    void setCPUType(Enu::CPUType type)  override;
+    void setCPUType(PepCore::CPUType type)  override;
     void onMCStep() override;
     void onClock() override;
 

@@ -36,7 +36,7 @@ class CPUDataSection;
 class CpuGraphicsItems : public QGraphicsItem
 {
 public:
-    CpuGraphicsItems(Enu::CPUType type, CPUDataSection* dataSection, QWidget *widgetParent, QGraphicsItem *itemParent = nullptr,
+    CpuGraphicsItems(PepCore::CPUType type, CPUDataSection* dataSection, QWidget *widgetParent, QGraphicsItem *itemParent = nullptr,
                              QGraphicsScene *scene = nullptr);
     ~CpuGraphicsItems();
 
@@ -47,7 +47,7 @@ public:
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                QWidget *widget);
     void darkModeChanged(bool darkMode, QString styleSheet);
-    void CPUTypeChanged(Enu::CPUType newType);
+    void CPUTypeChanged(PepCore::CPUType newType);
     
     void setCPULabels(const MicroCode* code);
     
@@ -128,7 +128,7 @@ private:
     QGraphicsScene *parentScene;
     CPUDataSection* dataSection;
     bool darkMode = false;
-    Enu::CPUType type;
+    PepCore::CPUType type;
 
     const PepColors::Colors *colorScheme;
 

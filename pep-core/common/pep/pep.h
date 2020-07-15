@@ -27,6 +27,7 @@
 #include <QString>
 
 #include "enu.h"
+#include "constants.h"
 
 class Pep
 {
@@ -54,7 +55,7 @@ public:
     static QMap<QString, Enu::ECPUKeywords> mnemonToMemSpecMap;
     static QMap<QString, Enu::ECPUKeywords> mnemonToRegSpecMap;
     static QMap<QString, Enu::ECPUKeywords> mnemonToStatusSpecMap;
-    static void initMicroEnumMnemonMaps(Enu::CPUType cpuType, bool fullCtrlSection);
+    static void initMicroEnumMnemonMaps(PepCore::CPUType cpuType, bool fullCtrlSection);
     static quint8 numControlSignals();
     static quint8 numClockSignals();
 

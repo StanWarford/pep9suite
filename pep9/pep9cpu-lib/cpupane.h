@@ -74,7 +74,7 @@ protected:
     QSharedPointer<CPUDataSection> dataSection;
     QGraphicsScene *scene;
     CpuGraphicsItems *cpuPaneItems;
-    Enu::CPUType type;
+    PepCore::CPUType type;
 
 private:
     Ui::CpuPane *ui;

@@ -78,7 +78,7 @@
 
 MicroMainWindow::MicroMainWindow(QWidget *parent) :
     QMainWindow(parent),ui(new Ui::MicroMainWindow), pep_version(new Pep9()),
-    micro_assembler(Enu::CPUType::TwoByteDataBus, true),
+    micro_assembler(PepCore::CPUType::TwoByteDataBus, true),
     debugState(DebugState::DISABLED), codeFont(QFont(PepCore::codeFont, PepCore::codeFontSize)),
     updateChecker(new UpdateChecker()), isInDarkMode(false),
     memDevice(new MainMemory(nullptr)), controlSection(new FullMicrocodedCPU(AsmProgramManager::getInstance(), pep_version, memDevice)),
@@ -863,7 +863,7 @@ void MicroMainWindow::print(PepCore::EPane which)
     case PepCore::EPane::EMicrocode:
         title = &micro;
         document.setPlainText(ui->microcodeWidget->toPlainText());
-        mcHi = new PepMicroHighlighter(Enu::CPUType::TwoByteDataBus,
+        mcHi = new PepMicroHighlighter(PepCore::CPUType::TwoByteDataBus,
                 true, PepColors::lightMode, &document);
         mcHi->forceAllFeatures(true);
         hi = mcHi;

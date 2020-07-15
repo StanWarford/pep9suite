@@ -150,11 +150,6 @@ namespace Enu {
         MDRREG, MDREREG, MDROREG
     };
 
-    enum CPUType {
-        OneByteDataBus,
-        TwoByteDataBus,
-    };
-
 
     /*
      * Enumerations for Pep9Micro

@@ -39,7 +39,7 @@ public:
     ~CPUHelpDialog();
 
     QString getExampleText();
-    Enu::CPUType getExamplesModel();
+    PepCore::CPUType getExamplesModel();
 
     void copy();
     // Post: the text edit that has focus has the copy() operation performed

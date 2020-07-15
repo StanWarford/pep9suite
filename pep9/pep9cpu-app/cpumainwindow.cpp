@@ -62,11 +62,11 @@
 CPUMainWindow::CPUMainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::CPUMainWindow), pep_version(new Pep9()),
-    micro_assembler(Enu::CPUType::OneByteDataBus, false),
+    micro_assembler(PepCore::CPUType::OneByteDataBus, false),
     debugState(DebugState::DISABLED), codeFont(QFont(PepCore::codeFont, PepCore::codeFontSize)),
     updateChecker(new UpdateChecker()),  isInDarkMode(false),
     memDevice(new MainMemory(nullptr)),
-    controlSection(new PartialMicrocodedCPU(Enu::CPUType::OneByteDataBus, pep_version, memDevice)),
+    controlSection(new PartialMicrocodedCPU(PepCore::CPUType::OneByteDataBus, pep_version, memDevice)),
     dataSection(controlSection->getDataSection()),
     cpuModesGroup(new QActionGroup(this))
 {
@@ -493,7 +493,7 @@ void CPUMainWindow::print()
 
     // Create a highlighter independent of the microcodewidget's highlighter,
     // so that we may force it to use light mode colors.
-    PepMicroHighlighter mcHi(Enu::CPUType::TwoByteDataBus,
+    PepMicroHighlighter mcHi(PepCore::CPUType::TwoByteDataBus,
                                                    false, PepColors::lightMode, &document);
     mcHi.forceAllFeatures(true);
     document.setPlainText(ui->microcodeWidget->toPlainText());
@@ -905,10 +905,10 @@ void CPUMainWindow::on_actionSystem_Clear_Memory_triggered()
 
 void CPUMainWindow::on_actionSystem_One_Byte_triggered()
 {
-    Pep::initMicroEnumMnemonMaps(Enu::OneByteDataBus, false);
-    controlSection->setCPUType(Enu::OneByteDataBus);
+    Pep::initMicroEnumMnemonMaps(PepCore::CPUType::OneByteDataBus, false);
+    controlSection->setCPUType(PepCore::CPUType::OneByteDataBus);
     ui->microobjectWidget->initCPUModelState();
-    ui->microcodeWidget->onCPUTypeChanged(Enu::OneByteDataBus);
+    ui->microcodeWidget->onCPUTypeChanged(PepCore::CPUType::OneByteDataBus);
     ui->cpuWidget->onCPUTypeChanged();
     ui->actionSystem_One_Byte->setEnabled(false);
     ui->actionSystem_Two_Byte->setEnabled(true);
@@ -917,10 +917,10 @@ void CPUMainWindow::on_actionSystem_One_Byte_triggered()
 
 void CPUMainWindow::on_actionSystem_Two_Byte_triggered()
 {
-    Pep::initMicroEnumMnemonMaps(Enu::TwoByteDataBus, false);
-    controlSection->setCPUType(Enu::TwoByteDataBus);
+    Pep::initMicroEnumMnemonMaps(PepCore::CPUType::TwoByteDataBus, false);
+    controlSection->setCPUType(PepCore::CPUType::TwoByteDataBus);
     ui->microobjectWidget->initCPUModelState();
-    ui->microcodeWidget->onCPUTypeChanged(Enu::TwoByteDataBus);
+    ui->microcodeWidget->onCPUTypeChanged(PepCore::CPUType::TwoByteDataBus);
     ui->cpuWidget->onCPUTypeChanged();
     ui->actionSystem_One_Byte->setEnabled(true);
     ui->actionSystem_Two_Byte->setEnabled(false);
@@ -1214,10 +1214,10 @@ void CPUMainWindow::onCopyToMicrocodeClicked()
         return;
     }
     if(controlSection->getCPUType() != helpDialog->getExamplesModel()) {
-        if(helpDialog->getExamplesModel() == Enu::CPUType::OneByteDataBus) {
+        if(helpDialog->getExamplesModel() == PepCore::CPUType::OneByteDataBus) {
             on_actionSystem_One_Byte_triggered();
         }
-        else if(helpDialog->getExamplesModel() == Enu::CPUType::TwoByteDataBus) {
+        else if(helpDialog->getExamplesModel() == PepCore::CPUType::TwoByteDataBus) {
             on_actionSystem_Two_Byte_triggered();
         }
     }

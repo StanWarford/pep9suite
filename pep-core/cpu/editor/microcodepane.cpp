@@ -310,7 +310,7 @@ void MicrocodePane::onRemoveAllBreakpoints()
     editor->onRemoveAllBreakpoints();
 }
 
-void MicrocodePane::onCPUTypeChanged(Enu::CPUType type)
+void MicrocodePane::onCPUTypeChanged(PepCore::CPUType type)
 {
     highlighter->setCPUType(type);
     highlighter->rehighlight();

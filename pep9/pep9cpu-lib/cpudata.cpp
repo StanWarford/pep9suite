@@ -27,10 +27,11 @@
 #include "memory/amemorydevice.h"
 #include "microassembler/microcode.h"
 #include "microassembler/microcodeprogram.h"
+#include "pep/constants.h"
 #include "pep/pep.h"
 
 #include "pep9microcode.h"
-CPUDataSection::CPUDataSection(Enu::CPUType type, QSharedPointer<const APepVersion> pep_version,
+CPUDataSection::CPUDataSection(PepCore::CPUType type, QSharedPointer<const APepVersion> pep_version,
                                QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
     cpuFeatures(type), mainBusState(Enu::None),
     registerBank(QSharedPointer<RegisterFile>::create(pep_version->maxRegisterNumber())),
@@ -54,7 +55,7 @@ bool CPUDataSection::aluFnIsUnary() const
 
 bool CPUDataSection::getAMuxOutput(quint8& result) const
 {
-        if(controlSignals[Enu::AMux] == 0 && cpuFeatures == Enu::CPUType::TwoByteDataBus) {
+        if(controlSignals[Enu::AMux] == 0 && cpuFeatures == PepCore::CPUType::TwoByteDataBus) {
             //Which could come from MDRE when EOMux is 0
             if(controlSignals[Enu::EOMux] == 0) {
                 result = memoryRegisters[Enu::MEM_MDRE];
@@ -69,7 +70,7 @@ bool CPUDataSection::getAMuxOutput(quint8& result) const
             else return false;
 
         }
-        else if(controlSignals[Enu::AMux] == 0 && cpuFeatures == Enu::CPUType::OneByteDataBus) {
+        else if(controlSignals[Enu::AMux] == 0 && cpuFeatures == PepCore::CPUType::OneByteDataBus) {
             result = memoryRegisters[Enu::MEM_MDR];
             return true;
         }
@@ -215,7 +216,7 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
 
 }
 
-Enu::CPUType CPUDataSection::getCPUType() const
+PepCore::CPUType CPUDataSection::getCPUType() const
 {
     return cpuFeatures;
 }
@@ -836,10 +837,10 @@ void CPUDataSection::onStep() noexcept
 {
     //If the error hasn't been handled by now, clear it
     clearErrors();
-    if(cpuFeatures == Enu::OneByteDataBus) {
+    if(cpuFeatures == PepCore::CPUType::OneByteDataBus) {
         stepOneByte();
     }
-    else if(cpuFeatures == Enu::TwoByteDataBus) {
+    else if(cpuFeatures == PepCore::CPUType::TwoByteDataBus) {
         stepTwoByte();
     }
 }
@@ -862,7 +863,7 @@ void CPUDataSection::onClearCPU() noexcept
     clearControlSignals();
 }
 
-void CPUDataSection::onSetCPUType(Enu::CPUType type)
+void CPUDataSection::onSetCPUType(PepCore::CPUType type)
 {
     if(cpuFeatures != type) {
        cpuFeatures = type;

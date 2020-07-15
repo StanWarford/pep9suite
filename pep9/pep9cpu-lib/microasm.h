@@ -24,6 +24,7 @@
 #include <QRegExp>
 #include <QSharedPointer>
 
+#include "pep/constants.h"
 #include "pep/enu.h"
 #include "symbol/symboltable.h"
 
@@ -54,7 +55,7 @@ class MicroAsm
         PSE_JT_JUMP
     };
 
-    Enu::CPUType cpuType;
+    PepCore::CPUType cpuType;
     bool useExt;
     static const QSet<ELexicalToken> extendedTokens;
     static const QSet<ParseState> extendedParseStates;
@@ -76,7 +77,7 @@ public:
     static bool startsWithHexPrefix(QString str);
     // Post: Returns true if str starts with the characters 0x or 0X. Otherwise returns false.
 
-    explicit MicroAsm(Enu::CPUType type, bool useExtendedFeatures = true);
+    explicit MicroAsm(PepCore::CPUType type, bool useExtendedFeatures = true);
 
     bool getToken(QString &sourceLine, ELexicalToken &token, QString &tokenString);
     // Pre: sourceLine has one line of source code.
@@ -86,7 +87,7 @@ public:
 
     MicroAsmResult assembleProgram(QString program);
 
-    void setCPUType(Enu::CPUType type);
+    void setCPUType(PepCore::CPUType type);
 
     // If true, symbols, gotos, if-elses will be allowed.
     // Otherwise, the default Pep9CPU is used.

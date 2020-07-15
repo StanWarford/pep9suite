@@ -44,7 +44,7 @@ QRegExp MicroAsm::rxComment("^//.*");
 QRegExp MicroAsm::rxDigit("^[0-9]+");
 QRegExp MicroAsm::rxIdentifier("^((([A-Z|a-z]{1})(\\w*))(:){0,1})");
 QRegExp MicroAsm::rxHexConst("^((0(?![x|X]))|((0)([x|X])([0-9|A-F|a-f])+)|((0)([0-9]+)))");
-MicroAsm::MicroAsm(Enu::CPUType type, bool useExtendedFeatures): cpuType(type),
+MicroAsm::MicroAsm(PepCore::CPUType type, bool useExtendedFeatures): cpuType(type),
     useExt(useExtendedFeatures)
 {
 
@@ -976,7 +976,7 @@ bool MicroAsm::startsWithHexPrefix(QString str)
     return false;
 }
 
-void MicroAsm::setCPUType(Enu::CPUType type)
+void MicroAsm::setCPUType(PepCore::CPUType type)
 {
     cpuType = type;
 }

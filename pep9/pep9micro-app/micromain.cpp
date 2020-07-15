@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 #endif
 
     // Initialize all global maps.
-    Pep::initMicroEnumMnemonMaps(Enu::CPUType::TwoByteDataBus, true);
+    Pep::initMicroEnumMnemonMaps(PepCore::CPUType::TwoByteDataBus, true);
     Pep::initEnumMnemonMaps();
     Pep::initMnemonicMaps(false);
     Pep::initAddrModesMap();

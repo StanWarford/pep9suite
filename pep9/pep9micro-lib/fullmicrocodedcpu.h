@@ -71,7 +71,7 @@ public:
     bool hadErrorOnStep() const noexcept override;
 
     // InterfaceMCCPU interface
-    void setCPUType(Enu::CPUType type)  override;
+    void setCPUType(PepCore::CPUType type)  override;
     void onMCStep() override;
     void onClock() override;
 

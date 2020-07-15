@@ -35,7 +35,7 @@
 #include "partialmicrocodedmemoizer.h"
 #include "pep9microcode.h"
 
-PartialMicrocodedCPU::PartialMicrocodedCPU(Enu::CPUType type, QSharedPointer<const Pep9> pep_version,
+PartialMicrocodedCPU::PartialMicrocodedCPU(PepCore::CPUType type, QSharedPointer<const Pep9> pep_version,
                                            QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
     InterfaceMCCPU(type), memoizer(new PartialMicrocodedMemoizer(*this))
 {
@@ -130,7 +130,7 @@ bool PartialMicrocodedCPU::hadErrorOnStep() const noexcept
     return controlError || data->hadErrorOnStep() || memory->hadError();
 }
 
-void PartialMicrocodedCPU::setCPUType(Enu::CPUType type)
+void PartialMicrocodedCPU::setCPUType(PepCore::CPUType type)
 {
     this->type = type;
     this->data->onSetCPUType(type);

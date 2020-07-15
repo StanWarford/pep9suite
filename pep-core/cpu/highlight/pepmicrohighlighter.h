@@ -26,6 +26,7 @@
 #include <QTextCharFormat>
 #include <QSyntaxHighlighter>
 
+#include "pep/constants.h"
 #include "pep/enu.h"
 #include "style/colors.h"
 
@@ -36,10 +37,10 @@ QT_END_NAMESPACE
 class PepMicroHighlighter : public QSyntaxHighlighter /*, RestyleableItem*/
 {
 public:
-    PepMicroHighlighter(Enu::CPUType type, bool fullCtrlSection, const PepColors::Colors colors, QTextDocument *parent = nullptr);
+    PepMicroHighlighter(PepCore::CPUType type, bool fullCtrlSection, const PepColors::Colors colors, QTextDocument *parent = nullptr);
     void forceAllFeatures(bool features);
     void rebuildHighlightingRules(const PepColors::Colors color);
-    void setCPUType(Enu::CPUType type);
+    void setCPUType(PepCore::CPUType type);
     void setFullControlSection(bool fullCtrlSection);
 
 protected:
@@ -47,7 +48,7 @@ protected:
 /*protected slots:
     void onStyleChange();*/
 private:
-    Enu::CPUType cpuType;
+    PepCore::CPUType cpuType;
     bool forcedFeatures, fullCtrlSection;
     struct HighlightingRule
     {

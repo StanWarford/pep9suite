@@ -36,7 +36,7 @@ class InterfaceMCCPU
 {
 public:
     // Initialize a Interface for a microcoded CPU with the passed features
-    explicit InterfaceMCCPU(Enu::CPUType type) noexcept;
+    explicit InterfaceMCCPU(PepCore::CPUType type) noexcept;
     virtual ~InterfaceMCCPU();
     // Add, remove, & get breakpoints for the program counter.
     // Simulation will trap if the program counter is an element of the breakpointSet.
@@ -56,7 +56,7 @@ public:
 
 
     void setMicrocodeProgram(QSharedPointer<MicrocodeProgram> sharedProgram);
-    Enu::CPUType getCPUType() const noexcept;
+    PepCore::CPUType getCPUType() const noexcept;
 
     // Clear program counters & breakpoint status
     void reset() noexcept;
@@ -64,7 +64,7 @@ public:
     // Change the CPU between one and two byte data buses
     // This can raise an exception if a cpu implementation doesn't support multiple
     // modes, so callers
-    virtual void setCPUType(Enu::CPUType type) = 0;
+    virtual void setCPUType(PepCore::CPUType type) = 0;
 
     // Perform a single hardware cycle (instruction).
     virtual void onMCStep() = 0;
@@ -87,7 +87,7 @@ protected:
     quint64 microCycleCounter;
     bool microBreakpointHit;
     QSharedPointer<MicrocodeProgram> sharedProgram;
-    Enu::CPUType type;
+    PepCore::CPUType type;
 };
 
 #endif // AMCCPUMODEL_H

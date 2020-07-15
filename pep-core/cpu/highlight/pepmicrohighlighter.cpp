@@ -25,7 +25,7 @@
 
 #include "pep/pep.h"
 
-PepMicroHighlighter::PepMicroHighlighter(Enu::CPUType type, bool fullCtrlSection, const PepColors::Colors color, QTextDocument *parent)
+PepMicroHighlighter::PepMicroHighlighter(PepCore::CPUType type, bool fullCtrlSection, const PepColors::Colors color, QTextDocument *parent)
     : QSyntaxHighlighter(parent), cpuType(type),
       /*RestyleableItem(color, parent),*/ forcedFeatures(false), fullCtrlSection(fullCtrlSection)
 {
@@ -170,7 +170,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
     highlightingRulesAllExt.append(highlightingRulesTwoExt);
 }
 
-void PepMicroHighlighter::setCPUType(Enu::CPUType type)
+void PepMicroHighlighter::setCPUType(PepCore::CPUType type)
 {
     cpuType = type;
 }
@@ -187,11 +187,11 @@ void PepMicroHighlighter::highlightBlock(const QString &text)
         highlightingRules = fullCtrlSection ? highlightingRulesAllExt : highlightingRulesAll;
     }
     else if (fullCtrlSection) {
-        highlightingRules = (cpuType == Enu::CPUType::OneByteDataBus
+        highlightingRules = (cpuType == PepCore::CPUType::OneByteDataBus
                 ? highlightingRulesOneExt : highlightingRulesTwoExt);
     }
     else {
-        highlightingRules = (cpuType == Enu::CPUType::OneByteDataBus
+        highlightingRules = (cpuType == PepCore::CPUType::OneByteDataBus
                 ? highlightingRulesOne : highlightingRulesTwo);
     }
 

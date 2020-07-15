@@ -27,6 +27,7 @@
 #include <QVector>
 
 #include "cpu/registerfile.h"
+#include "pep/constants.h"
 #include "pep/enu.h"
 #include "pep/pep9.h"
 
@@ -41,12 +42,12 @@ class CPUDataSection: public QObject
     friend class CPUControlSection;
     friend class InterfaceMCCPU;
 public:
-    CPUDataSection(Enu::CPUType type, QSharedPointer<const APepVersion> pep_version,
+    CPUDataSection(PepCore::CPUType type, QSharedPointer<const APepVersion> pep_version,
                    QSharedPointer<AMemoryDevice> memDevice, QObject *parent = nullptr );
     virtual ~CPUDataSection();
 
 
-    Enu::CPUType getCPUType() const;
+    PepCore::CPUType getCPUType() const;
     //Access CPU registers
     RegisterFile& getRegisterBank();
     const RegisterFile& getRegisterBank() const;
@@ -94,7 +95,7 @@ private:
     void setMemoryDevice(QSharedPointer<AMemoryDevice> newDevice);
     QSharedPointer<AMemoryDevice> memDevice;
 
-    Enu::CPUType cpuFeatures;
+    PepCore::CPUType cpuFeatures;
     Enu::MainBusState mainBusState;
     bool emitEvents;
 
@@ -138,13 +139,13 @@ public slots:
     void onStep() noexcept;
     void onClock() noexcept;
     void onClearCPU() noexcept;
-    void onSetCPUType(Enu::CPUType type);
+    void onSetCPUType(PepCore::CPUType type);
 
 signals:
     void registerChanged(quint8 reg, quint8 oldVal, quint8 newVal); //Thrown whenever a register in the register bank is changed.
     void memoryRegisterChanged(Enu::EMemoryRegisters, quint8 oldVal, quint8 newVal); //Thrown whenever a memory register is changed.
     void statusBitChanged(Enu::EStatusBit status, bool value);
-    void CPUTypeChanged(Enu::CPUType type);
+    void CPUTypeChanged(PepCore::CPUType type);
 
 };
 

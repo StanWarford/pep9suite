@@ -99,7 +99,7 @@ public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
     void onRemoveAllBreakpoints();
-    void onCPUTypeChanged(Enu::CPUType type);
+    void onCPUTypeChanged(PepCore::CPUType type);
 signals:
     void breakpointAdded(quint16 line);
     void breakpointRemoved(quint16 line);

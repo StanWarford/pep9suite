@@ -779,43 +779,43 @@ void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
     if (cpuPaneItems->MemWriteTristateLabel->text() != "") {
         code.setControlSignal(Enu::MemWrite, static_cast<quint8>(cpuPaneItems->MemWriteTristateLabel->text().toInt()));
     }
-    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+    if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MARMuxTristateLabel->text() != "") { // 2 byte bus
         code.setControlSignal(Enu::MARMux, static_cast<quint8>(cpuPaneItems->MARMuxTristateLabel->text().toInt()));
     }
 
     // 1 byte exclusive controls.
-    if (cpu->getCPUType() == Enu::CPUType::OneByteDataBus &&
+    if (cpu->getCPUType() == PepCore::CPUType::OneByteDataBus &&
             cpuPaneItems->MDRCk->isChecked()) { // 1 byte bus
         code.setClockSingal(Enu::MDRCk, 1);
     }
-    if (cpu->getCPUType() == Enu::CPUType::OneByteDataBus &&
+    if (cpu->getCPUType() == PepCore::CPUType::OneByteDataBus &&
             cpuPaneItems->MDRMuxTristateLabel->text() != "") { // 1 byte bus
         code.setControlSignal(Enu::MDRMux, static_cast<quint8>(cpuPaneItems->MDRMuxTristateLabel->text().toInt()));
     }
 
     // 2 byte exclusive controls.
-    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+    if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MARMuxTristateLabel->text() != "") { // 2 byte bus
         code.setControlSignal(Enu::MARMux, static_cast<quint8>(cpuPaneItems->MARMuxTristateLabel->text().toInt()));
     }
-    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+    if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MDROCk->isChecked()) { // 2 byte bus
         code.setClockSingal(Enu::MDROCk, 1);
     }
-    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+    if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MDROMuxTristateLabel->text() != "") { // 2 byte bus
         code.setControlSignal(Enu::MDROMux, static_cast<quint8>(cpuPaneItems->MDROMuxTristateLabel->text().toInt()));
     }
-    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+    if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MDRECk->isChecked()) { // 2 byte bus
         code.setClockSingal(Enu::MDRECk, 1);
     }
-    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+    if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MDREMuxTristateLabel->text() != "") { // 2 byte bus
         code.setControlSignal(Enu::MDREMux, static_cast<quint8>(cpuPaneItems->MDREMuxTristateLabel->text().toInt()));
     }
-    if (cpu->getCPUType() == Enu::CPUType::TwoByteDataBus &&
+    if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->EOMuxTristateLabel->text() != "") { // 2 byte bus
         code.setControlSignal(Enu::EOMux, static_cast<quint8>(cpuPaneItems->EOMuxTristateLabel->text().toInt()));
     }

@@ -27,6 +27,7 @@
 
 #include "microassembler/microcodeprogram.h"
 #include "pep/enu.h"
+#include "pep/constants.h"
 
 
 // Result of a microcode assembler invocation.
@@ -39,7 +40,7 @@ struct MicrocodeAssemblyResult
 };
 
 // Helper function that assemble a microcode source program given a parameter list
-MicrocodeAssemblyResult buildMicroprogramHelper(Enu::CPUType type,
+MicrocodeAssemblyResult buildMicroprogramHelper(PepCore::CPUType type,
                                                 bool useExtendedFeatures,
                                                 const QString source);
 /*
@@ -58,7 +59,7 @@ MicrocodeAssemblyResult buildMicroprogramHelper(Enu::CPUType type,
 class CPUBuildHelper: public QObject, public QRunnable {
     Q_OBJECT
 public:
-    explicit CPUBuildHelper(Enu::CPUType type, bool useExtendedFeatures,
+    explicit CPUBuildHelper(PepCore::CPUType type, bool useExtendedFeatures,
                             const QString source, QFileInfo source_file_info,
                             QObject *parent = nullptr);
     ~CPUBuildHelper() override;
@@ -83,7 +84,7 @@ public:
     // error file path.
     void set_error_file(QString error_file);
 private:
-    const Enu::CPUType type;
+    const PepCore::CPUType type;
     bool useExtendedFeatures;
     const QString source;
     QFileInfo error_log;

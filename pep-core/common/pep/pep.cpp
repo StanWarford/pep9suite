@@ -84,7 +84,7 @@ QMap<QString, Enu::ECPUKeywords> Pep::mnemonToRegSpecMap;
 QMap<QString, Enu::ECPUKeywords> Pep::mnemonToStatusSpecMap;
 
 
-void Pep::initMicroEnumMnemonMaps(CPUType cpuType, bool fullCtrlSection)
+void Pep::initMicroEnumMnemonMaps(PepCore::CPUType cpuType, bool fullCtrlSection)
 {
     branchFuncToMnemonMap.clear(); mnemonToBranchFuncMap.clear();
     if(fullCtrlSection) {
@@ -116,10 +116,10 @@ void Pep::initMicroEnumMnemonMaps(CPUType cpuType, bool fullCtrlSection)
     mnemonToDecControlMap.insert("CMUX", CMux); decControlToMnemonMap.insert(CMux,"CMUX");
     mnemonToDecControlMap.insert("ALU", ALU); decControlToMnemonMap.insert(ALU,"ALU");
     mnemonToDecControlMap.insert("CSMUX", CSMux); decControlToMnemonMap.insert(CSMux,"CSMUX");
-    if (cpuType == OneByteDataBus) {
+    if (cpuType == PepCore::CPUType::OneByteDataBus) {
         mnemonToDecControlMap.insert("MDRMUX", MDRMux); decControlToMnemonMap.insert(MDRMux,"MDRMUX");
     }
-    else if (cpuType == TwoByteDataBus){
+    else if (cpuType == PepCore::CPUType::TwoByteDataBus){
         mnemonToDecControlMap.insert("MARMUX", MARMux); decControlToMnemonMap.insert(MARMux,"MARMUX");
         mnemonToDecControlMap.insert("MDROMUX", MDROMux); decControlToMnemonMap.insert(MDROMux,"MDROMUX");
         mnemonToDecControlMap.insert("MDREMUX", MDREMux); decControlToMnemonMap.insert(MDREMux,"MDREMUX");
@@ -141,10 +141,10 @@ void Pep::initMicroEnumMnemonMaps(CPUType cpuType, bool fullCtrlSection)
     if(fullCtrlSection) {
         clockControlToMnemonMap.insert(PValidCk, "PValidCk"); mnemonToClockControlMap.insert("PVALIDCK", PValidCk);
     }
-    if (cpuType == OneByteDataBus) {
+    if (cpuType == PepCore::CPUType::OneByteDataBus) {
         clockControlToMnemonMap.insert(MDRCk, "MDRCk");     mnemonToClockControlMap.insert("MDRCK", MDRCk);
     }
-    else if (cpuType == TwoByteDataBus){
+    else if (cpuType == PepCore::CPUType::TwoByteDataBus){
         clockControlToMnemonMap.insert(MDROCk, "MDROCk");     mnemonToClockControlMap.insert("MDROCK", MDROCk);
         clockControlToMnemonMap.insert(MDRECk, "MDRECk");     mnemonToClockControlMap.insert("MDRECK", MDRECk);
     }

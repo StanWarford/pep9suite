@@ -38,7 +38,7 @@
 #include "pep9specification.h"
 #include "termhelper.h"
 
-CPURunHelper::CPURunHelper(Enu::CPUType type, const QString microcodeProgram,
+CPURunHelper::CPURunHelper(PepCore::CPUType type, const QString microcodeProgram,
                            QFileInfo microcodeProgramFile,
                            const QString preconditionsProgram,
                            QObject *parent) :

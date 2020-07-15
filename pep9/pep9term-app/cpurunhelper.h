@@ -26,6 +26,7 @@
 #include <QRunnable>
 #include <QSharedPointer>
 
+#include "pep/constants.h"
 #include "pep/enu.h"
 
 class MainMemory;
@@ -59,7 +60,7 @@ class CPURunHelper: public QObject, public QRunnable {
 public:
     // Program input may be an empty file. If it is empty or does not
     // exist, then it will be ignored.
-    explicit CPURunHelper(Enu::CPUType type,
+    explicit CPURunHelper(PepCore::CPUType type,
                        const QString microcodeProgram, QFileInfo microcodeProgramFile,
                        const QString preconditionsProgram,
                        QObject *parent = nullptr);
@@ -89,7 +90,7 @@ public:
     // error file path.
     void set_error_file(QString error_file);
 private:
-   Enu::CPUType type;
+   PepCore::CPUType type;
    const QString microcodeProgram;
    QFileInfo microcodeProgramFile;
    const QString preconditionsProgram;

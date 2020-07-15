@@ -40,10 +40,10 @@ FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager,
                                      QSharedPointer<const Pep9> pep_version,
                                      QSharedPointer<AMemoryDevice> memoryDev,
                                      QObject* parent) noexcept: ACPUModel (memoryDev, parent),
-    InterfaceMCCPU(Enu::CPUType::TwoByteDataBus), Pep9InterfaceISACPU(memoryDev.get(), manager),
+    InterfaceMCCPU(PepCore::CPUType::TwoByteDataBus), Pep9InterfaceISACPU(memoryDev.get(), manager),
     pep_version(pep_version), memoizer(new FullMicrocodedMemoizer(*this))
 {
-    data = new CPUDataSection(Enu::CPUType::TwoByteDataBus, pep_version, memoryDev, parent);
+    data = new CPUDataSection(PepCore::CPUType::TwoByteDataBus, pep_version, memoryDev, parent);
     dataShared = QSharedPointer<CPUDataSection>(data);
     // Create & register callbacks for breakpoint interrupts.
     std::function<void(void)> mcHandler = [this](){this->breakpointMicroHandler();};
@@ -149,7 +149,7 @@ bool FullMicrocodedCPU::hadErrorOnStep() const noexcept
     return controlError || data->hadErrorOnStep() || memory->hadError();
 }
 
-void FullMicrocodedCPU::setCPUType(Enu::CPUType)
+void FullMicrocodedCPU::setCPUType(PepCore::CPUType)
 {
     throw std::logic_error("Can't change CPU type on fullmicrococdedcpu, it must always be two byte bus");
 }

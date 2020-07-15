@@ -140,7 +140,7 @@ void MicroStepHelper::assembleMicrocode()
     QFile errorLog(QFileInfo(microcodeProgramFile).absoluteDir().absoluteFilePath(
                        QFileInfo(microcodeProgramFile).baseName() + "_errLog.txt"));
 
-    auto programResult = buildMicroprogramHelper(Enu::CPUType::TwoByteDataBus, false,
+    auto programResult = buildMicroprogramHelper(PepCore::CPUType::TwoByteDataBus, false,
                                           microcodeProgram);
     MicrocodeAssemblyResult preconditionResult;
     // If there were errors assembling input program, attempt to write all of
@@ -179,7 +179,7 @@ void MicroStepHelper::assembleMicrocode()
     }
 
     if(!preconditionsProgram.isEmpty()) {
-        preconditionResult = buildMicroprogramHelper(Enu::CPUType::TwoByteDataBus, false,
+        preconditionResult = buildMicroprogramHelper(PepCore::CPUType::TwoByteDataBus, false,
                                               preconditionsProgram);
         // If there were errors processing precondition microcode program,
         // attempt to write all of them to the error file.

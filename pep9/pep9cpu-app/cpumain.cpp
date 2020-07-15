@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     argc+=2;
 #endif
     // Initialize all global maps.
-    Pep::initMicroEnumMnemonMaps(Enu::CPUType::OneByteDataBus, false);
+    Pep::initMicroEnumMnemonMaps(PepCore::CPUType::OneByteDataBus, false);
 
     qInstallMessageHandler(nullptr);
 

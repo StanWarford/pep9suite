@@ -5,7 +5,7 @@
 #include "symbol/symbolentry.h"
 
 
-MicroCode::MicroCode(Enu::CPUType cpuType, bool extendedFeatures): AExecutableMicrocode(false,QString(), nullptr),
+MicroCode::MicroCode(PepCore::CPUType cpuType, bool extendedFeatures): AExecutableMicrocode(false,QString(), nullptr),
     cpuType(cpuType), controlSignals(Pep::numControlSignals(), Enu::signalDisabled),
     clockSignals(Pep::numClockSignals(), false), extendedFeatures(extendedFeatures), branchFunc(Enu::Assembler_Assigned),
     trueTargetAddr(nullptr), falseTargetAddr(nullptr)
@@ -31,7 +31,7 @@ QString MicroCode::getObjectCode() const
     //  value produces left-aligned text.
 
     QString str = "";
-    if (cpuType == Enu::OneByteDataBus) {
+    if (cpuType == PepCore::CPUType::OneByteDataBus) {
         str.append(clockSignals[Enu::LoadCk] == 0? "  " : QString("%1").arg(clockSignals[Enu::LoadCk], -2));
         str.append(controlSignals[Enu::C] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[Enu::C], -3));
         str.append(controlSignals[Enu::B] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[Enu::B], -3));
@@ -52,7 +52,7 @@ QString MicroCode::getObjectCode() const
         str.append(controlSignals[Enu::MemWrite] != 1 ? "  " : QString("%1").arg(controlSignals[Enu::MemWrite], -2));
         str.append(controlSignals[Enu::MemRead] != 1 ? "  " : QString("%1").arg(controlSignals[Enu::MemRead], -2));
     }
-    else if (cpuType == Enu::TwoByteDataBus) {
+    else if (cpuType == PepCore::CPUType::TwoByteDataBus) {
         str.append(clockSignals[Enu::LoadCk] == 0 ? "  " : QString("%1").arg(clockSignals[Enu::LoadCk], -2));
         str.append(controlSignals[Enu::C] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[Enu::C], -3));
         str.append(controlSignals[Enu::B] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[Enu::B], -3));
@@ -88,7 +88,7 @@ QString MicroCode::getSourceCode() const
         symbolString.append(symbol->getName()+": ");
     }
 
-    if (cpuType == Enu::OneByteDataBus) {
+    if (cpuType == PepCore::CPUType::OneByteDataBus) {
         if (controlSignals[Enu::MemRead] != Enu::signalDisabled) { str.append("MemRead, "); }
         if (controlSignals[Enu::MemWrite] != Enu::signalDisabled) { str.append("MemWrite, "); }
         if (controlSignals[Enu::A] != Enu::signalDisabled) { str.append("A=" + QString("%1").arg(controlSignals[Enu::A]) + ", "); }
@@ -115,7 +115,7 @@ QString MicroCode::getSourceCode() const
         if (str.endsWith(", ") || str.endsWith("; ")) { str.chop(2); }
     }
 
-    else if (cpuType == Enu::TwoByteDataBus) {
+    else if (cpuType == PepCore::CPUType::TwoByteDataBus) {
         if (controlSignals[Enu::MemRead] != Enu::signalDisabled) { str.append("MemRead, "); }
         if (controlSignals[Enu::MemWrite] != Enu::signalDisabled) { str.append("MemWrite, "); }
         if (controlSignals[Enu::A] != Enu::signalDisabled) { str.append("A=" + QString("%1").arg(controlSignals[Enu::A]) + ", "); }

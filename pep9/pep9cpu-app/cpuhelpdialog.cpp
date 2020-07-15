@@ -49,7 +49,7 @@ CPUHelpDialog::CPUHelpDialog(QWidget *parent) :
     //ui->helpTextEdit = new ui->helpTextEdit(false, true, this);
     //ui->verticalLayout->insertWidget(0, ui->helpTextEdit);
 
-    leftHighlighter = new PepMicroHighlighter(Enu::CPUType::OneByteDataBus, false, PepColors::lightMode, ui->helpTextEdit->document());
+    leftHighlighter = new PepMicroHighlighter(PepCore::CPUType::OneByteDataBus, false, PepColors::lightMode, ui->helpTextEdit->document());
     leftHighlighter->forceAllFeatures(true);
     ui->helpTreeWidget->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
 
@@ -79,7 +79,7 @@ QString CPUHelpDialog::getExampleText()
     return ui->helpTextEdit->toPlainText();
 }
 
-Enu::CPUType CPUHelpDialog::getExamplesModel()
+PepCore::CPUType CPUHelpDialog::getExamplesModel()
 {
     // Is this a subcategory?
     bool isHelpSubCat = ui->helpTreeWidget->currentIndex().parent().isValid();
@@ -89,19 +89,19 @@ Enu::CPUType CPUHelpDialog::getExamplesModel()
     int row = ui->helpTreeWidget->currentIndex().row();
 
     if ((!isHelpSubCat && row == eONEBYTEBUSEXAMPLES) || parentRow == eONEBYTEBUSEXAMPLES) {
-        return Enu::OneByteDataBus;
+        return PepCore::CPUType::OneByteDataBus;
     }
     else if ((!isHelpSubCat && row == eTWOBYTEBUSEXAMPLES) || parentRow == eTWOBYTEBUSEXAMPLES) {
-        return Enu::TwoByteDataBus;
+        return PepCore::CPUType::TwoByteDataBus;
     }
     else if ((!isHelpSubCat && row == eONEBYTEBUSPROBLEMS) || parentRow == eONEBYTEBUSPROBLEMS) {
-        return Enu::OneByteDataBus;
+        return PepCore::CPUType::OneByteDataBus;
     }
     else if ((!isHelpSubCat && row == eTWOBYTEBUSPROBLEMS) || parentRow == eTWOBYTEBUSPROBLEMS) {
-        return Enu::TwoByteDataBus;
+        return PepCore::CPUType::TwoByteDataBus;
     }
     else{ //This case should never be reached, but is needed to silence a compiler warning
-        return Enu::OneByteDataBus; //Default to one byte data bus.
+        return PepCore::CPUType::OneByteDataBus; //Default to one byte data bus.
     }
 }
 

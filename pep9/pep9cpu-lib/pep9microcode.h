@@ -6,6 +6,7 @@
 #include <QVector>
 
 #include "microassembler/microcode.h"
+#include "pep/constants.h"
 #include "pep/enu.h"
 
 class SymbolEntry;
@@ -16,7 +17,7 @@ class AMemoryDevice;
 class MicroCode: public AExecutableMicrocode
 {
 public:
-    MicroCode(Enu::CPUType cpuType, bool useExtendedFatures);
+    MicroCode(PepCore::CPUType cpuType, bool useExtendedFatures);
 
     QString getObjectCode() const override;
     QString getSourceCode() const override;
@@ -44,7 +45,7 @@ public:
     void setFalseTarget(const SymbolEntry* target);
 
 private:
-    Enu::CPUType cpuType;
+    PepCore::CPUType cpuType;
     QVector<quint8> controlSignals;
     QVector<bool> clockSignals;
     bool extendedFeatures;

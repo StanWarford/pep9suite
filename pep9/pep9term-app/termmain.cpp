@@ -391,9 +391,9 @@ void handle_cpuasm(command_line_values &values, QRunnable **runnable)
     }
 
     // Determine CPU type.
-    Enu::CPUType type = Enu::CPUType::OneByteDataBus;
+    auto type = PepCore::CPUType::OneByteDataBus;
     if(values.had_d2) {
-       type = Enu::CPUType::TwoByteDataBus;
+       type = PepCore::CPUType::TwoByteDataBus;
     }
 
     // Enable or disable full control section features depending on passed flags.
@@ -435,9 +435,9 @@ void handle_cpurun(command_line_values &values, QRunnable **run)
     }
 
     // Determine CPU type.
-    Enu::CPUType type = Enu::CPUType::OneByteDataBus;
+    auto type = PepCore::CPUType::OneByteDataBus;
     if(values.had_d2) {
-       type = Enu::CPUType::TwoByteDataBus;
+       type = PepCore::CPUType::TwoByteDataBus;
     }
 
     // Enable or disable full control section features depending on passed flags.

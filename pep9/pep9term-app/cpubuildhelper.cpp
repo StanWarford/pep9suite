@@ -30,7 +30,7 @@
 #include "microasm.h"
 #include "termhelper.h"
 
-CPUBuildHelper::CPUBuildHelper(Enu::CPUType type,bool useExtendedFeatures,
+CPUBuildHelper::CPUBuildHelper(PepCore::CPUType type,bool useExtendedFeatures,
                                const QString source, QFileInfo source_file_info,
                                QObject *parent):
     QObject(parent), QRunnable(), type(type), useExtendedFeatures(useExtendedFeatures),
@@ -107,7 +107,7 @@ void CPUBuildHelper::set_error_file(QString error_file)
     this->error_log = error_file;
 }
 
-MicrocodeAssemblyResult buildMicroprogramHelper(Enu::CPUType type,
+MicrocodeAssemblyResult buildMicroprogramHelper(PepCore::CPUType type,
                                                 bool useExtendedFeatures,
                                                 const QString source)
 {
