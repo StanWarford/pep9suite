@@ -21,6 +21,7 @@
 #include "interfacemccpu.h"
 
 #include "microassembler/microcodeprogram.h"
+#include "microassembler/microcode.h"
 
 InterfaceMCCPU::InterfaceMCCPU(Enu::CPUType type) noexcept: microprogramCounter(0), microCycleCounter(0),
     microBreakpointHit(false), sharedProgram(nullptr), type(type)
@@ -31,6 +32,51 @@ InterfaceMCCPU::InterfaceMCCPU(Enu::CPUType type) noexcept: microprogramCounter(
 InterfaceMCCPU::~InterfaceMCCPU()
 {
 
+}
+
+void InterfaceMCCPU::breakpointsSet(QSet<quint16> addressess)
+{
+    breakpointsRemoveAll();
+    for(auto line : addressess) {
+        breakpointAdded(line);
+    }
+}
+
+void InterfaceMCCPU::breakpointsRemoveAll()
+{
+    if(!sharedProgram.isNull()) {
+        for(int it=0;it<sharedProgram->codeLength();it++) {
+            sharedProgram->getCodeLine(it)->setBreakpoint(false);
+        }
+    }
+}
+
+void InterfaceMCCPU::breakpointRemoved(quint16 address)
+{
+    if(!sharedProgram.isNull()) {
+        auto assumed_code_line = sharedProgram->getCodeLine(address);
+        if(!assumed_code_line->isMicrocode()) {
+            throw std::invalid_argument(std::to_string(address) + " does not correspond to a line of executable microcode.");
+        }
+        if(auto ptr = dynamic_cast<MicroCode*>(assumed_code_line);
+                ptr != nullptr) {
+            ptr->setBreakpoint(false);
+        }
+    }
+}
+
+void InterfaceMCCPU::breakpointAdded(quint16 address)
+{
+    if(!sharedProgram.isNull()) {
+        auto assumed_code_line = sharedProgram->getCodeLine(address);
+        if(!assumed_code_line->isMicrocode()) {
+            throw std::invalid_argument(std::to_string(address) + " does not correspond to a line of executable microcode.");
+        }
+        if(auto ptr = dynamic_cast<MicroCode*>(assumed_code_line);
+                ptr != nullptr) {
+            ptr->setBreakpoint(true);
+        }
+    }
 }
 
 quint64 InterfaceMCCPU::getCycleCounter() const noexcept

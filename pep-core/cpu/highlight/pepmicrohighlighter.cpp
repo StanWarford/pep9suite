@@ -57,56 +57,55 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
     highlightingRulesTwo.append(rule);
 
     // Only enable highlighting conditionals if the full control section is used
-    if(fullCtrlSection) {
-        symbolFormat.setForeground(color.symbolHighlight);
-        // A symbol is an text from the start of the line up to, but not including a ':'
-        // Selects most accented unicode characters, based on answer:
-        // https://stackoverflow.com/a/26900132
-        rule.pattern = QRegExp("^([A-zÀ-ÖØ-öø-ÿ][0-9A-zÀ-ÖØ-öø-ÿ]*)(?=:)\\b");
+    symbolFormat.setForeground(color.symbolHighlight);
+    // A symbol is an text from the start of the line up to, but not including a ':'
+    // Selects most accented unicode characters, based on answer:
+    // https://stackoverflow.com/a/26900132
+    rule.pattern = QRegExp("^([A-zÀ-ÖØ-öø-ÿ][0-9A-zÀ-ÖØ-öø-ÿ]*)(?=:)\\b");
+    rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
+    rule.format = symbolFormat;
+    highlightingRulesOneExt.append(rule);
+    highlightingRulesTwoExt.append(rule);
+    identFormat.setForeground(color.seqCircuitColor);
+
+    // Treat anything following an if, else, or a goto as a valid identifier
+    // and highlight it in blue
+    QStringList symLoc;
+    symLoc << ("else \\w+")
+           << ("if \\w+ \\w+")
+           << ("goto \\w+");
+    foreach (const QString &pattern, symLoc) {
+        rule.pattern = QRegExp(pattern);
         rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
-        rule.format = symbolFormat;
-        highlightingRulesOne.append(rule);
-        highlightingRulesTwo.append(rule);
-        identFormat.setForeground(color.seqCircuitColor);
-
-        // Treat anything following an if, else, or a goto as a valid identifier
-        // and highlight it in blue
-        QStringList symLoc;
-        symLoc << ("else \\w+")
-               << ("if \\w+ \\w+")
-               << ("goto \\w+");
-        foreach (const QString &pattern, symLoc) {
-            rule.pattern = QRegExp(pattern);
-            rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
-            rule.format = identFormat;
-            highlightingRulesOne.append(rule);
-            highlightingRulesTwo.append(rule);
-        }
-
-        // Highlight the special conditional branching keywords
-        conditionalFormat.setForeground(color.conditionalHighlight);
-        QStringList keywords;
-        keywords << "if" << "else" << "goto" << "stopCPU";
-        foreach (const QString &pattern, keywords) {
-            rule.pattern = QRegExp(pattern);
-            rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
-            rule.format = conditionalFormat;
-            highlightingRulesOne.append(rule);
-            highlightingRulesTwo.append(rule);
-        }
-
-        // Highlight the branch functions
-        branchFunctionFormat.setForeground(color.branchFunctionHighlight);
-        for(QString function : Pep::branchFuncToMnemonMap.values())
-        {
-            // A branch function is a string followed by a space or newline.
-            rule.pattern = QRegExp(function.append("\\W+"), Qt::CaseInsensitive);
-            rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
-            rule.format = branchFunctionFormat;
-            highlightingRulesOne.append(rule);
-            highlightingRulesTwo.append(rule);
-        }
+        rule.format = identFormat;
+        highlightingRulesOneExt.append(rule);
+        highlightingRulesTwoExt.append(rule);
     }
+
+    // Highlight the special conditional branching keywords
+    conditionalFormat.setForeground(color.conditionalHighlight);
+    QStringList keywords;
+    keywords << "if" << "else" << "goto" << "stopCPU";
+    foreach (const QString &pattern, keywords) {
+        rule.pattern = QRegExp(pattern);
+        rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
+        rule.format = conditionalFormat;
+        highlightingRulesOneExt.append(rule);
+        highlightingRulesTwoExt.append(rule);
+    }
+
+    // Highlight the branch functions
+    branchFunctionFormat.setForeground(color.branchFunctionHighlight);
+    for(QString function : Pep::branchFuncToMnemonMap.values())
+    {
+        // A branch function is a string followed by a space or newline.
+        rule.pattern = QRegExp(function.append("\\W+"), Qt::CaseInsensitive);
+        rule.pattern.setCaseSensitivity(Qt::CaseInsensitive);
+        rule.format = branchFunctionFormat;
+        highlightingRulesOneExt.append(rule);
+        highlightingRulesTwoExt.append(rule);
+    }
+
     oprndFormat.setForeground(color.leftOfExpression);
     oprndFormat.setFontWeight(QFont::Bold);
     QStringList oprndPatterns;
@@ -165,6 +164,10 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
 
     highlightingRulesAll.append(highlightingRulesOne);
     highlightingRulesAll.append(highlightingRulesTwo);
+    highlightingRulesOneExt.append(highlightingRulesOne);
+    highlightingRulesTwoExt.append(highlightingRulesTwo);
+    highlightingRulesAllExt.append(highlightingRulesOneExt);
+    highlightingRulesAllExt.append(highlightingRulesTwoExt);
 }
 
 void PepMicroHighlighter::setCPUType(Enu::CPUType type)
@@ -172,13 +175,22 @@ void PepMicroHighlighter::setCPUType(Enu::CPUType type)
     cpuType = type;
 }
 
+void PepMicroHighlighter::setFullControlSection(bool fullCtrlSection)
+{
+    this->fullCtrlSection = fullCtrlSection;
+}
+
 void PepMicroHighlighter::highlightBlock(const QString &text)
 {
     QVector<HighlightingRule> highlightingRules;
-    if(forcedFeatures){
-        highlightingRules=highlightingRulesAll;
+    if(forcedFeatures) {
+        highlightingRules = fullCtrlSection ? highlightingRulesAllExt : highlightingRulesAll;
     }
-    else{
+    else if (fullCtrlSection) {
+        highlightingRules = (cpuType == Enu::CPUType::OneByteDataBus
+                ? highlightingRulesOneExt : highlightingRulesTwoExt);
+    }
+    else {
         highlightingRules = (cpuType == Enu::CPUType::OneByteDataBus
                 ? highlightingRulesOne : highlightingRulesTwo);
     }

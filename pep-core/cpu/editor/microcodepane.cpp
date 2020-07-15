@@ -25,7 +25,7 @@
 #include <QFontDialog>
 #include <QGridLayout>
 
-#include "cpu/cpudata.h"
+#include "cpu/interfacemccpu.h"
 #include "microassembler/microcode.h"
 #include "microassembler/microcodeprogram.h"
 #include "style/colors.h"
@@ -35,8 +35,8 @@
 #include "symbol/symboltable.h"
 
 MicrocodePane::MicrocodePane(QWidget *parent) :
-        QWidget(parent), dataSection(nullptr),
-        ui(new Ui::MicrocodePane), inDarkMode(false), symbolTable(nullptr), program(nullptr), currentFile(), microASM(nullptr)
+        QWidget(parent),
+        ui(new Ui::MicrocodePane), inDarkMode(false),  currentFile()
 {
     ui->setupUi(this);
 
@@ -69,76 +69,14 @@ MicrocodePane::~MicrocodePane()
     delete ui;
 }
 
-void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu,
-                         QSharedPointer<CPUDataSection> newData,
-                         bool fullCtrlSection)
+void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu, bool fullCtrlSection)
 {
-    if(!dataSection.isNull()) {
-        disconnect(dataSection.get(), &CPUDataSection::CPUTypeChanged,
-                   this, &MicrocodePane::onCPUTypeChanged);
-    }
-    if(microASM != nullptr) delete microASM;
-    microASM = new MicroAsm(newData->getCPUType(), fullCtrlSection);
-    dataSection = newData;
-    connect(dataSection.get(), &CPUDataSection::CPUTypeChanged, this, &MicrocodePane::onCPUTypeChanged);
+
     editor->init(cpu);
 
-    useFullCtrlSection(fullCtrlSection);
+    highlighter = new PepMicroHighlighter(cpu->getCPUType(), fullCtrlSection, PepColors::lightMode,editor->document());
     // Use helper function to set correct default names of microcode files on load.
     setCurrentFile("");
-}
-
-void MicrocodePane::initCPUModelState()
-{
-    if (highlighter != nullptr) {
-        delete highlighter;
-    }
-    highlighter = new PepMicroHighlighter(dataSection->getCPUType(), fullCtrlSection, PepColors::lightMode,editor->document());
-
-}
-
-bool MicrocodePane::microAssemble()
-{
-    QVector<AMicroCode*> codeList;
-    if(isModified() == false && program != nullptr) {
-        return true;
-    }
-
-    removeErrorMessages();
-    QString sourceCode = editor->toPlainText().trimmed();
-
-    if(symbolTable) {
-        symbolTable.clear();
-    }
-
-    microASM->setCPUType(dataSection->getCPUType());
-    auto result = microASM->assembleProgram(sourceCode);
-    for(auto& [line, message] : result.errorMessages) {
-        appendMessageInSourceCodePaneAt(line, message);
-    }
-    if(result.success) {
-        this->symbolTable = result.symTable;
-        this->program = result.program;
-        // Use line - 1, since internally code lines are 0 indexed, but display as 1 indexed.
-        for(auto line : editor->getBreakpoints()) {
-            program->getCodeLine(line - 1)->setBreakpoint(true);
-        }
-    }
-    return true;
-}
-
-void MicrocodePane::clearProgram()
-{
-    // If an invalid program is saved, it might be incorrectly "run"
-    // due to caching in microcode pane. Clearing the cached microprogram
-    // will work around this bug. Also clear symbol table as it is associated
-    // with a microcode program.
-    program.clear();
-    symbolTable.clear();
-}
-
-QSharedPointer<MicrocodeProgram> MicrocodePane::getMicrocodeProgram() {
-    return program;
 }
 
 void MicrocodePane::removeErrorMessages()
@@ -200,7 +138,6 @@ void MicrocodePane::setMicrocode(QString microcode)
     }
     microcode = sourceCodeList.join("\n");
     editor->setPlainText(microcode);
-    program = nullptr;
     setLabelToModified(true);
 }
 
@@ -339,9 +276,19 @@ QString MicrocodePane::toPlainText()
 
 void MicrocodePane::useFullCtrlSection(bool fullCtrlSection)
 {
-    microASM->useExtendedAssembler(fullCtrlSection);
     this->fullCtrlSection = fullCtrlSection;
-    initCPUModelState();
+    highlighter->setFullControlSection(fullCtrlSection);
+    highlighter->rehighlight();
+}
+
+QSet<quint16> MicrocodePane::getBreakpoints() const
+{
+    QSet<quint16> points;
+    // Use line-1, since internally code lines are 0 indexed, but display as 1 indexed.
+    for(auto point : editor->getBreakpoints()) {
+        points.insert(point-1);
+    }
+    return points;
 }
 
 void MicrocodePane::onFontChanged(QFont font)
@@ -361,17 +308,10 @@ void MicrocodePane::onDarkModeChanged(bool darkMode)
 void MicrocodePane::onRemoveAllBreakpoints()
 {
     editor->onRemoveAllBreakpoints();
-    if(program == nullptr) return;
-    else {
-        for(quint16 it = 0; it < program->codeLength(); it++) {
-            program->getCodeLine(it)->setBreakpoint(false);
-        }
-    }
 }
 
 void MicrocodePane::onCPUTypeChanged(Enu::CPUType type)
 {
-    program.clear();
     highlighter->setCPUType(type);
     highlighter->rehighlight();
 }
@@ -391,15 +331,14 @@ void MicrocodePane::setLabelToModified(bool modified)
 void MicrocodePane::onBreakpointAdded(quint16 line)
 {
     // Use line-1, since internally code lines are 0 indexed, but display as 1 indexed.
-    if(program == nullptr) return;
-    else program->getCodeLine(line - 1)->setBreakpoint(true);
+    emit breakpointAdded(line - 1);
 }
 
 void MicrocodePane::onBreakpointRemoved(quint16 line)
 {
     // Use line-1, since internally code lines are 0 indexed, but display as 1 indexed.
-    if(program == nullptr) return;
-    else program->getCodeLine(line - 1)->setBreakpoint(false);
+    emit breakpointRemoved(line - 1);
+
 }
 
 void MicrocodePane::changeEvent(QEvent *e)

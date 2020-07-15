@@ -42,19 +42,7 @@ public:
     MicrocodePane(QWidget *parent = nullptr);
     ~MicrocodePane();
 
-    void init(QSharedPointer<InterfaceMCCPU> cpu, QSharedPointer<CPUDataSection> dataSection, bool fullCtrlSection);
-    void initCPUModelState();
-
-    bool microAssemble();
-    // Pre: The source code pane contains a Pep/9 microcode program.
-    // Post: If the program assembles correctly, true is returned, and codeList is populated
-    // with the code structs. Otherwise false is returned and codeList is partially populated.
-
-    void clearProgram();
-    // Post: internal program is set to nullptr. This is needed to remove
-    // a cached microcode program upon saving.
-
-    QSharedPointer<MicrocodeProgram> getMicrocodeProgram();
+    void init(QSharedPointer<InterfaceMCCPU> cpu, bool fullCtrlSection);
 
     void removeErrorMessages();
     // Post: Searces for the string "// ERROR: " on each line and removes the end of the line.
@@ -106,24 +94,24 @@ public:
 
     void useFullCtrlSection(bool fullCtrlSection);
 
+    QSet<quint16> getBreakpoints() const;
+
 public slots:
     void onFontChanged(QFont font);
     void onDarkModeChanged(bool darkMode);
     void onRemoveAllBreakpoints();
     void onCPUTypeChanged(Enu::CPUType type);
-
+signals:
+    void breakpointAdded(quint16 line);
+    void breakpointRemoved(quint16 line);
 protected:
     void changeEvent(QEvent *e);
 
 private:
     Ui::MicrocodePane *ui;
-    QSharedPointer<CPUDataSection> dataSection;
-    MicroAsm *microASM;
     bool inDarkMode, fullCtrlSection;
-    QSharedPointer<SymbolTable> symbolTable;
     PepMicroHighlighter *highlighter;
     MicrocodeEditor *editor;
-    QSharedPointer<MicrocodeProgram> program;
     QFile currentFile;
 private slots:
     void setLabelToModified(bool modified);

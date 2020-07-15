@@ -63,6 +63,7 @@
 CPUMainWindow::CPUMainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::CPUMainWindow), pep_version(new Pep9()),
+    micro_assembler(Enu::CPUType::OneByteDataBus, false),
     debugState(DebugState::DISABLED), codeFont(QFont(PepCore::codeFont, PepCore::codeFontSize)),
     updateChecker(new UpdateChecker()),  isInDarkMode(false),
     memDevice(new MainMemory(nullptr)),
@@ -87,7 +88,7 @@ CPUMainWindow::CPUMainWindow(QWidget *parent) :
     ui->memoryWidget->setHighlightPC(false);
     ui->memoryWidget->showJumpToPC(false);
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
-    ui->microcodeWidget->init(controlSection, dataSection, false);
+    ui->microcodeWidget->init(controlSection, false);
     ui->microobjectWidget->init(controlSection, false);
 
     // Create button group to hold CPU types
@@ -128,6 +129,8 @@ CPUMainWindow::CPUMainWindow(QWidget *parent) :
     connect(ui->microcodeWidget, &MicrocodePane::redoAvailable, this, &CPUMainWindow::setRedoability);
 
     // Connect simulation events.
+    // Connect cpu tpye events.
+    connect(dataSection.get(), &CPUDataSection::CPUTypeChanged, ui->microcodeWidget, &MicrocodePane::onCPUTypeChanged);
     // Events that fire on simulationUpdate should be UniqueConnections, as they will be repeatedly connected and disconnected
     // via connectMicroDraw() and disconnectMicroDraw().
     connect(this, &CPUMainWindow::simulationUpdate, ui->cpuWidget, &CpuPane::onSimulationUpdate, Qt::UniqueConnection);
@@ -178,6 +181,8 @@ CPUMainWindow::CPUMainWindow(QWidget *parent) :
 
     // Connect events for breakpoints
     connect(ui->actionDebug_Remove_All_Microcode_Breakpoints, &QAction::triggered, ui->microcodeWidget, &MicrocodePane::onRemoveAllBreakpoints);
+    connect(ui->microcodeWidget, &MicrocodePane::breakpointAdded, [=](quint16 line){controlSection->breakpointAdded(line);});
+    connect(ui->microcodeWidget, &MicrocodePane::breakpointRemoved, [=](quint16 line){controlSection->breakpointRemoved(line);});
 
     //Initialize debug menu
     handleDebugButtons();
@@ -358,10 +363,6 @@ bool CPUMainWindow::save()
     }
     else retVal = saveFile(ui->microcodeWidget->getCurrentFile().fileName());
     if(retVal) {
-        // If an invalid program is saved, it might be incorrectly "run"
-        // due to caching in microcode pane. Clearing the cached microprogram
-        // will work around this bug.
-        ui->microcodeWidget->clearProgram();
         ui->microcodeWidget->setModifiedFalse();
     }
     return retVal;
@@ -557,23 +558,31 @@ void CPUMainWindow::highlightActiveLines()
 bool CPUMainWindow::initializeSimulation()
 {
     // Load microprogram into the micro control store
-    if (ui->microcodeWidget->microAssemble()) {
+    micro_assembler.setCPUType(dataSection->getCPUType());
+    auto result = micro_assembler.assembleProgram(ui->microcodeWidget->getMicrocodeText());
+    for(auto& [line, message] : result.errorMessages) {
+        ui->microcodeWidget->appendMessageInSourceCodePaneAt(line, message);
+    }
+    if (result.success) {
         ui->statusBar->showMessage("MicroAssembly succeeded", 4000);
-        if(ui->microcodeWidget->getMicrocodeProgram()->hasMicrocode() == false)
+        if(result.program->hasMicrocode() == false)
         {
             ui->statusBar->showMessage("No microcode program to build", 4000);
             return false;
         }
-        ui->microobjectWidget->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
-        controlSection->setMicrocodeProgram(ui->microcodeWidget->getMicrocodeProgram());
+        ui->microobjectWidget->setObjectCode(result.program, nullptr);
+        controlSection->setMicrocodeProgram(result.program);
+        controlSection->breakpointsSet(ui->microcodeWidget->getBreakpoints());
     }
     else {
         ui->statusBar->showMessage("MicroAssembly failed", 4000);
+        ui->microobjectWidget->setObjectCode();
+        controlSection->setMicrocodeProgram(nullptr);
         return false;
     }
 
     // If there are preconditions, then clear memory & CPU
-    if(ui->microcodeWidget->getMicrocodeProgram()->hasUnitPre()) {
+    if(result.program->hasUnitPre()) {
         // Clear data models & application views
         controlSection->onResetCPU();
         controlSection->initCPU();
@@ -582,7 +591,7 @@ bool CPUMainWindow::initializeSimulation()
 
         CPUDataSection* data = this->dataSection.get();
         AMemoryDevice* memory = this->memDevice.get();
-        for(auto line : ui->microcodeWidget->getMicrocodeProgram()->getObjectCode()) {
+        for(auto line : result.program->getObjectCode()) {
             if(line->hasUnitPre()) {
                 static_cast<UnitPreCode*>(line)->setUnitPre(data, memory);
             }
@@ -700,9 +709,15 @@ void CPUMainWindow::on_actionEdit_UnComment_Line_triggered()
 
 void CPUMainWindow::on_actionEdit_Format_Microcode_triggered()
 {
-    if (ui->microcodeWidget->microAssemble()) {
-        ui->microcodeWidget->setMicrocode(ui->microcodeWidget->getMicrocodeProgram()->format());
+    micro_assembler.setCPUType(dataSection->getCPUType());
+    auto result = micro_assembler.assembleProgram(ui->microcodeWidget->getMicrocodeText());
+    if(result.success) {
+        ui->microcodeWidget->setMicrocode(result.program->format());
     }
+    for(auto& [line, message] : result.errorMessages) {
+        ui->microcodeWidget->appendMessageInSourceCodePaneAt(line, message);
+    }
+
 }
 
 void CPUMainWindow::on_actionEdit_Remove_Error_Microcode_triggered()
@@ -728,13 +743,21 @@ void CPUMainWindow::on_actionEdit_Reset_font_to_Default_triggered()
 
 bool CPUMainWindow::on_actionBuild_Microcode_triggered()
 {
-    if(ui->microcodeWidget->microAssemble()) {
+    micro_assembler.setCPUType(dataSection->getCPUType());
+    auto result = micro_assembler.assembleProgram(ui->microcodeWidget->getMicrocodeText());
+    for(auto& [line, message] : result.errorMessages) {
+        ui->microcodeWidget->appendMessageInSourceCodePaneAt(line, message);
+    }
+    if(result.success) {
         ui->statusBar->showMessage("MicroAssembly succeeded", 4000);
-        ui->microobjectWidget->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
+        ui->microobjectWidget->setObjectCode(result.program, nullptr);
+        controlSection->setMicrocodeProgram(result.program);
         return true;
     }
     else {
         ui->statusBar->showMessage("MicroAssembly failed", 4000);
+        ui->microobjectWidget->setObjectCode();
+        controlSection->setMicrocodeProgram(nullptr);
         return false;
     }
 }
@@ -743,9 +766,10 @@ bool CPUMainWindow::on_actionBuild_Microcode_triggered()
 
 void CPUMainWindow::on_actionBuild_Run_triggered()
 {
-    if(!initializeSimulation()) return;
+    bool init_sim = initializeSimulation();
+    if(!init_sim) return;
     debugState = DebugState::RUN;
-    if (initializeSimulation()) {
+    if (init_sim) {
         disconnectViewUpdate();
         emit simulationStarted();
         ui->memoryWidget->updateMemory();
@@ -908,7 +932,7 @@ void CPUMainWindow::onSimulationFinished()
     QString errorString;
     on_actionDebug_Stop_Debugging_triggered();
 
-    QVector<AMicroCode*> prog = ui->microcodeWidget->getMicrocodeProgram()->getObjectCode();
+    QVector<AMicroCode*> prog = controlSection->getProgram()->getObjectCode();
     bool hadPostTest = false;
     CPUDataSection* data = this->dataSection.get();
     AMemoryDevice* memory = this->memDevice.get();
@@ -1205,8 +1229,7 @@ void CPUMainWindow::onCopyToMicrocodeClicked()
     ui->microcodeWidget->setMicrocode(code);
     on_actionBuild_Microcode_triggered();
     statusBar()->showMessage("Copied to microcode", 4000);
-    ui->microcodeWidget->microAssemble();
-    ui->microobjectWidget->setObjectCode(ui->microcodeWidget->getMicrocodeProgram(), nullptr);
+    ui->microobjectWidget->setObjectCode(controlSection->getProgram(), nullptr);
 }
 
 void CPUMainWindow::onBreakpointHit(PepCore::BreakpointTypes type)

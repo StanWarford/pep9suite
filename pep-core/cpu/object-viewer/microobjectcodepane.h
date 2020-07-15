@@ -41,7 +41,7 @@ public:
     virtual ~MicroObjectCodePane() override;
 
     // Must be called after the class is constructed but before it is used, else the program will crash
-    void init(QSharedPointer<InterfaceMCCPU> cpu, bool showCtrlSectionSignals);
+    void init(QSharedPointer<const InterfaceMCCPU> cpu, bool showCtrlSectionSignals);
     void setShowCtrlSectionSignals(bool showCtrlSectionSignals);
 
     void initCPUModelState();
@@ -49,7 +49,7 @@ public:
     void highlightOnFocus();
 
     void setObjectCode();
-    void setObjectCode(QSharedPointer<MicrocodeProgram> prog, QSharedPointer<SymbolTable> symbolTable);
+    void setObjectCode(QSharedPointer<const MicrocodeProgram> prog, QSharedPointer<const SymbolTable> symbolTable);
 
     void highlightCurrentInstruction();
     void clearSimulationView();
@@ -69,9 +69,9 @@ protected:
 
 private:
     Ui::MicroObjectCodePane *ui;
-    QSharedPointer<InterfaceMCCPU> cpu;
-    QSharedPointer<MicrocodeProgram> program;
-    QSharedPointer<SymbolTable> symTable;
+    QSharedPointer<const InterfaceMCCPU> cpu;
+    QSharedPointer<const MicrocodeProgram> program;
+    QSharedPointer<const SymbolTable> symTable;
     quint32 rowCount;
     RotatedHeaderView* rotatedHeaderView;
     DisableSelectionModel* selectionModel;

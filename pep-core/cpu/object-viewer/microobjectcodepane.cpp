@@ -71,7 +71,7 @@ MicroObjectCodePane::~MicroObjectCodePane()
     delete rotatedHeaderView;
 }
 
-void MicroObjectCodePane::init(QSharedPointer<InterfaceMCCPU> newCPU, bool showCtrlSectionSignals)
+void MicroObjectCodePane::init(QSharedPointer<const InterfaceMCCPU> newCPU, bool showCtrlSectionSignals)
 {
     cpu = newCPU;
     this->showCtrlSectionSignals = showCtrlSectionSignals;
@@ -98,7 +98,7 @@ void MicroObjectCodePane::setObjectCode()
     setObjectCode(nullptr, nullptr);
 }
 
-void MicroObjectCodePane::setObjectCode(QSharedPointer<MicrocodeProgram> prog, QSharedPointer<SymbolTable> symbolTable)
+void MicroObjectCodePane::setObjectCode(QSharedPointer<const MicrocodeProgram> prog, QSharedPointer<const SymbolTable> symbolTable)
 {
     assignHeaders();
     this->program = prog;

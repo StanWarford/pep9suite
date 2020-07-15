@@ -40,6 +40,7 @@ public:
     void forceAllFeatures(bool features);
     void rebuildHighlightingRules(const PepColors::Colors color);
     void setCPUType(Enu::CPUType type);
+    void setFullControlSection(bool fullCtrlSection);
 
 protected:
     void highlightBlock(const QString &text);
@@ -54,9 +55,9 @@ private:
         QTextCharFormat format;
     };
     PepColors::Colors colors;
-    QVector<HighlightingRule> highlightingRulesOne;
-    QVector<HighlightingRule> highlightingRulesTwo;
-    QVector<HighlightingRule> highlightingRulesAll;
+    QVector<HighlightingRule> highlightingRulesOne, highlightingRulesOneExt;
+    QVector<HighlightingRule> highlightingRulesTwo, highlightingRulesTwoExt;
+    QVector<HighlightingRule> highlightingRulesAll, highlightingRulesAllExt;
 
     QTextCharFormat oprndFormat;
     QTextCharFormat numFormat;

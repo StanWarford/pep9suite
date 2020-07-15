@@ -30,6 +30,7 @@
 #include "pep/pep9.h"
 
 #include "pep9isaasm.h"
+#include "microassembler/microasm.h"
 
 namespace Ui {
     class MicroMainWindow;
@@ -80,6 +81,8 @@ protected:
 private:
     Ui::MicroMainWindow *ui;
     QSharedPointer<Pep9> pep_version;
+    MicroAsm micro_assembler;
+
     DebugState debugState;
     QString curPath;
     QFont codeFont;

@@ -38,6 +38,12 @@ public:
     // Initialize a Interface for a microcoded CPU with the passed features
     explicit InterfaceMCCPU(Enu::CPUType type) noexcept;
     virtual ~InterfaceMCCPU();
+    // Add, remove, & get breakpoints for the program counter.
+    // Simulation will trap if the program counter is an element of the breakpointSet.
+    void breakpointsSet(QSet<quint16> addressess);
+    void breakpointsRemoveAll();
+    void breakpointRemoved(quint16 address);
+    void breakpointAdded(quint16 address);
 
     // Get the number of elapsed cycles since the simulation started
     quint64 getCycleCounter() const noexcept;

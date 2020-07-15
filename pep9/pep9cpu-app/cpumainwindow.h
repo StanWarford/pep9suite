@@ -24,10 +24,14 @@
 #include <QDir>
 #include <QtWidgets/QMainWindow>
 
+#include "microassembler/microcodeprogram.h"
 #include "pep/constants.h"
 #include "pep/enu.h"
 #include "pep/pep.h"
 #include "pep/pep9.h"
+
+#include "microassembler/microasm.h"
+
 
 namespace Ui {
     class CPUMainWindow;
@@ -39,7 +43,9 @@ class ByteConverterDec;
 class ByteConverterHex;
 class CpuPane;
 class CPUHelpDialog;
+class MicroAsm;
 class MicrocodePane;
+class MicrocodeProgram;
 class MicroObjectCodePane;
 class UpdateChecker;
 class QActionGroup;
@@ -74,6 +80,9 @@ protected:
 private:
     Ui::CPUMainWindow *ui;
     QSharedPointer<Pep9> pep_version;
+    MicroAsm micro_assembler;
+
+
     DebugState debugState;
     QString curPath;
     QFont codeFont;
