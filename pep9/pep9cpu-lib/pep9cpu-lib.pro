@@ -47,6 +47,7 @@ FORMS += \
 
 HEADERS += \
     cpudata.h \
+    cpudefs.h \
     cpugraphicsitems.h \
     cpupane.h \
     microasm.h \
@@ -60,6 +61,7 @@ HEADERS += \
 
 SOURCES += \
     cpudata.cpp \
+    cpudefs.cpp \
     cpugraphicsitems.cpp \
     cpupane.cpp \
     microasm.cpp \

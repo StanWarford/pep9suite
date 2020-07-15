@@ -91,17 +91,6 @@ namespace Enu {
         CMask = 0x01,
     };
 
-    enum MainBusState {
-        None,
-        MemReadFirstWait,
-        MemReadSecondWait,
-        MemReadReady,
-        MemWriteFirstWait,
-        MemWriteSecondWait,
-        MemWriteReady,
-    };
-    Q_ENUM_NS(MainBusState);
-
     // Instruction mnemonics
     enum EControlSignals
     {

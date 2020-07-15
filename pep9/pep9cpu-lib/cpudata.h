@@ -31,6 +31,8 @@
 #include "pep/enu.h"
 #include "pep/pep9.h"
 
+#include "cpudefs.h"
+
 class AMemoryDevice;
 class InterfaceMCCPU;
 class MemorySection;
@@ -61,7 +63,7 @@ public:
     bool valueOnABus(quint8& result) const;
     bool valueOnBBus(quint8& result) const;
     bool valueOnCBus(quint8& result) const;
-    Enu::MainBusState getMainBusState() const;
+    Pep9CPU::MainBusState getMainBusState() const;
 
     //Test for Signals and Registers
     quint8 getControlSignals(Enu::EControlSignals controlSignal) const;
@@ -96,7 +98,7 @@ private:
     QSharedPointer<AMemoryDevice> memDevice;
 
     PepCore::CPUType cpuFeatures;
-    Enu::MainBusState mainBusState;
+    Pep9CPU::MainBusState mainBusState;
     bool emitEvents;
 
     //Data registers

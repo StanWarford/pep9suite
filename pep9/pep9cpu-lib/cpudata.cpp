@@ -33,7 +33,7 @@
 #include "pep9microcode.h"
 CPUDataSection::CPUDataSection(PepCore::CPUType type, QSharedPointer<const APepVersion> pep_version,
                                QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
-    cpuFeatures(type), mainBusState(Enu::None),
+    cpuFeatures(type), mainBusState(Pep9CPU::MainBusState::None),
     registerBank(QSharedPointer<RegisterFile>::create(pep_version->maxRegisterNumber())),
     memoryRegisters(6), controlSignals(Pep::numControlSignals()),
     clockSignals(Pep::numClockSignals()), emitEvents(true), hadDataError(false), errorMessage(""),
@@ -275,7 +275,7 @@ bool CPUDataSection::valueOnCBus(quint8 &result) const
     else return false;
 }
 
-Enu::MainBusState CPUDataSection::getMainBusState() const
+Pep9CPU::MainBusState CPUDataSection::getMainBusState() const
 {
     return mainBusState;
 }
@@ -420,49 +420,49 @@ void CPUDataSection::handleMainBusState() noexcept
     }
     switch(mainBusState)
     {
-    case Enu::None:
+    case Pep9CPU::MainBusState::None:
         //One cannot change MAR contents and initiate a R/W on same cycle
         if(!marChanged) {
-            if(controlSignals[Enu::MemRead] == 1) mainBusState = Enu::MemReadFirstWait;
-            else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Enu::MemWriteFirstWait;
+            if(controlSignals[Enu::MemRead] == 1) mainBusState = Pep9CPU::MainBusState::MemReadFirstWait;
+            else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9CPU::MainBusState::MemWriteFirstWait;
         }
         break;
-    case Enu::MemReadFirstWait:
-        if(!marChanged && controlSignals[Enu::MemRead] == 1) mainBusState = Enu::MemReadSecondWait;
+    case Pep9CPU::MainBusState::MemReadFirstWait:
+        if(!marChanged && controlSignals[Enu::MemRead] == 1) mainBusState = Pep9CPU::MainBusState::MemReadSecondWait;
         else if(marChanged && controlSignals[Enu::MemRead] == 1); //Initiating a new read brings us back to first wait
-        else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Enu::MemWriteFirstWait; //Switch from read to write.
-        else mainBusState = Enu::None; //If neither are check, bus goes back to doing nothing
+        else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9CPU::MainBusState::MemWriteFirstWait; //Switch from read to write.
+        else mainBusState = Pep9CPU::MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
-    case Enu::MemReadSecondWait:
-        if(!marChanged && controlSignals[Enu::MemRead] == 1) mainBusState = Enu::MemReadReady;
-        else if(marChanged && controlSignals[Enu::MemRead] == 1) mainBusState = Enu::MemReadFirstWait;
-        else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Enu::MemWriteFirstWait;
-        else mainBusState = Enu::None; //If neither are check, bus goes back to doing nothing
+    case Pep9CPU::MainBusState::MemReadSecondWait:
+        if(!marChanged && controlSignals[Enu::MemRead] == 1) mainBusState = Pep9CPU::MainBusState::MemReadReady;
+        else if(marChanged && controlSignals[Enu::MemRead] == 1) mainBusState = Pep9CPU::MainBusState::MemReadFirstWait;
+        else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9CPU::MainBusState::MemWriteFirstWait;
+        else mainBusState = Pep9CPU::MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
-    case Enu::MemReadReady:
-        if(controlSignals[Enu::MemRead] == 1) mainBusState = Enu::MemReadFirstWait; //Another MemRead will bring us back to first MemRead, regardless of it MarChanged
-        else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Enu::MemWriteFirstWait;
-        else mainBusState = Enu::None; //If neither are check, bus goes back to doing nothing
+    case Pep9CPU::MainBusState::MemReadReady:
+        if(controlSignals[Enu::MemRead] == 1) mainBusState = Pep9CPU::MainBusState::MemReadFirstWait; //Another MemRead will bring us back to first MemRead, regardless of it MarChanged
+        else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9CPU::MainBusState::MemWriteFirstWait;
+        else mainBusState = Pep9CPU::MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
-    case Enu::MemWriteFirstWait:
-        if(!marChanged && controlSignals[Enu::MemWrite] == 1) mainBusState = Enu::MemWriteSecondWait;
+    case Pep9CPU::MainBusState::MemWriteFirstWait:
+        if(!marChanged && controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9CPU::MainBusState::MemWriteSecondWait;
         else if(marChanged && controlSignals[Enu::MemWrite] == 1); //Initiating a new write brings us back to first wait
-        else if(controlSignals[Enu::MemRead] == 1) mainBusState = Enu::MemReadFirstWait; //Switch from write to read.
-        else mainBusState = Enu::None; //If neither are check, bus goes back to doing nothing
+        else if(controlSignals[Enu::MemRead] == 1) mainBusState = Pep9CPU::MainBusState::MemReadFirstWait; //Switch from write to read.
+        else mainBusState = Pep9CPU::MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
-    case Enu::MemWriteSecondWait:
-        if(!marChanged && controlSignals[Enu::MemWrite] == 1) mainBusState = Enu::MemWriteReady;
-        else if(marChanged && controlSignals[Enu::MemWrite] == 1) mainBusState = Enu::MemWriteFirstWait; //Initiating a new write brings us back to first wait
-        else if(controlSignals[Enu::MemRead] == 1) mainBusState = Enu::MemReadFirstWait; //Switch from write to read.
-        else mainBusState = Enu::None; //If neither are check, bus goes back to doing nothing
+    case Pep9CPU::MainBusState::MemWriteSecondWait:
+        if(!marChanged && controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9CPU::MainBusState::MemWriteReady;
+        else if(marChanged && controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9CPU::MainBusState::MemWriteFirstWait; //Initiating a new write brings us back to first wait
+        else if(controlSignals[Enu::MemRead] == 1) mainBusState = Pep9CPU::MainBusState::MemReadFirstWait; //Switch from write to read.
+        else mainBusState = Pep9CPU::MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
-    case Enu::MemWriteReady:
-        if(controlSignals[Enu::MemWrite]==1)mainBusState = Enu::MemWriteFirstWait; //Another MemWrite will reset the bus state back to first MemWrite
-        else if(controlSignals[Enu::MemRead]==1) mainBusState = Enu::MemReadFirstWait; //Switch from write to read.
-        else mainBusState = Enu::None; //If neither are check, bus goes back to doing nothing
+    case Pep9CPU::MainBusState::MemWriteReady:
+        if(controlSignals[Enu::MemWrite]==1)mainBusState = Pep9CPU::MainBusState::MemWriteFirstWait; //Another MemWrite will reset the bus state back to first MemWrite
+        else if(controlSignals[Enu::MemRead]==1) mainBusState = Pep9CPU::MainBusState::MemReadFirstWait; //Switch from write to read.
+        else mainBusState = Pep9CPU::MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
     default:
-        mainBusState = Enu::None;
+        mainBusState = Pep9CPU::MainBusState::None;
         break;
     }
 }
@@ -481,7 +481,7 @@ void CPUDataSection::stepOneByte() noexcept
     bool hasALUOutput = calculateALUOutput(alu,NZVC);
 
     //Handle write to memory
-    if(mainBusState == Enu::MemWriteReady) {
+    if(mainBusState == Pep9CPU::MainBusState::MemWriteReady) {
         // << upcasts from quint8 to int32, must explicitly narrow.
         quint16 address = static_cast<quint16>((memoryRegisters[Enu::MEM_MARA]<<8)
                 | memoryRegisters[Enu::MEM_MARB]);
@@ -519,7 +519,7 @@ void CPUDataSection::stepOneByte() noexcept
         switch(controlSignals[Enu::MDRMux]) {
         case 0: //Pick memory
             address = static_cast<quint16>(memoryRegisters[Enu::MEM_MARA]<<8) + memoryRegisters[Enu::MEM_MARB];
-            if(mainBusState != Enu::MemReadReady) {
+            if(mainBusState != Pep9CPU::MainBusState::MemReadReady) {
                 hadDataError = true;
                 errorMessage = "No value from data bus to write to MDR.";
             }
@@ -604,7 +604,7 @@ void CPUDataSection::stepTwoByte() noexcept
     bool statusBitError = false, hasALUOutput = calculateALUOutput(alu, NZVC);
 
     // Handle write to memory
-    if(mainBusState == Enu::MemWriteReady) {
+    if(mainBusState == Pep9CPU::MainBusState::MemWriteReady) {
         // << widens quint8 to int32, must explictly narrow.
         quint16 address = static_cast<quint16>((memoryRegisters[Enu::MEM_MARA]<<8)
                 | memoryRegisters[Enu::MEM_MARB]);
@@ -656,7 +656,7 @@ void CPUDataSection::stepTwoByte() noexcept
             address = static_cast<quint16>((memoryRegisters[Enu::MEM_MARA]<<8)
                     | memoryRegisters[Enu::MEM_MARB]);
             address &= 0xFFFE; // Memory access ignores lowest order bit
-            if(mainBusState != Enu::MemReadReady){
+            if(mainBusState != Pep9CPU::MainBusState::MemReadReady){
                 hadDataError = true;
                 errorMessage = "No value from data bus to write to MDRE.";
                 return;
@@ -699,7 +699,7 @@ void CPUDataSection::stepTwoByte() noexcept
                     | memoryRegisters[Enu::MEM_MARB]);
             address &= 0xFFFE; //Memory access ignores lowest order bit
             address += 1;
-            if(mainBusState != Enu::MemReadReady){
+            if(mainBusState != Pep9CPU::MainBusState::MemReadReady){
                 hadDataError = true;
                 errorMessage = "No value from data bus to write to MDRO.";
                 return;
@@ -856,7 +856,7 @@ void CPUDataSection::onClock() noexcept
 void CPUDataSection::onClearCPU() noexcept
 {
     //Reset evey value associated with the CPU
-    mainBusState = Enu::None;
+    mainBusState = Pep9CPU::MainBusState::None;
     clearErrors();
     clearRegisters();
     clearClockSignals();

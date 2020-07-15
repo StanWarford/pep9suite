@@ -8,6 +8,5 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/apepversion.cpp \
-    $$PWD/enu.cpp \
     $$PWD/pep.cpp \
     $$PWD/pep9.cpp
