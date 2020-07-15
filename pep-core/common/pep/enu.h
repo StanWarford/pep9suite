@@ -109,12 +109,6 @@ namespace Enu {
     };
     Q_ENUM_NS(EClockSignals);
 
-    enum EMemoryRegisters
-    {
-        MEM_MARA,MEM_MARB,MEM_MDR,MEM_MDRO,MEM_MDRE
-    };
-    Q_ENUM_NS(EMemoryRegisters);
-
     enum EStatusBit
     {
         STATUS_N,STATUS_Z,STATUS_V,STATUS_C,STATUS_S

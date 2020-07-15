@@ -58,12 +58,12 @@ bool CPUDataSection::getAMuxOutput(quint8& result) const
         if(controlSignals[Enu::AMux] == 0 && cpuFeatures == PepCore::CPUType::TwoByteDataBus) {
             //Which could come from MDRE when EOMux is 0
             if(controlSignals[Enu::EOMux] == 0) {
-                result = memoryRegisters[Enu::MEM_MDRE];
+                result = memoryRegisters[static_cast<int>(Pep9CPU::EMemoryRegisters::MEM_MDRE)];
                 return true;
             }
             //Or comes from MDRO if EOMux is 1
             else if(controlSignals[Enu::EOMux] == 1) {
-                result = memoryRegisters[Enu::MEM_MDRO];
+                result = memoryRegisters[static_cast<int>(Pep9CPU::EMemoryRegisters::MEM_MDRO)];
                 return true;
             }
             //Or has no has no output when EOMux is disabled
@@ -71,7 +71,7 @@ bool CPUDataSection::getAMuxOutput(quint8& result) const
 
         }
         else if(controlSignals[Enu::AMux] == 0 && cpuFeatures == PepCore::CPUType::OneByteDataBus) {
-            result = memoryRegisters[Enu::MEM_MDR];
+            result = memoryRegisters[static_cast<int>(Pep9CPU::EMemoryRegisters::MEM_MDR)];
             return true;
         }
         else if(controlSignals[Enu::AMux] == 1) {
@@ -241,9 +241,9 @@ quint16 CPUDataSection::getRegisterBankWord(quint8 registerNumber) const
     return registerBank->readRegisterWordCurrent(registerNumber);
 }
 
-quint8 CPUDataSection::getMemoryRegister(Enu::EMemoryRegisters registerNumber) const
+quint8 CPUDataSection::getMemoryRegister(Pep9CPU::EMemoryRegisters registerNumber) const
 {
-    return memoryRegisters[registerNumber];
+    return memoryRegisters[static_cast<int>(registerNumber)];
 }
 
 bool CPUDataSection::valueOnABus(quint8 &result) const
@@ -337,10 +337,11 @@ void CPUDataSection::onSetRegisterWord(quint8 reg, quint16 val)
    }
 }
 
-void CPUDataSection::onSetMemoryRegister(Enu::EMemoryRegisters reg, quint8 val)
+void CPUDataSection::onSetMemoryRegister(Pep9CPU::EMemoryRegisters reg, quint8 val)
 {
-    quint8 oldVal = memoryRegisters[reg];
-    memoryRegisters[reg] = val;
+    auto reg_num = static_cast<int>(reg);
+    quint8 oldVal = memoryRegisters[reg_num];
+    memoryRegisters[reg_num] = val;
     if(emitEvents) {
     if(oldVal != val) emit memoryRegisterChanged(reg, oldVal, val);
     }
@@ -416,7 +417,8 @@ void CPUDataSection::handleMainBusState() noexcept
     bool marChanged = false;
     quint8 a, b;
     if(clockSignals[Enu::MARCk] && valueOnABus(a) && valueOnBBus(b)) {
-        marChanged = !(a == memoryRegisters[Enu::MEM_MARA] && b == memoryRegisters[Enu::MEM_MARB]);
+        marChanged = !(a == memoryRegisters[static_cast<int>(Pep9CPU::EMemoryRegisters::MEM_MARA)] &&
+                       b == memoryRegisters[static_cast<int>(Pep9CPU::EMemoryRegisters::MEM_MARB)]);
     }
     switch(mainBusState)
     {
@@ -469,6 +471,9 @@ void CPUDataSection::handleMainBusState() noexcept
 
 void CPUDataSection::stepOneByte() noexcept
 {
+    auto constexpr mara_reg = static_cast<size_t>(Pep9CPU::EMemoryRegisters::MEM_MARA);
+    auto constexpr marb_reg = static_cast<size_t>(Pep9CPU::EMemoryRegisters::MEM_MARB);
+    auto constexpr mdr_reg = static_cast<size_t>(Pep9CPU::EMemoryRegisters::MEM_MDR);
     //Update the bus state first, as the rest of the read / write functionality depends on it
     handleMainBusState();
     if(hadErrorOnStep()) return; //If the bus had an error, give up now
@@ -483,15 +488,14 @@ void CPUDataSection::stepOneByte() noexcept
     //Handle write to memory
     if(mainBusState == Pep9CPU::MainBusState::MemWriteReady) {
         // << upcasts from quint8 to int32, must explicitly narrow.
-        quint16 address = static_cast<quint16>((memoryRegisters[Enu::MEM_MARA]<<8)
-                | memoryRegisters[Enu::MEM_MARB]);
-        memDevice->writeByte(address, memoryRegisters[Enu::MEM_MDR]);
+        quint16 address = static_cast<quint16>( ( memoryRegisters[mara_reg]<<8) | memoryRegisters[marb_reg]);
+        memDevice->writeByte(address, memoryRegisters[mdr_reg]);
     }
 
     //MARCk
     if(clockSignals[Enu::MARCk] && hasA && hasB) {
-        onSetMemoryRegister(Enu::MEM_MARA, a);
-        onSetMemoryRegister(Enu::MEM_MARB, b);
+        onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MARA, a);
+        onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MARB, b);
     }
     else if(clockSignals[Enu::MARCk]) {//Handle error where no data is present
         hadDataError = true;
@@ -518,14 +522,14 @@ void CPUDataSection::stepOneByte() noexcept
     if(clockSignals[Enu::MDRCk]) {
         switch(controlSignals[Enu::MDRMux]) {
         case 0: //Pick memory
-            address = static_cast<quint16>(memoryRegisters[Enu::MEM_MARA]<<8) + memoryRegisters[Enu::MEM_MARB];
+            address = static_cast<quint16>(memoryRegisters[mara_reg]<<8) + memoryRegisters[marb_reg];
             if(mainBusState != Pep9CPU::MainBusState::MemReadReady) {
                 hadDataError = true;
                 errorMessage = "No value from data bus to write to MDR.";
             }
             else {
                 memDevice->getByte(address, value);
-                onSetMemoryRegister(Enu::MEM_MDR, value);
+                onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDR, value);
             }
             break;
         case 1: //Pick C Bus;
@@ -533,7 +537,7 @@ void CPUDataSection::stepOneByte() noexcept
                 hadDataError = true;
                 errorMessage = "No value on C bus to write to MDR.";
             }
-            else onSetMemoryRegister(Enu::MEM_MDR,c);
+            else onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDR,c);
             break;
         default:
             hadDataError = true;
@@ -591,6 +595,11 @@ void CPUDataSection::stepOneByte() noexcept
 
 void CPUDataSection::stepTwoByte() noexcept
 {
+    auto constexpr mara_reg = static_cast<size_t>(Pep9CPU::EMemoryRegisters::MEM_MARA);
+    auto constexpr marb_reg = static_cast<size_t>(Pep9CPU::EMemoryRegisters::MEM_MARB);
+    auto constexpr mdre_reg = static_cast<size_t>(Pep9CPU::EMemoryRegisters::MEM_MDRE);
+    auto constexpr mdro_reg = static_cast<size_t>(Pep9CPU::EMemoryRegisters::MEM_MDRO);
+
     //Update the bus state first, as the rest of the read / write functionality depends on it
     handleMainBusState();
     if(hadErrorOnStep()) return; //If the bus had an error, give up now
@@ -606,23 +615,22 @@ void CPUDataSection::stepTwoByte() noexcept
     // Handle write to memory
     if(mainBusState == Pep9CPU::MainBusState::MemWriteReady) {
         // << widens quint8 to int32, must explictly narrow.
-        quint16 address = static_cast<quint16>((memoryRegisters[Enu::MEM_MARA]<<8)
-                | memoryRegisters[Enu::MEM_MARB]);
+        quint16 address = static_cast<quint16>((memoryRegisters[mara_reg]<<8)| memoryRegisters[marb_reg]);
         address&=0xFFFE; // Memory access ignores lowest order bit
-        memDevice->writeWord(address, memoryRegisters[Enu::MEM_MDRE]*256 + memoryRegisters[Enu::MEM_MDRO]);
+        memDevice->writeWord(address, memoryRegisters[mdre_reg]*256 + memoryRegisters[mdro_reg]);
     }
 
     // MARCk
     if(clockSignals[Enu::MARCk]) {
         if(controlSignals[Enu::MARMux] == 0) {
             // If MARMux is 0, route MDRE, MDRO to MARA, MARB
-            onSetMemoryRegister(Enu::MEM_MARA, memoryRegisters[Enu::MEM_MDRE]);
-            onSetMemoryRegister(Enu::MEM_MARB, memoryRegisters[Enu::MEM_MDRO]);
+            onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MARA, memoryRegisters[mdre_reg]);
+            onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MARB, memoryRegisters[mdro_reg]);
         }
         else if(controlSignals[Enu::MARMux] == 1 && hasA && hasB) {
             // If MARMux is 1, route A, B to MARA, MARB
-            onSetMemoryRegister(Enu::MEM_MARA, a);
-            onSetMemoryRegister(Enu::MEM_MARB,b );
+            onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MARA, a);
+            onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MARB,b );
         }
         else {  // Otherwise MARCk is high, but no data flows through MARMux
             hadDataError = true;
@@ -653,8 +661,7 @@ void CPUDataSection::stepTwoByte() noexcept
         {
         case 0: // Pick memory
             // << widens quint8 to int32, must explictly narrow.
-            address = static_cast<quint16>((memoryRegisters[Enu::MEM_MARA]<<8)
-                    | memoryRegisters[Enu::MEM_MARB]);
+            address = static_cast<quint16>((memoryRegisters[mara_reg]<<8) | memoryRegisters[marb_reg]);
             address &= 0xFFFE; // Memory access ignores lowest order bit
             if(mainBusState != Pep9CPU::MainBusState::MemReadReady){
                 hadDataError = true;
@@ -670,7 +677,7 @@ void CPUDataSection::stepTwoByte() noexcept
                     errorMessage = "Unable to read from memory into MDRE.";
                     return;
                 }
-                onSetMemoryRegister(Enu::MEM_MDRE, temp);
+                onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDRE, temp);
             }
             break;
         case 1: // Pick C Bus;
@@ -679,7 +686,7 @@ void CPUDataSection::stepTwoByte() noexcept
                 errorMessage = "No value on C bus to write to MDRE.";
                 return;
             }
-            else onSetMemoryRegister(Enu::MEM_MDRE,c);
+            else onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDRE,c);
             break;
         default:
             hadDataError = true;
@@ -695,8 +702,7 @@ void CPUDataSection::stepTwoByte() noexcept
         {
         case 0: //Pick memory
             // << widens to quint8 to int32, must explictly narrow.
-            address = static_cast<quint16>((memoryRegisters[Enu::MEM_MARA]<<8)
-                    | memoryRegisters[Enu::MEM_MARB]);
+            address = static_cast<quint16>((memoryRegisters[mara_reg]<<8) | memoryRegisters[marb_reg]);
             address &= 0xFFFE; //Memory access ignores lowest order bit
             address += 1;
             if(mainBusState != Pep9CPU::MainBusState::MemReadReady){
@@ -715,7 +721,7 @@ void CPUDataSection::stepTwoByte() noexcept
                     errorMessage = "Unable to read from memory into MDRE.";
                     return;
                 }
-                onSetMemoryRegister(Enu::MEM_MDRO, temp);
+                onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDRO, temp);
             }
             break;
         case 1: //Pick C Bus;
@@ -724,7 +730,7 @@ void CPUDataSection::stepTwoByte() noexcept
                 errorMessage = "No value on C bus to write to MDRO.";
                 return;
             }
-            else onSetMemoryRegister(Enu::MEM_MDRO, c);
+            else onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDRO, c);
             break;
         default:
             hadDataError = true;

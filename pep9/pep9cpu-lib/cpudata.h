@@ -57,7 +57,7 @@ public:
     quint16 getRegisterBankWord(quint8 registerNumber) const; //Follows even/odd conventions of pep/9
     //quint8 getRegisterBankByte(Enu::CPURegisters registerNumber) const;
     //quint16 getRegisterBankWord(Enu::CPURegisters registerNumber) const; //Follows even/odd conventions of pep/9
-    quint8 getMemoryRegister(Enu::EMemoryRegisters registerNumber)const;
+    quint8 getMemoryRegister(Pep9CPU::EMemoryRegisters registerNumber)const;
 
     //Access register & Memory Buses
     bool valueOnABus(quint8& result) const;
@@ -135,7 +135,7 @@ public slots:
     void onSetStatusBit(Enu::EStatusBit,bool val);
     void onSetRegisterByte(quint8 reg,quint8 val);
     void onSetRegisterWord(quint8 reg,quint16 val);
-    void onSetMemoryRegister(Enu::EMemoryRegisters,quint8 val);
+    void onSetMemoryRegister(Pep9CPU::EMemoryRegisters,quint8 val);
     void onSetClock(Enu::EClockSignals, bool value);
     void onSetControlSignal(Enu::EControlSignals, quint8 value);
     void onStep() noexcept;
@@ -145,7 +145,7 @@ public slots:
 
 signals:
     void registerChanged(quint8 reg, quint8 oldVal, quint8 newVal); //Thrown whenever a register in the register bank is changed.
-    void memoryRegisterChanged(Enu::EMemoryRegisters, quint8 oldVal, quint8 newVal); //Thrown whenever a memory register is changed.
+    void memoryRegisterChanged(Pep9CPU::EMemoryRegisters, quint8 oldVal, quint8 newVal); //Thrown whenever a memory register is changed.
     void statusBitChanged(Enu::EStatusBit status, bool value);
     void CPUTypeChanged(PepCore::CPUType type);
 
