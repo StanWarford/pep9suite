@@ -21,25 +21,25 @@ private:
 
 class RegSpecification: public Specification {
 public:
-    RegSpecification(Enu::ECPUKeywords registerAddress, int registerValue) noexcept;
+    RegSpecification(Pep9::uarch::ECPUKeywords registerAddress, int registerValue) noexcept;
     void setUnitPre(CPUDataSection*, AMemoryDevice*) noexcept override;
     bool testUnitPost(const CPUDataSection *data, const AMemoryDevice*,
                       QString &errString) const noexcept override;
     QString getSourceCode() const noexcept override;
 private:
-    Enu::ECPUKeywords regAddress;
+    Pep9::uarch::ECPUKeywords regAddress;
     int regValue;
 };
 
 class StatusBitSpecification: public Specification {
 public:
-    StatusBitSpecification(Enu::ECPUKeywords statusBitAddress, bool statusBitValue) noexcept;
+    StatusBitSpecification(Pep9::uarch::ECPUKeywords statusBitAddress, bool statusBitValue) noexcept;
     void setUnitPre(CPUDataSection*, AMemoryDevice*) noexcept override;
     bool testUnitPost(const CPUDataSection *data, const AMemoryDevice*,
                       QString &errString) const noexcept override;
     QString getSourceCode() const noexcept override;
 private:
-    Enu::ECPUKeywords nzvcsAddress;
+    Pep9::uarch::ECPUKeywords nzvcsAddress;
     bool nzvcsValue;
 };
 #endif // PEP9SPECIFICATION_H

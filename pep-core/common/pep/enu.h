@@ -91,55 +91,12 @@ namespace Enu {
         CMask = 0x01,
     };
 
-    // Instruction mnemonics
-    enum EControlSignals
-    {
-        MemRead=0, MemWrite,
-        A,B,EOMux, MARMux,MARA, MARB, AMux, ALU,CSMux, AndZ,
-        CMux, C,
-        MDRMux, MDROMux, MDREMux,MDR, MDRE, MDRO,
-        PValid,
-    };
-    Q_ENUM_NS(EControlSignals);
-
-    enum EClockSignals{
-        NCk=0,
-        ZCk,VCk,CCk,SCk,MARCk,LoadCk,MDRCk, MDROCk, MDRECk,
-        PValidCk,
-    };
-    Q_ENUM_NS(EClockSignals);
-
     enum EStatusBit
     {
         STATUS_N,STATUS_Z,STATUS_V,STATUS_C,STATUS_S
     };
     Q_ENUM_NS(EStatusBit);
 
-    enum ECPUKeywords {
-        Pre, Post,
-        Mem, Acc, X, SP, PC, IR,
-        T1, T2, T3, T4, T5, T6,
-        N, Z, V,Cbit, S,
-        MARAREG, MARBREG,
-        MDRREG, MDREREG, MDROREG
-    };
 
-
-    /*
-     * Enumerations for Pep9Micro
-     */
-    enum EBranchFunctions{
-        Unconditional = 0,
-        uBRGT = 1, uBRGE = 2, uBREQ = 3, uBRLE = 4, uBRLT = 5,
-        uBRNE = 6, uBRV = 7, uBRC = 8, uBRS = 9,
-        IsPrefetchValid = 10,
-        IsUnary = 11,
-        PCisOdd = 12,
-        AddressingModeDecoder = 13, // Adressing modes jump table
-        InstructionSpecifierDecoder = 14, // Instruction jump table
-        Stop = 15,
-        Assembler_Assigned = 16
-    };
-    Q_ENUM_NS(EBranchFunctions);
 }
 #endif

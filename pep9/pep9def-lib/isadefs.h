@@ -24,7 +24,14 @@ namespace Pep9::ISA {
         // Present in any version of Pep/9
         IS = uint8_t(Pep9::uarch::CPURegisters::IS),
     };
-
+    enum class EStatusBit
+    {
+        STATUS_N = int(Pep9::uarch::EStatusBit::STATUS_N),
+        STATUS_Z = int(Pep9::uarch::EStatusBit::STATUS_Z),
+        STATUS_V = int(Pep9::uarch::EStatusBit::STATUS_V),
+        STATUS_C = int(Pep9::uarch::EStatusBit::STATUS_C),
+    };
+    Q_ENUM_NS(EStatusBit);
     /*
      * Enumerations for Pep9
      */

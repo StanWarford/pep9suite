@@ -905,7 +905,7 @@ void CPUMainWindow::on_actionSystem_Clear_Memory_triggered()
 
 void CPUMainWindow::on_actionSystem_One_Byte_triggered()
 {
-    Pep::initMicroEnumMnemonMaps(PepCore::CPUType::OneByteDataBus, false);
+    Pep9::uarch::initMicroEnumMnemonMaps(PepCore::CPUType::OneByteDataBus, false);
     controlSection->setCPUType(PepCore::CPUType::OneByteDataBus);
     ui->microobjectWidget->initCPUModelState();
     ui->microcodeWidget->onCPUTypeChanged(PepCore::CPUType::OneByteDataBus);
@@ -917,7 +917,7 @@ void CPUMainWindow::on_actionSystem_One_Byte_triggered()
 
 void CPUMainWindow::on_actionSystem_Two_Byte_triggered()
 {
-    Pep::initMicroEnumMnemonMaps(PepCore::CPUType::TwoByteDataBus, false);
+    Pep9::uarch::initMicroEnumMnemonMaps(PepCore::CPUType::TwoByteDataBus, false);
     controlSection->setCPUType(PepCore::CPUType::TwoByteDataBus);
     ui->microobjectWidget->initCPUModelState();
     ui->microcodeWidget->onCPUTypeChanged(PepCore::CPUType::TwoByteDataBus);

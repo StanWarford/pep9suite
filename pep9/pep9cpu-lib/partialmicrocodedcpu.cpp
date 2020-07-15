@@ -301,7 +301,7 @@ void PartialMicrocodedCPU::onClock()
 void PartialMicrocodedCPU::branchHandler()
 {
     const MicroCode* prog = static_cast<MicroCode*>(sharedProgram->getCodeLine(microprogramCounter));
-    if(prog->getBranchFunction() == Enu::EBranchFunctions::Stop) {
+    if(prog->getBranchFunction() == Pep9::uarch::EBranchFunctions::Stop) {
         executionFinished = true;
     }
     else if(executionFinished) {

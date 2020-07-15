@@ -31,12 +31,42 @@
 #include "pep/pep.h"
 
 #include "pep9microcode.h"
+const auto LoadCk_t = to_uint8_t(Pep9::uarch::EClockSignals::LoadCk);
+const auto C_t = to_uint8_t(Pep9::uarch::EControlSignals::C);
+const auto B_t = to_uint8_t(Pep9::uarch::EControlSignals::B);
+const auto A_t = to_uint8_t(Pep9::uarch::EControlSignals::A);
+const auto MARCk_t = to_uint8_t(Pep9::uarch::EClockSignals::MARCk);
+const auto MDRCk_t = to_uint8_t(Pep9::uarch::EClockSignals::MDRCk);
+const auto AMux_t = to_uint8_t(Pep9::uarch::EControlSignals::AMux);
+const auto MDRMux_t = to_uint8_t(Pep9::uarch::EControlSignals::MDRMux);
+const auto CMux_t = to_uint8_t(Pep9::uarch::EControlSignals::CMux);
+const auto ALU_t = to_uint8_t(Pep9::uarch::EControlSignals::ALU);
+const auto CSMux_t = to_uint8_t(Pep9::uarch::EControlSignals::CSMux);
+const auto SCk_t = to_uint8_t(Pep9::uarch::EClockSignals::SCk);
+const auto CCk_t = to_uint8_t(Pep9::uarch::EClockSignals::CCk);
+const auto VCk_t = to_uint8_t(Pep9::uarch::EClockSignals::VCk);
+const auto AndZ_t = to_uint8_t(Pep9::uarch::EControlSignals::AndZ);
+const auto ZCk_t = to_uint8_t(Pep9::uarch::EClockSignals::ZCk);
+const auto NCk_t = to_uint8_t(Pep9::uarch::EClockSignals::NCk);
+const auto MemWrite_t = to_uint8_t(Pep9::uarch::EControlSignals::MemWrite);
+const auto MemRead_t = to_uint8_t(Pep9::uarch::EControlSignals::MemRead);
+
+const auto MARMux_t = to_uint8_t(Pep9::uarch::EControlSignals::MARMux);
+const auto MDROCk_t = to_uint8_t(Pep9::uarch::EClockSignals::MDROCk);
+const auto MDROMux_t = to_uint8_t(Pep9::uarch::EControlSignals::MDROMux);
+const auto MDRECk_t = to_uint8_t(Pep9::uarch::EClockSignals::MDRECk);
+const auto MDREMux_t = to_uint8_t(Pep9::uarch::EControlSignals::MDREMux);
+const auto EOMux_t = to_uint8_t(Pep9::uarch::EControlSignals::EOMux);
+
+const auto PValidCk_t = to_uint8_t(Pep9::uarch::EClockSignals::PValidCk);
+const auto PValid_t = to_uint8_t(Pep9::uarch::EControlSignals::PValid);
+
 CPUDataSection::CPUDataSection(PepCore::CPUType type, QSharedPointer<const APepVersion> pep_version,
                                QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
     cpuFeatures(type), mainBusState(Pep9::uarch::MainBusState::None),
     registerBank(QSharedPointer<RegisterFile>::create(pep_version->maxRegisterNumber())),
-    memoryRegisters(6), controlSignals(Pep::numControlSignals()),
-    clockSignals(Pep::numClockSignals()), emitEvents(true), hadDataError(false), errorMessage(""),
+    memoryRegisters(6), controlSignals(Pep9::uarch::numControlSignals()),
+    clockSignals(Pep9::uarch::numClockSignals()), emitEvents(true), hadDataError(false), errorMessage(""),
     isALUCacheValid(false), ALUHasOutputCache(false), ALUOutputCache(0), ALUStatusBitCache(0)
 {
     presetStaticRegisters();
@@ -49,20 +79,21 @@ CPUDataSection::~CPUDataSection()
 
 bool CPUDataSection::aluFnIsUnary() const
 {
+    using namespace Pep9::uarch;
     //The only alu functions that are unary are 0 & 10..15
-    return controlSignals[Enu::ALU] == 0 || controlSignals[Enu::ALU] >= 10;
+    return controlSignals[ALU_t] == 0 || controlSignals[ALU_t] >= 10;
 }
 
 bool CPUDataSection::getAMuxOutput(quint8& result) const
 {
-        if(controlSignals[Enu::AMux] == 0 && cpuFeatures == PepCore::CPUType::TwoByteDataBus) {
+        if(controlSignals[AMux_t] == 0 && cpuFeatures == PepCore::CPUType::TwoByteDataBus) {
             //Which could come from MDRE when EOMux is 0
-            if(controlSignals[Enu::EOMux] == 0) {
+            if(controlSignals[EOMux_t] == 0) {
                 result = memoryRegisters[static_cast<int>(Pep9::uarch::EMemoryRegisters::MEM_MDRE)];
                 return true;
             }
             //Or comes from MDRO if EOMux is 1
-            else if(controlSignals[Enu::EOMux] == 1) {
+            else if(controlSignals[EOMux_t] == 1) {
                 result = memoryRegisters[static_cast<int>(Pep9::uarch::EMemoryRegisters::MEM_MDRO)];
                 return true;
             }
@@ -70,11 +101,11 @@ bool CPUDataSection::getAMuxOutput(quint8& result) const
             else return false;
 
         }
-        else if(controlSignals[Enu::AMux] == 0 && cpuFeatures == PepCore::CPUType::OneByteDataBus) {
+        else if(controlSignals[AMux_t] == 0 && cpuFeatures == PepCore::CPUType::OneByteDataBus) {
             result = memoryRegisters[static_cast<int>(Pep9::uarch::EMemoryRegisters::MEM_MDR)];
             return true;
         }
-        else if(controlSignals[Enu::AMux] == 1) {
+        else if(controlSignals[AMux_t] == 1) {
             return valueOnABus(result);
         }
         else return false;
@@ -83,12 +114,12 @@ bool CPUDataSection::getAMuxOutput(quint8& result) const
 bool CPUDataSection::calculateCSMuxOutput(bool &result) const
 {
     //CSMux either outputs C when CS is 0
-    if(controlSignals[Enu::CSMux]==0) {
+    if(controlSignals[CSMux_t]==0) {
         result = registerBank->readStatusBitsCurrent() & Enu::CMask;
         return true;
     }
     //Or outputs S when CS is 1
-    else if(controlSignals[Enu::CSMux] == 1)  {
+    else if(controlSignals[CSMux_t] == 1)  {
         result = registerBank->readStatusBitsCurrent() & Enu::SMask;
         return true;
     }
@@ -120,7 +151,7 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         return ALUHasOutputCache;
     }
     // Unless otherwise noted, do not return true (sucessfully) early, or the calculation for the NZ bits will be skipped.
-    switch(static_cast<Pep9::uarch::EALUFunc>(controlSignals[Enu::ALU])) {
+    switch(static_cast<Pep9::uarch::EALUFunc>(controlSignals[ALU_t])) {
     case Pep9::uarch::EALUFunc::A_func: // A
         res = a;
         break;
@@ -248,26 +279,26 @@ quint8 CPUDataSection::getMemoryRegister(Pep9::uarch::EMemoryRegisters registerN
 
 bool CPUDataSection::valueOnABus(quint8 &result) const
 {
-    if(controlSignals[Enu::A] == Enu::signalDisabled) return false;
-    result = getRegisterBankByte(controlSignals[Enu::A]);
+    if(controlSignals[A_t] == Enu::signalDisabled) return false;
+    result = getRegisterBankByte(controlSignals[A_t]);
     return true;
 }
 
 bool CPUDataSection::valueOnBBus(quint8 &result) const
 {
-    if(controlSignals[Enu::B] == Enu::signalDisabled) return false;
-    result = getRegisterBankByte(controlSignals[Enu::B]);
+    if(controlSignals[B_t] == Enu::signalDisabled) return false;
+    result = getRegisterBankByte(controlSignals[B_t]);
     return true;
 }
 
 bool CPUDataSection::valueOnCBus(quint8 &result) const
 {
-    if(controlSignals[Enu::CMux] == 0) {
+    if(controlSignals[CMux_t] == 0) {
         // If CMux is 0, then the NZVC bits (minus S) are directly routed to result
         result = (registerBank->readStatusBitsCurrent() & (~Enu::SMask));
         return true;
     }
-    else if(controlSignals[Enu::CMux] == 1) {
+    else if(controlSignals[CMux_t] == 1) {
         quint8 temp = 0; // Discard NZVC bits for this calculation, they are unecessary for calculating C's output
         // Otherwise the value of C depends solely on the ALU
         return calculateALUOutput(result, temp);
@@ -347,14 +378,14 @@ void CPUDataSection::onSetMemoryRegister(Pep9::uarch::EMemoryRegisters reg, quin
     }
 }
 
-void CPUDataSection::onSetClock(Enu::EClockSignals clock, bool value)
+void CPUDataSection::onSetClock(Pep9::uarch::EClockSignals clock, bool value)
 {
-    clockSignals[clock] = value;
+    clockSignals[to_uint8_t(clock)] = value;
 }
 
-void CPUDataSection::onSetControlSignal(Enu::EControlSignals control, quint8 value)
+void CPUDataSection::onSetControlSignal(Pep9::uarch::EControlSignals control, quint8 value)
 {
-    controlSignals[control] = value;
+    controlSignals[to_uint8_t(control)] = value;
 }
 
 bool CPUDataSection::setSignalsFromMicrocode(const MicroCode *line)
@@ -414,57 +445,58 @@ QString CPUDataSection::getErrorMessage() const
 
 void CPUDataSection::handleMainBusState() noexcept
 {
+    using namespace Pep9::uarch;
     bool marChanged = false;
     quint8 a, b;
-    if(clockSignals[Enu::MARCk] && valueOnABus(a) && valueOnBBus(b)) {
-        marChanged = !(a == memoryRegisters[static_cast<int>(Pep9::uarch::EMemoryRegisters::MEM_MARA)] &&
-                       b == memoryRegisters[static_cast<int>(Pep9::uarch::EMemoryRegisters::MEM_MARB)]);
+    if(clockSignals[MARCk_t] && valueOnABus(a) && valueOnBBus(b)) {
+        marChanged = !(a == memoryRegisters[static_cast<int>(EMemoryRegisters::MEM_MARA)] &&
+                       b == memoryRegisters[static_cast<int>(EMemoryRegisters::MEM_MARB)]);
     }
     switch(mainBusState)
     {
     case Pep9::uarch::MainBusState::None:
         //One cannot change MAR contents and initiate a R/W on same cycle
         if(!marChanged) {
-            if(controlSignals[Enu::MemRead] == 1) mainBusState = Pep9::uarch::MainBusState::MemReadFirstWait;
-            else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9::uarch::MainBusState::MemWriteFirstWait;
+            if(controlSignals[MemRead_t] == 1) mainBusState = MainBusState::MemReadFirstWait;
+            else if(controlSignals[MemWrite_t] == 1) mainBusState = MainBusState::MemWriteFirstWait;
         }
         break;
     case Pep9::uarch::MainBusState::MemReadFirstWait:
-        if(!marChanged && controlSignals[Enu::MemRead] == 1) mainBusState = Pep9::uarch::MainBusState::MemReadSecondWait;
-        else if(marChanged && controlSignals[Enu::MemRead] == 1); //Initiating a new read brings us back to first wait
-        else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9::uarch::MainBusState::MemWriteFirstWait; //Switch from read to write.
+        if(!marChanged && controlSignals[MemRead_t] == 1) mainBusState = MainBusState::MemReadSecondWait;
+        else if(marChanged && controlSignals[MemRead_t] == 1); //Initiating a new read brings us back to first wait
+        else if(controlSignals[MemWrite_t] == 1) mainBusState = MainBusState::MemWriteFirstWait; //Switch from read to write.
         else mainBusState = Pep9::uarch::MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
     case Pep9::uarch::MainBusState::MemReadSecondWait:
-        if(!marChanged && controlSignals[Enu::MemRead] == 1) mainBusState = Pep9::uarch::MainBusState::MemReadReady;
-        else if(marChanged && controlSignals[Enu::MemRead] == 1) mainBusState = Pep9::uarch::MainBusState::MemReadFirstWait;
-        else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9::uarch::MainBusState::MemWriteFirstWait;
-        else mainBusState = Pep9::uarch::MainBusState::None; //If neither are check, bus goes back to doing nothing
+        if(!marChanged && controlSignals[MemRead_t] == 1) mainBusState = MainBusState::MemReadReady;
+        else if(marChanged && controlSignals[MemRead_t] == 1) mainBusState = MainBusState::MemReadFirstWait;
+        else if(controlSignals[MemWrite_t] == 1) mainBusState = MainBusState::MemWriteFirstWait;
+        else mainBusState = MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
     case Pep9::uarch::MainBusState::MemReadReady:
-        if(controlSignals[Enu::MemRead] == 1) mainBusState = Pep9::uarch::MainBusState::MemReadFirstWait; //Another MemRead will bring us back to first MemRead, regardless of it MarChanged
-        else if(controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9::uarch::MainBusState::MemWriteFirstWait;
-        else mainBusState = Pep9::uarch::MainBusState::None; //If neither are check, bus goes back to doing nothing
+        if(controlSignals[MemRead_t] == 1) mainBusState = MainBusState::MemReadFirstWait; //Another MemRead will bring us back to first MemRead, regardless of it MarChanged
+        else if(controlSignals[MemWrite_t] == 1) mainBusState = MainBusState::MemWriteFirstWait;
+        else mainBusState = MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
     case Pep9::uarch::MainBusState::MemWriteFirstWait:
-        if(!marChanged && controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9::uarch::MainBusState::MemWriteSecondWait;
-        else if(marChanged && controlSignals[Enu::MemWrite] == 1); //Initiating a new write brings us back to first wait
-        else if(controlSignals[Enu::MemRead] == 1) mainBusState = Pep9::uarch::MainBusState::MemReadFirstWait; //Switch from write to read.
-        else mainBusState = Pep9::uarch::MainBusState::None; //If neither are check, bus goes back to doing nothing
+        if(!marChanged && controlSignals[MemWrite_t] == 1) mainBusState = MainBusState::MemWriteSecondWait;
+        else if(marChanged && controlSignals[MemWrite_t] == 1); //Initiating a new write brings us back to first wait
+        else if(controlSignals[MemRead_t] == 1) mainBusState = MainBusState::MemReadFirstWait; //Switch from write to read.
+        else mainBusState = MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
     case Pep9::uarch::MainBusState::MemWriteSecondWait:
-        if(!marChanged && controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9::uarch::MainBusState::MemWriteReady;
-        else if(marChanged && controlSignals[Enu::MemWrite] == 1) mainBusState = Pep9::uarch::MainBusState::MemWriteFirstWait; //Initiating a new write brings us back to first wait
-        else if(controlSignals[Enu::MemRead] == 1) mainBusState = Pep9::uarch::MainBusState::MemReadFirstWait; //Switch from write to read.
-        else mainBusState = Pep9::uarch::MainBusState::None; //If neither are check, bus goes back to doing nothing
+        if(!marChanged && controlSignals[MemWrite_t] == 1) mainBusState = MainBusState::MemWriteReady;
+        else if(marChanged && controlSignals[MemWrite_t] == 1) mainBusState = MainBusState::MemWriteFirstWait; //Initiating a new write brings us back to first wait
+        else if(controlSignals[MemRead_t] == 1) mainBusState = MainBusState::MemReadFirstWait; //Switch from write to read.
+        else mainBusState = MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
     case Pep9::uarch::MainBusState::MemWriteReady:
-        if(controlSignals[Enu::MemWrite]==1)mainBusState = Pep9::uarch::MainBusState::MemWriteFirstWait; //Another MemWrite will reset the bus state back to first MemWrite
-        else if(controlSignals[Enu::MemRead]==1) mainBusState = Pep9::uarch::MainBusState::MemReadFirstWait; //Switch from write to read.
-        else mainBusState = Pep9::uarch::MainBusState::None; //If neither are check, bus goes back to doing nothing
+        if(controlSignals[MemWrite_t]==1)mainBusState = MainBusState::MemWriteFirstWait; //Another MemWrite will reset the bus state back to first MemWrite
+        else if(controlSignals[MemRead_t]==1) mainBusState = MainBusState::MemReadFirstWait; //Switch from write to read.
+        else mainBusState = MainBusState::None; //If neither are check, bus goes back to doing nothing
         break;
     default:
-        mainBusState = Pep9::uarch::MainBusState::None;
+        mainBusState = MainBusState::None;
         break;
     }
 }
@@ -480,7 +512,7 @@ void CPUDataSection::stepOneByte() noexcept
 
     isALUCacheValid = false;
     //Set up all variables needed by stepping calculation
-    auto aluFunc = static_cast<Pep9::uarch::EALUFunc>(controlSignals[Enu::ALU]);
+    auto aluFunc = static_cast<Pep9::uarch::EALUFunc>(controlSignals[ALU_t]);
     quint8 a = 0, b = 0, c = 0, alu = 0, NZVC = 0;
     bool hasA = valueOnABus(a), hasB = valueOnBBus(b), hasC = valueOnCBus(c), statusBitError = false;
     bool hasALUOutput = calculateALUOutput(alu,NZVC);
@@ -493,19 +525,19 @@ void CPUDataSection::stepOneByte() noexcept
     }
 
     //MARCk
-    if(clockSignals[Enu::MARCk] && hasA && hasB) {
+    if(clockSignals[MARCk_t] && hasA && hasB) {
         onSetMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARA, a);
         onSetMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARB, b);
     }
-    else if(clockSignals[Enu::MARCk]) {//Handle error where no data is present
+    else if(clockSignals[MARCk_t]) {//Handle error where no data is present
         hadDataError = true;
         errorMessage = "No values on A & B during MARCk.";
         return;
     }
 
     //LoadCk
-    if(clockSignals[Enu::LoadCk]) {
-        if(controlSignals[Enu::C] == Enu::signalDisabled) {
+    if(clockSignals[LoadCk_t]) {
+        if(controlSignals[C_t] == Enu::signalDisabled) {
             hadDataError = true;
             errorMessage = "No destination register specified for LoadCk.";
         }
@@ -513,14 +545,14 @@ void CPUDataSection::stepOneByte() noexcept
             hadDataError = true;
             errorMessage = "No value on C Bus to clock in.";
         }
-        else onSetRegisterByte(controlSignals[Enu::C], c);
+        else onSetRegisterByte(controlSignals[C_t], c);
     }
     quint16 address;
     quint8 value;
 
     //MDRCk
-    if(clockSignals[Enu::MDRCk]) {
-        switch(controlSignals[Enu::MDRMux]) {
+    if(clockSignals[MDRCk_t]) {
+        switch(controlSignals[MDRMux_t]) {
         case 0: //Pick memory
             address = static_cast<quint16>(memoryRegisters[mara_reg]<<8) + memoryRegisters[marb_reg];
             if(mainBusState != Pep9::uarch::MainBusState::MemReadReady) {
@@ -548,19 +580,19 @@ void CPUDataSection::stepOneByte() noexcept
     }
 
     //NCk
-    if(clockSignals[Enu::NCk]) {
+    if(clockSignals[NCk_t]) {
         if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N,Enu::NMask & NZVC);
         else statusBitError = true;
     }
 
     //ZCk
-    if(clockSignals[Enu::ZCk]) {
+    if(clockSignals[ZCk_t]) {
         if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput)
         {
-            if(controlSignals[Enu::AndZ] == 0) {
+            if(controlSignals[AndZ_t] == 0) {
                 onSetStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
             }
-            else if(controlSignals[Enu::AndZ] == 1) {
+            else if(controlSignals[AndZ_t] == 1) {
                 onSetStatusBit(Enu::STATUS_Z, static_cast<bool>((Enu::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z)));
             }
             else statusBitError = true;
@@ -569,19 +601,19 @@ void CPUDataSection::stepOneByte() noexcept
     }
 
     //VCk
-    if(clockSignals[Enu::VCk]) {
+    if(clockSignals[VCk_t]) {
         if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V,Enu::VMask & NZVC);
         else statusBitError = true;
     }
 
     //CCk
-    if(clockSignals[Enu::CCk]) {
+    if(clockSignals[CCk_t]) {
         if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C,Enu::CMask & NZVC);
         else statusBitError = true;
     }
 
     //SCk
-    if(clockSignals[Enu::SCk]) {
+    if(clockSignals[SCk_t]) {
         if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S,Enu::CMask & NZVC);
         else statusBitError = true;
     }
@@ -606,7 +638,7 @@ void CPUDataSection::stepTwoByte() noexcept
 
     isALUCacheValid = false;
     // Set up all variables needed by stepping calculation
-    auto aluFunc = static_cast<Pep9::uarch::EALUFunc>(controlSignals[Enu::ALU]);
+    auto aluFunc = static_cast<Pep9::uarch::EALUFunc>(controlSignals[ALU_t]);
     quint8 a = 0, b = 0, c = 0, alu = 0, NZVC = 0, temp = 0;
     quint16 address;
     bool memSigError = false, hasA = valueOnABus(a), hasB = valueOnBBus(b), hasC = valueOnCBus(c);
@@ -621,13 +653,13 @@ void CPUDataSection::stepTwoByte() noexcept
     }
 
     // MARCk
-    if(clockSignals[Enu::MARCk]) {
-        if(controlSignals[Enu::MARMux] == 0) {
+    if(clockSignals[MARCk_t]) {
+        if(controlSignals[MARMux_t] == 0) {
             // If MARMux is 0, route MDRE, MDRO to MARA, MARB
             onSetMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARA, memoryRegisters[mdre_reg]);
             onSetMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARB, memoryRegisters[mdro_reg]);
         }
-        else if(controlSignals[Enu::MARMux] == 1 && hasA && hasB) {
+        else if(controlSignals[MARMux_t] == 1 && hasA && hasB) {
             // If MARMux is 1, route A, B to MARA, MARB
             onSetMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARA, a);
             onSetMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARB,b );
@@ -640,8 +672,8 @@ void CPUDataSection::stepTwoByte() noexcept
     }
 
     // LoadCk
-    if(clockSignals[Enu::LoadCk]) {
-        if(controlSignals[Enu::C] == Enu::signalDisabled) {
+    if(clockSignals[LoadCk_t]) {
+        if(controlSignals[C_t] == Enu::signalDisabled) {
             hadDataError = true;
             errorMessage = "No destination register specified for LoadCk.";
         }
@@ -649,15 +681,15 @@ void CPUDataSection::stepTwoByte() noexcept
             hadDataError = true;
             errorMessage = "No value on C Bus to clock in.";
         }
-        else onSetRegisterByte(controlSignals[Enu::C], c);
+        else onSetRegisterByte(controlSignals[C_t], c);
     }
 
 #pragma message("TODO: Determine the fate of completed + ignored memreads.")
     // Determining the fate of memreads would transacting with memory.
     bool in_tx = false;
     // MDRECk
-    if(clockSignals[Enu::MDRECk]) {
-        switch(controlSignals[Enu::MDREMux])
+    if(clockSignals[MDRECk_t]) {
+        switch(controlSignals[MDREMux_t])
         {
         case 0: // Pick memory
             // << widens quint8 to int32, must explictly narrow.
@@ -697,8 +729,8 @@ void CPUDataSection::stepTwoByte() noexcept
     }
 
     //MDRECk
-    if(clockSignals[Enu::MDROCk]) {
-        switch(controlSignals[Enu::MDROMux])
+    if(clockSignals[MDROCk_t]) {
+        switch(controlSignals[MDROMux_t])
         {
         case 0: //Pick memory
             // << widens to quint8 to int32, must explictly narrow.
@@ -745,19 +777,19 @@ void CPUDataSection::stepTwoByte() noexcept
     }
 
     //NCk
-    if(clockSignals[Enu::NCk]) {
+    if(clockSignals[NCk_t]) {
         if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N, Enu::NMask & NZVC);
         else statusBitError = true;
     }
 
     //If no ALU output, don't set flags.
     //ZCk
-    if(clockSignals[Enu::ZCk]) {
+    if(clockSignals[ZCk_t]) {
         if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) {
-            if(controlSignals[Enu::AndZ] == 0) {
+            if(controlSignals[AndZ_t] == 0) {
                 onSetStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
             }
-            else if(controlSignals[Enu::AndZ] == 1) {
+            else if(controlSignals[AndZ_t] == 1) {
                 onSetStatusBit(Enu::STATUS_Z, static_cast<bool>((Enu::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z)));
             }
             else statusBitError = true;
@@ -766,19 +798,19 @@ void CPUDataSection::stepTwoByte() noexcept
     }
 
     //VCk
-    if(clockSignals[Enu::VCk]) {
+    if(clockSignals[VCk_t]) {
         if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V, Enu::VMask & NZVC);
         else statusBitError = true;
     }
 
     //CCk
-    if(clockSignals[Enu::CCk]) {
+    if(clockSignals[CCk_t]) {
         if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C, Enu::CMask & NZVC);
         else statusBitError = true;
     }
 
     //SCk
-    if(clockSignals[Enu::SCk]) {
+    if(clockSignals[SCk_t]) {
         if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S, Enu::CMask & NZVC);
         else statusBitError = true;
     }

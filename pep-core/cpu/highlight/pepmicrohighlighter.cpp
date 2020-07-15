@@ -96,6 +96,8 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
 
     // Highlight the branch functions
     branchFunctionFormat.setForeground(color.branchFunctionHighlight);
+#pragma message("TODO: Fix for branch functions")
+    /*
     for(QString function : Pep::branchFuncToMnemonMap.values())
     {
         // A branch function is a string followed by a space or newline.
@@ -104,7 +106,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
         rule.format = branchFunctionFormat;
         highlightingRulesOneExt.append(rule);
         highlightingRulesTwoExt.append(rule);
-    }
+    }*/
 
     oprndFormat.setForeground(color.leftOfExpression);
     oprndFormat.setFontWeight(QFont::Bold);

@@ -217,55 +217,56 @@ void CpuPane::stopDebugging()
     ui->copyToMicrocodePushButton->setEnabled(true);
 }
 
-void CpuPane::setRegister(Enu::ECPUKeywords reg, int value)
+void CpuPane::setRegister(Pep9::uarch::ECPUKeywords reg, int value)
 {
+    using namespace Pep9::uarch;
     switch (reg) {
-    case Enu::Acc:
+    case ECPUKeywords::Acc:
         cpuPaneItems->aRegLineEdit->setText("0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::X:
+    case ECPUKeywords::X:
         cpuPaneItems->xRegLineEdit->setText("0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::SP:
+    case ECPUKeywords::SP:
         cpuPaneItems->spRegLineEdit->setText("0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::PC:
+    case ECPUKeywords::PC:
         cpuPaneItems->pcRegLineEdit->setText("0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::IR:
+    case ECPUKeywords::IR:
         cpuPaneItems->irRegLineEdit->setText("0x" + QString("%1").arg(value, 6, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::T1:
+    case ECPUKeywords::T1:
         cpuPaneItems->t1RegLineEdit->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::T2:
+    case ECPUKeywords::T2:
         cpuPaneItems->t2RegLineEdit->setText("0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::T3:
+    case ECPUKeywords::T3:
         cpuPaneItems->t3RegLineEdit->setText("0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::T4:
+    case ECPUKeywords::T4:
         cpuPaneItems->t4RegLineEdit->setText("0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::T5:
+    case ECPUKeywords::T5:
         cpuPaneItems->t5RegLineEdit->setText("0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::T6:
+    case ECPUKeywords::T6:
         cpuPaneItems->t6RegLineEdit->setText("0x" + QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::MARAREG:
+    case ECPUKeywords::MARAREG:
         cpuPaneItems->MARALabel->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::MARBREG:
+    case ECPUKeywords::MARBREG:
         cpuPaneItems->MARBLabel->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::MDROREG:
+    case ECPUKeywords::MDROREG:
         cpuPaneItems->MDROLabel->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::MDREREG:
+    case ECPUKeywords::MDREREG:
         cpuPaneItems->MDRELabel->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
         break;
-    case Enu::MDRREG:
+    case ECPUKeywords::MDRREG:
         cpuPaneItems->MDRLabel->setText("0x" + QString("%1").arg(value, 2, 16, QLatin1Char('0')).toUpper());
         break;
     default:
@@ -352,35 +353,38 @@ void CpuPane::setRegisterByte(quint8 reg, quint8 value)
 
 void CpuPane::initRegisters()
 {
+    using namespace Pep9::uarch;
     //Set register bank
     for(quint8 it = 0 ;it < 22; it++) {
         setRegisterByte(it, dataSection->getRegisterBankByte(it));
     }
 
     //Set status bits
-    setStatusBit(Enu::N,dataSection->getStatusBit(Enu::STATUS_N));
-    setStatusBit(Enu::Z,dataSection->getStatusBit(Enu::STATUS_Z));
-    setStatusBit(Enu::V,dataSection->getStatusBit(Enu::STATUS_V));
-    setStatusBit(Enu::Cbit,dataSection->getStatusBit(Enu::STATUS_C));
-    setStatusBit(Enu::S,dataSection->getStatusBit(Enu::STATUS_S));
+    setStatusBit(ECPUKeywords::N,dataSection->getStatusBit(Enu::STATUS_N));
+    setStatusBit(ECPUKeywords::Z,dataSection->getStatusBit(Enu::STATUS_Z));
+    setStatusBit(ECPUKeywords::V,dataSection->getStatusBit(Enu::STATUS_V));
+    setStatusBit(ECPUKeywords::Cbit,dataSection->getStatusBit(Enu::STATUS_C));
+    setStatusBit(ECPUKeywords::S,dataSection->getStatusBit(Enu::STATUS_S));
 }
 
-void CpuPane::setStatusBit(Enu::ECPUKeywords bit, bool value)
+void CpuPane::setStatusBit(Pep9::uarch::ECPUKeywords bit, bool value)
 {
+    using namespace Pep9::uarch;
+
     switch (bit) {
-    case Enu::N:
+    case ECPUKeywords::N:
         cpuPaneItems->nBitLabel->setText(QString("%1").arg(value ? "1" : "0"));
         break;
-    case Enu::Z:
+    case ECPUKeywords::Z:
         cpuPaneItems->zBitLabel->setText(QString("%1").arg(value ? "1" : "0"));
         break;
-    case Enu::V:
+    case ECPUKeywords::V:
         cpuPaneItems->vBitLabel->setText(QString("%1").arg(value ? "1" : "0"));
         break;
-    case Enu::Cbit:
+    case ECPUKeywords::Cbit:
         cpuPaneItems->cBitLabel->setText(QString("%1").arg(value ? "1" : "0"));
         break;
-    case Enu::S:
+    case ECPUKeywords::S:
         cpuPaneItems->sBitLabel->setText(QString("%1").arg(value ? "1" : "0"));
         break;
     default:
@@ -388,46 +392,47 @@ void CpuPane::setStatusBit(Enu::ECPUKeywords bit, bool value)
     }
 }
 
-void CpuPane::setRegPrecondition(Enu::ECPUKeywords reg, int value)
+void CpuPane::setRegPrecondition(Pep9::uarch::ECPUKeywords reg, int value)
 {
     setRegister(reg, value);
 }
 
-void CpuPane::setStatusPrecondition(Enu::ECPUKeywords bit, bool value)
+void CpuPane::setStatusPrecondition(Pep9::uarch::ECPUKeywords bit, bool value)
 {
     setStatusBit(bit, value);
 }
 
 void CpuPane::clearCpu()
 {
+    using namespace Pep9::uarch;
     clearCpuControlSignals();
-    setRegister(Enu::Acc, 0);
-    setRegister(Enu::X, 0);
-    setRegister(Enu::SP, 0);
-    setRegister(Enu::PC, 0);
-    setRegister(Enu::IR, 0);
-    setRegister(Enu::T1, 0);
-    setRegister(Enu::T2, 0);
-    setRegister(Enu::T3, 0);
-    setRegister(Enu::T4, 0);
-    setRegister(Enu::T5, 0);
-    setRegister(Enu::T6, 0);
+    setRegister(ECPUKeywords::Acc, 0);
+    setRegister(ECPUKeywords::X, 0);
+    setRegister(ECPUKeywords::SP, 0);
+    setRegister(ECPUKeywords::PC, 0);
+    setRegister(ECPUKeywords::IR, 0);
+    setRegister(ECPUKeywords::T1, 0);
+    setRegister(ECPUKeywords::T2, 0);
+    setRegister(ECPUKeywords::T3, 0);
+    setRegister(ECPUKeywords::T4, 0);
+    setRegister(ECPUKeywords::T5, 0);
+    setRegister(ECPUKeywords::T6, 0);
 
-    setRegister(Enu::MARAREG, 0);
-    setRegister(Enu::MARBREG, 0);
+    setRegister(ECPUKeywords::MARAREG, 0);
+    setRegister(ECPUKeywords::MARBREG, 0);
 
     // Clear 1 & 2 byte data registers
-    setRegister(Enu::MDRREG, 0);
+    setRegister(ECPUKeywords::MDRREG, 0);
 
-    setRegister(Enu::MDREREG, 0);
-    setRegister(Enu::MDROREG, 0);
+    setRegister(ECPUKeywords::MDREREG, 0);
+    setRegister(ECPUKeywords::MDROREG, 0);
 
 
-    setStatusBit(Enu::S, false);
-    setStatusBit(Enu::Cbit, false);
-    setStatusBit(Enu::V, false);
-    setStatusBit(Enu::Z, false);
-    setStatusBit(Enu::N, false);
+    setStatusBit(ECPUKeywords::S, false);
+    setStatusBit(ECPUKeywords::Cbit, false);
+    setStatusBit(ECPUKeywords::V, false);
+    setStatusBit(ECPUKeywords::Z, false);
+    setStatusBit(ECPUKeywords::N, false);
 }
 
 void CpuPane::clearCpuControlSignals()
@@ -608,6 +613,7 @@ void CpuPane::zoomFactorChanged(int factor)
 
 void CpuPane::labelClicked()
 {
+    using namespace Pep9::uarch;
     TristateLabel *label = qobject_cast<TristateLabel *>(sender());
     label->toggle();
     QString temp="";
@@ -616,32 +622,32 @@ void CpuPane::labelClicked()
     // Must initialize the below values to 0, otherwise static analyzer
     // becomes upset. This values will only be used if their associated
     // boolean flag is true, but I can't pass this hint to the compiler.
-    Enu::EControlSignals control = Enu::EControlSignals::A;
+    EControlSignals control = EControlSignals::A;
     Enu::EStatusBit status = Enu::EStatusBit::STATUS_C;
     if(label == cpuPaneItems->aMuxTristateLabel){
         temp = cpuPaneItems->aMuxTristateLabel->text();
-        control = Enu::AMux;
+        control = EControlSignals::AMux;
         hadCtrl = true;
     }
     else if(label == cpuPaneItems->cMuxTristateLabel) {
         temp = cpuPaneItems->cMuxTristateLabel->text();
-        control= Enu::CMux;
+        control= EControlSignals::CMux;
         hadCtrl = true;
     }
     else if(label == cpuPaneItems->CSMuxTristateLabel) {
         temp = cpuPaneItems->CSMuxTristateLabel->text();
-        control = Enu::CSMux;
+        control = EControlSignals::CSMux;
         hadCtrl = true;
     }
     else if(label == cpuPaneItems->AndZTristateLabel) {
         temp = cpuPaneItems->AndZTristateLabel->text();
-        control = Enu::AndZ;
+        control = EControlSignals::AndZ;
         hadCtrl = true;
     }
     else if(label == cpuPaneItems->MemWriteTristateLabel) {
         if(cpuPaneItems->MemReadTristateLabel->text().isEmpty()){
             temp = cpuPaneItems->MemWriteTristateLabel->text();
-            control= Enu::MemWrite;
+            control= EControlSignals::MemWrite;
             hadCtrl = true;
         }
         else {
@@ -653,7 +659,7 @@ void CpuPane::labelClicked()
     else if(label == cpuPaneItems->MemReadTristateLabel) {
         if(cpuPaneItems->MemWriteTristateLabel->text().isEmpty()){
             temp = cpuPaneItems->MemReadTristateLabel->text();
-            control = Enu::MemRead;
+            control = EControlSignals::MemRead;
             hadCtrl = true;
         }
         else {
@@ -663,22 +669,22 @@ void CpuPane::labelClicked()
     }
     else if(label == cpuPaneItems->MDRMuxTristateLabel) {
         temp = cpuPaneItems->MDRMuxTristateLabel->text();
-        control = Enu::MDRMux;
+        control = EControlSignals::MDRMux;
         hadCtrl = true;
     }
     else if(label == cpuPaneItems->MDREMuxTristateLabel) {
         temp = cpuPaneItems->MDREMuxTristateLabel->text();
-        control = Enu::MDREMux;
+        control = EControlSignals::MDREMux;
         hadCtrl = true;
     }
     else if(label == cpuPaneItems->MDROMuxTristateLabel) {
         temp = cpuPaneItems->MDROMuxTristateLabel->text();
-        control = Enu::MDROMux;
+        control = EControlSignals::MDROMux;
         hadCtrl = true;
     }
     else if(label == cpuPaneItems->EOMuxTristateLabel) {
         temp = cpuPaneItems->EOMuxTristateLabel->text();
-        control = Enu::EOMux;
+        control = EControlSignals::EOMux;
         hadCtrl = true;
     }
     else if(label == cpuPaneItems->nBitLabel) {
@@ -727,110 +733,114 @@ void CpuPane::clockButtonPushed()
 
 void CpuPane::on_copyToMicrocodePushButton_clicked() // union of all models
 {
+    using namespace Pep9::uarch;
+
     MicroCode code(dataSection->getCPUType(), false);
     if (cpuPaneItems->loadCk->isChecked()) {
-        code.setClockSingal(Enu::LoadCk, 1);
+        code.setClockSingal(EClockSignals::LoadCk, 1);
     }
     if (cpuPaneItems->cLineEdit->text() != "") {
-        code.setControlSignal(Enu::C, static_cast<quint8>(cpuPaneItems->cLineEdit->text().toInt()));
+        code.setControlSignal(EControlSignals::C, static_cast<quint8>(cpuPaneItems->cLineEdit->text().toInt()));
     }
     if (cpuPaneItems->bLineEdit->text() != "") {
-        code.setControlSignal(Enu::B, static_cast<quint8>(cpuPaneItems->bLineEdit->text().toInt()));
+        code.setControlSignal(EControlSignals::B, static_cast<quint8>(cpuPaneItems->bLineEdit->text().toInt()));
     }
     if (cpuPaneItems->aLineEdit->text() != "") {
-        code.setControlSignal(Enu::A, static_cast<quint8>(cpuPaneItems->aLineEdit->text().toInt()));
+        code.setControlSignal(EControlSignals::A, static_cast<quint8>(cpuPaneItems->aLineEdit->text().toInt()));
     }
     if (cpuPaneItems->MARCk->isChecked()) {
-        code.setClockSingal(Enu::MARCk, 1);
+        code.setClockSingal(EClockSignals::MARCk, 1);
     }
     if (cpuPaneItems->aMuxTristateLabel->text() != "") {
-        code.setControlSignal(Enu::AMux, static_cast<quint8>(cpuPaneItems->aMuxTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::AMux, static_cast<quint8>(cpuPaneItems->aMuxTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->cMuxTristateLabel->text() != "") {
-        code.setControlSignal(Enu::CMux, static_cast<quint8>(cpuPaneItems->cMuxTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::CMux, static_cast<quint8>(cpuPaneItems->cMuxTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->ALULineEdit->text() != "") {
-        code.setControlSignal(Enu::ALU, static_cast<quint8>(cpuPaneItems->ALULineEdit->text().toInt()));
+        code.setControlSignal(EControlSignals::ALU, static_cast<quint8>(cpuPaneItems->ALULineEdit->text().toInt()));
     }
     if (cpuPaneItems->CSMuxTristateLabel->text() != "") {
-        code.setControlSignal(Enu::CSMux, static_cast<quint8>(cpuPaneItems->CSMuxTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::CSMux, static_cast<quint8>(cpuPaneItems->CSMuxTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->SCkCheckBox->isChecked()) {
-        code.setClockSingal(Enu::SCk, 1);
+        code.setClockSingal(EClockSignals::SCk, 1);
     }
     if (cpuPaneItems->CCkCheckBox->isChecked()) {
-        code.setClockSingal(Enu::CCk, 1);
+        code.setClockSingal(EClockSignals::CCk, 1);
     }
     if (cpuPaneItems->VCkCheckBox->isChecked()) {
-        code.setClockSingal(Enu::VCk, 1);
+        code.setClockSingal(EClockSignals::VCk, 1);
     }
     if (cpuPaneItems->AndZTristateLabel->text() != "") {
-        code.setControlSignal(Enu::AndZ, static_cast<quint8>(cpuPaneItems->AndZTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::AndZ, static_cast<quint8>(cpuPaneItems->AndZTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->ZCkCheckBox->isChecked()) {
-        code.setClockSingal(Enu::ZCk, 1);
+        code.setClockSingal(EClockSignals::ZCk, 1);
     }
     if (cpuPaneItems->NCkCheckBox->isChecked()) {
-        code.setClockSingal(Enu::NCk, 1);
+        code.setClockSingal(EClockSignals::NCk, 1);
     }
     if (cpuPaneItems->MemReadTristateLabel->text() != "") {
-        code.setControlSignal(Enu::MemRead, static_cast<quint8>(cpuPaneItems->MemReadTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::MemRead, static_cast<quint8>(cpuPaneItems->MemReadTristateLabel->text().toInt()));
     }
     if (cpuPaneItems->MemWriteTristateLabel->text() != "") {
-        code.setControlSignal(Enu::MemWrite, static_cast<quint8>(cpuPaneItems->MemWriteTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::MemWrite, static_cast<quint8>(cpuPaneItems->MemWriteTristateLabel->text().toInt()));
     }
     if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MARMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::MARMux, static_cast<quint8>(cpuPaneItems->MARMuxTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::MARMux, static_cast<quint8>(cpuPaneItems->MARMuxTristateLabel->text().toInt()));
     }
 
     // 1 byte exclusive controls.
     if (cpu->getCPUType() == PepCore::CPUType::OneByteDataBus &&
             cpuPaneItems->MDRCk->isChecked()) { // 1 byte bus
-        code.setClockSingal(Enu::MDRCk, 1);
+        code.setClockSingal(EClockSignals::MDRCk, 1);
     }
     if (cpu->getCPUType() == PepCore::CPUType::OneByteDataBus &&
             cpuPaneItems->MDRMuxTristateLabel->text() != "") { // 1 byte bus
-        code.setControlSignal(Enu::MDRMux, static_cast<quint8>(cpuPaneItems->MDRMuxTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::MDRMux, static_cast<quint8>(cpuPaneItems->MDRMuxTristateLabel->text().toInt()));
     }
 
     // 2 byte exclusive controls.
     if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MARMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::MARMux, static_cast<quint8>(cpuPaneItems->MARMuxTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::MARMux, static_cast<quint8>(cpuPaneItems->MARMuxTristateLabel->text().toInt()));
     }
     if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MDROCk->isChecked()) { // 2 byte bus
-        code.setClockSingal(Enu::MDROCk, 1);
+        code.setClockSingal(EClockSignals::MDROCk, 1);
     }
     if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MDROMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::MDROMux, static_cast<quint8>(cpuPaneItems->MDROMuxTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::MDROMux, static_cast<quint8>(cpuPaneItems->MDROMuxTristateLabel->text().toInt()));
     }
     if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MDRECk->isChecked()) { // 2 byte bus
-        code.setClockSingal(Enu::MDRECk, 1);
+        code.setClockSingal(EClockSignals::MDRECk, 1);
     }
     if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->MDREMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::MDREMux, static_cast<quint8>(cpuPaneItems->MDREMuxTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::MDREMux, static_cast<quint8>(cpuPaneItems->MDREMuxTristateLabel->text().toInt()));
     }
     if (cpu->getCPUType() == PepCore::CPUType::TwoByteDataBus &&
             cpuPaneItems->EOMuxTristateLabel->text() != "") { // 2 byte bus
-        code.setControlSignal(Enu::EOMux, static_cast<quint8>(cpuPaneItems->EOMuxTristateLabel->text().toInt()));
+        code.setControlSignal(EControlSignals::EOMux, static_cast<quint8>(cpuPaneItems->EOMuxTristateLabel->text().toInt()));
     }
-    code.setBranchFunction(Enu::Assembler_Assigned);
+    code.setBranchFunction(EBranchFunctions::Assembler_Assigned);
     emit appendMicrocodeLine(code.getSourceCode());
 }
 
 void CpuPane::ALUTextEdited(QString str)
 {
+    using namespace Pep9::uarch;
+
     if (str == "") {
         cpuPaneItems->ALUFunctionLabel->setText("");
     }
     else {
         int num = str.toInt();
-        dataSection->onSetControlSignal(Enu::ALU, num);
+        dataSection->onSetControlSignal(EControlSignals::ALU, num);
         //
         switch (num) {
         case 0:
@@ -889,57 +899,60 @@ void CpuPane::ALUTextEdited(QString str)
 
 void CpuPane::onClockChanged()
 {
+    using namespace Pep9::uarch;
     QCheckBox* send = qobject_cast<QCheckBox*>(sender());
     if(send==cpuPaneItems->NCkCheckBox) {
-        dataSection->onSetClock(Enu::NCk,cpuPaneItems->NCkCheckBox->checkState());
+        dataSection->onSetClock(EClockSignals::NCk,cpuPaneItems->NCkCheckBox->checkState());
     }
     else if(send==cpuPaneItems->ZCkCheckBox) {
-        dataSection->onSetClock(Enu::ZCk,cpuPaneItems->ZCkCheckBox->checkState());
+        dataSection->onSetClock(EClockSignals::ZCk,cpuPaneItems->ZCkCheckBox->checkState());
     }
     else if(send==cpuPaneItems->VCkCheckBox) {
-        dataSection->onSetClock(Enu::VCk,cpuPaneItems->VCkCheckBox->checkState());
+        dataSection->onSetClock(EClockSignals::VCk,cpuPaneItems->VCkCheckBox->checkState());
     }
     else if(send==cpuPaneItems->CCkCheckBox) {
-        dataSection->onSetClock(Enu::CCk,cpuPaneItems->CCkCheckBox->checkState());
+        dataSection->onSetClock(EClockSignals::CCk,cpuPaneItems->CCkCheckBox->checkState());
     }
     else if(send==cpuPaneItems->SCkCheckBox) {
-        dataSection->onSetClock(Enu::SCk,cpuPaneItems->SCkCheckBox->checkState());
+        dataSection->onSetClock(EClockSignals::SCk,cpuPaneItems->SCkCheckBox->checkState());
     }
     else if(send==cpuPaneItems->MARCk) {
-        dataSection->onSetClock(Enu::MARCk,cpuPaneItems->MARCk->checkState());
+        dataSection->onSetClock(EClockSignals::MARCk,cpuPaneItems->MARCk->checkState());
     }
     else if(send==cpuPaneItems->MDRCk) {
-        dataSection->onSetClock(Enu::MDRCk,cpuPaneItems->MDRCk->checkState());
+        dataSection->onSetClock(EClockSignals::MDRCk,cpuPaneItems->MDRCk->checkState());
     }
     else if(send==cpuPaneItems->MDRECk) {
-        dataSection->onSetClock(Enu::MDRECk,cpuPaneItems->MDRECk->checkState());
+        dataSection->onSetClock(EClockSignals::MDRECk,cpuPaneItems->MDRECk->checkState());
     }
     else if(send==cpuPaneItems->MDROCk) {
-        dataSection->onSetClock(Enu::MDROCk,cpuPaneItems->MDROCk->checkState());
+        dataSection->onSetClock(EClockSignals::MDROCk,cpuPaneItems->MDROCk->checkState());
     }
     else if(send==cpuPaneItems->loadCk) {
-        dataSection->onSetClock(Enu::LoadCk,cpuPaneItems->loadCk->checkState());
+        dataSection->onSetClock(EClockSignals::LoadCk,cpuPaneItems->loadCk->checkState());
     }
 }
 
 void CpuPane::onBusChanged()
 {
+    using namespace Pep9::uarch;
+
     QLineEdit* bus = qobject_cast<QLineEdit*>(sender());
     quint8 val;
     if(bus==cpuPaneItems->aLineEdit)
     {
         val = static_cast<quint8>(cpuPaneItems->aLineEdit->text().toInt());
-        dataSection->onSetControlSignal(Enu::A,val);
+        dataSection->onSetControlSignal(EControlSignals::A,val);
     }
     else if(bus==cpuPaneItems->bLineEdit)
     {
         val = static_cast<quint8>(cpuPaneItems->bLineEdit->text().toInt());
-        dataSection->onSetControlSignal(Enu::B,val);
+        dataSection->onSetControlSignal(EControlSignals::B,val);
     }
     else if(bus==cpuPaneItems->cLineEdit)
     {
         val = static_cast<quint8>(cpuPaneItems->cLineEdit->text().toInt());
-        dataSection->onSetControlSignal(Enu::C,val);
+        dataSection->onSetControlSignal(EControlSignals::C,val);
     }
 }
 
@@ -972,21 +985,23 @@ void CpuPane::onMemoryRegisterChanged(Pep9::uarch::EMemoryRegisters reg, quint8,
 
 void CpuPane::onStatusBitChanged(EStatusBit bit, bool value)
 {
+    using namespace Pep9::uarch;
+
     switch(bit){
     case Enu::STATUS_N:
-        setStatusBit(Enu::N,value);
+        setStatusBit(ECPUKeywords::N,value);
         break;
     case Enu::STATUS_Z:
-        setStatusBit(Enu::Z,value);
+        setStatusBit(ECPUKeywords::Z,value);
         break;
     case Enu::STATUS_V:
-        setStatusBit(Enu::V,value);
+        setStatusBit(ECPUKeywords::V,value);
         break;
     case Enu::STATUS_C:
-        setStatusBit(Enu::Cbit,value);
+        setStatusBit(ECPUKeywords::Cbit,value);
         break;
     case Enu::STATUS_S:
-        setStatusBit(Enu::S,value);
+        setStatusBit(ECPUKeywords::S,value);
         break;
     default:
         break;
@@ -1003,28 +1018,28 @@ void CpuPane::onSimulationUpdate()
 {
     using namespace Pep9::uarch;
 
-    setRegister(Enu::Acc, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::A)));
-    setRegister(Enu::X, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::X)));
-    setRegister(Enu::SP, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::SP)));
-    setRegister(Enu::PC, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::PC)));
-    setRegister(Enu::IR, static_cast<int>(dataSection->getRegisterBankByte(to_uint8_t(CPURegisters::IS))<<16) +
+    setRegister(ECPUKeywords::Acc, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::A)));
+    setRegister(ECPUKeywords::X, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::X)));
+    setRegister(ECPUKeywords::SP, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::SP)));
+    setRegister(ECPUKeywords::PC, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::PC)));
+    setRegister(ECPUKeywords::IR, static_cast<int>(dataSection->getRegisterBankByte(to_uint8_t(CPURegisters::IS))<<16) +
                 dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::OS)));
-    setRegister(Enu::T1, dataSection->getRegisterBankByte(to_uint8_t(CPURegisters::T1)));
-    setRegister(Enu::T2, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T2)));
-    setRegister(Enu::T3, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T3)));
-    setRegister(Enu::T4, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T4)));
-    setRegister(Enu::T5, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T5)));
-    setRegister(Enu::T6, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T6)));
-    setRegister(Enu::MARAREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARA));
-    setRegister(Enu::MARBREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARB));
-    setRegister(Enu::MDRREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDR));
-    setRegister(Enu::MDROREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDRO));
-    setRegister(Enu::MDREREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDRE));
-    setStatusBit(Enu::N, dataSection->getStatusBit(Enu::STATUS_N));
-    setStatusBit(Enu::Z, dataSection->getStatusBit(Enu::STATUS_Z));
-    setStatusBit(Enu::V, dataSection->getStatusBit(Enu::STATUS_V));
-    setStatusBit(Enu::Cbit, dataSection->getStatusBit(Enu::STATUS_C));
-    setStatusBit(Enu::S, dataSection->getStatusBit(Enu::STATUS_S));
+    setRegister(ECPUKeywords::T1, dataSection->getRegisterBankByte(to_uint8_t(CPURegisters::T1)));
+    setRegister(ECPUKeywords::T2, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T2)));
+    setRegister(ECPUKeywords::T3, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T3)));
+    setRegister(ECPUKeywords::T4, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T4)));
+    setRegister(ECPUKeywords::T5, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T5)));
+    setRegister(ECPUKeywords::T6, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T6)));
+    setRegister(ECPUKeywords::MARAREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARA));
+    setRegister(ECPUKeywords::MARBREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARB));
+    setRegister(ECPUKeywords::MDRREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDR));
+    setRegister(ECPUKeywords::MDROREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDRO));
+    setRegister(ECPUKeywords::MDREREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDRE));
+    setStatusBit(ECPUKeywords::N, dataSection->getStatusBit(Enu::STATUS_N));
+    setStatusBit(ECPUKeywords::Z, dataSection->getStatusBit(Enu::STATUS_Z));
+    setStatusBit(ECPUKeywords::V, dataSection->getStatusBit(Enu::STATUS_V));
+    setStatusBit(ECPUKeywords::Cbit, dataSection->getStatusBit(Enu::STATUS_C));
+    setStatusBit(ECPUKeywords::S, dataSection->getStatusBit(Enu::STATUS_S));
     const AMicroCode *code = cpu->getCurrentMicrocodeLine();
     if(auto* as_microcode = dynamic_cast<const MicroCode*>(code);
              as_microcode != nullptr) {

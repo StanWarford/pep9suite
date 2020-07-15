@@ -38,11 +38,15 @@ private:
     // Does a particular instruction perform a store instead of a load?
     bool isStoreMnemonic(Pep9::ISA::EMnemonic);
     void initDecoderTables();
+
+    // Pep9 micro tables
 };
 }
 
 uint8_t to_uint8_t(Pep9::ISA::CPURegisters reg);
 uint8_t to_uint8_t(Pep9::uarch::CPURegisters reg);
+uint8_t to_uint8_t(Pep9::uarch::EControlSignals signal);
+uint8_t to_uint8_t(Pep9::uarch::EClockSignals signal);
 
 
 #endif // PEP9_H

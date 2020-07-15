@@ -3,7 +3,10 @@
 
 #include <QtCore>
 
+#include "pep/constants.h"
+
 namespace Pep9::uarch {
+    Q_NAMESPACE
     enum class CPURegisters: uint8_t
     {
         // Two byte registers
@@ -22,8 +25,14 @@ namespace Pep9::uarch {
         // Present in any derivative of Pep9CPU
         T1=11
     };
-    Q_NAMESPACE
-    enum MainBusState {
+    enum class EStatusBit
+    {
+        STATUS_N,STATUS_Z,STATUS_V,STATUS_C,STATUS_S
+    };
+    Q_ENUM_NS(EStatusBit);
+
+
+    enum class MainBusState {
         None,
         MemReadFirstWait,
         MemReadSecondWait,
@@ -48,6 +57,72 @@ namespace Pep9::uarch {
         ROLA_func=12,ASRA_func=13,RORA_func=14,NZVCA_func=15,
         UNDEFINED_func=255,
     };
+
+    // Instruction mnemonics
+    enum class EControlSignals
+    {
+        MemRead=0, MemWrite,
+        A,B,EOMux, MARMux,MARA, MARB, AMux, ALU,CSMux, AndZ,
+        CMux, C,
+        MDRMux, MDROMux, MDREMux,MDR, MDRE, MDRO,
+        PValid,
+    };
+    Q_ENUM_NS(EControlSignals);
+
+    enum class EClockSignals{
+        NCk=0,
+        ZCk,VCk,CCk,SCk,MARCk,LoadCk,MDRCk, MDROCk, MDRECk,
+        PValidCk,
+    };
+    Q_ENUM_NS(EClockSignals);
+
+    enum class ECPUKeywords {
+        Pre, Post,
+        Mem, Acc, X, SP, PC, IR,
+        T1, T2, T3, T4, T5, T6,
+        N, Z, V,Cbit, S,
+        MARAREG, MARBREG,
+        MDRREG, MDREREG, MDROREG
+    };
+
+    /*
+     * Enumerations for Pep9Micro
+     */
+    enum class EBranchFunctions{
+        Unconditional = 0,
+        uBRGT = 1, uBRGE = 2, uBREQ = 3, uBRLE = 4, uBRLT = 5,
+        uBRNE = 6, uBRV = 7, uBRC = 8, uBRS = 9,
+        IsPrefetchValid = 10,
+        IsUnary = 11,
+        PCisOdd = 12,
+        AddressingModeDecoder = 13, // Adressing modes jump table
+        InstructionSpecifierDecoder = 14, // Instruction jump table
+        Stop = 15,
+        Assembler_Assigned = 16
+    };
+    Q_ENUM_NS(EBranchFunctions);
+
+
+    // Must declare as extern, or values will not be preserved between translation units.
+    extern QMap<EControlSignals, QString> decControlToMnemonMap;
+    extern QMap<EControlSignals, QString> memControlToMnemonMap;
+    extern QMap<EClockSignals, QString> clockControlToMnemonMap;
+    extern QMap<ECPUKeywords, QString> specificationToMnemonMap;
+    extern QMap<ECPUKeywords, QString> memSpecToMnemonMap;
+    extern QMap<ECPUKeywords, QString> regSpecToMnemonMap;
+    extern QMap<ECPUKeywords, QString> statusSpecToMnemonMap;
+    extern QMap<EBranchFunctions,QString> branchFuncToMnemonMap;
+    extern QMap<QString, EBranchFunctions> mnemonToBranchFuncMap;
+    extern QMap<QString, EControlSignals> mnemonToDecControlMap;
+    extern QMap<QString, EControlSignals> mnemonToMemControlMap;
+    extern QMap<QString, EClockSignals> mnemonToClockControlMap;
+    extern QMap<QString, ECPUKeywords> mnemonToSpecificationMap;
+    extern QMap<QString, ECPUKeywords> mnemonToMemSpecMap;
+    extern QMap<QString, ECPUKeywords> mnemonToRegSpecMap;
+    extern QMap<QString, ECPUKeywords> mnemonToStatusSpecMap;
+    void initMicroEnumMnemonMaps(PepCore::CPUType cpuType, bool fullCtrlSection);
+    quint8 numControlSignals();
+    quint8 numClockSignals();
 }
 
 

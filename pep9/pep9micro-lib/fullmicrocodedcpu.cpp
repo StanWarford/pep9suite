@@ -34,6 +34,7 @@
 #include "symbol/symbolentry.h"
 
 #include "cpudata.h"
+#include "cpudefs.h"
 #include "fullmicrocodedmemoizer.h"
 
 FullMicrocodedCPU::FullMicrocodedCPU(const AsmProgramManager* manager,
@@ -504,6 +505,8 @@ const QVector<quint32> FullMicrocodedCPU::getInstructionHistogram(bool includeOS
 
 void FullMicrocodedCPU::branchHandler()
 {
+    using namespace Pep9::uarch;
+
     // If execution is already finished, then nothing to update.
     if(executionFinished) return;
     else if(hadErrorOnStep()) executionFinished = true;
@@ -515,10 +518,10 @@ void FullMicrocodedCPU::branchHandler()
     QSharedPointer<SymbolEntry> val;
     switch(prog->getBranchFunction())
     {
-    case Enu::Unconditional:
+    case EBranchFunctions::Unconditional:
         temp = prog->getTrueTarget()->getValue();
         break;
-    case Enu::uBRGT:
+    case EBranchFunctions::uBRGT:
         if((!data->getStatusBit(Enu::STATUS_N) && !data->getStatusBit(Enu::STATUS_Z))) {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -526,7 +529,7 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::uBRGE:
+    case EBranchFunctions::uBRGE:
         if((!data->getStatusBit(Enu::STATUS_N))) {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -534,7 +537,7 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::uBREQ:
+    case EBranchFunctions::uBREQ:
         if(data->getStatusBit(Enu::STATUS_Z)) {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -542,7 +545,7 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::uBRLE:
+    case EBranchFunctions::uBRLE:
         if(data->getStatusBit(Enu::STATUS_N) || data->getStatusBit(Enu::STATUS_Z)) {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -550,7 +553,7 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::uBRLT:
+    case EBranchFunctions::uBRLT:
         if(data->getStatusBit(Enu::STATUS_N)) {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -558,7 +561,7 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::uBRNE:
+    case EBranchFunctions::uBRNE:
         if((!data->getStatusBit(Enu::STATUS_Z))) {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -566,7 +569,7 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::uBRV:
+    case EBranchFunctions::uBRV:
         if(data->getStatusBit(Enu::STATUS_V)) {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -574,7 +577,7 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::uBRC:
+    case EBranchFunctions::uBRC:
         if(data->getStatusBit(Enu::STATUS_C))  {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -582,7 +585,7 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::uBRS:
+    case EBranchFunctions::uBRS:
         if(data->getStatusBit(Enu::STATUS_S)) {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -590,7 +593,7 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::IsPrefetchValid:
+    case EBranchFunctions::IsPrefetchValid:
         if(isPrefetchValid) {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -598,7 +601,7 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::IsUnary:
+    case EBranchFunctions::IsUnary:
         byte = data->getRegisterBankByte(8);
         // At the hardware level, all traps are unary.
         // If it is a non-unary trap at the ASM level, loading the argument is part of the microcode trap handlers responsibility.
@@ -610,7 +613,7 @@ void FullMicrocodedCPU::branchHandler()
         }
         break;
     // 2020-07-02: Test for odd instead of even, will require inverting if .. else .. clauses in existing microcode.
-    case Enu::PCisOdd:
+    case EBranchFunctions::PCisOdd:
         if(data->getRegisterBankByte(7)%2 == 1) {
             temp = prog->getTrueTarget()->getValue();
         }
@@ -618,7 +621,7 @@ void FullMicrocodedCPU::branchHandler()
             temp = prog->getFalseTarget()->getValue();
         }
         break;
-    case Enu::AddressingModeDecoder:
+    case EBranchFunctions::AddressingModeDecoder:
         // If the value in the instruction specifier decoder table is invalid,
         // report the unrecoverable error.
         if(!addrModeJT[data->getRegisterBankByte(8)].isValid) {
@@ -640,7 +643,7 @@ void FullMicrocodedCPU::branchHandler()
         }
 
         break;
-    case Enu::InstructionSpecifierDecoder:
+    case EBranchFunctions::InstructionSpecifierDecoder:
         // If the value in the instruction specifier decoder table is invalid,
         // report the unrecoverable error.
         if(!instrSpecJT[data->getRegisterBankByte(8)].isValid) {
@@ -662,7 +665,7 @@ void FullMicrocodedCPU::branchHandler()
         }
 
         break;
-    case Enu::Stop:
+    case EBranchFunctions::Stop:
         executionFinished = true;
         break;
     default:
@@ -676,7 +679,7 @@ void FullMicrocodedCPU::branchHandler()
         //If there was an error in the control section, make sure the CPU stops
         executionFinished = true;
     }
-    else if(temp == microprogramCounter && prog->getBranchFunction() != Enu::Stop) {
+    else if(temp == microprogramCounter && prog->getBranchFunction() != EBranchFunctions::Stop) {
         executionFinished  = true;
         controlError = true;
         errorMessage = "ERROR: µInstructions cannot branch to themselves";
@@ -770,9 +773,10 @@ void FullMicrocodedCPU::breakpointMicroHandler()
 
 void FullMicrocodedCPU::setSignalsFromMicrocode(const MicroCode *line)
 {
+    using namespace Pep9::uarch;
     int val;
-    if(line->getClockSignal(Enu::EClockSignals::PValidCk)) {
-        val = line->getControlSignal(Enu::EControlSignals::PValid);
+    if(line->getClockSignal(EClockSignals::PValidCk)) {
+        val = line->getControlSignal(EControlSignals::PValid);
         if(val == Enu::signalDisabled) {
             errorMessage = "Error: Asserted PValidCk, but PValid was disabled.";
             controlError = true;

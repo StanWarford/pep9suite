@@ -103,13 +103,15 @@ void MicroObjectCodePane::setObjectCode()
 
 void MicroObjectCodePane::setObjectCode(QSharedPointer<const MicrocodeProgram> prog, QSharedPointer<const SymbolTable> symbolTable)
 {
+    using namespace Pep9::uarch;
+
     assignHeaders();
     this->program = prog;
     this->symTable = symbolTable;
     int rowNum = 0, colNum = 0;
-    QList<Enu::EControlSignals> controls = Pep::memControlToMnemonMap.keys();
-    controls.append(Pep::decControlToMnemonMap.keys());
-    QList<Enu::EClockSignals> clocks = Pep::clockControlToMnemonMap.keys();
+    QList<EControlSignals> controls = memControlToMnemonMap.keys();
+    controls.append(decControlToMnemonMap.keys());
+    QList<EClockSignals> clocks = clockControlToMnemonMap.keys();
     model->setRowCount(0);
     if(!prog.isNull()) {
         for(AMicroCode* row : program->getObjectCode()) {
@@ -138,7 +140,8 @@ void MicroObjectCodePane::setObjectCode(QSharedPointer<const MicrocodeProgram> p
                 colNum++;
             }
             if(showCtrlSectionSignals) {
-                auto y = new QStandardItem(QString::number((static_cast<MicroCode*>(row))->getBranchFunction()));
+                auto branch_as_number = static_cast<int>((static_cast<MicroCode*>(row))->getBranchFunction());
+                auto y = new QStandardItem(QString::number(branch_as_number));
                 y->setTextAlignment(Qt::AlignCenter);
                 model->setItem(rowNum,colNum++,y);
                 // Increment row number by 1 to account for display rows starting at 1, not 0.
@@ -195,18 +198,20 @@ void MicroObjectCodePane::copy()
 
 void MicroObjectCodePane::assignHeaders()
 {
-    QList<Enu::EControlSignals> controls = Pep::memControlToMnemonMap.keys();
-    controls.append(Pep::decControlToMnemonMap.keys());
-    QList<Enu::EClockSignals> clocks = Pep::clockControlToMnemonMap.keys();
-    QMetaEnum nControls = QMetaEnum::fromType<Enu::EControlSignals>();
-    QMetaEnum nClocks = QMetaEnum::fromType<Enu::EClockSignals>();
+    using namespace Pep9::uarch;
+
+    QList<EControlSignals> controls = memControlToMnemonMap.keys();
+    controls.append(decControlToMnemonMap.keys());
+    QList<EClockSignals> clocks = clockControlToMnemonMap.keys();
+    QMetaEnum nControls = QMetaEnum::fromType<EControlSignals>();
+    QMetaEnum nClocks = QMetaEnum::fromType<EClockSignals>();
     QList<QString> headers;
     int size = controls.size()+clocks.size();
     for(auto x : controls) {
-        headers.append(QString(nControls.valueToKey(x)));
+        headers.append(QString(nControls.valueToKey(static_cast<int>(x))));
     }
     for(auto x : clocks) {
-        headers.append(QString(nClocks.valueToKey(x)));
+        headers.append(QString(nClocks.valueToKey(static_cast<int>(x))));
     }
     if(showCtrlSectionSignals) {
         headers.append("BRF");

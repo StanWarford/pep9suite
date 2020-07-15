@@ -238,3 +238,13 @@ uint8_t to_uint8_t(Pep9::uarch::CPURegisters reg)
 {
     return static_cast<uint8_t>(reg);
 }
+
+uint8_t to_uint8_t(Pep9::uarch::EControlSignals signal)
+{
+    return static_cast<uint8_t>(signal);
+}
+
+uint8_t to_uint8_t(Pep9::uarch::EClockSignals signal)
+{
+    return static_cast<uint8_t>(signal);
+}

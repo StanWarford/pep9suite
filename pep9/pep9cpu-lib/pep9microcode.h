@@ -9,6 +9,8 @@
 #include "pep/constants.h"
 #include "pep/enu.h"
 
+#include "cpudefs.h"
+
 class SymbolEntry;
 class Specification;
 class CPUDataSection;
@@ -22,25 +24,25 @@ public:
     QString getObjectCode() const override;
     QString getSourceCode() const override;
 
-    bool hasControlSignal(Enu::EControlSignals field) const;
-    bool hasClockSignal(Enu::EClockSignals field) const;
+    bool hasControlSignal(Pep9::uarch::EControlSignals field) const;
+    bool hasClockSignal(Pep9::uarch::EClockSignals field) const;
 
-    quint8 getControlSignal(Enu::EControlSignals field) const;
+    quint8 getControlSignal(Pep9::uarch::EControlSignals field) const;
     const QVector<quint8> getControlSignals() const;
-    bool getClockSignal(Enu::EClockSignals field) const;
+    bool getClockSignal(Pep9::uarch::EClockSignals field) const;
     const QVector<bool> getClockSignals() const;
 
 
-    Enu::EBranchFunctions getBranchFunction() const;
+    Pep9::uarch::EBranchFunctions getBranchFunction() const;
 
     const SymbolEntry* getTrueTarget() const;
     const SymbolEntry* getFalseTarget() const;
 
-    bool inRange(Enu::EControlSignals field, int value) const;
-    void setControlSignal(Enu::EControlSignals field, quint8 value);
-    void setClockSingal(Enu::EClockSignals field,bool value);
+    bool inRange(Pep9::uarch::EControlSignals field, int value) const;
+    void setControlSignal(Pep9::uarch::EControlSignals field, quint8 value);
+    void setClockSingal(Pep9::uarch::EClockSignals field,bool value);
 
-    void setBranchFunction(Enu::EBranchFunctions branch);
+    void setBranchFunction(Pep9::uarch::EBranchFunctions branch);
     void setTrueTarget(const SymbolEntry* target);
     void setFalseTarget(const SymbolEntry* target);
 
@@ -49,7 +51,7 @@ private:
     QVector<quint8> controlSignals;
     QVector<bool> clockSignals;
     bool extendedFeatures;
-    Enu::EBranchFunctions branchFunc = Enu::Unconditional;
+    Pep9::uarch::EBranchFunctions branchFunc = Pep9::uarch::EBranchFunctions::Unconditional;
     const SymbolEntry* trueTargetAddr;
     const SymbolEntry* falseTargetAddr;
 };

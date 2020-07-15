@@ -67,8 +67,8 @@ public:
     Pep9::uarch::MainBusState getMainBusState() const;
 
     //Test for Signals and Registers
-    quint8 getControlSignals(Enu::EControlSignals controlSignal) const;
-    bool getClockSignals(Enu::EClockSignals) const;
+    quint8 getControlSignals(Pep9::uarch::EControlSignals controlSignal) const;
+    bool getClockSignals(Pep9::uarch::EClockSignals) const;
     bool getStatusBit(Enu::EStatusBit) const;
 
     bool setSignalsFromMicrocode(const MicroCode* line);
@@ -137,8 +137,8 @@ public slots:
     void onSetRegisterByte(quint8 reg,quint8 val);
     void onSetRegisterWord(quint8 reg,quint16 val);
     void onSetMemoryRegister(Pep9::uarch::EMemoryRegisters,quint8 val);
-    void onSetClock(Enu::EClockSignals, bool value);
-    void onSetControlSignal(Enu::EControlSignals, quint8 value);
+    void onSetClock(Pep9::uarch::EClockSignals, bool value);
+    void onSetControlSignal(Pep9::uarch::EControlSignals, quint8 value);
     void onStep() noexcept;
     void onClock() noexcept;
     void onClearCPU() noexcept;

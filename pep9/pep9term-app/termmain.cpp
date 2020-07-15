@@ -397,7 +397,7 @@ void handle_cpuasm(command_line_values &values, QRunnable **runnable)
     }
 
     // Enable or disable full control section features depending on passed flags.
-    Pep::initMicroEnumMnemonMaps(type, values.had_full_control);
+    Pep9::uarch::initMicroEnumMnemonMaps(type, values.had_full_control);
 
     // Setup parsing of microcode program.
     QString sourceFileString = QString::fromStdString(values.mc);
@@ -441,7 +441,7 @@ void handle_cpurun(command_line_values &values, QRunnable **run)
     }
 
     // Enable or disable full control section features depending on passed flags.
-    Pep::initMicroEnumMnemonMaps(type, values.had_full_control);
+    Pep9::uarch::initMicroEnumMnemonMaps(type, values.had_full_control);
 
     // Microcode input file and unit test output file.
     QString microcodeFileName = QString::fromStdString(values.mc);

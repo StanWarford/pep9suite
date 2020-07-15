@@ -39,25 +39,7 @@ public:
     static QString removeCycleNumbers(QString codeString);
 
     // Maps between mnemonic enums and strings
-    static QMap<Enu::EControlSignals, QString> decControlToMnemonMap;
-    static QMap<Enu::EControlSignals, QString> memControlToMnemonMap;
-    static QMap<Enu::EClockSignals, QString> clockControlToMnemonMap;
-    static QMap<Enu::ECPUKeywords, QString> specificationToMnemonMap;
-    static QMap<Enu::ECPUKeywords, QString> memSpecToMnemonMap;
-    static QMap<Enu::ECPUKeywords, QString> regSpecToMnemonMap;
-    static QMap<Enu::ECPUKeywords, QString> statusSpecToMnemonMap;
-    static QMap<Enu::EBranchFunctions,QString> branchFuncToMnemonMap;
-    static QMap<QString, Enu::EBranchFunctions> mnemonToBranchFuncMap;
-    static QMap<QString, Enu::EControlSignals> mnemonToDecControlMap;
-    static QMap<QString, Enu::EControlSignals> mnemonToMemControlMap;
-    static QMap<QString, Enu::EClockSignals> mnemonToClockControlMap;
-    static QMap<QString, Enu::ECPUKeywords> mnemonToSpecificationMap;
-    static QMap<QString, Enu::ECPUKeywords> mnemonToMemSpecMap;
-    static QMap<QString, Enu::ECPUKeywords> mnemonToRegSpecMap;
-    static QMap<QString, Enu::ECPUKeywords> mnemonToStatusSpecMap;
-    static void initMicroEnumMnemonMaps(PepCore::CPUType cpuType, bool fullCtrlSection);
-    static quint8 numControlSignals();
-    static quint8 numClockSignals();
+
 
     /*
      * Begin Pep9 source code

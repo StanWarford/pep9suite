@@ -27,6 +27,8 @@
 #endif
 #include <iostream>
 
+#include "pep9.h"
+
 int main(int argc, char *argv[])
 {
 #ifdef WIN32 //Always inject -platform windows:dpiawareness=0 flag to disable hi-dpi support.
@@ -44,7 +46,7 @@ int main(int argc, char *argv[])
     argc+=2;
 #endif
     // Initialize all global maps.
-    Pep::initMicroEnumMnemonMaps(PepCore::CPUType::OneByteDataBus, false);
+    Pep9::uarch::initMicroEnumMnemonMaps(PepCore::CPUType::OneByteDataBus, false);
 
     qInstallMessageHandler(nullptr);
 
