@@ -25,8 +25,9 @@
 #include <QTreeWidgetItem>
 
 #include "editor/microcodeeditor.h"
-#include "highlight/pepmicrohighlighter.h"
 #include "pep/pep.h"
+
+#include "pep9microhighlighter.h"
 
 namespace Ui {
     class HelpDialog;
@@ -55,7 +56,7 @@ protected:
 private:
     Ui::HelpDialog *ui;
 
-    PepMicroHighlighter *leftHighlighter;
+    Pep9MicroHighlighter *leftHighlighter;
 
     enum Row {
         eUSINGPEP9CPU = 0,

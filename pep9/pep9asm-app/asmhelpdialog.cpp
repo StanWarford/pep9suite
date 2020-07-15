@@ -45,9 +45,9 @@ AsmHelpDialog::AsmHelpDialog(QWidget *parent) :
     selectItem("Writing Programs");
 
 
-    leftHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->leftTextEdit->document());
+    leftHighlighter = new Pep9ASMHighlighter(PepColors::lightMode, ui->leftTextEdit->document());
     rightCppHighlighter = new CppHighlighter(PepColors::lightMode, ui->rightCppTextEdit->document());
-    rightPepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->rightPepTextEdit->document());
+    rightPepHighlighter = new Pep9ASMHighlighter(PepColors::lightMode, ui->rightPepTextEdit->document());
 
     ui->copyToSourceButton->setFont(QFont(PepCore::labelFont));
     if (PepCore::getSystem() == "Linux") {

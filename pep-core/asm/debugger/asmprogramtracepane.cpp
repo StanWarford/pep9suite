@@ -28,8 +28,8 @@
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
 #include "cpu/acpumodel.h"
-#include "highlight/pepasmhighlighter.h"
 #include "pep/apepversion.h"
+#include "pep/highlight.h"
 #include "style/fonts.h"
 
 AsmProgramTracePane::AsmProgramTracePane(QWidget *parent) :
@@ -38,7 +38,7 @@ AsmProgramTracePane::AsmProgramTracePane(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->label->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
-    pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->tracePaneTextEdit->document());
+
     ui->tracePaneTextEdit->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
     connect(((AsmProgramTraceTextEdit*)ui->tracePaneTextEdit), &AsmProgramTraceTextEdit::breakpointAdded, this, &AsmProgramTracePane::onBreakpointAddedProp);
     connect(((AsmProgramTraceTextEdit*)ui->tracePaneTextEdit), &AsmProgramTraceTextEdit::breakpointRemoved, this, &AsmProgramTracePane::onBreakpointRemovedProp);
@@ -51,6 +51,9 @@ void AsmProgramTracePane::init(QSharedPointer<const APepVersion> pep_version,
     this->pep_version = pep_version;
     this->cpu = controlSection;
     this->programManager = programManager;
+
+    pepHighlighter = pep_version->getASMHighlighter(PepColors::lightMode);
+    pepHighlighter->setDocument(ui->tracePaneTextEdit->document());
 }
 
 AsmProgramTracePane::~AsmProgramTracePane()

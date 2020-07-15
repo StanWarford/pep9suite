@@ -26,16 +26,17 @@
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 
+#include "pep/highlight.h"
 #include "style/colors.h"
 
 QT_BEGIN_NAMESPACE
 class QTextDocument;
 QT_END_NAMESPACE
 
-class PepASMHighlighter : public QSyntaxHighlighter
+class Pep9ASMHighlighter : public ASMHighlighter
 {
 public:
-    PepASMHighlighter(PepColors::Colors colors, QTextDocument *parent = nullptr);
+    Pep9ASMHighlighter(PepColors::Colors colors, QTextDocument *parent = nullptr);
     void rebuildHighlightingRules(PepColors::Colors color);
 protected:
     void highlightBlock(const QString &text);
@@ -46,7 +47,7 @@ private:
         QRegExp pattern;
         QTextCharFormat format;
     };
-    PepColors::Colors colors;
+
     QVector<HighlightingRule> highlightingRules;
 
     QTextCharFormat oprndFormat;

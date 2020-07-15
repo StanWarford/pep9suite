@@ -31,8 +31,8 @@
 #include <QWidget>
 
 #include "assembler/asmprogram.h"
-#include "highlight/pepasmhighlighter.h"
 #include "pep/constants.h"
+#include "pep/highlight.h"
 
 namespace Ui {
     class SourceCodePane;
@@ -78,16 +78,18 @@ private:
     QMap<quint16, quint16> blockToIndex;
 };
 
+class APepVersion;
 class AsmProgram;
 class AsmProgramManager;
 class MainMemory;
+
 class AsmSourceCodePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmSourceCodePane)
 public:
     explicit AsmSourceCodePane(QWidget *parent = nullptr);
     virtual ~AsmSourceCodePane() override;
-    void init();
+    void init(QSharedPointer<const APepVersion> pep_version);
 
     void displayAssemblerOutput(AsmOutput output);
 
@@ -172,10 +174,11 @@ public slots:
 
 private:
     Ui::SourceCodePane *ui;
+    QSharedPointer<const APepVersion> pep_version;
     bool inDarkMode;
     QSharedPointer<const AsmProgram> current_program;
     QMap<quint16, quint16> addressToIndex;
-    PepASMHighlighter *pepHighlighter;
+    ASMHighlighter *pepHighlighter;
     QFile currentFile;
     void mouseReleaseEvent(QMouseEvent *) override;
 

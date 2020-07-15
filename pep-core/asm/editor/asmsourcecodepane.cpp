@@ -40,6 +40,7 @@
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
 #include "memory/mainmemory.h"
+#include "pep/apepversion.h"
 #include "style/colors.h"
 #include "style/fonts.h"
 #include "symbol/symbolentry.h"
@@ -53,7 +54,7 @@ AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
     ui->setupUi(this);
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this, &AsmSourceCodePane::setLabelToModified);
 
-    pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->textEdit->document());
+
 
     connect(ui->textEdit, &QPlainTextEdit::undoAvailable, this, &AsmSourceCodePane::undoAvailable);
     connect(ui->textEdit, &QPlainTextEdit::redoAvailable, this, &AsmSourceCodePane::redoAvailable);
@@ -68,14 +69,17 @@ AsmSourceCodePane::AsmSourceCodePane(QWidget *parent) :
     ui->textEdit->installEventFilter(this);
 }
 
-void AsmSourceCodePane::init()
-{
-
-}
-
 AsmSourceCodePane::~AsmSourceCodePane()
 {
     delete ui;
+}
+
+void AsmSourceCodePane::init(QSharedPointer<const APepVersion> pep_version)
+{
+    this->pep_version = pep_version;
+    pepHighlighter = pep_version->getASMHighlighter(PepColors::lightMode);
+    pepHighlighter->setDocument(ui->textEdit->document());
+
 }
 
 void AsmSourceCodePane::displayAssemblerOutput(AsmOutput output)

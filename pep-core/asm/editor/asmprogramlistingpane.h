@@ -25,19 +25,23 @@
 #include <QWidget>
 #include <QSharedPointer>
 
-#include "highlight/pepasmhighlighter.h"
+#include "pep/highlight.h"
 #include "pep/constants.h"
 
 namespace Ui {
     class AsmProgramListingPane;
 }
-class SymbolTable;
+
 class AsmProgram;
+class APepVersion;
+class SymbolTable;
+
 class AsmProgramListingPane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmProgramListingPane)
 public:
     explicit AsmProgramListingPane(QWidget *parent = nullptr);
+    void init(QSharedPointer<const APepVersion>);
     virtual ~AsmProgramListingPane();
     void setAssemblerListing(QSharedPointer<AsmProgram> assemblerListingList, QSharedPointer<SymbolTable> symTable);
     void clearAssemblerListing();
@@ -77,7 +81,8 @@ public slots:
     void onDarkModeChanged(bool darkMode);
 private:
     Ui::AsmProgramListingPane *ui;
-    PepASMHighlighter *pepHighlighter;
+    QSharedPointer<const APepVersion> pep_version;
+    ASMHighlighter *pepHighlighter;
     QFile currentFile;
     bool inDarkMode;
 

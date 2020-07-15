@@ -49,7 +49,7 @@ CPUHelpDialog::CPUHelpDialog(QWidget *parent) :
     //ui->helpTextEdit = new ui->helpTextEdit(false, true, this);
     //ui->verticalLayout->insertWidget(0, ui->helpTextEdit);
 
-    leftHighlighter = new PepMicroHighlighter(PepCore::CPUType::OneByteDataBus, false, PepColors::lightMode, ui->helpTextEdit->document());
+    leftHighlighter = new Pep9MicroHighlighter(PepCore::CPUType::OneByteDataBus, false, PepColors::lightMode, ui->helpTextEdit->document());
     leftHighlighter->forceAllFeatures(true);
     ui->helpTreeWidget->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
 

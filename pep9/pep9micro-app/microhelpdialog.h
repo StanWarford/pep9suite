@@ -32,8 +32,8 @@ namespace Ui {
     class HelpDialog;
 }
 class CppHighlighter;
-class PepASMHighlighter;
-class PepMicroHighlighter;
+class Pep9ASMHighlighter;
+class Pep9MicroHighlighter;
 class MicroHelpDialog : public QDialog {
     Q_OBJECT
 public:
@@ -58,10 +58,10 @@ protected:
 private:
     Ui::HelpDialog *ui;
 
-    PepMicroHighlighter *leftMicroHighlighter;
-    PepASMHighlighter *leftPepHighlighter;
+    Pep9MicroHighlighter *leftMicroHighlighter;
+    Pep9ASMHighlighter *leftPepHighlighter;
     CppHighlighter *rightCppHighlighter;
-    PepASMHighlighter *rightPepHighlighter;
+    Pep9ASMHighlighter *rightPepHighlighter;
     static const int defaultHelpTreeWidth;
     enum Row {
         // Top level menu

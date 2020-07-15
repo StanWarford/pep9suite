@@ -4,8 +4,8 @@
 #include "assembler/asmprogram.h"
 
 AssemblerPane::AssemblerPane(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::AssemblerPane), manager(nullptr)
+    QWidget(parent), ui(new Ui::AssemblerPane),
+    pep_version(nullptr), manager(nullptr)
 {
     ui->setupUi(this);
     //Connect assembler pane widgets
@@ -24,9 +24,12 @@ AssemblerPane::~AssemblerPane()
     delete ui;
 }
 
-void AssemblerPane::init(AsmProgramManager *manager)
+void AssemblerPane::init(QSharedPointer<const APepVersion> pep_version, AsmProgramManager *manager)
 {
     this->manager = manager;
+    this->pep_version = pep_version;
+    ui->sourcePane->init(pep_version);
+    ui->listingPane->init(pep_version);
 }
 
 void AssemblerPane::newProject()

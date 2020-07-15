@@ -26,12 +26,13 @@
 #include <QClipboard>
 #include <QDebug>
 
-#include "highlight/pepmicrohighlighter.h"
-#include "highlight/pepasmhighlighter.h"
 #include "highlight/cpphighlighter.h"
 #include "pep/pep.h"
 #include "style/colors.h"
 #include "style/fonts.h"
+
+#include "pep9asmhighlighter.h"
+#include "pep9microhighlighter.h"
 
 const int MicroHelpDialog::defaultHelpTreeWidth = 225;
 
@@ -51,12 +52,12 @@ MicroHelpDialog::MicroHelpDialog(QWidget *parent) :
     ui->helpTreeWidget->itemAt(0,0)->setSelected(true);
 
     // All features are forced, but a CPUType is required for construction.
-    leftMicroHighlighter = new PepMicroHighlighter(PepCore::CPUType::OneByteDataBus, true, PepColors::lightMode, ui->microTextEdit->document());
+    leftMicroHighlighter = new Pep9MicroHighlighter(PepCore::CPUType::OneByteDataBus, true, PepColors::lightMode, ui->microTextEdit->document());
     leftMicroHighlighter->forceAllFeatures(true);
 
-    leftPepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->leftPepTextEdit->document());
+    leftPepHighlighter = new Pep9ASMHighlighter(PepColors::lightMode, ui->leftPepTextEdit->document());
 
-    rightPepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->rightPepTextEdit->document());
+    rightPepHighlighter = new Pep9ASMHighlighter(PepColors::lightMode, ui->rightPepTextEdit->document());
 
     rightCppHighlighter = new CppHighlighter(PepColors::lightMode, ui->rightCppTextEdit->document());
 

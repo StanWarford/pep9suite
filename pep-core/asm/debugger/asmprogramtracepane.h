@@ -33,15 +33,15 @@ namespace Ui {
 class AsmProgramTracePane;
 }
 
-class AsmTraceBreakpointArea;
-class AsmCode;
-class PepASMHighlighter;
-class AsmProgram;
-class AsmProgramManager;
-
 class ACPUModel;
 class APepVersion;
+class AsmCode;
+class ASMHighlighter;
+class AsmProgram;
+class AsmProgramManager;
 class AsmProgramTraceTextEdit;
+class AsmTraceBreakpointArea;
+
 class AsmProgramTracePane : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(AsmProgramTracePane)
@@ -100,7 +100,7 @@ private:
     AsmProgramManager* programManager;
     QSharedPointer<const APepVersion> pep_version;
     QSharedPointer<const ACPUModel> cpu;
-    PepASMHighlighter *pepHighlighter;
+    ASMHighlighter *pepHighlighter;
     bool inDarkMode;
     void mouseReleaseEvent(QMouseEvent *);
     void mouseDoubleClickEvent(QMouseEvent *);

@@ -72,6 +72,8 @@
 #include "fullmicrocodedcpu.h"
 #include "microhelpdialog.h"
 #include "microobjectcodepane.h"
+#include "pep9asmhighlighter.h"
+#include "pep9microhighlighter.h"
 #include "redefinemnemonicsdialog.h"
 
 
@@ -100,9 +102,9 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     ui->memoryWidget->showTitleLabel(false);
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
     ui->memoryTracePane->init(programManager, controlSection, memDevice, controlSection->getMemoryTrace());
-    ui->assemblerPane->init(programManager);
+    ui->assemblerPane->init(pep_version, programManager);
     ui->asmProgramTracePane->init(pep_version, controlSection, programManager);
-    ui->microcodeWidget->init(controlSection, true);
+    ui->microcodeWidget->init(pep_version, controlSection, true);
     ui->microObjectCodePane->init(controlSection, true);
     redefineMnemonicsDialog->init(false);
     // Pep/9's CPU model does not integrate with the cache, so the cache should not be shown.
@@ -838,14 +840,14 @@ void MicroMainWindow::print(PepCore::EPane which)
     // Create highlighters (which may or may not be needed),
     // so that the documents may be properly highlighted.
     QSyntaxHighlighter* hi = nullptr;
-    PepASMHighlighter* asHi;
-    PepMicroHighlighter* mcHi;
+    Pep9ASMHighlighter* asHi;
+    Pep9MicroHighlighter* mcHi;
     switch(which)
     {
     case PepCore::EPane::ESource:
         title = &source;
         document.setPlainText(ui->assemblerPane->getPaneContents(which));
-        asHi = new PepASMHighlighter(PepColors::lightMode, &document);
+        asHi = new Pep9ASMHighlighter(PepColors::lightMode, &document);
         hi = asHi;
         hi->rehighlight();
         break;
@@ -856,14 +858,14 @@ void MicroMainWindow::print(PepCore::EPane which)
     case PepCore::EPane::EListing:
         title = &listing;
         document.setPlainText(ui->assemblerPane->getPaneContents(which));
-        asHi = new PepASMHighlighter(PepColors::lightMode, &document);
+        asHi = new Pep9ASMHighlighter(PepColors::lightMode, &document);
         hi = asHi;
         hi->rehighlight();
         break;
     case PepCore::EPane::EMicrocode:
         title = &micro;
         document.setPlainText(ui->microcodeWidget->toPlainText());
-        mcHi = new PepMicroHighlighter(PepCore::CPUType::TwoByteDataBus,
+        mcHi = new Pep9MicroHighlighter(PepCore::CPUType::TwoByteDataBus,
                 true, PepColors::lightMode, &document);
         mcHi->forceAllFeatures(true);
         hi = mcHi;
@@ -915,7 +917,7 @@ void MicroMainWindow::assembleDefaultOperatingSystem()
             qDebug() << "OS failed to assemble.";
             auto textList = defaultOSText.split("\n");
             for(auto errorPair : elist) {
-                qDebug() << textList[errorPair.first] << errorPair.second << endl;
+                qDebug() << textList[errorPair.first] << errorPair.second << Qt::endl;
             }
             throw std::logic_error("The default operating system failed to assemble.");
         }

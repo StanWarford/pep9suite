@@ -27,7 +27,8 @@
 #include <QScrollBar>
 
 #include "assembler/asmprogram.h"
-#include "highlight/pepasmhighlighter.h"
+#include "pep/apepversion.h"
+#include "pep/highlight.h"
 #include "style/colors.h"
 #include "style/fonts.h"
 #include "symbol/symbolentry.h"
@@ -35,16 +36,23 @@
 #include "symbol/symbolvalue.h"
 
 AsmProgramListingPane::AsmProgramListingPane(QWidget *parent) :
-        QWidget(parent),
-        ui(new Ui::AsmProgramListingPane), currentFile(), inDarkMode(false)
+        QWidget(parent), ui(new Ui::AsmProgramListingPane),
+        pep_version(nullptr), currentFile(), inDarkMode(false)
 {
     ui->setupUi(this);
 
-    pepHighlighter = new PepASMHighlighter(PepColors::lightMode, ui->plainTextEdit->document());
+
 
     ui->label->setFont(QFont(PepCore::labelFont, PepCore::labelFontSize));
     ui->plainTextEdit->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
     ui->plainTextEdit->setReadOnly(true);
+}
+
+void AsmProgramListingPane::init(QSharedPointer<const APepVersion> pep_version)
+{
+    this->pep_version = pep_version;
+    pepHighlighter = pep_version->getASMHighlighter(PepColors::lightMode);
+    pepHighlighter->setDocument(ui->plainTextEdit->document());
 }
 
 AsmProgramListingPane::~AsmProgramListingPane()

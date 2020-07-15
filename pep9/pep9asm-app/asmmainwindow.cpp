@@ -105,7 +105,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     // Start with the memory trace pane being invisible, as it is not needed unless
     // a program with a valid stack trace is being debugged.
     ui->memoryTracePane->setVisible(false);
-    ui->assemblerPane->init(programManager);
+    ui->assemblerPane->init(pep_version, programManager);
     ui->asmProgramTracePane->init(pep_version, controlSection, programManager);
     ui->asmCpuPane->init(pep_version, controlSection, controlSection);
     redefineMnemonicsDialog->init(true);
@@ -729,13 +729,13 @@ void AsmMainWindow::print(PepCore::EPane which)
     // Create highlighters (which may or may not be needed),
     // so that the documents may be properly highlighted.
     QSyntaxHighlighter* hi = nullptr;
-    PepASMHighlighter* asHi;
+    Pep9ASMHighlighter* asHi;
     switch(which)
     {
     case PepCore::EPane::ESource:
         title = &source;
         document.setPlainText(ui->assemblerPane->getPaneContents(which));
-        asHi = new PepASMHighlighter(PepColors::lightMode, &document);
+        asHi = new Pep9ASMHighlighter(PepColors::lightMode, &document);
         hi = asHi;
         hi->rehighlight();
         break;
@@ -746,7 +746,7 @@ void AsmMainWindow::print(PepCore::EPane which)
     case PepCore::EPane::EListing:
         title = &listing;
         document.setPlainText(ui->assemblerPane->getPaneContents(which));
-        asHi = new PepASMHighlighter(PepColors::lightMode, &document);
+        asHi = new Pep9ASMHighlighter(PepColors::lightMode, &document);
         hi = asHi;
         hi->rehighlight();
         break;

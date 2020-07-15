@@ -28,6 +28,8 @@
 #include "cpu/interfacemccpu.h"
 #include "microassembler/microcode.h"
 #include "microassembler/microcodeprogram.h"
+#include "pep/apepversion.h"
+#include "pep/highlight.h"
 #include "style/colors.h"
 #include "style/fonts.h"
 #include "symbol/symbolentry.h"
@@ -69,12 +71,13 @@ MicrocodePane::~MicrocodePane()
     delete ui;
 }
 
-void MicrocodePane::init(QSharedPointer<InterfaceMCCPU> cpu, bool fullCtrlSection)
+void MicrocodePane::init(QSharedPointer<const APepVersion> pep_version, QSharedPointer<InterfaceMCCPU> cpu, bool fullCtrlSection)
 {
 
     editor->init(cpu);
 
-    highlighter = new PepMicroHighlighter(cpu->getCPUType(), fullCtrlSection, PepColors::lightMode,editor->document());
+    highlighter = pep_version->getMicroHighlighter(cpu->getCPUType(), fullCtrlSection, PepColors::lightMode);
+    highlighter->setDocument(editor->document());
     // Use helper function to set correct default names of microcode files on load.
     setCurrentFile("");
 }

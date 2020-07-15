@@ -87,7 +87,7 @@ CPUMainWindow::CPUMainWindow(QWidget *parent) :
     ui->memoryWidget->setHighlightPC(false);
     ui->memoryWidget->showJumpToPC(false);
     ui->cpuWidget->init(controlSection, controlSection->getDataSection());
-    ui->microcodeWidget->init(controlSection, false);
+    ui->microcodeWidget->init(pep_version, controlSection, false);
     ui->microobjectWidget->init(controlSection, false);
 
     // Create button group to hold CPU types
@@ -493,7 +493,7 @@ void CPUMainWindow::print()
 
     // Create a highlighter independent of the microcodewidget's highlighter,
     // so that we may force it to use light mode colors.
-    PepMicroHighlighter mcHi(PepCore::CPUType::TwoByteDataBus,
+    Pep9MicroHighlighter mcHi(PepCore::CPUType::TwoByteDataBus,
                                                    false, PepColors::lightMode, &document);
     mcHi.forceAllFeatures(true);
     document.setPlainText(ui->microcodeWidget->toPlainText());

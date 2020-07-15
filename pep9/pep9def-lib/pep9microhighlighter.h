@@ -27,35 +27,29 @@
 #include <QSyntaxHighlighter>
 
 #include "pep/constants.h"
-#include "pep/enu.h"
+#include "pep/highlight.h"
 #include "style/colors.h"
 
 QT_BEGIN_NAMESPACE
 class QTextDocument;
 QT_END_NAMESPACE
 
-class PepMicroHighlighter : public QSyntaxHighlighter /*, RestyleableItem*/
+class Pep9MicroHighlighter : public MicroHighlighter /*, RestyleableItem*/
 {
 public:
-    PepMicroHighlighter(PepCore::CPUType type, bool fullCtrlSection, const PepColors::Colors colors, QTextDocument *parent = nullptr);
-    void forceAllFeatures(bool features);
-    void rebuildHighlightingRules(const PepColors::Colors color);
-    void setCPUType(PepCore::CPUType type);
-    void setFullControlSection(bool fullCtrlSection);
+    Pep9MicroHighlighter(PepCore::CPUType type, bool fullCtrlSection, const PepColors::Colors colors, QTextDocument *parent = nullptr);
+    void rebuildHighlightingRules(const PepColors::Colors color) override;
 
 protected:
-    void highlightBlock(const QString &text);
-/*protected slots:
-    void onStyleChange();*/
+    void highlightBlock(const QString &text) override;
+
 private:
-    PepCore::CPUType cpuType;
-    bool forcedFeatures, fullCtrlSection;
+
     struct HighlightingRule
     {
         QRegExp pattern;
         QTextCharFormat format;
     };
-    PepColors::Colors colors;
     QVector<HighlightingRule> highlightingRulesOne, highlightingRulesOneExt;
     QVector<HighlightingRule> highlightingRulesTwo, highlightingRulesTwoExt;
     QVector<HighlightingRule> highlightingRulesAll, highlightingRulesAllExt;

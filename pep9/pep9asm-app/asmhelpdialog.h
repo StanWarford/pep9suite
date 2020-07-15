@@ -26,9 +26,9 @@
 #include <QTreeWidgetItem>
 
 #include "highlight/cpphighlighter.h"
-#include "highlight/pepasmhighlighter.h" // For syntax highlighting
 #include "pep/constants.h"
 
+#include "pep9asmhighlighter.h"
 namespace Ui {
     class HelpDialog;
 }
@@ -56,9 +56,9 @@ public:
 private:
     Ui::HelpDialog *ui;
 
-    PepASMHighlighter *leftHighlighter;
+    Pep9ASMHighlighter *leftHighlighter;
     CppHighlighter *rightCppHighlighter;
-    PepASMHighlighter *rightPepHighlighter;
+    Pep9ASMHighlighter *rightPepHighlighter;
     static const int defaultHelpTreeWidth;
     enum Row {
         eWRITING = 0,

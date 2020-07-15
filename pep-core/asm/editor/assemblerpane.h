@@ -30,6 +30,7 @@
 namespace Ui {
 class AssemblerPane;
 }
+class APepVersion;
 struct AsmOutput;
 
 class AssemblerPane : public QWidget
@@ -39,7 +40,7 @@ class AssemblerPane : public QWidget
 public:
     explicit AssemblerPane(QWidget *parent = nullptr);
     virtual ~AssemblerPane() override;
-    void init(AsmProgramManager* manager);
+    void init(QSharedPointer<const APepVersion> pep_version, AsmProgramManager* manager);
 
     void newProject();
     void loadSourceFile(QString fileName, QString code);
@@ -112,6 +113,7 @@ private slots:
 
 private:
     Ui::AssemblerPane *ui;
+    QSharedPointer<const APepVersion> pep_version;
     AsmProgramManager* manager;
 };
 

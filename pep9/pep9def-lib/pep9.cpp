@@ -1,4 +1,6 @@
 #include "pep9.h"
+#include "pep9asmhighlighter.h"
+#include "pep9microhighlighter.h"
 
 Pep9::Definition::Definition(bool NOP0IsTrap): QObject(), APepVersion(), decodeMnemonic(256), decodeAddrMode(256)
 {
@@ -34,6 +36,16 @@ bool Pep9::Definition::isInstructionUnary(quint8 instr) const
 quint8 Pep9::Definition::maxRegisterNumber() const
 {
     return 32;
+}
+
+ASMHighlighter *Pep9::Definition::getASMHighlighter(PepColors::Colors colors) const
+{
+    return new Pep9ASMHighlighter(colors, nullptr);
+}
+
+MicroHighlighter *Pep9::Definition::getMicroHighlighter(PepCore::CPUType type, bool fullCtrlSection, const PepColors::Colors colors) const
+{
+    return new Pep9MicroHighlighter(type, fullCtrlSection, colors, nullptr);
 }
 
 void Pep9::Definition::initMnemonicMaps(bool NOP0IsTrap)

@@ -1,7 +1,4 @@
 HEADERS += \
-    $$PWD/cpphighlighter.h \
-    $$PWD/pepasmhighlighter.h
-
+    $$PWD/cpphighlighter.h
 SOURCES += \
-    $$PWD/cpphighlighter.cpp \
-    $$PWD/pepasmhighlighter.cpp
+    $$PWD/cpphighlighter.cpp

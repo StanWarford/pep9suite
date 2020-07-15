@@ -27,21 +27,23 @@
 
 
 #include "editor/microcodeeditor.h"
-#include "highlight/pepmicrohighlighter.h"
+#include "pep/highlight.h"
 
 namespace Ui {
     class MicrocodePane;
 }
-class SymbolTable;
+
+class APepVersion;
 class MicrocodeProgram;
-class CPUDataSection;
+class SymbolTable;
+
 class MicrocodePane : public QWidget {
     Q_OBJECT
 public:
     MicrocodePane(QWidget *parent = nullptr);
     ~MicrocodePane();
 
-    void init(QSharedPointer<InterfaceMCCPU> cpu, bool fullCtrlSection);
+    void init(QSharedPointer<const APepVersion> pep_version, QSharedPointer<InterfaceMCCPU> cpu, bool fullCtrlSection);
 
     void removeErrorMessages();
     // Post: Searces for the string "// ERROR: " on each line and removes the end of the line.
@@ -108,8 +110,9 @@ protected:
 
 private:
     Ui::MicrocodePane *ui;
+    QSharedPointer<const APepVersion> pep_version;
     bool inDarkMode, fullCtrlSection;
-    PepMicroHighlighter *highlighter;
+    MicroHighlighter *highlighter;
     MicrocodeEditor *editor;
     QFile currentFile;
 private slots:

@@ -44,11 +44,15 @@ win32{
 HEADERS += \
     cpudefs.h \
     isadefs.h \
-    pep9.h
+    pep9.h \
+    pep9asmhighlighter.h \
+    pep9microhighlighter.h
 
 SOURCES += \
     cpudefs.cpp \
-    pep9.cpp
+    pep9.cpp \
+    pep9asmhighlighter.cpp \
+    pep9microhighlighter.cpp
 
 # Link against Pep core code
 unix|win32: LIBS += -L$$OUT_PWD/../../pep-core/common/ -lpep-core-common

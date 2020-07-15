@@ -19,29 +19,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "pepmicrohighlighter.h"
+#include "pep9microhighlighter.h"
 
 #include <QTextDocument>
 
-#include "pep/pep.h"
+#include "pep9.h"
 
-PepMicroHighlighter::PepMicroHighlighter(PepCore::CPUType type, bool fullCtrlSection, const PepColors::Colors color, QTextDocument *parent)
-    : QSyntaxHighlighter(parent), cpuType(type),
-      /*RestyleableItem(color, parent),*/ forcedFeatures(false), fullCtrlSection(fullCtrlSection)
+Pep9MicroHighlighter::Pep9MicroHighlighter(PepCore::CPUType type, bool fullCtrlSection, const PepColors::Colors color, QTextDocument *parent)
+    : MicroHighlighter(type, fullCtrlSection, color, parent)
 {
     // Trigger an update whenever a style is changed.
     // connect(this, &RestyleableItem::styleChanged, this, &PepMicroHighlighter::onStyleChange);
     rebuildHighlightingRules(color);
 }
 
-
-
-void PepMicroHighlighter::forceAllFeatures(bool features)
-{
-    forcedFeatures = features;
-}
-
-void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color)
+void Pep9MicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color)
 {
     colors = color;
     HighlightingRule rule;
@@ -96,9 +88,8 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
 
     // Highlight the branch functions
     branchFunctionFormat.setForeground(color.branchFunctionHighlight);
-#pragma message("TODO: Fix for branch functions")
-    /*
-    for(QString function : Pep::branchFuncToMnemonMap.values())
+
+    for(QString function : Pep9::uarch::branchFuncToMnemonMap.values())
     {
         // A branch function is a string followed by a space or newline.
         rule.pattern = QRegExp(function.append("\\W+"), Qt::CaseInsensitive);
@@ -106,7 +97,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
         rule.format = branchFunctionFormat;
         highlightingRulesOneExt.append(rule);
         highlightingRulesTwoExt.append(rule);
-    }*/
+    }
 
     oprndFormat.setForeground(color.leftOfExpression);
     oprndFormat.setFontWeight(QFont::Bold);
@@ -172,17 +163,7 @@ void PepMicroHighlighter::rebuildHighlightingRules(const PepColors::Colors color
     highlightingRulesAllExt.append(highlightingRulesTwoExt);
 }
 
-void PepMicroHighlighter::setCPUType(PepCore::CPUType type)
-{
-    cpuType = type;
-}
-
-void PepMicroHighlighter::setFullControlSection(bool fullCtrlSection)
-{
-    this->fullCtrlSection = fullCtrlSection;
-}
-
-void PepMicroHighlighter::highlightBlock(const QString &text)
+void Pep9MicroHighlighter::highlightBlock(const QString &text)
 {
     QVector<HighlightingRule> highlightingRules;
     if(forcedFeatures) {

@@ -177,7 +177,11 @@ QVector<QSharedPointer<AMemoryChip> > MainMemory::removeAllChips()
     }
     if(temp.contains(endChip)) {
         auto isNilChip = [this](QSharedPointer<AMemoryChip> chip) {return chip == endChip;};
-        std::remove_if(temp.begin(),temp.begin(), isNilChip);
+        // We already hold a pointer to the Nil/terminator chip.
+        // However, we can't discard return value of remove_if.
+        // Therefore, catch the return value and cast it into the void.
+        auto _ = std::remove_if(temp.begin(),temp.begin(), isNilChip);
+        (void)_;
     }
     memoryChipMap.clear();
     ptrLookup.clear();

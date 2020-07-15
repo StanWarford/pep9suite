@@ -18,18 +18,18 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "pepasmhighlighter.h"
+#include "pep9asmhighlighter.h"
 
 #include "pep/enu.h"
 #include "pep/pep.h"
 
-PepASMHighlighter::PepASMHighlighter(PepColors::Colors colors, QTextDocument *parent)
-    : QSyntaxHighlighter(parent)
+Pep9ASMHighlighter::Pep9ASMHighlighter(PepColors::Colors colors, QTextDocument *parent)
+    : ASMHighlighter(colors, parent)
 {
     rebuildHighlightingRules(colors);
 }
 
-void PepASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
+void Pep9ASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
 {
     colors = color;
     HighlightingRule rule;
@@ -107,7 +107,7 @@ void PepASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
     highlightingRules.append(rule);
 }
 
-void PepASMHighlighter::highlightBlock(const QString &text)
+void Pep9ASMHighlighter::highlightBlock(const QString &text)
 {
     foreach (const HighlightingRule &rule, highlightingRules) {
         QRegExp expression(rule.pattern);
