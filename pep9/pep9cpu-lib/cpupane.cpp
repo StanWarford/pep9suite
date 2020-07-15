@@ -830,7 +830,7 @@ void CpuPane::ALUTextEdited(QString str)
     }
     else {
         int num = str.toInt();
-        dataSection->onSetControlSignal(Enu::ALU,static_cast<Enu::EALUFunc>(num));
+        dataSection->onSetControlSignal(Enu::ALU, num);
         //
         switch (num) {
         case 0:

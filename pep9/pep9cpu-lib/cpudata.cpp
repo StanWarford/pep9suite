@@ -120,11 +120,11 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         return ALUHasOutputCache;
     }
     // Unless otherwise noted, do not return true (sucessfully) early, or the calculation for the NZ bits will be skipped.
-    switch(controlSignals[Enu::ALU]) {
-    case Enu::A_func: // A
+    switch(static_cast<Pep9CPU::EALUFunc>(controlSignals[Enu::ALU])) {
+    case Pep9CPU::EALUFunc::A_func: // A
         res = a;
         break;
-    case Enu::ApB_func: // A plus B
+    case Pep9CPU::EALUFunc::ApB_func: // A plus B
         res = a + b;
         NZVC |= Enu::CMask * quint8{res<a||res<b}; // Carry out if result is unsigned less than a or b.
         // There is a signed overflow iff the high order bits of the input are the same,
@@ -132,16 +132,16 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         // Shifts in 0's (unsigned chars), so after shift, only high order bit remain.
         NZVC |= Enu::VMask * ((~(a ^ b) & (a ^ res)) >> 7) ;
         break;
-    case Enu::ApnBp1_func: // A plus ~B plus 1
+    case Pep9CPU::EALUFunc::ApnBp1_func: // A plus ~B plus 1
         hasCIn = true;
         carryIn = 1;
         [[fallthrough]];
-    case Enu::ApnBpCin_func: // A plus ~B plus Cin
+    case Pep9CPU::EALUFunc::ApnBpCin_func: // A plus ~B plus Cin
         // Clang thinks this is a garbage value. It isn't.
         // Lots of "errors" spawn from this, but this is well-defined behavior.
         b = ~b;
         [[fallthrough]];
-    case Enu::ApBpCin_func: // A plus B plus Cin
+    case Pep9CPU::EALUFunc::ApBpCin_func: // A plus B plus Cin
         // Expected carry in, none was provided, so ALU calculation yeilds a meaningless result
         if (!hasCIn) return false;
         // Might cause overflow, but overflow is well defined for unsigned ints
@@ -152,40 +152,40 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         // Shifts in 0's (unsigned chars), so after shift, only high order bit remain.
         NZVC |= Enu::VMask * ((~(a ^ b) & (a ^ res)) >> 7) ;
         break;
-    case Enu::AandB_func: // A * B
+    case Pep9CPU::EALUFunc::AandB_func: // A * B
         res = a & b;
         break;
-    case Enu::nAandB_func: // ~(A * B)
+    case Pep9CPU::EALUFunc::nAandB_func: // ~(A * B)
         res = ~(a & b);
         break;
-    case Enu::AorB_func: // A + B
+    case Pep9CPU::EALUFunc::AorB_func: // A + B
         res = a | b;
         break;
-    case Enu::nAorB_func: // ~(A + B)
+    case Pep9CPU::EALUFunc::nAorB_func: // ~(A + B)
         res = ~(a | b);
         break;
-    case Enu::AxorB_func: // A xor B
+    case Pep9CPU::EALUFunc::AxorB_func: // A xor B
         res = a ^ b;
         break;
-    case Enu::nA_func: // ~A
+    case Pep9CPU::EALUFunc::nA_func: // ~A
         res = ~a;
         break;
-    case Enu::ASLA_func: // ASL A
+    case Pep9CPU::EALUFunc::ASLA_func: // ASL A
         res = static_cast<quint8>(a<<1);
         NZVC |= Enu::CMask * ((a & 0x80) >> 7); // Carry out equals the hi order bit
         NZVC |= Enu::VMask * (((a << 1) ^ a) >>7); // Signed overflow if a<hi> doesn't match a<hi-1>
         break;
-    case Enu::ROLA_func: // ROL A
+    case Pep9CPU::EALUFunc::ROLA_func: // ROL A
         if (!hasCIn) return false;
         res = static_cast<quint8>(a<<1 | quint8{carryIn});
         NZVC |= Enu::CMask * ((a & 0x80) >> 7); // Carry out equals the hi order bit
         NZVC |= Enu::VMask * (((a << 1) ^a) >>7); // Signed overflow if a<hi> doesn't match a<hi-1>
         break;
-    case Enu::ASRA_func: // ASR A
+    case Pep9CPU::EALUFunc::ASRA_func: // ASR A
         hasCIn = true;
         carryIn = a & 128; // RORA and ASRA only differ by how the carryIn is calculated
         [[fallthrough]];
-    case Enu::RORA_func: // ROR a
+    case Pep9CPU::EALUFunc::RORA_func: // ROR a
         if (!hasCIn) return false;
         // A will not be sign extended since it is unsigned.
         // Widen carryIn so that << yields a meaningful result.
@@ -193,7 +193,7 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         // Carry out is lowest order bit of a
         NZVC |= Enu::CMask * (a & 1);
         break;
-    case Enu::NZVCA_func: // Move A to NZVC
+    case Pep9CPU::EALUFunc::NZVCA_func: // Move A to NZVC
         res = 0;
         NZVC |= Enu::NMask & a;
         NZVC |= Enu::ZMask & a;
@@ -480,7 +480,7 @@ void CPUDataSection::stepOneByte() noexcept
 
     isALUCacheValid = false;
     //Set up all variables needed by stepping calculation
-    Enu::EALUFunc aluFunc = static_cast<Enu::EALUFunc>(controlSignals[Enu::ALU]);
+    auto aluFunc = static_cast<Pep9CPU::EALUFunc>(controlSignals[Enu::ALU]);
     quint8 a = 0, b = 0, c = 0, alu = 0, NZVC = 0;
     bool hasA = valueOnABus(a), hasB = valueOnBBus(b), hasC = valueOnCBus(c), statusBitError = false;
     bool hasALUOutput = calculateALUOutput(alu,NZVC);
@@ -549,13 +549,13 @@ void CPUDataSection::stepOneByte() noexcept
 
     //NCk
     if(clockSignals[Enu::NCk]) {
-        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N,Enu::NMask & NZVC);
+        if(aluFunc!=Pep9CPU::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N,Enu::NMask & NZVC);
         else statusBitError = true;
     }
 
     //ZCk
     if(clockSignals[Enu::ZCk]) {
-        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput)
+        if(aluFunc!=Pep9CPU::EALUFunc::UNDEFINED_func && hasALUOutput)
         {
             if(controlSignals[Enu::AndZ] == 0) {
                 onSetStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
@@ -570,19 +570,19 @@ void CPUDataSection::stepOneByte() noexcept
 
     //VCk
     if(clockSignals[Enu::VCk]) {
-        if(aluFunc != Enu::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V,Enu::VMask & NZVC);
+        if(aluFunc != Pep9CPU::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V,Enu::VMask & NZVC);
         else statusBitError = true;
     }
 
     //CCk
     if(clockSignals[Enu::CCk]) {
-        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C,Enu::CMask & NZVC);
+        if(aluFunc!=Pep9CPU::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C,Enu::CMask & NZVC);
         else statusBitError = true;
     }
 
     //SCk
     if(clockSignals[Enu::SCk]) {
-        if(aluFunc!=Enu::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S,Enu::CMask & NZVC);
+        if(aluFunc!=Pep9CPU::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S,Enu::CMask & NZVC);
         else statusBitError = true;
     }
 
@@ -606,7 +606,7 @@ void CPUDataSection::stepTwoByte() noexcept
 
     isALUCacheValid = false;
     // Set up all variables needed by stepping calculation
-    Enu::EALUFunc aluFunc = static_cast<Enu::EALUFunc>(controlSignals[Enu::ALU]);
+    auto aluFunc = static_cast<Pep9CPU::EALUFunc>(controlSignals[Enu::ALU]);
     quint8 a = 0, b = 0, c = 0, alu = 0, NZVC = 0, temp = 0;
     quint16 address;
     bool memSigError = false, hasA = valueOnABus(a), hasB = valueOnBBus(b), hasC = valueOnCBus(c);
@@ -746,14 +746,14 @@ void CPUDataSection::stepTwoByte() noexcept
 
     //NCk
     if(clockSignals[Enu::NCk]) {
-        if(aluFunc != Enu::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N, Enu::NMask & NZVC);
+        if(aluFunc != Pep9CPU::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N, Enu::NMask & NZVC);
         else statusBitError = true;
     }
 
     //If no ALU output, don't set flags.
     //ZCk
     if(clockSignals[Enu::ZCk]) {
-        if(aluFunc != Enu::UNDEFINED_func && hasALUOutput) {
+        if(aluFunc != Pep9CPU::EALUFunc::UNDEFINED_func && hasALUOutput) {
             if(controlSignals[Enu::AndZ] == 0) {
                 onSetStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
             }
@@ -767,19 +767,19 @@ void CPUDataSection::stepTwoByte() noexcept
 
     //VCk
     if(clockSignals[Enu::VCk]) {
-        if(aluFunc != Enu::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V, Enu::VMask & NZVC);
+        if(aluFunc != Pep9CPU::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V, Enu::VMask & NZVC);
         else statusBitError = true;
     }
 
     //CCk
     if(clockSignals[Enu::CCk]) {
-        if(aluFunc != Enu::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C, Enu::CMask & NZVC);
+        if(aluFunc != Pep9CPU::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C, Enu::CMask & NZVC);
         else statusBitError = true;
     }
 
     //SCk
     if(clockSignals[Enu::SCk]) {
-        if(aluFunc != Enu::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S, Enu::CMask & NZVC);
+        if(aluFunc != Pep9CPU::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S, Enu::CMask & NZVC);
         else statusBitError = true;
     }
 
