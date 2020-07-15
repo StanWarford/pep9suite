@@ -30,7 +30,7 @@
 #include "pep/pep.h"
 #include "pep/pep9.h"
 
-#include "microassembler/microasm.h"
+#include "microasm.h"
 
 
 namespace Ui {

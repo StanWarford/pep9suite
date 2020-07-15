@@ -48,6 +48,7 @@ FORMS += \
 HEADERS += \
     cpugraphicsitems.h \
     cpupane.h \
+    microasm.h \
     microobjectcodepane.h \
     partialmicrocodedcpu.h \
     partialmicrocodedmemoizer.h \
@@ -57,6 +58,7 @@ HEADERS += \
 SOURCES += \
     cpugraphicsitems.cpp \
     cpupane.cpp \
+    microasm.cpp \
     microobjectcodepane.cpp \
     partialmicrocodedcpu.cpp \
     partialmicrocodedmemoizer.cpp

@@ -29,8 +29,9 @@
 #include "pep/pep.h"
 #include "pep/pep9.h"
 
+#include "microasm.h"
 #include "pep9isaasm.h"
-#include "microassembler/microasm.h"
+
 
 namespace Ui {
     class MicroMainWindow;

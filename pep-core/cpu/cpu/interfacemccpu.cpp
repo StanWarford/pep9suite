@@ -58,7 +58,7 @@ void InterfaceMCCPU::breakpointRemoved(quint16 address)
         if(!assumed_code_line->isMicrocode()) {
             throw std::invalid_argument(std::to_string(address) + " does not correspond to a line of executable microcode.");
         }
-        if(auto ptr = dynamic_cast<MicroCode*>(assumed_code_line);
+        if(auto ptr = dynamic_cast<AExecutableMicrocode*>(assumed_code_line);
                 ptr != nullptr) {
             ptr->setBreakpoint(false);
         }
@@ -72,7 +72,7 @@ void InterfaceMCCPU::breakpointAdded(quint16 address)
         if(!assumed_code_line->isMicrocode()) {
             throw std::invalid_argument(std::to_string(address) + " does not correspond to a line of executable microcode.");
         }
-        if(auto ptr = dynamic_cast<MicroCode*>(assumed_code_line);
+        if(auto ptr = dynamic_cast<AExecutableMicrocode*>(assumed_code_line);
                 ptr != nullptr) {
             ptr->setBreakpoint(true);
         }

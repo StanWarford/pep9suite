@@ -22,12 +22,12 @@
 
 #include <iostream>
 
-#include "microassembler/microasm.h"
 #include "microassembler/microcode.h"
 #include "microassembler/microcodeprogram.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symboltable.h"
 
+#include "microasm.h"
 #include "termhelper.h"
 
 CPUBuildHelper::CPUBuildHelper(Enu::CPUType type,bool useExtendedFeatures,

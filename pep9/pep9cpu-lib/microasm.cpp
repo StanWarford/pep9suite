@@ -25,7 +25,7 @@
 
 #include "pep/pep.h"
 #include "microassembler/microcode.h"
-#include "microcodeprogram.h"
+#include "microassembler/microcodeprogram.h"
 #include "microassembler/specification.h"
 #include "symbol/symboltable.h"
 #include "symbol/symbolvalue.h"
