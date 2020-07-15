@@ -117,59 +117,11 @@ MicrocodeAssemblyResult buildMicroprogramHelper(Enu::CPUType type,
 
     MicroAsm assembler(type, useExtendedFeatures);
 
-    QStringList sourceCodeList = source.split('\n');
-    QSharedPointer<SymbolTable> symbolTable = QSharedPointer<SymbolTable>::create();
 
-    QString sourceLine;
-    QString errorString;
-
-    // Pointer containing current line of microcode
-    AMicroCode* code;
-    QVector<AMicroCode*> codeList;
-
-
-    // Iterate over all source lines.
-    for (int lineNumber = 0;lineNumber < sourceCodeList.size(); lineNumber++) {
-        sourceLine = sourceCodeList[lineNumber];
-
-        // Attempt to convert text to microcode.
-        if (!assembler.processSourceLine(symbolTable.data(), sourceLine, code, errorString)) {
-            // If it fails, add the line which
-            result.success = false;
-            result.elist.append({lineNumber, errorString});
-            // Process remaning source program to detect all errors in one pass.
-            continue;
-        }
-        if(code->isMicrocode()
-                && static_cast<MicroCode*>(code)->hasControlSignal(Enu::EControlSignals::MemRead)
-                && static_cast<MicroCode*>(code)->hasControlSignal(Enu::EControlSignals::MemWrite)) {
-            result.success = false;
-            result.elist.append({lineNumber, "\\ ERROR: Can't have memread and memwrite"});
-            // Do not break now, so that we may catch all syntax errors in one pass.
-        }
-        codeList.append(code);
-    }
-    // Can't perform any additional sanity checks since assembly failed.
-    if(!result.success) {
-        // Create a dummy program that will delete all asm code entries
-        QSharedPointer<MicrocodeProgram>::create(codeList, symbolTable);
-        return result;
-    }
-
-    result.program =  QSharedPointer<MicrocodeProgram>::create(codeList, symbolTable);
-
-    // If assembly succeeded, we must now perform additional sanity checks
-    // on the symbol table entries
-    for(auto sym : symbolTable->getSymbolEntries()) {
-        if(sym->isUndefined()){
-            result.elist.append({0,"// ERROR: Undefined symbol "+sym->getName()});
-            result.success = false;
-        }
-        else if(sym->isMultiplyDefined()) {
-            result.elist.append({0,"// ERROR: Multiply defined symbol "+sym->getName()});
-            result.success = false;
-        }
-    }
+    auto tempResult = assembler.assembleProgram(source);
+    result.elist = tempResult.errorMessages;
+    result.program = tempResult.program;
+    result.success = tempResult.success;
 
     return result;
 }

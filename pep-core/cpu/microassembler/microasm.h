@@ -25,9 +25,12 @@
 #include <QSharedPointer>
 
 #include "pep/enu.h"
+#include "symbol/symboltable.h"
 
 class AMicroCode; // Forward declaration for argument of processSourceLine.
+class MicrocodeProgram;
 class SymbolTable;
+
 class MicroAsm
 {
     // Lexical tokens
@@ -56,7 +59,14 @@ class MicroAsm
     static const QSet<ELexicalToken> extendedTokens;
     static const QSet<ParseState> extendedParseStates;
 public:
+    struct MicroAsmResult
+    {
+        bool success;
+        QSharedPointer<SymbolTable> symTable;
+        QList<QPair<int, QString>> errorMessages;
+        QSharedPointer<MicrocodeProgram> program;
 
+    };
     // Regular expressions for lexical analysis
     static QRegExp rxComment;
     static QRegExp rxDigit;
@@ -74,6 +84,17 @@ public:
     // beginning of sourceLine and returned in tokenString, true is returned, and token is set to the token type.
     // Post: If false is returned, then tokenString is set to the lexical error message.
 
+    MicroAsmResult assembleProgram(QString program);
+
+    void setCPUType(Enu::CPUType type);
+
+    // If true, symbols, gotos, if-elses will be allowed.
+    // Otherwise, the default Pep9CPU is used.
+    void useExtendedAssembler(bool useExt);
+protected:
+    // Replace assembler_assigned addressing modes with correct uncoditional branches.
+    void assignImplicitAddresses(QVector<AMicroCode *> &codeList, SymbolTable& symTable);
+
     bool processSourceLine(SymbolTable* symTable, QString sourceLine, AMicroCode *&code, QString &errorString);
     // Pre: CPU type is set
     // Pre: sourceLine has one line of source code.
@@ -82,12 +103,6 @@ public:
     // Post: If the source line is not valid, false is returned and errorString is set to the error message.
     // Checks for out of range integer values.
     // The only detected resource conflict checked is for duplicated fields.
-
-    void setCPUType(Enu::CPUType type);
-
-    // If true, symbols, gotos, if-elses will be allowed.
-    // Otherwise, the default Pep9CPU is used.
-    void useExtendedAssembler(bool useExt);
 };
 
 #endif // ASM_H

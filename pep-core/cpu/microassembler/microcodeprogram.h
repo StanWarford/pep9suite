@@ -21,9 +21,8 @@
 #ifndef MICROCODEPROGRAM_H
 #define MICROCODEPROGRAM_H
 
+#include <QSharedPointer>
 #include <QVector>
-
-#include "pep/enu.h"
 
 
 class AMicroCode;

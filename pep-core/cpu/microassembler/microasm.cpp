@@ -25,6 +25,7 @@
 
 #include "pep/pep.h"
 #include "microassembler/microcode.h"
+#include "microcodeprogram.h"
 #include "microassembler/specification.h"
 #include "symbol/symboltable.h"
 #include "symbol/symbolvalue.h"
@@ -160,6 +161,59 @@ bool MicroAsm::getToken(QString &sourceLine, ELexicalToken &token, QString &toke
     return false;
 }
 
+MicroAsm::MicroAsmResult MicroAsm::assembleProgram(QString program)
+{
+    int lineNum = 0;
+    MicroAsmResult result;
+    result.symTable = QSharedPointer<SymbolTable>::create();
+    result.success = true;
+
+    QString errorMessage;
+    QVector<AMicroCode*> codeList;
+    AMicroCode *code;
+    auto sourceCodeList = program.split('\n');
+    while (lineNum < sourceCodeList.size()) {
+        auto sourceLine = sourceCodeList[lineNum];
+        if (!processSourceLine(&*result.symTable,sourceLine, code, errorMessage)) {
+            result.errorMessages.append({lineNum, errorMessage});
+            // Create a dummy program that will delete all asm code entries
+            QSharedPointer<MicrocodeProgram>::create(codeList, result.symTable);
+            result.success = false;
+            break;
+        }
+        if(code->isMicrocode() && static_cast<MicroCode*>(code)->hasControlSignal(Enu::EControlSignals::MemRead) &&
+                static_cast<MicroCode*>(code)->hasControlSignal(Enu::EControlSignals::MemWrite)) {
+            result.errorMessages.append({lineNum, "\\ ERROR: Can't have memread and memwrite"});
+            // Create a dummy program that will delete all asm code entries
+            QSharedPointer<MicrocodeProgram>::create(codeList, result.symTable);
+            result.success = false;
+            break;
+        }
+        codeList.append(code);
+        lineNum++;
+    }
+
+    if(!result.success) return result;
+    // Assign all branch targets for ASSEMBLER_ASSIGNED addressing mode.
+    assignImplicitAddresses(codeList, *result.symTable);
+
+    for(auto sym : result.symTable->getSymbolEntries()) {
+            if(sym->isUndefined()){
+                result.errorMessages.append({-1, "// ERROR: Undefined symbol "+sym->getName()});
+                result.success = false;
+                break;
+            }
+            else if(sym->isMultiplyDefined()) {
+                result.errorMessages.append({-1, "// ERROR: Multiply defined symbol "+sym->getName()});
+                result.success = false;
+                break;
+            }
+    }
+
+    result.program =  QSharedPointer<MicrocodeProgram>::create(codeList, result.symTable);
+    return result;
+}
+
 bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMicroCode *&code, QString &errorString)
 {
     MicroAsm::ELexicalToken token; // Passed to getToken.
@@ -177,6 +231,7 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
     UnitPostCode *postconditionCode = nullptr;
     BlankLineCode *blankLineCode = nullptr;
     MicroAsm::ParseState state = MicroAsm::PS_START;
+    QString temp_str;
     do {
         if (!getToken(sourceLine, token, tokenString)) {
             errorString = tokenString;
@@ -199,16 +254,18 @@ bool MicroAsm::processSourceLine(SymbolTable* symTable, QString sourceLine, AMic
             if (token == MicroAsm::LTE_SYMBOL) {
                 microCode = new MicroCode(cpuType, useExt);
                 code = microCode;
-                if(symTable->exists(tokenString.left(tokenString.length() - 1))) {
-                    if(symTable->getValue(tokenString.left(tokenString.length() - 1))->isDefined()) {
-                        errorString = "// ERROR: Multiply defined symbol: " + tokenString.left(tokenString.length()-1) + ".";
+                temp_str = tokenString.left(tokenString.length() - 1);
+                if(symTable->exists(temp_str)) {
+                    if(symTable->getValue(temp_str)->isDefined()) {
+                        errorString = "// ERROR: Multiply defined symbol: " + temp_str + ".";
                         return false;
                     }
                 }
                 else {
-                   symTable->insertSymbol(tokenString.left(tokenString.length() - 1));
+                   symTable->insertSymbol(temp_str);
                 }
-                microCode->setSymbol(symTable->getValue(tokenString.left(tokenString.length() - 1)).data());
+
+                microCode->setSymbol(symTable->getValue(temp_str).data());
                 state = MicroAsm::PS_CONTINUE_PRE_SEMICOLON_POST_COMMA;
             }
             else if (token == MicroAsm::LT_IDENTIFIER) {
@@ -924,4 +981,55 @@ void MicroAsm::setCPUType(Enu::CPUType type)
 void MicroAsm::useExtendedAssembler(bool useExt)
 {
     this->useExt = useExt;
+}
+
+void MicroAsm::assignImplicitAddresses(QVector<AMicroCode *> &codeList, SymbolTable & symTable)
+{
+    // Gather the indexes of all microcode lines.
+    QList<size_t> microcodeOffsets;
+    for(int it=0; it<codeList.length(); it++) {
+        if(codeList[it]->isMicrocode()) microcodeOffsets.append(it);
+    }
+
+    // Must iterate over offset list rather than code list.
+    // Using indecies in code list as "memory addresses" will cause
+    // there to be gaps in address space, and crash the simulator.
+    for(int it = 0; it < microcodeOffsets.length(); it++) {
+        auto line = codeList[microcodeOffsets[it]];
+        if(!line->isMicrocode()) continue;
+        MicroCode* as_mc = static_cast<MicroCode*>(line);
+        // If the line doesn't already have a symbol, create an assembler assigned one.
+        if((as_mc->getSymbol()) == nullptr) {
+            as_mc->setSymbol(symTable.insertSymbol("_as" + QString::number(it)).data());
+        }
+        symTable.setValue(as_mc->getSymbol()->getSymbolID(), QSharedPointer<SymbolValueNumeric>::create(it));
+    }
+
+    // For each microcode line with an Assembler_Assigned branch function,
+    // replace it with the appropriate Uncoditional branch to the next line of microcode.
+    for(int it=0; it<microcodeOffsets.length(); it++) {
+        auto line = codeList[microcodeOffsets[it]];
+        if(!line->isMicrocode()) continue;
+        MicroCode* as_mc = static_cast<MicroCode*>(line);
+        // If the line of microcode has no branch function, assume an uncoditional branch to the following line of microcode.
+        if((as_mc->getBranchFunction() == Enu::Assembler_Assigned) && (it + 1 <microcodeOffsets.length())) {
+            as_mc->setBranchFunction(Enu::Unconditional);
+            as_mc->setTrueTarget(static_cast<MicroCode*>(codeList[microcodeOffsets[it + 1]])->getSymbol());
+            as_mc->setFalseTarget(static_cast<MicroCode*>(codeList[microcodeOffsets[it + 1]])->getSymbol());
+        }
+        // If the final instruction has no explicit addressing mode, set the line's branch function to stop.
+        else if((as_mc->getBranchFunction() == Enu::Assembler_Assigned) && (it + 1 == microcodeOffsets.length())) {
+            as_mc->setBranchFunction(Enu::Stop);
+            as_mc->setTrueTarget(static_cast<MicroCode*>(codeList[microcodeOffsets[it]])->getSymbol());
+            as_mc->setFalseTarget(static_cast<MicroCode*>(codeList[microcodeOffsets[it]])->getSymbol());
+        }
+        // If either the true are false targets are null pointers, set the target to self.
+        // This could prevent crashes if someone attempt to operate on either target without an explit null check.
+        if(as_mc->getTrueTarget() == nullptr) {
+            as_mc->setTrueTarget(static_cast<MicroCode*>(codeList[microcodeOffsets[it]])->getSymbol());
+        }
+        if(as_mc->getFalseTarget() == nullptr) {
+            as_mc->setFalseTarget(static_cast<MicroCode*>(codeList[microcodeOffsets[it]])->getSymbol());
+        }
+    }
 }

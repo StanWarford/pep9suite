@@ -100,60 +100,29 @@ void MicrocodePane::initCPUModelState()
 bool MicrocodePane::microAssemble()
 {
     QVector<AMicroCode*> codeList;
-    QString sourceLine;
-    QString errorString;
-    QStringList sourceCodeList;
-    AMicroCode *code;
-    int lineNum = 0;
-
     if(isModified() == false && program != nullptr) {
         return true;
     }
 
     removeErrorMessages();
     QString sourceCode = editor->toPlainText().trimmed();
-    sourceCodeList = sourceCode.split('\n');
 
     if(symbolTable) {
         symbolTable.clear();
     }
-    symbolTable = QSharedPointer<SymbolTable>(new SymbolTable());
 
     microASM->setCPUType(dataSection->getCPUType());
-    while (lineNum < sourceCodeList.size()) {
-        sourceLine = sourceCodeList[lineNum];
-        if (!microASM->processSourceLine(symbolTable.data(),sourceLine, code, errorString)) {
-            appendMessageInSourceCodePaneAt(lineNum, errorString);
-            // Create a dummy program that will delete all asm code entries
-            QSharedPointer<MicrocodeProgram>::create(codeList, symbolTable);
-            return false;
-        }
-        if(code->isMicrocode() && static_cast<MicroCode*>(code)->hasControlSignal(Enu::EControlSignals::MemRead) &&
-                static_cast<MicroCode*>(code)->hasControlSignal(Enu::EControlSignals::MemWrite)) {
-            appendMessageInSourceCodePaneAt(lineNum, "\\ ERROR: Can't have memread and memwrite");
-            // Create a dummy program that will delete all asm code entries
-            QSharedPointer<MicrocodeProgram>::create(codeList, symbolTable);
-            return false;
-        }
-        codeList.append(code);
-        lineNum++;
+    auto result = microASM->assembleProgram(sourceCode);
+    for(auto& [line, message] : result.errorMessages) {
+        appendMessageInSourceCodePaneAt(line, message);
     }
-
-    program =  QSharedPointer<MicrocodeProgram>::create(codeList, symbolTable);
-    for(auto sym : symbolTable->getSymbolEntries()) {
-            if(sym->isUndefined()){
-                appendMessageInSourceCodePaneAt(-1,"// ERROR: Undefined symbol "+sym->getName());
-                return false;
-            }
-            else if(sym->isMultiplyDefined()) {
-                appendMessageInSourceCodePaneAt(-1,"// ERROR: Multiply defined symbol "+sym->getName());
-                return false;
-            }
-    }
-
-    // Use line - 1, since internally code lines are 0 indexed, but display as 1 indexed.
-    for(auto line : editor->getBreakpoints()) {
-        program->getCodeLine(line - 1)->setBreakpoint(true);
+    if(result.success) {
+        this->symbolTable = result.symTable;
+        this->program = result.program;
+        // Use line - 1, since internally code lines are 0 indexed, but display as 1 indexed.
+        for(auto line : editor->getBreakpoints()) {
+            program->getCodeLine(line - 1)->setBreakpoint(true);
+        }
     }
     return true;
 }

@@ -296,7 +296,10 @@ void FullMicrocodedCPU::onMCStep()
 
     // Do step logic
     const MicroCode* prog = sharedProgram->getCodeLine(microprogramCounter);
-
+    if(prog == nullptr) {
+        auto ptr = sharedProgram;
+        assert(0);
+    }
     this->setSignalsFromMicrocode(prog);
     try {
         data->setSignalsFromMicrocode(prog);
@@ -361,13 +364,14 @@ void FullMicrocodedCPU::onMCStep()
     // Upon entering an instruction that is going to trap
     // If running in debug mode, first check if this line has any microcode breakpoints.
     if(inDebug) {
+        auto code_line = sharedProgram->getCodeLine(microprogramCounter);
         // Only trap assembly breakpoints once on the first line of microcode.
         if((microprogramCounter == startLine) &&
                 breakpointsISA.contains(getCPURegWordCurrent(Pep9::CPURegisters::PC))) {
             ACPUModel::handler->interupt(Interrupts::BREAKPOINT_ASM);
         }
         // Trap on micrcode breakpoints
-        else if(sharedProgram->getCodeLine(microprogramCounter)->hasBreakpoint()) {
+        else if(code_line->hasBreakpoint()) {
             ACPUModel::handler->interupt(Interrupts::BREAKPOINT_MICRO);
         }
     }

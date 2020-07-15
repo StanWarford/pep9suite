@@ -54,7 +54,7 @@ AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPoint
         programByteLength += programList[it]->objectCodeLength();
     }
     assert(start != -1);
-    programBounds = {static_cast<quint16>(start.value()), static_cast<quint16>(start.value()-1+programByteLength)};
+    programBounds = {static_cast<quint16>(start.value_or(0)), static_cast<quint16>(start.value_or(0)-1+programByteLength)};
 }
 
 AsmProgram::AsmProgram(QList<QSharedPointer<AsmCode> > programList, QSharedPointer<SymbolTable> symbolTable,
