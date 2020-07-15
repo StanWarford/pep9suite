@@ -36,7 +36,7 @@
 class BoundExecIsaCpu : public IsaCpu
 {
 public:
-    explicit BoundExecIsaCpu(quint64 stepCount, const AsmProgramManager* manager, QSharedPointer<const Pep9> pep_version,
+    explicit BoundExecIsaCpu(quint64 stepCount, const AsmProgramManager* manager, QSharedPointer<const Pep9::Definition> pep_version,
                              QSharedPointer<AMemoryDevice> memDevice, QObject* parent = nullptr);
     virtual ~BoundExecIsaCpu() override;
 

@@ -28,7 +28,7 @@
 #include "cpudata.h"
 
 BoundExecMicroCpu::BoundExecMicroCpu(quint64 cycleCount, const AsmProgramManager *manager,
-                                     QSharedPointer<const Pep9> pep_version,
+                                     QSharedPointer<const Pep9::Definition> pep_version,
                                      QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
     FullMicrocodedCPU(manager, pep_version, memDevice, parent), maxCycles(cycleCount)
 

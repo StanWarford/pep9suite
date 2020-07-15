@@ -59,12 +59,14 @@ void PartialMicrocodedMemoizer::storeStateInstrStart()
 
 QString PartialMicrocodedMemoizer::memoize()
 {
+    using namespace Pep9::uarch;
+
     QString build, AX, NZVC;
     AX = QString(" A=%1, X=%2, SP=%3, ")
 
-            .arg(formatNum(cpu.getCPURegWordCurrent(Pep9::CPURegisters::A)),
-                 formatNum(cpu.getCPURegWordCurrent(Pep9::CPURegisters::X)),
-                 formatNum(cpu.getCPURegWordCurrent(Pep9::CPURegisters::SP)));
+            .arg(formatNum(cpu.getCPURegWordCurrent(CPURegisters::A)),
+                 formatNum(cpu.getCPURegWordCurrent(CPURegisters::X)),
+                 formatNum(cpu.getCPURegWordCurrent(CPURegisters::SP)));
     NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(cpu.data->getRegisterBank().readStatusBitsCurrent(), 2), 5, '0');
     build = AX;
     build += NZVC;

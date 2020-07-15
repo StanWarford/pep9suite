@@ -3,7 +3,25 @@
 
 #include <QtCore>
 
-namespace Pep9CPU {
+namespace Pep9::uarch {
+    enum class CPURegisters: uint8_t
+    {
+        // Two byte registers
+        // Present in any version of Pep/9
+        A = 0, X = 2, SP = 4, PC = 6, OS = 9,
+        // Present in any derivative of Pep9CPU
+        T2 = 12, T3 = 14,
+        T4 = 16, T5 = 18, T6 = 20, M1 = 22, M2 = 24, M3 = 26,
+        M4 = 28, M5 = 30,
+        // "Fictitious" registers for Pep9micro
+        MicroProgramCounter = 128,
+
+        // One byte registers
+        // Present in any version of Pep/9
+        IS=8,
+        // Present in any derivative of Pep9CPU
+        T1=11
+    };
     Q_NAMESPACE
     enum MainBusState {
         None,
@@ -31,5 +49,7 @@ namespace Pep9CPU {
         UNDEFINED_func=255,
     };
 }
+
+
 
 #endif // CPUDEFS_H

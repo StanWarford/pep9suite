@@ -95,19 +95,19 @@ void RegSpecification::setUnitPre(CPUDataSection *data, AMemoryDevice *) noexcep
         data->onSetRegisterWord(20, static_cast<quint16>(regValue));
         break;
     case Enu::MARAREG:
-        data->onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MARA, static_cast<quint8>(regValue));
+        data->onSetMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARA, static_cast<quint8>(regValue));
         break;
     case Enu::MARBREG:
-        data->onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MARB, static_cast<quint8>(regValue));
+        data->onSetMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARB, static_cast<quint8>(regValue));
         break;
     case Enu::MDRREG:
-        data->onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDR, static_cast<quint8>(regValue));
+        data->onSetMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDR, static_cast<quint8>(regValue));
         break;
     case Enu::MDREREG:
-        data->onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDRE, static_cast<quint8>(regValue));
+        data->onSetMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDRE, static_cast<quint8>(regValue));
         break;
     case Enu::MDROREG:
-        data->onSetMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDRO, static_cast<quint8>(regValue));
+        data->onSetMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDRO, static_cast<quint8>(regValue));
         break;
     default:
         break;

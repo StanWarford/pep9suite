@@ -72,7 +72,7 @@
 
 AsmMainWindow::AsmMainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::AsmMainWindow), pep_version(new Pep9()),
+    ui(new Ui::AsmMainWindow), pep_version(new Pep9::Definition()),
     debugState(DebugState::DISABLED), codeFont(QFont(PepCore::codeFont, PepCore::codeFontSize)),
     updateChecker(new UpdateChecker()), isInDarkMode(false),
     memDevice(new MainMemory(nullptr)),
@@ -1377,6 +1377,9 @@ bool AsmMainWindow::on_actionDebug_Start_Debugging_Object_triggered()
 
 bool AsmMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
 {
+    static const auto pc_reg = to_uint8_t(Pep9::ISA::CPURegisters::PC);
+    static const auto sp_reg = to_uint8_t(Pep9::ISA::CPURegisters::SP);
+
     if(!on_actionBuild_Assemble_triggered()) return false;
     memDevice->clearMemory();
     loadOperatingSystem();
@@ -1392,8 +1395,6 @@ bool AsmMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 9, sp);
     memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 3, pc);
     // Write SP, PC to simulator
-    auto pc_reg = to_uint8_t(Pep9::CPURegisters::PC);
-    auto sp_reg = to_uint8_t(Pep9::CPURegisters::SP);
     controlSection->getRegisterBank().overwriteRegisterWordStart(pc_reg, pc);
     controlSection->getRegisterBank().writeRegisterWord(pc_reg, pc);
     controlSection->getRegisterBank().writeRegisterWord(sp_reg, sp);
@@ -1423,7 +1424,7 @@ void AsmMainWindow::on_actionDebug_Stop_Debugging_triggered()
 
 void AsmMainWindow::on_actionDebug_Single_Step_Assembler_triggered()
 {
-    auto pc_reg = to_uint8_t(Pep9::CPURegisters::PC);
+    auto pc_reg = to_uint8_t(Pep9::ISA::CPURegisters::PC);
     quint8 is;
     quint16 addr = controlSection->getCPURegWordStart(pc_reg);
     memDevice->getByte(addr, is);

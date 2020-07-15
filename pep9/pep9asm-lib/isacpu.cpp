@@ -34,7 +34,7 @@
 
 #include "isacpumemoizer.h"
 
-IsaCpu::IsaCpu(const AsmProgramManager *input_manager, QSharedPointer<const Pep9> pep_version,
+IsaCpu::IsaCpu(const AsmProgramManager *input_manager, QSharedPointer<const Pep9::Definition> pep_version,
                QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
     ACPUModel(memDevice, parent), Pep9InterfaceISACPU(memDevice.get(), input_manager),
     registerBank(pep_version->maxRegisterNumber()), memoizer(new IsaCpuMemoizer(*this)),
@@ -72,7 +72,7 @@ void IsaCpu::stepOver()
 bool IsaCpu::canStepInto() const
 {
     quint8 byte;
-    memory->getByte(getCPURegWordStart(Pep9::CPURegisters::PC), byte);
+    memory->getByte(getCPURegWordStart(Pep9::ISA::CPURegisters::PC), byte);
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[byte];
     // Can only step into calls, trap instructions.
     return (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
@@ -140,27 +140,29 @@ const RegisterFile &IsaCpu::getRegisterBank() const
 
 void IsaCpu::onISAStep()
 {
+    using namespace Pep9::ISA;
+
     asmBreakpointHit = false;
     // Store PC at the start of the cycle, so that we know where the instruction started from.
     // Also store any other values needed for detailed statistics
     memoizer->storeStateInstrStart();
     memory->onCycleStarted();
-    calculateStackChangeStart(this->getCPURegByteStart(Pep9::CPURegisters::IS));
+    calculateStackChangeStart(this->getCPURegByteStart(CPURegisters::IS));
 
     // Load PC from register bank, allocate space for operand if it exists.
-    quint16 opSpec, pc = registerBank.readRegisterWordCurrent(to_uint8_t(Pep9::CPURegisters::PC));
+    quint16 opSpec, pc = registerBank.readRegisterWordCurrent(to_uint8_t(CPURegisters::PC));
     quint16 startPC = pc;
     quint8 is;
 
     memory->beginTransaction(AMemoryDevice::AccessType::INSTRUCTION);
     bool okay = memory->readByte(pc, is);
 
-    registerBank.writeRegisterByte(to_uint8_t(Pep9::CPURegisters::IS), is);
+    registerBank.writeRegisterByte(to_uint8_t(CPURegisters::IS), is);
     Enu::EMnemonic mnemon = Pep::decodeMnemonic[is];
     Enu::EAddrMode addrMode;
 
     pc += 1;
-    registerBank.writeRegisterWord(to_uint8_t(Pep9::CPURegisters::PC), pc);
+    registerBank.writeRegisterWord(to_uint8_t(CPURegisters::PC), pc);
     if(Pep::isTrapMap[mnemon]) {
         memory->endTransaction();
         executeTrap(mnemon);
@@ -172,10 +174,10 @@ void IsaCpu::onISAStep()
     else {
         okay &= memory->readWord(pc, opSpec);
         memory->endTransaction();
-        registerBank.writeRegisterWord(to_uint8_t(Pep9::CPURegisters::OS), opSpec);
+        registerBank.writeRegisterWord(to_uint8_t(CPURegisters::OS), opSpec);
         addrMode = Pep::decodeAddrMode[is];
         pc += 2;
-        registerBank.writeRegisterWord(to_uint8_t(Pep9::CPURegisters::PC), pc);
+        registerBank.writeRegisterWord(to_uint8_t(CPURegisters::PC), pc);
         executeNonunary(mnemon, opSpec, addrMode);
     }
 
@@ -185,11 +187,11 @@ void IsaCpu::onISAStep()
     }
 
     // Post instruction execution cleanup
-    calculateStackChangeEnd(this->getCPURegByteCurrent(Pep9::CPURegisters::IS),
-                                             this->getCPURegWordCurrent(Pep9::CPURegisters::OS),
-                                             this->getCPURegWordStart(Pep9::CPURegisters::SP),
-                                             this->getCPURegWordStart(Pep9::CPURegisters::PC),
-                                             this->getCPURegWordCurrent(Pep9::CPURegisters::A));
+    calculateStackChangeEnd(this->getCPURegByteCurrent(CPURegisters::IS),
+                                             this->getCPURegWordCurrent(CPURegisters::OS),
+                                             this->getCPURegWordStart(CPURegisters::SP),
+                                             this->getCPURegWordStart(CPURegisters::PC),
+                                             this->getCPURegWordCurrent(CPURegisters::A));
     memoizer->storeStateInstrEnd();
     memory->onCycleFinished();
     updateAtInstructionEnd();
@@ -210,12 +212,12 @@ void IsaCpu::onISAStep()
     // If execution finished on this instruction, then restore original starting program counter,
     // as the instruction at the current program counter will not be executed.
     if(executionFinished || hadErrorOnStep()) {
-        registerBank.overwriteRegisterWordStart(to_uint8_t(Pep9::CPURegisters::PC), startPC);
+        registerBank.overwriteRegisterWordStart(to_uint8_t(CPURegisters::PC), startPC);
         emit simulationFinished();
     }
 
 
-    if(inDebug && breakpointsISA.contains(getCPURegWordCurrent(Pep9::CPURegisters::PC))) {
+    if(inDebug && breakpointsISA.contains(getCPURegWordCurrent(CPURegisters::PC))) {
         ACPUModel::handler->interupt(Interrupts::BREAKPOINT_ASM);
     }
     ACPUModel::handler->handleQueuedInterrupts();
@@ -223,7 +225,9 @@ void IsaCpu::onISAStep()
 
 void IsaCpu::updateAtInstructionEnd()
 {
-    auto IS = this->getCPURegByteCurrent(Pep9::CPURegisters::IS);
+    using namespace Pep9::ISA;
+
+    auto IS = this->getCPURegByteCurrent(CPURegisters::IS);
     // Handle changing of call stack depth if the executed instruction affects the call stack.
     if(Pep::decodeMnemonic[IS] == Enu::EMnemonic::CALL){
         callDepth++;
@@ -265,10 +269,12 @@ bool IsaCpu::readOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quin
 
 void IsaCpu::initCPU()
 {
+    using namespace Pep9::ISA;
+
     // Initialize CPU with proper stack pointer value in SP register.
     if(manager->getOperatingSystem().isNull()) {
         // If there is somehow no opeeating system, default to the correct SP.
-        registerBank.writeRegisterWord(to_uint8_t(Pep9::CPURegisters::SP), 0xFBF8);
+        registerBank.writeRegisterWord(to_uint8_t(CPURegisters::SP), 0xFBF8);
     }
     // Otherwise, get the correct value from the memory vectors.
     else {
@@ -277,7 +283,7 @@ void IsaCpu::initCPU()
         quint16 value;
         // The value starts at max address minus offset.
         memory->getWord(static_cast<quint16>(memory->maxAddress()) - offset,value);
-        registerBank.writeRegisterWord(to_uint8_t(Pep9::CPURegisters::SP), value);
+        registerBank.writeRegisterWord(to_uint8_t(CPURegisters::SP), value);
     }
     registerBank.flattenFile();
 }
@@ -326,22 +332,22 @@ bool IsaCpu::getStatusBitStart(Enu::EStatusBit statusBit) const
     }
 }
 
-quint8 IsaCpu::getCPURegByteCurrent(Pep9::CPURegisters reg) const
+quint8 IsaCpu::getCPURegByteCurrent(Pep9::ISA::CPURegisters reg) const
 {
     return getCPURegByteCurrent(to_uint8_t(reg));
 }
 
-quint16 IsaCpu::getCPURegWordCurrent(Pep9::CPURegisters reg) const
+quint16 IsaCpu::getCPURegWordCurrent(Pep9::ISA::CPURegisters reg) const
 {
     return getCPURegWordCurrent(to_uint8_t(reg));
 }
 
-quint8 IsaCpu::getCPURegByteStart(Pep9::CPURegisters reg) const
+quint8 IsaCpu::getCPURegByteStart(Pep9::ISA::CPURegisters reg) const
 {
     return getCPURegByteStart(to_uint8_t(reg));
 }
 
-quint16 IsaCpu::getCPURegWordStart(Pep9::CPURegisters reg) const
+quint16 IsaCpu::getCPURegWordStart(Pep9::ISA::CPURegisters reg) const
 {
     return getCPURegWordStart(to_uint8_t(reg));
 }
@@ -471,6 +477,8 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
                                bool (AMemoryDevice::*readFunc)(quint16, quint16 &) const,
                                quint16 &opVal)
 {
+    using namespace  Pep9::ISA;
+
     bool rVal = true;
     quint16 effectiveAddress = 0;
     switch(addrMode) {
@@ -484,21 +492,21 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
         memory->endTransaction();
         break;
     case Enu::EAddrMode::S:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
     case Enu::EAddrMode::X:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::X);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SX:
         effectiveAddress = operand
-                + getCPURegWordCurrent(Pep9::CPURegisters::SP)
-                + getCPURegWordCurrent(Pep9::CPURegisters::X);
+                + getCPURegWordCurrent(CPURegisters::SP)
+                + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
@@ -513,7 +521,7 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SF:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, effectiveAddress);
         memory->endTransaction();
@@ -522,11 +530,11 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SFX:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, effectiveAddress);
         memory->endTransaction();
-        effectiveAddress += getCPURegWordCurrent(Pep9::CPURegisters::X);
+        effectiveAddress += getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
@@ -539,6 +547,8 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
 
 bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bool (AMemoryDevice::*readFunc)(quint16, quint8 &) const, quint8 &opVal)
 {
+    using namespace Pep9::ISA;
+
     bool rVal = true;
     quint16 effectiveAddress = 0;
     quint8 tempByteHi, tempByteLo;
@@ -554,21 +564,21 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
         memory->endTransaction();
         break;
     case Enu::EAddrMode::S:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
     case Enu::EAddrMode::X:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::X);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SX:
         effectiveAddress = operand
-                + getCPURegWordCurrent(Pep9::CPURegisters::SP)
-                + getCPURegWordCurrent(Pep9::CPURegisters::X);
+                + getCPURegWordCurrent(CPURegisters::SP)
+                + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
@@ -585,7 +595,7 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SF:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
         rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
@@ -596,13 +606,13 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SFX:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
         rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress + 1, tempByteLo);
         memory->endTransaction();
         effectiveAddress = static_cast<quint16>(tempByteHi << 8 | tempByteLo);
-        effectiveAddress += getCPURegWordCurrent(Pep9::CPURegisters::X);
+        effectiveAddress += getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
@@ -615,6 +625,8 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
 
 bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode addrMode)
 {
+    using namespace Pep9::ISA;
+
     bool rVal = true;
     quint16 effectiveAddress = 0;
     switch(addrMode) {
@@ -628,21 +640,21 @@ bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
         memory->endTransaction();
         break;
     case Enu::EAddrMode::S:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeWord(effectiveAddress, value);
         memory->endTransaction();
         break;
     case Enu::EAddrMode::X:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::X);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeWord(effectiveAddress, value);
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SX:
         effectiveAddress = operand
-                + getCPURegWordCurrent(Pep9::CPURegisters::SP)
-                + getCPURegWordCurrent(Pep9::CPURegisters::X);
+                + getCPURegWordCurrent(CPURegisters::SP)
+                + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeWord(effectiveAddress, value);
         memory->endTransaction();
@@ -657,7 +669,7 @@ bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SF:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->readWord(effectiveAddress, effectiveAddress);
         memory->endTransaction();
@@ -666,11 +678,11 @@ bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SFX:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->readWord(effectiveAddress, effectiveAddress);
         memory->endTransaction();
-        effectiveAddress += getCPURegWordCurrent(Pep9::CPURegisters::X);
+        effectiveAddress += getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal &= memory->writeWord(effectiveAddress, value);
         memory->endTransaction();
@@ -691,6 +703,8 @@ bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
 
 bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addrMode)
 {
+    using namespace Pep9::ISA;
+
     bool rVal = true;
     quint16 effectiveAddress = 0;
     switch(addrMode) {
@@ -704,21 +718,21 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
         memory->endTransaction();
         break;
     case Enu::EAddrMode::S:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeByte(effectiveAddress, value);
         memory->endTransaction();
         break;
     case Enu::EAddrMode::X:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::X);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeByte(effectiveAddress, value);
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SX:
         effectiveAddress = operand
-                + getCPURegWordCurrent(Pep9::CPURegisters::SP)
-                + getCPURegWordCurrent(Pep9::CPURegisters::X);
+                + getCPURegWordCurrent(CPURegisters::SP)
+                + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeByte(effectiveAddress, value);
         memory->endTransaction();
@@ -733,7 +747,7 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SF:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->readWord(effectiveAddress, effectiveAddress);
         memory->endTransaction();
@@ -742,11 +756,11 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
         memory->endTransaction();
         break;
     case Enu::EAddrMode::SFX:
-        effectiveAddress = operand + getCPURegWordCurrent(Pep9::CPURegisters::SP);
+        effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->readWord(effectiveAddress, effectiveAddress);
         memory->endTransaction();
-        effectiveAddress += getCPURegWordCurrent(Pep9::CPURegisters::X);
+        effectiveAddress += getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal &= memory->writeByte(effectiveAddress, value);
         memory->endTransaction();

@@ -76,7 +76,7 @@ protected:
 
 private:
     Ui::AsmMainWindow *ui;
-    QSharedPointer<Pep9> pep_version;
+    QSharedPointer<Pep9::Definition> pep_version;
     DebugState debugState;
     QString curPath;
     QFont codeFont;

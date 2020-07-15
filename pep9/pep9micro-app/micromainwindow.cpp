@@ -77,7 +77,7 @@
 
 
 MicroMainWindow::MicroMainWindow(QWidget *parent) :
-    QMainWindow(parent),ui(new Ui::MicroMainWindow), pep_version(new Pep9()),
+    QMainWindow(parent),ui(new Ui::MicroMainWindow), pep_version(new Pep9::Definition()),
     micro_assembler(PepCore::CPUType::TwoByteDataBus, true),
     debugState(DebugState::DISABLED), codeFont(QFont(PepCore::codeFont, PepCore::codeFontSize)),
     updateChecker(new UpdateChecker()), isInDarkMode(false),
@@ -1640,6 +1640,9 @@ bool MicroMainWindow::on_actionDebug_Start_Debugging_Object_triggered()
 
 bool MicroMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
 {
+    static const auto pc_reg = to_uint8_t(Pep9::uarch::CPURegisters::PC);
+    static const auto sp_reg = to_uint8_t(Pep9::uarch::CPURegisters::SP);
+
     if(!on_actionBuild_Assemble_triggered()) return false;
     memDevice->clearMemory();
     loadOperatingSystem();
@@ -1655,9 +1658,8 @@ bool MicroMainWindow::on_actionDebug_Start_Debugging_Loader_triggered()
     quint16 sp, pc;
     memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 9, sp);
     memDevice->readWord(programManager->getOperatingSystem()->getBurnValue() - 3, pc);
+
     // Write SP, PC to simulator
-    auto pc_reg = to_uint8_t(Pep9::CPURegisters::PC);
-    auto sp_reg = to_uint8_t(Pep9::CPURegisters::SP);
     controlSection->getDataSection()->getRegisterBank().overwriteRegisterWordStart(pc_reg, pc);
     controlSection->getDataSection()->getRegisterBank().writeRegisterWord(pc_reg, pc);
     controlSection->getDataSection()->getRegisterBank().writeRegisterWord(sp_reg, sp);
@@ -1767,7 +1769,7 @@ void MicroMainWindow::on_actionDebug_Stop_Debugging_triggered()
 void MicroMainWindow::on_actionDebug_Single_Step_Assembler_triggered()
 {
     quint8 is;
-    quint16 addr = controlSection->getCPURegWordStart(Pep9::CPURegisters::PC);
+    quint16 addr = controlSection->getCPURegWordStart(Pep9::uarch::CPURegisters::PC);
     memDevice->getByte(addr, is);
     if(controlSection->canStepInto()
             && Pep::isTrapMap[Pep::decodeMnemonic[is]]) {

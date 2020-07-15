@@ -49,7 +49,7 @@ class IsaCpu: public ACPUModel, public Pep9InterfaceISACPU
 {
     friend class IsaCpuMemoizer;
 public:
-    explicit IsaCpu(const AsmProgramManager* manager, QSharedPointer<const Pep9> pep_version,
+    explicit IsaCpu(const AsmProgramManager* manager, QSharedPointer<const Pep9::Definition> pep_version,
                     QSharedPointer<AMemoryDevice>, QObject* parent = nullptr);
     virtual ~IsaCpu() override;
     // InterfaceISACPU interface
@@ -67,10 +67,10 @@ public:
     RegisterFile& getRegisterBank();
     const RegisterFile& getRegisterBank() const;
 
-    quint8 getCPURegByteCurrent(Pep9::CPURegisters reg) const;
-    quint16 getCPURegWordCurrent(Pep9::CPURegisters reg) const;
-    quint8 getCPURegByteStart(Pep9::CPURegisters reg) const;
-    quint16 getCPURegWordStart(Pep9::CPURegisters reg) const;
+    quint8 getCPURegByteCurrent(Pep9::ISA::CPURegisters reg) const;
+    quint16 getCPURegWordCurrent(Pep9::ISA::CPURegisters reg) const;
+    quint8 getCPURegByteStart(Pep9::ISA::CPURegisters reg) const;
+    quint16 getCPURegWordStart(Pep9::ISA::CPURegisters reg) const;
 
 protected:
     void onISAStep() override;

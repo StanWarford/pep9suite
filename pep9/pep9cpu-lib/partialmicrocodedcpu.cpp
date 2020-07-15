@@ -35,7 +35,7 @@
 #include "partialmicrocodedmemoizer.h"
 #include "pep9microcode.h"
 
-PartialMicrocodedCPU::PartialMicrocodedCPU(PepCore::CPUType type, QSharedPointer<const Pep9> pep_version,
+PartialMicrocodedCPU::PartialMicrocodedCPU(PepCore::CPUType type, QSharedPointer<const Pep9::Definition> pep_version,
                                            QSharedPointer<AMemoryDevice> memoryDev, QObject* parent) noexcept: ACPUModel (memoryDev, parent),
     InterfaceMCCPU(type), memoizer(new PartialMicrocodedMemoizer(*this))
 {
@@ -87,22 +87,22 @@ quint16 PartialMicrocodedCPU::getCPURegWordStart(PepCore::CPURegisters_number_t 
     return data->getRegisterBank().readRegisterWordStart(reg);
 }
 
-quint8 PartialMicrocodedCPU::getCPURegByteCurrent(Pep9::CPURegisters reg) const
+quint8 PartialMicrocodedCPU::getCPURegByteCurrent(Pep9::uarch::CPURegisters reg) const
 {
     return getCPURegByteCurrent(to_uint8_t(reg));
 }
 
-quint16 PartialMicrocodedCPU::getCPURegWordCurrent(Pep9::CPURegisters reg) const
+quint16 PartialMicrocodedCPU::getCPURegWordCurrent(Pep9::uarch::CPURegisters reg) const
 {
     return getCPURegWordCurrent(to_uint8_t(reg));
 }
 
-quint8 PartialMicrocodedCPU::getCPURegByteStart(Pep9::CPURegisters reg) const
+quint8 PartialMicrocodedCPU::getCPURegByteStart(Pep9::uarch::CPURegisters reg) const
 {
     return getCPURegByteStart(to_uint8_t(reg));
 }
 
-quint16 PartialMicrocodedCPU::getCPURegWordStart(Pep9::CPURegisters reg) const
+quint16 PartialMicrocodedCPU::getCPURegWordStart(Pep9::uarch::CPURegisters reg) const
 {
     return getCPURegWordStart(to_uint8_t(reg));
 }

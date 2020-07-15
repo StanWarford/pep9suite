@@ -94,7 +94,7 @@ public slots:
     void onClockChanged();
     void onBusChanged();
     void onRegisterChanged(quint8 which,quint8 oldVal,quint8 newVal);
-    void onMemoryRegisterChanged(Pep9CPU::EMemoryRegisters,quint8 oldVal,quint8 newVal);
+    void onMemoryRegisterChanged(Pep9::uarch::EMemoryRegisters,quint8 oldVal,quint8 newVal);
     void onStatusBitChanged(Enu::EStatusBit,bool value);
     void repaintOnScroll(int distance);
     void onSimulationUpdate();

@@ -43,6 +43,7 @@ win32{
 
 HEADERS += \
     cpudefs.h \
+    isadefs.h \
     pep9.h
 
 SOURCES += \

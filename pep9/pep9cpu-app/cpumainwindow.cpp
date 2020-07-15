@@ -61,7 +61,7 @@
 
 CPUMainWindow::CPUMainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::CPUMainWindow), pep_version(new Pep9()),
+    ui(new Ui::CPUMainWindow), pep_version(new Pep9::Definition()),
     micro_assembler(PepCore::CPUType::OneByteDataBus, false),
     debugState(DebugState::DISABLED), codeFont(QFont(PepCore::codeFont, PepCore::codeFontSize)),
     updateChecker(new UpdateChecker()),  isInDarkMode(false),

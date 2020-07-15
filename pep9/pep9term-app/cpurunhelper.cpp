@@ -227,7 +227,7 @@ void CPURunHelper::run()
         memory = QSharedPointer<MainMemory>::create(nullptr);
         QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memory.get()));
         memory->insertChip(ramChip, 0);
-        auto version = QSharedPointer<Pep9>::create();
+        auto version = QSharedPointer<Pep9::Definition>::create();
         cpu = QSharedPointer<PartialMicrocodedCPU>::create(type, version, memory, nullptr);
     }
 

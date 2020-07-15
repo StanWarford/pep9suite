@@ -1,143 +1,143 @@
 #include "pep9.h"
 
-Pep9::Pep9(bool NOP0IsTrap): QObject(), APepVersion(), decodeMnemonic(256), decodeAddrMode(256)
+Pep9::Definition::Definition(bool NOP0IsTrap): QObject(), APepVersion(), decodeMnemonic(256), decodeAddrMode(256)
 {
     initMnemonicMaps(NOP0IsTrap);
     initDecoderTables();
 }
 
-Pep9::~Pep9() = default;
+Pep9::Definition::~Definition() = default;
 
-PepCore::CPURegisters_number_t Pep9::get_global_register_number(APepVersion::global_registers reg) const
+PepCore::CPURegisters_number_t Pep9::Definition::get_global_register_number(APepVersion::global_registers reg) const
 {
     switch(reg) {
     case APepVersion::global_registers::A:
-        return to_uint8_t(Pep9::CPURegisters::A);
+        return to_uint8_t(Pep9::ISA::CPURegisters::A);
     case APepVersion::global_registers::X:
-        return to_uint8_t(Pep9::CPURegisters::X);
+        return to_uint8_t(Pep9::ISA::CPURegisters::X);
     case APepVersion::global_registers::SP:
-        return to_uint8_t(Pep9::CPURegisters::SP);
+        return to_uint8_t(Pep9::ISA::CPURegisters::SP);
     case APepVersion::global_registers::PC:
-        return to_uint8_t(Pep9::CPURegisters::PC);
+        return to_uint8_t(Pep9::ISA::CPURegisters::PC);
     case APepVersion::global_registers::IS:
-        return to_uint8_t(Pep9::CPURegisters::IS);
+        return to_uint8_t(Pep9::ISA::CPURegisters::IS);
     case APepVersion::global_registers::OS:
-        return to_uint8_t(Pep9::CPURegisters::OS);
+        return to_uint8_t(Pep9::ISA::CPURegisters::OS);
     }
 }
 
-bool Pep9::isInstructionUnary(quint8 instr) const
+bool Pep9::Definition::isInstructionUnary(quint8 instr) const
 {
     return this->isUnaryMap[decodeMnemonic[instr]];
 }
 
-quint8 Pep9::maxRegisterNumber() const
+quint8 Pep9::Definition::maxRegisterNumber() const
 {
     return 32;
 }
 
-void Pep9::initMnemonicMaps(bool NOP0IsTrap)
+void Pep9::Definition::initMnemonicMaps(bool NOP0IsTrap)
 {
-    auto initMnemMapHelper = [this](Pep9::EMnemonic mnemon, int start, bool unary, bool addrModeReq, bool isTrap) {
+    auto initMnemMapHelper = [this](Pep9::ISA::EMnemonic mnemon, int start, bool unary, bool addrModeReq, bool isTrap) {
         opCodeMap.insert(mnemon, start); isUnaryMap.insert(mnemon, unary);
         addrModeRequiredMap.insert(mnemon, addrModeReq); isTrapMap.insert(mnemon, isTrap);
     };
 
     if(NOP0IsTrap) {
-        initMnemMapHelper(EMnemonic::NOP0, 38, true, false, true);
+        initMnemMapHelper(Pep9::ISA::EMnemonic::NOP0, 38, true, false, true);
     }
     else {
-        initMnemMapHelper(EMnemonic::NOP0, 38, true, false, false);
+        initMnemMapHelper(Pep9::ISA::EMnemonic::NOP0, 38, true, false, false);
     }
 
-    initMnemMapHelper(EMnemonic::ADDA, 96, false, true, false);
-    initMnemMapHelper(EMnemonic::ADDX, 104, false, true, false);
-    initMnemMapHelper(EMnemonic::ADDSP, 80, false, true, false);
-    initMnemMapHelper(EMnemonic::ANDA, 128, false, true, false);
-    initMnemMapHelper(EMnemonic::ANDX, 136, false, true, false);
-    initMnemMapHelper(EMnemonic::ASLA, 10, true, false, false);
-    initMnemMapHelper(EMnemonic::ASLX, 11, true, false, false);
-    initMnemMapHelper(EMnemonic::ASRA, 12, true, false, false);
-    initMnemMapHelper(EMnemonic::ASRX, 13, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ADDA, 96, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ADDX, 104, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ADDSP, 80, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ANDA, 128, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ANDX, 136, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ASLA, 10, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ASLX, 11, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ASRA, 12, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ASRX, 13, true, false, false);
 
-    initMnemMapHelper(EMnemonic::BR, 18, false, false, false);
-    initMnemMapHelper(EMnemonic::BRC, 34, false, false, false);
-    initMnemMapHelper(EMnemonic::BREQ, 24, false, false, false);
-    initMnemMapHelper(EMnemonic::BRGE, 28, false, false, false);
-    initMnemMapHelper(EMnemonic::BRGT, 30, false, false, false);
-    initMnemMapHelper(EMnemonic::BRLE, 20, false, false, false);
-    initMnemMapHelper(EMnemonic::BRLT, 22, false, false, false);
-    initMnemMapHelper(EMnemonic::BRNE, 26, false, false, false);
-    initMnemMapHelper(EMnemonic::BRV, 32, false, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::BR, 18, false, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::BRC, 34, false, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::BREQ, 24, false, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::BRGE, 28, false, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::BRGT, 30, false, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::BRLE, 20, false, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::BRLT, 22, false, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::BRNE, 26, false, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::BRV, 32, false, false, false);
 
-    initMnemMapHelper(EMnemonic::CALL, 36, false, false, false);
-    initMnemMapHelper(EMnemonic::CPBA, 176, false, true, false);
-    initMnemMapHelper(EMnemonic::CPBX, 184, false, true, false);
-    initMnemMapHelper(EMnemonic::CPWA, 160, false, true, false);
-    initMnemMapHelper(EMnemonic::CPWX, 168, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::CALL, 36, false, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::CPBA, 176, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::CPBX, 184, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::CPWA, 160, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::CPWX, 168, false, true, false);
 
-    initMnemMapHelper(EMnemonic::DECI, 48, false, true, true);
-    initMnemMapHelper(EMnemonic::DECO, 56, false, true, true);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::DECI, 48, false, true, true);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::DECO, 56, false, true, true);
 
-    initMnemMapHelper(EMnemonic::HEXO, 64, false, true, true);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::HEXO, 64, false, true, true);
 
-    initMnemMapHelper(EMnemonic::LDBA, 208, false, true, false);
-    initMnemMapHelper(EMnemonic::LDBX, 216, false, true, false);
-    initMnemMapHelper(EMnemonic::LDWA, 192, false, true, false);
-    initMnemMapHelper(EMnemonic::LDWX, 200, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::LDBA, 208, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::LDBX, 216, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::LDWA, 192, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::LDWX, 200, false, true, false);
 
-    initMnemMapHelper(EMnemonic::MOVAFLG, 5, true, false, false);
-    initMnemMapHelper(EMnemonic::MOVFLGA, 4, true, false, false);
-    initMnemMapHelper(EMnemonic::MOVSPA, 3, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::MOVAFLG, 5, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::MOVFLGA, 4, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::MOVSPA, 3, true, false, false);
 
     //opCodeMap.insert(MOVAFLG, 5); isUnaryMap.insert(MOVAFLG, true); addrModeRequiredMap.insert(MOVAFLG, true); isTrapMap.insert(MOVAFLG, false);
     //opCodeMap.insert(MOVFLGA, 4); isUnaryMap.insert(MOVFLGA, true); addrModeRequiredMap.insert(MOVFLGA, true); isTrapMap.insert(MOVFLGA, false);
     //opCodeMap.insert(MOVSPA, 3); isUnaryMap.insert(MOVSPA, true); addrModeRequiredMap.insert(MOVSPA, true); isTrapMap.insert(MOVSPA, false);
-    initMnemMapHelper(EMnemonic::NEGA, 8, true, false, false);
-    initMnemMapHelper(EMnemonic::NEGX, 9, true, false, false);
-    initMnemMapHelper(EMnemonic::NOP, 40, false, true, true);
-    initMnemMapHelper(EMnemonic::NOP1, 39, true, false, true);
-    initMnemMapHelper(EMnemonic::NOTA, 6, true, false, false);
-    initMnemMapHelper(EMnemonic::NOTX, 7, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::NEGA, 8, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::NEGX, 9, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::NOP, 40, false, true, true);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::NOP1, 39, true, false, true);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::NOTA, 6, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::NOTX, 7, true, false, false);
 
-    initMnemMapHelper(EMnemonic::ORA, 144, false, true, false);
-    initMnemMapHelper(EMnemonic::ORX, 152, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ORA, 144, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ORX, 152, false, true, false);
 
-    initMnemMapHelper(EMnemonic::RET, 1, true, false, false);
-    initMnemMapHelper(EMnemonic::RETTR, 2, true, false, false);
-    initMnemMapHelper(EMnemonic::ROLA, 14, true, false, false);
-    initMnemMapHelper(EMnemonic::ROLX, 15, true, false, false);
-    initMnemMapHelper(EMnemonic::RORA, 16, true, false, false);
-    initMnemMapHelper(EMnemonic::RORX, 17, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::RET, 1, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::RETTR, 2, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ROLA, 14, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::ROLX, 15, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::RORA, 16, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::RORX, 17, true, false, false);
 
-    initMnemMapHelper(EMnemonic::STBA, 240, false, true, false);
-    initMnemMapHelper(EMnemonic::STBX, 248, false, true, false);
-    initMnemMapHelper(EMnemonic::STWA, 224, false, true, false);
-    initMnemMapHelper(EMnemonic::STWX, 232, false, true, false);
-    initMnemMapHelper(EMnemonic::STOP, 0, true, false, false);
-    initMnemMapHelper(EMnemonic::STRO, 72, false, true, true);
-    initMnemMapHelper(EMnemonic::SUBA, 112, false, true, false);
-    initMnemMapHelper(EMnemonic::SUBX, 120, false, true, false);
-    initMnemMapHelper(EMnemonic::SUBSP, 88, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::STBA, 240, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::STBX, 248, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::STWA, 224, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::STWX, 232, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::STOP, 0, true, false, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::STRO, 72, false, true, true);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::SUBA, 112, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::SUBX, 120, false, true, false);
+    initMnemMapHelper(Pep9::ISA::EMnemonic::SUBSP, 88, false, true, false);
 }
 
-void Pep9::initAddrModesMap()
+void Pep9::Definition::initAddrModesMap()
 {
 
 }
 
-bool Pep9::isStoreMnemonic(Pep9::EMnemonic mnemon)
+bool Pep9::Definition::isStoreMnemonic(Pep9::ISA::EMnemonic mnemon)
 {
-    return mnemon == EMnemonic::STBA ||
-           mnemon == EMnemonic::STBX ||
-           mnemon == EMnemonic::STWA ||
-           mnemon == EMnemonic::STWX ||
-           mnemon == EMnemonic::DECI;
+    return mnemon == Pep9::ISA::EMnemonic::STBA ||
+           mnemon == Pep9::ISA::EMnemonic::STBX ||
+           mnemon == Pep9::ISA::EMnemonic::STWA ||
+           mnemon == Pep9::ISA::EMnemonic::STWX ||
+           mnemon == Pep9::ISA::EMnemonic::DECI;
 }
 
-void Pep9::initDecoderTables()
+void Pep9::Definition::initDecoderTables()
 {
-
+    using namespace Pep9::ISA;
     auto initDecoderTableAHelper = [this](EMnemonic val,int startIdx)
     {
         decodeMnemonic[startIdx] = val; decodeAddrMode[startIdx] = EAddrMode::I;
@@ -227,7 +227,14 @@ void Pep9::initDecoderTables()
     initDecoderTableAAAHelper(EMnemonic::STBX, 248);
 }
 
-uint8_t to_uint8_t(Pep9::CPURegisters reg)
+
+
+uint8_t to_uint8_t(Pep9::ISA::CPURegisters reg)
+{
+    return static_cast<uint8_t>(reg);
+}
+
+uint8_t to_uint8_t(Pep9::uarch::CPURegisters reg)
 {
     return static_cast<uint8_t>(reg);
 }

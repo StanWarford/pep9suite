@@ -237,7 +237,7 @@ void MicroStepHelper::run()
         QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memory.get()));
         memory->insertChip(ramChip, 0);
 
-        auto version = QSharedPointer<Pep9>::create();
+        auto version = QSharedPointer<Pep9::Definition>::create();
         cpu = QSharedPointer<BoundExecMicroCpu>::create(maxStepCount,
                                                         AsmProgramManager::getInstance(),
                                                         version, memory, nullptr);

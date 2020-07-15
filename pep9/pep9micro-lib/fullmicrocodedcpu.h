@@ -42,7 +42,7 @@ class FullMicrocodedCPU : public ACPUModel, public InterfaceMCCPU, public Pep9In
     friend class CPUMemoizer;
     friend class FullMicrocodedMemoizer;
 public:
-    FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<const Pep9> pep_version,
+    FullMicrocodedCPU(const AsmProgramManager* manager, QSharedPointer<const Pep9::Definition> pep_version,
                       QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~FullMicrocodedCPU() override;
     QSharedPointer<CPUDataSection> getDataSection();
@@ -53,10 +53,16 @@ public:
     // This can be used to skip the initialization steps at the top
     // of a microcode program.
     void setMicroPCToStart() noexcept;
-    quint8 getCPURegByteCurrent(Pep9::CPURegisters reg) const;
-    quint16 getCPURegWordCurrent(Pep9::CPURegisters reg) const;
-    quint8 getCPURegByteStart(Pep9::CPURegisters reg) const;
-    quint16 getCPURegWordStart(Pep9::CPURegisters reg) const;
+
+    // Allow registers to be read from either the uarch or ISA levels.
+    quint8 getCPURegByteCurrent(Pep9::ISA::CPURegisters reg) const;
+    quint8 getCPURegByteCurrent(Pep9::uarch::CPURegisters reg) const;
+    quint16 getCPURegWordCurrent(Pep9::ISA::CPURegisters reg) const;
+    quint16 getCPURegWordCurrent(Pep9::uarch::CPURegisters reg) const;
+    quint8 getCPURegByteStart(Pep9::ISA::CPURegisters reg) const;
+    quint8 getCPURegByteStart(Pep9::uarch::CPURegisters reg) const;
+    quint16 getCPURegWordStart(Pep9::ISA::CPURegisters reg) const;
+    quint16 getCPURegWordStart(Pep9::uarch::CPURegisters reg) const;
 
     // ACPUModel interface
     bool getStatusBitCurrent(Enu::EStatusBit) const override;
@@ -101,7 +107,7 @@ protected:
 
 private:
     bool isPrefetchValid;
-    QSharedPointer<const Pep9> pep_version;
+    QSharedPointer<const Pep9::Definition> pep_version;
     QElapsedTimer timer;
     CPUDataSection *data;
     QSharedPointer<CPUDataSection> dataShared;

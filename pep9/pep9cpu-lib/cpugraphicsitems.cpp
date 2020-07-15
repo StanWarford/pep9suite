@@ -1520,7 +1520,7 @@ void CpuGraphicsItems::repaintMDRMuxSelect(QPainter *painter)
     QColor color;
     QPalette pal = MDRMuxerDataLabel->palette();
     painter->setPen(colorScheme->arrowColorOn);
-    if(MDRMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Pep9CPU::MainBusState::MemReadSecondWait) {
+    if(MDRMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Pep9::uarch::MainBusState::MemReadSecondWait) {
         color = colorScheme->combCircuitRed;
         pal.setColor(QPalette::Window,colorScheme->muxCircuitRed);
         MDRMuxerDataLabel->setPalette(pal);
@@ -1706,7 +1706,7 @@ void CpuGraphicsItems::repaintMemReadOneByte(QPainter *painter)
     // Mem Data Bus
     poly.clear();
     // arrowhead into the main bus:
-    if (isHigh && dataSection->getMainBusState() == Pep9CPU::MainBusState::MemReadSecondWait) {
+    if (isHigh && dataSection->getMainBusState() == Pep9::uarch::MainBusState::MemReadSecondWait) {
         // square end (when reading):
         poly << QPoint(3, 365) << QPoint(3, 375);
     }
@@ -1816,7 +1816,7 @@ void CpuGraphicsItems::repaintMemWriteOneByte(QPainter *painter)
     poly << QPoint(13, 365) << QPoint(13, 360) << QPoint(3, 370)
          << QPoint(13, 380) << QPoint(13, 375);
     // other end of the bus:
-    if (dataSection->getMainBusState() == Pep9CPU::MainBusState::MemWriteSecondWait) {
+    if (dataSection->getMainBusState() == Pep9::uarch::MainBusState::MemWriteSecondWait) {
         // flat end
         poly << QPoint(40, 375) << QPoint(40, 365);
     }
@@ -2135,7 +2135,7 @@ void CpuGraphicsItems::repaintMemCommonTwoByte(QPainter *painter)
     painter->setPen(colorScheme->arrowColorOn);
     painter->setBrush(color);
     // Left end points
-    if (readIsHigh  && dataSection->getMainBusState() == Pep9CPU::MainBusState::MemReadSecondWait) {
+    if (readIsHigh  && dataSection->getMainBusState() == Pep9::uarch::MainBusState::MemReadSecondWait) {
         // square end (when reading):
         poly << QPoint(TwoByteShapes::DataArrowLeftX + TwoByteShapes::arrowHOffset,
                        TwoByteShapes::DataArrowMidpointY - TwoByteShapes::DataArrowInnerYSpread) // Arrow Top Inner point
@@ -2154,7 +2154,7 @@ void CpuGraphicsItems::repaintMemCommonTwoByte(QPainter *painter)
                        TwoByteShapes::DataArrowMidpointY + TwoByteShapes::DataArrowInnerYSpread); // Arrow Bottom Inner point
     }
     // Right end points
-    if (writeIsHigh  && dataSection->getMainBusState() == Pep9CPU::MainBusState::MemWriteSecondWait) {
+    if (writeIsHigh  && dataSection->getMainBusState() == Pep9::uarch::MainBusState::MemWriteSecondWait) {
         // square end (when writing):
         poly << QPoint(TwoByteShapes::DataArrowRightX + 1,
                        TwoByteShapes::DataArrowMidpointY + TwoByteShapes::DataArrowInnerYSpread) // Arrow Bottom Inner point
@@ -2278,7 +2278,7 @@ void CpuGraphicsItems::repaintMDRESelect(QPainter *painter)
     painter->drawLines(TwoByteShapes::MDREMuxSelect._lines);
     painter->drawImage(TwoByteShapes::MDREMuxSelect._arrowheads.first(),
                        MDREColor == colorScheme->arrowColorOff ? arrowLeftGray : arrowLeft);
-    if(MDREMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Pep9CPU::MainBusState::MemReadSecondWait) {
+    if(MDREMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Pep9::uarch::MainBusState::MemReadSecondWait) {
         pal.setColor(QPalette::Window, colorScheme->muxCircuitRed);
     }
     else if(MDREMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
@@ -2305,7 +2305,7 @@ void CpuGraphicsItems::repaintMDROSelect(QPainter *painter)
     painter->drawLines(TwoByteShapes::MDROMuxSelect._lines);
     painter->drawImage(TwoByteShapes::MDROMuxSelect._arrowheads.first(),
                        MDROColor == colorScheme->arrowColorOff ? arrowLeftGray : arrowLeft);
-    if(MDROMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Pep9CPU::MainBusState::MemReadSecondWait) {
+    if(MDROMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Pep9::uarch::MainBusState::MemReadSecondWait) {
         pal.setColor(QPalette::Window,colorScheme->muxCircuitRed);
     }
     else if(MDROMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
@@ -2329,7 +2329,7 @@ void CpuGraphicsItems::repaintMDRMuxOutputBuses(QPainter *painter)
     // For now red seems to be the most logical color to use all the time.
     QString MDREText = MDREMuxTristateLabel->text(), MDROText = MDROMuxTristateLabel->text();
      //If the muxer is enabled, pick an appropriate color
-    if(MDREMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Pep9CPU::MainBusState::MemReadSecondWait) {
+    if(MDREMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Pep9::uarch::MainBusState::MemReadSecondWait) {
         colorMDRE = colorScheme->combCircuitRed;
     }
     else if(MDREMuxTristateLabel->text() == "1" && cMuxTristateLabel->text() == "0") {
@@ -2342,7 +2342,7 @@ void CpuGraphicsItems::repaintMDRMuxOutputBuses(QPainter *painter)
         colorMDRE = colorScheme->backgroundFill;
     }
      //If the muxer is enabled,pick an appropriate color
-    if(MDROMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Pep9CPU::MainBusState::MemReadSecondWait) {
+    if(MDROMuxTristateLabel->text() == "0" && dataSection->getMainBusState() == Pep9::uarch::MainBusState::MemReadSecondWait) {
         colorMDRO=colorScheme->combCircuitRed;
     }
     else if(MDROMuxTristateLabel->text()=="1"&&cMuxTristateLabel->text()=="0") {

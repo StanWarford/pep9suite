@@ -58,13 +58,13 @@ public:
     quint16 getRegisterBankWord(quint8 registerNumber) const; //Follows even/odd conventions of pep/9
     //quint8 getRegisterBankByte(Enu::CPURegisters registerNumber) const;
     //quint16 getRegisterBankWord(Enu::CPURegisters registerNumber) const; //Follows even/odd conventions of pep/9
-    quint8 getMemoryRegister(Pep9CPU::EMemoryRegisters registerNumber)const;
+    quint8 getMemoryRegister(Pep9::uarch::EMemoryRegisters registerNumber)const;
 
     //Access register & Memory Buses
     bool valueOnABus(quint8& result) const;
     bool valueOnBBus(quint8& result) const;
     bool valueOnCBus(quint8& result) const;
-    Pep9CPU::MainBusState getMainBusState() const;
+    Pep9::uarch::MainBusState getMainBusState() const;
 
     //Test for Signals and Registers
     quint8 getControlSignals(Enu::EControlSignals controlSignal) const;
@@ -99,7 +99,7 @@ private:
     QSharedPointer<AMemoryDevice> memDevice;
 
     PepCore::CPUType cpuFeatures;
-    Pep9CPU::MainBusState mainBusState;
+    Pep9::uarch::MainBusState mainBusState;
     bool emitEvents;
 
     //Data registers
@@ -136,7 +136,7 @@ public slots:
     void onSetStatusBit(Enu::EStatusBit,bool val);
     void onSetRegisterByte(quint8 reg,quint8 val);
     void onSetRegisterWord(quint8 reg,quint16 val);
-    void onSetMemoryRegister(Pep9CPU::EMemoryRegisters,quint8 val);
+    void onSetMemoryRegister(Pep9::uarch::EMemoryRegisters,quint8 val);
     void onSetClock(Enu::EClockSignals, bool value);
     void onSetControlSignal(Enu::EControlSignals, quint8 value);
     void onStep() noexcept;
@@ -146,7 +146,7 @@ public slots:
 
 signals:
     void registerChanged(quint8 reg, quint8 oldVal, quint8 newVal); //Thrown whenever a register in the register bank is changed.
-    void memoryRegisterChanged(Pep9CPU::EMemoryRegisters, quint8 oldVal, quint8 newVal); //Thrown whenever a memory register is changed.
+    void memoryRegisterChanged(Pep9::uarch::EMemoryRegisters, quint8 oldVal, quint8 newVal); //Thrown whenever a memory register is changed.
     void statusBitChanged(Enu::EStatusBit status, bool value);
     void CPUTypeChanged(PepCore::CPUType type);
 

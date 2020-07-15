@@ -25,8 +25,9 @@
 
 #include "cpu/interfacemccpu.h"
 #include "pep/constants.h"
-
+#include "cpudefs.h"
 #include "pep9.h"
+
 
 class CPUDataSection;
 class PartialMicrocodedMemoizer;
@@ -36,15 +37,15 @@ class PartialMicrocodedCPU : public ACPUModel, public InterfaceMCCPU
     friend class CPUMemoizer;
     friend class PartialMicrocodedMemoizer;
 public:
-    PartialMicrocodedCPU(PepCore::CPUType type, QSharedPointer<const Pep9> pep_version,
+    PartialMicrocodedCPU(PepCore::CPUType type, QSharedPointer<const Pep9::Definition> pep_version,
                          QSharedPointer<AMemoryDevice>, QObject* parent = nullptr) noexcept;
     virtual ~PartialMicrocodedCPU() override;
     QSharedPointer<CPUDataSection> getDataSection();
 
-    quint8 getCPURegByteCurrent(Pep9::CPURegisters reg) const;
-    quint16 getCPURegWordCurrent(Pep9::CPURegisters reg) const;
-    quint8 getCPURegByteStart(Pep9::CPURegisters reg) const;
-    quint16 getCPURegWordStart(Pep9::CPURegisters reg) const;
+    quint8 getCPURegByteCurrent(Pep9::uarch::CPURegisters reg) const;
+    quint16 getCPURegWordCurrent(Pep9::uarch::CPURegisters reg) const;
+    quint8 getCPURegByteStart(Pep9::uarch::CPURegisters reg) const;
+    quint16 getCPURegWordStart(Pep9::uarch::CPURegisters reg) const;
 
     // ACPUModel interface
     bool getStatusBitCurrent(Enu::EStatusBit) const override;
@@ -76,7 +77,7 @@ public slots:
     void onResetCPU() override;
 
 private:
-    QSharedPointer<const Pep9> pep_version;
+    QSharedPointer<const Pep9::Definition> pep_version;
     CPUDataSection *data;
     QSharedPointer<CPUDataSection> dataShared;
     PartialMicrocodedMemoizer *memoizer;

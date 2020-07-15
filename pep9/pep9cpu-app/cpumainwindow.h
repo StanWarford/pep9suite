@@ -78,7 +78,7 @@ protected:
 
 private:
     Ui::CPUMainWindow *ui;
-    QSharedPointer<Pep9> pep_version;
+    QSharedPointer<Pep9::Definition> pep_version;
     MicroAsm micro_assembler;
 
 

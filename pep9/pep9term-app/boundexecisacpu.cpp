@@ -26,7 +26,7 @@
 #include "memory/amemorydevice.h"
 
 BoundExecIsaCpu::BoundExecIsaCpu(quint64 stepCount, const AsmProgramManager *manager,
-                                 QSharedPointer<const Pep9> pep_version,
+                                 QSharedPointer<const Pep9::Definition> pep_version,
                                  QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
     IsaCpu(manager, pep_version, memDevice, parent), maxSteps(stepCount)
 

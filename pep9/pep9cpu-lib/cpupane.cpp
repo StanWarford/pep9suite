@@ -948,23 +948,23 @@ void CpuPane::onRegisterChanged(quint8 which, quint8 , quint8 newVal)
     setRegisterByte(which, newVal);
 }
 
-void CpuPane::onMemoryRegisterChanged(Pep9CPU::EMemoryRegisters reg, quint8, quint8 newVal)
+void CpuPane::onMemoryRegisterChanged(Pep9::uarch::EMemoryRegisters reg, quint8, quint8 newVal)
 {
     QLatin1Char x = QLatin1Char('0');
     switch(reg){
-    case Pep9CPU::EMemoryRegisters::MEM_MARA:
+    case Pep9::uarch::EMemoryRegisters::MEM_MARA:
         cpuPaneItems->MARALabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());
         break;
-    case Pep9CPU::EMemoryRegisters::MEM_MARB:
+    case Pep9::uarch::EMemoryRegisters::MEM_MARB:
         cpuPaneItems->MARBLabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());
         break;
-    case Pep9CPU::EMemoryRegisters::MEM_MDR:
+    case Pep9::uarch::EMemoryRegisters::MEM_MDR:
         cpuPaneItems->MDRLabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());
         break;
-    case Pep9CPU::EMemoryRegisters::MEM_MDRE:
+    case Pep9::uarch::EMemoryRegisters::MEM_MDRE:
         cpuPaneItems->MDRELabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());
         break;
-    case Pep9CPU::EMemoryRegisters::MEM_MDRO:
+    case Pep9::uarch::EMemoryRegisters::MEM_MDRO:
         cpuPaneItems->MDROLabel->setText("0x" + QString("%1").arg(newVal, 2, 16, x).toUpper());
         break;
     }
@@ -1001,24 +1001,25 @@ void CpuPane::repaintOnScroll(int distance)
 
 void CpuPane::onSimulationUpdate()
 {
+    using namespace Pep9::uarch;
 
-    setRegister(Enu::Acc, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::A)));
-    setRegister(Enu::X, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::X)));
-    setRegister(Enu::SP, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::SP)));
-    setRegister(Enu::PC, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::PC)));
-    setRegister(Enu::IR, static_cast<int>(dataSection->getRegisterBankByte(to_uint8_t(Pep9::CPURegisters::IS))<<16) +
-                dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::OS)));
-    setRegister(Enu::T1, dataSection->getRegisterBankByte(to_uint8_t(Pep9::CPURegisters::T1)));
-    setRegister(Enu::T2, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::T2)));
-    setRegister(Enu::T3, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::T3)));
-    setRegister(Enu::T4, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::T4)));
-    setRegister(Enu::T5, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::T5)));
-    setRegister(Enu::T6, dataSection->getRegisterBankWord(to_uint8_t(Pep9::CPURegisters::T6)));
-    setRegister(Enu::MARAREG, dataSection->getMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MARA));
-    setRegister(Enu::MARBREG, dataSection->getMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MARB));
-    setRegister(Enu::MDRREG, dataSection->getMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDR));
-    setRegister(Enu::MDROREG, dataSection->getMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDRO));
-    setRegister(Enu::MDREREG, dataSection->getMemoryRegister(Pep9CPU::EMemoryRegisters::MEM_MDRE));
+    setRegister(Enu::Acc, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::A)));
+    setRegister(Enu::X, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::X)));
+    setRegister(Enu::SP, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::SP)));
+    setRegister(Enu::PC, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::PC)));
+    setRegister(Enu::IR, static_cast<int>(dataSection->getRegisterBankByte(to_uint8_t(CPURegisters::IS))<<16) +
+                dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::OS)));
+    setRegister(Enu::T1, dataSection->getRegisterBankByte(to_uint8_t(CPURegisters::T1)));
+    setRegister(Enu::T2, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T2)));
+    setRegister(Enu::T3, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T3)));
+    setRegister(Enu::T4, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T4)));
+    setRegister(Enu::T5, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T5)));
+    setRegister(Enu::T6, dataSection->getRegisterBankWord(to_uint8_t(CPURegisters::T6)));
+    setRegister(Enu::MARAREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARA));
+    setRegister(Enu::MARBREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MARB));
+    setRegister(Enu::MDRREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDR));
+    setRegister(Enu::MDROREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDRO));
+    setRegister(Enu::MDREREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDRE));
     setStatusBit(Enu::N, dataSection->getStatusBit(Enu::STATUS_N));
     setStatusBit(Enu::Z, dataSection->getStatusBit(Enu::STATUS_Z));
     setStatusBit(Enu::V, dataSection->getStatusBit(Enu::STATUS_V));

@@ -179,7 +179,7 @@ void ASMRunHelper::run()
         QSharedPointer<RAMChip> ramChip(new RAMChip(1<<16, 0, memory.get()));
         memory->insertChip(ramChip, 0);
 
-        auto version = QSharedPointer<Pep9>::create();
+        auto version = QSharedPointer<Pep9::Definition>::create();
         cpu = QSharedPointer<BoundExecIsaCpu>::create(maxSimSteps, &manager, version, memory, nullptr);
 
         // Connect IO events. IO *MUST* complete before execution moves forward.
