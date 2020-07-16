@@ -66,5 +66,6 @@ namespace Pep9::ISA {
         SFX = 128,
         ALL = 255
     };
+
 }
 #endif // ISADEFS_H

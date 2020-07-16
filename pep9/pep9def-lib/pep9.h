@@ -21,8 +21,12 @@ public:
     PepCore::CPURegisters_number_t get_global_register_number(global_registers) const override;
     bool isInstructionUnary(quint8) const override;
     quint8 maxRegisterNumber() const override;
+    quint8 maxStatusBitNumber() const override;
     ASMHighlighter *getASMHighlighter(PepColors::Colors) const override;
     MicroHighlighter *getMicroHighlighter(PepCore::CPUType type, bool fullCtrlSection, const PepColors::Colors colors) const override;
+public:
+    static PepCore::CPURegisters_number_t getStatusBitOffset(Pep9::ISA::EStatusBit);
+    static PepCore::CPURegisters_number_t getStatusBitOffset(Pep9::uarch::EStatusBit);
 private:
     QMap<Pep9::ISA::EMnemonic, int> opCodeMap;
     QMap<Pep9::ISA::EMnemonic, bool> isUnaryMap;

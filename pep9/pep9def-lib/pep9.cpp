@@ -38,6 +38,11 @@ quint8 Pep9::Definition::maxRegisterNumber() const
     return 32;
 }
 
+quint8 Pep9::Definition::maxStatusBitNumber() const
+{
+    return 5;
+}
+
 ASMHighlighter *Pep9::Definition::getASMHighlighter(PepColors::Colors colors) const
 {
     return new Pep9ASMHighlighter(colors, nullptr);
@@ -46,6 +51,15 @@ ASMHighlighter *Pep9::Definition::getASMHighlighter(PepColors::Colors colors) co
 MicroHighlighter *Pep9::Definition::getMicroHighlighter(PepCore::CPUType type, bool fullCtrlSection, const PepColors::Colors colors) const
 {
     return new Pep9MicroHighlighter(type, fullCtrlSection, colors, nullptr);
+}
+
+PepCore::CPURegisters_number_t Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit bit)
+{
+    return static_cast<int>(bit);
+}
+PepCore::CPURegisters_number_t Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit bit)
+{
+    return static_cast<int>(bit);
 }
 
 void Pep9::Definition::initMnemonicMaps(bool NOP0IsTrap)

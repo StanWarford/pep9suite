@@ -27,7 +27,6 @@
 #include <QStack>
 #include <QString>
 
-
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
 #include "cache/cachememory.h"
@@ -35,8 +34,13 @@
 #include "memory/amemorydevice.h"
 #include "pep/pep.h"
 
-
 #include "isacpu.h"
+
+const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
+const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
+const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
+const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+const auto SBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_S);
 
 IsaCpuMemoizer::IsaCpuMemoizer(IsaCpu &cpu): cpu(cpu), inOS(false), stateUser(CPUState()), stateOS(CPUState())
 {
@@ -147,14 +151,19 @@ QString IsaCpuMemoizer::memoize()
         symTable = cpu.manager->getProgramAt(pc)
                 ->getSymbolTable().get();
     }
-    quint8 ir = 0;
+    quint8 ir = 0, tempByte=0;
     QString build, AX, NZVC;
     AX = QString(" A=%1, X=%2, SP=%3")
 
             .arg(formatNum(cpu.getCPURegWordCurrent(CPURegisters::A)),
                  formatNum(cpu.getCPURegWordCurrent(CPURegisters::X)),
                  formatNum(cpu.getCPURegWordCurrent(CPURegisters::SP)));
-    NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(file.readStatusBitsCurrent(), 2), 5, '0');
+    tempByte = 0;
+    tempByte |= file.readStatusBitCurrent(NBit_t) * Pep9::uarch::EMask::NMask;
+    tempByte |= file.readStatusBitCurrent(ZBit_t) * Pep9::uarch::EMask::ZMask;
+    tempByte |= file.readStatusBitCurrent(VBit_t) * Pep9::uarch::EMask::VMask;
+    tempByte |= file.readStatusBitCurrent(CBit_t) * Pep9::uarch::EMask::CMask;
+    NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(tempByte, 2), 5, '0');
     build = (attemptAddrReplace(symTable, pc) + QString(":")).leftJustified(10) %
             formatInstr(symTable, file.getIRCache(), cpu.getCPURegWordCurrent(CPURegisters::OS));
     build += "  " + AX;

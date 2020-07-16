@@ -80,16 +80,6 @@ namespace Enu {
     /*
      * Enumerations for Pep9CPU
      */
-    // For ALU function 15, and used to mask status bits |'ed
-    // together in a single integer.
-    enum EMask
-    {
-        SMask = 0x10,
-        NMask = 0x08,
-        ZMask = 0x04,
-        VMask = 0x02,
-        CMask = 0x01,
-    };
 
     enum EStatusBit
     {

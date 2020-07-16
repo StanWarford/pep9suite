@@ -34,10 +34,16 @@
 
 #include "isacpumemoizer.h"
 
+const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
+const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
+const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
+const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+const auto SBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_S);
+
 IsaCpu::IsaCpu(const AsmProgramManager *input_manager, QSharedPointer<const Pep9::Definition> pep_version,
                QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
     ACPUModel(memDevice, parent), Pep9InterfaceISACPU(memDevice.get(), input_manager),
-    registerBank(pep_version->maxRegisterNumber()), memoizer(new IsaCpuMemoizer(*this)),
+    registerBank(pep_version->maxRegisterNumber(), pep_version->maxStatusBitNumber()), memoizer(new IsaCpuMemoizer(*this)),
     a_reg(pep_version->get_global_register_number(APepVersion::global_registers::A)),
     x_reg(pep_version->get_global_register_number(APepVersion::global_registers::X)),
     sp_reg(pep_version->get_global_register_number(APepVersion::global_registers::SP)),
@@ -290,20 +296,19 @@ void IsaCpu::initCPU()
 
 bool IsaCpu::getStatusBitCurrent(Enu::EStatusBit statusBit) const
 {
-    quint8 NZVCSbits = registerBank.readStatusBitsCurrent();
     switch(statusBit)
     {
     // Mask out bit of interest, then convert to bool
     case Enu::STATUS_N:
-        return(NZVCSbits & Enu::NMask);
+        return registerBank.readStatusBitCurrent(NBit_t);
     case Enu::STATUS_Z:
-        return(NZVCSbits & Enu::ZMask);
+        return registerBank.readStatusBitCurrent(ZBit_t);
     case Enu::STATUS_V:
-        return(NZVCSbits & Enu::VMask);
+        return registerBank.readStatusBitCurrent(VBit_t);
     case Enu::STATUS_C:
-        return(NZVCSbits & Enu::CMask);
+        return registerBank.readStatusBitCurrent(CBit_t);
     case Enu::STATUS_S:
-        return(NZVCSbits & Enu::SMask);
+        return registerBank.readStatusBitCurrent(SBit_t);
     default:
         // Should never occur, but might happen if a bad status bit is passed
         return false;
@@ -312,20 +317,19 @@ bool IsaCpu::getStatusBitCurrent(Enu::EStatusBit statusBit) const
 
 bool IsaCpu::getStatusBitStart(Enu::EStatusBit statusBit) const
 {
-    quint8 NZVCSbits = registerBank.readStatusBitsStart();
     switch(statusBit)
     {
     // Mask out bit of interest, then convert to bool
     case Enu::STATUS_N:
-        return(NZVCSbits & Enu::NMask);
+        return registerBank.readStatusBitStart(NBit_t);
     case Enu::STATUS_Z:
-        return(NZVCSbits & Enu::ZMask);
+        return registerBank.readStatusBitStart(ZBit_t);
     case Enu::STATUS_V:
-        return(NZVCSbits & Enu::VMask);
+        return registerBank.readStatusBitStart(VBit_t);
     case Enu::STATUS_C:
-        return(NZVCSbits & Enu::CMask);
+        return registerBank.readStatusBitStart(CBit_t);
     case Enu::STATUS_S:
-        return(NZVCSbits & Enu::SMask);
+        return registerBank.readStatusBitStart(SBit_t);
     default:
         // Should never occur, but might happen if a bad status bit is passed
         return false;
@@ -800,8 +804,12 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
 
     case Enu::EMnemonic::RETTR:
         memory->readByte(sp, tempByte);
-        // Function will automatically mask out bits that don't matter
-        registerBank.writeStatusBits(tempByte);
+        // Mask out bits that don't matter
+        registerBank.writeStatusBit(NBit_t, tempByte & Pep9::uarch::EMask::NMask);
+        registerBank.writeStatusBit(ZBit_t, tempByte & Pep9::uarch::EMask::ZMask);
+        registerBank.writeStatusBit(VBit_t, tempByte & Pep9::uarch::EMask::VMask);
+        registerBank.writeStatusBit(CBit_t, tempByte & Pep9::uarch::EMask::CMask);
+
         memory->readWord(sp + 1, temp);
         registerBank.writeRegisterWord(a_reg, temp);
         memory->readWord(sp + 3, temp);
@@ -817,12 +825,22 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         break;
 
     case Enu::EMnemonic::MOVFLGA:
-        registerBank.writeRegisterWord(a_reg, registerBank.readStatusBitsCurrent());
+        tempByte = 0;
+        tempByte |= registerBank.readStatusBitCurrent(NBit_t) * Pep9::uarch::EMask::NMask;
+        tempByte |= registerBank.readStatusBitCurrent(ZBit_t) * Pep9::uarch::EMask::ZMask;
+        tempByte |= registerBank.readStatusBitCurrent(VBit_t) * Pep9::uarch::EMask::VMask;
+        tempByte |= registerBank.readStatusBitCurrent(CBit_t) * Pep9::uarch::EMask::CMask;
+        registerBank.writeRegisterWord(a_reg, tempByte);
         break;
 
     case Enu::EMnemonic::MOVAFLG:
         // Only move the low order byte of accumulator to the status bits.
-        registerBank.writeStatusBits(static_cast<quint8>(acc));
+        tempByte = static_cast<quint8>(acc);
+        // Mask out bits that don't matter
+        registerBank.writeStatusBit(NBit_t, tempByte & Pep9::uarch::EMask::NMask);
+        registerBank.writeStatusBit(ZBit_t, tempByte & Pep9::uarch::EMask::ZMask);
+        registerBank.writeStatusBit(VBit_t, tempByte & Pep9::uarch::EMask::VMask);
+        registerBank.writeStatusBit(CBit_t, tempByte & Pep9::uarch::EMask::CMask);
         break;
 
     case Enu::EMnemonic::NOTA: // Modifies NZ bits
@@ -1334,6 +1352,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
 {
     quint16 pc;
+    quint8 tempByte;
     // The
     quint16 tempAddr, temp = manager->getOperatingSystem()->getBurnValue() - 9;
     memory->readWord(temp, tempAddr);
@@ -1372,7 +1391,12 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
         // Writes to mem[T-8], mem[T-9].
         memSuccess &= memory->writeWord(tempAddr - 9, registerBank.readRegisterWordCurrent(a_reg) /*A*/);
         // Writes to mem[T-10].
-        memSuccess &= memory->writeByte(tempAddr - 10, registerBank.readStatusBitsCurrent() /*NZVC*/);
+        tempByte = 0;
+        tempByte |= registerBank.readStatusBitCurrent(NBit_t) * Pep9::uarch::EMask::NMask;
+        tempByte |= registerBank.readStatusBitCurrent(ZBit_t) * Pep9::uarch::EMask::ZMask;
+        tempByte |= registerBank.readStatusBitCurrent(VBit_t) * Pep9::uarch::EMask::VMask;
+        tempByte |= registerBank.readStatusBitCurrent(CBit_t) * Pep9::uarch::EMask::CMask;
+        memSuccess &= memory->writeByte(tempAddr - 10, tempByte /*NZVC*/);
         memSuccess &= memory->readWord(pcAddr, pc);
         registerBank.writeRegisterWord(sp_reg, tempAddr - 10);
         registerBank.writeRegisterWord(pc_reg, pc);

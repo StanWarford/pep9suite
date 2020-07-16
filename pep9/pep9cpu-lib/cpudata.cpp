@@ -50,7 +50,6 @@ const auto ZCk_t = to_uint8_t(Pep9::uarch::EClockSignals::ZCk);
 const auto NCk_t = to_uint8_t(Pep9::uarch::EClockSignals::NCk);
 const auto MemWrite_t = to_uint8_t(Pep9::uarch::EControlSignals::MemWrite);
 const auto MemRead_t = to_uint8_t(Pep9::uarch::EControlSignals::MemRead);
-
 const auto MARMux_t = to_uint8_t(Pep9::uarch::EControlSignals::MARMux);
 const auto MDROCk_t = to_uint8_t(Pep9::uarch::EClockSignals::MDROCk);
 const auto MDROMux_t = to_uint8_t(Pep9::uarch::EControlSignals::MDROMux);
@@ -61,10 +60,16 @@ const auto EOMux_t = to_uint8_t(Pep9::uarch::EControlSignals::EOMux);
 const auto PValidCk_t = to_uint8_t(Pep9::uarch::EClockSignals::PValidCk);
 const auto PValid_t = to_uint8_t(Pep9::uarch::EControlSignals::PValid);
 
-CPUDataSection::CPUDataSection(PepCore::CPUType type, QSharedPointer<const APepVersion> pep_version,
-                               QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent), memDevice(memDev),
+const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
+const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
+const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
+const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+const auto SBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_S);
+CPUDataSection::CPUDataSection(PepCore::CPUType type, QSharedPointer<const Pep9::Definition> pep_version,
+                               QSharedPointer<AMemoryDevice> memDev, QObject *parent): QObject(parent),
+    pep_version(pep_version), memDevice(memDev),
     cpuFeatures(type), mainBusState(Pep9::uarch::MainBusState::None),
-    registerBank(QSharedPointer<RegisterFile>::create(pep_version->maxRegisterNumber())),
+    registerBank(QSharedPointer<RegisterFile>::create(pep_version->maxRegisterNumber(), pep_version->maxStatusBitNumber())),
     memoryRegisters(6), controlSignals(Pep9::uarch::numControlSignals()),
     clockSignals(Pep9::uarch::numClockSignals()), emitEvents(true), hadDataError(false), errorMessage(""),
     isALUCacheValid(false), ALUHasOutputCache(false), ALUOutputCache(0), ALUStatusBitCache(0)
@@ -115,12 +120,12 @@ bool CPUDataSection::calculateCSMuxOutput(bool &result) const
 {
     //CSMux either outputs C when CS is 0
     if(controlSignals[CSMux_t]==0) {
-        result = registerBank->readStatusBitsCurrent() & Enu::CMask;
+        result = registerBank->readStatusBitCurrent(CBit_t);
         return true;
     }
     //Or outputs S when CS is 1
     else if(controlSignals[CSMux_t] == 1)  {
-        result = registerBank->readStatusBitsCurrent() & Enu::SMask;
+        result = registerBank->readStatusBitCurrent(SBit_t);
         return true;
     }
     //Otherwise it does not have valid output
@@ -157,11 +162,11 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         break;
     case Pep9::uarch::EALUFunc::ApB_func: // A plus B
         res = a + b;
-        NZVC |= Enu::CMask * quint8{res<a||res<b}; // Carry out if result is unsigned less than a or b.
+        NZVC |= Pep9::uarch::CMask * quint8{res<a||res<b}; // Carry out if result is unsigned less than a or b.
         // There is a signed overflow iff the high order bits of the input are the same,
         // and the inputs & output differs in sign.
         // Shifts in 0's (unsigned chars), so after shift, only high order bit remain.
-        NZVC |= Enu::VMask * ((~(a ^ b) & (a ^ res)) >> 7) ;
+        NZVC |= Pep9::uarch::VMask * ((~(a ^ b) & (a ^ res)) >> 7) ;
         break;
     case Pep9::uarch::EALUFunc::ApnBp1_func: // A plus ~B plus 1
         hasCIn = true;
@@ -177,11 +182,11 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         if (!hasCIn) return false;
         // Might cause overflow, but overflow is well defined for unsigned ints
         res = a + b + quint8{carryIn};
-        NZVC |= Enu::CMask * quint8{res<a||res<b}; // Carry out if result is unsigned less than a or b.
+        NZVC |= Pep9::uarch::CMask * quint8{res<a||res<b}; // Carry out if result is unsigned less than a or b.
         // There is a signed overflow iff the high order bits of the input are the same,
         // and the inputs & output differs in sign.
         // Shifts in 0's (unsigned chars), so after shift, only high order bit remain.
-        NZVC |= Enu::VMask * ((~(a ^ b) & (a ^ res)) >> 7) ;
+        NZVC |= Pep9::uarch::VMask * ((~(a ^ b) & (a ^ res)) >> 7) ;
         break;
     case Pep9::uarch::EALUFunc::AandB_func: // A * B
         res = a & b;
@@ -203,14 +208,14 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         break;
     case Pep9::uarch::EALUFunc::ASLA_func: // ASL A
         res = static_cast<quint8>(a<<1);
-        NZVC |= Enu::CMask * ((a & 0x80) >> 7); // Carry out equals the hi order bit
-        NZVC |= Enu::VMask * (((a << 1) ^ a) >>7); // Signed overflow if a<hi> doesn't match a<hi-1>
+        NZVC |= Pep9::uarch::CMask * ((a & 0x80) >> 7); // Carry out equals the hi order bit
+        NZVC |= Pep9::uarch::VMask * (((a << 1) ^ a) >>7); // Signed overflow if a<hi> doesn't match a<hi-1>
         break;
     case Pep9::uarch::EALUFunc::ROLA_func: // ROL A
         if (!hasCIn) return false;
         res = static_cast<quint8>(a<<1 | quint8{carryIn});
-        NZVC |= Enu::CMask * ((a & 0x80) >> 7); // Carry out equals the hi order bit
-        NZVC |= Enu::VMask * (((a << 1) ^a) >>7); // Signed overflow if a<hi> doesn't match a<hi-1>
+        NZVC |= Pep9::uarch::CMask * ((a & 0x80) >> 7); // Carry out equals the hi order bit
+        NZVC |= Pep9::uarch::VMask * (((a << 1) ^a) >>7); // Signed overflow if a<hi> doesn't match a<hi-1>
         break;
     case Pep9::uarch::EALUFunc::ASRA_func: // ASR A
         hasCIn = true;
@@ -222,22 +227,22 @@ bool CPUDataSection::calculateALUOutput(quint8 &res, quint8 &NZVC) const
         // Widen carryIn so that << yields a meaningful result.
         res = static_cast<quint8>(a >> 1 | static_cast<quint8>(carryIn) << 7);
         // Carry out is lowest order bit of a
-        NZVC |= Enu::CMask * (a & 1);
+        NZVC |= Pep9::uarch::CMask * (a & 1);
         break;
     case Pep9::uarch::EALUFunc::NZVCA_func: // Move A to NZVC
         res = 0;
-        NZVC |= Enu::NMask & a;
-        NZVC |= Enu::ZMask & a;
-        NZVC |= Enu::VMask & a;
-        NZVC |= Enu::CMask & a;
+        NZVC |= Pep9::uarch::NMask & a;
+        NZVC |= Pep9::uarch::ZMask & a;
+        NZVC |= Pep9::uarch::VMask & a;
+        NZVC |= Pep9::uarch::CMask & a;
         return true; // Must return early to avoid NZ calculation
     default: // If the default has been hit, then an invalid function was selected
         return false;
     }
     // Calculate N, then shift to correct position
-    NZVC |= (res & 0x80) ? Enu::NMask : 0; // Result is negative if high order bit is 1
+    NZVC |= (res & 0x80) ? Pep9::uarch::NMask : 0; // Result is negative if high order bit is 1
     // Calculate Z, then shift to correct position
-    NZVC |= (res == 0) ? Enu::ZMask : 0;
+    NZVC |= (res == 0) ? Pep9::uarch::ZMask : 0;
     // Save the result of the ALU calculation
     ALUOutputCache = res;
     ALUStatusBitCache = NZVC;
@@ -295,7 +300,11 @@ bool CPUDataSection::valueOnCBus(quint8 &result) const
 {
     if(controlSignals[CMux_t] == 0) {
         // If CMux is 0, then the NZVC bits (minus S) are directly routed to result
-        result = (registerBank->readStatusBitsCurrent() & (~Enu::SMask));
+        result = 0;
+        result |= registerBank->readStatusBitCurrent(NBit_t) * Pep9::uarch::EMask::NMask;
+        result |= registerBank->readStatusBitCurrent(ZBit_t) * Pep9::uarch::EMask::ZMask;
+        result |= registerBank->readStatusBitCurrent(VBit_t) * Pep9::uarch::EMask::VMask;
+        result |= registerBank->readStatusBitCurrent(CBit_t) * Pep9::uarch::EMask::CMask;
         return true;
     }
     else if(controlSignals[CMux_t] == 1) {
@@ -313,20 +322,19 @@ Pep9::uarch::MainBusState CPUDataSection::getMainBusState() const
 
 bool CPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
 {
-    quint8 NZVCSbits = registerBank->readStatusBitsCurrent();
     switch(statusBit)
     {
     // Mask out bit of interest, then convert to bool
     case Enu::STATUS_N:
-        return(NZVCSbits & Enu::NMask);
+        return registerBank->readStatusBitCurrent(NBit_t);
     case Enu::STATUS_Z:
-        return(NZVCSbits & Enu::ZMask);
+        return registerBank->readStatusBitCurrent(ZBit_t);
     case Enu::STATUS_V:
-        return(NZVCSbits & Enu::VMask);
+        return registerBank->readStatusBitCurrent(VBit_t);
     case Enu::STATUS_C:
-        return(NZVCSbits & Enu::CMask);
+        return registerBank->readStatusBitCurrent(CBit_t);
     case Enu::STATUS_S:
-        return(NZVCSbits & Enu::SMask);
+        return registerBank->readStatusBitCurrent(SBit_t);
     default:
         // Should never occur, but might happen if a bad status bit is passed
         return false;
@@ -581,7 +589,7 @@ void CPUDataSection::stepOneByte() noexcept
 
     //NCk
     if(clockSignals[NCk_t]) {
-        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N,Enu::NMask & NZVC);
+        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N, Pep9::uarch::NMask & NZVC);
         else statusBitError = true;
     }
 
@@ -590,10 +598,10 @@ void CPUDataSection::stepOneByte() noexcept
         if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput)
         {
             if(controlSignals[AndZ_t] == 0) {
-                onSetStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
+                onSetStatusBit(Enu::STATUS_Z, Pep9::uarch::ZMask & NZVC);
             }
             else if(controlSignals[AndZ_t] == 1) {
-                onSetStatusBit(Enu::STATUS_Z, static_cast<bool>((Enu::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z)));
+                onSetStatusBit(Enu::STATUS_Z, static_cast<bool>((Pep9::uarch::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z)));
             }
             else statusBitError = true;
         }
@@ -602,19 +610,19 @@ void CPUDataSection::stepOneByte() noexcept
 
     //VCk
     if(clockSignals[VCk_t]) {
-        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V,Enu::VMask & NZVC);
+        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V, Pep9::uarch::VMask & NZVC);
         else statusBitError = true;
     }
 
     //CCk
     if(clockSignals[CCk_t]) {
-        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C,Enu::CMask & NZVC);
+        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C, Pep9::uarch::CMask & NZVC);
         else statusBitError = true;
     }
 
     //SCk
     if(clockSignals[SCk_t]) {
-        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S,Enu::CMask & NZVC);
+        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S, Pep9::uarch::CMask & NZVC);
         else statusBitError = true;
     }
 
@@ -778,7 +786,7 @@ void CPUDataSection::stepTwoByte() noexcept
 
     //NCk
     if(clockSignals[NCk_t]) {
-        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N, Enu::NMask & NZVC);
+        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N, Pep9::uarch::NMask & NZVC);
         else statusBitError = true;
     }
 
@@ -787,10 +795,10 @@ void CPUDataSection::stepTwoByte() noexcept
     if(clockSignals[ZCk_t]) {
         if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) {
             if(controlSignals[AndZ_t] == 0) {
-                onSetStatusBit(Enu::STATUS_Z,Enu::ZMask & NZVC);
+                onSetStatusBit(Enu::STATUS_Z, Pep9::uarch::ZMask & NZVC);
             }
             else if(controlSignals[AndZ_t] == 1) {
-                onSetStatusBit(Enu::STATUS_Z, static_cast<bool>((Enu::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z)));
+                onSetStatusBit(Enu::STATUS_Z, static_cast<bool>((Pep9::uarch::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z)));
             }
             else statusBitError = true;
         }
@@ -799,19 +807,19 @@ void CPUDataSection::stepTwoByte() noexcept
 
     //VCk
     if(clockSignals[VCk_t]) {
-        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V, Enu::VMask & NZVC);
+        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V, Pep9::uarch::VMask & NZVC);
         else statusBitError = true;
     }
 
     //CCk
     if(clockSignals[CCk_t]) {
-        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C, Enu::CMask & NZVC);
+        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C, Pep9::uarch::CMask & NZVC);
         else statusBitError = true;
     }
 
     //SCk
     if(clockSignals[SCk_t]) {
-        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S, Enu::CMask & NZVC);
+        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S, Pep9::uarch::CMask & NZVC);
         else statusBitError = true;
     }
 

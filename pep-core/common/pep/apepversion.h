@@ -30,6 +30,7 @@ public:
 
     virtual bool isInstructionUnary(quint8) const = 0;
     virtual quint8 maxRegisterNumber() const = 0;
+    virtual quint8 maxStatusBitNumber() const = 0;
 
     virtual ASMHighlighter* getASMHighlighter(PepColors::Colors) const = 0;
     virtual MicroHighlighter* getMicroHighlighter(PepCore::CPUType type, bool fullCtrlSection, const PepColors::Colors colors) const = 0;

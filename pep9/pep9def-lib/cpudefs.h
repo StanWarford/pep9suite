@@ -25,6 +25,18 @@ namespace Pep9::uarch {
         // Present in any derivative of Pep9CPU
         T1=11
     };
+
+    // For ALU function 15, and used to mask status bits |'ed
+    // together in a single integer.
+    enum EMask
+    {
+        SMask = 0x10,
+        NMask = 0x08,
+        ZMask = 0x04,
+        VMask = 0x02,
+        CMask = 0x01,
+    };
+
     enum class EStatusBit
     {
         STATUS_N,STATUS_Z,STATUS_V,STATUS_C,STATUS_S

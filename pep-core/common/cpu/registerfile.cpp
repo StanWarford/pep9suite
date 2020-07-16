@@ -21,74 +21,48 @@
 */
 #include "registerfile.h"
 
-RegisterFile::RegisterFile(quint8 max_registers): max_register_number(max_registers),
+RegisterFile::RegisterFile(quint8 max_registers, quint8 max_status_bits):
+    max_register_number(max_registers), max_status_bit_number(max_status_bits),
     registersStart(max_registers + 1, 0),
     registersCurrent(max_registers + 1, 0),
-    statusBitsStart(0),
-    statusBitsCurrent(0), irCache(0)
+    statusBitsStart(max_status_bits + 1, false),
+    statusBitsCurrent(max_status_bits + 1, false), irCache(0)
 {
 
 }
 
-quint8 RegisterFile::readStatusBitsStart() const
+bool RegisterFile::readStatusBitCurrent(PepCore::CPUStatusBits_name_t bit) const
 {
-    return statusBitsStart;
-}
-
-quint8 RegisterFile::readStatusBitsCurrent() const
-{
-    return statusBitsCurrent;
-}
-
-bool RegisterFile::readStatusBitCurrent(Enu::EStatusBit bit)
-{
-    return crackStatusBit(statusBitsCurrent, bit);
-}
-
-bool RegisterFile::readStatusBitStart(Enu::EStatusBit bit)
-{
-    return crackStatusBit(statusBitsStart, bit);
-}
-
-void RegisterFile::writeStatusBit(Enu::EStatusBit bit, bool val)
-{
-    int mask = 0;
-    switch(bit)
-    {
-    case Enu::STATUS_N:
-        mask = Enu::NMask;
-        break;
-    case Enu::STATUS_Z:
-        mask = Enu::ZMask;
-        break;
-    case Enu::STATUS_V:
-        mask = Enu::VMask;
-        break;
-    case Enu::STATUS_C:
-        mask = Enu::CMask;
-        break;
-    case Enu::STATUS_S:
-        mask = Enu::SMask;
-        break;
-    default:
-        // Should never occur, but might happen if a bad status bit is passed
-        return;
+    if(bit < statusBitsCurrent.size()) {
+        return statusBitsCurrent[bit];
     }
-    // Mask out the target bit, then or the new value in to the target position.
-    // Explicitly narrow status bit calculation.
-    statusBitsCurrent = static_cast<quint8>((statusBitsCurrent & ~mask) | ((val ? 1 : 0) * mask));
+    throw  std::invalid_argument("Status bit index not in range");
 }
 
-void RegisterFile::writeStatusBits(quint8 bits)
+bool RegisterFile::readStatusBitStart(PepCore::CPUStatusBits_name_t bit) const
 {
-    // Only keep SNZVC positions
-    this->statusBitsCurrent = bits & 0b11111;
+    if(bit < statusBitsCurrent.size()) {
+        return statusBitsStart[bit];
+    }
+    throw  std::invalid_argument("Status bit index not in range");
 }
+
+void RegisterFile::writeStatusBit(PepCore::CPUStatusBits_name_t bit, bool val)
+{
+    if(bit < statusBitsCurrent.size()) {
+        statusBitsCurrent[bit] = val;
+    }
+    throw  std::invalid_argument("Status bit index not in range");
+}
+
+
 
 void RegisterFile::clearStatusBits()
 {
-   statusBitsStart = 0;
-   statusBitsCurrent = 0;
+    for(size_t it = 0; it < statusBitsStart.size(); it++) {
+        statusBitsStart[it] = false;
+        statusBitsCurrent[it] = false;
+    }
 }
 
 quint16 RegisterFile::readRegisterWordCurrent(PepCore::CPURegisters_number_t reg) const
@@ -167,32 +141,7 @@ void RegisterFile::flattenFile()
      * to verify that both arrays are indeed the same length at runtime.
      */
     memcpy(registersStart.data(), registersCurrent.data(), static_cast<std::size_t>(registersStart.size()));
-    statusBitsStart = statusBitsCurrent;
-}
-
-bool RegisterFile::crackStatusBit(quint8 statusBits, Enu::EStatusBit bit)
-{
-    int mask = 0;
-    switch(bit)
-    {
-    case Enu::STATUS_N:
-        mask = Enu::NMask;
-        break;
-    case Enu::STATUS_Z:
-        mask = Enu::ZMask;
-        break;
-    case Enu::STATUS_V:
-        mask = Enu::VMask;
-        break;
-    case Enu::STATUS_C:
-        mask = Enu::CMask;
-        break;
-    case Enu::STATUS_S:
-        mask = Enu::SMask;
-        break;
-    default:
-        // Should never occur, but might happen if a bad status bit is passed
-        return false;
+    for(size_t it=0; it<statusBitsCurrent.size(); it++) {
+        statusBitsStart[it] = statusBitsCurrent[it];
     }
-    return statusBits & mask;
 }

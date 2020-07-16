@@ -35,32 +35,25 @@
  */
 class RegisterFile
 {
-    const quint8 max_register_number;
+    const quint8 max_register_number, max_status_bit_number;
     // Use a fixed size array, so as to make memcpy safer. Profiled to be slightly slower than
     // QVector, but guarantee that both arrays will always have the same number of elements is
     // more valuable.
     std::vector<quint8> registersStart, registersCurrent;
+    std::vector<bool> statusBitsStart, statusBitsCurrent;
     // Allocate storage for |'ed together bit flags, and provide a way to cahce the instruction register./
-    quint8 statusBitsStart, statusBitsCurrent, irCache;
-    // Given a quint8 that contains several status bits, mask out the value of the desired bit.
-    bool crackStatusBit(quint8 statusBits, Enu::EStatusBit bit);
+    quint8 irCache;
 public:
-    explicit RegisterFile(quint8 max_registers);
+    explicit RegisterFile(quint8 max_registers, quint8 max_status_bits);
 
     // While status bits are not in the register bank, the must also be preserved from
     // the start to the end of a cycle.
 
-    // Return the all the status bits |'ed together, which is the internal representation used
-    // for calculation in the ALU.
-    quint8 readStatusBitsStart() const;
-    quint8 readStatusBitsCurrent() const;
     // Querry a named status bit.
-    bool readStatusBitCurrent(Enu::EStatusBit bit);
-    bool readStatusBitStart(Enu::EStatusBit bit);
+    bool readStatusBitCurrent(PepCore::CPUStatusBits_name_t bit) const;
+    bool readStatusBitStart(PepCore::CPUStatusBits_name_t bit) const;
     // Set a named status bit.
-    void writeStatusBit(Enu::EStatusBit bit, bool val);
-    // Write to all status bits
-    void writeStatusBits(quint8 bits);
+    void writeStatusBit(PepCore::CPUStatusBits_name_t bit, bool val);
 
     // Set all status bits to 0 / false.
     void clearStatusBits();

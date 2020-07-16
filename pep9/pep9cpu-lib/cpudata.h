@@ -45,7 +45,7 @@ class CPUDataSection: public QObject
     friend class CPUControlSection;
     friend class InterfaceMCCPU;
 public:
-    CPUDataSection(PepCore::CPUType type, QSharedPointer<const APepVersion> pep_version,
+    CPUDataSection(PepCore::CPUType type, QSharedPointer<const Pep9::Definition> pep_version,
                    QSharedPointer<AMemoryDevice> memDevice, QObject *parent = nullptr );
     virtual ~CPUDataSection();
 
@@ -96,6 +96,7 @@ public:
 
 private:
     void setMemoryDevice(QSharedPointer<AMemoryDevice> newDevice);
+    QSharedPointer<const Pep9::Definition> pep_version;
     QSharedPointer<AMemoryDevice> memDevice;
 
     PepCore::CPUType cpuFeatures;
