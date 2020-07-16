@@ -33,43 +33,6 @@ namespace Enu {
     static const quint8 maxRegisterNumber = 31;
     static const quint8 signalDisabled = 255;
 
-
-    /*
-     * Enumerations for Pep9
-     */
-    enum class EMnemonic: int
-    {
-        ADDA, ADDX, ADDSP, ANDA, ANDX, ASLA, ASLX, ASRA, ASRX,
-        BR, BRC, BREQ, BRGE, BRGT, BRLE, BRLT, BRNE, BRV,
-        CALL, CPBA, CPBX, CPWA, CPWX,
-        DECI, DECO,
-        HEXO,
-        LDBA, LDBX, LDWA, LDWX,
-        MOVAFLG, MOVFLGA, MOVSPA,
-        NEGA, NEGX, NOP, NOP0, NOP1, NOTA, NOTX,
-        ORA, ORX,
-        RET, RETTR, ROLA, ROLX, RORA, RORX,
-        STBA, STBX, STWA, STWX, STOP, STRO, SUBA, SUBX, SUBSP
-
-    };
-    Q_ENUM_NS(EMnemonic);
-
-    // Addressing modes for instructions
-    enum class EAddrMode: int
-    {
-        NONE = 0,
-        I = 1,
-        D = 2,
-        N = 4,
-        S = 8,
-        SF = 16,
-        X = 32,
-        SX = 64,
-        SFX = 128,
-        ALL = 255
-    };
-    Q_ENUM_NS(EAddrMode);
-
     enum class EExecState
     {
         EStart,

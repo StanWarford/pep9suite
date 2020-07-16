@@ -1,9 +1,8 @@
 #ifndef PEP9ASMCODE_H
 #define PEP9ASMCODE_H
-
-#include "pep/enu.h"
-
 #include "assembler/asmcode.h"
+
+#include "isadefs.h"
 // Concrete code classes
 class UnaryInstruction: public AsmCode
 {
@@ -28,8 +27,8 @@ public:
     void setBreakpoint(bool b) override;
     bool isCode() const  override { return true;}
 
-    Enu::EMnemonic getMnemonic() const;
-    void setMnemonic(Enu::EMnemonic);
+    Pep9::ISA::EMnemonic getMnemonic() const;
+    void setMnemonic(Pep9::ISA::EMnemonic);
 
     bool tracksTraceTags() const override;
 
@@ -41,7 +40,7 @@ public:
         swap(first.mnemonic, second.mnemonic);
     }
 private:
-    Enu::EMnemonic mnemonic;
+    Pep9::ISA::EMnemonic mnemonic;
     bool breakpoint = false;
 };
 
@@ -65,11 +64,11 @@ public:
     void setBreakpoint(bool b) override;
     bool isCode() const  override { return true;}
 
-    Enu::EMnemonic getMnemonic() const;
-    void setMnemonic(Enu::EMnemonic);
+    Pep9::ISA::EMnemonic getMnemonic() const;
+    void setMnemonic(Pep9::ISA::EMnemonic);
 
-    Enu::EAddrMode getAddressingMode() const;
-    void setAddressingMode(Enu::EAddrMode);
+    Pep9::ISA::EAddrMode getAddressingMode() const;
+    void setAddressingMode(Pep9::ISA::EAddrMode);
 
     bool hasSymbolicOperand() const override;
     QSharedPointer<const SymbolEntry> getSymbolicOperand() const override;
@@ -88,8 +87,8 @@ public:
         swap(first.breakpoint, second.breakpoint);
     }
 private:
-    Enu::EMnemonic mnemonic;
-    Enu::EAddrMode addressingMode;
+    Pep9::ISA::EMnemonic mnemonic;
+    Pep9::ISA::EAddrMode addressingMode;
     QSharedPointer<AsmArgument> argument = nullptr;
     bool breakpoint = false;
 };

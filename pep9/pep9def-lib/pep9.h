@@ -19,7 +19,7 @@ public:
     // APepVersion interface
 public:
     PepCore::CPURegisters_number_t get_global_register_number(global_registers) const override;
-    PepCore::CPUStatusBits_name_t get_global_status_bit_number(global_status_bits) const;
+    PepCore::CPUStatusBits_name_t get_global_status_bit_number(global_status_bits) const override;
     bool isInstructionUnary(quint8) const override;
     quint8 maxRegisterNumber() const override;
     quint8 maxStatusBitNumber() const override;
@@ -28,25 +28,20 @@ public:
 public:
     static PepCore::CPURegisters_number_t getStatusBitOffset(Pep9::ISA::EStatusBit);
     static PepCore::CPURegisters_number_t getStatusBitOffset(Pep9::uarch::EStatusBit);
-private:
-    QMap<Pep9::ISA::EMnemonic, int> opCodeMap;
-    QMap<Pep9::ISA::EMnemonic, bool> isUnaryMap;
-    QMap<Pep9::ISA::EMnemonic, bool> addrModeRequiredMap;
-    QMap<Pep9::ISA::EMnemonic, bool> isTrapMap;
-    void initMnemonicMaps(bool NOP0IsTrap);
 
-    // Map to specify legal addressing modes for each instruction
-    QMap<Pep9::ISA::EMnemonic, int> addrModesMap;
-    void initAddrModesMap();
-
-    // Decoder tables
-    QVector<Pep9::ISA::EMnemonic> decodeMnemonic;
-    QVector<Pep9::ISA::EAddrMode> decodeAddrMode;
-    // Does a particular instruction perform a store instead of a load?
-    bool isStoreMnemonic(Pep9::ISA::EMnemonic);
-    void initDecoderTables();
-
-
+    // APepVersion interface
+public:
+    InstrIdent getInstructionLookupKey(quint8 instruction_spec) const override;
+    AddrIdent getInstrAddrMode(quint8 instruction_spec) const override;
+    QString getAsmMnemonic(InstrIdent instruction_key) const override;
+    QString getAsmMnemonic(quint8 instruction_spec) const override;
+    quint8 operandDisplayFieldWidth(InstrIdent) const override;
+    quint8 operandDisplayFieldWidth(quint8 instruction_spec) const override;
+    bool isInstructionUnary(InstrIdent) const override;
+    bool isInstructionTrap(quint8 instruction_specifier) const override;
+    bool isInstructionTrap(InstrIdent) const override;
+    QString getAsmAddr(AddrIdent) const override;
+    QString getAsmAddr(quint8 instruction_spec) const override;
 };
 }
 

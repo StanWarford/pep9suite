@@ -24,8 +24,9 @@
 
 #include <QRegExp>
 
-#include "pep/enu.h"
 #include "symbol/symboltypes.h"
+
+#include "isadefs.h"
 
 class AsmProgram;
 
@@ -74,7 +75,7 @@ namespace IsaParserHelper
     extern QRegExp rxArrayMultiplier;
     extern QRegExp rxArrayTag;
 
-    Enu::EAddrMode stringToAddrMode(QString str);
+    Pep9::ISA::EAddrMode stringToAddrMode(QString str);
     // Post: Returns the addressing mode integer defined in Pep from its string representation.
 
 }

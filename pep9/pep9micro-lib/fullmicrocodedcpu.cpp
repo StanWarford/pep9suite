@@ -30,7 +30,6 @@
 #include "memory/amemorydevice.h"
 #include "microassembler/microcode.h"
 #include "microassembler/microcodeprogram.h"
-#include "pep/pep.h"
 #include "symbol/symbolentry.h"
 
 #include "cpudata.h"
@@ -284,10 +283,10 @@ void FullMicrocodedCPU::onSimulationStarted()
     executionFinished = false;
     microBreakpointHit = false;
     asmBreakpointHit = false;
-    if(sharedProgram->getSymTable()->exists(Pep::defaultStartSymbol)) {
-        startLine = static_cast<quint16>(sharedProgram->getSymTable()->getValue(Pep::defaultStartSymbol)->getValue());
+    if(sharedProgram->getSymTable()->exists(Pep9::ISA::defaultStartSymbol)) {
+        startLine = static_cast<quint16>(sharedProgram->getSymTable()->getValue(Pep9::ISA::defaultStartSymbol)->getValue());
     } else {
-        qDebug() << "Default start symbol did not exists: " << Pep::defaultStartSymbol;
+        qDebug() << "Default start symbol did not exists: " << Pep9::ISA::defaultStartSymbol;
         startLine = 0;
     }
     memoizer->clear();
@@ -563,8 +562,8 @@ bool FullMicrocodedCPU::canStepInto() const
 
     quint8 byte;
     memory->getByte(getCPURegWordStart(CPURegisters::PC), byte);
-    Enu::EMnemonic mnemon = Pep::decodeMnemonic[byte];
-    return (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
+    auto mnemon = Pep9::ISA::decodeMnemonic[byte];
+    return (mnemon == Pep9::ISA::EMnemonic::CALL) || Pep9::ISA::isTrapMap[mnemon];
 }
 
 void FullMicrocodedCPU::stepInto()
@@ -707,7 +706,7 @@ void FullMicrocodedCPU::branchHandler()
         byte = data->getRegisterBankByte(8);
         // At the hardware level, all traps are unary.
         // If it is a non-unary trap at the ASM level, loading the argument is part of the microcode trap handlers responsibility.
-        if(Pep::isUnaryMap[Pep::decodeMnemonic[byte]] || Pep::isTrapMap[Pep::decodeMnemonic[byte]]) {
+        if(Pep9::ISA::isUnaryMap[Pep9::ISA::decodeMnemonic[byte]] || Pep9::ISA::isTrapMap[Pep9::ISA::decodeMnemonic[byte]]) {
             temp = prog->getTrueTarget()->getValue();
         }
         else {
@@ -730,8 +729,8 @@ void FullMicrocodedCPU::branchHandler()
             executionFinished = true;
             controlError = true;
             // Get the enumerated & string values of current instruction.
-            Enu::EAddrMode addrMode = Pep::decodeAddrMode[data->getRegisterBankByte(8)];
-            tempString = Pep::defaultEnumToMicrocodeAddrSymbol[addrMode];
+            auto addrMode = Pep9::ISA::decodeAddrMode[data->getRegisterBankByte(8)];
+            tempString = Pep9::ISA::defaultEnumToMicrocodeAddrSymbol[addrMode];
             // Attempt to lookup the symbol associated with the instruction
             QSharedPointer<const SymbolTable> symTable = this->sharedProgram->getSymTable();
             val = symTable->getValue(tempString);
@@ -752,8 +751,8 @@ void FullMicrocodedCPU::branchHandler()
             executionFinished = true;
             controlError = true;
             // Get the enumerated & string values of current instruction.
-            Enu::EMnemonic mnemon = Pep::decodeMnemonic[data->getRegisterBankByte(8)];
-            tempString = Pep::defaultEnumToMicrocodeInstrSymbol[mnemon];
+            auto mnemon = Pep9::ISA::decodeMnemonic[data->getRegisterBankByte(8)];
+            tempString = Pep9::ISA::defaultEnumToMicrocodeInstrSymbol[mnemon];
             // Attempt to lookup the symbol associated with the instruction
             QSharedPointer<const SymbolTable> symTable = this->sharedProgram->getSymTable();
             val = symTable->getValue(tempString);
@@ -797,16 +796,16 @@ void FullMicrocodedCPU::updateAtInstructionEnd()
 
     auto is = getCPURegByteCurrent(CPURegisters::IS);
     // Handle changing of call stack depth if the executed instruction affects the call stack.
-    if(Pep::decodeMnemonic[is] == Enu::EMnemonic::CALL){
+    if(Pep9::ISA::decodeMnemonic[is] == Pep9::ISA::EMnemonic::CALL){
         callDepth++;
     }
-    else if(Pep::isTrapMap[Pep::decodeMnemonic[is]]){
+    else if(Pep9::ISA::isTrapMap[Pep9::ISA::decodeMnemonic[is]]){
         callDepth++;
     }
-    else if(Pep::decodeMnemonic[is] == Enu::EMnemonic::RET){
+    else if(Pep9::ISA::decodeMnemonic[is] == Pep9::ISA::EMnemonic::RET){
         callDepth--;
     }
-    else if(Pep::decodeMnemonic[is] == Enu::EMnemonic::RETTR){
+    else if(Pep9::ISA::decodeMnemonic[is] == Pep9::ISA::EMnemonic::RETTR){
         callDepth--;
     }
 }
@@ -818,7 +817,7 @@ void FullMicrocodedCPU::calculateInstrJT()
     QSharedPointer<SymbolEntry> val;
     FullMicrocodedCPU::decoder_entry entry;
     for(int it = 0; it <= 255; ++it) {
-        QString tempString = Pep::instSpecToMicrocodeInstrSymbol[it];
+        QString tempString = Pep9::ISA::instSpecToMicrocodeInstrSymbol[it];
         val = symTable->getValue(tempString);
         // Instead of causing an error before execution starts,
         // flag the entry as invalid so that the error can be caught at runtime.
@@ -842,7 +841,7 @@ void FullMicrocodedCPU::calculateAddrJT()
     QSharedPointer<SymbolEntry> val;
     FullMicrocodedCPU::decoder_entry entry;
     for(int it = 0; it <= 255; ++it) {
-        QString tempString = Pep::instSpecToMicrocodeAddrSymbol[it];
+        QString tempString = Pep9::ISA::instSpecToMicrocodeAddrSymbol[it];
         val = symTable->getValue(tempString);
         // Instead of causing an error before execution starts,
         // flag the entry as invalid so that the error can be caught at runtime.

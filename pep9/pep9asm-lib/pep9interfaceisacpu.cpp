@@ -2,8 +2,6 @@
 
 #include "assembler/asmprogram.h"
 #include "assembler/asmprogrammanager.h"
-#include "pep/enu.h"
-#include "pep/pep.h"
 #include "stack/typetags.h"
 #include "symbol/symbolentry.h"
 
@@ -17,11 +15,13 @@ Pep9InterfaceISACPU::Pep9InterfaceISACPU(const AMemoryDevice *dev, const AsmProg
 
 void Pep9InterfaceISACPU::calculateStackChangeStart(quint8 instr)
 {
-    if(Pep::isTrapMap[Pep::decodeMnemonic[instr]]) {
+    using namespace Pep9::ISA;
+
+    if(isTrapMap[decodeMnemonic[instr]]) {
         isTrapped = true;
         activeActions = &osActions;
     }
-    else if(Pep::decodeMnemonic[instr] == Enu::EMnemonic::RETTR) {
+    else if(decodeMnemonic[instr] == EMnemonic::RETTR) {
         isTrapped = false;
         memTrace->activeStack = &memTrace->userStack;
         activeActions = &userActions;
@@ -30,6 +30,8 @@ void Pep9InterfaceISACPU::calculateStackChangeStart(quint8 instr)
 
 void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc, quint16 acc)
 {
+
+    using namespace Pep9::ISA;
     /*
      * Following sanity checks must be performed:
      *  x - Have static trace tag errors corrupted the stack (one time check)?
@@ -49,11 +51,11 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
     if(!memTrace->activeStack->isStackIntact() || this->manager->getProgramAt(pc) == nullptr
             // For now, only allow tracing of user programs
             || this->manager->getUserProgram() != this->manager->getProgramAt(pc)) return;
-    Enu::EMnemonic mnemon = Pep::decodeMnemonic[instr];
+    auto mnemon = decodeMnemonic[instr];
     quint16 size = 0;
     bool mallocPreError = false;
     switch(mnemon) {
-    case Enu::EMnemonic::CALL:
+    case EMnemonic::CALL:
         firstLineAfterCall = true;
         memTrace->activeStack->call(sp - 2);
         activeActions->push(stackAction::call);
@@ -66,7 +68,7 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
             else if(instr->getSymbolicOperand()->getName() != "malloc") return;
             // In case a user wrote a self modifying program, and
             // give up on tracking futue heap changes.
-            else if(instr->getMnemonic() != Enu::EMnemonic::CALL) mallocPreError = true;
+            else if(instr->getMnemonic() != EMnemonic::CALL) mallocPreError = true;
             // Don't try to track calls to malloc via a literal address, and give up
             // on tracking future heap changes.
             else if(!instr->hasSymbolicOperand()) mallocPreError = true;
@@ -99,7 +101,7 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
         //qDebug().noquote() << *(memTrace->activeStack);
         break;
 
-    case Enu::EMnemonic::RET:
+    case EMnemonic::RET:
         if(activeActions->isEmpty()) break;
         switch(activeActions->pop()) {
         case stackAction::call:
@@ -121,7 +123,7 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
         }
         break;
 
-    case Enu::EMnemonic::SUBSP:
+    case EMnemonic::SUBSP:
         if(manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist.contains(pc)) {
             quint16 size = 0;
             for(auto pair : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
@@ -158,7 +160,7 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
         //qDebug().noquote()<< *(memTrace->activeStack);
         break;
 
-    case Enu::EMnemonic::ADDSP:
+    case EMnemonic::ADDSP:
         if(manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist.contains(pc)) {
             for(auto pair : manager->getProgramAt(pc)->getTraceInfo()->instrToSymlist[pc]) {
                 size += pair->size();
@@ -224,23 +226,23 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
             break;
         }
         break;
-    case Enu::EMnemonic::BR:
+    case EMnemonic::BR:
         [[fallthrough]];
-    case Enu::EMnemonic::BRC:
+    case EMnemonic::BRC:
         [[fallthrough]];
-    case Enu::EMnemonic::BREQ:
+    case EMnemonic::BREQ:
         [[fallthrough]];
-    case Enu::EMnemonic::BRGE:
+    case EMnemonic::BRGE:
         [[fallthrough]];
-    case Enu::EMnemonic::BRGT:
+    case EMnemonic::BRGT:
         [[fallthrough]];
-    case Enu::EMnemonic::BRLE:
+    case EMnemonic::BRLE:
         [[fallthrough]];
-    case Enu::EMnemonic::BRLT:
+    case EMnemonic::BRLT:
         [[fallthrough]];
-    case Enu::EMnemonic::BRNE:
+    case EMnemonic::BRNE:
         [[fallthrough]];
-    case Enu::EMnemonic::BRV:
+    case EMnemonic::BRV:
         firstLineAfterCall = true;
         break;
     default:
@@ -250,8 +252,8 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
 }
 
 // Convert a mnemonic into its string
-QString mnemonDecode(Enu::EMnemonic instrSpec)
+QString mnemonDecode(Pep9::ISA::EMnemonic instrSpec)
 {
-    static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
+    static QMetaEnum metaenum = Pep9::ISA::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
     return QString(metaenum.valueToKey((int)instrSpec)).toLower();
 }

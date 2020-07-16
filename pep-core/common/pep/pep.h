@@ -29,82 +29,9 @@
 #include "enu.h"
 #include "constants.h"
 
-class Pep
-{
-public:
-
-    // Function to read text from a resource file
-    static QString resToString(QString fileName, bool removeLineNumbers);
-    static QString addCycleNumbers(QString codeString);
-    static QString removeCycleNumbers(QString codeString);
-
-    // Maps between mnemonic enums and strings
-
-
-    /*
-     * Begin Pep9 source code
-     */
-    // Default redefine mnemonics
-    static const QString defaultUnaryMnemonic0;
-    static const QString defaultUnaryMnemonic1;
-    static const QString defaultNonUnaryMnemonic0;
-    static const int defaultMnemon0AddrModes;
-    static const QString defaultNonUnaryMnemonic1;
-    static const int defaultMnemon1AddrModes;
-    static const QString defaultNonUnaryMnemonic2;
-    static const int defaultMnemon2AddrModes;
-    static const QString defaultNonUnaryMnemonic3;
-    static const int defaultMnemon3AddrModes;
-    static const QString defaultNonUnaryMnemonic4;
-    static const int defaultMnemon4AddrModes;
-
-
-    // Functions for computing instruction specifiers
-    static int aaaAddressField(Enu::EAddrMode addressMode);
-    static int aAddressField(Enu::EAddrMode addressMode);
-    static QString intToAddrMode(Enu::EAddrMode addressMode);
-    static QString addrModeToCommaSpace(Enu::EAddrMode addressMode);
-
-    // Function to compute the number of display character in an operand.
-    // (e.g. LDBX only uses a 1 byte operand, while LDWX uses 2,
-    // so LDBX needs 2 chars and LDWX 4).
-    static int operandDisplayFieldWidth(Enu::EMnemonic mnemon);
-
-    // Maps between mnemonic enums and strings
-    static QMap<Enu::EMnemonic, QString> enumToMnemonMap;
-    static QMap<QString, Enu::EMnemonic> mnemonToEnumMap;
-    static void initEnumMnemonMaps();
-
-    // Maps to characterize each instruction
-    static QMap<Enu::EMnemonic, int> opCodeMap;
-    static QMap<Enu::EMnemonic, bool> isUnaryMap;
-    static QMap<Enu::EMnemonic, bool> addrModeRequiredMap;
-    static QMap<Enu::EMnemonic, bool> isTrapMap;
-    static void initMnemonicMaps(bool NOP0IsTrap);
-
-
-    // Map to specify legal addressing modes for each instruction
-    static QMap<Enu::EMnemonic, int> addrModesMap;
-    static void initAddrModesMap();
-
-    // Decoder tables
-    static QVector<Enu::EMnemonic> decodeMnemonic;
-    static QVector<Enu::EAddrMode> decodeAddrMode;
-    // Does a particular instruction perform a store instead of a load?
-    static bool isStoreMnemonic(Enu::EMnemonic);
-    static void initDecoderTables();
-
-    // Microprogram decoder table
-    // Map mnemonic to the symbol in microcode which implements that instruction.
-    static QMap<Enu::EMnemonic, QString> defaultEnumToMicrocodeInstrSymbol;
-    // Map mnemonic to the symbopl in microcode which implements that iunstruction.
-    static QMap<Enu::EAddrMode, QString> defaultEnumToMicrocodeAddrSymbol;
-
-    static QVector<QString> instSpecToMicrocodeInstrSymbol;
-    static QVector<QString> instSpecToMicrocodeAddrSymbol;
-    // The default symbol to denote the start of the von-Neumann cycle
-    static QString defaultStartSymbol;
-    static void initMicroDecoderTables();
-
-};
+namespace Pep {
+    QString resToString(QString fileName, bool removeLineNumbers);
+    QString addCycleNumbers(QString codeString);
+    QString removeCycleNumbers(QString codeString);
+}
 #endif // PEP_H

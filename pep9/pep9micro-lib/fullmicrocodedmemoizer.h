@@ -25,7 +25,8 @@
 #include <QString>
 
 #include "cpu/memoizerhelper.h"
-#include "pep/enu.h"
+
+#include "isadefs.h"
 
 
 class FullMicrocodedCPU;
@@ -56,9 +57,9 @@ private:
     // ways an operand might need to be decoded.
     // calculateOpVal() is the entry point, and will dispatch to the correct helper method.
     void calculateOpVal() const;
-    void calculateOpValStoreHelper(Enu::EAddrMode addrMode, quint16 opSpec) const;
-    void calculateOpValByteHelper(Enu::EAddrMode addrMode, quint16 opSpec) const;
-    void calculateopValWordHelper(Enu::EAddrMode addrMode, quint16 opSpec) const;
+    void calculateOpValStoreHelper(Pep9::ISA::EAddrMode addrMode, quint16 opSpec) const;
+    void calculateOpValByteHelper(Pep9::ISA::EAddrMode addrMode, quint16 opSpec) const;
+    void calculateopValWordHelper(Pep9::ISA::EAddrMode addrMode, quint16 opSpec) const;
 };
 
 #endif // FULLMICROCODEMEMOIZER_H

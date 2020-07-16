@@ -95,7 +95,6 @@ void AsmCpuPane::init(QSharedPointer<APepVersion> pep_version,
 
 void AsmCpuPane::updateCpu() {
     auto is_reg = pep_version->get_global_register_number(APepVersion::global_registers::IS);
-    Enu::EAddrMode addrMode = Pep::decodeAddrMode[acpu->getCPURegByteCurrent(is_reg)];
 
     auto n_reg = pep_version->get_global_status_bit_number(APepVersion::global_status_bits::N);
     auto z_reg = pep_version->get_global_status_bit_number(APepVersion::global_status_bits::Z);
@@ -133,8 +132,9 @@ void AsmCpuPane::updateCpu() {
     ui->pcDecLabel->setText(QString("%1").arg(pc));
 
     ui->instrSpecBinLabel->setText(QString("%1").arg(is, 8, 2, QLatin1Char('0')).toUpper());
-    ui->instrSpecMnemonLabel->setText(" " + Pep::enumToMnemonMap.value(Pep::decodeMnemonic[is])
-                                           + Pep::addrModeToCommaSpace(addrMode));
+
+    auto str = " " + pep_version->getAsmMnemonic(is) % (pep_version->isInstructionUnary(is)? QString() : (", " % pep_version->getAsmAddr(is)));
+    ui->instrSpecMnemonLabel->setText(str);
 
     /* We no longer have Enu::None as a valid instruction, but keep code for reference
      * if (Pep::decodeAddrMode.value(Sim::instructionSpecifier) == Enu::NONE) {
@@ -144,7 +144,8 @@ void AsmCpuPane::updateCpu() {
         ui->oprndDecLabel->setText("");
     }*/
     //else {
-    if(Pep::isUnaryMap[Pep::decodeMnemonic[is]]) {
+
+    if(pep_version->isInstructionUnary(is)) {
         ui->oprndSpecHexLabel->setText("");
         ui->oprndSpecDecLabel->setText("");
         ui->oprndHexLabel->setText("");
@@ -157,12 +158,12 @@ void AsmCpuPane::updateCpu() {
 
         quint16 opVal = isacpu->getOperandValue();
 
-        if(Pep::operandDisplayFieldWidth(Pep::decodeMnemonic[is]) == 2) {
+        if(pep_version->operandDisplayFieldWidth(is) == 2) {
             opVal &= 0xff;
         }
 
         ui->oprndHexLabel->setText(QString("0x") + QString("%1").arg(opVal,
-                                                     Pep::operandDisplayFieldWidth(Pep::decodeMnemonic[is]),
+                                                     pep_version->operandDisplayFieldWidth(is),
                                                      16, QLatin1Char('0')).toUpper());
         ui->oprndDecLabel->setText(QString("%1").arg(static_cast<qint16>(opVal)));
     }

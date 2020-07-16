@@ -50,6 +50,7 @@ HEADERS += \
 
 SOURCES += \
     cpudefs.cpp \
+    isadefs.cpp \
     pep9.cpp \
     pep9asmhighlighter.cpp \
     pep9microhighlighter.cpp

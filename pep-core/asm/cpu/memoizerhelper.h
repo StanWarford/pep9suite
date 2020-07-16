@@ -22,6 +22,7 @@
 #define MEMOIZERHELPER_H
 #include <QtCore>
 
+#include "pep/apepversion.h"
 #include "symbol/symboltable.h"
 
 struct CPUState
@@ -46,11 +47,11 @@ struct CacheHitrates
 QString formatNum(quint16 number);
 QString formatNum(quint8 number);
 QString formatAddress(quint16 address);
-QString mnemonDecode(quint8 instrSpec);
-QString formatIS(quint8 instrSpec);
-QString formatUnary(quint8 instrSpec);
-QString formatNonUnary(SymbolTable* symTable, quint8 instrSpec, quint16 oprSpec);
-QString formatInstr(SymbolTable* symTable, quint8 instrSpec, quint16 oprSpec);
+QString mnemonDecode(const APepVersion*pep_version, quint8 instrSpec);
+QString formatIS(const APepVersion*pep_version, quint8 instrSpec);
+QString formatUnary(const APepVersion*pep_version, quint8 instrSpec);
+QString formatNonUnary(const APepVersion*pep_version, SymbolTable* symTable, quint8 instrSpec, quint16 oprSpec);
+QString formatInstr(const APepVersion*pep_version, SymbolTable* symTable, quint8 instrSpec, quint16 oprSpec);
 QString generateStackFrame(CPUState &state, bool enter = true);
 QString generateTrapFrame(CPUState &state, bool enter = true);
 QString attemptAddrReplace(SymbolTable* symTable, quint16 number);

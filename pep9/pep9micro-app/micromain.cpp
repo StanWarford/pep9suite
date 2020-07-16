@@ -46,12 +46,11 @@ int main(int argc, char *argv[])
 
     // Initialize all global maps.
     Pep9::uarch::initMicroEnumMnemonMaps(PepCore::CPUType::TwoByteDataBus, true);
-    auto x = Pep9::uarch::mnemonToDecControlMap;
-    Pep::initEnumMnemonMaps();
-    Pep::initMnemonicMaps(false);
-    Pep::initAddrModesMap();
-    Pep::initDecoderTables();
-    Pep::initMicroDecoderTables();
+    Pep9::ISA::initEnumMnemonMaps();
+    Pep9::ISA::initMnemonicMaps(false);
+    Pep9::ISA::initAddrModesMap();
+    Pep9::ISA::initDecoderTables();
+    Pep9::ISA::initMicroDecoderTables();
     qInstallMessageHandler(nullptr);
 
 

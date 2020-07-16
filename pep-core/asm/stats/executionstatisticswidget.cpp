@@ -24,12 +24,14 @@
 
 #include <QDebug>
 
+#include "pep/apepversion.h"
 #include "pep/pep.h"
 #include "style/fonts.h"
 
 ExecutionStatisticsWidget::ExecutionStatisticsWidget(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::ExecutionStatisticsWidget), model(new QStandardItemModel(this)), containsData(false)
+    QWidget(parent), ui(new Ui::ExecutionStatisticsWidget),
+    pep_version(nullptr), cpu(nullptr),
+    model(new QStandardItemModel(this)), containsData(false)
 {
     ui->setupUi(this);
     ui->treeView->setModel(model);
@@ -47,8 +49,9 @@ ExecutionStatisticsWidget::ExecutionStatisticsWidget(QWidget *parent) :
     ui->lineEdit_Instructions->setPalette(pal);
 }
 
-void ExecutionStatisticsWidget::init(QSharedPointer<InterfaceISACPU> cpu, bool showCycles, bool showCacheStats)
+void ExecutionStatisticsWidget::init(QSharedPointer<const APepVersion> pep_version, QSharedPointer<InterfaceISACPU> cpu, bool showCycles, bool showCacheStats)
 {
+    this->pep_version = pep_version;
     this->cpu = cpu;
     this->showCacheStats = showCacheStats;
     if(!showCycles) {
@@ -137,8 +140,8 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram, cons
     // Model will make sure to delete any extra items
     model->removeRows(0, model->rowCount());
 
-    Enu::EMnemonic mnemon;
-    QMap<Enu::EMnemonic, lookup> mnemonicMap;
+    InstrIdent mnemon;
+    QMap<InstrIdent, lookup> mnemonicMap;
 
     // Verify that the histogram contains enough entries to be read.
     if(histogram.length() < 256) {
@@ -148,7 +151,7 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram, cons
     // For every opcode from 00..FF
     for(int it = 0; it < 256; it++) {
         // Convert the int to an actual instruction
-        mnemon = Pep::decodeMnemonic[it];
+        mnemon = pep_version->getInstructionLookupKey(it);
         // If the instruction exists, update the data in place
         if(mnemonicMap.contains(mnemon)) {
             mnemonicMap[mnemon].tally += histogram[it];
@@ -180,21 +183,19 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram, cons
         }
     }
     // Metaobjects to help convert enums to QStrings.
-    static QMetaEnum mnemonicMetaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
-    static QMetaEnum addrMetaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EAddrMode"));
 
     // Iteratre through the key, value pairs in the map.
     for(auto kvPair = mnemonicMap.keyValueBegin(); kvPair != mnemonicMap.keyValueEnd(); ++kvPair) {
-        Enu::EMnemonic mnemon = (*kvPair).first;
+        auto mnemon = (*kvPair).first;
         auto tuple = (*kvPair).second;
 
         // If the instruction was not used, do not insert its entry.
         if(tuple.tally == 0 ) continue;
         // Non-unary traps all have 8 available addressing modes, regardless of what the Pep mnemonic maps indicate.
-        else if(Pep::isTrapMap[mnemon] && !Pep::isUnaryMap[mnemon]) tuple.addrModes=8;
+        else if(pep_version->isInstructionTrap(mnemon) && !pep_version->isInstructionUnary(mnemon)) tuple.addrModes=8;
 
         // Create entries for the mnemonic name
-        QStandardItem* instrName = new QStandardItem(QString(mnemonicMetaenum.valueToKey((int)mnemon)).toLower());
+        QStandardItem* instrName = new QStandardItem(pep_version->getAsmMnemonic(mnemon));
 
         QStandardItem* instrCount = new QStandardItem();
         QStandardItem* mnemonIReadHits = new QStandardItem();
@@ -227,15 +228,11 @@ void ExecutionStatisticsWidget::fillModel(const QVector<quint32> histogram, cons
             if(histogram[tuple.start + offset] == 0) continue;
             // Otherwise, for every opcode between the start and number of addressing modes,
             // figure out the addressing mode associated with the instruction.
-            Enu::EAddrMode addr;
             // Trap instructions don't typically have associated addressing modes, since they are considered unary.
             // Instead, manually generate the address via knowing the bitmask
-            if(Pep::isTrapMap[mnemon]) {
-                addr = static_cast<Enu::EAddrMode>(1<<offset);
-            }
             // If the instruction is not a trap, we can trust
-            else addr = Pep::decodeAddrMode[tuple.start + offset];
-            QStandardItem* addrName = new QStandardItem(QString(addrMetaenum.valueToKey((int) addr)).toLower());
+            auto key = pep_version->getInstrAddrMode(tuple.start + offset);
+            QStandardItem* addrName = new QStandardItem(pep_version->getAsmAddr(key));
             QStandardItem* addrCount = new QStandardItem();
             QStandardItem* iReadHits = new QStandardItem();
             QStandardItem* dReadHits = new QStandardItem();

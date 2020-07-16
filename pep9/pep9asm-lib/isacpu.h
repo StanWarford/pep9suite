@@ -78,8 +78,8 @@ public:
 protected:
     void onISAStep() override;
     void updateAtInstructionEnd() override;
-    bool readOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16& opVal);
-    bool readOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quint8& opVal);
+    bool readOperandWordValue(quint16 operand, Pep9::ISA::EAddrMode addrMode, quint16& opVal);
+    bool readOperandByteValue(quint16 operand, Pep9::ISA::EAddrMode addrMode, quint8& opVal);
 
 
     // ACPUModel interface
@@ -112,15 +112,15 @@ private:
     RegisterFile registerBank;
     QElapsedTimer timer;
     IsaCpuMemoizer* memoizer;
-    bool operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
+    bool operandWordValueHelper(quint16 operand, Pep9::ISA::EAddrMode addrMode,
                          bool (AMemoryDevice::*readFunc)(quint16, quint16 &) const, quint16& opVal);
-    bool operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode,
+    bool operandByteValueHelper(quint16 operand, Pep9::ISA::EAddrMode addrMode,
                          bool (AMemoryDevice::*readFunc)(quint16, quint8&) const, quint8& opVal);
-    bool writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode addrMode);
-    bool writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addrMode);
-    void executeUnary(Enu::EMnemonic mnemon);
-    void executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode);
-    void executeTrap(Enu::EMnemonic mnemon);
+    bool writeOperandWord(quint16 operand, quint16 value, Pep9::ISA::EAddrMode addrMode);
+    bool writeOperandByte(quint16 operand, quint8 value, Pep9::ISA::EAddrMode addrMode);
+    void executeUnary(Pep9::ISA::EMnemonic mnemon);
+    void executeNonunary(Pep9::ISA::EMnemonic mnemon, quint16 opSpec, Pep9::ISA::EAddrMode addrMode);
+    void executeTrap(Pep9::ISA::EMnemonic mnemon);
     // Callback function to handle InteruptHandler's BREAKPOINT_ASM.
     void breakpointAsmHandler();
     void writeStatusBit(Pep9::ISA::EStatusBit bit, bool value);

@@ -17,6 +17,10 @@ namespace Pep9::uarch {
     QMap<QString, Pep9::uarch::ECPUKeywords> mnemonToMemSpecMap;
     QMap<QString, Pep9::uarch::ECPUKeywords> mnemonToRegSpecMap;
     QMap<QString, Pep9::uarch::ECPUKeywords> mnemonToStatusSpecMap;
+    QVector<QString> instSpecToMicrocodeInstrSymbol(256);
+    QVector<QString> instSpecToMicrocodeAddrSymbol(256);
+
+
 }
 
 

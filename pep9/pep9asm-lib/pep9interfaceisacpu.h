@@ -2,6 +2,8 @@
 #define PEP9INTERFACEISACPU_H
 #include "cpu/interfaceisacpu.h"
 
+#include "isadefs.h"
+
 class Pep9InterfaceISACPU : public InterfaceISACPU
 {
 public:
@@ -13,5 +15,5 @@ protected:
     void calculateStackChangeStart(quint8 instr) override;
     void calculateStackChangeEnd(quint8 instr, quint16 opspec, quint16 sp, quint16 pc, quint16 acc) override;
 };
-QString mnemonDecode(Enu::EMnemonic instrSpec);
+QString mnemonDecode(Pep9::ISA::EMnemonic instrSpec);
 #endif // PEP9INTERFACEISACPU_H

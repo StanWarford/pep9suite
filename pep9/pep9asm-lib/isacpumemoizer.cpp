@@ -79,6 +79,8 @@ void IsaCpuMemoizer::clear()
 
 void IsaCpuMemoizer::storeStateInstrEnd()
 {
+    using namespace Pep9::ISA;
+
     quint8 instr = cpu.registerBank.getIRCache();
 
     // TODO:
@@ -108,11 +110,11 @@ void IsaCpuMemoizer::storeStateInstrEnd()
 
     }
 
-    auto mnemon = Pep::decodeMnemonic[instr];
-    if(Pep::isTrapMap[mnemon]) {
+    auto mnemon = decodeMnemonic[instr];
+    if(isTrapMap[mnemon]) {
         inOS = true;
     }
-    else if (mnemon == Enu::EMnemonic::RETTR) {
+    else if (mnemon == EMnemonic::RETTR) {
         inOS = false;
     }
 
@@ -165,7 +167,7 @@ QString IsaCpuMemoizer::memoize()
     tempByte |= file.readStatusBitCurrent(CBit_t) * Pep9::uarch::EMask::CMask;
     NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(tempByte, 2), 5, '0');
     build = (attemptAddrReplace(symTable, pc) + QString(":")).leftJustified(10) %
-            formatInstr(symTable, file.getIRCache(), cpu.getCPURegWordCurrent(CPURegisters::OS));
+            formatInstr(cpu.pep_version.get(), symTable, file.getIRCache(), cpu.getCPURegWordCurrent(CPURegisters::OS));
     build += "  " + AX;
     build += NZVC;
     build += "  " + AX;
@@ -175,21 +177,23 @@ QString IsaCpuMemoizer::memoize()
 
 QString IsaCpuMemoizer::finalStatistics(bool includeOS)
 {
-    Enu::EMnemonic mnemon = Enu::EMnemonic::STOP;
-    QList<Enu::EMnemonic> mnemonList = QList<Enu::EMnemonic>();
+    using namespace Pep9::ISA;
+
+    auto mnemon = EMnemonic::STOP;
+    auto mnemonList = QList<EMnemonic>();
     mnemonList.append(mnemon);
     auto instrVector = getInstructionHistogram(includeOS);
     QList<quint32> tally = QList<quint32>();
     tally.append(0);
     int tallyIt = 0;
     for(int it = 0; it < 256; it++) {
-        if(mnemon == Pep::decodeMnemonic[it]) {
+        if(mnemon == decodeMnemonic[it]) {
             tally[tallyIt]+= instrVector[it];
         }
         else {
             tally.append(instrVector[it]);
             tallyIt++;
-            mnemon = Pep::decodeMnemonic[it];
+            mnemon = decodeMnemonic[it];
             mnemonList.append(mnemon);
         }
     }

@@ -44,10 +44,10 @@ int main(int argc, char *argv[])
     argc+=2;
 #endif
     // Initialize all global maps.
-    Pep::initEnumMnemonMaps();
-    Pep::initMnemonicMaps(true);
-    Pep::initAddrModesMap();
-    Pep::initDecoderTables();
+    Pep9::ISA::initEnumMnemonMaps();
+    Pep9::ISA::initMnemonicMaps(true);
+    Pep9::ISA::initAddrModesMap();
+    Pep9::ISA::initDecoderTables();
 
 
     qInstallMessageHandler(nullptr);

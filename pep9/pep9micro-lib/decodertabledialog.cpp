@@ -22,7 +22,7 @@
 #include "decodertabledialog.h"
 #include "ui_decodertabledialog.h"
 
-#include "pep/pep.h"
+#include "isacpu.h"
 
 DecoderTableDialog::DecoderTableDialog(QWidget *parent) :
     QDialog(parent),
@@ -63,21 +63,21 @@ void DecoderTableDialog::on_button_close_pressed()
 
 void DecoderTableDialog::on_button_reset_pressed()
 {
-    Pep::initMicroDecoderTables();
+    Pep9::ISA::initMicroDecoderTables();
     refreshTable();
 }
 
 void DecoderTableDialog::on_lineEdit_Start_editingFinished()
 {
-    Pep::defaultStartSymbol = ui->lineEdit_Start->text();
+    Pep9::ISA::defaultStartSymbol = ui->lineEdit_Start->text();
 }
 
 void DecoderTableDialog::refreshTable()
 {
-    ui->lineEdit_Start->setText(Pep::defaultStartSymbol);
+    ui->lineEdit_Start->setText(Pep9::ISA::defaultStartSymbol);
     for(int it = 0; it <= 255; it++) {
-        model->setData(model->index(it, 1), Pep::instSpecToMicrocodeInstrSymbol[it]);
-        model->setData(model->index(it, 2), Pep::instSpecToMicrocodeAddrSymbol[it]);
+        model->setData(model->index(it, 1), Pep9::ISA::instSpecToMicrocodeInstrSymbol[it]);
+        model->setData(model->index(it, 2), Pep9::ISA::instSpecToMicrocodeAddrSymbol[it]);
     }
 }
 
@@ -123,9 +123,9 @@ void DecoderTableDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
     QString strValue = line->text();
     model->setData(index, strValue);
     if(index.column() == 1) {
-         Pep::instSpecToMicrocodeInstrSymbol[index.row()] = index.data().toString();
+         Pep9::ISA::instSpecToMicrocodeInstrSymbol[index.row()] = index.data().toString();
     }
     else if(index.column() == 2){
-        Pep::instSpecToMicrocodeAddrSymbol[index.row()] = index.data().toString();
+        Pep9::ISA::instSpecToMicrocodeAddrSymbol[index.row()] = index.data().toString();
     }
 }

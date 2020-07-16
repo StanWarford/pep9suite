@@ -20,8 +20,7 @@
 */
 #include "pep9asmhighlighter.h"
 
-#include "pep/enu.h"
-#include "pep/pep.h"
+#include "isadefs.h"
 
 Pep9ASMHighlighter::Pep9ASMHighlighter(PepColors::Colors colors, QTextDocument *parent)
     : ASMHighlighter(colors, parent)
@@ -41,7 +40,7 @@ void Pep9ASMHighlighter::rebuildHighlightingRules(PepColors::Colors color)
     oprndFormat.setFontWeight(QFont::Bold);
     QStringList oprndPatterns;
     highlightingRules.clear();
-    for(QString text : Pep::enumToMnemonMap) {
+    for(QString text : Pep9::ISA::enumToMnemonMap) {
         oprndPatterns << "\\b" + text + "\\b";
     }
 

@@ -108,7 +108,7 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     ui->microObjectCodePane->init(controlSection, true);
     redefineMnemonicsDialog->init(false);
     // Pep/9's CPU model does not integrate with the cache, so the cache should not be shown.
-    ui->executionStatisticsWidget->init(controlSection, true, false);
+    ui->executionStatisticsWidget->init(pep_version, controlSection, true, false);
 
     // Create & connect all dialogs.
     helpDialog = new MicroHelpDialog(this);
@@ -133,6 +133,7 @@ MicroMainWindow::MicroMainWindow(QWidget *parent) :
     byteConverterChar = new ByteConverterChar(this);
     ui->byteConverterToolBar->addWidget(byteConverterChar);
     byteConverterInstr = new ByteConverterInstr(this);
+    byteConverterInstr->init(pep_version);
     ui->byteConverterToolBar->addWidget(byteConverterInstr);
     connect(byteConverterBin, &ByteConverterBin::textEdited, this, &MicroMainWindow::slotByteConverterBinEdited);
     connect(byteConverterChar, &ByteConverterChar::textEdited, this, &MicroMainWindow::slotByteConverterCharEdited);
@@ -1774,7 +1775,7 @@ void MicroMainWindow::on_actionDebug_Single_Step_Assembler_triggered()
     quint16 addr = controlSection->getCPURegWordStart(Pep9::uarch::CPURegisters::PC);
     memDevice->getByte(addr, is);
     if(controlSection->canStepInto()
-            && Pep::isTrapMap[Pep::decodeMnemonic[is]]) {
+            && Pep9::ISA::isTrapMap[Pep9::ISA::decodeMnemonic[is]]) {
         on_actionDebug_Step_Over_Assembler_triggered();
     } else if (controlSection->canStepInto()) {
         on_actionDebug_Step_Into_Assembler_triggered();

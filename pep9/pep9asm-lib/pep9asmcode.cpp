@@ -1,6 +1,8 @@
 #include "pep9asmcode.h"
 #include "assembler/asmargument.h"
-#include "pep/pep.h"
+
+#include "isadefs.h"
+
 UnaryInstruction::UnaryInstruction(const UnaryInstruction &other) : AsmCode(other)
 {
     this->breakpoint = other.breakpoint;
@@ -40,18 +42,18 @@ AsmCode *NonUnaryInstruction::cloneAsmCode() const
 void UnaryInstruction::appendObjectCode(QList<int> &objectCode) const
 {
     if(!emitObjectCode) return;
-    objectCode.append(Pep::opCodeMap.value(mnemonic));
+    objectCode.append(Pep9::ISA::opCodeMap.value(mnemonic));
 }
 
 void NonUnaryInstruction::appendObjectCode(QList<int> &objectCode) const
 {
     if(!emitObjectCode) return;
-    int instructionSpecifier = Pep::opCodeMap.value(mnemonic);
-    if (Pep::addrModeRequiredMap.value(mnemonic)) {
-        instructionSpecifier += Pep::aaaAddressField(addressingMode);
+    int instructionSpecifier = Pep9::ISA::opCodeMap.value(mnemonic);
+    if (Pep9::ISA::addrModeRequiredMap.value(mnemonic)) {
+        instructionSpecifier += Pep9::ISA::aaaAddressField(addressingMode);
     }
     else {
-        instructionSpecifier += Pep::aAddressField(addressingMode);
+        instructionSpecifier += Pep9::ISA::aAddressField(addressingMode);
     }
     objectCode.append(instructionSpecifier);
     int operandSpecifier = argument->getArgumentValue();
@@ -70,12 +72,12 @@ void UnaryInstruction::setBreakpoint(bool b)
     breakpoint = b;
 }
 
-Enu::EMnemonic UnaryInstruction::getMnemonic() const
+Pep9::ISA::EMnemonic UnaryInstruction::getMnemonic() const
 {
     return this->mnemonic;
 }
 
-void UnaryInstruction::setMnemonic(Enu::EMnemonic mnemonic)
+void UnaryInstruction::setMnemonic(Pep9::ISA::EMnemonic mnemonic)
 {
     this->mnemonic = mnemonic;
 }
@@ -119,11 +121,11 @@ void NonUnaryInstruction::setArgument(QSharedPointer<AsmArgument> argument)
 bool NonUnaryInstruction::tracksTraceTags() const
 {
     switch(mnemonic){
-    case Enu::EMnemonic::ADDSP:
+    case Pep9::ISA::EMnemonic::ADDSP:
         return true;
-    case Enu::EMnemonic::SUBSP:
+    case Pep9::ISA::EMnemonic::SUBSP:
         return true;
-    case Enu::EMnemonic::CALL:
+    case Pep9::ISA::EMnemonic::CALL:
         if(hasSymbolicOperand()
            && getSymbolicOperand()->getName().compare("malloc", Qt::CaseInsensitive) == 0) {
             return true;
@@ -134,22 +136,22 @@ bool NonUnaryInstruction::tracksTraceTags() const
     }
 }
 
-Enu::EMnemonic NonUnaryInstruction::getMnemonic() const
+Pep9::ISA::EMnemonic NonUnaryInstruction::getMnemonic() const
 {
     return mnemonic;
 }
 
-void NonUnaryInstruction::setMnemonic(Enu::EMnemonic mnemonic)
+void NonUnaryInstruction::setMnemonic(Pep9::ISA::EMnemonic mnemonic)
 {
     this->mnemonic = mnemonic;
 }
 
-Enu::EAddrMode NonUnaryInstruction::getAddressingMode() const
+Pep9::ISA::EAddrMode NonUnaryInstruction::getAddressingMode() const
 {
     return addressingMode;
 }
 
-void NonUnaryInstruction::setAddressingMode(Enu::EAddrMode addressingMode)
+void NonUnaryInstruction::setAddressingMode(Pep9::ISA::EAddrMode addressingMode)
 {
     this->addressingMode = addressingMode;
 }
@@ -160,7 +162,7 @@ QString UnaryInstruction::getAssemblerListing() const
     // Potentially skip codegen
     QString codeStr;
     if(emitObjectCode) {
-        codeStr = QString("%1").arg(Pep::opCodeMap.value(mnemonic), 2, 16, QLatin1Char('0')).toUpper();
+        codeStr = QString("%1").arg(Pep9::ISA::opCodeMap.value(mnemonic), 2, 16, QLatin1Char('0')).toUpper();
     }
     else {
         codeStr = "  ";
@@ -184,7 +186,7 @@ QString UnaryInstruction::getAssemblerSource() const
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
     }
-    QString mnemonStr = Pep::enumToMnemonMap.value(mnemonic);
+    QString mnemonStr = Pep9::ISA::enumToMnemonMap.value(mnemonic);
     QString lineStr = QString("%1%2%3")
                       .arg(symbolStr, -9, QLatin1Char(' '))
                       .arg(mnemonStr, -8, QLatin1Char(' '))
@@ -195,8 +197,8 @@ QString UnaryInstruction::getAssemblerSource() const
 QString NonUnaryInstruction::getAssemblerListing() const
 {
     QString memStr = QString("%1").arg(memAddress, 4, 16, QLatin1Char('0')).toUpper();
-    int temp = Pep::opCodeMap.value(mnemonic);
-    temp += Pep::addrModeRequiredMap.value(mnemonic) ? Pep::aaaAddressField(addressingMode) : Pep::aAddressField(addressingMode);
+    int temp = Pep9::ISA::opCodeMap.value(mnemonic);
+    temp += Pep9::ISA::addrModeRequiredMap.value(mnemonic) ? Pep9::ISA::aaaAddressField(addressingMode) : Pep9::ISA::aAddressField(addressingMode);
     // Potentially skip codegen
     QString codeStr;
     QString oprndNumStr;
@@ -228,13 +230,13 @@ QString NonUnaryInstruction::getAssemblerSource() const
     if (!symbolEntry.isNull()) {
         symbolStr = symbolEntry->getName()+":";
     }
-    QString mnemonStr = Pep::enumToMnemonMap.value(mnemonic);
+    QString mnemonStr = Pep9::ISA::enumToMnemonMap.value(mnemonic);
     QString oprndStr = argument->getArgumentString();
-    if (Pep::addrModeRequiredMap.value(mnemonic)) {
-        oprndStr.append("," + Pep::intToAddrMode(addressingMode));
+    if (Pep9::ISA::addrModeRequiredMap.value(mnemonic)) {
+        oprndStr.append("," + Pep9::ISA::intToAddrMode(addressingMode));
     }
-    else if (addressingMode == Enu::EAddrMode::X) {
-        oprndStr.append("," + Pep::intToAddrMode(addressingMode));
+    else if (addressingMode == Pep9::ISA::EAddrMode::X) {
+        oprndStr.append("," + Pep9::ISA::intToAddrMode(addressingMode));
     }
     QString lineStr = QString("%1%2%3%4")
                       .arg(symbolStr, -9, QLatin1Char(' '))

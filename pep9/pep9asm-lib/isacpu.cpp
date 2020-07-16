@@ -71,11 +71,13 @@ void IsaCpu::stepOver()
 
 bool IsaCpu::canStepInto() const
 {
+    using namespace Pep9::ISA;
+
     quint8 byte;
-    memory->getByte(getCPURegWordStart(Pep9::ISA::CPURegisters::PC), byte);
-    Enu::EMnemonic mnemon = Pep::decodeMnemonic[byte];
+    memory->getByte(getCPURegWordStart(CPURegisters::PC), byte);
+    auto mnemon = decodeMnemonic[byte];
     // Can only step into calls, trap instructions.
-    return (mnemon == Enu::EMnemonic::CALL) || Pep::isTrapMap[mnemon];
+    return (mnemon == EMnemonic::CALL) || isTrapMap[mnemon];
 }
 
 void IsaCpu::stepInto()
@@ -158,16 +160,16 @@ void IsaCpu::onISAStep()
     bool okay = memory->readByte(pc, is);
 
     registerBank.writeRegisterByte(to_uint8_t(CPURegisters::IS), is);
-    Enu::EMnemonic mnemon = Pep::decodeMnemonic[is];
-    Enu::EAddrMode addrMode;
+    auto mnemon = decodeMnemonic[is];
+    EAddrMode addrMode;
 
     pc += 1;
     registerBank.writeRegisterWord(to_uint8_t(CPURegisters::PC), pc);
-    if(Pep::isTrapMap[mnemon]) {
+    if(isTrapMap[mnemon]) {
         memory->endTransaction();
         executeTrap(mnemon);
     }
-    else if(Pep::isUnaryMap[mnemon]) {
+    else if(isUnaryMap[mnemon]) {
         memory->endTransaction();
         executeUnary(mnemon);
     }
@@ -175,7 +177,7 @@ void IsaCpu::onISAStep()
         okay &= memory->readWord(pc, opSpec);
         memory->endTransaction();
         registerBank.writeRegisterWord(to_uint8_t(CPURegisters::OS), opSpec);
-        addrMode = Pep::decodeAddrMode[is];
+        addrMode = decodeAddrMode[is];
         pc += 2;
         registerBank.writeRegisterWord(to_uint8_t(CPURegisters::PC), pc);
         executeNonunary(mnemon, opSpec, addrMode);
@@ -229,16 +231,16 @@ void IsaCpu::updateAtInstructionEnd()
 
     auto IS = this->getCPURegByteCurrent(CPURegisters::IS);
     // Handle changing of call stack depth if the executed instruction affects the call stack.
-    if(Pep::decodeMnemonic[IS] == Enu::EMnemonic::CALL){
+    if(decodeMnemonic[IS] == EMnemonic::CALL){
         callDepth++;
     }
-    else if(Pep::isTrapMap[Pep::decodeMnemonic[IS]]){
+    else if(isTrapMap[decodeMnemonic[IS]]){
         callDepth++;
     }
-    else if(Pep::decodeMnemonic[IS] == Enu::EMnemonic::RET){
+    else if(decodeMnemonic[IS] == EMnemonic::RET){
         callDepth--;
     }
-    else if(Pep::decodeMnemonic[IS] == Enu::EMnemonic::RETTR){
+    else if(decodeMnemonic[IS] == EMnemonic::RETTR){
         callDepth--;
     }
     if(hadErrorOnStep()) {
@@ -247,7 +249,7 @@ void IsaCpu::updateAtInstructionEnd()
 
 }
 
-bool IsaCpu::readOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quint16 &opVal)
+bool IsaCpu::readOperandWordValue(quint16 operand, Pep9::ISA::EAddrMode addrMode, quint16 &opVal)
 {
     bool rVal = operandWordValueHelper(operand, addrMode, &AMemoryDevice::readWord, opVal);
     // For instructions that perform loads, cache the decoded operand value.
@@ -257,7 +259,7 @@ bool IsaCpu::readOperandWordValue(quint16 operand, Enu::EAddrMode addrMode, quin
     return rVal;
 }
 
-bool IsaCpu::readOperandByteValue(quint16 operand, Enu::EAddrMode addrMode, quint8 &opVal)
+bool IsaCpu::readOperandByteValue(quint16 operand, Pep9::ISA::EAddrMode addrMode, quint8 &opVal)
 {
     bool rVal = operandByteValueHelper(operand, addrMode, &AMemoryDevice::readByte, opVal);
     // For instructions that perform loads, cache the decoded operand value.
@@ -300,10 +302,10 @@ bool IsaCpu::getStatusBitStart(PepCore::CPUStatusBits_name_t bit) const
 
 bool IsaCpu::getStatusBitCurrent(Pep9::ISA::EStatusBit statusBit) const
 {
-    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
-    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
-    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
-    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_N);
+    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_Z);
+    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_V);
+    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_C);
 
     switch(statusBit)
     {
@@ -324,10 +326,10 @@ bool IsaCpu::getStatusBitCurrent(Pep9::ISA::EStatusBit statusBit) const
 
 bool IsaCpu::getStatusBitStart(Pep9::ISA::EStatusBit statusBit) const
 {
-    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
-    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
-    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
-    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_N);
+    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_Z);
+    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_V);
+    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_C);
 
     switch(statusBit)
     {
@@ -487,7 +489,7 @@ void IsaCpu::onResetCPU()
 
 }
 
-bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
+bool IsaCpu::operandWordValueHelper(quint16 operand, Pep9::ISA::EAddrMode addrMode,
                                bool (AMemoryDevice::*readFunc)(quint16, quint16 &) const,
                                quint16 &opVal)
 {
@@ -496,28 +498,28 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
     bool rVal = true;
     quint16 effectiveAddress = 0;
     switch(addrMode) {
-    case Enu::EAddrMode::I:
+    case EAddrMode::I:
         opVal = operand;
         break;
-    case Enu::EAddrMode::D:
+    case EAddrMode::D:
         effectiveAddress = operand;
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::S:
+    case EAddrMode::S:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::X:
+    case EAddrMode::X:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SX:
+    case EAddrMode::SX:
         effectiveAddress = operand
                 + getCPURegWordCurrent(CPURegisters::SP)
                 + getCPURegWordCurrent(CPURegisters::X);
@@ -525,7 +527,7 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::N:
+    case EAddrMode::N:
         effectiveAddress = operand;
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, effectiveAddress);
@@ -534,7 +536,7 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
         rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SF:
+    case EAddrMode::SF:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, effectiveAddress);
@@ -543,7 +545,7 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
         rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SFX:
+    case EAddrMode::SFX:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, effectiveAddress);
@@ -559,7 +561,7 @@ bool IsaCpu::operandWordValueHelper(quint16 operand, Enu::EAddrMode addrMode,
     return rVal;
 }
 
-bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bool (AMemoryDevice::*readFunc)(quint16, quint8 &) const, quint8 &opVal)
+bool IsaCpu::operandByteValueHelper(quint16 operand, Pep9::ISA::EAddrMode addrMode, bool (AMemoryDevice::*readFunc)(quint16, quint8 &) const, quint8 &opVal)
 {
     using namespace Pep9::ISA;
 
@@ -568,28 +570,28 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
     quint8 tempByteHi, tempByteLo;
     // Having tested it, it definitely does the wrong thing
     switch(addrMode) {
-    case Enu::EAddrMode::I:
+    case EAddrMode::I:
         opVal = static_cast<quint8>(operand & 0xff);
         break;
-    case Enu::EAddrMode::D:
+    case EAddrMode::D:
         effectiveAddress = operand;
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::S:
+    case EAddrMode::S:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::X:
+    case EAddrMode::X:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SX:
+    case EAddrMode::SX:
         effectiveAddress = operand
                 + getCPURegWordCurrent(CPURegisters::SP)
                 + getCPURegWordCurrent(CPURegisters::X);
@@ -597,7 +599,7 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::N:
+    case EAddrMode::N:
         effectiveAddress = operand;
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
@@ -608,7 +610,7 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
         rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress , opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SF:
+    case EAddrMode::SF:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
@@ -619,7 +621,7 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
         rVal  &= std::invoke(readFunc, memory.get(), effectiveAddress, opVal);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SFX:
+    case EAddrMode::SFX:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal  = std::invoke(readFunc, memory.get(), effectiveAddress, tempByteHi);
@@ -637,35 +639,35 @@ bool IsaCpu::operandByteValueHelper(quint16 operand, Enu::EAddrMode addrMode, bo
     return rVal;
 }
 
-bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode addrMode)
+bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Pep9::ISA::EAddrMode addrMode)
 {
     using namespace Pep9::ISA;
 
     bool rVal = true;
     quint16 effectiveAddress = 0;
     switch(addrMode) {
-    case Enu::EAddrMode::I:
+    case EAddrMode::I:
         rVal = false;
         break;
-    case Enu::EAddrMode::D:
+    case EAddrMode::D:
         effectiveAddress = operand;
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeWord(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::S:
+    case EAddrMode::S:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeWord(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::X:
+    case EAddrMode::X:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeWord(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SX:
+    case EAddrMode::SX:
         effectiveAddress = operand
                 + getCPURegWordCurrent(CPURegisters::SP)
                 + getCPURegWordCurrent(CPURegisters::X);
@@ -673,7 +675,7 @@ bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
         rVal = memory->writeWord(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::N:
+    case EAddrMode::N:
         effectiveAddress = operand;
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->readWord(effectiveAddress, effectiveAddress);
@@ -682,7 +684,7 @@ bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
         rVal &= memory->writeWord(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SF:
+    case EAddrMode::SF:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->readWord(effectiveAddress, effectiveAddress);
@@ -691,7 +693,7 @@ bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
         rVal &= memory->writeWord(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SFX:
+    case EAddrMode::SFX:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->readWord(effectiveAddress, effectiveAddress);
@@ -715,35 +717,35 @@ bool IsaCpu::writeOperandWord(quint16 operand, quint16 value, Enu::EAddrMode add
 
 }
 
-bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addrMode)
+bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Pep9::ISA::EAddrMode addrMode)
 {
     using namespace Pep9::ISA;
 
     bool rVal = true;
     quint16 effectiveAddress = 0;
     switch(addrMode) {
-    case Enu::EAddrMode::I:
+    case EAddrMode::I:
         rVal = false;
         break;
-    case Enu::EAddrMode::D:
+    case EAddrMode::D:
         effectiveAddress = operand;
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeByte(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::S:
+    case EAddrMode::S:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeByte(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::X:
+    case EAddrMode::X:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::X);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->writeByte(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SX:
+    case EAddrMode::SX:
         effectiveAddress = operand
                 + getCPURegWordCurrent(CPURegisters::SP)
                 + getCPURegWordCurrent(CPURegisters::X);
@@ -751,7 +753,7 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
         rVal = memory->writeByte(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::N:
+    case EAddrMode::N:
         effectiveAddress = operand;
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->readWord(effectiveAddress, effectiveAddress);
@@ -760,7 +762,7 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
         rVal &= memory->writeByte(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SF:
+    case EAddrMode::SF:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->readWord(effectiveAddress, effectiveAddress);
@@ -769,7 +771,7 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
         rVal &= memory->writeByte(effectiveAddress, value);
         memory->endTransaction();
         break;
-    case Enu::EAddrMode::SFX:
+    case EAddrMode::SFX:
         effectiveAddress = operand + getCPURegWordCurrent(CPURegisters::SP);
         memory->beginTransaction(AMemoryDevice::AccessType::DATA);
         rVal = memory->readWord(effectiveAddress, effectiveAddress);
@@ -791,7 +793,7 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
     return rVal;
 }
 
-void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
+void IsaCpu::executeUnary(Pep9::ISA::EMnemonic mnemon)
 {
     using namespace Pep9::ISA;
     quint16 temp, sp, acc, idx;
@@ -802,18 +804,18 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
     idx = registerBank.readRegisterWordCurrent(x_reg);
 
     switch(mnemon) {
-    case Enu::EMnemonic::STOP:
+    case EMnemonic::STOP:
         executionFinished = true;
         break;
 
-    case Enu::EMnemonic::RET:
+    case EMnemonic::RET:
         memory->readWord(sp, temp);
         registerBank.writeRegisterWord(pc_reg, temp);
         sp += 2;
         registerBank.writeRegisterWord(sp_reg, sp);
         break;
 
-    case Enu::EMnemonic::RETTR:
+    case EMnemonic::RETTR:
         memory->readByte(sp, tempByte);
         // Mask out bits that don't matter
         writeStatusBit(EStatusBit::STATUS_N, tempByte & Pep9::uarch::EMask::NMask);
@@ -831,11 +833,11 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         registerBank.writeRegisterWord(sp_reg, temp);
         break;
 
-    case Enu::EMnemonic::MOVSPA:
+    case EMnemonic::MOVSPA:
         registerBank.writeRegisterWord(a_reg, sp);
         break;
 
-    case Enu::EMnemonic::MOVFLGA:
+    case EMnemonic::MOVFLGA:
         tempByte = 0;
         tempByte |= getStatusBitCurrent(EStatusBit::STATUS_N) * Pep9::uarch::EMask::NMask;
         tempByte |= getStatusBitCurrent(EStatusBit::STATUS_Z) * Pep9::uarch::EMask::ZMask;
@@ -844,7 +846,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         registerBank.writeRegisterWord(a_reg, tempByte);
         break;
 
-    case Enu::EMnemonic::MOVAFLG:
+    case EMnemonic::MOVAFLG:
         // Only move the low order byte of accumulator to the status bits.
         tempByte = static_cast<quint8>(acc);
         // Mask out bits that don't matter
@@ -854,7 +856,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         writeStatusBit(EStatusBit::STATUS_C, tempByte & Pep9::uarch::EMask::CMask);
         break;
 
-    case Enu::EMnemonic::NOTA: // Modifies NZ bits
+    case EMnemonic::NOTA: // Modifies NZ bits
         acc = ~acc;
         registerBank.writeRegisterWord(a_reg, acc);
         // Is negative if high order bit is 1.
@@ -863,7 +865,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         writeStatusBit(EStatusBit::STATUS_Z, acc == 0);
         break;
 
-    case Enu::EMnemonic::NOTX: // Modifies NZ bits
+    case EMnemonic::NOTX: // Modifies NZ bits
         idx = ~idx;
         registerBank.writeRegisterWord(x_reg, idx);
         // Is negative if high order bit is 1.
@@ -872,7 +874,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         writeStatusBit(EStatusBit::STATUS_Z, idx == 0);
         break;
 
-    case Enu::EMnemonic::NEGA: // Modifies NZV bits
+    case EMnemonic::NEGA: // Modifies NZV bits
         acc = ~acc + 1;
         registerBank.writeRegisterWord(a_reg, acc);
         // Is negative if high order bit is 1.
@@ -883,7 +885,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         writeStatusBit(EStatusBit::STATUS_V, acc == 0x8000);
         break;
 
-    case Enu::EMnemonic::NEGX: // Modifies NZV bits
+    case EMnemonic::NEGX: // Modifies NZV bits
         idx = ~idx + 1;
         registerBank.writeRegisterWord(x_reg, idx);
         // Is negative if high order bit is 1.
@@ -895,7 +897,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         break;
 
     // Arithmetic shift instructions
-    case Enu::EMnemonic::ASLA: // Modifies NZVC bits
+    case EMnemonic::ASLA: // Modifies NZVC bits
         temp = static_cast<quint16>(acc << 1);
         registerBank.writeRegisterWord(a_reg, temp);
         // Is negative if high order bit is 1.
@@ -909,7 +911,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         writeStatusBit(EStatusBit::STATUS_C, acc & 0x8000);
         break;
 
-    case Enu::EMnemonic::ASLX: // Modifies NZVC bits
+    case EMnemonic::ASLX: // Modifies NZVC bits
         temp = static_cast<quint16>(idx << 1);
         registerBank.writeRegisterWord(x_reg, temp);
         // Is negative if high order bit is 1.
@@ -924,7 +926,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
 
         break;
 
-    case Enu::EMnemonic::ASRA: // Modifies NZC bits
+    case EMnemonic::ASRA: // Modifies NZC bits
         // Shift all bits to the right by 1 position. Since using unsigned shift, must explicitly
         // perform sign extension by hand.
         temp = static_cast<quint16>(acc >> 1 |
@@ -939,7 +941,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         writeStatusBit(EStatusBit::STATUS_C, acc & 0x01);
         break;
 
-    case Enu::EMnemonic::ASRX: // Modifies NZC bits
+    case EMnemonic::ASRX: // Modifies NZC bits
         // Shift all bits to the right by 1 position. Since using unsigned shift, must explicitly
         // perform sign extension by hand.
         temp = static_cast<quint16>(idx >> 1 |
@@ -955,7 +957,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         break;
 
     // Rotate instructions.
-    case Enu::EMnemonic::RORA: // Modifies C bits
+    case EMnemonic::RORA: // Modifies C bits
         temp = static_cast<quint16>(acc >> 1
                                     // Shift the carry to high order bit.
                                     | (getStatusBitCurrent(EStatusBit::STATUS_C)
@@ -965,7 +967,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         writeStatusBit(EStatusBit::STATUS_C, acc & 0x01);
         break;
 
-    case Enu::EMnemonic::RORX: // Modifies C bit
+    case EMnemonic::RORX: // Modifies C bit
         temp = static_cast<quint16>(idx >> 1
                                     // Shift the carry to high order bit.
                                     | (getStatusBitCurrent(EStatusBit::STATUS_C)
@@ -975,7 +977,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         writeStatusBit(EStatusBit::STATUS_C, idx & 0x01);
         break;
 
-    case Enu::EMnemonic::ROLA: // Modifies C bit
+    case EMnemonic::ROLA: // Modifies C bit
         temp = static_cast<quint16>(acc << 1
                                     // Shift the carry in to low order bit.
                                     | (getStatusBitCurrent(EStatusBit::STATUS_C)
@@ -985,7 +987,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         writeStatusBit(EStatusBit::STATUS_C, acc & 0x8000);
         break;
 
-    case Enu::EMnemonic::ROLX: // Modifies C bit
+    case EMnemonic::ROLX: // Modifies C bit
         temp = static_cast<quint16>(acc << 1
                                     // Shift the carry in to low order bit.
                                     | (getStatusBitCurrent(EStatusBit::STATUS_C)
@@ -994,8 +996,8 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         writeStatusBit(EStatusBit::STATUS_C, idx & 0x8000);
         break;
 
-    case Enu::EMnemonic::NOP0:
-        if(Pep::isTrapMap[Enu::EMnemonic::NOP0]) {
+    case EMnemonic::NOP0:
+        if(isTrapMap[EMnemonic::NOP0]) {
             controlError = true;
             executionFinished = true;
             errorMessage = "Error: NOP0 is not a unary instruction.";
@@ -1010,7 +1012,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
     }
 }
 
-void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode)
+void IsaCpu::executeNonunary(Pep9::ISA::EMnemonic mnemon, quint16 opSpec, Pep9::ISA::EAddrMode addrMode)
 {
     using namespace Pep9::ISA;
     quint16 tempWord, a, x, sp, result;
@@ -1024,12 +1026,12 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
     bool memSuccess = true;
     switch(mnemon) {
 
-    case Enu::EMnemonic::BR:
+    case EMnemonic::BR:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(pc_reg, tempWord);
         break;
 
-    case Enu::EMnemonic::BRLE:
+    case EMnemonic::BRLE:
         if(getStatusBitCurrent(EStatusBit::STATUS_N) ||
                 getStatusBitCurrent(EStatusBit::STATUS_Z)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
@@ -1037,35 +1039,35 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         }
         break;
 
-    case Enu::EMnemonic::BRLT:
+    case EMnemonic::BRLT:
         if(getStatusBitCurrent(EStatusBit::STATUS_N)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
-    case Enu::EMnemonic::BREQ:
+    case EMnemonic::BREQ:
         if(getStatusBitCurrent(EStatusBit::STATUS_Z)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
-    case Enu::EMnemonic::BRNE:
+    case EMnemonic::BRNE:
         if(!getStatusBitCurrent(EStatusBit::STATUS_Z)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
-    case Enu::EMnemonic::BRGE:
+    case EMnemonic::BRGE:
         if(!getStatusBitCurrent(EStatusBit::STATUS_N)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
-    case Enu::EMnemonic::BRGT:
+    case EMnemonic::BRGT:
         if(!getStatusBitCurrent(EStatusBit::STATUS_N) &&
                 !getStatusBitCurrent(EStatusBit::STATUS_Z)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
@@ -1073,21 +1075,21 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         }
         break;
 
-    case Enu::EMnemonic::BRV:
+    case EMnemonic::BRV:
         if(getStatusBitCurrent(EStatusBit::STATUS_V)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
-    case Enu::EMnemonic::BRC:
+    case EMnemonic::BRC:
         if(getStatusBitCurrent(EStatusBit::STATUS_C)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
-    case Enu::EMnemonic::CALL:
+    case EMnemonic::CALL:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         sp -= 2;
         memSuccess &= memory->writeWord(sp, registerBank.readRegisterWordCurrent(pc_reg));
@@ -1095,17 +1097,17 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         registerBank.writeRegisterWord(sp_reg, sp);
         break;
 
-    case Enu::EMnemonic::ADDSP:
+    case EMnemonic::ADDSP:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(sp_reg, sp + tempWord);
         break;
 
-    case Enu::EMnemonic::SUBSP:
+    case EMnemonic::SUBSP:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(sp_reg, sp - tempWord);
         break;
 
-    case Enu::EMnemonic::ADDA:
+    case EMnemonic::ADDA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decoded operand specifier plus the accumulator
         result = a + tempWord;
@@ -1122,7 +1124,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_C, result < a  || result < tempWord);
         break;
 
-    case Enu::EMnemonic::ADDX:
+    case EMnemonic::ADDX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decoded operand specifier plus the index reg.
         result = x + tempWord;
@@ -1140,7 +1142,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_C, result < x  || result < tempWord);
         break;
 
-    case Enu::EMnemonic::SUBA:
+    case EMnemonic::SUBA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the two's complement of the decoded operand specifier plus a.
         tempWord = ~tempWord + 1;
@@ -1159,7 +1161,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_C, result < a  || result < tempWord);
         break;
 
-    case Enu::EMnemonic::SUBX:
+    case EMnemonic::SUBX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the two's complement of the decoded operand specifier plus a.
         tempWord = ~tempWord + 1;
@@ -1178,7 +1180,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_C, result < x  || result < tempWord);
         break;
 
-    case Enu::EMnemonic::ANDA:
+    case EMnemonic::ANDA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decoded operand specifier bitwise and'ed with the accumulator.
         result = a & tempWord;
@@ -1189,7 +1191,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         break;
 
-    case Enu::EMnemonic::ANDX:
+    case EMnemonic::ANDX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decoded operand specifier bitwise and'ed the index reg.
         result = x & tempWord;
@@ -1200,7 +1202,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         break;
 
-    case Enu::EMnemonic::ORA:
+    case EMnemonic::ORA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decoded operand specifier bitwise or'ed with the accumulator.
         result = a | tempWord;
@@ -1210,7 +1212,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
          // Is zero if all bits are 0's.
         writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         break;
-    case Enu::EMnemonic::ORX:
+    case EMnemonic::ORX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the decoded operand specifier bitwise or'ed the index reg.
         result = x | tempWord;
@@ -1221,7 +1223,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         break;
 
-    case Enu::EMnemonic::CPWA:
+    case EMnemonic::CPWA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the two's complement of the decoded operand specifier plus a.
         tempWord = ~tempWord + 1;
@@ -1241,7 +1243,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
                                     ^ getStatusBitCurrent(EStatusBit::STATUS_V));
         break;
 
-    case Enu::EMnemonic::CPWX:
+    case EMnemonic::CPWX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         // The result is the two's complement of the decoded operand specifier plus x.
         tempWord = ~tempWord + 1;
@@ -1261,7 +1263,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
                                     ^ getStatusBitCurrent(EStatusBit::STATUS_V));
         break;
 
-    case Enu::EMnemonic::LDWA:
+    case EMnemonic::LDWA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(a_reg, tempWord);
         // Is negative if high order bit is 1.
@@ -1270,7 +1272,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_Z, tempWord == 0);
         break;
 
-    case Enu::EMnemonic::LDWX:
+    case EMnemonic::LDWX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(x_reg, tempWord);
         // Is negative if high order bit is 1.
@@ -1279,18 +1281,18 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_Z, tempWord == 0);
         break;
 
-    case Enu::EMnemonic::STWA:
+    case EMnemonic::STWA:
         tempWord = registerBank.readRegisterWordCurrent(a_reg);
         memSuccess = writeOperandWord(opSpec, tempWord, addrMode);
         break;
 
-    case Enu::EMnemonic::STWX:
+    case EMnemonic::STWX:
         tempWord = registerBank.readRegisterWordCurrent(x_reg);
         memSuccess = writeOperandWord(opSpec, tempWord, addrMode);
         break;
 
     // Single byte instructions
-    case Enu::EMnemonic::CPBA:
+    case EMnemonic::CPBA:
         memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         // The result is the two's complement of the decoded operand specifier plus a.
         // Narrow a and operand to 1 byte before widening to 2 bytes for result.
@@ -1305,7 +1307,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_C, false);
         break;
 
-    case Enu::EMnemonic::CPBX:
+    case EMnemonic::CPBX:
         memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         // The result is the two's complement of the decoded operand specifier plus x.
         // Narrow a and operand to 1 byte before widening to 2 bytes for result.
@@ -1320,7 +1322,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_C, false);
         break;
 
-    case Enu::EMnemonic::LDBA:
+    case EMnemonic::LDBA:
         memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         tempWord = a & 0xff00;
         tempWord |= tempByte;
@@ -1331,7 +1333,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
         break;
 
-    case Enu::EMnemonic::LDBX:
+    case EMnemonic::LDBX:
         memSuccess = readOperandByteValue(opSpec, addrMode, tempByte);
         tempWord = x & 0xff00;
         tempWord |= tempByte;
@@ -1341,12 +1343,12 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         writeStatusBit(EStatusBit::STATUS_Z, (tempWord & 0xff) == 0);
         break;
 
-    case Enu::EMnemonic::STBA:
+    case EMnemonic::STBA:
         tempByte = static_cast<quint8>(0xff & registerBank.readRegisterWordCurrent(a_reg));
         memSuccess = writeOperandByte(opSpec, tempByte, addrMode);
         break;
 
-    case Enu::EMnemonic::STBX:
+    case EMnemonic::STBX:
         tempByte = static_cast<quint8>(0xff & registerBank.readRegisterWordCurrent(x_reg));
         memSuccess = writeOperandByte(opSpec, tempByte, addrMode);
         break;
@@ -1362,7 +1364,7 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
     }
 }
 
-void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
+void IsaCpu::executeTrap(Pep9::ISA::EMnemonic mnemon)
 {
     using namespace  Pep9::ISA;
 
@@ -1375,15 +1377,15 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
     bool memSuccess = true;
     switch(mnemon) {
     // Non-unary traps
-    case Enu::EMnemonic::NOP:;
+    case EMnemonic::NOP:;
         [[fallthrough]];
-    case Enu::EMnemonic::DECI:;
+    case EMnemonic::DECI:;
         [[fallthrough]];
-    case Enu::EMnemonic::DECO:;
+    case EMnemonic::DECO:;
         [[fallthrough]];
-    case Enu::EMnemonic::HEXO:;
+    case EMnemonic::HEXO:;
         [[fallthrough]];
-    case Enu::EMnemonic::STRO:;
+    case EMnemonic::STRO:;
 #if hardwarePCIncr
         // Though not part of the specification, the Pep9 hardware must increment the program counter
         // in order for non-unary traps to function correctly.
@@ -1392,9 +1394,9 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
 #endif
         [[fallthrough]];
     // Unary traps
-    case Enu::EMnemonic::NOP0:;
+    case EMnemonic::NOP0:;
         [[fallthrough]];
-    case Enu::EMnemonic::NOP1:;
+    case EMnemonic::NOP1:;
         // Writes to mem[T-1].
         memSuccess &= memory->writeByte(tempAddr - 1, registerBank.readRegisterByteCurrent(is_reg) /*IS*/);
         // Writes to mem[T-2], mem[T-3].
@@ -1445,10 +1447,10 @@ void IsaCpu::breakpointAsmHandler()
 
 void IsaCpu::writeStatusBit(Pep9::ISA::EStatusBit bit, bool value)
 {
-    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
-    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
-    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
-    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_N);
+    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_Z);
+    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_V);
+    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::ISA::EStatusBit::STATUS_C);
 
     using namespace Pep9::ISA;
     switch(bit) {

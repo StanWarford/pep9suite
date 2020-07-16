@@ -51,37 +51,37 @@ QString formatAddress(quint16 address)
 }
 
 // Convert a mnemonic into it's string
-QString mnemonDecode(quint8 instrSpec)
+QString mnemonDecode(const APepVersion*pep_version, quint8 instrSpec)
 {
-    static QMetaEnum metaenum = Enu::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
-    return QString(metaenum.valueToKey((int)Pep::decodeMnemonic[instrSpec])).toLower();
+    return pep_version->getAsmMnemonic(instrSpec);
 }
 
-QString formatIS(quint8 instrSpec)
+QString formatIS(const APepVersion*pep_version, quint8 instrSpec)
 {
-    return QString(mnemonDecode(instrSpec)).leftJustified(inst_size,' ');
+    return QString(mnemonDecode(pep_version, instrSpec)).leftJustified(inst_size,' ');
 }
 
-QString formatUnary(quint8 instrSpec)
+QString formatUnary(const APepVersion*pep_version, quint8 instrSpec)
 {
-    return formatIS(instrSpec).leftJustified(inst_size+max_symLen+2+4);
+    return formatIS(pep_version, instrSpec).leftJustified(inst_size+max_symLen+2+4);
 }
 
-QString formatNonUnary(SymbolTable* symTable, quint8 instrSpec,quint16 oprSpec)
+QString formatNonUnary(const APepVersion *pep_version, SymbolTable* symTable, quint8 instrSpec, quint16 oprSpec)
 {
-    return formatIS(instrSpec).leftJustified(inst_size) %
+    return formatIS(pep_version, instrSpec).leftJustified(inst_size) %
             QString(attemptOperSpecReplace(symTable, oprSpec)).rightJustified(max_symLen) %
-            ", " % Pep::intToAddrMode(Pep::decodeAddrMode[instrSpec]).leftJustified(4,' ');
+            ", " % pep_version->getAsmAddr(instrSpec).leftJustified(4,' ');
 }
 
-QString formatInstr(SymbolTable* symTable, quint8 instrSpec,quint16 oprSpec)
+QString formatInstr(const APepVersion*pep_version, SymbolTable* symTable, quint8 instrSpec,quint16 oprSpec)
 {
-    if(Pep::isUnaryMap[Pep::decodeMnemonic[instrSpec]]) {
-        return formatUnary(instrSpec);
+    if(pep_version->isInstructionUnary(instrSpec)) {
+        return formatUnary(pep_version, instrSpec);
     }
     else {
-        return formatNonUnary(symTable, instrSpec, oprSpec);
+        return formatNonUnary(pep_version, symTable, instrSpec, oprSpec);
     }
+    return "";
 }
 
 QString generateStackFrame(CPUState&, bool /*enter*/)

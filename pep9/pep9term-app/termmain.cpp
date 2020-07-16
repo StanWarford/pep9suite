@@ -44,6 +44,9 @@
 #include "termhelper.h"
 #include "termformatter.h"
 
+#include "isadefs.h"
+#include "cpudefs.h"
+
 const std::string application_description = "Translate and run Pep/9 assembly language and microcode programs.";
 const std::string asm_description = "Assemble a Pep/9 assembler source code program to object code.";
 const std::string run_description = "Run a Pep/9 object code program.";
@@ -113,11 +116,11 @@ int main(int argc, char *argv[])
 {
     command_line_values values;
     // Initialize global state maps.
-    Pep::initEnumMnemonMaps();
-    Pep::initMnemonicMaps(true);
-    Pep::initAddrModesMap();
-    Pep::initDecoderTables();
-    Pep::initMicroDecoderTables();
+    Pep9::ISA::initEnumMnemonMaps();
+    Pep9::ISA::initMnemonicMaps(true);
+    Pep9::ISA::initAddrModesMap();
+    Pep9::ISA::initDecoderTables();
+    Pep9::ISA::initMicroDecoderTables();
     // Can't initialize Pep9CPU controls tables, since these depend
     // on the mode data bus size of the CPU.
     // Therefore, they must be initialized within the handlers for the CPU

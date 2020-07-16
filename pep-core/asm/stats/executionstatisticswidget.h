@@ -32,6 +32,7 @@
 namespace Ui {
 class ExecutionStatisticsWidget;
 }
+class APepVersion;
 
 class ExecutionStatisticsWidget : public QWidget
 {
@@ -39,7 +40,7 @@ class ExecutionStatisticsWidget : public QWidget
 
 public:
     explicit ExecutionStatisticsWidget(QWidget *parent = nullptr);
-    void init(QSharedPointer<InterfaceISACPU> cpu, bool showCycles, bool showCacheStats);
+    void init(QSharedPointer<const APepVersion> pep_version, QSharedPointer<InterfaceISACPU> cpu, bool showCycles, bool showCacheStats);
     ~ExecutionStatisticsWidget();
 
     void highlightOnFocus();
@@ -60,6 +61,7 @@ private slots:
 
 private:
     Ui::ExecutionStatisticsWidget *ui;
+    QSharedPointer<const APepVersion> pep_version;
     QSharedPointer<InterfaceISACPU> cpu;
     QStandardItemModel* model;
     // Does the CPU have data to report?

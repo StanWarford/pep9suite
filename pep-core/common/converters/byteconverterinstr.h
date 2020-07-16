@@ -28,6 +28,8 @@ namespace Ui {
     class ByteConverterInstr;
 }
 
+class APepVersion;
+
 /*
  * The byte converter class set are used to show how a byte value is represented
  * in different forms (e.g. bin, hec, character, etc.).
@@ -41,6 +43,7 @@ class ByteConverterInstr : public QWidget {
 
 public:
     ByteConverterInstr(QWidget *parent = nullptr);
+    void init(QSharedPointer<const APepVersion> pep_version);
     ~ByteConverterInstr() override;
 
     void setValue(int data);
@@ -50,6 +53,7 @@ protected:
 
 private:
     Ui::ByteConverterInstr *ui;
+    QSharedPointer<const APepVersion> pep_version;
 };
 
 #endif // BYTECONVERTERINSTR_H

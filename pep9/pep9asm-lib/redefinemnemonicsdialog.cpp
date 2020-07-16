@@ -24,7 +24,8 @@
 #include <QRegExpValidator>
 
 #include "style/fonts.h"
-using namespace Enu;
+
+#include "isadefs.h"
 
 RedefineMnemonicsDialog::RedefineMnemonicsDialog(QWidget *parent) :
         QDialog(parent),
@@ -161,241 +162,258 @@ void RedefineMnemonicsDialog::reject()
 
 void RedefineMnemonicsDialog::restoreDefaults()
 {
-    ui->unaryMnemonic0LineEdit->setText(Pep::defaultUnaryMnemonic0);
-    ui->unaryMnemonic1LineEdit->setText(Pep::defaultUnaryMnemonic1);
-    ui->nonUnaryMnemonic0LineEdit->setText(Pep::defaultNonUnaryMnemonic0);
-    ui->mnemon0iCheckBox->setChecked(Pep::defaultMnemon0AddrModes & static_cast<int>(Enu::EAddrMode::I));
-    ui->mnemon0dCheckBox->setChecked(Pep::defaultMnemon0AddrModes &static_cast<int>(Enu::EAddrMode::D));
-    ui->mnemon0nCheckBox->setChecked(Pep::defaultMnemon0AddrModes &static_cast<int>(Enu::EAddrMode:: N));
-    ui->mnemon0sCheckBox->setChecked(Pep::defaultMnemon0AddrModes & static_cast<int>(Enu::EAddrMode::S));
-    ui->mnemon0sfCheckBox->setChecked(Pep::defaultMnemon0AddrModes & static_cast<int>(Enu::EAddrMode::SF));
-    ui->mnemon0xCheckBox->setChecked(Pep::defaultMnemon0AddrModes & static_cast<int>(Enu::EAddrMode::X));
-    ui->mnemon0sxCheckBox->setChecked(Pep::defaultMnemon0AddrModes & static_cast<int>(Enu::EAddrMode::SX));
-    ui->mnemon0sfxCheckBox->setChecked(Pep::defaultMnemon0AddrModes & static_cast<int>(Enu::EAddrMode::SFX));
-    ui->nonUnaryMnemonic1LineEdit->setText(Pep::defaultNonUnaryMnemonic1);
-    ui->mnemon1iCheckBox->setChecked(Pep::defaultMnemon1AddrModes & static_cast<int>(Enu::EAddrMode::I));
-    ui->mnemon1dCheckBox->setChecked(Pep::defaultMnemon1AddrModes & static_cast<int>(Enu::EAddrMode::D));
-    ui->mnemon1nCheckBox->setChecked(Pep::defaultMnemon1AddrModes & static_cast<int>(Enu::EAddrMode::N));
-    ui->mnemon1sCheckBox->setChecked(Pep::defaultMnemon1AddrModes & static_cast<int>(Enu::EAddrMode::S));
-    ui->mnemon1sfCheckBox->setChecked(Pep::defaultMnemon1AddrModes & static_cast<int>(Enu::EAddrMode::SF));
-    ui->mnemon1xCheckBox->setChecked(Pep::defaultMnemon1AddrModes & static_cast<int>(Enu::EAddrMode::X));
-    ui->mnemon1sxCheckBox->setChecked(Pep::defaultMnemon1AddrModes & static_cast<int>(Enu::EAddrMode::SX));
-    ui->mnemon1sfxCheckBox->setChecked(Pep::defaultMnemon1AddrModes & static_cast<int>(Enu::EAddrMode::SFX));
-    ui->nonUnaryMnemonic2LineEdit->setText(Pep::defaultNonUnaryMnemonic2);
-    ui->mnemon2iCheckBox->setChecked(Pep::defaultMnemon2AddrModes & static_cast<int>(Enu::EAddrMode::I));
-    ui->mnemon2dCheckBox->setChecked(Pep::defaultMnemon2AddrModes & static_cast<int>(Enu::EAddrMode::D));
-    ui->mnemon2nCheckBox->setChecked(Pep::defaultMnemon2AddrModes & static_cast<int>(Enu::EAddrMode::N));
-    ui->mnemon2sCheckBox->setChecked(Pep::defaultMnemon2AddrModes & static_cast<int>(Enu::EAddrMode::S));
-    ui->mnemon2sfCheckBox->setChecked(Pep::defaultMnemon2AddrModes & static_cast<int>(Enu::EAddrMode::SF));
-    ui->mnemon2xCheckBox->setChecked(Pep::defaultMnemon2AddrModes & static_cast<int>(Enu::EAddrMode::X));
-    ui->mnemon2sxCheckBox->setChecked(Pep::defaultMnemon2AddrModes & static_cast<int>(Enu::EAddrMode::SX));
-    ui->mnemon2sfxCheckBox->setChecked(Pep::defaultMnemon2AddrModes & static_cast<int>(Enu::EAddrMode::SFX));
-    ui->nonUnaryMnemonic3LineEdit->setText(Pep::defaultNonUnaryMnemonic3);
-    ui->mnemon3iCheckBox->setChecked(Pep::defaultMnemon3AddrModes & static_cast<int>(Enu::EAddrMode::I));
-    ui->mnemon3dCheckBox->setChecked(Pep::defaultMnemon3AddrModes & static_cast<int>(Enu::EAddrMode::D));
-    ui->mnemon3nCheckBox->setChecked(Pep::defaultMnemon3AddrModes & static_cast<int>(Enu::EAddrMode::N));
-    ui->mnemon3sCheckBox->setChecked(Pep::defaultMnemon3AddrModes & static_cast<int>(Enu::EAddrMode::S));
-    ui->mnemon3sfCheckBox->setChecked(Pep::defaultMnemon3AddrModes & static_cast<int>(Enu::EAddrMode::SF));
-    ui->mnemon3xCheckBox->setChecked(Pep::defaultMnemon3AddrModes & static_cast<int>(Enu::EAddrMode::X));
-    ui->mnemon3sxCheckBox->setChecked(Pep::defaultMnemon3AddrModes & static_cast<int>(Enu::EAddrMode::SX));
-    ui->mnemon3sfxCheckBox->setChecked(Pep::defaultMnemon3AddrModes & static_cast<int>(Enu::EAddrMode::SFX));
-    ui->nonUnaryMnemonic4LineEdit->setText(Pep::defaultNonUnaryMnemonic4);
-    ui->mnemon4iCheckBox->setChecked(Pep::defaultMnemon4AddrModes & static_cast<int>(Enu::EAddrMode::I));
-    ui->mnemon4dCheckBox->setChecked(Pep::defaultMnemon4AddrModes & static_cast<int>(Enu::EAddrMode::D));
-    ui->mnemon4nCheckBox->setChecked(Pep::defaultMnemon4AddrModes & static_cast<int>(Enu::EAddrMode::N));
-    ui->mnemon4sCheckBox->setChecked(Pep::defaultMnemon4AddrModes & static_cast<int>(Enu::EAddrMode::S));
-    ui->mnemon4sfCheckBox->setChecked(Pep::defaultMnemon4AddrModes& static_cast<int>(Enu::EAddrMode::SF));
-    ui->mnemon4xCheckBox->setChecked(Pep::defaultMnemon4AddrModes & static_cast<int>(Enu::EAddrMode::X));
-    ui->mnemon4sxCheckBox->setChecked(Pep::defaultMnemon4AddrModes & static_cast<int>(Enu::EAddrMode::SX));
-    ui->mnemon4sfxCheckBox->setChecked(Pep::defaultMnemon4AddrModes & static_cast<int>(Enu::EAddrMode::SFX));
+    using namespace Pep9::ISA;
+    ui->unaryMnemonic0LineEdit->setText(defaultUnaryMnemonic0);
+    ui->unaryMnemonic1LineEdit->setText(defaultUnaryMnemonic1);
+    ui->nonUnaryMnemonic0LineEdit->setText(defaultNonUnaryMnemonic0);
+    ui->mnemon0iCheckBox->setChecked(defaultMnemon0AddrModes & static_cast<int>(EAddrMode::I));
+    ui->mnemon0dCheckBox->setChecked(defaultMnemon0AddrModes &static_cast<int>(EAddrMode::D));
+    ui->mnemon0nCheckBox->setChecked(defaultMnemon0AddrModes &static_cast<int>(EAddrMode:: N));
+    ui->mnemon0sCheckBox->setChecked(defaultMnemon0AddrModes & static_cast<int>(EAddrMode::S));
+    ui->mnemon0sfCheckBox->setChecked(defaultMnemon0AddrModes & static_cast<int>(EAddrMode::SF));
+    ui->mnemon0xCheckBox->setChecked(defaultMnemon0AddrModes & static_cast<int>(EAddrMode::X));
+    ui->mnemon0sxCheckBox->setChecked(defaultMnemon0AddrModes & static_cast<int>(EAddrMode::SX));
+    ui->mnemon0sfxCheckBox->setChecked(defaultMnemon0AddrModes & static_cast<int>(EAddrMode::SFX));
+    ui->nonUnaryMnemonic1LineEdit->setText(defaultNonUnaryMnemonic1);
+    ui->mnemon1iCheckBox->setChecked(defaultMnemon1AddrModes & static_cast<int>(EAddrMode::I));
+    ui->mnemon1dCheckBox->setChecked(defaultMnemon1AddrModes & static_cast<int>(EAddrMode::D));
+    ui->mnemon1nCheckBox->setChecked(defaultMnemon1AddrModes & static_cast<int>(EAddrMode::N));
+    ui->mnemon1sCheckBox->setChecked(defaultMnemon1AddrModes & static_cast<int>(EAddrMode::S));
+    ui->mnemon1sfCheckBox->setChecked(defaultMnemon1AddrModes & static_cast<int>(EAddrMode::SF));
+    ui->mnemon1xCheckBox->setChecked(defaultMnemon1AddrModes & static_cast<int>(EAddrMode::X));
+    ui->mnemon1sxCheckBox->setChecked(defaultMnemon1AddrModes & static_cast<int>(EAddrMode::SX));
+    ui->mnemon1sfxCheckBox->setChecked(defaultMnemon1AddrModes & static_cast<int>(EAddrMode::SFX));
+    ui->nonUnaryMnemonic2LineEdit->setText(defaultNonUnaryMnemonic2);
+    ui->mnemon2iCheckBox->setChecked(defaultMnemon2AddrModes & static_cast<int>(EAddrMode::I));
+    ui->mnemon2dCheckBox->setChecked(defaultMnemon2AddrModes & static_cast<int>(EAddrMode::D));
+    ui->mnemon2nCheckBox->setChecked(defaultMnemon2AddrModes & static_cast<int>(EAddrMode::N));
+    ui->mnemon2sCheckBox->setChecked(defaultMnemon2AddrModes & static_cast<int>(EAddrMode::S));
+    ui->mnemon2sfCheckBox->setChecked(defaultMnemon2AddrModes & static_cast<int>(EAddrMode::SF));
+    ui->mnemon2xCheckBox->setChecked(defaultMnemon2AddrModes & static_cast<int>(EAddrMode::X));
+    ui->mnemon2sxCheckBox->setChecked(defaultMnemon2AddrModes & static_cast<int>(EAddrMode::SX));
+    ui->mnemon2sfxCheckBox->setChecked(defaultMnemon2AddrModes & static_cast<int>(EAddrMode::SFX));
+    ui->nonUnaryMnemonic3LineEdit->setText(defaultNonUnaryMnemonic3);
+    ui->mnemon3iCheckBox->setChecked(defaultMnemon3AddrModes & static_cast<int>(EAddrMode::I));
+    ui->mnemon3dCheckBox->setChecked(defaultMnemon3AddrModes & static_cast<int>(EAddrMode::D));
+    ui->mnemon3nCheckBox->setChecked(defaultMnemon3AddrModes & static_cast<int>(EAddrMode::N));
+    ui->mnemon3sCheckBox->setChecked(defaultMnemon3AddrModes & static_cast<int>(EAddrMode::S));
+    ui->mnemon3sfCheckBox->setChecked(defaultMnemon3AddrModes & static_cast<int>(EAddrMode::SF));
+    ui->mnemon3xCheckBox->setChecked(defaultMnemon3AddrModes & static_cast<int>(EAddrMode::X));
+    ui->mnemon3sxCheckBox->setChecked(defaultMnemon3AddrModes & static_cast<int>(EAddrMode::SX));
+    ui->mnemon3sfxCheckBox->setChecked(defaultMnemon3AddrModes & static_cast<int>(EAddrMode::SFX));
+    ui->nonUnaryMnemonic4LineEdit->setText(defaultNonUnaryMnemonic4);
+    ui->mnemon4iCheckBox->setChecked(defaultMnemon4AddrModes & static_cast<int>(EAddrMode::I));
+    ui->mnemon4dCheckBox->setChecked(defaultMnemon4AddrModes & static_cast<int>(EAddrMode::D));
+    ui->mnemon4nCheckBox->setChecked(defaultMnemon4AddrModes & static_cast<int>(EAddrMode::N));
+    ui->mnemon4sCheckBox->setChecked(defaultMnemon4AddrModes & static_cast<int>(EAddrMode::S));
+    ui->mnemon4sfCheckBox->setChecked(defaultMnemon4AddrModes& static_cast<int>(EAddrMode::SF));
+    ui->mnemon4xCheckBox->setChecked(defaultMnemon4AddrModes & static_cast<int>(EAddrMode::X));
+    ui->mnemon4sxCheckBox->setChecked(defaultMnemon4AddrModes & static_cast<int>(EAddrMode::SX));
+    ui->mnemon4sfxCheckBox->setChecked(defaultMnemon4AddrModes & static_cast<int>(EAddrMode::SFX));
 
-    Pep::addrModesMap.insert(Enu::EMnemonic::NOP, Pep::defaultMnemon0AddrModes);
-    Pep::addrModesMap.insert(Enu::EMnemonic::DECI, Pep::defaultMnemon1AddrModes);
-    Pep::addrModesMap.insert(Enu::EMnemonic::DECO, Pep::defaultMnemon2AddrModes);
-    Pep::addrModesMap.insert(Enu::EMnemonic::HEXO, Pep::defaultMnemon3AddrModes);
-    Pep::addrModesMap.insert(Enu::EMnemonic::STRO, Pep::defaultMnemon4AddrModes);
+    addrModesMap.insert(EMnemonic::NOP, defaultMnemon0AddrModes);
+    addrModesMap.insert(EMnemonic::DECI, defaultMnemon1AddrModes);
+    addrModesMap.insert(EMnemonic::DECO, defaultMnemon2AddrModes);
+    addrModesMap.insert(EMnemonic::HEXO, defaultMnemon3AddrModes);
+    addrModesMap.insert(EMnemonic::STRO, defaultMnemon4AddrModes);
 
-    Pep::initEnumMnemonMaps();
+    initEnumMnemonMaps();
 }
 
 void RedefineMnemonicsDialog::redefineNonUnaryMnemonic0(QString string)
 {    
+    using namespace Pep9::ISA;
+
     string = string.toUpper();
     if (string.isEmpty()) {
         ui->warningLabel->setText("Empty mnemonic not stored for 00101.");
     }
-    else if (Pep::mnemonToEnumMap.contains(string)) {
+    else if (mnemonToEnumMap.contains(string)) {
         ui->warningLabel->setText("Duplicate not stored for 00101.");
     }
     else {
         ui->nonUnaryMnemonic0LineEdit->setText(string);
-        Pep::mnemonToEnumMap.remove(Pep::enumToMnemonMap.value(Enu::EMnemonic::NOP));
-        Pep::enumToMnemonMap.insert(Enu::EMnemonic::NOP, string);
-        Pep::mnemonToEnumMap.insert(string, Enu::EMnemonic::NOP);
+        mnemonToEnumMap.remove(enumToMnemonMap.value(EMnemonic::NOP));
+        enumToMnemonMap.insert(EMnemonic::NOP, string);
+        mnemonToEnumMap.insert(string, EMnemonic::NOP);
         ui->warningLabel->clear();
     }
 }
 
 void RedefineMnemonicsDialog::redefineNonUnaryMnemonic1(QString string)
 {
+    using namespace Pep9::ISA;
+
     string = string.toUpper();
     if (string.isEmpty()) {
         ui->warningLabel->setText("Empty mnemonic not stored for 00110.");
     }
-    else if (Pep::mnemonToEnumMap.contains(string)) {
+    else if (mnemonToEnumMap.contains(string)) {
         ui->warningLabel->setText("Duplicate not stored for 00110.");
     }
     else {
         ui->nonUnaryMnemonic1LineEdit->setText(string);
-        Pep::mnemonToEnumMap.remove(Pep::enumToMnemonMap.value(Enu::EMnemonic::DECI));
-        Pep::enumToMnemonMap.insert(Enu::EMnemonic::DECI, string);
-        Pep::mnemonToEnumMap.insert(string, Enu::EMnemonic::DECI);
+        mnemonToEnumMap.remove(enumToMnemonMap.value(EMnemonic::DECI));
+        enumToMnemonMap.insert(EMnemonic::DECI, string);
+        mnemonToEnumMap.insert(string, EMnemonic::DECI);
         ui->warningLabel->clear();
     }
 }
 
 void RedefineMnemonicsDialog::redefineNonUnaryMnemonic2(QString string)
 {
+    using namespace Pep9::ISA;
+
     string = string.toUpper();
     if (string.isEmpty()) {
         ui->warningLabel->setText("Empty mnemonic not stored for 00111.");
     }
-    else if (Pep::mnemonToEnumMap.contains(string)) {
+    else if (mnemonToEnumMap.contains(string)) {
         ui->warningLabel->setText("Duplicate not stored for 00111.");
     }
     else {
         ui->nonUnaryMnemonic2LineEdit->setText(string);
-        Pep::mnemonToEnumMap.remove(Pep::enumToMnemonMap.value(Enu::EMnemonic::DECO));
-        Pep::enumToMnemonMap.insert(Enu::EMnemonic::DECO, string);
-        Pep::mnemonToEnumMap.insert(string, Enu::EMnemonic::DECO);
+        mnemonToEnumMap.remove(enumToMnemonMap.value(EMnemonic::DECO));
+        enumToMnemonMap.insert(EMnemonic::DECO, string);
+        mnemonToEnumMap.insert(string, EMnemonic::DECO);
         ui->warningLabel->clear();
     }
 }
 
 void RedefineMnemonicsDialog::redefineNonUnaryMnemonic3(QString string)
 {
+    using namespace Pep9::ISA;
+
     string = string.toUpper();
     if (string.isEmpty()) {
         ui->warningLabel->setText("Empty mnemonic not stored for 01000.");
     }
-    else if (Pep::mnemonToEnumMap.contains(string)) {
+    else if (mnemonToEnumMap.contains(string)) {
         ui->warningLabel->setText("Duplicate not stored for 01000.");
     }
     else {
         ui->nonUnaryMnemonic3LineEdit->setText(string);
-        Pep::mnemonToEnumMap.remove(Pep::enumToMnemonMap.value(Enu::EMnemonic::HEXO));
-        Pep::enumToMnemonMap.insert(Enu::EMnemonic::STRO, string);
-        Pep::mnemonToEnumMap.insert(string, Enu::EMnemonic::HEXO);
+        mnemonToEnumMap.remove(enumToMnemonMap.value(EMnemonic::HEXO));
+        enumToMnemonMap.insert(EMnemonic::STRO, string);
+        mnemonToEnumMap.insert(string, EMnemonic::HEXO);
         ui->warningLabel->clear();
     }
 }
 
 void RedefineMnemonicsDialog::redefineNonUnaryMnemonic4(QString string)
 {
+    using namespace Pep9::ISA;
+
     string = string.toUpper();
     if (string.isEmpty()) {
         ui->warningLabel->setText("Empty mnemonic not stored for 01001.");
     }
-    else if (Pep::mnemonToEnumMap.contains(string)) {
+    else if (mnemonToEnumMap.contains(string)) {
         ui->warningLabel->setText("Duplicate not stored for 01001.");
     }
     else {
         ui->nonUnaryMnemonic3LineEdit->setText(string);
-        Pep::mnemonToEnumMap.remove(Pep::enumToMnemonMap.value(Enu::EMnemonic::STRO));
-        Pep::enumToMnemonMap.insert(Enu::EMnemonic::STRO, string);
-        Pep::mnemonToEnumMap.insert(string, Enu::EMnemonic::STRO);
+        mnemonToEnumMap.remove(enumToMnemonMap.value(EMnemonic::STRO));
+        enumToMnemonMap.insert(EMnemonic::STRO, string);
+        mnemonToEnumMap.insert(string, EMnemonic::STRO);
         ui->warningLabel->clear();
     }
 }
 
 void RedefineMnemonicsDialog::redefineUnaryMnemonic0(QString string)
 {
+    using namespace Pep9::ISA;
+
     string = string.toUpper();
     if (string.isEmpty()) {
         ui->warningLabel->setText("Empty mnemonic not stored for 0010 0010.");
     }
-    else if (Pep::mnemonToEnumMap.contains(string)) {
+    else if (mnemonToEnumMap.contains(string)) {
         ui->warningLabel->setText("Duplicate not stored for 0010 0010.");
     }
     else {
         ui->unaryMnemonic0LineEdit->setText(string);
-        Pep::mnemonToEnumMap.remove(Pep::enumToMnemonMap.value(Enu::EMnemonic::NOP0));
-        Pep::enumToMnemonMap.insert(Enu::EMnemonic::NOP0, string);
-        Pep::mnemonToEnumMap.insert(string, Enu::EMnemonic::NOP0);
+        mnemonToEnumMap.remove(enumToMnemonMap.value(EMnemonic::NOP0));
+        enumToMnemonMap.insert(EMnemonic::NOP0, string);
+        mnemonToEnumMap.insert(string, EMnemonic::NOP0);
         ui->warningLabel->clear();
     }
 }
 
 void RedefineMnemonicsDialog::redefineUnaryMnemonic1(QString string)
 {
+    using namespace Pep9::ISA;
+
     string = string.toUpper();
     if (string.isEmpty()) {
         ui->warningLabel->setText("Empty mnemonic not stored for 0010 0101.");
     }
-    else if (Pep::mnemonToEnumMap.contains(string)) {
+    else if (mnemonToEnumMap.contains(string)) {
         ui->warningLabel->setText("Duplicate not stored for 0010 0101.");
     }
     else {
         ui->unaryMnemonic1LineEdit->setText(string);
-        Pep::mnemonToEnumMap.remove(Pep::enumToMnemonMap.value(Enu::EMnemonic::NOP1));
-        Pep::enumToMnemonMap.insert(Enu::EMnemonic::NOP1, string);
-        Pep::mnemonToEnumMap.insert(string, Enu::EMnemonic::NOP1);
+        mnemonToEnumMap.remove(enumToMnemonMap.value(EMnemonic::NOP1));
+        enumToMnemonMap.insert(EMnemonic::NOP1, string);
+        mnemonToEnumMap.insert(string, EMnemonic::NOP1);
         ui->warningLabel->clear();
     }
 }
 
 void RedefineMnemonicsDialog::setNonUnaryAllowedModes()
 {
+    using namespace Pep9::ISA;
+
     int addrMode = 0;
-    if (ui->mnemon0iCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::I);
-    if (ui->mnemon0dCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::D);
-    if (ui->mnemon0nCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::N);
-    if (ui->mnemon0sCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::S);
-    if (ui->mnemon0sfCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SF);
-    if (ui->mnemon0xCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::X);
-    if (ui->mnemon0sxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SX);
-    if (ui->mnemon0sfxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SFX);
-    Pep::addrModesMap.insert(Enu::EMnemonic::NOP, addrMode);
+    if (ui->mnemon0iCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::I);
+    if (ui->mnemon0dCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::D);
+    if (ui->mnemon0nCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::N);
+    if (ui->mnemon0sCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::S);
+    if (ui->mnemon0sfCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SF);
+    if (ui->mnemon0xCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::X);
+    if (ui->mnemon0sxCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SX);
+    if (ui->mnemon0sfxCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SFX);
+    addrModesMap.insert(EMnemonic::NOP, addrMode);
     addrMode = 0;
-    if (ui->mnemon1iCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::I);
-    if (ui->mnemon1dCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::D);
-    if (ui->mnemon1nCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::N);
-    if (ui->mnemon1sCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::S);
-    if (ui->mnemon1sfCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SF);
-    if (ui->mnemon1xCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::X);
-    if (ui->mnemon1sxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SX);
-    if (ui->mnemon1sfxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SFX);
-    Pep::addrModesMap.insert(Enu::EMnemonic::DECI, addrMode);
+    if (ui->mnemon1iCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::I);
+    if (ui->mnemon1dCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::D);
+    if (ui->mnemon1nCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::N);
+    if (ui->mnemon1sCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::S);
+    if (ui->mnemon1sfCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SF);
+    if (ui->mnemon1xCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::X);
+    if (ui->mnemon1sxCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SX);
+    if (ui->mnemon1sfxCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SFX);
+    addrModesMap.insert(EMnemonic::DECI, addrMode);
     addrMode = 0;
-    if (ui->mnemon2iCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::I);
-    if (ui->mnemon2dCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::D);
-    if (ui->mnemon2nCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::N);
-    if (ui->mnemon2sCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::S);
-    if (ui->mnemon2sfCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SF);
-    if (ui->mnemon2xCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::X);
-    if (ui->mnemon2sxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SX);
-    if (ui->mnemon2sfxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SFX);
-    Pep::addrModesMap.insert(Enu::EMnemonic::DECO, addrMode);
+    if (ui->mnemon2iCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::I);
+    if (ui->mnemon2dCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::D);
+    if (ui->mnemon2nCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::N);
+    if (ui->mnemon2sCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::S);
+    if (ui->mnemon2sfCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SF);
+    if (ui->mnemon2xCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::X);
+    if (ui->mnemon2sxCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SX);
+    if (ui->mnemon2sfxCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SFX);
+    addrModesMap.insert(EMnemonic::DECO, addrMode);
     addrMode = 0;
-    if (ui->mnemon3iCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::I);
-    if (ui->mnemon3dCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::D);
-    if (ui->mnemon3nCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::N);
-    if (ui->mnemon3sCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::S);
-    if (ui->mnemon3sfCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SF);
-    if (ui->mnemon3xCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::X);
-    if (ui->mnemon3sxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SX);
-    if (ui->mnemon3sfxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SFX);
-    Pep::addrModesMap.insert(Enu::EMnemonic::HEXO, addrMode);
+    if (ui->mnemon3iCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::I);
+    if (ui->mnemon3dCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::D);
+    if (ui->mnemon3nCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::N);
+    if (ui->mnemon3sCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::S);
+    if (ui->mnemon3sfCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SF);
+    if (ui->mnemon3xCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::X);
+    if (ui->mnemon3sxCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SX);
+    if (ui->mnemon3sfxCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SFX);
+    addrModesMap.insert(EMnemonic::HEXO, addrMode);
     addrMode = 0;
-    if (ui->mnemon4iCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::I);
-    if (ui->mnemon4dCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::D);
-    if (ui->mnemon4nCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::N);
-    if (ui->mnemon4sCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::S);
-    if (ui->mnemon4sfCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SF);
-    if (ui->mnemon4xCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::X);
-    if (ui->mnemon4sxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SX);
-    if (ui->mnemon4sfxCheckBox->isChecked()) addrMode |= static_cast<int>(Enu::EAddrMode::SFX);
-    Pep::addrModesMap.insert(Enu::EMnemonic::STRO, addrMode);
+    if (ui->mnemon4iCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::I);
+    if (ui->mnemon4dCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::D);
+    if (ui->mnemon4nCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::N);
+    if (ui->mnemon4sCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::S);
+    if (ui->mnemon4sfCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SF);
+    if (ui->mnemon4xCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::X);
+    if (ui->mnemon4sxCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SX);
+    if (ui->mnemon4sfxCheckBox->isChecked()) addrMode |= static_cast<int>(EAddrMode::SFX);
+    addrModesMap.insert(EMnemonic::STRO, addrMode);
 }
 
 void RedefineMnemonicsDialog::onDone()

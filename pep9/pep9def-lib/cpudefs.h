@@ -132,6 +132,7 @@ namespace Pep9::uarch {
     extern QMap<QString, ECPUKeywords> mnemonToMemSpecMap;
     extern QMap<QString, ECPUKeywords> mnemonToRegSpecMap;
     extern QMap<QString, ECPUKeywords> mnemonToStatusSpecMap;
+
     void initMicroEnumMnemonMaps(PepCore::CPUType cpuType, bool fullCtrlSection);
     quint8 numControlSignals();
     quint8 numClockSignals();

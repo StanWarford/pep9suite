@@ -23,11 +23,11 @@
 #include "byteconverterinstr.h"
 #include "ui_byteconverterinstr.h"
 
-#include "pep/pep.h"
+#include "pep/apepversion.h"
 
 ByteConverterInstr::ByteConverterInstr(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::ByteConverterInstr)
+    ui(new Ui::ByteConverterInstr), pep_version(nullptr)
 {
     ui->setupUi(this);
     // The label is really a text editor.
@@ -46,6 +46,11 @@ ByteConverterInstr::ByteConverterInstr(QWidget *parent) :
     ui->label->setReadOnly(true);
 }
 
+void ByteConverterInstr::init(QSharedPointer<const APepVersion> pep_version)
+{
+    this->pep_version = pep_version;
+}
+
 ByteConverterInstr::~ByteConverterInstr()
 {
     delete ui;
@@ -53,8 +58,8 @@ ByteConverterInstr::~ByteConverterInstr()
 
 void ByteConverterInstr::setValue(int data)
 {
-    ui->label->setText(" " + Pep::enumToMnemonMap.value(Pep::decodeMnemonic[data])
-                       + Pep::addrModeToCommaSpace(Pep::decodeAddrMode[data]));
+    auto str = " " + pep_version->getAsmMnemonic(data) % (pep_version->isInstructionUnary(data)? QString() : (", " % pep_version->getAsmAddr(data)));
+    ui->label->setText(str);
 }
 
 void ByteConverterInstr::changeEvent(QEvent *e)

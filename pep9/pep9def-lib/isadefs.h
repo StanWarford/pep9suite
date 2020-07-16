@@ -66,6 +66,67 @@ namespace Pep9::ISA {
         SFX = 128,
         ALL = 255
     };
+    Q_ENUM_NS(EAddrMode)
+
+    extern const QString defaultUnaryMnemonic0;
+    extern const QString defaultUnaryMnemonic1;
+    extern const QString defaultNonUnaryMnemonic0;
+    extern const int defaultMnemon0AddrModes;
+    extern const QString defaultNonUnaryMnemonic1;
+    extern const int defaultMnemon1AddrModes;
+    extern const QString defaultNonUnaryMnemonic2;
+    extern const int defaultMnemon2AddrModes;
+    extern const QString defaultNonUnaryMnemonic3;
+    extern const int defaultMnemon3AddrModes;
+    extern const QString defaultNonUnaryMnemonic4;
+    extern const int defaultMnemon4AddrModes;
+
+
+    // Functions for computing instruction specifiers
+    int aaaAddressField(EAddrMode addressMode);
+    int aAddressField(EAddrMode addressMode);
+    QString intToAddrMode(EAddrMode addressMode);
+    QString addrModeToCommaSpace(EAddrMode addressMode);
+
+    // Function to compute the number of display character in an operand.
+    // (e.g. LDBX only uses a 1 byte operand, while LDWX uses 2,
+    // so LDBX needs 2 chars and LDWX 4).
+    int operandDisplayFieldWidth(EMnemonic mnemon);
+
+    // Maps between mnemonic enums and strings
+    extern QMap<EMnemonic, QString> enumToMnemonMap;
+    extern QMap<QString, EMnemonic> mnemonToEnumMap;
+    void initEnumMnemonMaps();
+
+    // Maps to characterize each instruction
+    extern QMap<EMnemonic, int> opCodeMap;
+    extern QMap<EMnemonic, bool> isUnaryMap;
+    extern QMap<EMnemonic, bool> addrModeRequiredMap;
+    extern QMap<EMnemonic, bool> isTrapMap;
+    void initMnemonicMaps(bool NOP0IsTrap);
+
+
+    // Map to specify legal addressing modes for each instruction
+    extern QMap<EMnemonic, int> addrModesMap;
+    void initAddrModesMap();
+
+    // Decoder tables
+    extern QVector<Pep9::ISA::EMnemonic> decodeMnemonic;
+    extern QVector<Pep9::ISA::EAddrMode> decodeAddrMode;
+    // Does a particular instruction perform a store instead of a load?
+    bool isStoreMnemonic(Pep9::ISA::EMnemonic);
+    void initDecoderTables();
+
+    // Map mnemonic to the symbol in microcode which implements that instruction.
+    extern QMap<Pep9::ISA::EMnemonic, QString> defaultEnumToMicrocodeInstrSymbol;
+    // Map mnemonic to the symbopl in microcode which implements that iunstruction.
+    extern QMap<Pep9::ISA::EAddrMode, QString> defaultEnumToMicrocodeAddrSymbol;
+    extern QVector<QString> instSpecToMicrocodeInstrSymbol;
+    extern QVector<QString> instSpecToMicrocodeAddrSymbol;
+    // The default symbol to denote the start of the von-Neumann cycle
+    extern QString defaultStartSymbol;
+    void initMicroDecoderTables();
+
 
 }
 #endif // ISADEFS_H

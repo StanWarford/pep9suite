@@ -62,6 +62,7 @@ void FullMicrocodedMemoizer::clear()
 
 void FullMicrocodedMemoizer::storeStateInstrEnd()
 {
+    using namespace Pep9::ISA;
 
     // Determine the number of cycles elapsed during the last instruction
     auto cyclesElapsed = cpu.microCycleCounter - cyclesLast;
@@ -71,11 +72,11 @@ void FullMicrocodedMemoizer::storeStateInstrEnd()
     cyclesLast = cpu.microCycleCounter;
 
     // Determine if the subsequent instruction will enter/exit operating system.
-    auto mnemon = Pep::decodeMnemonic[cpu.data->getRegisterBank().getIRCache()];
-    if(Pep::isTrapMap[mnemon]) {
+    auto mnemon = decodeMnemonic[cpu.data->getRegisterBank().getIRCache()];
+    if(isTrapMap[mnemon]) {
         inOS = true;
     }
-    else if (mnemon == Enu::EMnemonic::RETTR) {
+    else if (mnemon == EMnemonic::RETTR) {
         inOS = false;
     }
     cpu.getMemoryDevice()->onInstructionFinished(cpu.data->getRegisterBank().getIRCache());
@@ -124,7 +125,7 @@ QString FullMicrocodedMemoizer::memoize()
     tempByte |= file.readStatusBitCurrent(CBit_t) * Pep9::uarch::EMask::CMask;
     NZVC = QString(" SNZVC=") % QString("%1").arg(QString::number(tempByte, 2), 5, '0');
     build = (attemptAddrReplace(symTable, pc) + QString(":")).leftJustified(10) %
-            formatInstr(symTable, file.getIRCache(), cpu.getCPURegWordCurrent(CPURegisters::OS));
+            formatInstr(cpu.pep_version.get(), symTable, file.getIRCache(), cpu.getCPURegWordCurrent(CPURegisters::OS));
     build += "  " + AX;
     build += NZVC;
     return build;
@@ -132,21 +133,22 @@ QString FullMicrocodedMemoizer::memoize()
 
 QString FullMicrocodedMemoizer::finalStatistics(bool includeOS)
 {
-    Enu::EMnemonic mnemon = Enu::EMnemonic::STOP;
-    QList<Enu::EMnemonic> mnemonList = QList<Enu::EMnemonic>();
+    using namespace Pep9::ISA;
+    auto mnemon = EMnemonic::STOP;
+    auto mnemonList = QList<EMnemonic>();
     mnemonList.append(mnemon);
     auto instrVector = getInstructionHistogram(includeOS);
     QList<quint32> tally = QList<quint32>();
     tally.append(0);
     int tallyIt = 0;
     for(int it = 0; it < 256; it++) {
-        if(mnemon == Pep::decodeMnemonic[it]) {
+        if(mnemon == decodeMnemonic[it]) {
             tally[tallyIt]+= instrVector[it];
         }
         else {
             tally.append(instrVector[it]);
             tallyIt++;
-            mnemon = Pep::decodeMnemonic[it];
+            mnemon = decodeMnemonic[it];
             mnemonList.append(mnemon);
         }
     }
@@ -185,18 +187,18 @@ void FullMicrocodedMemoizer::calculateOpVal() const
 
     quint8 instr;
     cpu.memory->getByte(cpu.getCPURegWordStart(CPURegisters::PC), instr);
-    Enu::EMnemonic instrToExecute = Pep::decodeMnemonic[instr];
-    Enu::EAddrMode addrMode = Pep::decodeAddrMode[instr];
-    if(Pep::isUnaryMap[instrToExecute]) {
+    auto instrToExecute = Pep9::ISA::decodeMnemonic[instr];
+    auto addrMode = Pep9::ISA::decodeAddrMode[instr];
+    if(Pep9::ISA::isUnaryMap[instrToExecute]) {
         cpu.opValCache = 0;
         return;
     }
     quint16 opSpec;
     cpu.memory->getWord(cpu.getCPURegWordStart(CPURegisters::PC) +1 , opSpec);
-    if(Pep::isStoreMnemonic(instrToExecute)) {
+    if(Pep9::ISA::isStoreMnemonic(instrToExecute)) {
         calculateOpValStoreHelper(addrMode, opSpec);
     }
-    else if(Pep::operandDisplayFieldWidth(instrToExecute) == 2) {
+    else if(Pep9::ISA::operandDisplayFieldWidth(instrToExecute) == 2) {
         calculateOpValByteHelper(addrMode, opSpec);
     }
     else {
@@ -204,37 +206,37 @@ void FullMicrocodedMemoizer::calculateOpVal() const
     }
 }
 
-void FullMicrocodedMemoizer::calculateOpValStoreHelper(Enu::EAddrMode addrMode, quint16 opSpec) const
+void FullMicrocodedMemoizer::calculateOpValStoreHelper(Pep9::ISA::EAddrMode addrMode, quint16 opSpec) const
 {
     using namespace Pep9::uarch;
 
     quint16 effectiveAddress = 0;
     switch(addrMode) {
-    case Enu::EAddrMode::I:
+    case Pep9::ISA::EAddrMode::I:
         break;
-    case Enu::EAddrMode::D:
+    case Pep9::ISA::EAddrMode::D:
         effectiveAddress = opSpec;
         break;
-    case Enu::EAddrMode::S:
+    case Pep9::ISA::EAddrMode::S:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::SP);
         break;
-    case Enu::EAddrMode::X:
+    case Pep9::ISA::EAddrMode::X:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::X);
         break;
-    case Enu::EAddrMode::SX:
+    case Pep9::ISA::EAddrMode::SX:
         effectiveAddress = opSpec
                 + cpu.getCPURegWordCurrent(CPURegisters::SP)
                 + cpu.getCPURegWordCurrent(CPURegisters::X);
         break;
-    case Enu::EAddrMode::N:
+    case Pep9::ISA::EAddrMode::N:
         effectiveAddress = opSpec;
         cpu.memory->getWord(effectiveAddress, effectiveAddress);
         break;
-    case Enu::EAddrMode::SF:
+    case Pep9::ISA::EAddrMode::SF:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::SP);
         cpu.memory->readWord(effectiveAddress, effectiveAddress);
         break;
-    case Enu::EAddrMode::SFX:
+    case Pep9::ISA::EAddrMode::SFX:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::SP);
         cpu.memory->readWord(effectiveAddress, effectiveAddress);
         effectiveAddress += cpu.getCPURegWordCurrent(CPURegisters::X);
@@ -245,46 +247,46 @@ void FullMicrocodedMemoizer::calculateOpValStoreHelper(Enu::EAddrMode addrMode, 
     cpu.opValCache = effectiveAddress;
 }
 
-void FullMicrocodedMemoizer::calculateOpValByteHelper(Enu::EAddrMode addrMode, quint16 opSpec) const
+void FullMicrocodedMemoizer::calculateOpValByteHelper(Pep9::ISA::EAddrMode addrMode, quint16 opSpec) const
 {
     using namespace Pep9::uarch;
 
     quint16 effectiveAddress = 0;
     quint8 opVal = 0;
     switch(addrMode) {
-    case Enu::EAddrMode::I:
+    case Pep9::ISA::EAddrMode::I:
         // Only store the low order byte of the operand specifier.
         opVal = static_cast<quint8>(opSpec);
         break;
-    case Enu::EAddrMode::D:
+    case Pep9::ISA::EAddrMode::D:
         effectiveAddress = opSpec;
         cpu.memory->getByte(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::S:
+    case Pep9::ISA::EAddrMode::S:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::SP);
         cpu.memory->getByte(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::X:
+    case Pep9::ISA::EAddrMode::X:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::X);
         cpu.memory->getByte(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::SX:
+    case Pep9::ISA::EAddrMode::SX:
         effectiveAddress = opSpec
                 + cpu.getCPURegWordCurrent(CPURegisters::SP)
                 + cpu.getCPURegWordCurrent(CPURegisters::X);
         cpu.memory->getByte(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::N:
+    case Pep9::ISA::EAddrMode::N:
         effectiveAddress = opSpec;
         cpu.memory->getWord(effectiveAddress, effectiveAddress);
         cpu.memory->getByte(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::SF:
+    case Pep9::ISA::EAddrMode::SF:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::SP);
         cpu.memory->getWord(effectiveAddress, effectiveAddress);
         cpu.memory->getByte(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::SFX:
+    case Pep9::ISA::EAddrMode::SFX:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::SP);
         cpu.memory->getWord(effectiveAddress, effectiveAddress);
         effectiveAddress += cpu.getCPURegWordCurrent(CPURegisters::X);
@@ -296,45 +298,45 @@ void FullMicrocodedMemoizer::calculateOpValByteHelper(Enu::EAddrMode addrMode, q
     cpu.opValCache = opVal;
 }
 
-void FullMicrocodedMemoizer::calculateopValWordHelper(Enu::EAddrMode addrMode, quint16 opSpec) const
+void FullMicrocodedMemoizer::calculateopValWordHelper(Pep9::ISA::EAddrMode addrMode, quint16 opSpec) const
 {
     using namespace Pep9::uarch;
 
     quint16 effectiveAddress = 0;
     quint16 opVal = 0;
     switch(addrMode) {
-    case Enu::EAddrMode::I:
+    case Pep9::ISA::EAddrMode::I:
         opVal = opSpec;
         break;
-    case Enu::EAddrMode::D:
+    case Pep9::ISA::EAddrMode::D:
         effectiveAddress = opSpec;
         cpu.memory->getWord(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::S:
+    case Pep9::ISA::EAddrMode::S:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::SP);
         cpu.memory->getWord(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::X:
+    case Pep9::ISA::EAddrMode::X:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::X);
         cpu.memory->getWord(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::SX:
+    case Pep9::ISA::EAddrMode::SX:
         effectiveAddress = opSpec
                 + cpu.getCPURegWordCurrent(CPURegisters::SP)
                 + cpu.getCPURegWordCurrent(CPURegisters::X);
         cpu.memory->getWord(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::N:
+    case Pep9::ISA::EAddrMode::N:
         effectiveAddress = opSpec;
         cpu.memory->getWord(effectiveAddress, effectiveAddress);
         cpu.memory->getWord(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::SF:
+    case Pep9::ISA::EAddrMode::SF:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::SP);
         cpu.memory->getWord(effectiveAddress, effectiveAddress);
         cpu.memory->getWord(effectiveAddress, opVal);
         break;
-    case Enu::EAddrMode::SFX:
+    case Pep9::ISA::EAddrMode::SFX:
         effectiveAddress = opSpec + cpu.getCPURegWordCurrent(CPURegisters::SP);
         cpu.memory->getWord(effectiveAddress, effectiveAddress);
         effectiveAddress += cpu.getCPURegWordCurrent(CPURegisters::X);

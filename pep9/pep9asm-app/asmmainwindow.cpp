@@ -109,7 +109,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     ui->asmProgramTracePane->init(pep_version, controlSection, programManager);
     ui->asmCpuPane->init(pep_version, controlSection, controlSection);
     redefineMnemonicsDialog->init(true);
-    ui->executionStatisticsWidget->init(controlSection, false, showCacheOnStart);
+    ui->executionStatisticsWidget->init(pep_version, controlSection, false, showCacheOnStart);
     ui->cacheWidget->init(cacheDevice);
 
     ui->actionSystem_Show_Cache->setChecked(showCacheOnStart);
@@ -138,6 +138,7 @@ AsmMainWindow::AsmMainWindow(QWidget *parent) :
     byteConverterChar = new ByteConverterChar(this);
     ui->byteConverterToolBar->addWidget(byteConverterChar);
     byteConverterInstr = new ByteConverterInstr(this);
+    byteConverterInstr->init(pep_version);
     ui->byteConverterToolBar->addWidget(byteConverterInstr);
     connect(byteConverterBin, &ByteConverterBin::textEdited, this, &AsmMainWindow::slotByteConverterBinEdited);
     connect(byteConverterChar, &ByteConverterChar::textEdited, this, &AsmMainWindow::slotByteConverterCharEdited);
@@ -795,7 +796,7 @@ void AsmMainWindow::assembleDefaultOperatingSystem()
             qDebug() << "OS failed to assemble.";
             auto textList = defaultOSText.split("\n");
             for(auto errorPair : elist) {
-                qDebug() << textList[errorPair.first] << errorPair.second << endl;
+                qDebug() << textList[errorPair.first] << errorPair.second << Qt::endl;
             }
             throw std::logic_error("The default operating system failed to assemble.");
         }
@@ -1429,7 +1430,7 @@ void AsmMainWindow::on_actionDebug_Single_Step_Assembler_triggered()
     quint16 addr = controlSection->getCPURegWordStart(pc_reg);
     memDevice->getByte(addr, is);
     if(controlSection->canStepInto()
-            && Pep::isTrapMap[Pep::decodeMnemonic[is]]) {
+            && Pep9::ISA::isTrapMap[Pep9::ISA::decodeMnemonic[is]]) {
         on_actionDebug_Step_Over_Assembler_triggered();
     } else if (controlSection->canStepInto()) {
         on_actionDebug_Step_Into_Assembler_triggered();

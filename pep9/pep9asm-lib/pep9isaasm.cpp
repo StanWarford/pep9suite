@@ -348,6 +348,7 @@ bool instanceof (AsmCode* inst) {
 void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& traceInfo,
                              QList<QSharedPointer<AsmCode>>& programList, QList<QPair<int, QString>> &errList)
 {
+    using namespace Pep9::ISA;
     // Extract the list of lines that have remaing trace tags.
     QList<QPair<int,QSharedPointer<AsmCode>>> structs, allocs;
     int lineIt = 0;
@@ -356,11 +357,11 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
         if(traceInfo.hadTraceTags && dynamic_cast<NonUnaryInstruction*>(line.get()) != nullptr) {
             NonUnaryInstruction* instr = dynamic_cast<NonUnaryInstruction*>(line.get());
             switch(instr->getMnemonic()) {
-            case Enu::EMnemonic::CALL:
+            case EMnemonic::CALL:
                 [[fallthrough]];
-            case Enu::EMnemonic::ADDSP:
+            case EMnemonic::ADDSP:
                 [[fallthrough]];
-            case Enu::EMnemonic::SUBSP:
+            case EMnemonic::SUBSP:
                 allocs.append({lineIt, line});
                 break;
             default:
@@ -517,13 +518,13 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
             }
             // On lines where trace tags have significance, verify that the value of the argument
             // is equal to the number of bytes listed in the trace tags.
-            if(instr->getAddressingMode() != Enu::EAddrMode::I) {
+            if(instr->getAddressingMode() != EAddrMode::I) {
                 traceInfo.staticTraceError = true;
                 errList.append({line.first, illegalAddrMode});
                 continue;
             }
             switch(instr->getMnemonic()) {
-            case Enu::EMnemonic::ADDSP:
+            case EMnemonic::ADDSP:
                 if(instr->getArgument()->getArgumentValue() != size) {
                     traceInfo.staticTraceError = true;
                     errList.append({line.first, bytesAllocMismatch.arg(instr->getArgument()->getArgumentValue()).arg(size)});
@@ -532,7 +533,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                     traceInfo.instrToSymlist[address] = lineTypes;
                 }
                 break;
-            case Enu::EMnemonic::SUBSP:
+            case EMnemonic::SUBSP:
                 if(instr->getArgument()->getArgumentValue() != size) {
                     traceInfo.staticTraceError = true;
                     errList.append({line.first, bytesAllocMismatch.arg(instr->getArgument()->getArgumentValue()).arg(size)});
@@ -541,7 +542,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                     traceInfo.instrToSymlist[address] = lineTypes;
                 }
                 break;
-            case Enu::EMnemonic::CALL:
+            case EMnemonic::CALL:
                 if(instr->hasSymbolicOperand()
                         && instr->getSymbolicOperand()->getName() == "malloc") {
                     traceInfo.instrToSymlist[address] = lineTypes;
@@ -595,10 +596,12 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
                                int& byteCount, QString sourceLine, int lineNum, AsmCode *&code,
                                QString &errorString, bool &dotEndDetected, bool hasBreakpoint)
 {
+    using namespace Pep9::ISA;
+
     IsaParserHelper::ELexicalToken token; // Passed to getToken.
     QString tokenString; // Passed to getToken.
     QString localSymbolDef = ""; // Saves symbol definition for processing in the following state.
-    Enu::EMnemonic localEnumMnemonic; // Key to Pep:: table lookups.
+    Pep9::ISA::EMnemonic localEnumMnemonic; // Key to Pep:: table lookups.
 
     // The concrete code objects asssigned to code.
     UnaryInstruction *unaryInstruction = nullptr;
@@ -624,9 +627,9 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
         switch (state) {
         case IsaParserHelper::PS_START:
             if (token == IsaParserHelper::LT_IDENTIFIER) {
-                if (Pep::mnemonToEnumMap.contains(tokenString.toUpper())) {
-                    localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
-                    if (Pep::isUnaryMap.value(localEnumMnemonic)) {
+                if (mnemonToEnumMap.contains(tokenString.toUpper())) {
+                    localEnumMnemonic = mnemonToEnumMap.value(tokenString.toUpper());
+                    if (isUnaryMap.value(localEnumMnemonic)) {
                         unaryInstruction = new UnaryInstruction;
                         unaryInstruction->setMnemonic(localEnumMnemonic);
                         unaryInstruction->setBreakpoint(hasBreakpoint);
@@ -757,9 +760,9 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
         case IsaParserHelper::PS_SYMBOL_DEF:
             if (token == IsaParserHelper::LT_IDENTIFIER){
-                if (Pep::mnemonToEnumMap.contains(tokenString.toUpper())) {
-                    localEnumMnemonic = Pep::mnemonToEnumMap.value(tokenString.toUpper());
-                    if (Pep::isUnaryMap.value(localEnumMnemonic)) {
+                if (mnemonToEnumMap.contains(tokenString.toUpper())) {
+                    localEnumMnemonic = mnemonToEnumMap.value(tokenString.toUpper());
+                    if (isUnaryMap.value(localEnumMnemonic)) {
                         unaryInstruction = new UnaryInstruction;
                         unaryInstruction->setSymbolEntry(symTable->getValue(localSymbolDef));
                         unaryInstruction->setMnemonic(localEnumMnemonic);
@@ -917,20 +920,20 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
 
         case IsaParserHelper::PS_ADDRESSING_MODE:
             if (token == IsaParserHelper::LT_ADDRESSING_MODE) {
-                Enu::EAddrMode addrMode = IsaParserHelper::stringToAddrMode(tokenString);
-                if ((static_cast<int>(addrMode) & Pep::addrModesMap.value(localEnumMnemonic)) == 0) { // Nested parens required.
+                EAddrMode addrMode = IsaParserHelper::stringToAddrMode(tokenString);
+                if ((static_cast<int>(addrMode) & addrModesMap.value(localEnumMnemonic)) == 0) { // Nested parens required.
                     errorString = ";ERROR: Illegal addressing mode for this instruction.";
                     return false;
                 }
                 nonUnaryInstruction->setAddressingMode(addrMode);
                 state = IsaParserHelper::PS_CLOSE;
             }
-            else if (Pep::addrModeRequiredMap.value(localEnumMnemonic)) {
+            else if (addrModeRequiredMap.value(localEnumMnemonic)) {
                 errorString = ";ERROR: Addressing mode required for this instruction.";
                 return false;
             }
             else { // Must be branch type instruction with no addressing mode. Assign default addressing mode.
-                nonUnaryInstruction->setAddressingMode(Enu::EAddrMode::I);
+                nonUnaryInstruction->setAddressingMode(EAddrMode::I);
                 if (token == IsaParserHelper::LT_COMMENT) {
                     code->setComment(tokenString);
                     state = IsaParserHelper::PS_COMMENT;
@@ -1295,15 +1298,15 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
             dynamic_cast<DotEquate*>(code) == nullptr &&
             dynamic_cast<DotByte*>(code) == nullptr &&
             (nui == nullptr || (
-            nui->getMnemonic() != Enu::EMnemonic::CALL &&
-            nui->getMnemonic() != Enu::EMnemonic::SUBSP &&
-            nui->getMnemonic() != Enu::EMnemonic::ADDSP))) {
+            nui->getMnemonic() != EMnemonic::CALL &&
+            nui->getMnemonic() != EMnemonic::SUBSP &&
+            nui->getMnemonic() != EMnemonic::ADDSP))) {
     }
     else if(hasArrayType(tag)) {
         traceInfo.hadTraceTags = true;
         auto aTag = arrayType(tag);
         if(nui != nullptr &&
-           nui->getMnemonic() == Enu::EMnemonic::CALL &&
+           nui->getMnemonic() == EMnemonic::CALL &&
            nui->getArgument()->getArgumentString() == "malloc") {
             auto item = QSharedPointer<LiteralArrayType>::create(aTag.second, aTag.first);
             traceInfo.dynamicAllocSymbolTypes.insert(code->getSymbolEntry(), item);
@@ -1339,7 +1342,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
         traceInfo.hadTraceTags = true;
         auto pTag = primitiveType(tag);
         if(nui != nullptr &&
-           nui->getMnemonic() == Enu::EMnemonic::CALL &&
+           nui->getMnemonic() == EMnemonic::CALL &&
            nui->getArgument()->getArgumentString() == "malloc") {
             // It's alright for a call to malloc to have a primitive type tag.
             auto item = QSharedPointer<LiteralPrimitiveType>::create("", pTag);
@@ -1579,17 +1582,18 @@ QStringList IsaAsm::extractTagList(QString comment)
     return out;
 }
 
-Enu::EAddrMode IsaParserHelper::stringToAddrMode(QString str)
+Pep9::ISA::EAddrMode IsaParserHelper::stringToAddrMode(QString str)
 {
+    using namespace Pep9::ISA;
     str.remove(0, 1); // Remove the comma.
     str = str.trimmed().toUpper();
-    if (str == "I") return Enu::EAddrMode::I;
-    if (str == "D") return Enu::EAddrMode::D;
-    if (str == "N") return Enu::EAddrMode::N;
-    if (str == "S") return Enu::EAddrMode::S;
-    if (str == "SF") return Enu::EAddrMode::SF;
-    if (str == "X") return Enu::EAddrMode::X;
-    if (str == "SX") return Enu::EAddrMode::SX;
-    if (str == "SFX") return Enu::EAddrMode::SFX;
-    return Enu::EAddrMode::NONE;
+    if (str == "I") return EAddrMode::I;
+    if (str == "D") return EAddrMode::D;
+    if (str == "N") return EAddrMode::N;
+    if (str == "S") return EAddrMode::S;
+    if (str == "SF") return EAddrMode::SF;
+    if (str == "X") return EAddrMode::X;
+    if (str == "SX") return EAddrMode::SX;
+    if (str == "SFX") return EAddrMode::SFX;
+    return EAddrMode::NONE;
 }
