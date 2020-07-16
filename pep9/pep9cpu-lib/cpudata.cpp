@@ -320,20 +320,21 @@ Pep9::uarch::MainBusState CPUDataSection::getMainBusState() const
     return mainBusState;
 }
 
-bool CPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
+bool CPUDataSection::getStatusBit(Pep9::uarch::EStatusBit statusBit) const
 {
+    using namespace Pep9::uarch;
     switch(statusBit)
     {
     // Mask out bit of interest, then convert to bool
-    case Enu::STATUS_N:
+    case EStatusBit::STATUS_N:
         return registerBank->readStatusBitCurrent(NBit_t);
-    case Enu::STATUS_Z:
+    case EStatusBit::STATUS_Z:
         return registerBank->readStatusBitCurrent(ZBit_t);
-    case Enu::STATUS_V:
+    case EStatusBit::STATUS_V:
         return registerBank->readStatusBitCurrent(VBit_t);
-    case Enu::STATUS_C:
+    case EStatusBit::STATUS_C:
         return registerBank->readStatusBitCurrent(CBit_t);
-    case Enu::STATUS_S:
+    case EStatusBit::STATUS_S:
         return registerBank->readStatusBitCurrent(SBit_t);
     default:
         // Should never occur, but might happen if a bad status bit is passed
@@ -341,13 +342,33 @@ bool CPUDataSection::getStatusBit(Enu::EStatusBit statusBit) const
     }
 }
 
-void CPUDataSection::onSetStatusBit(Enu::EStatusBit statusBit, bool val)
+void CPUDataSection::onSetStatusBit(Pep9::uarch::EStatusBit statusBit, bool val)
 {
+    using namespace Pep9::uarch;
+
     bool oldVal = false;
 
     // Mask out the original value, then or it with the properly shifted bit
-    oldVal = registerBank->readStatusBitCurrent(statusBit);
-    registerBank->writeStatusBit(statusBit, val);
+    oldVal = getStatusBit(statusBit);
+    switch(statusBit)
+    {
+    // Mask out bit of interest, then convert to bool
+    case EStatusBit::STATUS_N:
+        registerBank->writeStatusBit(NBit_t, val);
+        break;
+    case EStatusBit::STATUS_Z:
+        registerBank->writeStatusBit(ZBit_t, val);
+        break;
+    case EStatusBit::STATUS_V:
+        registerBank->writeStatusBit(VBit_t, val);
+        break;
+    case EStatusBit::STATUS_C:
+        registerBank->writeStatusBit(CBit_t, val);
+        break;
+    case EStatusBit::STATUS_S:
+        registerBank->writeStatusBit(SBit_t, val);
+        break;
+    }
     if(emitEvents) {
         if(oldVal != val) emit statusBitChanged(statusBit, val);
     }
@@ -511,6 +532,8 @@ void CPUDataSection::handleMainBusState() noexcept
 
 void CPUDataSection::stepOneByte() noexcept
 {
+    using namespace Pep9::uarch;
+
     auto constexpr mara_reg = static_cast<size_t>(Pep9::uarch::EMemoryRegisters::MEM_MARA);
     auto constexpr marb_reg = static_cast<size_t>(Pep9::uarch::EMemoryRegisters::MEM_MARB);
     auto constexpr mdr_reg = static_cast<size_t>(Pep9::uarch::EMemoryRegisters::MEM_MDR);
@@ -589,7 +612,7 @@ void CPUDataSection::stepOneByte() noexcept
 
     //NCk
     if(clockSignals[NCk_t]) {
-        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N, Pep9::uarch::NMask & NZVC);
+        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(EStatusBit::STATUS_N, Pep9::uarch::NMask & NZVC);
         else statusBitError = true;
     }
 
@@ -598,10 +621,10 @@ void CPUDataSection::stepOneByte() noexcept
         if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput)
         {
             if(controlSignals[AndZ_t] == 0) {
-                onSetStatusBit(Enu::STATUS_Z, Pep9::uarch::ZMask & NZVC);
+                onSetStatusBit(EStatusBit::STATUS_Z, Pep9::uarch::ZMask & NZVC);
             }
             else if(controlSignals[AndZ_t] == 1) {
-                onSetStatusBit(Enu::STATUS_Z, static_cast<bool>((Pep9::uarch::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z)));
+                onSetStatusBit(EStatusBit::STATUS_Z, static_cast<bool>((Pep9::uarch::ZMask & NZVC) && getStatusBit(EStatusBit::STATUS_Z)));
             }
             else statusBitError = true;
         }
@@ -610,19 +633,19 @@ void CPUDataSection::stepOneByte() noexcept
 
     //VCk
     if(clockSignals[VCk_t]) {
-        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V, Pep9::uarch::VMask & NZVC);
+        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(EStatusBit::STATUS_V, Pep9::uarch::VMask & NZVC);
         else statusBitError = true;
     }
 
     //CCk
     if(clockSignals[CCk_t]) {
-        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C, Pep9::uarch::CMask & NZVC);
+        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(EStatusBit::STATUS_C, Pep9::uarch::CMask & NZVC);
         else statusBitError = true;
     }
 
     //SCk
     if(clockSignals[SCk_t]) {
-        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S, Pep9::uarch::CMask & NZVC);
+        if(aluFunc!=Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(EStatusBit::STATUS_S, Pep9::uarch::CMask & NZVC);
         else statusBitError = true;
     }
 
@@ -635,6 +658,8 @@ void CPUDataSection::stepOneByte() noexcept
 
 void CPUDataSection::stepTwoByte() noexcept
 {
+    using namespace Pep9::uarch;
+
     auto constexpr mara_reg = static_cast<size_t>(Pep9::uarch::EMemoryRegisters::MEM_MARA);
     auto constexpr marb_reg = static_cast<size_t>(Pep9::uarch::EMemoryRegisters::MEM_MARB);
     auto constexpr mdre_reg = static_cast<size_t>(Pep9::uarch::EMemoryRegisters::MEM_MDRE);
@@ -786,7 +811,7 @@ void CPUDataSection::stepTwoByte() noexcept
 
     //NCk
     if(clockSignals[NCk_t]) {
-        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_N, Pep9::uarch::NMask & NZVC);
+        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(EStatusBit::STATUS_N, Pep9::uarch::NMask & NZVC);
         else statusBitError = true;
     }
 
@@ -795,10 +820,10 @@ void CPUDataSection::stepTwoByte() noexcept
     if(clockSignals[ZCk_t]) {
         if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) {
             if(controlSignals[AndZ_t] == 0) {
-                onSetStatusBit(Enu::STATUS_Z, Pep9::uarch::ZMask & NZVC);
+                onSetStatusBit(EStatusBit::STATUS_Z, Pep9::uarch::ZMask & NZVC);
             }
             else if(controlSignals[AndZ_t] == 1) {
-                onSetStatusBit(Enu::STATUS_Z, static_cast<bool>((Pep9::uarch::ZMask & NZVC) && getStatusBit(Enu::STATUS_Z)));
+                onSetStatusBit(EStatusBit::STATUS_Z, static_cast<bool>((Pep9::uarch::ZMask & NZVC) && getStatusBit(EStatusBit::STATUS_Z)));
             }
             else statusBitError = true;
         }
@@ -807,19 +832,19 @@ void CPUDataSection::stepTwoByte() noexcept
 
     //VCk
     if(clockSignals[VCk_t]) {
-        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_V, Pep9::uarch::VMask & NZVC);
+        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(EStatusBit::STATUS_V, Pep9::uarch::VMask & NZVC);
         else statusBitError = true;
     }
 
     //CCk
     if(clockSignals[CCk_t]) {
-        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_C, Pep9::uarch::CMask & NZVC);
+        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(EStatusBit::STATUS_C, Pep9::uarch::CMask & NZVC);
         else statusBitError = true;
     }
 
     //SCk
     if(clockSignals[SCk_t]) {
-        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(Enu::STATUS_S, Pep9::uarch::CMask & NZVC);
+        if(aluFunc != Pep9::uarch::EALUFunc::UNDEFINED_func && hasALUOutput) onSetStatusBit(EStatusBit::STATUS_S, Pep9::uarch::CMask & NZVC);
         else statusBitError = true;
     }
 

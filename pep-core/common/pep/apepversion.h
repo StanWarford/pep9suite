@@ -23,10 +23,16 @@ public:
     {
         A, X, SP, PC, IS, OS
     };
+    enum class global_status_bits
+    {
+        N, Z, V, C
+    };
+
     APepVersion();
     virtual ~APepVersion() = 0;
 
     virtual PepCore::CPURegisters_number_t get_global_register_number(global_registers) const = 0;
+    virtual PepCore::CPUStatusBits_name_t get_global_status_bit_number(global_status_bits) const = 0;
 
     virtual bool isInstructionUnary(quint8) const = 0;
     virtual quint8 maxRegisterNumber() const = 0;

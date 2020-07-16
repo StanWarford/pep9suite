@@ -97,10 +97,14 @@ void AsmCpuPane::updateCpu() {
     auto is_reg = pep_version->get_global_register_number(APepVersion::global_registers::IS);
     Enu::EAddrMode addrMode = Pep::decodeAddrMode[acpu->getCPURegByteCurrent(is_reg)];
 
-    ui->nLabel->setText(acpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_N) ? "1" : "0");
-    ui->zLabel->setText(acpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_Z) ? "1" : "0");
-    ui->vLabel->setText(acpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_V) ? "1" : "0");
-    ui->cLabel->setText(acpu->getStatusBitCurrent(Enu::EStatusBit::STATUS_C) ? "1" : "0");
+    auto n_reg = pep_version->get_global_status_bit_number(APepVersion::global_status_bits::N);
+    auto z_reg = pep_version->get_global_status_bit_number(APepVersion::global_status_bits::Z);
+    auto v_reg = pep_version->get_global_status_bit_number(APepVersion::global_status_bits::V);
+    auto c_reg = pep_version->get_global_status_bit_number(APepVersion::global_status_bits::C);
+    ui->nLabel->setText(acpu->getStatusBitCurrent(n_reg) ? "1" : "0");
+    ui->zLabel->setText(acpu->getStatusBitCurrent(z_reg) ? "1" : "0");
+    ui->vLabel->setText(acpu->getStatusBitCurrent(v_reg) ? "1" : "0");
+    ui->cLabel->setText(acpu->getStatusBitCurrent(c_reg) ? "1" : "0");
 
     quint16 acc, idx, sp, pc, opsc;
     quint8 is;

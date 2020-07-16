@@ -69,7 +69,7 @@ public:
     //Test for Signals and Registers
     quint8 getControlSignals(Pep9::uarch::EControlSignals controlSignal) const;
     bool getClockSignals(Pep9::uarch::EClockSignals) const;
-    bool getStatusBit(Enu::EStatusBit) const;
+    bool getStatusBit(Pep9::uarch::EStatusBit) const;
 
     bool setSignalsFromMicrocode(const MicroCode* line);
     void setEmitEvents(bool b);
@@ -134,7 +134,7 @@ private:
     void stepTwoByte() noexcept;
 
 public slots:
-    void onSetStatusBit(Enu::EStatusBit,bool val);
+    void onSetStatusBit(Pep9::uarch::EStatusBit,bool val);
     void onSetRegisterByte(quint8 reg,quint8 val);
     void onSetRegisterWord(quint8 reg,quint16 val);
     void onSetMemoryRegister(Pep9::uarch::EMemoryRegisters,quint8 val);
@@ -148,7 +148,7 @@ public slots:
 signals:
     void registerChanged(quint8 reg, quint8 oldVal, quint8 newVal); //Thrown whenever a register in the register bank is changed.
     void memoryRegisterChanged(Pep9::uarch::EMemoryRegisters, quint8 oldVal, quint8 newVal); //Thrown whenever a memory register is changed.
-    void statusBitChanged(Enu::EStatusBit status, bool value);
+    void statusBitChanged(Pep9::uarch::EStatusBit status, bool value);
     void CPUTypeChanged(PepCore::CPUType type);
 
 };

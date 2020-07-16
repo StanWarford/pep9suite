@@ -1199,7 +1199,9 @@ void CpuGraphicsItems::repaintNCk(QPainter *painter)
 
 void CpuGraphicsItems::repaintSBitOut(QPainter *painter)
 {
-    sBitLabel->text() = dataSection->getStatusBit(Enu::STATUS_S)?"1":"0";
+    using namespace Pep9::uarch;
+
+    sBitLabel->text() = dataSection->getStatusBit(EStatusBit::STATUS_S)?"1":"0";
 
     QColor color = colorScheme->arrowColorOn;
 
@@ -1225,7 +1227,9 @@ void CpuGraphicsItems::repaintSBitOut(QPainter *painter)
 
 void CpuGraphicsItems::repaintCBitOut(QPainter *painter)
 {
-    cBitLabel->text() = dataSection->getStatusBit(Enu::STATUS_C)?"1":"0";
+    using namespace Pep9::uarch;
+
+    cBitLabel->text() = dataSection->getStatusBit(EStatusBit::STATUS_C)?"1":"0";
 
     QColor color = colorScheme->arrowColorOn;
 
@@ -1270,7 +1274,9 @@ void CpuGraphicsItems::repaintCBitOut(QPainter *painter)
 
 void CpuGraphicsItems::repaintVBitOut(QPainter *painter)
 {
-    vBitLabel->text() = dataSection->getStatusBit(Enu::STATUS_V)?"1":"0";
+    using namespace Pep9::uarch;
+
+    vBitLabel->text() = dataSection->getStatusBit(EStatusBit::STATUS_V)?"1":"0";
 
     QColor color = colorScheme->arrowColorOn;
 
@@ -1295,7 +1301,9 @@ void CpuGraphicsItems::repaintVBitOut(QPainter *painter)
 
 void CpuGraphicsItems::repaintZBitOut(QPainter *painter)
 {
-    zBitLabel->text() = dataSection->getStatusBit(Enu::STATUS_Z)?"1":"0";
+    using namespace Pep9::uarch;
+
+    zBitLabel->text() = dataSection->getStatusBit(EStatusBit::STATUS_Z)?"1":"0";
 
     QColor color = colorScheme->arrowColorOn;
 
@@ -1326,7 +1334,9 @@ void CpuGraphicsItems::repaintZBitOut(QPainter *painter)
 
 void CpuGraphicsItems::repaintNBitOut(QPainter *painter)
 {
-    nBitLabel->text() = dataSection->getStatusBit(Enu::STATUS_N)?"1":"0";
+    using namespace Pep9::uarch;
+
+    nBitLabel->text() = dataSection->getStatusBit(EStatusBit::STATUS_N)?"1":"0";
 
     QColor color = colorScheme->arrowColorOn;
 

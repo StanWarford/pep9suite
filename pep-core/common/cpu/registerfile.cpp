@@ -36,7 +36,9 @@ bool RegisterFile::readStatusBitCurrent(PepCore::CPUStatusBits_name_t bit) const
     if(bit < statusBitsCurrent.size()) {
         return statusBitsCurrent[bit];
     }
-    throw  std::invalid_argument("Status bit index not in range");
+    else {
+        throw  std::invalid_argument("Status bit index not in range");
+    }
 }
 
 bool RegisterFile::readStatusBitStart(PepCore::CPUStatusBits_name_t bit) const
@@ -44,7 +46,9 @@ bool RegisterFile::readStatusBitStart(PepCore::CPUStatusBits_name_t bit) const
     if(bit < statusBitsCurrent.size()) {
         return statusBitsStart[bit];
     }
-    throw  std::invalid_argument("Status bit index not in range");
+    else {
+        throw  std::invalid_argument("Status bit index not in range");
+    }
 }
 
 void RegisterFile::writeStatusBit(PepCore::CPUStatusBits_name_t bit, bool val)
@@ -52,7 +56,9 @@ void RegisterFile::writeStatusBit(PepCore::CPUStatusBits_name_t bit, bool val)
     if(bit < statusBitsCurrent.size()) {
         statusBitsCurrent[bit] = val;
     }
-    throw  std::invalid_argument("Status bit index not in range");
+    else {
+        throw  std::invalid_argument("Status bit index not in range");
+    }
 }
 
 

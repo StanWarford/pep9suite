@@ -208,23 +208,24 @@ void StatusBitSpecification::setUnitPre(CPUDataSection *data,
                                         AMemoryDevice *) noexcept
 {
     using namespace Pep9::uarch;
-    Enu::EStatusBit status;
+
+    Pep9::uarch::EStatusBit status;
     switch(nzvcsAddress)
     {
     case ECPUKeywords::N:
-        status = Enu::STATUS_N;
+        status = EStatusBit::STATUS_N;
         break;
     case ECPUKeywords::Z:
-        status = Enu::STATUS_Z;
+        status = EStatusBit::STATUS_Z;
         break;
     case ECPUKeywords::V:
-        status = Enu::STATUS_V;
+        status = EStatusBit::STATUS_V;
         break;
     case ECPUKeywords::Cbit:
-        status = Enu::STATUS_C;
+        status = EStatusBit::STATUS_C;
         break;
     case ECPUKeywords::S:
-        status = Enu::STATUS_S;
+        status = EStatusBit::STATUS_S;
         break;
     default: //If this case is ever reached, then nzvcsAddress wasn't actually a NZVCS flag
         return;
@@ -237,23 +238,23 @@ bool StatusBitSpecification::testUnitPost(const CPUDataSection *data,
                                           QString &errorString) const noexcept
 {
     using namespace Pep9::uarch;
-    Enu::EStatusBit status;
+    Pep9::uarch::EStatusBit status;
     switch(nzvcsAddress)
     {
     case ECPUKeywords::N:
-        status = Enu::STATUS_N;
+        status = EStatusBit::STATUS_N;
         break;
     case ECPUKeywords::Z:
-        status = Enu::STATUS_Z;
+        status = EStatusBit::STATUS_Z;
         break;
     case ECPUKeywords::V:
-        status = Enu::STATUS_V;
+        status = EStatusBit::STATUS_V;
         break;
     case ECPUKeywords::Cbit:
-        status = Enu::STATUS_C;
+        status = EStatusBit::STATUS_C;
         break;
     case ECPUKeywords::S:
-        status = Enu::STATUS_S;
+        status = EStatusBit::STATUS_S;
         break;
     default: return true;
     }

@@ -19,6 +19,7 @@ public:
     // APepVersion interface
 public:
     PepCore::CPURegisters_number_t get_global_register_number(global_registers) const override;
+    PepCore::CPUStatusBits_name_t get_global_status_bit_number(global_status_bits) const;
     bool isInstructionUnary(quint8) const override;
     quint8 maxRegisterNumber() const override;
     quint8 maxStatusBitNumber() const override;
@@ -45,7 +46,7 @@ private:
     bool isStoreMnemonic(Pep9::ISA::EMnemonic);
     void initDecoderTables();
 
-    // Pep9 micro tables
+
 };
 }
 

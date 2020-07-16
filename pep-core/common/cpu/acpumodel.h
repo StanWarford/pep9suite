@@ -71,8 +71,8 @@ public:
     // Prepare the CPU for starting simulations / debugging.
     virtual void initCPU() = 0;
     // Fetch values of the status bit reigsters(NZVCS bits).
-    virtual bool getStatusBitCurrent(Enu::EStatusBit) const = 0;
-    virtual bool getStatusBitStart(Enu::EStatusBit) const = 0;
+    virtual bool getStatusBitCurrent(PepCore::CPUStatusBits_name_t) const = 0;
+    virtual bool getStatusBitStart(PepCore::CPUStatusBits_name_t) const = 0;
     /*
      * Return the current value of the named register. On implementations with non-atomic instructions
      * (e.g. micrcoded CPU's) the value of a register might vary over the course of executing an instruction.

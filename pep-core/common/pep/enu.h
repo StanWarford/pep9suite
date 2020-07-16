@@ -76,17 +76,5 @@ namespace Enu {
         ERun, ERunAwaitIO,
         EDebugAwaitIO, EDebugAwaitClick, EDebugRunToBP, EDebugSingleStep
     };
-
-    /*
-     * Enumerations for Pep9CPU
-     */
-
-    enum EStatusBit
-    {
-        STATUS_N,STATUS_Z,STATUS_V,STATUS_C,STATUS_S
-    };
-    Q_ENUM_NS(EStatusBit);
-
-
 }
 #endif

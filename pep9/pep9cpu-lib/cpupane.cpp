@@ -360,11 +360,11 @@ void CpuPane::initRegisters()
     }
 
     //Set status bits
-    setStatusBit(ECPUKeywords::N,dataSection->getStatusBit(Enu::STATUS_N));
-    setStatusBit(ECPUKeywords::Z,dataSection->getStatusBit(Enu::STATUS_Z));
-    setStatusBit(ECPUKeywords::V,dataSection->getStatusBit(Enu::STATUS_V));
-    setStatusBit(ECPUKeywords::Cbit,dataSection->getStatusBit(Enu::STATUS_C));
-    setStatusBit(ECPUKeywords::S,dataSection->getStatusBit(Enu::STATUS_S));
+    setStatusBit(ECPUKeywords::N,dataSection->getStatusBit(EStatusBit::STATUS_N));
+    setStatusBit(ECPUKeywords::Z,dataSection->getStatusBit(EStatusBit::STATUS_Z));
+    setStatusBit(ECPUKeywords::V,dataSection->getStatusBit(EStatusBit::STATUS_V));
+    setStatusBit(ECPUKeywords::Cbit,dataSection->getStatusBit(EStatusBit::STATUS_C));
+    setStatusBit(ECPUKeywords::S,dataSection->getStatusBit(EStatusBit::STATUS_S));
 }
 
 void CpuPane::setStatusBit(Pep9::uarch::ECPUKeywords bit, bool value)
@@ -623,7 +623,7 @@ void CpuPane::labelClicked()
     // becomes upset. This values will only be used if their associated
     // boolean flag is true, but I can't pass this hint to the compiler.
     EControlSignals control = EControlSignals::A;
-    Enu::EStatusBit status = Enu::EStatusBit::STATUS_C;
+    auto status = EStatusBit::STATUS_C;
     if(label == cpuPaneItems->aMuxTristateLabel){
         temp = cpuPaneItems->aMuxTristateLabel->text();
         control = EControlSignals::AMux;
@@ -688,27 +688,27 @@ void CpuPane::labelClicked()
         hadCtrl = true;
     }
     else if(label == cpuPaneItems->nBitLabel) {
-        status = Enu::STATUS_N;
+        status = EStatusBit::STATUS_N;
         temp = cpuPaneItems->nBitLabel->text();
         hadStatus = true;
     }
     else if(label == cpuPaneItems->zBitLabel) {
-        status = Enu::STATUS_Z;
+        status = EStatusBit::STATUS_Z;
         temp = cpuPaneItems->zBitLabel->text();
         hadStatus = true;
     }
     else if(label == cpuPaneItems->vBitLabel) {
-        status = Enu::STATUS_V;
+        status = EStatusBit::STATUS_V;
         temp = cpuPaneItems->vBitLabel->text();
         hadStatus = true;
     }
     else if(label == cpuPaneItems->cBitLabel){
-        status = Enu::STATUS_C;
+        status = EStatusBit::STATUS_C;
         temp = cpuPaneItems->cBitLabel->text();
         hadStatus = true;
     }
     else if(label == cpuPaneItems->sBitLabel) {
-        status = Enu::STATUS_S;
+        status = EStatusBit::STATUS_S;
         temp = cpuPaneItems->sBitLabel->text();
         hadStatus = true;
     }
@@ -983,24 +983,24 @@ void CpuPane::onMemoryRegisterChanged(Pep9::uarch::EMemoryRegisters reg, quint8,
     }
 }
 
-void CpuPane::onStatusBitChanged(EStatusBit bit, bool value)
+void CpuPane::onStatusBitChanged(Pep9::uarch::EStatusBit bit, bool value)
 {
     using namespace Pep9::uarch;
 
     switch(bit){
-    case Enu::STATUS_N:
+    case EStatusBit::STATUS_N:
         setStatusBit(ECPUKeywords::N,value);
         break;
-    case Enu::STATUS_Z:
+    case EStatusBit::STATUS_Z:
         setStatusBit(ECPUKeywords::Z,value);
         break;
-    case Enu::STATUS_V:
+    case EStatusBit::STATUS_V:
         setStatusBit(ECPUKeywords::V,value);
         break;
-    case Enu::STATUS_C:
+    case EStatusBit::STATUS_C:
         setStatusBit(ECPUKeywords::Cbit,value);
         break;
-    case Enu::STATUS_S:
+    case EStatusBit::STATUS_S:
         setStatusBit(ECPUKeywords::S,value);
         break;
     default:
@@ -1035,11 +1035,11 @@ void CpuPane::onSimulationUpdate()
     setRegister(ECPUKeywords::MDRREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDR));
     setRegister(ECPUKeywords::MDROREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDRO));
     setRegister(ECPUKeywords::MDREREG, dataSection->getMemoryRegister(Pep9::uarch::EMemoryRegisters::MEM_MDRE));
-    setStatusBit(ECPUKeywords::N, dataSection->getStatusBit(Enu::STATUS_N));
-    setStatusBit(ECPUKeywords::Z, dataSection->getStatusBit(Enu::STATUS_Z));
-    setStatusBit(ECPUKeywords::V, dataSection->getStatusBit(Enu::STATUS_V));
-    setStatusBit(ECPUKeywords::Cbit, dataSection->getStatusBit(Enu::STATUS_C));
-    setStatusBit(ECPUKeywords::S, dataSection->getStatusBit(Enu::STATUS_S));
+    setStatusBit(ECPUKeywords::N, dataSection->getStatusBit(EStatusBit::STATUS_N));
+    setStatusBit(ECPUKeywords::Z, dataSection->getStatusBit(EStatusBit::STATUS_Z));
+    setStatusBit(ECPUKeywords::V, dataSection->getStatusBit(EStatusBit::STATUS_V));
+    setStatusBit(ECPUKeywords::Cbit, dataSection->getStatusBit(EStatusBit::STATUS_C));
+    setStatusBit(ECPUKeywords::S, dataSection->getStatusBit(EStatusBit::STATUS_S));
     const AMicroCode *code = cpu->getCurrentMicrocodeLine();
     if(auto* as_microcode = dynamic_cast<const MicroCode*>(code);
              as_microcode != nullptr) {

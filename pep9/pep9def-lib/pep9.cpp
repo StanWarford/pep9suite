@@ -28,6 +28,20 @@ PepCore::CPURegisters_number_t Pep9::Definition::get_global_register_number(APep
     }
 }
 
+PepCore::CPUStatusBits_name_t Pep9::Definition::get_global_status_bit_number(APepVersion::global_status_bits bit) const
+{
+    switch(bit) {
+    case APepVersion::global_status_bits::N:
+        return static_cast<PepCore::CPUStatusBits_name_t>(Pep9::ISA::EStatusBit::STATUS_N);
+    case APepVersion::global_status_bits::Z:
+        return static_cast<PepCore::CPUStatusBits_name_t>(Pep9::ISA::EStatusBit::STATUS_Z);
+    case APepVersion::global_status_bits::V:
+        return static_cast<PepCore::CPUStatusBits_name_t>(Pep9::ISA::EStatusBit::STATUS_V);
+    case APepVersion::global_status_bits::C:
+        return static_cast<PepCore::CPUStatusBits_name_t>(Pep9::ISA::EStatusBit::STATUS_C);
+    }
+}
+
 bool Pep9::Definition::isInstructionUnary(quint8 instr) const
 {
     return this->isUnaryMap[decodeMnemonic[instr]];
@@ -274,3 +288,4 @@ uint8_t to_uint8_t(Pep9::uarch::EClockSignals signal)
 {
     return static_cast<uint8_t>(signal);
 }
+

@@ -72,6 +72,9 @@ public:
     quint8 getCPURegByteStart(Pep9::ISA::CPURegisters reg) const;
     quint16 getCPURegWordStart(Pep9::ISA::CPURegisters reg) const;
 
+    bool getStatusBitCurrent(Pep9::ISA::EStatusBit bit) const;
+    bool getStatusBitStart(Pep9::ISA::EStatusBit bit) const;
+
 protected:
     void onISAStep() override;
     void updateAtInstructionEnd() override;
@@ -82,8 +85,9 @@ protected:
     // ACPUModel interface
 public:
     void initCPU() override;
-    bool getStatusBitCurrent(Enu::EStatusBit) const override;
-    bool getStatusBitStart(Enu::EStatusBit) const override;
+    bool getStatusBitCurrent(PepCore::CPUStatusBits_name_t bit) const override;
+    bool getStatusBitStart(PepCore::CPUStatusBits_name_t bit) const override;
+
     QString getErrorMessage() const noexcept override;
     quint8 getCPURegByteCurrent(PepCore::CPURegisters_number_t reg) const override;
     quint16 getCPURegWordCurrent(PepCore::CPURegisters_number_t reg) const override;
@@ -119,7 +123,7 @@ private:
     void executeTrap(Enu::EMnemonic mnemon);
     // Callback function to handle InteruptHandler's BREAKPOINT_ASM.
     void breakpointAsmHandler();
-
+    void writeStatusBit(Pep9::ISA::EStatusBit bit, bool value);
     const PepCore::CPURegisters_number_t a_reg, x_reg, sp_reg, pc_reg, is_reg, os_reg;
 
 

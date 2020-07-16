@@ -47,9 +47,12 @@ public:
     quint8 getCPURegByteStart(Pep9::uarch::CPURegisters reg) const;
     quint16 getCPURegWordStart(Pep9::uarch::CPURegisters reg) const;
 
+    bool getStatusBitCurrent(Pep9::uarch::EStatusBit) const;
+    bool getStatusBitStart(Pep9::uarch::EStatusBit) const;
+
     // ACPUModel interface
-    bool getStatusBitCurrent(Enu::EStatusBit) const override;
-    bool getStatusBitStart(Enu::EStatusBit) const override;
+    bool getStatusBitCurrent(PepCore::CPUStatusBits_name_t) const override;
+    bool getStatusBitStart(PepCore::CPUStatusBits_name_t) const override;
 
     quint8 getCPURegByteCurrent(PepCore::CPURegisters_number_t reg) const override;
     quint16 getCPURegWordCurrent(PepCore::CPURegisters_number_t reg) const override;

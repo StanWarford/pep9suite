@@ -117,12 +117,114 @@ quint16 FullMicrocodedCPU::getCPURegWordStart(Pep9::uarch::CPURegisters reg) con
     return getCPURegWordStart(to_uint8_t(reg));
 }
 
-bool FullMicrocodedCPU::getStatusBitCurrent(Enu::EStatusBit bit) const
+bool FullMicrocodedCPU::getStatusBitCurrent(Pep9::ISA::EStatusBit bit) const
+{
+    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
+    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
+    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
+    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+
+    switch(bit)
+    {
+    // Mask out bit of interest, then convert to bool
+    case Pep9::ISA::EStatusBit::STATUS_N:
+        return data->getRegisterBank().readStatusBitCurrent(NBit_t);
+    case Pep9::ISA::EStatusBit::STATUS_Z:
+        return data->getRegisterBank().readStatusBitCurrent(ZBit_t);
+    case Pep9::ISA::EStatusBit::STATUS_V:
+        return data->getRegisterBank().readStatusBitCurrent(VBit_t);
+    case Pep9::ISA::EStatusBit::STATUS_C:
+        return data->getRegisterBank().readStatusBitCurrent(CBit_t);
+    default:
+        // Should never occur, but might happen if a bad status bit is passed
+        return false;
+    }
+}
+
+bool FullMicrocodedCPU::getStatusBitCurrent(Pep9::uarch::EStatusBit bit) const
+{
+    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
+    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
+    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
+    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+    const auto SBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_S);
+
+    switch(bit)
+    {
+    // Mask out bit of interest, then convert to bool
+    case Pep9::uarch::EStatusBit::STATUS_N:
+        return data->getRegisterBank().readStatusBitCurrent(NBit_t);
+    case Pep9::uarch::EStatusBit::STATUS_Z:
+        return data->getRegisterBank().readStatusBitCurrent(ZBit_t);
+    case Pep9::uarch::EStatusBit::STATUS_V:
+        return data->getRegisterBank().readStatusBitCurrent(VBit_t);
+    case Pep9::uarch::EStatusBit::STATUS_C:
+        return data->getRegisterBank().readStatusBitCurrent(CBit_t);
+    case Pep9::uarch::EStatusBit::STATUS_S:
+        return data->getRegisterBank().readStatusBitCurrent(SBit_t);
+    default:
+        // Should never occur, but might happen if a bad status bit is passed
+        return false;
+    }
+}
+
+bool FullMicrocodedCPU::getStatusBitStart(Pep9::ISA::EStatusBit bit) const
+{
+    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
+    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
+    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
+    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+
+    switch(bit)
+    {
+    // Mask out bit of interest, then convert to bool
+    case Pep9::ISA::EStatusBit::STATUS_N:
+        return data->getRegisterBank().readStatusBitStart(NBit_t);
+    case Pep9::ISA::EStatusBit::STATUS_Z:
+        return data->getRegisterBank().readStatusBitStart(ZBit_t);
+    case Pep9::ISA::EStatusBit::STATUS_V:
+        return data->getRegisterBank().readStatusBitStart(VBit_t);
+    case Pep9::ISA::EStatusBit::STATUS_C:
+        return data->getRegisterBank().readStatusBitStart(CBit_t);
+    default:
+        // Should never occur, but might happen if a bad status bit is passed
+        return false;
+    }
+}
+
+bool FullMicrocodedCPU::getStatusBitStart(Pep9::uarch::EStatusBit bit) const
+{
+    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
+    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
+    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
+    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+    const auto SBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_S);
+
+    switch(bit)
+    {
+    // Mask out bit of interest, then convert to bool
+    case Pep9::uarch::EStatusBit::STATUS_N:
+        return data->getRegisterBank().readStatusBitStart(NBit_t);
+    case Pep9::uarch::EStatusBit::STATUS_Z:
+        return data->getRegisterBank().readStatusBitStart(ZBit_t);
+    case Pep9::uarch::EStatusBit::STATUS_V:
+        return data->getRegisterBank().readStatusBitStart(VBit_t);
+    case Pep9::uarch::EStatusBit::STATUS_C:
+        return data->getRegisterBank().readStatusBitStart(CBit_t);
+    case Pep9::uarch::EStatusBit::STATUS_S:
+        return data->getRegisterBank().readStatusBitStart(SBit_t);
+    default:
+        // Should never occur, but might happen if a bad status bit is passed
+        return false;
+    }
+}
+
+bool FullMicrocodedCPU::getStatusBitCurrent(PepCore::CPUStatusBits_name_t bit) const
 {
     return data->getRegisterBank().readStatusBitCurrent(bit);
 }
 
-bool FullMicrocodedCPU::getStatusBitStart(Enu::EStatusBit bit) const
+bool FullMicrocodedCPU::getStatusBitStart(PepCore::CPUStatusBits_name_t bit) const
 {
     return data->getRegisterBank().readStatusBitStart(bit);
 }
@@ -522,7 +624,7 @@ void FullMicrocodedCPU::branchHandler()
         temp = prog->getTrueTarget()->getValue();
         break;
     case EBranchFunctions::uBRGT:
-        if((!data->getStatusBit(Enu::STATUS_N) && !data->getStatusBit(Enu::STATUS_Z))) {
+        if((!getStatusBitCurrent(EStatusBit::STATUS_N) && !getStatusBitCurrent(EStatusBit::STATUS_Z))) {
             temp = prog->getTrueTarget()->getValue();
         }
         else {
@@ -530,7 +632,7 @@ void FullMicrocodedCPU::branchHandler()
         }
         break;
     case EBranchFunctions::uBRGE:
-        if((!data->getStatusBit(Enu::STATUS_N))) {
+        if((!getStatusBitCurrent(EStatusBit::STATUS_N))) {
             temp = prog->getTrueTarget()->getValue();
         }
         else {
@@ -538,7 +640,7 @@ void FullMicrocodedCPU::branchHandler()
         }
         break;
     case EBranchFunctions::uBREQ:
-        if(data->getStatusBit(Enu::STATUS_Z)) {
+        if(getStatusBitCurrent(EStatusBit::STATUS_Z)) {
             temp = prog->getTrueTarget()->getValue();
         }
         else {
@@ -546,7 +648,7 @@ void FullMicrocodedCPU::branchHandler()
         }
         break;
     case EBranchFunctions::uBRLE:
-        if(data->getStatusBit(Enu::STATUS_N) || data->getStatusBit(Enu::STATUS_Z)) {
+        if(getStatusBitCurrent(EStatusBit::STATUS_N) || getStatusBitCurrent(EStatusBit::STATUS_Z)) {
             temp = prog->getTrueTarget()->getValue();
         }
         else {
@@ -554,7 +656,7 @@ void FullMicrocodedCPU::branchHandler()
         }
         break;
     case EBranchFunctions::uBRLT:
-        if(data->getStatusBit(Enu::STATUS_N)) {
+        if(getStatusBitCurrent(EStatusBit::STATUS_N)) {
             temp = prog->getTrueTarget()->getValue();
         }
         else {
@@ -562,7 +664,7 @@ void FullMicrocodedCPU::branchHandler()
         }
         break;
     case EBranchFunctions::uBRNE:
-        if((!data->getStatusBit(Enu::STATUS_Z))) {
+        if((!getStatusBitCurrent(EStatusBit::STATUS_Z))) {
             temp = prog->getTrueTarget()->getValue();
         }
         else {
@@ -570,7 +672,7 @@ void FullMicrocodedCPU::branchHandler()
         }
         break;
     case EBranchFunctions::uBRV:
-        if(data->getStatusBit(Enu::STATUS_V)) {
+        if(getStatusBitCurrent(EStatusBit::STATUS_V)) {
             temp = prog->getTrueTarget()->getValue();
         }
         else {
@@ -578,7 +680,7 @@ void FullMicrocodedCPU::branchHandler()
         }
         break;
     case EBranchFunctions::uBRC:
-        if(data->getStatusBit(Enu::STATUS_C))  {
+        if(getStatusBitCurrent(EStatusBit::STATUS_C))  {
             temp = prog->getTrueTarget()->getValue();
         }
         else {
@@ -586,7 +688,7 @@ void FullMicrocodedCPU::branchHandler()
         }
         break;
     case EBranchFunctions::uBRS:
-        if(data->getStatusBit(Enu::STATUS_S)) {
+        if(getStatusBitCurrent(EStatusBit::STATUS_S)) {
             temp = prog->getTrueTarget()->getValue();
         }
         else {

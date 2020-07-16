@@ -95,7 +95,7 @@ public slots:
     void onBusChanged();
     void onRegisterChanged(quint8 which,quint8 oldVal,quint8 newVal);
     void onMemoryRegisterChanged(Pep9::uarch::EMemoryRegisters,quint8 oldVal,quint8 newVal);
-    void onStatusBitChanged(Enu::EStatusBit,bool value);
+    void onStatusBitChanged(Pep9::uarch::EStatusBit, bool value);
     void repaintOnScroll(int distance);
     void onSimulationUpdate();
     void onSimulationFinished();
@@ -109,7 +109,7 @@ signals:
     void readByte(int address);
     void writeByte(int address);
     void registerChanged(quint8 reg,quint8 value);
-    void statusBitChanged(Enu::EStatusBit,bool value);
+    void statusBitChanged(Pep9::uarch::EStatusBit,bool value);
 };
 
 #endif // CPUPANE_H

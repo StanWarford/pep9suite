@@ -57,12 +57,22 @@ QSharedPointer<CPUDataSection> PartialMicrocodedCPU::getDataSection()
     return dataShared;
 }
 
-bool PartialMicrocodedCPU::getStatusBitCurrent(Enu::EStatusBit bit) const
+bool PartialMicrocodedCPU::getStatusBitCurrent(Pep9::uarch::EStatusBit bit) const
 {
-    return data->getRegisterBank().readStatusBitCurrent(bit);
+    return getStatusBitCurrent(pep_version->getStatusBitOffset(bit));
 }
 
-bool PartialMicrocodedCPU::getStatusBitStart(Enu::EStatusBit bit) const
+bool PartialMicrocodedCPU::getStatusBitStart(Pep9::uarch::EStatusBit bit) const
+{
+    return getStatusBitStart(pep_version->getStatusBitOffset(bit));
+}
+
+bool PartialMicrocodedCPU::getStatusBitCurrent(PepCore::CPUStatusBits_name_t bit) const
+{
+    return data->getRegisterBank().readStatusBitStart(bit);
+}
+
+bool PartialMicrocodedCPU::getStatusBitStart(PepCore::CPUStatusBits_name_t bit) const
 {
     return data->getRegisterBank().readStatusBitStart(bit);
 }

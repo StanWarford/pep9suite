@@ -34,12 +34,6 @@
 
 #include "isacpumemoizer.h"
 
-const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
-const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
-const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
-const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
-const auto SBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_S);
-
 IsaCpu::IsaCpu(const AsmProgramManager *input_manager, QSharedPointer<const Pep9::Definition> pep_version,
                QSharedPointer<AMemoryDevice> memDevice, QObject *parent):
     ACPUModel(memDevice, parent), Pep9InterfaceISACPU(memDevice.get(), input_manager),
@@ -294,42 +288,58 @@ void IsaCpu::initCPU()
     registerBank.flattenFile();
 }
 
-bool IsaCpu::getStatusBitCurrent(Enu::EStatusBit statusBit) const
+bool IsaCpu::getStatusBitCurrent(PepCore::CPUStatusBits_name_t bit) const
 {
+    return registerBank.readStatusBitCurrent(bit);
+}
+
+bool IsaCpu::getStatusBitStart(PepCore::CPUStatusBits_name_t bit) const
+{
+    return registerBank.readStatusBitStart(bit);
+}
+
+bool IsaCpu::getStatusBitCurrent(Pep9::ISA::EStatusBit statusBit) const
+{
+    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
+    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
+    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
+    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+
     switch(statusBit)
     {
     // Mask out bit of interest, then convert to bool
-    case Enu::STATUS_N:
+    case Pep9::ISA::EStatusBit::STATUS_N:
         return registerBank.readStatusBitCurrent(NBit_t);
-    case Enu::STATUS_Z:
+    case Pep9::ISA::EStatusBit::STATUS_Z:
         return registerBank.readStatusBitCurrent(ZBit_t);
-    case Enu::STATUS_V:
+    case Pep9::ISA::EStatusBit::STATUS_V:
         return registerBank.readStatusBitCurrent(VBit_t);
-    case Enu::STATUS_C:
+    case Pep9::ISA::EStatusBit::STATUS_C:
         return registerBank.readStatusBitCurrent(CBit_t);
-    case Enu::STATUS_S:
-        return registerBank.readStatusBitCurrent(SBit_t);
     default:
         // Should never occur, but might happen if a bad status bit is passed
         return false;
     }
 }
 
-bool IsaCpu::getStatusBitStart(Enu::EStatusBit statusBit) const
+bool IsaCpu::getStatusBitStart(Pep9::ISA::EStatusBit statusBit) const
 {
+    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
+    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
+    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
+    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+
     switch(statusBit)
     {
     // Mask out bit of interest, then convert to bool
-    case Enu::STATUS_N:
+    case Pep9::ISA::EStatusBit::STATUS_N:
         return registerBank.readStatusBitStart(NBit_t);
-    case Enu::STATUS_Z:
+    case Pep9::ISA::EStatusBit::STATUS_Z:
         return registerBank.readStatusBitStart(ZBit_t);
-    case Enu::STATUS_V:
+    case Pep9::ISA::EStatusBit::STATUS_V:
         return registerBank.readStatusBitStart(VBit_t);
-    case Enu::STATUS_C:
+    case Pep9::ISA::EStatusBit::STATUS_C:
         return registerBank.readStatusBitStart(CBit_t);
-    case Enu::STATUS_S:
-        return registerBank.readStatusBitStart(SBit_t);
     default:
         // Should never occur, but might happen if a bad status bit is passed
         return false;
@@ -783,6 +793,7 @@ bool IsaCpu::writeOperandByte(quint16 operand, quint8 value, Enu::EAddrMode addr
 
 void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
 {
+    using namespace Pep9::ISA;
     quint16 temp, sp, acc, idx;
     quint8 tempByte;
 
@@ -805,10 +816,10 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
     case Enu::EMnemonic::RETTR:
         memory->readByte(sp, tempByte);
         // Mask out bits that don't matter
-        registerBank.writeStatusBit(NBit_t, tempByte & Pep9::uarch::EMask::NMask);
-        registerBank.writeStatusBit(ZBit_t, tempByte & Pep9::uarch::EMask::ZMask);
-        registerBank.writeStatusBit(VBit_t, tempByte & Pep9::uarch::EMask::VMask);
-        registerBank.writeStatusBit(CBit_t, tempByte & Pep9::uarch::EMask::CMask);
+        writeStatusBit(EStatusBit::STATUS_N, tempByte & Pep9::uarch::EMask::NMask);
+        writeStatusBit(EStatusBit::STATUS_Z, tempByte & Pep9::uarch::EMask::ZMask);
+        writeStatusBit(EStatusBit::STATUS_V, tempByte & Pep9::uarch::EMask::VMask);
+        writeStatusBit(EStatusBit::STATUS_C, tempByte & Pep9::uarch::EMask::CMask);
 
         memory->readWord(sp + 1, temp);
         registerBank.writeRegisterWord(a_reg, temp);
@@ -826,10 +837,10 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
 
     case Enu::EMnemonic::MOVFLGA:
         tempByte = 0;
-        tempByte |= registerBank.readStatusBitCurrent(NBit_t) * Pep9::uarch::EMask::NMask;
-        tempByte |= registerBank.readStatusBitCurrent(ZBit_t) * Pep9::uarch::EMask::ZMask;
-        tempByte |= registerBank.readStatusBitCurrent(VBit_t) * Pep9::uarch::EMask::VMask;
-        tempByte |= registerBank.readStatusBitCurrent(CBit_t) * Pep9::uarch::EMask::CMask;
+        tempByte |= getStatusBitCurrent(EStatusBit::STATUS_N) * Pep9::uarch::EMask::NMask;
+        tempByte |= getStatusBitCurrent(EStatusBit::STATUS_Z) * Pep9::uarch::EMask::ZMask;
+        tempByte |= getStatusBitCurrent(EStatusBit::STATUS_V) * Pep9::uarch::EMask::VMask;
+        tempByte |= getStatusBitCurrent(EStatusBit::STATUS_C) * Pep9::uarch::EMask::CMask;
         registerBank.writeRegisterWord(a_reg, tempByte);
         break;
 
@@ -837,50 +848,50 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         // Only move the low order byte of accumulator to the status bits.
         tempByte = static_cast<quint8>(acc);
         // Mask out bits that don't matter
-        registerBank.writeStatusBit(NBit_t, tempByte & Pep9::uarch::EMask::NMask);
-        registerBank.writeStatusBit(ZBit_t, tempByte & Pep9::uarch::EMask::ZMask);
-        registerBank.writeStatusBit(VBit_t, tempByte & Pep9::uarch::EMask::VMask);
-        registerBank.writeStatusBit(CBit_t, tempByte & Pep9::uarch::EMask::CMask);
+        writeStatusBit(EStatusBit::STATUS_N, tempByte & Pep9::uarch::EMask::NMask);
+        writeStatusBit(EStatusBit::STATUS_Z, tempByte & Pep9::uarch::EMask::ZMask);
+        writeStatusBit(EStatusBit::STATUS_V, tempByte & Pep9::uarch::EMask::VMask);
+        writeStatusBit(EStatusBit::STATUS_C, tempByte & Pep9::uarch::EMask::CMask);
         break;
 
     case Enu::EMnemonic::NOTA: // Modifies NZ bits
         acc = ~acc;
         registerBank.writeRegisterWord(a_reg, acc);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, acc & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, acc & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, acc == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, acc == 0);
         break;
 
     case Enu::EMnemonic::NOTX: // Modifies NZ bits
         idx = ~idx;
         registerBank.writeRegisterWord(x_reg, idx);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, idx & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, idx & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, idx == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, idx == 0);
         break;
 
     case Enu::EMnemonic::NEGA: // Modifies NZV bits
         acc = ~acc + 1;
         registerBank.writeRegisterWord(a_reg, acc);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, acc & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, acc & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, acc == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, acc == 0);
         // Only a signed overflow if register is 0x8000.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, acc == 0x8000);
+        writeStatusBit(EStatusBit::STATUS_V, acc == 0x8000);
         break;
 
     case Enu::EMnemonic::NEGX: // Modifies NZV bits
         idx = ~idx + 1;
         registerBank.writeRegisterWord(x_reg, idx);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, idx & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, idx & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, idx == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, idx == 0);
         // Only a signed overflow if register is 0x8000.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, idx == 0x8000);
+        writeStatusBit(EStatusBit::STATUS_V, idx == 0x8000);
         break;
 
     // Arithmetic shift instructions
@@ -888,28 +899,28 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
         temp = static_cast<quint16>(acc << 1);
         registerBank.writeRegisterWord(a_reg, temp);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, temp & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, temp & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, temp == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, temp == 0);
         // Signed overflow occurs when the starting & ending values of the high order bit differ (a xor temp == 1).
         // Then shift the result over by 15 places to only keep high order bit (which is the sign).
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (acc ^ temp) >> 15);
+        writeStatusBit(EStatusBit::STATUS_V, (acc ^ temp) >> 15);
         // Carry out if register starts with high order 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, acc & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_C, acc & 0x8000);
         break;
 
     case Enu::EMnemonic::ASLX: // Modifies NZVC bits
         temp = static_cast<quint16>(idx << 1);
         registerBank.writeRegisterWord(x_reg, temp);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, temp & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, temp & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, temp == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, temp == 0);
         // Signed overflow occurs when the starting & ending values of the high order bit differ (a xor temp == 1).
         // Then shift the result over by 15 places to only keep high order bit (which is the sign).
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (idx ^ temp) >> 15);
+        writeStatusBit(EStatusBit::STATUS_V, (idx ^ temp) >> 15);
         // Carry out if register starts with high order 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, idx & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_C, idx & 0x8000);
 
         break;
 
@@ -921,11 +932,11 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
                                     ((acc & 0x8000) ? 1<<15 : 0));
         registerBank.writeRegisterWord(a_reg, temp);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, temp & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, temp & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, temp == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, temp == 0);
         // Carry out if register starts with low order 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, acc & 0x01);
+        writeStatusBit(EStatusBit::STATUS_C, acc & 0x01);
         break;
 
     case Enu::EMnemonic::ASRX: // Modifies NZC bits
@@ -936,51 +947,51 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
                                     ((idx & 0x8000) ? 1<<15 : 0));
         registerBank.writeRegisterWord(x_reg, temp);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, temp & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, temp & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, temp == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, temp == 0);
         // Carry out if register starts with low order 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, idx & 0x01);
+        writeStatusBit(EStatusBit::STATUS_C, idx & 0x01);
         break;
 
     // Rotate instructions.
     case Enu::EMnemonic::RORA: // Modifies C bits
         temp = static_cast<quint16>(acc >> 1
                                     // Shift the carry to high order bit.
-                                    | (registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_C)
+                                    | (getStatusBitCurrent(EStatusBit::STATUS_C)
                                         ? 1<<15 : 0));
         registerBank.writeRegisterWord(a_reg, temp);
         // Carry out if register starts with low order 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, acc & 0x01);
+        writeStatusBit(EStatusBit::STATUS_C, acc & 0x01);
         break;
 
     case Enu::EMnemonic::RORX: // Modifies C bit
         temp = static_cast<quint16>(idx >> 1
                                     // Shift the carry to high order bit.
-                                    | (registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_C)
+                                    | (getStatusBitCurrent(EStatusBit::STATUS_C)
                                         ? 1<<15 : 0));
         registerBank.writeRegisterWord(x_reg, temp);
         // Carry out if register starts with low order 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, idx & 0x01);
+        writeStatusBit(EStatusBit::STATUS_C, idx & 0x01);
         break;
 
     case Enu::EMnemonic::ROLA: // Modifies C bit
         temp = static_cast<quint16>(acc << 1
                                     // Shift the carry in to low order bit.
-                                    | (registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_C)
+                                    | (getStatusBitCurrent(EStatusBit::STATUS_C)
                                         ? 1 : 0));
         registerBank.writeRegisterWord(a_reg, temp);
         // Carry out if register starts with high order 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, acc & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_C, acc & 0x8000);
         break;
 
     case Enu::EMnemonic::ROLX: // Modifies C bit
         temp = static_cast<quint16>(acc << 1
                                     // Shift the carry in to low order bit.
-                                    | (registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_C)
+                                    | (getStatusBitCurrent(EStatusBit::STATUS_C)
                                         ? 1 : 0));
         registerBank.writeRegisterWord(x_reg, temp);
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, idx & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_C, idx & 0x8000);
         break;
 
     case Enu::EMnemonic::NOP0:
@@ -1001,6 +1012,7 @@ void IsaCpu::executeUnary(Enu::EMnemonic mnemon)
 
 void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMode addrMode)
 {
+    using namespace Pep9::ISA;
     quint16 tempWord, a, x, sp, result;
     quint8 tempByte;
     a = registerBank.readRegisterWordCurrent(a_reg);
@@ -1018,58 +1030,58 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         break;
 
     case Enu::EMnemonic::BRLE:
-        if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N) ||
-                registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
+        if(getStatusBitCurrent(EStatusBit::STATUS_N) ||
+                getStatusBitCurrent(EStatusBit::STATUS_Z)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRLT:
-        if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N)) {
+        if(getStatusBitCurrent(EStatusBit::STATUS_N)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BREQ:
-        if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
+        if(getStatusBitCurrent(EStatusBit::STATUS_Z)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRNE:
-        if(!registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
+        if(!getStatusBitCurrent(EStatusBit::STATUS_Z)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRGE:
-        if(!registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N)) {
+        if(!getStatusBitCurrent(EStatusBit::STATUS_N)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRGT:
-        if(!registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N) &&
-                !registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_Z)) {
+        if(!getStatusBitCurrent(EStatusBit::STATUS_N) &&
+                !getStatusBitCurrent(EStatusBit::STATUS_Z)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRV:
-        if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_V)) {
+        if(getStatusBitCurrent(EStatusBit::STATUS_V)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
         break;
 
     case Enu::EMnemonic::BRC:
-        if(registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_C)) {
+        if(getStatusBitCurrent(EStatusBit::STATUS_C)) {
             memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
             registerBank.writeRegisterWord(pc_reg, tempWord);
         }
@@ -1099,15 +1111,15 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         result = a + tempWord;
         registerBank.writeRegisterWord(a_reg, result);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (~(a ^ tempWord) & (a ^ result)) >> 15);
+        writeStatusBit(EStatusBit::STATUS_V, (~(a ^ tempWord) & (a ^ result)) >> 15);
         // Carry out iff result is unsigned less than register or operand.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, result < a  || result < tempWord);
+        writeStatusBit(EStatusBit::STATUS_C, result < a  || result < tempWord);
         break;
 
     case Enu::EMnemonic::ADDX:
@@ -1116,15 +1128,16 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         result = x + tempWord;
         registerBank.writeRegisterWord(x_reg, result);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
+
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (~(x ^ tempWord) & (x ^ result)) >> 15);
+        writeStatusBit(EStatusBit::STATUS_V, (~(x ^ tempWord) & (x ^ result)) >> 15);
         // Carry out iff result is unsigned less than register or operand.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, result < x  || result < tempWord);
+        writeStatusBit(EStatusBit::STATUS_C, result < x  || result < tempWord);
         break;
 
     case Enu::EMnemonic::SUBA:
@@ -1135,15 +1148,15 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         result = a + tempWord;
         registerBank.writeRegisterWord(a_reg, result);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (~(a ^ tempWord) & (a ^ result)) >> 15);
+        writeStatusBit(EStatusBit::STATUS_V, (~(a ^ tempWord) & (a ^ result)) >> 15);
         // Carry out iff result is unsigned less than register or operand.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, result < a  || result < tempWord);
+        writeStatusBit(EStatusBit::STATUS_C, result < a  || result < tempWord);
         break;
 
     case Enu::EMnemonic::SUBX:
@@ -1154,15 +1167,15 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         result = x + tempWord;
         registerBank.writeRegisterWord(x_reg, result);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (~(x ^ tempWord) & (x ^ result)) >> 15);
+        writeStatusBit(EStatusBit::STATUS_V, (~(x ^ tempWord) & (x ^ result)) >> 15);
         // Carry out iff result is unsigned less than register or operand.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, result < x  || result < tempWord);
+        writeStatusBit(EStatusBit::STATUS_C, result < x  || result < tempWord);
         break;
 
     case Enu::EMnemonic::ANDA:
@@ -1171,9 +1184,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         result = a & tempWord;
         registerBank.writeRegisterWord(a_reg, result);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         break;
 
     case Enu::EMnemonic::ANDX:
@@ -1182,9 +1195,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         result = x & tempWord;
         registerBank.writeRegisterWord(x_reg, result);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         break;
 
     case Enu::EMnemonic::ORA:
@@ -1193,9 +1206,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         result = a | tempWord;
         registerBank.writeRegisterWord(a_reg, result);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         break;
     case Enu::EMnemonic::ORX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
@@ -1203,9 +1216,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         result = x | tempWord;
         registerBank.writeRegisterWord(x_reg, result);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         break;
 
     case Enu::EMnemonic::CPWA:
@@ -1214,18 +1227,18 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         tempWord = ~tempWord + 1;
         result = a + tempWord;
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (~(a ^  tempWord) & (a ^ result)) >> 15);
+        writeStatusBit(EStatusBit::STATUS_V, (~(a ^  tempWord) & (a ^ result)) >> 15);
         // Carry out iff result is unsigned less than register or operand.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, result < a  || result < tempWord);
+        writeStatusBit(EStatusBit::STATUS_C, result < a  || result < tempWord);
         // If there was a signed overflow, selectively invert N bit.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N)
-                                    ^ registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_V));
+        writeStatusBit(EStatusBit::STATUS_N, getStatusBitCurrent(EStatusBit::STATUS_N)
+                                    ^ getStatusBitCurrent(EStatusBit::STATUS_V));
         break;
 
     case Enu::EMnemonic::CPWX:
@@ -1234,36 +1247,36 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         tempWord = ~tempWord + 1;
         result = x + tempWord;
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         // There is a signed overflow iff the high order bits of the register and operand
         //are the same, and one input & the output differ in sign.
         // >> Shifts in 0's (unsigned shorts), so after shift, only high order bit remain.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, (~(x ^ tempWord) & (x ^ result)) >> 15);
+        writeStatusBit(EStatusBit::STATUS_V, (~(x ^ tempWord) & (x ^ result)) >> 15);
         // Carry out iff result is unsigned less than register or operand.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, result < a  || result < tempWord);
+        writeStatusBit(EStatusBit::STATUS_C, result < a  || result < tempWord);
         // If there was a signed overflow, selectively invert N bit.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_N)
-                                    ^ registerBank.readStatusBitCurrent(Enu::EStatusBit::STATUS_V));
+        writeStatusBit(EStatusBit::STATUS_N, getStatusBitCurrent(EStatusBit::STATUS_N)
+                                    ^ getStatusBitCurrent(EStatusBit::STATUS_V));
         break;
 
     case Enu::EMnemonic::LDWA:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(a_reg, tempWord);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, tempWord & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, tempWord & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, tempWord == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, tempWord == 0);
         break;
 
     case Enu::EMnemonic::LDWX:
         memSuccess = readOperandWordValue(opSpec, addrMode, tempWord);
         registerBank.writeRegisterWord(x_reg, tempWord);
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, tempWord & 0x8000);
+        writeStatusBit(EStatusBit::STATUS_N, tempWord & 0x8000);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, tempWord == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, tempWord == 0);
         break;
 
     case Enu::EMnemonic::STWA:
@@ -1284,12 +1297,12 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         tempWord = ~tempByte + 1;
         result = (a + tempWord) & 0xff;
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x80);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x80);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         // RTL specifies zeroing out V, C bits.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, false);
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, false);
+        writeStatusBit(EStatusBit::STATUS_V, false);
+        writeStatusBit(EStatusBit::STATUS_C, false);
         break;
 
     case Enu::EMnemonic::CPBX:
@@ -1299,12 +1312,12 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         tempWord = ~tempByte + 1;
         result = (x + tempWord) & 0xff;
         // Is negative if high order bit is 1.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, result & 0x80);
+        writeStatusBit(EStatusBit::STATUS_N, result & 0x80);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, result == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, result == 0);
         // RTL specifies zeroing out V, C bits.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_V, false);
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_C, false);
+        writeStatusBit(EStatusBit::STATUS_V, false);
+        writeStatusBit(EStatusBit::STATUS_C, false);
         break;
 
     case Enu::EMnemonic::LDBA:
@@ -1312,9 +1325,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         tempWord = a & 0xff00;
         tempWord |= tempByte;
         registerBank.writeRegisterWord(a_reg, tempWord);
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, false);
+        writeStatusBit(EStatusBit::STATUS_N, false);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, (tempWord & 0xff) == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, (tempWord & 0xff) == 0);
 
         break;
 
@@ -1323,9 +1336,9 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
         tempWord = x & 0xff00;
         tempWord |= tempByte;
         registerBank.writeRegisterWord(x_reg, tempWord);
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_N, false);
+        writeStatusBit(EStatusBit::STATUS_N, false);
          // Is zero if all bits are 0's.
-        registerBank.writeStatusBit(Enu::EStatusBit::STATUS_Z, (tempWord & 0xff) == 0);
+        writeStatusBit(EStatusBit::STATUS_Z, (tempWord & 0xff) == 0);
         break;
 
     case Enu::EMnemonic::STBA:
@@ -1351,6 +1364,8 @@ void IsaCpu::executeNonunary(Enu::EMnemonic mnemon, quint16 opSpec, Enu::EAddrMo
 
 void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
 {
+    using namespace  Pep9::ISA;
+
     quint16 pc;
     quint8 tempByte;
     // The
@@ -1392,10 +1407,10 @@ void IsaCpu::executeTrap(Enu::EMnemonic mnemon)
         memSuccess &= memory->writeWord(tempAddr - 9, registerBank.readRegisterWordCurrent(a_reg) /*A*/);
         // Writes to mem[T-10].
         tempByte = 0;
-        tempByte |= registerBank.readStatusBitCurrent(NBit_t) * Pep9::uarch::EMask::NMask;
-        tempByte |= registerBank.readStatusBitCurrent(ZBit_t) * Pep9::uarch::EMask::ZMask;
-        tempByte |= registerBank.readStatusBitCurrent(VBit_t) * Pep9::uarch::EMask::VMask;
-        tempByte |= registerBank.readStatusBitCurrent(CBit_t) * Pep9::uarch::EMask::CMask;
+        tempByte |= getStatusBitCurrent(EStatusBit::STATUS_N) * Pep9::uarch::EMask::NMask;
+        tempByte |= getStatusBitCurrent(EStatusBit::STATUS_Z) * Pep9::uarch::EMask::ZMask;
+        tempByte |= getStatusBitCurrent(EStatusBit::STATUS_V) * Pep9::uarch::EMask::VMask;
+        tempByte |= getStatusBitCurrent(EStatusBit::STATUS_C) * Pep9::uarch::EMask::CMask;
         memSuccess &= memory->writeByte(tempAddr - 10, tempByte /*NZVC*/);
         memSuccess &= memory->readWord(pcAddr, pc);
         registerBank.writeRegisterWord(sp_reg, tempAddr - 10);
@@ -1426,4 +1441,28 @@ void IsaCpu::breakpointAsmHandler()
     asmBreakpointHit = true;
     emit hitBreakpoint(PepCore::BreakpointTypes::ASSEMBLER);
     return;
+}
+
+void IsaCpu::writeStatusBit(Pep9::ISA::EStatusBit bit, bool value)
+{
+    const auto NBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_N);
+    const auto ZBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_Z);
+    const auto VBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_V);
+    const auto CBit_t = Pep9::Definition::getStatusBitOffset(Pep9::uarch::EStatusBit::STATUS_C);
+
+    using namespace Pep9::ISA;
+    switch(bit) {
+    case EStatusBit::STATUS_N:
+        registerBank.writeStatusBit(NBit_t, value);
+        break;
+    case EStatusBit::STATUS_Z:
+        registerBank.writeStatusBit(ZBit_t, value);
+        break;
+    case EStatusBit::STATUS_V:
+        registerBank.writeStatusBit(VBit_t, value);
+        break;
+    case EStatusBit::STATUS_C:
+        registerBank.writeStatusBit(CBit_t, value);
+        break;
+    }
 }
