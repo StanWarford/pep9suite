@@ -50,7 +50,7 @@ QMAKE_INFO_PLIST = app.plist
 include("installer-config.pri")
 
 #Include and run the installer config script
-#include("../installer/installer-creator.pri")
+include("../../installer/installer-creator.pri")
 
 # Link against special libraries needed for dark mode.
 include(../../mac-objc-fix.pri)

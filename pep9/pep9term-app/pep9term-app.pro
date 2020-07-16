@@ -87,7 +87,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 include("installer-config.pri")
 
 #Include and run the installer config script
-#include("../installer/installer-creator.pri")
+include("../../installer/installer-creator.pri")
 
 # Link against special libraries needed for dark mode.
 include(../../mac-objc-fix.pri)
