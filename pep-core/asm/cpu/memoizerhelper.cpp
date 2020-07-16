@@ -19,8 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "memoizerhelper.h"
-#include "pep/enu.h"
-#include "pep/pep.h"
 #include "symbol/symbolentry.h"
 #include "symbol/symbolvalue.h"
 

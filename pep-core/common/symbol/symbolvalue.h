@@ -25,8 +25,6 @@
 #include <QtCore>
 #include <QSharedPointer>
 
-#include "pep/enu.h"
-
 class SymbolEntry;
 
 /*

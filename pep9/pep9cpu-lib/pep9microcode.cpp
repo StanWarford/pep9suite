@@ -8,16 +8,16 @@
 
 
 MicroCode::MicroCode(PepCore::CPUType cpuType, bool extendedFeatures): AExecutableMicrocode(false,QString(), nullptr),
-    cpuType(cpuType), controlSignals(Pep9::uarch::numControlSignals(), Enu::signalDisabled),
+    cpuType(cpuType), controlSignals(Pep9::uarch::numControlSignals(), PepCore::signalDisabled),
     clockSignals(Pep9::uarch::numClockSignals(), false), extendedFeatures(extendedFeatures), branchFunc(Pep9::uarch::EBranchFunctions::Assembler_Assigned),
     trueTargetAddr(nullptr), falseTargetAddr(nullptr)
 {
     // Initialize all memory controls, normal controls, and clocklines to disabled.
     for(auto memLines : Pep9::uarch::memControlToMnemonMap.keys()) {
-        controlSignals[to_uint8_t(memLines)] = Enu::signalDisabled;
+        controlSignals[to_uint8_t(memLines)] = PepCore::signalDisabled;
     }
     for(auto mainCtrlLines : Pep9::uarch::decControlToMnemonMap.keys()) {
-        controlSignals[to_uint8_t(mainCtrlLines)] = Enu::signalDisabled;
+        controlSignals[to_uint8_t(mainCtrlLines)] = PepCore::signalDisabled;
     }
     for(auto clockLines : Pep9::uarch::clockControlToMnemonMap.keys()) {
         clockSignals[to_uint8_t(clockLines)] = 0;
@@ -64,20 +64,20 @@ QString MicroCode::getObjectCode() const
     QString str = "";
     if (cpuType == PepCore::CPUType::OneByteDataBus) {
         str.append(clockSignals[LoadCk_t] == 0? "  " : QString("%1").arg(clockSignals[LoadCk_t], -2));
-        str.append(controlSignals[C_t] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[C_t], -3));
-        str.append(controlSignals[B_t] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[B_t], -3));
-        str.append(controlSignals[A_t] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[A_t], -3));
+        str.append(controlSignals[C_t] == PepCore::signalDisabled ? "   " : QString("%1").arg(controlSignals[C_t], -3));
+        str.append(controlSignals[B_t] == PepCore::signalDisabled ? "   " : QString("%1").arg(controlSignals[B_t], -3));
+        str.append(controlSignals[A_t] == PepCore::signalDisabled ? "   " : QString("%1").arg(controlSignals[A_t], -3));
         str.append(clockSignals[MARCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[MARCk_t], -2));
         str.append(clockSignals[MDRCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[MDRCk_t], -2));
-        str.append(controlSignals[AMux_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[AMux_t], -2));
-        str.append(controlSignals[MDRMux_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[MDRMux_t], -2));
-        str.append(controlSignals[CMux_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[CMux_t], -2));
-        str.append(controlSignals[ALU_t] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[ALU_t], -3));
-        str.append(controlSignals[CSMux_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[CSMux_t], -2));
+        str.append(controlSignals[AMux_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[AMux_t], -2));
+        str.append(controlSignals[MDRMux_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[MDRMux_t], -2));
+        str.append(controlSignals[CMux_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[CMux_t], -2));
+        str.append(controlSignals[ALU_t] == PepCore::signalDisabled ? "   " : QString("%1").arg(controlSignals[ALU_t], -3));
+        str.append(controlSignals[CSMux_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[CSMux_t], -2));
         str.append(clockSignals[SCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[SCk_t], -2));
         str.append(clockSignals[CCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[CCk_t], -2));
         str.append(clockSignals[VCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[VCk_t], -2));
-        str.append(controlSignals[AndZ_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[AndZ_t], -2));
+        str.append(controlSignals[AndZ_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[AndZ_t], -2));
         str.append(clockSignals[ZCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[ZCk_t], -2));
         str.append(clockSignals[NCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[NCk_t], -2));
         str.append(controlSignals[MemWrite_t] != 1 ? "  " : QString("%1").arg(controlSignals[MemWrite_t], -2));
@@ -85,24 +85,24 @@ QString MicroCode::getObjectCode() const
     }
     else if (cpuType == PepCore::CPUType::TwoByteDataBus) {
         str.append(clockSignals[LoadCk_t] == 0? "  " : QString("%1").arg(clockSignals[LoadCk_t], -2));
-        str.append(controlSignals[C_t] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[C_t], -3));
-        str.append(controlSignals[B_t] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[B_t], -3));
-        str.append(controlSignals[A_t] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[A_t], -3));
-        str.append(controlSignals[MARMux_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[MARMux_t], -2));
+        str.append(controlSignals[C_t] == PepCore::signalDisabled ? "   " : QString("%1").arg(controlSignals[C_t], -3));
+        str.append(controlSignals[B_t] == PepCore::signalDisabled ? "   " : QString("%1").arg(controlSignals[B_t], -3));
+        str.append(controlSignals[A_t] == PepCore::signalDisabled ? "   " : QString("%1").arg(controlSignals[A_t], -3));
+        str.append(controlSignals[MARMux_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[MARMux_t], -2));
         str.append(clockSignals[MARCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[MARCk_t], -2));
         str.append(clockSignals[MDROCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[MDROCk_t], -2));
-        str.append(controlSignals[MDROMux_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[MDROMux_t], -2));
+        str.append(controlSignals[MDROMux_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[MDROMux_t], -2));
         str.append(clockSignals[MDRECk_t] == 0 ? "  " : QString("%1").arg(clockSignals[MDRECk_t], -2));
-        str.append(controlSignals[MDREMux_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[MDREMux_t], -2));
-        str.append(controlSignals[EOMux_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[EOMux_t], -2));
-        str.append(controlSignals[AMux_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[AMux_t], -2));
-        str.append(controlSignals[CMux_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[CMux_t], -2));
-        str.append(controlSignals[ALU_t] == Enu::signalDisabled ? "   " : QString("%1").arg(controlSignals[ALU_t], -3));
-        str.append(controlSignals[CSMux_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[CSMux_t], -2));
+        str.append(controlSignals[MDREMux_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[MDREMux_t], -2));
+        str.append(controlSignals[EOMux_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[EOMux_t], -2));
+        str.append(controlSignals[AMux_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[AMux_t], -2));
+        str.append(controlSignals[CMux_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[CMux_t], -2));
+        str.append(controlSignals[ALU_t] == PepCore::signalDisabled ? "   " : QString("%1").arg(controlSignals[ALU_t], -3));
+        str.append(controlSignals[CSMux_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[CSMux_t], -2));
         str.append(clockSignals[SCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[SCk_t], -2));
         str.append(clockSignals[CCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[CCk_t], -2));
         str.append(clockSignals[VCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[VCk_t], -2));
-        str.append(controlSignals[AndZ_t] == Enu::signalDisabled ? "  " : QString("%1").arg(controlSignals[AndZ_t], -2));
+        str.append(controlSignals[AndZ_t] == PepCore::signalDisabled ? "  " : QString("%1").arg(controlSignals[AndZ_t], -2));
         str.append(clockSignals[ZCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[ZCk_t], -2));
         str.append(clockSignals[NCk_t] == 0 ? "  " : QString("%1").arg(clockSignals[NCk_t], -2));
         str.append(controlSignals[MemWrite_t] != 1 ? "  " : QString("%1").arg(controlSignals[MemWrite_t], -2));
@@ -120,17 +120,17 @@ QString MicroCode::getSourceCode() const
     }
 
     if (cpuType == PepCore::CPUType::OneByteDataBus) {
-        if (controlSignals[MemRead_t] != Enu::signalDisabled) { str.append("MemRead, "); }
-        if (controlSignals[MemWrite_t] != Enu::signalDisabled) { str.append("MemWrite, "); }
-        if (controlSignals[A_t] != Enu::signalDisabled) { str.append("A=" + QString("%1").arg(controlSignals[A_t]) + ", "); }
-        if (controlSignals[B_t] != Enu::signalDisabled) { str.append("B=" + QString("%1").arg(controlSignals[B_t]) + ", "); }
-        if (controlSignals[AMux_t] != Enu::signalDisabled) { str.append("AMux=" + QString("%1").arg(controlSignals[AMux_t]) + ", "); }
-        if (controlSignals[CSMux_t]  != Enu::signalDisabled) { str.append("CSMux=" + QString("%1").arg(controlSignals[CSMux_t]) + ", "); }
-        if (controlSignals[ALU_t] != Enu::signalDisabled) { str.append("ALU=" + QString("%1").arg(controlSignals[ALU_t]) + ", "); }
-        if (controlSignals[AndZ_t] != Enu::signalDisabled) { str.append("AndZ=" + QString("%1").arg(controlSignals[AndZ_t]) + ", "); }
-        if (controlSignals[CMux_t] != Enu::signalDisabled) { str.append("CMux=" + QString("%1").arg(controlSignals[CMux_t]) + ", "); }
-        if (controlSignals[MDRMux_t] != Enu::signalDisabled) { str.append("MDRMux=" + QString("%1").arg(controlSignals[MDRMux_t]) + ", "); }
-        if (controlSignals[C_t] != Enu::signalDisabled) { str.append("C=" + QString("%1").arg(controlSignals[C_t]) + ", "); }
+        if (controlSignals[MemRead_t] != PepCore::signalDisabled) { str.append("MemRead, "); }
+        if (controlSignals[MemWrite_t] != PepCore::signalDisabled) { str.append("MemWrite, "); }
+        if (controlSignals[A_t] != PepCore::signalDisabled) { str.append("A=" + QString("%1").arg(controlSignals[A_t]) + ", "); }
+        if (controlSignals[B_t] != PepCore::signalDisabled) { str.append("B=" + QString("%1").arg(controlSignals[B_t]) + ", "); }
+        if (controlSignals[AMux_t] != PepCore::signalDisabled) { str.append("AMux=" + QString("%1").arg(controlSignals[AMux_t]) + ", "); }
+        if (controlSignals[CSMux_t]  != PepCore::signalDisabled) { str.append("CSMux=" + QString("%1").arg(controlSignals[CSMux_t]) + ", "); }
+        if (controlSignals[ALU_t] != PepCore::signalDisabled) { str.append("ALU=" + QString("%1").arg(controlSignals[ALU_t]) + ", "); }
+        if (controlSignals[AndZ_t] != PepCore::signalDisabled) { str.append("AndZ=" + QString("%1").arg(controlSignals[AndZ_t]) + ", "); }
+        if (controlSignals[CMux_t] != PepCore::signalDisabled) { str.append("CMux=" + QString("%1").arg(controlSignals[CMux_t]) + ", "); }
+        if (controlSignals[MDRMux_t] != PepCore::signalDisabled) { str.append("MDRMux=" + QString("%1").arg(controlSignals[MDRMux_t]) + ", "); }
+        if (controlSignals[C_t] != PepCore::signalDisabled) { str.append("C=" + QString("%1").arg(controlSignals[C_t]) + ", "); }
 
         if (str != "") { str.chop(2); str.append("; "); }
 
@@ -147,21 +147,21 @@ QString MicroCode::getSourceCode() const
     }
 
     else if (cpuType == PepCore::CPUType::TwoByteDataBus) {
-        if (controlSignals[MemRead_t] != Enu::signalDisabled) { str.append("MemRead, "); }
-        if (controlSignals[MemWrite_t] != Enu::signalDisabled) { str.append("MemWrite, "); }
-        if (controlSignals[A_t] != Enu::signalDisabled) { str.append("A=" + QString("%1").arg(controlSignals[A_t]) + ", "); }
-        if (controlSignals[B_t] != Enu::signalDisabled) { str.append("B=" + QString("%1").arg(controlSignals[B_t]) + ", "); }
-        if (controlSignals[MARMux_t] != Enu::signalDisabled) { str.append("MARMux=" + QString("%1").arg(controlSignals[MARMux_t]) + ", "); }
-        if (controlSignals[EOMux_t] != Enu::signalDisabled) { str.append("EOMux=" + QString("%1").arg(controlSignals[EOMux_t]) + ", "); }
-        if (controlSignals[AMux_t] != Enu::signalDisabled) { str.append("AMux=" + QString("%1").arg(controlSignals[AMux_t]) + ", "); }
-        if (controlSignals[CSMux_t]  != Enu::signalDisabled) { str.append("CSMux=" + QString("%1").arg(controlSignals[CSMux_t]) + ", "); }
-        if (controlSignals[ALU_t] != Enu::signalDisabled) { str.append("ALU=" + QString("%1").arg(controlSignals[ALU_t]) + ", "); }
-        if (controlSignals[AndZ_t] != Enu::signalDisabled) { str.append("AndZ=" + QString("%1").arg(controlSignals[AndZ_t]) + ", "); }
-        if (controlSignals[CMux_t] != Enu::signalDisabled) { str.append("CMux=" + QString("%1").arg(controlSignals[CMux_t]) + ", "); }
-        if (controlSignals[MDREMux_t] != Enu::signalDisabled) { str.append("MDREMux=" + QString("%1").arg(controlSignals[MDREMux_t]) + ", "); }
-        if (controlSignals[MDROMux_t] != Enu::signalDisabled) { str.append("MDROMux=" + QString("%1").arg(controlSignals[MDROMux_t]) + ", "); }
-        if (controlSignals[C_t] != Enu::signalDisabled) { str.append("C=" + QString("%1").arg(controlSignals[C_t]) + ", "); }
-        if (extendedFeatures && controlSignals[PValid_t] != Enu::signalDisabled) { str.append("PValid=" + QString("%1").arg(controlSignals[PValid_t]) + ", "); }
+        if (controlSignals[MemRead_t] != PepCore::signalDisabled) { str.append("MemRead, "); }
+        if (controlSignals[MemWrite_t] != PepCore::signalDisabled) { str.append("MemWrite, "); }
+        if (controlSignals[A_t] != PepCore::signalDisabled) { str.append("A=" + QString("%1").arg(controlSignals[A_t]) + ", "); }
+        if (controlSignals[B_t] != PepCore::signalDisabled) { str.append("B=" + QString("%1").arg(controlSignals[B_t]) + ", "); }
+        if (controlSignals[MARMux_t] != PepCore::signalDisabled) { str.append("MARMux=" + QString("%1").arg(controlSignals[MARMux_t]) + ", "); }
+        if (controlSignals[EOMux_t] != PepCore::signalDisabled) { str.append("EOMux=" + QString("%1").arg(controlSignals[EOMux_t]) + ", "); }
+        if (controlSignals[AMux_t] != PepCore::signalDisabled) { str.append("AMux=" + QString("%1").arg(controlSignals[AMux_t]) + ", "); }
+        if (controlSignals[CSMux_t]  != PepCore::signalDisabled) { str.append("CSMux=" + QString("%1").arg(controlSignals[CSMux_t]) + ", "); }
+        if (controlSignals[ALU_t] != PepCore::signalDisabled) { str.append("ALU=" + QString("%1").arg(controlSignals[ALU_t]) + ", "); }
+        if (controlSignals[AndZ_t] != PepCore::signalDisabled) { str.append("AndZ=" + QString("%1").arg(controlSignals[AndZ_t]) + ", "); }
+        if (controlSignals[CMux_t] != PepCore::signalDisabled) { str.append("CMux=" + QString("%1").arg(controlSignals[CMux_t]) + ", "); }
+        if (controlSignals[MDREMux_t] != PepCore::signalDisabled) { str.append("MDREMux=" + QString("%1").arg(controlSignals[MDREMux_t]) + ", "); }
+        if (controlSignals[MDROMux_t] != PepCore::signalDisabled) { str.append("MDROMux=" + QString("%1").arg(controlSignals[MDROMux_t]) + ", "); }
+        if (controlSignals[C_t] != PepCore::signalDisabled) { str.append("C=" + QString("%1").arg(controlSignals[C_t]) + ", "); }
+        if (extendedFeatures && controlSignals[PValid_t] != PepCore::signalDisabled) { str.append("PValid=" + QString("%1").arg(controlSignals[PValid_t]) + ", "); }
 
         if (str != "") { str.chop(2); str.append("; "); }
 
@@ -244,7 +244,7 @@ QString MicroCode::getSourceCode() const
 
 bool MicroCode::hasControlSignal(Pep9::uarch::EControlSignals field) const
 {
-    return controlSignals[to_uint8_t(field)] != Enu::signalDisabled;
+    return controlSignals[to_uint8_t(field)] != PepCore::signalDisabled;
 }
 
 bool MicroCode::hasClockSignal(Pep9::uarch::EClockSignals field) const

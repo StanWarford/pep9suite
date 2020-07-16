@@ -23,7 +23,6 @@
 
 #include <QtCore>
 
-#include "pep/enu.h"
 #include "symbol/symbolentry.h"
 
 class SymbolEntry;

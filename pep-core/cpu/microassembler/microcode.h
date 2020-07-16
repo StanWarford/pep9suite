@@ -25,8 +25,6 @@
 #include <QString>
 #include <QVector>
 
-#include "pep/enu.h"
-
 class SymbolEntry;
 // Abstract code class
 class AMicroCode

@@ -25,7 +25,6 @@
 #include <QSharedPointer>
 
 #include "pep/constants.h"
-#include "pep/enu.h"
 #include "symbol/symboltable.h"
 
 class AMicroCode; // Forward declaration for argument of processSourceLine.

@@ -22,12 +22,8 @@
 #ifndef PEP_H
 #define PEP_H
 
-#include <QColor>
-#include <QMap>
 #include <QString>
 
-#include "enu.h"
-#include "constants.h"
 
 namespace Pep {
     QString resToString(QString fileName, bool removeLineNumbers);

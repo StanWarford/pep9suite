@@ -123,7 +123,7 @@ void MicroObjectCodePane::setObjectCode(QSharedPointer<const MicrocodeProgram> p
             for(auto col : controls)
             {
                 auto x = (static_cast<MicroCode*>(row))->getControlSignal(col);
-                if(x != Enu::signalDisabled) {
+                if(x != PepCore::signalDisabled) {
                     auto y = new QStandardItem(QString::number(x));
                     y->setTextAlignment(Qt::AlignCenter);
                     model->setItem(rowNum, colNum, y);

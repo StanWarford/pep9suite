@@ -26,7 +26,6 @@
 
 #include <QtCore>
 
-#include "pep/enu.h"
 #include "pep/apepversion.h"
 #include "pep/types.h"
 

@@ -254,6 +254,6 @@ void Pep9InterfaceISACPU::calculateStackChangeEnd(quint8 instr, quint16 opspec, 
 // Convert a mnemonic into its string
 QString mnemonDecode(Pep9::ISA::EMnemonic instrSpec)
 {
-    static QMetaEnum metaenum = Pep9::ISA::staticMetaObject.enumerator(Enu::staticMetaObject.indexOfEnumerator("EMnemonic"));
+    static QMetaEnum metaenum = Pep9::ISA::staticMetaObject.enumerator(Pep9::ISA::staticMetaObject.indexOfEnumerator("EMnemonic"));
     return QString(metaenum.valueToKey((int)instrSpec)).toLower();
 }

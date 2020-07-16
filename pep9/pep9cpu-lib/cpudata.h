@@ -28,8 +28,6 @@
 
 #include "cpu/registerfile.h"
 #include "pep/constants.h"
-#include "pep/enu.h"
-
 
 #include "cpudefs.h"
 #include "pep9.h"

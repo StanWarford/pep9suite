@@ -25,7 +25,6 @@
 #include <QtCore>
 
 #include "cpu/memoizerhelper.h"
-#include "pep/enu.h"
 
 class IsaCpu;
 class CacheMemory;

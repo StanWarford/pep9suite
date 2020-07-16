@@ -37,7 +37,6 @@
 #include "cpudata.h"
 #include "pep9microcode.h"
 
-using namespace Enu;
 CpuPane::CpuPane( QWidget *parent) :
         QWidget(parent),
         cpu(nullptr), dataSection(nullptr),
@@ -714,7 +713,7 @@ void CpuPane::labelClicked()
     }
     if(temp == "0") tempVal = 0;
     else if(temp == "1") tempVal = 1;
-    else tempVal = Enu::signalDisabled;
+    else tempVal = PepCore::signalDisabled;
     if(hadCtrl)dataSection->onSetControlSignal(control,tempVal);
     else if(hadStatus)dataSection->onSetStatusBit(status,tempVal);
 }

@@ -284,14 +284,14 @@ quint8 CPUDataSection::getMemoryRegister(Pep9::uarch::EMemoryRegisters registerN
 
 bool CPUDataSection::valueOnABus(quint8 &result) const
 {
-    if(controlSignals[A_t] == Enu::signalDisabled) return false;
+    if(controlSignals[A_t] == PepCore::signalDisabled) return false;
     result = getRegisterBankByte(controlSignals[A_t]);
     return true;
 }
 
 bool CPUDataSection::valueOnBBus(quint8 &result) const
 {
-    if(controlSignals[B_t] == Enu::signalDisabled) return false;
+    if(controlSignals[B_t] == PepCore::signalDisabled) return false;
     result = getRegisterBankByte(controlSignals[B_t]);
     return true;
 }
@@ -568,7 +568,7 @@ void CPUDataSection::stepOneByte() noexcept
 
     //LoadCk
     if(clockSignals[LoadCk_t]) {
-        if(controlSignals[C_t] == Enu::signalDisabled) {
+        if(controlSignals[C_t] == PepCore::signalDisabled) {
             hadDataError = true;
             errorMessage = "No destination register specified for LoadCk.";
         }
@@ -706,7 +706,7 @@ void CPUDataSection::stepTwoByte() noexcept
 
     // LoadCk
     if(clockSignals[LoadCk_t]) {
-        if(controlSignals[C_t] == Enu::signalDisabled) {
+        if(controlSignals[C_t] == PepCore::signalDisabled) {
             hadDataError = true;
             errorMessage = "No destination register specified for LoadCk.";
         }
@@ -873,7 +873,7 @@ void CPUDataSection::clearControlSignals() noexcept
 {
     //Set all control signals to disabled
     for(int it = 0; it < controlSignals.length(); it++) {
-        controlSignals[it] = Enu::signalDisabled;
+        controlSignals[it] = PepCore::signalDisabled;
     }
 }
 

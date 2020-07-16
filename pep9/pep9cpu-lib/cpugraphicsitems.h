@@ -27,7 +27,6 @@
 #include <QLineEdit>
 
 #include "cpu-diagram/tristatelabel.h"
-#include "pep/enu.h"
 #include "style/colors.h"
 
 #include "pep9microcode.h"

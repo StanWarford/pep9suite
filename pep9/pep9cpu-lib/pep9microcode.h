@@ -7,7 +7,6 @@
 
 #include "microassembler/microcode.h"
 #include "pep/constants.h"
-#include "pep/enu.h"
 
 #include "cpudefs.h"
 

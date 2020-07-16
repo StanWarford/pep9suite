@@ -24,10 +24,8 @@
 
 #include <QObject>
 
-#include "pep/enu.h"
-#include "pep/types.h"
-
 #include "pep/constants.h"
+#include "pep/types.h"
 
 class AMemoryDevice;
 class InterruptHandler;

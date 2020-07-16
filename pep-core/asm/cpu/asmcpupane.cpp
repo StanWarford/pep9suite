@@ -28,8 +28,6 @@
 #include "cpu/acpumodel.h"
 #include "cpu/interfaceisacpu.h"
 #include "pep/apepversion.h"
-#include "pep/pep.h"
-#include "pep/enu.h"
 #include "style/fonts.h"
 
 AsmCpuPane::AsmCpuPane(QWidget *parent) :

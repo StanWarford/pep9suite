@@ -26,8 +26,6 @@
 
 #include "microassembler/microcodeprogram.h"
 #include "pep/constants.h"
-#include "pep/enu.h"
-#include "pep/pep.h"
 
 #include "microasm.h"
 #include "pep9.h"

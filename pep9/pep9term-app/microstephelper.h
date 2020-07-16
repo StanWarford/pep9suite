@@ -26,8 +26,6 @@
 #include <QRunnable>
 #include <QSharedPointer>
 
-#include "pep/enu.h"
-
 class BoundExecMicroCpu;
 class MainMemory;
 class MicrocodeProgram;

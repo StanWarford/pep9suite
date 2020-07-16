@@ -22,7 +22,6 @@
 #define AMCCPUMODEL_H
 
 #include "cpu/acpumodel.h"
-#include "pep/enu.h"
 
 class AExecutableMicrocode;
 class MicrocodeProgram;

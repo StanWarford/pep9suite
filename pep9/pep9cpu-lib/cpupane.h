@@ -27,8 +27,6 @@
 #include <QLabel>
 #include <QLineEdit>
 
-#include "pep/enu.h"
-
 #include "cpudefs.h"
 #include "cpugraphicsitems.h"
 

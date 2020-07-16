@@ -8,6 +8,7 @@
 #include "cpudefs.h"
 namespace Pep9
 {
+
 class Definition : public QObject, public APepVersion
 {
     Q_OBJECT

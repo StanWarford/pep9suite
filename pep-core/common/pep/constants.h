@@ -35,6 +35,8 @@ namespace PepCore {
         TwoByteDataBus,
     };
 
+    static const quint8 signalDisabled = 255;
+
 }
 
 #endif // CONSTANTS_H

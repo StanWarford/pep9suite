@@ -27,7 +27,6 @@
 #include <QSharedPointer>
 
 #include "pep/constants.h"
-#include "pep/enu.h"
 
 class MainMemory;
 class PartialMicrocodedCPU;

@@ -2622,11 +2622,11 @@ void CpuGraphicsItems::setCPULabels(const MicroCode *code)
 
     loadCk->setChecked(code->getClockSignal(EClockSignals::LoadCk));
     auto C = code->getControlSignal(EControlSignals::C);
-    cLineEdit->setText(C == Enu::signalDisabled ? "" : QString("%1").arg(C));
+    cLineEdit->setText(C == PepCore::signalDisabled ? "" : QString("%1").arg(C));
     auto B = code->getControlSignal(EControlSignals::B);
-    bLineEdit->setText(B == Enu::signalDisabled ? "" : QString("%1").arg(B));
+    bLineEdit->setText(B == PepCore::signalDisabled ? "" : QString("%1").arg(B));
     auto A = code->getControlSignal(EControlSignals::A);
-    aLineEdit->setText(A == Enu::signalDisabled ? "" : QString("%1").arg(A));
+    aLineEdit->setText(A == PepCore::signalDisabled ? "" : QString("%1").arg(A));
 
     MARCk->setChecked(code->getClockSignal(EClockSignals::MARCk));
     MDRCk->setChecked(code->getClockSignal(EClockSignals::MDRCk));
@@ -2634,37 +2634,37 @@ void CpuGraphicsItems::setCPULabels(const MicroCode *code)
     MDROCk->setChecked(code->getClockSignal(EClockSignals::MDROCk));
 
     auto AMux = code->getControlSignal(EControlSignals::AMux);
-    aMuxTristateLabel->setState(AMux == Enu::signalDisabled ? -1 : AMux);
+    aMuxTristateLabel->setState(AMux == PepCore::signalDisabled ? -1 : AMux);
     auto MDRMux = code->getControlSignal(EControlSignals::MDRMux);
-    MDRMuxTristateLabel->setState(MDRMux == Enu::signalDisabled ? -1 : MDRMux);
+    MDRMuxTristateLabel->setState(MDRMux == PepCore::signalDisabled ? -1 : MDRMux);
     auto MDREMux = code->getControlSignal(EControlSignals::MDREMux);
-    MDREMuxTristateLabel->setState(MDREMux == Enu::signalDisabled ? -1 : MDREMux);
+    MDREMuxTristateLabel->setState(MDREMux == PepCore::signalDisabled ? -1 : MDREMux);
     auto MDROMux = code->getControlSignal(EControlSignals::MDROMux);
-    MDROMuxTristateLabel->setState(MDROMux == Enu::signalDisabled ? -1 : MDROMux);
+    MDROMuxTristateLabel->setState(MDROMux == PepCore::signalDisabled ? -1 : MDROMux);
 
     auto EOMux = code->getControlSignal(EControlSignals::EOMux);
-    EOMuxTristateLabel->setState(EOMux == Enu::signalDisabled ? -1 : EOMux);
+    EOMuxTristateLabel->setState(EOMux == PepCore::signalDisabled ? -1 : EOMux);
     auto MARMux = code->getControlSignal(EControlSignals::MARMux);
-    MARMuxTristateLabel->setState(MARMux == Enu::signalDisabled ? -1 : MARMux);
+    MARMuxTristateLabel->setState(MARMux == PepCore::signalDisabled ? -1 : MARMux);
     auto CMux = code->getControlSignal(EControlSignals::CMux);
-    cMuxTristateLabel->setState(CMux == Enu::signalDisabled ? -1 : CMux);
+    cMuxTristateLabel->setState(CMux == PepCore::signalDisabled ? -1 : CMux);
     auto ALU = code->getControlSignal(EControlSignals::ALU);
-    ALULineEdit->setText(ALU == Enu::signalDisabled ? "" : QString("%1").arg(ALU));
+    ALULineEdit->setText(ALU == PepCore::signalDisabled ? "" : QString("%1").arg(ALU));
     auto CSMux = code->getControlSignal(EControlSignals::CSMux);
-    CSMuxTristateLabel->setState(CSMux == Enu::signalDisabled ? -1 : CSMux);
+    CSMuxTristateLabel->setState(CSMux == PepCore::signalDisabled ? -1 : CSMux);
 
     SCkCheckBox->setChecked(code->getClockSignal(EClockSignals::SCk));
     CCkCheckBox->setChecked(code->getClockSignal(EClockSignals::CCk));
     VCkCheckBox->setChecked(code->getClockSignal(EClockSignals::VCk));
     auto AndZ = code->getControlSignal(EControlSignals::AndZ);
-    AndZTristateLabel->setState(AndZ == Enu::signalDisabled ? -1 : AndZ );
+    AndZTristateLabel->setState(AndZ == PepCore::signalDisabled ? -1 : AndZ );
     ZCkCheckBox->setChecked(code->getClockSignal(EClockSignals::ZCk));
     NCkCheckBox->setChecked(code->getClockSignal(EClockSignals::NCk));
 
     auto MemRead = code->getControlSignal(EControlSignals::MemRead);
-    MemReadTristateLabel->setState(MemRead == Enu::signalDisabled ? -1 : MemRead);
+    MemReadTristateLabel->setState(MemRead == PepCore::signalDisabled ? -1 : MemRead);
     auto MemWrite = code->getControlSignal(EControlSignals::MemWrite);
-    MemWriteTristateLabel->setState(MemWrite == Enu::signalDisabled ? -1 : MemWrite);
+    MemWriteTristateLabel->setState(MemWrite == PepCore::signalDisabled ? -1 : MemWrite);
 }
 
 

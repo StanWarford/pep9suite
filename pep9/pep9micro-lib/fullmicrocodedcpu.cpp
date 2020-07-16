@@ -878,7 +878,7 @@ void FullMicrocodedCPU::setSignalsFromMicrocode(const MicroCode *line)
     int val;
     if(line->getClockSignal(EClockSignals::PValidCk)) {
         val = line->getControlSignal(EControlSignals::PValid);
-        if(val == Enu::signalDisabled) {
+        if(val == PepCore::signalDisabled) {
             errorMessage = "Error: Asserted PValidCk, but PValid was disabled.";
             controlError = true;
         }
