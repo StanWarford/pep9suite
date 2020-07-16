@@ -28,7 +28,7 @@
 
 CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheConfiguration config,
                          QObject* parent):
-    track_reads(true), AMemoryDevice(parent), memory_device(memory_device), replace_factory(config.policy),
+    AMemoryDevice(parent),track_reads(true),  memory_device(memory_device), replace_factory(config.policy),
     tag_size(config.tag_bits), index_size(config.index_bits),
     data_size(16 - tag_size - index_size), associativity(config.associativity),
     allocation_policy(config.write_allocation), cacheTagsTouched(), transactionLines()
@@ -39,7 +39,7 @@ CacheMemory::CacheMemory(QSharedPointer<MainMemory> memory_device, Cache::CacheC
 
     // Resize the cache to fit the correct number of lines.
     //resize_cache(tag_size, index_size, associativity, replace_factory);
-    cache.resize(1 << index_size);
+    cache.resize(1i64 << index_size);
     for(auto& line : cache) {
         line = CacheLine(associativity, replace_factory->create_policy());
     }
@@ -87,7 +87,7 @@ bool CacheMemory::resizeCache(Cache::CacheConfiguration config)
     else {
         tag_size = config.tag_bits;
         index_size = config.index_bits;
-        cache.resize(1 << index_size);
+        cache.resize(1i64 << index_size);
         data_size = config.data_bits;
         associativity = config.associativity;
         allocation_policy = config.write_allocation;
