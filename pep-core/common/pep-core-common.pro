@@ -44,6 +44,8 @@ RESOURCES += \
     common-helpresources.qrc \
     common-resources.qrc
 
+include (../../gitversion.pri)
+
 include(about/about.pri)
 include(converters/converters.pri)
 include(cpu/cpu.pri)

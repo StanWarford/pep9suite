@@ -1,5 +1,3 @@
-include (gitversion.pri)
-
 TEMPLATE = subdirs
 SUBDIRS = \
             PepCommon \
