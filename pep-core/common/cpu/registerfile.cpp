@@ -33,7 +33,7 @@ RegisterFile::RegisterFile(quint8 max_registers, quint8 max_status_bits):
 
 bool RegisterFile::readStatusBitCurrent(PepCore::CPUStatusBits_name_t bit) const
 {
-    if(bit < statusBitsCurrent.size()) {
+    if(bit < max_status_bit_number) {
         return statusBitsCurrent[bit];
     }
     else {
@@ -43,7 +43,7 @@ bool RegisterFile::readStatusBitCurrent(PepCore::CPUStatusBits_name_t bit) const
 
 bool RegisterFile::readStatusBitStart(PepCore::CPUStatusBits_name_t bit) const
 {
-    if(bit < statusBitsCurrent.size()) {
+    if(bit < max_status_bit_number) {
         return statusBitsStart[bit];
     }
     else {

@@ -148,15 +148,19 @@ int main(int argc, char *argv[])
     parser.formatter(std::make_shared<TermFormatter>(parameter_formatting, detailed_descriptions));
     // Top level option flags
     auto help = parser.set_help_flag("--help,-h", "Show this help information.");
+    (void) help;
     // Setting help all flag to empty prevents it from being generated.
     auto help_all = parser.set_help_all_flag("", "");
+    (void) help_all;
+
     //auto help_all = parser.set_help_all_flag("--help-all", "Show help information for all subcommands.");
     std::string version_string =  "Display program version number.";
     auto version_flag = parser.add_flag("-v,--version", [&](int64_t flag){handle_version(values,flag);}, version_string);
+    (void) version_flag;
 
     std::string about_string =  "Display information about licensing, Qt, and developers.";
     auto about_flag = parser.add_flag("--about", [&](int64_t flag){handle_about(values,flag);}, about_string);
-
+    (void) about_flag;
     // Subcommands for ASSEMBLE
     // Must create map for flag value names.
     parameter_formatting.insert_or_assign("asm", std::map<std::string,std::string>());
@@ -178,7 +182,7 @@ int main(int argc, char *argv[])
     // Subcommands for RUN
    parameter_formatting.insert_or_assign("run", std::map<std::string,std::string>());
     auto run_subcommand = parser.add_subcommand("run", run_description);
-    detailed_descriptions["run"] = QString::fromStdString(run_description_detailed).arg(BoundExecIsaCpu::getDefaultMaxSteps()).toStdString();;
+    detailed_descriptions["run"] = QString::fromStdString(run_description_detailed).arg(BoundExecIsaCpu::getDefaultMaxSteps()).toStdString();
     // Batch input that will be loaded into charIn.
     run_subcommand->add_option("-i", values.i, charin_file_text)->expected(1);
     parameter_formatting["run"]["i"] = "charin_file";
@@ -207,6 +211,7 @@ int main(int argc, char *argv[])
     parameter_formatting["cpuasm"]["e"] = "error_file";
     // Add flags to select 1-byte or 2-byte CPU data bus.
     auto cpuasm_d2_flag = cpuasm_subcommand->add_flag("--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte);
+    (void) cpuasm_d2_flag;
     // Microcode input file.
     cpuasm_subcommand->add_option("-s", values.mc, cpuasm_input_file_text)->expected(1)->required(true);
     parameter_formatting["cpuasm"]["s"] = "microcode_file";
@@ -225,6 +230,7 @@ int main(int argc, char *argv[])
     parameter_formatting["cpurun"]["e"] = "error_file";
     // Add flags to select 1-byte or 2-byte CPU data bus.
     auto cpurun_d2_flag = cpurun_subcommand->add_flag("--d2", [&](int64_t){handle_databus_size(values, true);}, cpu_2byte_run);
+    (void) cpurun_d2_flag;
     // Allow full control section to be enabled iff 2-byte data bus is enabled.
     //auto cpurun_full_ctrl_flag = cpurun_subcommand->add_flag("--full-control",[&](int64_t){handle_full_control(values, true);}, cpu_full_control);
     //cpurun_full_ctrl_flag->needs(cpurun_d2_flag);

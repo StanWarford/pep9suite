@@ -45,7 +45,7 @@ private:
     mutable std::deque<std::string> subcommand_heirarchy;
 };
 
-std::string TermFormatter::make_name(const CLI::App *app, std::string name) const
+std::string TermFormatter::make_name(const CLI::App *, std::string name) const
 {
     std::stringstream out;
 
