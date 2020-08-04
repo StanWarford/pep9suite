@@ -81,17 +81,39 @@ Here is the cache view after the first step.
 <p>
 <img src="qrc:/help-asm/images/cachetrace03.png" alt="cachetrace03" hspace=10 vspace=10>
 <p>
-The first column displays the Line number.
-Because there are three line bits and 2<sup>3</sup>=8, the chache table has 8 entries and the cache line number will be a value in the range 0..7.
-In this step, the line number is 0.
+Because this is a 4-way set-associative cache, each entry (<i>i.e.</i> line) in the cache table is a set of four blocks from memory.
+Each block in the above cache view is on a separate row.
 <p>
-The second column displays the Tag number.
+The first column displays the Line number.
+Because there are three line bits and 2<sup>3</sup>=8, the cache table has 8 entries and the cache line number will be a value in the range 0..7.
+In this step, the line number is 0.
+The figure does not show the remaining seven lines.
+<p>
+The second column displays the Valid bit.
+The valid bit of the first element in the set is 1, or true, indicating that the first element contains a valid copy of the data from main memory.
+<p>
+The third column displays the Tag number.
 Because there are 9 tag bits and 2<sup>9</sup>=512, there are 512 16-byte blocks in main memory that map into each entry of the cache table, and the Tag number will be a value in the range 0..511.
 In this step, the tag number is 0.
 <p>
-Because this is a 4-way set-associative cache, each entry (<i>i.e.</i> Line) in the cache table is a set of four blocks from memory.
-Each block in the above cache view is on a separate row.
-Each row contains the Tag for that block, the
+The physical content of the cache consists of the valid bit, the tag field, and the copy of the block from memory.
+The cache view does not display the copy of the block directly.
+If you want to see the block from memory, right-click the entry in the cache view.
+<p>
+The fourth column displays the range of main memory addresses covered by the block.
+In this example, the block contains the 16 bytes from main memory addresses 0000 to 000F.
+<p>
+The fifth column displays the number of memory references thus far in the execution.
+Each entry in the cache table is initially loaded because of a cache miss.
+Each subsequent reference to prefetched bytes is a cache hit.
+Therefore, the number of cache hits is always the number of cache references minus one.
+<p>
+In this step, the number of references is three, which means there was one cache miss and two cache hits.
+The first cache miss was the fetch of the instruction specifier byte.
+The two cache hits were the fetch of the two bytes of the operand specifier that were preloaded into the cache during the cache miss.
+<p>
+The sixth column is only relevant when the set is full and a cache miss requires a new block to be copied into that line.
+If all the valid bits are true, the Next Victim column shows which element from the set will be replaced.
 <p>
 <h4>Step 2.</h4>
 <p>
