@@ -45,8 +45,7 @@ void CacheConfig::init(QSharedPointer<CacheMemory> cache, bool enableCacheChange
 {
     this->cache = cache;
     this->enableCacheChanges = enableCacheChanges;
-    ui->updateButton->setEnabled(enableCacheChanges);
-    ui->updateButton->setVisible(enableCacheChanges);
+    setReadOnly(enableCacheChanges);
 
     QMetaObject meta = CacheAlgorithms::staticMetaObject;
     QMetaEnum metaEnum = meta.enumerator(meta.indexOfEnumerator("CacheAlgorithms"));
@@ -54,7 +53,6 @@ void CacheConfig::init(QSharedPointer<CacheMemory> cache, bool enableCacheChange
         ui->replacementCombo->addItem(QString(metaEnum.key(keyIndex)));
     }
 
-    ui->updateButton->setFont(PepCore::labelFont);
     ui->tagBits->setFont(PepCore::labelFont);
     ui->tagLabel->setFont(PepCore::labelFont);
     ui->indexBits->setFont(PepCore::labelFont);
@@ -77,7 +75,6 @@ void CacheConfig::setReadOnly(bool readOnly)
     //ui->writeAllocationCombo->setEnabled(enabled);
     ui->replacementCombo->setEnabled(enabled);
     ui->associativityNum->setEnabled(enabled);
-    ui->updateButton->setEnabled(enabled & enableCacheChanges & valuesChanged);
 }
 
 void CacheConfig::onCacheConfigChanged()
@@ -103,7 +100,7 @@ void CacheConfig::onCacheConfigChanged()
 
     // Anytime the cache is re-configured, it is cleared.
     valuesChanged = false;
-    updateButtonRefresh();
+    refresh_cache_config();
 }
 
 void CacheConfig::onFontChanged(QFont)
@@ -120,15 +117,12 @@ void CacheConfig::onDarkModeChanged(bool)
 
 void CacheConfig::onSimulationStarted()
 {
-    onCacheConfigChanged();
+    setReadOnly(true);
 }
 
-void CacheConfig::updateButtonRefresh()
+void CacheConfig::onSimulationFinished()
 {
-    if(enableCacheChanges) {
-        ui->updateButton->setEnabled(valuesChanged);
-    }
-
+    setReadOnly(false | !enableCacheChanges);
 }
 
 void CacheConfig::updateAddressBits()
@@ -149,21 +143,21 @@ void CacheConfig::updateAddressBits()
 void CacheConfig::on_tagBits_valueChanged(int newValue)
 {
     if(cache->getTagSize() != newValue) valuesChanged |= true;
-    updateButtonRefresh();
+    refresh_cache_config();
     updateAddressBits();
 }
 
 void CacheConfig::on_indexBits_valueChanged(int newValue)
 {
     if(cache->getIndexSize() != newValue) valuesChanged |= true;
-    updateButtonRefresh();
+    refresh_cache_config();
     updateAddressBits();
 }
 
 void CacheConfig::on_associativityNum_valueChanged(int newValue)
 {
     if(cache->getAssociativty() != newValue) valuesChanged |= true;
-    updateButtonRefresh();
+    refresh_cache_config();
     updateAddressBits();
 }
 
@@ -172,7 +166,7 @@ void CacheConfig::on_replacementCombo_currentIndexChanged(int)
     // Text in combo box is set via the CacheAlgorithms enum, which should be
     // identical to at least one caching algorithm used by the cache.
     if(cache->getCacheAlgorithm() != ui->replacementCombo->currentText()) valuesChanged |= true;
-    updateButtonRefresh();
+    refresh_cache_config();
 }
 
 // Re-enable if we decide to allow for different write-allocation policies.
@@ -190,7 +184,7 @@ void CacheConfig::on_writeAllocationCombo_currentIndexChanged(int)
     updateButtonRefresh();
 }
 */
-void CacheConfig::on_updateButton_pressed()
+void CacheConfig::refresh_cache_config()
 {
     if(valuesChanged) {
         Cache::CacheConfiguration config;
@@ -229,5 +223,4 @@ void CacheConfig::on_updateButton_pressed()
 
         valuesChanged = false;
     }
-    updateButtonRefresh();
 }

@@ -491,14 +491,13 @@ void CacheView::onMemoryChanged(quint16 /*address*/, quint8 /*newValue*/)
 void CacheView::onSimulationStarted()
 {
     inSimulation = true;
-    ui->cacheConfiguration->setReadOnly(true);
     ui->cacheConfiguration->onSimulationStarted();
 }
 
 void CacheView::onSimulationFinished()
 {
     inSimulation = false;
-    ui->cacheConfiguration->setReadOnly(false);
+    ui->cacheConfiguration->onSimulationFinished();
 }
 
 void CacheView::onCacheConfigChanged()

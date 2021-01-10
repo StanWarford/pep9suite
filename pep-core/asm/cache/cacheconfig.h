@@ -51,29 +51,26 @@ public slots:
     void onFontChanged(QFont current);
     void onDarkModeChanged(bool darkMode);
     void onSimulationStarted();
+    void onSimulationFinished();
 
 private:
     Ui::CacheConfig *ui;
     QSharedPointer<CacheMemory> cache;
     bool valuesChanged = false;
     bool enableCacheChanges = true;
-    // Determine if the "Update Configuration" button should be enabled or not
-    void updateButtonRefresh();
     // Compute the offset bits from the index, tag bits. Also compute the maximum
     // value that may be placed in either tag or index fields.
     void updateAddressBits();
     // Number of bits needed to represent a memory address.
     static const quint16 memory_bits = 16;
-
-    // Respond to values in configuration being changed.
+    // Re-enable if we decide to allow change write-allocation policy.
+    //void on_writeAllocationCombo_currentIndexChanged(int);
+    void refresh_cache_config();
 private slots:
     void on_tagBits_valueChanged(int newValue);
     void on_indexBits_valueChanged(int newValue);
     void on_associativityNum_valueChanged(int newValue);
     void on_replacementCombo_currentIndexChanged(int);
-    // Re-enable if we decide to allow change write-allocation policy.
-    //void on_writeAllocationCombo_currentIndexChanged(int);
-    void on_updateButton_pressed();
 };
 
 #endif // CACHECONFIG_H
