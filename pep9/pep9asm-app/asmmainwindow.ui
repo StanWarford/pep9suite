@@ -20,7 +20,7 @@
    <string>Pep/9</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="../pep9micro-lib/pep9micro-resources.qrc">
     <normaloff>:/images/Pep9micro-icon.png</normaloff>:/images/Pep9micro-icon.png</iconset>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
@@ -196,7 +196,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="memoryTab">
         <attribute name="title">
@@ -240,7 +240,7 @@
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -460,7 +460,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionFile_New_Asm">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
    </property>
    <property name="text">
@@ -475,7 +475,7 @@
   </action>
   <action name="actionFile_Open">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
    </property>
    <property name="text">
@@ -490,7 +490,7 @@
   </action>
   <action name="actionFile_Save_Asm">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
    </property>
    <property name="text">
@@ -519,7 +519,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/undo.png</normaloff>:/images/undo.png</iconset>
    </property>
    <property name="text">
@@ -537,7 +537,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/redo.png</normaloff>:/images/redo.png</iconset>
    </property>
    <property name="text">
@@ -552,7 +552,7 @@
   </action>
   <action name="actionEdit_Cut">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/cut.png</normaloff>:/images/cut.png</iconset>
    </property>
    <property name="text">
@@ -567,7 +567,7 @@
   </action>
   <action name="actionEdit_Copy">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/copy.png</normaloff>:/images/copy.png</iconset>
    </property>
    <property name="text">
@@ -582,7 +582,7 @@
   </action>
   <action name="actionEdit_Paste">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/paste.png</normaloff>:/images/paste.png</iconset>
    </property>
    <property name="text">
@@ -629,7 +629,7 @@
   </action>
   <action name="actionBuild_Run">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/run.png</normaloff>:/images/run.png</iconset>
    </property>
    <property name="text">
@@ -644,7 +644,7 @@
   </action>
   <action name="actionDebug_Start_Debugging">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/debugger_start.png</normaloff>:/images/debugger_start.png</iconset>
    </property>
    <property name="text">
@@ -662,7 +662,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/debugger_stop.png</normaloff>:/images/debugger_stop.png</iconset>
    </property>
    <property name="text">
@@ -680,7 +680,7 @@
   </action>
   <action name="actionHelp">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/help.png</normaloff>:/images/help.png</iconset>
    </property>
    <property name="text">
@@ -752,7 +752,7 @@
   </action>
   <action name="actionBuild_Assemble">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/assemble.png</normaloff>:/images/assemble.png</iconset>
    </property>
    <property name="text">
@@ -767,7 +767,7 @@
   </action>
   <action name="actionBuild_Load_Object">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/load-source.png</normaloff>:/images/load-source.png</iconset>
    </property>
    <property name="text">
@@ -799,7 +799,7 @@
   </action>
   <action name="actionDebug_Step_Over_Assembler">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/debugger_step_over.png</normaloff>:/images/debugger_step_over.png</iconset>
    </property>
    <property name="text">
@@ -814,7 +814,7 @@
   </action>
   <action name="actionDebug_Step_Into_Assembler">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/debugger_step_into.png</normaloff>:/images/debugger_step_into.png</iconset>
    </property>
    <property name="text">
@@ -826,7 +826,7 @@
   </action>
   <action name="actionDebug_Step_Out_Assembler">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/debugger_step_out.png</normaloff>:/images/debugger_step_out.png</iconset>
    </property>
    <property name="text">
@@ -841,7 +841,7 @@
   </action>
   <action name="actionDebug_Restart_Debugging">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/debugger_restart.png</normaloff>:/images/debugger_restart.png</iconset>
    </property>
    <property name="text">
@@ -853,7 +853,7 @@
   </action>
   <action name="actionDebug_Continue">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/debugger_continue.png</normaloff>:/images/debugger_continue.png</iconset>
    </property>
    <property name="text">
@@ -922,7 +922,7 @@
   </action>
   <action name="actionDebug_Single_Step_Assembler">
    <property name="icon">
-    <iconset>
+    <iconset resource="../../pep-core/common/common-resources.qrc">
      <normaloff>:/images/debug_single_step_asm.png</normaloff>:/images/debug_single_step_asm.png</iconset>
    </property>
    <property name="text">
@@ -975,7 +975,7 @@
   </action>
   <action name="actionView_Code_Only">
    <property name="icon">
-    <iconset resource="pep9asm-resources.qrc">
+    <iconset resource="../pep9asm-lib/pep9asm-resources.qrc">
      <normaloff>:/images/codeOnly.png</normaloff>:/images/codeOnly.png</iconset>
    </property>
    <property name="text">
@@ -996,7 +996,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="pep9asm-resources.qrc">
+    <iconset resource="../pep9asm-lib/pep9asm-resources.qrc">
      <normaloff>:/images/codeCPU.png</normaloff>:/images/codeCPU.png</iconset>
    </property>
    <property name="text">
@@ -1014,7 +1014,7 @@
   </action>
   <action name="actionView_Code_CPU_Memory">
    <property name="icon">
-    <iconset resource="pep9asm-resources.qrc">
+    <iconset resource="../pep9asm-lib/pep9asm-resources.qrc">
      <normaloff>:/images/codeCPUMem.png</normaloff>:/images/codeCPUMem.png</iconset>
    </property>
    <property name="text">
@@ -1133,7 +1133,11 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="pep9asm-resources.qrc"/>
+  <include location="../../pep-core/common/common-resources.qrc"/>
+  <include location="../pep9asm-lib/pep9asm-resources.qrc"/>
+  <include location="../../pep-core/common/common-resources.qrc"/>
+  <include location="../pep9asm-lib/pep9asm-resources.qrc"/>
+  <include location="../pep9micro-lib/pep9micro-resources.qrc"/>
  </resources>
  <connections>
   <connection>
