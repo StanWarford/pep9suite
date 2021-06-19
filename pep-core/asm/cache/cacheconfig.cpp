@@ -45,7 +45,7 @@ void CacheConfig::init(QSharedPointer<CacheMemory> cache, bool enableCacheChange
 {
     this->cache = cache;
     this->enableCacheChanges = enableCacheChanges;
-    setReadOnly(enableCacheChanges);
+    setReadOnly(!enableCacheChanges);
 
     QMetaObject meta = CacheAlgorithms::staticMetaObject;
     QMetaEnum metaEnum = meta.enumerator(meta.indexOfEnumerator("CacheAlgorithms"));
