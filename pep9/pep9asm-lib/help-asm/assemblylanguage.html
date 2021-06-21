@@ -28,8 +28,9 @@ The assembly language program must end with the pseudo-op <code>.END</code>.
  <a name = "Topics">Topics:</a>
  <a href="#Writing">Writing an assembly language program</a>,
  <a href="#Run">The Run Source option</a>,
- <a href="#Trace">Trace tag warnings</a>,
- <a href="#ExecStats">Execution statistics</a>.
+ <a href="#ExecStats">Execution statistics</a>,
+ <a href="#Trace">Trace tags</a>,
+ <a href="#Syntax">Assembly language syntax summary</a>.
 
 <h3><a name="Writing">Writing an assembly language program</a></h3>
 
@@ -104,8 +105,43 @@ You can initiate a run by selecting Build&rarr;Run Source from the menu or by cl
 <p>
 <a href="#Topics">Scroll to topics</a>.
 
-<h3><a name="Trace">Trace tag warnings</a></h3>
+<h3><a name="ExecStats">Execution statistics</a></h3>
 
+Text for execution statistics goes here.
+<p>
+More text for execution statistics goes here.
+<p>
+More text for execution statistics goes here.
+<p>
+<a href="#Topics">Scroll to topics</a>.
+
+<h3><a name="Trace">Trace tags</a></h3>
+
+<p>
+<table border cellspacing=0 cellpadding=5>
+ <tr>
+  <th>Trace tag</th> <th>Format</th>
+ </tr>
+ <tr>
+  <td><code>#1c</code></td> <td>One-byte character</td>
+ </tr>
+ <tr>
+  <td><code>#1d</code></td> <td>One-byte decimal</td>
+ </tr>
+ <tr>
+  <td><code>#2d</code></td> <td>Two-byte decimal</td>
+ </tr>
+ <tr>
+  <td><code>#1h</code></td> <td>One-byte hexadecimal</td>
+ </tr>
+ <tr>
+  <td><code>#2h</code></td> <td>Two-byte hexadecimal</td>
+ <tr>
+  <td><code>#2d4a</code></td> <td>Two-byte decimal, four-cell array (example)</td>
+ </tr>
+</table>
+
+<p>
 If your program assembles correctly but there is an error in your trace tags, a trace tag warning is displayed.
 For example, here is what happens if you make an error in one of the trace tags in the program from Figure 5.27.
 <p>
@@ -118,15 +154,42 @@ you fix the trace tag error and reassemble your program.
 <p>
 <a href="#Topics">Scroll to topics</a>.
 
-<h3><a name="ExecStats">Execution statistics</a></h3>
+<h3><a name="Syntax">Assembly language syntax summary</a></h3>
 
-Text for execution statistics goes here.
+A decimal integer starts with an optional <code>+</code> or <code>-</code>, followed by a decimal digit followed by zero or more digits.
 <p>
-<img src="qrc:/help-asm/images/fig0527tracetagwarning.png" alt="fig0527tracetagwarning" hspace=10 vspace=10>
+A decimal integer used with <code>.BYTE</code> ranges from -128 to 255, otherwise from -32768 to 65535.
 <p>
-More text for execution statistics goes here.
+A hex integer starts with <code>0x</code> or <code>0X</code> followed by one or more hex digits (upper- or lower-case).
+<p>
+A hex integer used with <code>.BYTE</code> ranges from 0 to FF, otherwise from 0 to FFFF.
+<p>
+A single character is enclosed in single quotes, as in <code>'t'</code>.
+<p>
+An ASCII string is enclosed in double quotes, as in <code>"My string."</code>.
+<p>
+An arbitrary byte can be included in a string or a character by prefixing exactly two hex digits with <code>\x</code> or <code>\X</code>, as in <code>"Null terminated\x00"</code>.
+<p>
+A double quote is included in a string by prefixing it with <code>\</code>, as in <code>"She said, \"Hello\"."</code>.
+<p>
+A single quote is included in a character by prefixing it with <code>\</code>, as in <code>'\''</code>.
+<p>
+A backslash character is included in a string or character by prefixing it with <code>\</code>, as in <code>"My bash is \\."</code> and <code>'\\'</code>.
+<p>
+The following letters, when preceded by <code>\</code>, generate non printable characters&#151;<code>b</code> backspace, <code>f</code> form feed, <code>n</code> line feed (new line), <code>r</code> carriage return, <code>t</code> horizontal tab, <code>v</code> vertical tab&#151;in string and character constants, as in <code>"\n Starts on a new line."</code> and <code>'\n'</code>.
+<p>
+A backslash character followed by any character other than <code>b</code>, <code>f</code>, <code>n</code>, <code>r</code>, <code>t</code>, <code>v</code>, <code>x</code>, <code>X</code>, <code>"</code>, <code>'</code>, or <code>\</code> (except for the second of a pair of <code>\</code>&#146;s) is an error.
+<p>
+A double quote preceded by a backslash in a character is not necessary but is valid and represents one double quote.
+<p>
+A single quote preceded by a backslash in a string is not necessary but is valid and represents one single quote.
+<p>
+A constant used as an operand specifier that occupies less than two bytes is right justified in the two-byte field.
+<p>
+A constant used as an operand specifier that occupies more than two bytes is an error.
 <p>
 <a href="#Topics">Scroll to topics</a>.
 
+<p>
 </body>
 </html>
