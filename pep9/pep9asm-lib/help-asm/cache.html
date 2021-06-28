@@ -100,6 +100,8 @@ The physical content of the cache consists of the valid bit, the tag field, and 
 The cache view does not display the copy of the block directly.
 If you want to see the block from memory, right-click the entry in the cache view.
 <p>
+<img src="qrc:/help-asm/images/cachetrace04.png" alt="cachetrace04" hspace=10 vspace=10>
+<p>
 The fourth column displays the range of main memory addresses covered by the block.
 In this example, the block contains the 16 bytes from main memory addresses 0000 to 000F.
 <p>
@@ -117,16 +119,74 @@ If all the valid bits are true, the Next Victim column shows which element from 
 <p>
 <h4>Step 2.</h4>
 <p>
-<img src="qrc:/help-asm/images/cachetrace04.png" alt="cachetrace04" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/cachetrace05.png" alt="cachetrace05" hspace=10 vspace=10>
 <p>
 The <code>LDWA</code> instruction at 0009 executes.
 The <code>CALL</code> instruction at 000C will execute next.
-More commentary describing the cache.
 <p>
-<img src="qrc:/help-asm/images/cachetrace05.png" alt="cachetrace05" hspace=10 vspace=10>
+Here is the cache view after the second step.
+<p>
+<img src="qrc:/help-asm/images/cachetrace06.png" alt="cachetrace06" hspace=10 vspace=10>
+<p>
+Because the <code>LDWA</code> instruction uses immediate addressing, all memory references were preloaded into the cache.
+All three references were hits.
+So, the only change to the cache is an increase of references from 3 to 6.
+<p>
+<h4>Step 3.</h4>
+<p>
+<img src="qrc:/help-asm/images/cachetrace07.png" alt="cachetrace07" hspace=10 vspace=10>
+<p>
+The <code>CALL</code> instruction at 000C executes.
+The <code>LDWX</code> instruction at 0073 will execute next.
+<p>
+Here is the cache view after the third step.
+<p>
+<img src="qrc:/help-asm/images/cachetrace08.png" alt="cachetrace08" hspace=10 vspace=10>
+<p>
+Because the <code>LDWA</code> instruction uses immediate addressing, all memory references were preloaded into the cache.
+All three references were hits.
+So, the only change to the cache is an increase of references from 3 to 6.
+<h4>Step 4.</h4>
+<p>
+<img src="qrc:/help-asm/images/cachetrace11.png" alt="cachetrace11" hspace=10 vspace=10>
+<p>
+The <code>LDWX</code> instruction at 0073 executes.
+The <code>ADDX</code> instruction at 0076 will execute next.
+<p>
+Here is the cache view after the fourth step.
+<p>
+<img src="qrc:/help-asm/images/cachetrace12.png" alt="cachetrace12" hspace=10 vspace=10>
+<p>
+Step 4 commentary.
+<h4>Step 5.</h4>
+<p>
+<img src="qrc:/help-asm/images/cachetrace13.png" alt="cachetrace13" hspace=10 vspace=10>
+<p>
+The <code>LDWA</code> instruction at 0009 executes.
+The <code>CALL</code> instruction at 000C will execute next.
+<p>
+Here is the cache view after the third step.
+<p>
+<img src="qrc:/help-asm/images/cachetrace14.png" alt="cachetrace14" hspace=10 vspace=10>
+<p>
+<h4>Step 6.</h4>
+<p>
+<img src="qrc:/help-asm/images/cachetrace15.png" alt="cachetrace15" hspace=10 vspace=10>
+<p>
+The <code>LDWA</code> instruction at 0009 executes.
+The <code>CALL</code> instruction at 000C will execute next.
+<p>
+Here is the cache view after the third step.
+<p>
+<img src="qrc:/help-asm/images/cachetrace16.png" alt="cachetrace16" hspace=10 vspace=10>
 <p>
 
-<p>
+
+
+
+
+
+
 <a href="#Topics">Scroll to topics</a>.
 
 <h3><a name="Fully">Fully associative caches</a></h3>
