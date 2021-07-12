@@ -197,6 +197,5 @@
         <file>help-asm/images/cachetrace12.png</file>
         <file>help-asm/images/cachetrace13.png</file>
         <file>help-asm/images/cachetrace14.png</file>
-        <file>help-asm/images/cachetrace15.png</file>
     </qresource>
 </RCC>
