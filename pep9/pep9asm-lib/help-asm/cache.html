@@ -148,45 +148,37 @@ All three references were hits.
 So, the only change to the cache is an increase of references from 3 to 6.
 <h4>Step 4.</h4>
 <p>
-<img src="qrc:/help-asm/images/cachetrace11.png" alt="cachetrace11" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/cachetrace09.png" alt="cachetrace09" hspace=10 vspace=10>
 <p>
 The <code>LDWX</code> instruction at 0073 executes.
 The <code>ADDX</code> instruction at 0076 will execute next.
 <p>
 Here is the cache view after the fourth step.
 <p>
-<img src="qrc:/help-asm/images/cachetrace12.png" alt="cachetrace12" hspace=10 vspace=10>
+<img src="qrc:/help-asm/images/cachetrace10.png" alt="cachetrace10" hspace=10 vspace=10>
 <p>
-Step 4 commentary.
+The <code>LDWX</code> instruction at 0073 uses direct addressing to access <code>hpPtr</code>, which is at address 007D.
+This location puts both the instruction and its operand in the memory block that spans 0070 to 007F. NOTE BUG: DISPLAY SHOWS 0380 TO 038F.
+Hex address 0073, written in binary as a 9-bit tag field, followed by a 3-bit line field, followed by a 4-bit byte field is
+<p>
+000000000 111 0011
+<p>
+Because the line field is 111 (bin), the display shows the line as 7 (dec).
+There are 5 references, that is, one cache miss and four cache hits, from the three bytes to fetch the instruction at 0076
+plus two bytes to fetch <code>hpPtr</code> at 007D.
 <h4>Step 5.</h4>
 <p>
-<img src="qrc:/help-asm/images/cachetrace13.png" alt="cachetrace13" hspace=10 vspace=10>
-<p>
-The <code>LDWA</code> instruction at 0009 executes.
-The <code>CALL</code> instruction at 000C will execute next.
-<p>
-Here is the cache view after the third step.
-<p>
-<img src="qrc:/help-asm/images/cachetrace14.png" alt="cachetrace14" hspace=10 vspace=10>
-<p>
+When the <code>ADDA</code> instruction at 0076 executes, it adds five more references to the same cache entry, three for the instruction and two for the operand.
 <h4>Step 6.</h4>
 <p>
-<img src="qrc:/help-asm/images/cachetrace15.png" alt="cachetrace15" hspace=10 vspace=10>
+When the <code>STWA</code> instruction at 0079 executes, it similarly adds five more references.
 <p>
-The <code>LDWA</code> instruction at 0009 executes.
-The <code>CALL</code> instruction at 000C will execute next.
+To be continued ...
+
+
+
+
 <p>
-Here is the cache view after the third step.
-<p>
-<img src="qrc:/help-asm/images/cachetrace16.png" alt="cachetrace16" hspace=10 vspace=10>
-<p>
-
-
-
-
-
-
-
 <a href="#Topics">Scroll to topics</a>.
 
 <h3><a name="Fully">Fully associative caches</a></h3>
