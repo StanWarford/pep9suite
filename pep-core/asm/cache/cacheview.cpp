@@ -304,8 +304,8 @@ void CacheView::setRow(quint16 line, const CacheLine* linePtr, quint16 entry, co
     if(entryPtr->is_present) {
         auto tag = entryPtr->tag;
         c1_tag = QString("%1").arg(tag);
-        c3_address = toAddressRange((line<<(index_bits+data_bits)) + ((entryPtr->tag)<<data_bits),
-                                    (line<<(index_bits+data_bits)) + ((entryPtr->tag+1)<<data_bits) - 1);
+        c3_address = toAddressRange((tag<<(index_bits+data_bits)) + ((line)<<data_bits),
+                                    (tag<<(index_bits+data_bits)) + ((line+1)<<data_bits) - 1);
         c5_hits = entryPtr->hit_count;
     }
 
