@@ -143,7 +143,7 @@ void MemoryDumpPane::refreshMemoryLines(quint16 firstByte, quint16 lastByte)
     // Use <= comparison, so when firstLine == lastLine that the line is stil refreshed
     for(int row = firstLine; row <= lastLine; row++) {
         memoryDumpLine.clear();
-        for(int col = 0; col < bytesPerLine + 1; col++) {
+        for(int col = 0; col < bytesPerLine; col++) {
             // Only access memory if it is in range
             if(quint32(row * bytesPerLine + col) <= memDevice->maxAddress()) {
                 // Use the data in the memory section to set the value in the model.
