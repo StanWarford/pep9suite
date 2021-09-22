@@ -2291,9 +2291,10 @@ void MicroMainWindow::helpCopyToSourceClicked()
             // No other panes allow copying help into them.
             return;
 
+        }
     }
-}
 
+    ui->ioWidget->setBatchInput("");
     switch(inputPane)
     {
     case Enu::EPane::ETerminal:

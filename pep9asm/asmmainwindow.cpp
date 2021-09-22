@@ -1834,7 +1834,8 @@ void AsmMainWindow::helpCopyToSourceClicked()
 
     }
     }
-
+    // Clear batch input every time, since not every program will set batch input.
+    ui->ioWidget->setBatchInput("");
     switch(inputPane)
     {
     case Enu::EPane::ETerminal:
