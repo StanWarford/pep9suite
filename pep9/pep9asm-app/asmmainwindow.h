@@ -47,7 +47,7 @@ class MicrocodePane;
 class MicroObjectCodePane;
 class UpdateChecker;
 class RedefineMnemonicsDialog;
-static const bool showCacheOnStart = true;
+static const bool showCacheOnStart = false;
 //WIP classes
 class IsaCpu;
 class MainMemory;
