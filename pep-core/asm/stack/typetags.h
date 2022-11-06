@@ -44,6 +44,7 @@ public:
     virtual QString toString(QString prefix = QString("")) const = 0;
     virtual quint16 size() const = 0;
     virtual operator QString() const = 0;
+    bool reversed = false;
 };
 
 /*
@@ -105,6 +106,7 @@ public:
     QString toString(QString prefix = QString("")) const override;
     quint16 size() const override;
     operator QString() const override;
+
 };
 
 /*

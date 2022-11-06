@@ -539,6 +539,7 @@ void IsaAsm::handleTraceTags(const SymbolTable& symTable, StaticTraceInfo& trace
                     errList.append({line.first, bytesAllocMismatch.arg(instr->getArgument()->getArgumentValue()).arg(size)});
                 }
                 else {
+                    for (auto type : lineTypes) type->reversed = true;
                     traceInfo.instrToSymlist[address] = lineTypes;
                 }
                 break;
@@ -1309,6 +1310,7 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
            nui->getMnemonic() == EMnemonic::CALL &&
            nui->getArgument()->getArgumentString() == "malloc") {
             auto item = QSharedPointer<LiteralArrayType>::create(aTag.second, aTag.first);
+            if( nui != nullptr && nui->getMnemonic() == EMnemonic::SUBSP) item->reversed = true;
             traceInfo.dynamicAllocSymbolTypes.insert(code->getSymbolEntry(), item);
             return true;
         }
@@ -1335,7 +1337,9 @@ bool IsaAsm::processSourceLine(SymbolTable* symTable, BURNInfo& info, StaticTrac
         }
         // Dynamic arrays - stack or heap allocation
         else {
+            if( nui != nullptr && nui->getMnemonic() == EMnemonic::SUBSP) item->reversed = true;
             traceInfo.dynamicAllocSymbolTypes.insert(code->getSymbolEntry(), item);
+
         }
     }
     else if(hasPrimitiveType(tag)) {

@@ -127,9 +127,16 @@ QList<QPair<ESymbolFormat, QString> > ArrayType::toPrimitives(QString prefix) co
     QString runningPrefix = QString("%1%2")
             .arg(prefix)
             .arg(symbol->getName());
-    for(int it=0; it< this->len; it++) {
-        out.append({{format,QString("%1[%2]").arg(runningPrefix).arg(it)}});
+    if(reversed) {
+        for(int it=this->len-1; it >= 0; it--) {
+            out.append({{format,QString("%1[%2]").arg(runningPrefix).arg(it)}});
+        }
+    } else {
+        for(int it=0; it< this->len; it++) {
+            out.append({{format,QString("%1[%2]").arg(runningPrefix).arg(it)}});
+        }
     }
+
     return out;
 }
 
@@ -167,15 +174,21 @@ QList<QPair<ESymbolFormat, QString> > LiteralArrayType::toPrimitives(QString pre
     auto out = QList<QPair<ESymbolFormat, QString>>();
     QString runningPrefix = QString("%1")
             .arg(prefix);
-    for(int it=0; it< this->len; it++) {
-        out.append({{format,QString("%1[%2]").arg(runningPrefix).arg(it)}});
+    if(reversed) {
+        for(int it=this->len-1; it >= 0; it--) {
+            out.append({{format,QString("%1[%2]").arg(runningPrefix).arg(it)}});
+        }
+    } else {
+        for(int it=0; it< this->len; it++) {
+            out.append({{format,QString("%1[%2]").arg(runningPrefix).arg(it)}});
+        }
     }
     return out;
 }
 
 QString LiteralArrayType::toString(QString prefix) const
 {
-    return QString("%1[%3]")
+    return QString("%1[%2]")
             .arg(prefix)
             .arg(len);
 }
