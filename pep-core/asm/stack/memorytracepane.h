@@ -104,7 +104,7 @@ private:
 
     void mouseReleaseEvent(QMouseEvent *) override;
     void mouseDoubleClickEvent(QMouseEvent *) override;
-
+    int old_factor = 100;
 private slots:
     void zoomFactorChanged(int factor);
 

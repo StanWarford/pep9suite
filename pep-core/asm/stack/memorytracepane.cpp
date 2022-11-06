@@ -49,7 +49,7 @@ NewMemoryTracePane::NewMemoryTracePane(QWidget *parent): QWidget (parent), ui(ne
     ui->graphicsView->setFont(QFont(PepCore::codeFont, PepCore::codeFontSize));
 
     connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(zoomFactorChanged(int)));
-    ui->spinBox->hide();
+    // ui->spinBox->hide();
 
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
@@ -472,5 +472,7 @@ void NewMemoryTracePane::mouseDoubleClickEvent(QMouseEvent *)
 
 void NewMemoryTracePane::zoomFactorChanged(int factor)
 {
-    ui->graphicsView->scale(factor * .01, factor * .01);
+    auto adjusted_factor = ((double)factor)/old_factor;
+    ui->graphicsView->scale(adjusted_factor, adjusted_factor);
+    old_factor = factor;
 }
