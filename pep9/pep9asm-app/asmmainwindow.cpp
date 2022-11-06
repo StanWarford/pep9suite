@@ -1991,7 +1991,8 @@ void AsmMainWindow::helpCopyToSourceClicked()
 
     }
     }
-
+    // Clears input on prgoram switch -- old input not useful for new program
+    ui->ioWidget->setBatchInput("");
     switch(inputPane)
     {
     case PepCore::EPane::ETerminal:
