@@ -488,11 +488,11 @@ void AsmHelpDialog::onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*) {
         ui->rightPepTextEdit->hide();
         ui->figureLabel->setText("<b>Figures 8.2, 8.3, 8.6, 8.8, 8.10, 8.11</b><code>  </code> The Pep/9 operating system.");
     }
-    else if(!isHelpSubCat && row == eCACHE) {
+    /*else if(!isHelpSubCat && row == eCACHE) {
         ui->helpSplitter->widget(1)->hide();
         ui->webView->show();
         ui->webView->load(QUrl("qrc:/help-asm/cache.html"));
-    }
+    }*/
 }
 
 // Helper Functions
