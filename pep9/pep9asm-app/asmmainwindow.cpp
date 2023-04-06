@@ -1133,6 +1133,8 @@ void AsmMainWindow::on_actionEdit_Format_Assembler_triggered()
         set_Obj_Listing_filenames_from_Source();
         ui->statusBar->showMessage("Assembly succeeded", 4000);
         handleDebugButtons();
+        QString code = out.prog->getFormattedSourceCode();
+        ui->assemblerPane->setPaneContents(PepCore::EPane::ESource, code);
     }
     else {
         ui->assemblerPane->clearPane(PepCore::EPane::EObject);
@@ -1143,8 +1145,7 @@ void AsmMainWindow::on_actionEdit_Format_Assembler_triggered()
         ui->statusBar->showMessage("Assembly failed", 4000);
     }
 
-    QString code = out.prog->getFormattedSourceCode();
-    ui->assemblerPane->setPaneContents(PepCore::EPane::ESource, code);
+
 
 
 }
