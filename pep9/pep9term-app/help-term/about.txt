@@ -1,4 +1,4 @@
-Pep/9 Terminal version 9.3.0
+Pep/9 Terminal version 9.4.2
 
 Check for updates:
        https://github.com/StanWarford/pep9suite/releases

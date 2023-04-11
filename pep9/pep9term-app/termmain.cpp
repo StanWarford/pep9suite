@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Pepperdine Computer Science Lab");
     QCoreApplication::setOrganizationDomain("cslab.pepperdine.edu");
     QCoreApplication::setApplicationName("Pep9Term");
-    QCoreApplication::setApplicationVersion("9.3.0");
+    QCoreApplication::setApplicationVersion("9.4.2");
 
     // Runnable into which the executable program will be loaded by the below subcommands.
     QRunnable* run = nullptr;

@@ -3,7 +3,7 @@
 <Installer>
     <Name>Pep9Micro</Name>
         <!--Installer Version number, not the application version number-->
-    <Version>9.3.0</Version>
+    <Version>9.4.2</Version>
         <!--Window title of the installer-->
     <Title>Pep9 Micro Installer</Title>
     <Publisher>Pepperdine University</Publisher>
