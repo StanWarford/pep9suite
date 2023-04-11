@@ -1565,7 +1565,7 @@ void AsmMainWindow::on_actionSystem_Assemble_Install_New_OS_triggered()
 {
     ui->assemblerPane->removeErrorMessages();
     auto out = AsmOutput();
-    out.success = assembler.assembleUserProgram(ui->assemblerPane->getPaneContents(PepCore::EPane::ESource), out.prog, out.errors);
+    out.success = assembler.assembleOperatingSystem(ui->assemblerPane->getPaneContents(PepCore::EPane::ESource), false, out.prog, out.errors);
     if(out.errors.size() != 0) {
         ui->assemblerPane->addErrorsToSource(out.errors);
     }
